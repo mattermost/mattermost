@@ -1,27 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {ServerError} from '@mattermost/types/errors';
-import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
+import type { Channel, ChannelMembership } from "@mattermost/types/channels";
+import type { ServerError } from "@mattermost/types/errors";
+import type {
+    UserProfile,
+    UsersStats,
+    GetFilteredUsersStatsOpts,
+} from "@mattermost/types/users";
 
-import GeneralConstants from 'mattermost-redux/constants/general';
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import GeneralConstants from "mattermost-redux/constants/general";
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
+import { trackEvent } from "actions/telemetry_actions.jsx";
 
-import type {FilterOptions} from 'components/admin_console/filter/filter';
-import UserGrid from 'components/admin_console/user_grid/user_grid';
-import type {BaseMembership} from 'components/admin_console/user_grid/user_grid_role_dropdown';
-import ChannelInviteModal from 'components/channel_invite_modal';
-import ToggleModalButton from 'components/toggle_modal_button';
-import AdminPanel from 'components/widgets/admin_console/admin_panel';
+import type { FilterOptions } from "components/admin_console/filter/filter";
+import UserGrid from "components/admin_console/user_grid/user_grid";
+import type { BaseMembership } from "components/admin_console/user_grid/user_grid_role_dropdown";
+import ChannelInviteModal from "components/channel_invite_modal";
+import ToggleModalButton from "components/toggle_modal_button";
+import AdminPanel from "components/widgets/admin_console/admin_panel";
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
+import Constants, { ModalIdentifiers } from "utils/constants";
+import { t } from "utils/i18n";
 
 type Props = {
     channelId: string;
@@ -40,7 +44,11 @@ type Props = {
 
     onAddCallback: (users: UserProfile[]) => void;
     onRemoveCallback: (user: UserProfile) => void;
-    updateRole: (userId: string, schemeUser: boolean, schemeAdmin: boolean) => void;
+    updateRole: (
+        userId: string,
+        schemeUser: boolean,
+        schemeAdmin: boolean,
+    ) => void;
 
     isDisabled?: boolean;
 
@@ -48,10 +56,19 @@ type Props = {
         getChannelStats: (channelId: string) => Promise<{
             data: boolean;
         }>;
-        loadProfilesAndReloadChannelMembers: (page: number, perPage: number, channelId?: string, sort?: string, options?: {[key: string]: any}) => Promise<{
+        loadProfilesAndReloadChannelMembers: (
+            page: number,
+            perPage: number,
+            channelId?: string,
+            sort?: string,
+            options?: { [key: string]: any },
+        ) => Promise<{
             data: boolean;
         }>;
-        searchProfilesAndChannelMembers: (term: string, options?: {[key: string]: any}) => Promise<{
+        searchProfilesAndChannelMembers: (
+            term: string,
+            options?: { [key: string]: any },
+        ) => Promise<{
             data: boolean;
         }>;
         getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{
@@ -59,13 +76,15 @@ type Props = {
             error?: ServerError;
         }>;
         setUserGridSearch: (term: string) => ActionResult;
-        setUserGridFilters: (filters: GetFilteredUsersStatsOpts) => ActionResult;
+        setUserGridFilters: (
+            filters: GetFilteredUsersStatsOpts,
+        ) => ActionResult;
     };
-}
+};
 
 type State = {
     loading: boolean;
-}
+};
 
 const PROFILE_CHUNK_SIZE = 10;
 
@@ -83,57 +102,87 @@ export default class ChannelMembers extends React.PureComponent<Props, State> {
     }
 
     public componentDidMount() {
-        const {channelId} = this.props;
-        const {loadProfilesAndReloadChannelMembers, getChannelStats, setUserGridSearch, setUserGridFilters} = this.props.actions;
+        const { channelId } = this.props;
+        const {
+            loadProfilesAndReloadChannelMembers,
+            getChannelStats,
+            setUserGridSearch,
+            setUserGridFilters,
+        } = this.props.actions;
         Promise.all([
-            setUserGridSearch(''),
+            setUserGridSearch(""),
             setUserGridFilters({}),
             getChannelStats(channelId),
-            loadProfilesAndReloadChannelMembers(0, PROFILE_CHUNK_SIZE * 2, channelId, '', {active: true}),
+            loadProfilesAndReloadChannelMembers(
+                0,
+                PROFILE_CHUNK_SIZE * 2,
+                channelId,
+                "",
+                { active: true },
+            ),
         ]).then(() => this.setStateLoading(false));
     }
 
     public async componentDidUpdate(prevProps: Props) {
-        const filtersModified = JSON.stringify(prevProps.filters) !== JSON.stringify(this.props.filters);
-        const searchTermModified = prevProps.searchTerm !== this.props.searchTerm;
+        const filtersModified =
+            JSON.stringify(prevProps.filters) !==
+            JSON.stringify(this.props.filters);
+        const searchTermModified =
+            prevProps.searchTerm !== this.props.searchTerm;
         if (filtersModified || searchTermModified) {
             this.setStateLoading(true);
             clearTimeout(this.searchTimeoutId);
-            const {searchTerm, filters} = this.props;
+            const { searchTerm, filters } = this.props;
 
-            if (searchTerm === '') {
+            if (searchTerm === "") {
                 this.searchTimeoutId = 0;
                 if (filtersModified) {
-                    await prevProps.actions.loadProfilesAndReloadChannelMembers(0, PROFILE_CHUNK_SIZE * 2, prevProps.channelId, '', {active: true, ...filters});
+                    await prevProps.actions.loadProfilesAndReloadChannelMembers(
+                        0,
+                        PROFILE_CHUNK_SIZE * 2,
+                        prevProps.channelId,
+                        "",
+                        { active: true, ...filters },
+                    );
                 }
                 this.setStateLoading(false);
                 return;
             }
 
-            const searchTimeoutId = window.setTimeout(
-                async () => {
-                    await prevProps.actions.searchProfilesAndChannelMembers(searchTerm, {...filters, in_channel_id: this.props.channelId, allow_inactive: false});
+            const searchTimeoutId = window.setTimeout(async () => {
+                await prevProps.actions.searchProfilesAndChannelMembers(
+                    searchTerm,
+                    {
+                        ...filters,
+                        in_channel_id: this.props.channelId,
+                        allow_inactive: false,
+                    },
+                );
 
-                    if (searchTimeoutId !== this.searchTimeoutId) {
-                        return;
-                    }
-                    this.setStateLoading(false);
-                },
-                Constants.SEARCH_TIMEOUT_MILLISECONDS,
-            );
+                if (searchTimeoutId !== this.searchTimeoutId) {
+                    return;
+                }
+                this.setStateLoading(false);
+            }, Constants.SEARCH_TIMEOUT_MILLISECONDS);
 
             this.searchTimeoutId = searchTimeoutId;
         }
     }
 
     private setStateLoading = (loading: boolean) => {
-        this.setState({loading});
+        this.setState({ loading });
     };
 
     private loadPage = async (page: number) => {
-        const {loadProfilesAndReloadChannelMembers} = this.props.actions;
-        const {channelId, filters} = this.props;
-        await loadProfilesAndReloadChannelMembers(page + 1, PROFILE_CHUNK_SIZE, channelId, '', {active: true, ...filters});
+        const { loadProfilesAndReloadChannelMembers } = this.props.actions;
+        const { channelId, filters } = this.props;
+        await loadProfilesAndReloadChannelMembers(
+            page + 1,
+            PROFILE_CHUNK_SIZE,
+            channelId,
+            "",
+            { active: true, ...filters },
+        );
     };
 
     private removeUser = (user: UserProfile) => {
@@ -149,7 +198,11 @@ export default class ChannelMembers extends React.PureComponent<Props, State> {
     };
 
     private updateMembership = (membership: BaseMembership) => {
-        this.props.updateRole(membership.user_id, membership.scheme_user, membership.scheme_admin);
+        this.props.updateRole(
+            membership.user_id,
+            membership.scheme_user,
+            membership.scheme_admin,
+        );
     };
 
     private onFilter = async (filterOptions: FilterOptions) => {
@@ -159,7 +212,7 @@ export default class ChannelMembers extends React.PureComponent<Props, State> {
         let filters = {};
         Object.keys(roles).forEach((filterKey: string) => {
             if (roles[filterKey].value) {
-                if (filterKey.includes('channel')) {
+                if (filterKey.includes("channel")) {
                     channelRoles.push(filterKey);
                 } else {
                     systemRoles.push(filterKey);
@@ -169,38 +222,56 @@ export default class ChannelMembers extends React.PureComponent<Props, State> {
 
         if (systemRoles.length > 0 || channelRoles.length > 0) {
             if (systemRoles.length > 0) {
-                filters = {roles: systemRoles};
+                filters = { roles: systemRoles };
             }
             if (channelRoles.length > 0) {
-                filters = {...filters, channel_roles: channelRoles};
+                filters = { ...filters, channel_roles: channelRoles };
             }
             [...systemRoles, ...channelRoles].forEach((role) => {
-                trackEvent('admin_channel_config_page', `${role}_filter_applied_to_members_block`, {channel_id: this.props.channelId});
+                trackEvent(
+                    "admin_channel_config_page",
+                    `${role}_filter_applied_to_members_block`,
+                    { channel_id: this.props.channelId },
+                );
             });
 
             this.props.actions.setUserGridFilters(filters);
-            this.props.actions.getFilteredUsersStats({in_channel: this.props.channelId, include_bots: true, ...filters});
+            this.props.actions.getFilteredUsersStats({
+                in_channel: this.props.channelId,
+                include_bots: true,
+                ...filters,
+            });
         } else {
             this.props.actions.setUserGridFilters(filters);
         }
     };
 
     render = () => {
-        const {users, channel, channelId, usersToAdd, usersToRemove, channelMembers, totalCount, searchTerm, isDisabled} = this.props;
+        const {
+            users,
+            channel,
+            channelId,
+            usersToAdd,
+            usersToRemove,
+            channelMembers,
+            totalCount,
+            searchTerm,
+            isDisabled,
+        } = this.props;
         const filterOptions: FilterOptions = {
             role: {
                 name: (
                     <FormattedMessage
-                        id='admin.user_grid.role'
-                        defaultMessage='Role'
+                        id="admin.user_grid.role"
+                        defaultMessage="Role"
                     />
                 ),
                 values: {
                     [GeneralConstants.SYSTEM_GUEST_ROLE]: {
                         name: (
                             <FormattedMessage
-                                id='admin.user_grid.guest'
-                                defaultMessage='Guest'
+                                id="admin.user_grid.guest"
+                                defaultMessage="Guest"
                             />
                         ),
                         value: false,
@@ -208,8 +279,8 @@ export default class ChannelMembers extends React.PureComponent<Props, State> {
                     [GeneralConstants.CHANNEL_USER_ROLE]: {
                         name: (
                             <FormattedMessage
-                                id='admin.user_item.member'
-                                defaultMessage='Member'
+                                id="admin.user_item.member"
+                                defaultMessage="Member"
                             />
                         ),
                         value: false,
@@ -217,8 +288,8 @@ export default class ChannelMembers extends React.PureComponent<Props, State> {
                     [GeneralConstants.CHANNEL_ADMIN_ROLE]: {
                         name: (
                             <FormattedMessage
-                                id='admin.user_grid.channel_admin'
-                                defaultMessage='Channel Admin'
+                                id="admin.user_grid.channel_admin"
+                                defaultMessage="Channel Admin"
                             />
                         ),
                         value: false,
@@ -226,38 +297,53 @@ export default class ChannelMembers extends React.PureComponent<Props, State> {
                     [GeneralConstants.SYSTEM_ADMIN_ROLE]: {
                         name: (
                             <FormattedMessage
-                                id='admin.user_grid.system_admin'
-                                defaultMessage='System Admin'
+                                id="admin.user_grid.system_admin"
+                                defaultMessage="System Admin"
                             />
                         ),
                         value: false,
                     },
                 },
-                keys: [GeneralConstants.SYSTEM_GUEST_ROLE, GeneralConstants.CHANNEL_USER_ROLE, GeneralConstants.CHANNEL_ADMIN_ROLE, GeneralConstants.SYSTEM_ADMIN_ROLE],
+                keys: [
+                    GeneralConstants.SYSTEM_GUEST_ROLE,
+                    GeneralConstants.CHANNEL_USER_ROLE,
+                    GeneralConstants.CHANNEL_ADMIN_ROLE,
+                    GeneralConstants.SYSTEM_ADMIN_ROLE,
+                ],
             },
         };
 
         if (!this.props.enableGuestAccounts) {
-            delete filterOptions.role.values[GeneralConstants.SYSTEM_GUEST_ROLE];
-            filterOptions.role.keys = [GeneralConstants.CHANNEL_USER_ROLE, GeneralConstants.CHANNEL_ADMIN_ROLE, GeneralConstants.SYSTEM_ADMIN_ROLE];
+            delete filterOptions.role.values[
+                GeneralConstants.SYSTEM_GUEST_ROLE
+            ];
+            filterOptions.role.keys = [
+                GeneralConstants.CHANNEL_USER_ROLE,
+                GeneralConstants.CHANNEL_ADMIN_ROLE,
+                GeneralConstants.SYSTEM_ADMIN_ROLE,
+            ];
         }
         const filterProps = {
             options: filterOptions,
-            keys: ['role'],
+            keys: ["role"],
             onFilter: this.onFilter,
         };
 
         return (
             <AdminPanel
-                id='channelMembers'
-                titleId={t('admin.channel_settings.channel_detail.membersTitle')}
-                titleDefault='Members'
-                subtitleId={t('admin.channel_settings.channel_detail.membersDescription')}
-                subtitleDefault='A list of users who are currently in the channel right now'
+                id="channelMembers"
+                titleId={t(
+                    "admin.channel_settings.channel_detail.membersTitle",
+                )}
+                titleDefault="Members"
+                subtitleId={t(
+                    "admin.channel_settings.channel_detail.membersDescription",
+                )}
+                subtitleDefault="A list of users who are currently in the channel right now"
                 button={
                     <ToggleModalButton
-                        id='addChannelMembers'
-                        className='btn btn-primary'
+                        id="addChannelMembers"
+                        className="btn btn-primary"
                         modalId={ModalIdentifiers.CHANNEL_INVITE}
                         dialogType={ChannelInviteModal}
                         disabled={isDisabled}
@@ -272,8 +358,8 @@ export default class ChannelMembers extends React.PureComponent<Props, State> {
                         }}
                     >
                         <FormattedMessage
-                            id='admin.team_settings.team_details.add_members'
-                            defaultMessage='Add Members'
+                            id="admin.team_settings.team_details.add_members"
+                            defaultMessage="Add Members"
                         />
                     </ToggleModalButton>
                 }
@@ -290,7 +376,7 @@ export default class ChannelMembers extends React.PureComponent<Props, State> {
                     includeUsers={usersToAdd}
                     excludeUsers={usersToRemove}
                     term={searchTerm}
-                    scope={'channel'}
+                    scope={"channel"}
                     readOnly={isDisabled}
                     filterProps={filterProps}
                 />

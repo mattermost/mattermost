@@ -1,35 +1,46 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import {
+    getCurrentUser,
+    getCurrentUserId,
+} from "mattermost-redux/selectors/entities/common";
+import {
+    getCurrentTeamId,
+    getTeam,
+} from "mattermost-redux/selectors/entities/teams";
+import type {
+    DispatchFunc,
+    GetStateFunc,
+} from "mattermost-redux/types/actions";
 
-import {getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
-import LocalStorageStore from 'stores/local_storage_store';
+import { getTeamRedirectChannelIfIsAccesible } from "actions/global_actions";
+import LocalStorageStore from "stores/local_storage_store";
 
-import InvitationModal from 'components/invitation_modal';
+import InvitationModal from "components/invitation_modal";
 
-import {getHistory} from 'utils/browser_history';
-import {ActionTypes, Constants, ModalIdentifiers} from 'utils/constants';
+import { getHistory } from "utils/browser_history";
+import { ActionTypes, Constants, ModalIdentifiers } from "utils/constants";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import {openModal} from './modals';
+import { openModal } from "./modals";
 
 export function switchToChannels() {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
         const currentUserId = getCurrentUserId(state);
         const user = getCurrentUser(state);
-        const teamId = getCurrentTeamId(state) || LocalStorageStore.getPreviousTeamId(currentUserId);
-        const team = getTeam(state, teamId || '');
+        const teamId =
+            getCurrentTeamId(state) ||
+            LocalStorageStore.getPreviousTeamId(currentUserId);
+        const team = getTeam(state, teamId || "");
 
         const channel = await getTeamRedirectChannelIfIsAccesible(user, team);
         const channelName = channel?.name || Constants.DEFAULT_CHANNEL;
 
         getHistory().push(`/${team.name}/channels/${channelName}`);
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -37,14 +48,15 @@ export function openInvitationsModal(timeout = 1) {
     return (dispatch: DispatchFunc) => {
         dispatch(switchToChannels());
         setTimeout(() => {
-            dispatch(openModal({
-                modalId: ModalIdentifiers.INVITATION,
-                dialogType: InvitationModal,
-                dialogProps: {
-                },
-            }));
+            dispatch(
+                openModal({
+                    modalId: ModalIdentifiers.INVITATION,
+                    dialogType: InvitationModal,
+                    dialogProps: {},
+                }),
+            );
         }, timeout);
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -68,4 +80,3 @@ export function setShowOnboardingVisitConsoleTour(open: boolean) {
         open,
     };
 }
-

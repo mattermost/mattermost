@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {FileInfo} from '@mattermost/types/files';
+import type { FileInfo } from "@mattermost/types/files";
 
-import {Client4} from 'mattermost-redux/client';
+import { Client4 } from "mattermost-redux/client";
 
-import {Files, General} from '../constants';
+import { Files, General } from "../constants";
 
 export function getFormattedFileSize(file: FileInfo): string {
     const bytes = file.size;
     const fileSizes = [
-        ['TB', 1024 * 1024 * 1024 * 1024],
-        ['GB', 1024 * 1024 * 1024],
-        ['MB', 1024 * 1024],
-        ['KB', 1024],
+        ["TB", 1024 * 1024 * 1024 * 1024],
+        ["GB", 1024 * 1024 * 1024],
+        ["MB", 1024 * 1024],
+        ["KB", 1024],
     ];
     const size = fileSizes.find((unitAndMinBytes) => {
         const minBytes = unitAndMinBytes[1];
@@ -29,27 +29,29 @@ export function getFormattedFileSize(file: FileInfo): string {
 
 export function getFileType(file: FileInfo): string {
     if (!file || !file.extension) {
-        return 'other';
+        return "other";
     }
 
     const fileExt = file.extension.toLowerCase();
     const fileTypes = [
-        'image',
-        'code',
-        'pdf',
-        'video',
-        'audio',
-        'spreadsheet',
-        'text',
-        'word',
-        'presentation',
-        'patch',
+        "image",
+        "code",
+        "pdf",
+        "video",
+        "audio",
+        "spreadsheet",
+        "text",
+        "word",
+        "presentation",
+        "patch",
     ];
-    return fileTypes.find((fileType) => {
-        const constForFileTypeExtList = `${fileType}_types`.toUpperCase();
-        const fileTypeExts = Files[constForFileTypeExtList];
-        return fileTypeExts.indexOf(fileExt) > -1;
-    }) || 'other';
+    return (
+        fileTypes.find((fileType) => {
+            const constForFileTypeExtList = `${fileType}_types`.toUpperCase();
+            const fileTypeExts = Files[constForFileTypeExtList];
+            return fileTypeExts.indexOf(fileExt) > -1;
+        }) || "other"
+    );
 }
 
 export function getFileUrl(fileId: string): string {
@@ -75,12 +77,15 @@ export function getFileMiniPreviewUrl(fileInfo?: FileInfo): string | undefined {
     return `data:${fileInfo.mime_type};base64,${fileInfo.mini_preview}`;
 }
 
-export function sortFileInfos(fileInfos: FileInfo[] = [], locale: string = General.DEFAULT_LOCALE): FileInfo[] {
+export function sortFileInfos(
+    fileInfos: FileInfo[] = [],
+    locale: string = General.DEFAULT_LOCALE,
+): FileInfo[] {
     return fileInfos.sort((a, b) => {
         if (a.create_at !== b.create_at) {
             return a.create_at - b.create_at;
         }
 
-        return a.name.localeCompare(b.name, locale, {numeric: true});
+        return a.name.localeCompare(b.name, locale, { numeric: true });
     });
 }

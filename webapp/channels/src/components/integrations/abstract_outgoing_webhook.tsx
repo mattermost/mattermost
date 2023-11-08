@@ -1,23 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ChangeEventHandler, FormEvent, MouseEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
-import {Link} from 'react-router-dom';
+import React from "react";
+import type { ChangeEventHandler, FormEvent, MouseEvent } from "react";
+import { FormattedMessage } from "react-intl";
+import type { MessageDescriptor } from "react-intl";
+import { Link } from "react-router-dom";
 
-import type {OutgoingWebhook} from '@mattermost/types/integrations';
-import type {Team} from '@mattermost/types/teams';
+import type { OutgoingWebhook } from "@mattermost/types/integrations";
+import type { Team } from "@mattermost/types/teams";
 
-import BackstageHeader from 'components/backstage/components/backstage_header';
-import ChannelSelect from 'components/channel_select';
-import ExternalLink from 'components/external_link';
-import FormError from 'components/form_error';
-import SpinnerButton from 'components/spinner_button';
+import BackstageHeader from "components/backstage/components/backstage_header";
+import ChannelSelect from "components/channel_select";
+import ExternalLink from "components/external_link";
+import FormError from "components/form_error";
+import SpinnerButton from "components/spinner_button";
 
-import {DocLinks} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
+import { DocLinks } from "utils/constants";
+import { localizeMessage } from "utils/utils";
 
 interface State {
     callbackUrls: string;
@@ -34,7 +34,6 @@ interface State {
 }
 
 interface Props {
-
     /**
      * The current team
      */
@@ -51,8 +50,8 @@ interface Props {
     footer: MessageDescriptor;
 
     /**
-    * The spinner loading text to render, has id and defaultMessage
-    */
+     * The spinner loading text to render, has id and defaultMessage
+     */
     loading: MessageDescriptor;
 
     /**
@@ -86,7 +85,10 @@ interface Props {
     enablePostIconOverride: boolean;
 }
 
-export default class AbstractOutgoingWebhook extends React.PureComponent<Props, State> {
+export default class AbstractOutgoingWebhook extends React.PureComponent<
+    Props,
+    State
+> {
     constructor(props: Props | Readonly<Props>) {
         super(props);
 
@@ -94,38 +96,41 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
     }
 
     getStateFromHook = (hook?: OutgoingWebhook) => {
-        let triggerWords = '';
+        let triggerWords = "";
         if (hook?.trigger_words) {
             let i = 0;
             for (i = 0; i < hook.trigger_words.length; i++) {
-                triggerWords += hook.trigger_words[i] + '\n';
+                triggerWords += hook.trigger_words[i] + "\n";
             }
         }
 
-        let callbackUrls = '';
+        let callbackUrls = "";
         if (hook?.callback_urls) {
             let i = 0;
             for (i = 0; i < hook.callback_urls.length; i++) {
-                callbackUrls += hook.callback_urls[i] + '\n';
+                callbackUrls += hook.callback_urls[i] + "\n";
             }
         }
 
         return {
-            displayName: hook?.display_name || '',
-            description: hook?.description || '',
-            contentType: hook?.content_type || 'application/x-www-form-urlencoded',
-            channelId: hook?.channel_id || '',
+            displayName: hook?.display_name || "",
+            description: hook?.description || "",
+            contentType:
+                hook?.content_type || "application/x-www-form-urlencoded",
+            channelId: hook?.channel_id || "",
             triggerWords,
             triggerWhen: hook?.trigger_when || 0,
             callbackUrls,
             saving: false,
             clientError: null,
-            username: hook?.username || '',
-            iconURL: hook?.icon_url || '',
+            username: hook?.username || "",
+            iconURL: hook?.icon_url || "",
         };
     };
 
-    handleSubmit = (e: MouseEvent<HTMLElement> | FormEvent<HTMLFormElement>) => {
+    handleSubmit = (
+        e: MouseEvent<HTMLElement> | FormEvent<HTMLFormElement>,
+    ) => {
         e.preventDefault();
 
         if (this.state.saving) {
@@ -139,7 +144,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
 
         const triggerWords = [];
         if (this.state.triggerWords) {
-            for (let triggerWord of this.state.triggerWords.split('\n')) {
+            for (let triggerWord of this.state.triggerWords.split("\n")) {
                 triggerWord = triggerWord.trim();
 
                 if (triggerWord.length > 0) {
@@ -153,8 +158,8 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                 saving: false,
                 clientError: (
                     <FormattedMessage
-                        id='add_outgoing_webhook.triggerWordsOrChannelRequired'
-                        defaultMessage='A valid channel or a list of trigger words is required'
+                        id="add_outgoing_webhook.triggerWordsOrChannelRequired"
+                        defaultMessage="A valid channel or a list of trigger words is required"
                     />
                 ),
             });
@@ -163,7 +168,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
         }
 
         const callbackUrls = [];
-        for (let callbackUrl of this.state.callbackUrls.split('\n')) {
+        for (let callbackUrl of this.state.callbackUrls.split("\n")) {
             callbackUrl = callbackUrl.trim();
 
             if (callbackUrl.length > 0) {
@@ -176,8 +181,8 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                 saving: false,
                 clientError: (
                     <FormattedMessage
-                        id='add_outgoing_webhook.callbackUrlsRequired'
-                        defaultMessage='One or more callback URLs are required'
+                        id="add_outgoing_webhook.callbackUrlsRequired"
+                        defaultMessage="One or more callback URLs are required"
                     />
                 ),
             });
@@ -196,15 +201,15 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
             description: this.state.description,
             username: this.state.username,
             icon_url: this.state.iconURL,
-            id: this.props.initialHook?.id || '',
+            id: this.props.initialHook?.id || "",
             create_at: this.props.initialHook?.create_at || 0,
             update_at: this.props.initialHook?.update_at || 0,
             delete_at: this.props.initialHook?.delete_at || 0,
-            creator_id: this.props.initialHook?.creator_id || '',
-            token: this.props.initialHook?.token || '',
+            creator_id: this.props.initialHook?.creator_id || "",
+            token: this.props.initialHook?.token || "",
         };
 
-        this.props.action(hook).then(() => this.setState({saving: false}));
+        this.props.action(hook).then(() => this.setState({ saving: false }));
     };
 
     updateDisplayName: ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -262,20 +267,22 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
     };
 
     render() {
-        const contentTypeOption1 = 'application/x-www-form-urlencoded';
-        const contentTypeOption2 = 'application/json';
+        const contentTypeOption1 = "application/x-www-form-urlencoded";
+        const contentTypeOption2 = "application/json";
 
         const headerToRender = this.props.header;
         const footerToRender = this.props.footer;
         const renderExtra = this.props.renderExtra;
 
         return (
-            <div className='backstage-content'>
+            <div className="backstage-content">
                 <BackstageHeader>
-                    <Link to={`/${this.props.team.name}/integrations/outgoing_webhooks`}>
+                    <Link
+                        to={`/${this.props.team.name}/integrations/outgoing_webhooks`}
+                    >
                         <FormattedMessage
-                            id='add_outgoing_webhook.header'
-                            defaultMessage='Outgoing Webhooks'
+                            id="add_outgoing_webhook.header"
+                            defaultMessage="Outgoing Webhooks"
                         />
                     </Link>
                     <FormattedMessage
@@ -283,123 +290,119 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                         defaultMessage={headerToRender.defaultMessage}
                     />
                 </BackstageHeader>
-                <div className='backstage-form'>
+                <div className="backstage-form">
                     <form
-                        className='form-horizontal'
+                        className="form-horizontal"
                         onSubmit={this.handleSubmit}
                     >
-                        <div className='form-group'>
+                        <div className="form-group">
                             <label
-                                className='control-label col-sm-4'
-                                htmlFor='displayName'
+                                className="control-label col-sm-4"
+                                htmlFor="displayName"
                             >
                                 <FormattedMessage
-                                    id='add_outgoing_webhook.displayName'
-                                    defaultMessage='Title'
+                                    id="add_outgoing_webhook.displayName"
+                                    defaultMessage="Title"
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-8'>
+                            <div className="col-md-5 col-sm-8">
                                 <input
-                                    id='displayName'
-                                    type='text'
+                                    id="displayName"
+                                    type="text"
                                     maxLength={64}
-                                    className='form-control'
+                                    className="form-control"
                                     value={this.state.displayName}
                                     onChange={this.updateDisplayName}
                                 />
-                                <div className='form__help'>
+                                <div className="form__help">
                                     <FormattedMessage
-                                        id='add_outgoing_webhook.displayName.help'
-                                        defaultMessage='Specify a title, of up to 64 characters, for the webhook settings page.'
+                                        id="add_outgoing_webhook.displayName.help"
+                                        defaultMessage="Specify a title, of up to 64 characters, for the webhook settings page."
                                     />
                                 </div>
                             </div>
                         </div>
-                        <div className='form-group'>
+                        <div className="form-group">
                             <label
-                                className='control-label col-sm-4'
-                                htmlFor='description'
+                                className="control-label col-sm-4"
+                                htmlFor="description"
                             >
                                 <FormattedMessage
-                                    id='add_outgoing_webhook.description'
-                                    defaultMessage='Description'
+                                    id="add_outgoing_webhook.description"
+                                    defaultMessage="Description"
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-8'>
+                            <div className="col-md-5 col-sm-8">
                                 <input
-                                    id='description'
-                                    type='text'
+                                    id="description"
+                                    type="text"
                                     maxLength={500}
-                                    className='form-control'
+                                    className="form-control"
                                     value={this.state.description}
                                     onChange={this.updateDescription}
                                 />
-                                <div className='form__help'>
+                                <div className="form__help">
                                     <FormattedMessage
-                                        id='add_outgoing_webhook.description.help'
-                                        defaultMessage='Describe your outgoing webhook.'
+                                        id="add_outgoing_webhook.description.help"
+                                        defaultMessage="Describe your outgoing webhook."
                                     />
                                 </div>
                             </div>
                         </div>
-                        <div className='form-group'>
+                        <div className="form-group">
                             <label
-                                className='control-label col-sm-4'
-                                htmlFor='contentType'
+                                className="control-label col-sm-4"
+                                htmlFor="contentType"
                             >
                                 <FormattedMessage
-                                    id='add_outgoing_webhook.content_Type'
-                                    defaultMessage='Content Type'
+                                    id="add_outgoing_webhook.content_Type"
+                                    defaultMessage="Content Type"
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-8'>
+                            <div className="col-md-5 col-sm-8">
                                 <select
-                                    className='form-control'
+                                    className="form-control"
                                     value={this.state.contentType}
                                     onChange={this.updateContentType}
                                 >
-                                    <option
-                                        value={contentTypeOption1}
-                                    >
+                                    <option value={contentTypeOption1}>
                                         {contentTypeOption1}
                                     </option>
-                                    <option
-                                        value={contentTypeOption2}
-                                    >
+                                    <option value={contentTypeOption2}>
                                         {contentTypeOption2}
                                     </option>
                                 </select>
-                                <div className='form__help'>
+                                <div className="form__help">
                                     <FormattedMessage
-                                        id='add_outgoing_webhook.contentType.help1'
-                                        defaultMessage='Specify the content type by which to send the request.'
+                                        id="add_outgoing_webhook.contentType.help1"
+                                        defaultMessage="Specify the content type by which to send the request."
                                     />
                                 </div>
-                                <div className='form__help'>
+                                <div className="form__help">
                                     <FormattedMessage
-                                        id='add_outgoing_webhook.contentType.help2'
-                                        defaultMessage='For the server to encode the parameters in a URL format in the request body, select application/x-www-form-urlencoded.'
+                                        id="add_outgoing_webhook.contentType.help2"
+                                        defaultMessage="For the server to encode the parameters in a URL format in the request body, select application/x-www-form-urlencoded."
                                     />
                                 </div>
-                                <div className='form__help'>
+                                <div className="form__help">
                                     <FormattedMessage
-                                        id='add_outgoing_webhook.contentType.help3'
-                                        defaultMessage='For the server to format the request body as JSON, select application/json.'
+                                        id="add_outgoing_webhook.contentType.help3"
+                                        defaultMessage="For the server to format the request body as JSON, select application/json."
                                     />
                                 </div>
                             </div>
                         </div>
-                        <div className='form-group'>
+                        <div className="form-group">
                             <label
-                                className='control-label col-sm-4'
-                                htmlFor='channelId'
+                                className="control-label col-sm-4"
+                                htmlFor="channelId"
                             >
                                 <FormattedMessage
-                                    id='add_outgoing_webhook.channel'
-                                    defaultMessage='Channel'
+                                    id="add_outgoing_webhook.channel"
+                                    defaultMessage="Channel"
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-8'>
+                            <div className="col-md-5 col-sm-8">
                                 <ChannelSelect
                                     value={this.state.channelId}
                                     onChange={this.updateChannelId}
@@ -407,109 +410,113 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                     selectPrivate={false}
                                     selectDm={false}
                                 />
-                                <div className='form__help'>
+                                <div className="form__help">
                                     <FormattedMessage
-                                        id='add_outgoing_webhook.channel.help'
-                                        defaultMessage='This field is optional if you specify at least one trigger word. Specify the public channel that delivers the payload to the webhook.'
+                                        id="add_outgoing_webhook.channel.help"
+                                        defaultMessage="This field is optional if you specify at least one trigger word. Specify the public channel that delivers the payload to the webhook."
                                     />
                                 </div>
                             </div>
                         </div>
-                        <div className='form-group'>
+                        <div className="form-group">
                             <label
-                                className='control-label col-sm-4'
-                                htmlFor='triggerWords'
+                                className="control-label col-sm-4"
+                                htmlFor="triggerWords"
                             >
                                 <FormattedMessage
-                                    id='add_outgoing_webhook.triggerWords'
-                                    defaultMessage='Trigger Words (One Per Line)'
+                                    id="add_outgoing_webhook.triggerWords"
+                                    defaultMessage="Trigger Words (One Per Line)"
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-8'>
+                            <div className="col-md-5 col-sm-8">
                                 <textarea
-                                    id='triggerWords'
+                                    id="triggerWords"
                                     rows={3}
                                     maxLength={1000}
-                                    className='form-control'
+                                    className="form-control"
                                     value={this.state.triggerWords}
                                     onChange={this.updateTriggerWords}
                                 />
-                                <div className='form__help'>
+                                <div className="form__help">
                                     <FormattedMessage
-                                        id='add_outgoing_webhook.triggerWords.help'
-                                        defaultMessage='Specify the trigger words that send an HTTP POST request to your application. The trigger can be for the channel, the outgoing webhook, or both. If you select only Channel, trigger words are optional. If you select both, the message must match both values.'
+                                        id="add_outgoing_webhook.triggerWords.help"
+                                        defaultMessage="Specify the trigger words that send an HTTP POST request to your application. The trigger can be for the channel, the outgoing webhook, or both. If you select only Channel, trigger words are optional. If you select both, the message must match both values."
                                     />
                                 </div>
                             </div>
                         </div>
-                        <div className='form-group'>
+                        <div className="form-group">
                             <label
-                                className='control-label col-sm-4'
-                                htmlFor='triggerWords'
+                                className="control-label col-sm-4"
+                                htmlFor="triggerWords"
                             >
                                 <FormattedMessage
-                                    id='add_outgoing_webhook.triggerWordsTriggerWhen'
-                                    defaultMessage='Trigger When'
+                                    id="add_outgoing_webhook.triggerWordsTriggerWhen"
+                                    defaultMessage="Trigger When"
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-8'>
+                            <div className="col-md-5 col-sm-8">
                                 <select
-                                    id='triggerWhen'
-                                    className='form-control'
+                                    id="triggerWhen"
+                                    className="form-control"
                                     value={this.state.triggerWhen}
                                     onChange={this.updateTriggerWhen}
                                 >
-                                    <option
-                                        value='0'
-                                    >
-                                        {localizeMessage('add_outgoing_webhook.triggerWordsTriggerWhenFullWord', 'First word matches a trigger word exactly')}
+                                    <option value="0">
+                                        {localizeMessage(
+                                            "add_outgoing_webhook.triggerWordsTriggerWhenFullWord",
+                                            "First word matches a trigger word exactly",
+                                        )}
                                     </option>
-                                    <option
-                                        value='1'
-                                    >
-                                        {localizeMessage('add_outgoing_webhook.triggerWordsTriggerWhenStartsWith', 'First word starts with a trigger word')}
+                                    <option value="1">
+                                        {localizeMessage(
+                                            "add_outgoing_webhook.triggerWordsTriggerWhenStartsWith",
+                                            "First word starts with a trigger word",
+                                        )}
                                     </option>
                                 </select>
-                                <div className='form__help'>
+                                <div className="form__help">
                                     <FormattedMessage
-                                        id='add_outgoing_webhook.triggerWordsTriggerWhen.help'
-                                        defaultMessage='Specify when to trigger the outgoing webhook.'
+                                        id="add_outgoing_webhook.triggerWordsTriggerWhen.help"
+                                        defaultMessage="Specify when to trigger the outgoing webhook."
                                     />
                                 </div>
                             </div>
                         </div>
-                        <div className='form-group'>
+                        <div className="form-group">
                             <label
-                                className='control-label col-sm-4'
-                                htmlFor='callbackUrls'
+                                className="control-label col-sm-4"
+                                htmlFor="callbackUrls"
                             >
                                 <FormattedMessage
-                                    id='add_outgoing_webhook.callbackUrls'
-                                    defaultMessage='Callback URLs (One Per Line)'
+                                    id="add_outgoing_webhook.callbackUrls"
+                                    defaultMessage="Callback URLs (One Per Line)"
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-8'>
+                            <div className="col-md-5 col-sm-8">
                                 <textarea
-                                    id='callbackUrls'
+                                    id="callbackUrls"
                                     rows={3}
                                     maxLength={1000}
-                                    className='form-control'
+                                    className="form-control"
                                     value={this.state.callbackUrls}
                                     onChange={this.updateCallbackUrls}
                                 />
-                                <div className='form__help'>
+                                <div className="form__help">
                                     <FormattedMessage
-                                        id='add_outgoing_webhook.callbackUrls.help'
-                                        defaultMessage='Specify the URL that the messages will be sent to. If the URL is private, add it as a {link}.'
+                                        id="add_outgoing_webhook.callbackUrls.help"
+                                        defaultMessage="Specify the URL that the messages will be sent to. If the URL is private, add it as a {link}."
                                         values={{
                                             link: (
                                                 <ExternalLink
-                                                    href={DocLinks.SESSION_LENGTHS}
-                                                    location='abstract_outgoing_webhook'
+                                                    href={
+                                                        DocLinks.SESSION_LENGTHS
+                                                    }
+                                                    location="abstract_outgoing_webhook"
                                                 >
                                                     <FormattedMessage
-                                                        id='add_outgoing_webhook.callbackUrls.helpLinkText'
-                                                        defaultMessage='trusted internal connection'
+                                                        id="add_outgoing_webhook.callbackUrls.helpLinkText"
+                                                        defaultMessage="trusted internal connection"
                                                     />
                                                 </ExternalLink>
                                             ),
@@ -518,89 +525,97 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                 </div>
                             </div>
                         </div>
-                        {this.props.enablePostUsernameOverride &&
-                            <div className='form-group'>
+                        {this.props.enablePostUsernameOverride && (
+                            <div className="form-group">
                                 <label
-                                    className='control-label col-sm-4'
-                                    htmlFor='username'
+                                    className="control-label col-sm-4"
+                                    htmlFor="username"
                                 >
                                     <FormattedMessage
-                                        id='add_outgoing_webhook.username'
-                                        defaultMessage='Username'
+                                        id="add_outgoing_webhook.username"
+                                        defaultMessage="Username"
                                     />
                                 </label>
-                                <div className='col-md-5 col-sm-8'>
+                                <div className="col-md-5 col-sm-8">
                                     <input
-                                        id='username'
-                                        type='text'
+                                        id="username"
+                                        type="text"
                                         maxLength={22}
-                                        className='form-control'
+                                        className="form-control"
                                         value={this.state.username}
                                         onChange={this.updateUsername}
                                     />
-                                    <div className='form__help'>
+                                    <div className="form__help">
                                         <FormattedMessage
-                                            id='add_outgoing_webhook.username.help'
+                                            id="add_outgoing_webhook.username.help"
                                             defaultMessage='Specify the username this integration will post as. Usernames can be up to 22 characters, and contain lowercase letters, numbers and the symbols \"-\", \"_\", and \".\". If left blank, the name specified by the webhook creator is used.'
                                         />
                                     </div>
                                 </div>
                             </div>
-                        }
-                        {this.props.enablePostIconOverride &&
-                            <div className='form-group'>
+                        )}
+                        {this.props.enablePostIconOverride && (
+                            <div className="form-group">
                                 <label
-                                    className='control-label col-sm-4'
-                                    htmlFor='iconURL'
+                                    className="control-label col-sm-4"
+                                    htmlFor="iconURL"
                                 >
                                     <FormattedMessage
-                                        id='add_outgoing_webhook.icon_url'
-                                        defaultMessage='Profile Picture'
+                                        id="add_outgoing_webhook.icon_url"
+                                        defaultMessage="Profile Picture"
                                     />
                                 </label>
-                                <div className='col-md-5 col-sm-8'>
+                                <div className="col-md-5 col-sm-8">
                                     <input
-                                        id='iconURL'
-                                        type='text'
+                                        id="iconURL"
+                                        type="text"
                                         maxLength={1024}
-                                        className='form-control'
+                                        className="form-control"
                                         value={this.state.iconURL}
                                         onChange={this.updateIconURL}
                                     />
-                                    <div className='form__help'>
+                                    <div className="form__help">
                                         <FormattedMessage
-                                            id='add_outgoing_webhook.icon_url.help'
-                                            defaultMessage='Enter the URL of a .png or .jpg file for this integration to use as the profile picture when posting. The file should be at least 128 pixels by 128 pixels. If left blank, the profile picture specified by the webhook creator is used.'
+                                            id="add_outgoing_webhook.icon_url.help"
+                                            defaultMessage="Enter the URL of a .png or .jpg file for this integration to use as the profile picture when posting. The file should be at least 128 pixels by 128 pixels. If left blank, the profile picture specified by the webhook creator is used."
                                         />
                                     </div>
                                 </div>
                             </div>
-                        }
-                        <div className='backstage-form__footer'>
+                        )}
+                        <div className="backstage-form__footer">
                             <FormError
-                                type='backstage'
-                                errors={[this.props.serverError, this.state.clientError]}
+                                type="backstage"
+                                errors={[
+                                    this.props.serverError,
+                                    this.state.clientError,
+                                ]}
                             />
                             <Link
-                                className='btn btn-tertiary'
+                                className="btn btn-tertiary"
                                 to={`/${this.props.team.name}/integrations/outgoing_webhooks`}
                             >
                                 <FormattedMessage
-                                    id='add_outgoing_webhook.cancel'
-                                    defaultMessage='Cancel'
+                                    id="add_outgoing_webhook.cancel"
+                                    defaultMessage="Cancel"
                                 />
                             </Link>
                             <SpinnerButton
-                                className='btn btn-primary'
-                                type='submit'
+                                className="btn btn-primary"
+                                type="submit"
                                 spinning={this.state.saving}
-                                spinningText={localizeMessage(this.props.loading.id as string, this.props.loading.defaultMessage as string)}
+                                spinningText={localizeMessage(
+                                    this.props.loading.id as string,
+                                    this.props.loading.defaultMessage as string,
+                                )}
                                 onClick={this.handleSubmit}
-                                id='saveWebhook'
+                                id="saveWebhook"
                             >
                                 <FormattedMessage
                                     id={footerToRender.id}
-                                    defaultMessage={footerToRender.defaultMessage}
+                                    defaultMessage={
+                                        footerToRender.defaultMessage
+                                    }
                                 />
                             </SpinnerButton>
                             {renderExtra}

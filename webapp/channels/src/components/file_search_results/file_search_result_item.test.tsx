@@ -1,74 +1,74 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import type {ShallowWrapper} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import type { ShallowWrapper } from "enzyme";
+import React from "react";
 
-import type {ChannelType} from '@mattermost/types/channels';
+import type { ChannelType } from "@mattermost/types/channels";
 
-import Constants from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
+import Constants from "utils/constants";
+import { TestHelper } from "utils/test_helper";
 
-import FileSearchResultItem from './file_search_result_item';
+import FileSearchResultItem from "./file_search_result_item";
 
-describe('components/file_search_result/FileSearchResultItem', () => {
+describe("components/file_search_result/FileSearchResultItem", () => {
     const baseProps = {
-        channelId: 'channel_id',
+        channelId: "channel_id",
         fileInfo: TestHelper.getFileInfoMock({}),
-        channelDisplayName: '',
+        channelDisplayName: "",
         channelType: Constants.OPEN_CHANNEL as ChannelType,
-        teamName: 'test-team-name',
+        teamName: "test-team-name",
         onClick: jest.fn(),
         actions: {
             openModal: jest.fn(),
         },
     };
 
-    test('should match snapshot', () => {
+    test("should match snapshot", () => {
         const wrapper: ShallowWrapper<any, any, FileSearchResultItem> = shallow(
-            <FileSearchResultItem {...baseProps}/>,
+            <FileSearchResultItem {...baseProps} />,
         );
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with channel name', () => {
+    test("should match snapshot with channel name", () => {
         const props = {
             ...baseProps,
-            channelDisplayName: 'test',
+            channelDisplayName: "test",
         };
 
         const wrapper: ShallowWrapper<any, any, FileSearchResultItem> = shallow(
-            <FileSearchResultItem {...props}/>,
+            <FileSearchResultItem {...props} />,
         );
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with DM', () => {
+    test("should match snapshot with DM", () => {
         const props = {
             ...baseProps,
-            channelDisplayName: 'test',
+            channelDisplayName: "test",
             channelType: Constants.DM_CHANNEL as ChannelType,
         };
 
         const wrapper: ShallowWrapper<any, any, FileSearchResultItem> = shallow(
-            <FileSearchResultItem {...props}/>,
+            <FileSearchResultItem {...props} />,
         );
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with GM', () => {
+    test("should match snapshot with GM", () => {
         const props = {
             ...baseProps,
-            channelDisplayName: 'test',
+            channelDisplayName: "test",
             channelType: Constants.GM_CHANNEL as ChannelType,
         };
 
         const wrapper: ShallowWrapper<any, any, FileSearchResultItem> = shallow(
-            <FileSearchResultItem {...props}/>,
+            <FileSearchResultItem {...props} />,
         );
 
         expect(wrapper).toMatchSnapshot();

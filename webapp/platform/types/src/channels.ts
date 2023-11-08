@@ -1,15 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {IDMappedObjects, RelationOneToMany, RelationOneToOne} from './utilities';
-import {Team} from './teams';
+import {
+    IDMappedObjects,
+    RelationOneToMany,
+    RelationOneToOne,
+} from "./utilities";
+import { Team } from "./teams";
 
 // e.g.
 // **O**pen channel,
 // **P**rivate channel,
 // **D**irect message to one other,
 // **G**roup direct message to 2+ others
-export type ChannelType = 'O' | 'P' | 'D' | 'G' | 'threads';
+export type ChannelType = "O" | "P" | "D" | "G" | "threads";
 
 export type ChannelStats = {
     channel_id: string;
@@ -20,14 +24,20 @@ export type ChannelStats = {
 };
 
 export type ChannelNotifyProps = {
-    desktop: 'default' | 'all' | 'mention' | 'none';
-    desktop_sound: 'on' | 'off';
-    desktop_notification_sound?: 'Bing' | 'Crackle' | 'Down' | 'Hello' | 'Ripple' | 'Upstairs';
-    email: 'default' | 'all' | 'mention' | 'none';
-    mark_unread: 'all' | 'mention';
-    push: 'default' | 'all' | 'mention' | 'none';
-    ignore_channel_mentions: 'default' | 'off' | 'on';
-    channel_auto_follow_threads: 'off' | 'on';
+    desktop: "default" | "all" | "mention" | "none";
+    desktop_sound: "on" | "off";
+    desktop_notification_sound?:
+        | "Bing"
+        | "Crackle"
+        | "Down"
+        | "Hello"
+        | "Ripple"
+        | "Upstairs";
+    email: "default" | "all" | "mention" | "none";
+    mark_unread: "all" | "mention";
+    push: "default" | "all" | "mention" | "none";
+    ignore_channel_mentions: "default" | "off" | "on";
+    channel_auto_follow_threads: "off" | "on";
 };
 
 export type Channel = {
@@ -54,7 +64,6 @@ export type Channel = {
 };
 
 export type ServerChannel = Channel & {
-
     /**
      * The total number of posts in this channel, not including join/leave messages
      *
@@ -68,16 +77,15 @@ export type ServerChannel = Channel & {
      * @remarks This field will be moved to a {@link ChannelMessageCount} object when this channel is stored in Redux.
      */
     total_msg_count_root: number;
-}
+};
 
 export type ChannelMessageCount = {
-
     /** The total number of posts in this channel, not including join/leave messages */
     total: number;
 
     /** The number of root posts in this channel, not including join/leave messages */
     root: number;
-}
+};
 
 export type ChannelWithTeamData = Channel & {
     team_display_name: string;
@@ -148,13 +156,19 @@ export type ChannelsState = {
     channelsInTeam: RelationOneToMany<Team, Channel>;
     myMembers: RelationOneToOne<Channel, ChannelMembership>;
     roles: RelationOneToOne<Channel, Set<string>>;
-    membersInChannel: RelationOneToOne<Channel, Record<string, ChannelMembership>>;
+    membersInChannel: RelationOneToOne<
+        Channel,
+        Record<string, ChannelMembership>
+    >;
     stats: RelationOneToOne<Channel, ChannelStats>;
     groupsAssociatedToChannel: any;
     totalCount: number;
     manuallyUnread: RelationOneToOne<Channel, boolean>;
     channelModerations: RelationOneToOne<Channel, ChannelModeration[]>;
-    channelMemberCountsByGroup: RelationOneToOne<Channel, ChannelMemberCountsByGroup>;
+    channelMemberCountsByGroup: RelationOneToOne<
+        Channel,
+        ChannelMemberCountsByGroup
+    >;
     messageCounts: RelationOneToOne<Channel, ChannelMessageCount>;
     channelsMemberCount: Record<string, number>;
 };
@@ -191,7 +205,10 @@ export type ChannelMemberCountByGroup = {
     channel_member_timezones_count: number;
 };
 
-export type ChannelMemberCountsByGroup = Record<string, ChannelMemberCountByGroup>;
+export type ChannelMemberCountsByGroup = Record<
+    string,
+    ChannelMemberCountByGroup
+>;
 
 export type ChannelViewResponse = {
     status: string;

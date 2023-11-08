@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import Setting from './setting';
+import Setting from "./setting";
 
 interface Props {
     id: string;
@@ -26,20 +26,19 @@ export default class RadioSetting extends React.PureComponent<Props> {
 
     render(): JSX.Element {
         const options = [];
-        for (const {value, text} of this.props.values) {
+        for (const { value, text } of this.props.values) {
             options.push(
-                <div
-                    className='radio'
-                    key={value}
-                >
+                <div className="radio" key={value}>
                     <label>
                         <input
-                            type='radio'
+                            type="radio"
                             value={value}
                             name={this.props.id}
                             checked={value === this.props.value}
                             onChange={this.handleChange}
-                            disabled={this.props.disabled || this.props.setByEnv}
+                            disabled={
+                                this.props.disabled || this.props.setByEnv
+                            }
                         />
                         {text}
                     </label>

@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-jest.mock('redux-persist', () => {
-    const {combineReducers} = require('redux');
-    const real = jest.requireActual('redux-persist');
+jest.mock("redux-persist", () => {
+    const { combineReducers } = require("redux");
+    const real = jest.requireActual("redux-persist");
 
     return {
         ...real,
@@ -11,8 +11,11 @@ jest.mock('redux-persist', () => {
             return {};
         },
 
-        persistReducer: jest.fn().mockImplementation((config, reducers) => reducers),
-        persistCombineReducers: (persistConfig: any, reducers: any) => combineReducers(reducers),
+        persistReducer: jest
+            .fn()
+            .mockImplementation((config, reducers) => reducers),
+        persistCombineReducers: (persistConfig: any, reducers: any) =>
+            combineReducers(reducers),
         persistStore: () => {
             return {
                 pause: () => {},

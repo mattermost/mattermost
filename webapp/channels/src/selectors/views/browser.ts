@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {WindowSizes} from 'utils/constants';
+import { WindowSizes } from "utils/constants";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
 export function getIsDesktopView(state: GlobalState): boolean {
     const windowSize = state.views.browser.windowSize;

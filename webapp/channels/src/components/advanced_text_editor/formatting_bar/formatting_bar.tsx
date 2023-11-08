@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useFloating, offset} from '@floating-ui/react-dom';
-import classNames from 'classnames';
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
-import {useIntl} from 'react-intl';
-import {CSSTransition} from 'react-transition-group';
-import styled from 'styled-components';
+import { useFloating, offset } from "@floating-ui/react-dom";
+import classNames from "classnames";
+import React, { memo, useCallback, useEffect, useRef, useState } from "react";
+import { useIntl } from "react-intl";
+import { CSSTransition } from "react-transition-group";
+import styled from "styled-components";
 
-import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
+import { DotsHorizontalIcon } from "@mattermost/compass-icons/components";
 
-import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import type { ApplyMarkdownOptions } from "utils/markdown/apply_markdown";
 
-import FormattingIcon, {IconContainer} from './formatting_icon';
-import {useFormattingBarControls, useGetLatest} from './hooks';
+import FormattingIcon, { IconContainer } from "./formatting_icon";
+import { useFormattingBarControls, useGetLatest } from "./hooks";
 
 export const Separator = styled.div`
     display: block;
@@ -49,7 +49,9 @@ const HiddenControlsContainer = styled.div`
     background: var(--center-channel-bg);
     z-index: -1;
 
-    transition: transform 250ms ease, opacity 250ms ease;
+    transition:
+        transform 250ms ease,
+        opacity 250ms ease;
     transform: scale(0);
     opacity: 0;
     display: flex;
@@ -92,7 +94,6 @@ const HiddenControlsContainer = styled.div`
 `;
 
 interface FormattingBarProps {
-
     /**
      * the current inputValue
      * This is needed to apply the markdown to the correct place
@@ -105,7 +106,7 @@ interface FormattingBarProps {
      *       range we should probably refactor this and only pass down the
      *       selectionStart and selectionEnd values
      */
-    getCurrentSelection: () => {start: number; end: number};
+    getCurrentSelection: () => { start: number; end: number };
 
     /**
      * the handler function that applies the markdown to the value
@@ -142,14 +143,26 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
     } = props;
     const [showHiddenControls, setShowHiddenControls] = useState(false);
     const formattingBarRef = useRef<HTMLDivElement>(null);
-    const {controls, hiddenControls, wideMode} = useFormattingBarControls(formattingBarRef);
+    const { controls, hiddenControls, wideMode } =
+        useFormattingBarControls(formattingBarRef);
 
-    const {formatMessage} = useIntl();
-    const HiddenControlsButtonAriaLabel = formatMessage({id: 'accessibility.button.hidden_controls_button', defaultMessage: 'show hidden formatting options'});
+    const { formatMessage } = useIntl();
+    const HiddenControlsButtonAriaLabel = formatMessage({
+        id: "accessibility.button.hidden_controls_button",
+        defaultMessage: "show hidden formatting options",
+    });
 
-    const {x, y, reference, floating, strategy, update, refs: {reference: buttonRef, floating: floatingRef}} = useFloating<HTMLButtonElement>({
-        placement: 'top',
-        middleware: [offset({mainAxis: 4})],
+    const {
+        x,
+        y,
+        reference,
+        floating,
+        strategy,
+        update,
+        refs: { reference: buttonRef, floating: floatingRef },
+    } = useFloating<HTMLButtonElement>({
+        placement: "top",
+        middleware: [offset({ mainAxis: 4 })],
     });
 
     // this little helper hook always returns the latest refs and does not mess with the popper placement calculation
@@ -161,7 +174,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
 
     useEffect(() => {
         const handleClickOutside: EventListener = (event) => {
-            const {floatingRef, buttonRef} = getLatest();
+            const { floatingRef, buttonRef } = getLatest();
             const target = event.composedPath?.()?.[0] || event.target;
             if (target instanceof Node) {
                 if (
@@ -175,58 +188,73 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener("mousedown", handleClickOutside);
 
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
     }, [getLatest, setShowHiddenControls]);
 
     useEffect(() => {
         update?.();
     }, [wideMode, update, showHiddenControls]);
 
-    const hasHiddenControls = wideMode !== 'wide';
+    const hasHiddenControls = wideMode !== "wide";
 
-    const toggleHiddenControls = useCallback((event?) => {
-        if (event) {
-            event.preventDefault();
-        }
-        setShowHiddenControls(!showHiddenControls);
-    }, [showHiddenControls]);
+    const toggleHiddenControls = useCallback(
+        (event?) => {
+            if (event) {
+                event.preventDefault();
+            }
+            setShowHiddenControls(!showHiddenControls);
+        },
+        [showHiddenControls],
+    );
 
     /**
      * wrapping this factory in useCallback prevents it from constantly getting a new
      * function signature as if we would define it directly in the props of
      * the FormattingIcon component. This should improve render-performance
      */
-    const makeFormattingHandler = useCallback((mode) => () => {
-        // if the formatting is disabled just return without doing anything
-        if (disableControls) {
-            return;
-        }
+    const makeFormattingHandler = useCallback(
+        (mode) => () => {
+            // if the formatting is disabled just return without doing anything
+            if (disableControls) {
+                return;
+            }
 
-        // get the current selection values and return early (doing nothing) when we don't get valid values
-        const {start, end} = getCurrentSelection();
+            // get the current selection values and return early (doing nothing) when we don't get valid values
+            const { start, end } = getCurrentSelection();
 
-        if (start === null || end === null) {
-            return;
-        }
+            if (start === null || end === null) {
+                return;
+            }
 
-        const value = getCurrentMessage();
+            const value = getCurrentMessage();
 
-        applyMarkdown({
-            markdownMode: mode,
-            selectionStart: start,
-            selectionEnd: end,
-            message: value,
-        });
+            applyMarkdown({
+                markdownMode: mode,
+                selectionStart: start,
+                selectionEnd: end,
+                message: value,
+            });
 
-        // if hidden controls are currently open close them
-        if (showHiddenControls) {
-            toggleHiddenControls();
-        }
-    }, [getCurrentSelection, getCurrentMessage, applyMarkdown, showHiddenControls, toggleHiddenControls, disableControls]);
+            // if hidden controls are currently open close them
+            if (showHiddenControls) {
+                toggleHiddenControls();
+            }
+        },
+        [
+            getCurrentSelection,
+            getCurrentMessage,
+            applyMarkdown,
+            showHiddenControls,
+            toggleHiddenControls,
+            disableControls,
+        ],
+    );
 
-    const leftPosition = wideMode === 'min' ? (x ?? 0) + DEFAULT_MIN_MODE_X_COORD : x ?? 0;
+    const leftPosition =
+        wideMode === "min" ? (x ?? 0) + DEFAULT_MIN_MODE_X_COORD : x ?? 0;
 
     const hiddenControlsContainerStyles: React.CSSProperties = {
         position: strategy,
@@ -234,7 +262,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         left: leftPosition,
     };
 
-    const showSeparators = wideMode === 'wide';
+    const showSeparators = wideMode === "wide";
 
     return (
         <FormattingBarContainer ref={formattingBarRef}>
@@ -243,42 +271,40 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                     <React.Fragment key={mode}>
                         <FormattingIcon
                             mode={mode}
-                            className='control'
+                            className="control"
                             onClick={makeFormattingHandler(mode)}
                             disabled={disableControls}
                         />
-                        {mode === 'heading' && showSeparators && <Separator/>}
+                        {mode === "heading" && showSeparators && <Separator />}
                     </React.Fragment>
                 );
             })}
 
-            {Array.isArray(additionalControls) && additionalControls.length > 0 && (
-                <>
-                    {showSeparators && <Separator/>}
-                    {additionalControls}
-                </>
-            )}
+            {Array.isArray(additionalControls) &&
+                additionalControls.length > 0 && (
+                    <>
+                        {showSeparators && <Separator />}
+                        {additionalControls}
+                    </>
+                )}
 
             {hasHiddenControls && (
                 <>
                     <IconContainer
-                        id={'HiddenControlsButton' + location}
+                        id={"HiddenControlsButton" + location}
                         ref={reference}
-                        className={classNames({active: showHiddenControls})}
+                        className={classNames({ active: showHiddenControls })}
                         onClick={toggleHiddenControls}
                         aria-label={HiddenControlsButtonAriaLabel}
                     >
-                        <DotsHorizontalIcon
-                            color={'currentColor'}
-                            size={18}
-                        />
+                        <DotsHorizontalIcon color={"currentColor"} size={18} />
                     </IconContainer>
                 </>
             )}
 
             <CSSTransition
                 timeout={250}
-                classNames='scale'
+                classNames="scale"
                 in={showHiddenControls}
             >
                 <HiddenControlsContainer
@@ -290,7 +316,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                             <FormattingIcon
                                 key={mode}
                                 mode={mode}
-                                className='control'
+                                className="control"
                                 onClick={makeFormattingHandler(mode)}
                                 disabled={disableControls}
                             />

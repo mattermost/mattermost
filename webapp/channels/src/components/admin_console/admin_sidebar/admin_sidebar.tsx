@@ -1,30 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import isEqual from 'lodash/isEqual';
-import React from 'react';
-import Scrollbars from 'react-custom-scrollbars';
-import {FormattedMessage, injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import classNames from "classnames";
+import isEqual from "lodash/isEqual";
+import React from "react";
+import Scrollbars from "react-custom-scrollbars";
+import { FormattedMessage, injectIntl } from "react-intl";
+import type { IntlShape } from "react-intl";
 
-import type {PluginRedux} from '@mattermost/types/plugins';
+import type { PluginRedux } from "@mattermost/types/plugins";
 
-import AdminSidebarCategory from 'components/admin_console/admin_sidebar/admin_sidebar_category';
-import AdminSidebarSection from 'components/admin_console/admin_sidebar/admin_sidebar_section';
-import AdminSidebarHeader from 'components/admin_console/admin_sidebar_header';
-import Highlight from 'components/admin_console/highlight';
-import QuickInput from 'components/quick_input';
-import SearchIcon from 'components/widgets/icons/search_icon';
+import AdminSidebarCategory from "components/admin_console/admin_sidebar/admin_sidebar_category";
+import AdminSidebarSection from "components/admin_console/admin_sidebar/admin_sidebar_section";
+import AdminSidebarHeader from "components/admin_console/admin_sidebar_header";
+import Highlight from "components/admin_console/highlight";
+import QuickInput from "components/quick_input";
+import SearchIcon from "components/widgets/icons/search_icon";
 
-import {generateIndex} from 'utils/admin_console_index';
-import type {Index} from 'utils/admin_console_index';
-import {getHistory} from 'utils/browser_history';
-import {localizeMessage} from 'utils/utils';
+import { generateIndex } from "utils/admin_console_index";
+import type { Index } from "utils/admin_console_index";
+import { getHistory } from "utils/browser_history";
+import { localizeMessage } from "utils/utils";
 
-import type AdminDefinition from '../admin_definition';
+import type AdminDefinition from "../admin_definition";
 
-import type {PropsFromRedux} from './index';
+import type { PropsFromRedux } from "./index";
 
 export interface Props extends PropsFromRedux {
     intl: IntlShape;
@@ -34,27 +34,18 @@ export interface Props extends PropsFromRedux {
 type State = {
     sections: string[] | null;
     filter: string;
-}
+};
 
 const renderScrollView = (props: Props) => (
-    <div
-        {...props}
-        className='scrollbar--view'
-    />
+    <div {...props} className="scrollbar--view" />
 );
 
 const renderScrollThumbHorizontal = (props: Props) => (
-    <div
-        {...props}
-        className='scrollbar--horizontal'
-    />
+    <div {...props} className="scrollbar--horizontal" />
 );
 
 const renderScrollThumbVertical = (props: Props) => (
-    <div
-        {...props}
-        className='scrollbar--vertical'
-    />
+    <div {...props} className="scrollbar--vertical" />
 );
 
 class AdminSidebar extends React.PureComponent<Props, State> {
@@ -69,7 +60,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
         super(props);
         this.state = {
             sections: null,
-            filter: '',
+            filter: "",
         };
         this.idx = null;
         this.searchRef = React.createRef();
@@ -88,46 +79,59 @@ class AdminSidebar extends React.PureComponent<Props, State> {
     }
 
     componentDidUpdate(prevProps: Props) {
-        if (this.idx !== null &&
+        if (
+            this.idx !== null &&
             (!isEqual(this.props.plugins, prevProps.plugins) ||
-                !isEqual(this.props.adminDefinition, prevProps.adminDefinition))) {
-            this.idx = generateIndex(this.props.adminDefinition, this.props.intl, this.props.plugins);
+                !isEqual(this.props.adminDefinition, prevProps.adminDefinition))
+        ) {
+            this.idx = generateIndex(
+                this.props.adminDefinition,
+                this.props.intl,
+                this.props.plugins,
+            );
         }
     }
 
     onFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const filter = e.target.value;
-        if (filter === '') {
-            this.setState({sections: null, filter});
+        if (filter === "") {
+            this.setState({ sections: null, filter });
             this.props.onFilterChange(filter);
             return;
         }
 
         if (this.idx === null) {
-            this.idx = generateIndex(this.props.adminDefinition, this.props.intl, this.props.plugins);
+            this.idx = generateIndex(
+                this.props.adminDefinition,
+                this.props.intl,
+                this.props.plugins,
+            );
         }
-        let query = '';
-        for (const term of filter.split(' ')) {
+        let query = "";
+        for (const term of filter.split(" ")) {
             term.trim();
-            if (term !== '') {
-                query += term + ' ';
-                query += term + '* ';
+            if (term !== "") {
+                query += term + " ";
+                query += term + "* ";
             }
         }
         const sections = this.idx.search(query);
-        this.setState({sections, filter});
+        this.setState({ sections, filter });
         this.props.onFilterChange(filter);
 
         if (this.props.navigationBlocked) {
             return;
         }
 
-        const validSection = sections.indexOf(getHistory().location.pathname.replace('/admin_console/', '')) !== -1;
+        const validSection =
+            sections.indexOf(
+                getHistory().location.pathname.replace("/admin_console/", ""),
+            ) !== -1;
         if (!validSection) {
             const visibleSections = this.visibleSections();
             for (const section of sections) {
                 if (visibleSections.has(section)) {
-                    getHistory().replace('/admin_console/' + section);
+                    getHistory().replace("/admin_console/" + section);
                     break;
                 }
             }
@@ -135,16 +139,25 @@ class AdminSidebar extends React.PureComponent<Props, State> {
     };
 
     updateTitle = () => {
-        let currentSiteName = '';
+        let currentSiteName = "";
         if (this.props.siteName) {
-            currentSiteName = ' - ' + this.props.siteName;
+            currentSiteName = " - " + this.props.siteName;
         }
 
-        document.title = localizeMessage('sidebar_right_menu.console', 'System Console') + currentSiteName;
+        document.title =
+            localizeMessage("sidebar_right_menu.console", "System Console") +
+            currentSiteName;
     };
 
     visibleSections = () => {
-        const {config, license, buildEnterpriseReady, consoleAccess, adminDefinition, cloud} = this.props;
+        const {
+            config,
+            license,
+            buildEnterpriseReady,
+            consoleAccess,
+            adminDefinition,
+            cloud,
+        } = this.props;
         const isVisible = (item: any) => {
             if (!item.schema) {
                 return false;
@@ -154,7 +167,17 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                 return false;
             }
 
-            if (item.isHidden && item.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud)) {
+            if (
+                item.isHidden &&
+                item.isHidden(
+                    config,
+                    this.state,
+                    license,
+                    buildEnterpriseReady,
+                    consoleAccess,
+                    cloud,
+                )
+            ) {
                 return false;
             }
             return true;
@@ -171,56 +194,96 @@ class AdminSidebar extends React.PureComponent<Props, State> {
     };
 
     renderRootMenu = (definition: typeof AdminDefinition) => {
-        const {config, license, buildEnterpriseReady, consoleAccess, cloud, subscriptionProduct} = this.props;
+        const {
+            config,
+            license,
+            buildEnterpriseReady,
+            consoleAccess,
+            cloud,
+            subscriptionProduct,
+        } = this.props;
         const sidebarSections: JSX.Element[] = [];
         Object.entries(definition).forEach(([key, section]) => {
             let isSectionHidden = false;
             if (section.isHidden) {
-                isSectionHidden = typeof section.isHidden === 'function' ? section.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud) : Boolean(section.isHidden);
+                isSectionHidden =
+                    typeof section.isHidden === "function"
+                        ? section.isHidden(
+                              config,
+                              this.state,
+                              license,
+                              buildEnterpriseReady,
+                              consoleAccess,
+                              cloud,
+                          )
+                        : Boolean(section.isHidden);
             }
             if (!isSectionHidden) {
                 const sidebarItems: JSX.Element[] = [];
-                Object.entries(section.subsections).forEach(([subKey, item]) => {
-                    if (!item.title) {
-                        return;
-                    }
-
-                    if (item.isHidden) {
-                        if (typeof item.isHidden === 'function' ? item.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud) : Boolean(item.isHidden)) {
+                Object.entries(section.subsections).forEach(
+                    ([subKey, item]) => {
+                        if (!item.title) {
                             return;
                         }
-                    }
 
-                    if (this.state.sections !== null) {
-                        let active = false;
-                        for (const url of this.state.sections) {
-                            if (url === item.url) {
-                                active = true;
+                        if (item.isHidden) {
+                            if (
+                                typeof item.isHidden === "function"
+                                    ? item.isHidden(
+                                          config,
+                                          this.state,
+                                          license,
+                                          buildEnterpriseReady,
+                                          consoleAccess,
+                                          cloud,
+                                      )
+                                    : Boolean(item.isHidden)
+                            ) {
+                                return;
                             }
                         }
-                        if (!active) {
-                            return;
-                        }
-                    }
-                    const subDefinitionKey = `${key}.${subKey}`;
-                    sidebarItems.push((
-                        <AdminSidebarSection
-                            key={subDefinitionKey}
-                            definitionKey={subDefinitionKey}
-                            name={item.url}
-                            restrictedIndicator={item.restrictedIndicator?.shouldDisplay(license, subscriptionProduct) ? item.restrictedIndicator.value(cloud) : undefined}
-                            title={
-                                <FormattedMessage
-                                    id={item.title}
-                                    defaultMessage={item.title_default}
-                                />
+
+                        if (this.state.sections !== null) {
+                            let active = false;
+                            for (const url of this.state.sections) {
+                                if (url === item.url) {
+                                    active = true;
+                                }
                             }
-                        />
-                    ));
-                });
+                            if (!active) {
+                                return;
+                            }
+                        }
+                        const subDefinitionKey = `${key}.${subKey}`;
+                        sidebarItems.push(
+                            <AdminSidebarSection
+                                key={subDefinitionKey}
+                                definitionKey={subDefinitionKey}
+                                name={item.url}
+                                restrictedIndicator={
+                                    item.restrictedIndicator?.shouldDisplay(
+                                        license,
+                                        subscriptionProduct,
+                                    )
+                                        ? item.restrictedIndicator.value(cloud)
+                                        : undefined
+                                }
+                                title={
+                                    <FormattedMessage
+                                        id={item.title}
+                                        defaultMessage={item.title_default}
+                                    />
+                                }
+                            />,
+                        );
+                    },
+                );
 
                 // Special case for plugins entries
-                if ((section as typeof AdminDefinition['plugins']).id === 'plugins') {
+                if (
+                    (section as (typeof AdminDefinition)["plugins"]).id ===
+                    "plugins"
+                ) {
                     const sidebarPluginItems = this.renderPluginsMenu();
                     sidebarItems.push(...sidebarPluginItems);
                 }
@@ -230,13 +293,13 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                     return null;
                 }
 
-                sidebarSections.push((
+                sidebarSections.push(
                     <AdminSidebarCategory
                         key={key}
                         definitionKey={key}
-                        parentLink='/admin_console'
+                        parentLink="/admin_console"
                         icon={section.icon}
-                        sectionClass=''
+                        sectionClass=""
                         title={
                             <FormattedMessage
                                 id={section.sectionTitle}
@@ -245,8 +308,8 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                         }
                     >
                         {sidebarItems}
-                    </AdminSidebarCategory>
-                ));
+                    </AdminSidebarCategory>,
+                );
             }
             return null;
         });
@@ -254,26 +317,34 @@ class AdminSidebar extends React.PureComponent<Props, State> {
     };
 
     isPluginPresentInSections = (plugin: PluginRedux) => {
-        return this.state.sections && this.state.sections.indexOf(`plugin_${plugin.id}`) >= 0;
+        return (
+            this.state.sections &&
+            this.state.sections.indexOf(`plugin_${plugin.id}`) >= 0
+        );
     };
 
     renderPluginsMenu = () => {
-        const {config, plugins} = this.props;
+        const { config, plugins } = this.props;
         if (config.PluginSettings?.Enable && plugins) {
-            return Object.values(plugins).sort((a, b) => {
-                const nameCompare = a.name.localeCompare(b.name);
-                if (nameCompare !== 0) {
-                    return nameCompare;
-                }
+            return Object.values(plugins)
+                .sort((a, b) => {
+                    const nameCompare = a.name.localeCompare(b.name);
+                    if (nameCompare !== 0) {
+                        return nameCompare;
+                    }
 
-                return a.id.localeCompare(b.id);
-            }).
-                filter((plugin) => this.state.sections === null || this.isPluginPresentInSections(plugin)).
-                map((plugin) => {
+                    return a.id.localeCompare(b.id);
+                })
+                .filter(
+                    (plugin) =>
+                        this.state.sections === null ||
+                        this.isPluginPresentInSections(plugin),
+                )
+                .map((plugin) => {
                     return (
                         <AdminSidebarSection
-                            key={'customplugin' + plugin.id}
-                            name={'plugins/plugin_' + plugin.id}
+                            key={"customplugin" + plugin.id}
+                            name={"plugins/plugin_" + plugin.id}
                             title={plugin.name}
                         />
                     );
@@ -284,28 +355,30 @@ class AdminSidebar extends React.PureComponent<Props, State> {
     };
 
     handleClearFilter = () => {
-        this.setState({sections: null, filter: ''});
-        this.props.onFilterChange('');
+        this.setState({ sections: null, filter: "" });
+        this.props.onFilterChange("");
     };
 
     render() {
-        const {showTaskList} = this.props;
+        const { showTaskList } = this.props;
         return (
-            <div className='admin-sidebar'>
-                <AdminSidebarHeader/>
-                <div className='filter-container'>
-                    <SearchIcon
-                        className='search__icon'
-                        aria-hidden='true'
-                    />
+            <div className="admin-sidebar">
+                <AdminSidebarHeader />
+                <div className="filter-container">
+                    <SearchIcon className="search__icon" aria-hidden="true" />
                     <QuickInput
-                        className={'filter ' + (this.state.filter ? 'active' : '')}
-                        type='text'
+                        className={
+                            "filter " + (this.state.filter ? "active" : "")
+                        }
+                        type="text"
                         onChange={this.onFilterChange}
                         value={this.state.filter}
-                        placeholder={localizeMessage('admin.sidebar.filter', 'Find settings')}
+                        placeholder={localizeMessage(
+                            "admin.sidebar.filter",
+                            "Find settings",
+                        )}
                         ref={this.searchRef}
-                        id='adminSidebarFilter'
+                        id="adminSidebarFilter"
                         clearable={true}
                         onClear={this.handleClearFilter}
                     />
@@ -318,10 +391,17 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                     renderThumbVertical={renderScrollThumbVertical}
                     renderView={renderScrollView}
                 >
-                    <div className='nav-pills__container'>
+                    <div className="nav-pills__container">
                         <Highlight filter={this.state.filter}>
-                            <ul className={classNames('nav nav-pills nav-stacked', {'task-list-shown': showTaskList})}>
-                                {this.renderRootMenu(this.props.adminDefinition)}
+                            <ul
+                                className={classNames(
+                                    "nav nav-pills nav-stacked",
+                                    { "task-list-shown": showTaskList },
+                                )}
+                            >
+                                {this.renderRootMenu(
+                                    this.props.adminDefinition,
+                                )}
                             </ul>
                         </Highlight>
                     </div>

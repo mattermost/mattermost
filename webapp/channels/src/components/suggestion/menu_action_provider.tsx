@@ -1,31 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import Provider from './provider';
-import type {ResultsCallback} from './provider';
-import {SuggestionContainer} from './suggestion';
-import type {SuggestionProps} from './suggestion';
+import Provider from "./provider";
+import type { ResultsCallback } from "./provider";
+import { SuggestionContainer } from "./suggestion";
+import type { SuggestionProps } from "./suggestion";
 
 interface MenuAction {
     text: string;
     value: string;
 }
 
-const MenuActionSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<MenuAction>>((props, ref) => {
-    const {item} = props;
+const MenuActionSuggestion = React.forwardRef<
+    HTMLDivElement,
+    SuggestionProps<MenuAction>
+>((props, ref) => {
+    const { item } = props;
 
     return (
-        <SuggestionContainer
-            ref={ref}
-            {...props}
-        >
+        <SuggestionContainer ref={ref} {...props}>
             {item.text}
         </SuggestionContainer>
     );
 });
-MenuActionSuggestion.displayName = 'MenuActionSuggestion';
+MenuActionSuggestion.displayName = "MenuActionSuggestion";
 
 export default class MenuActionProvider extends Provider {
     private options: MenuAction[];
@@ -35,7 +35,10 @@ export default class MenuActionProvider extends Provider {
         this.options = options;
     }
 
-    handlePretextChanged(prefix: string, resultsCallback: ResultsCallback<MenuAction>) {
+    handlePretextChanged(
+        prefix: string,
+        resultsCallback: ResultsCallback<MenuAction>,
+    ) {
         if (prefix.length === 0) {
             this.displayAllOptions(resultsCallback);
             return true;
@@ -53,15 +56,21 @@ export default class MenuActionProvider extends Provider {
         const terms = this.options.map((option) => option.text);
 
         resultsCallback({
-            matchedPretext: '',
+            matchedPretext: "",
             terms,
             items: this.options,
             component: MenuActionSuggestion,
         });
     }
 
-    async filterOptions(prefix: string, resultsCallback: ResultsCallback<MenuAction>) {
-        const filteredOptions = this.options.filter((option) => option.text.toLowerCase().indexOf(prefix.toLowerCase()) >= 0);
+    async filterOptions(
+        prefix: string,
+        resultsCallback: ResultsCallback<MenuAction>,
+    ) {
+        const filteredOptions = this.options.filter(
+            (option) =>
+                option.text.toLowerCase().indexOf(prefix.toLowerCase()) >= 0,
+        );
         const terms = filteredOptions.map((option) => option.text);
 
         resultsCallback({

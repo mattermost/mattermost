@@ -112,10 +112,8 @@
 // global header style adjustments
 @media screen and (max-width: 1020px) {
     .channel__wrap {
-
         // indicates the RHS is open
         &.move--left {
-
             // adjust channel header width
             #channel-header {
                 width: 100%;

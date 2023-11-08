@@ -1,10 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Preferences} from 'mattermost-redux/constants';
-import type {LegacyThemeType, Theme, ThemeKey, ThemeType} from 'mattermost-redux/selectors/entities/preferences';
+import { Preferences } from "mattermost-redux/constants";
+import type {
+    LegacyThemeType,
+    Theme,
+    ThemeKey,
+    ThemeType,
+} from "mattermost-redux/selectors/entities/preferences";
 
-export function makeStyleFromTheme(getStyleFromTheme: (a: any) => any): (a: any) => any {
+export function makeStyleFromTheme(
+    getStyleFromTheme: (a: any) => any,
+): (a: any) => any {
     let lastTheme: any;
     let style: any;
     return (theme: any) => {
@@ -19,7 +26,12 @@ export function makeStyleFromTheme(getStyleFromTheme: (a: any) => any): (a: any)
 
 const rgbPattern = /^rgba?\((\d+),(\d+),(\d+)(?:,([\d.]+))?\)$/;
 
-export function getComponents(inColor: string): {red: number; green: number; blue: number; alpha: number} {
+export function getComponents(inColor: string): {
+    red: number;
+    green: number;
+    blue: number;
+    alpha: number;
+} {
     let color = inColor;
 
     // RGB color
@@ -34,13 +46,13 @@ export function getComponents(inColor: string): {red: number; green: number; blu
     }
 
     // Hex color
-    if (color[0] === '#') {
+    if (color[0] === "#") {
         color = color.slice(1);
     }
 
     if (color.length === 3) {
         const tempColor = color;
-        color = '';
+        color = "";
 
         color += tempColor[0] + tempColor[0];
         color += tempColor[1] + tempColor[1];
@@ -56,39 +68,49 @@ export function getComponents(inColor: string): {red: number; green: number; blu
 }
 
 export function changeOpacity(oldColor: string, opacity: number): string {
-    const {
-        red,
-        green,
-        blue,
-        alpha,
-    } = getComponents(oldColor);
+    const { red, green, blue, alpha } = getComponents(oldColor);
 
     return `rgba(${red},${green},${blue},${alpha * opacity})`;
 }
 
-function blendComponent(background: number, foreground: number, opacity: number): number {
-    return ((1 - opacity) * background) + (opacity * foreground);
+function blendComponent(
+    background: number,
+    foreground: number,
+    opacity: number,
+): number {
+    return (1 - opacity) * background + opacity * foreground;
 }
 
-export const blendColors = (background: string, foreground: string, opacity: number, hex = false): string => {
+export const blendColors = (
+    background: string,
+    foreground: string,
+    opacity: number,
+    hex = false,
+): string => {
     const backgroundComponents = getComponents(background);
     const foregroundComponents = getComponents(foreground);
 
-    const red = Math.floor(blendComponent(
-        backgroundComponents.red,
-        foregroundComponents.red,
-        opacity,
-    ));
-    const green = Math.floor(blendComponent(
-        backgroundComponents.green,
-        foregroundComponents.green,
-        opacity,
-    ));
-    const blue = Math.floor(blendComponent(
-        backgroundComponents.blue,
-        foregroundComponents.blue,
-        opacity,
-    ));
+    const red = Math.floor(
+        blendComponent(
+            backgroundComponents.red,
+            foregroundComponents.red,
+            opacity,
+        ),
+    );
+    const green = Math.floor(
+        blendComponent(
+            backgroundComponents.green,
+            foregroundComponents.green,
+            opacity,
+        ),
+    );
+    const blue = Math.floor(
+        blendComponent(
+            backgroundComponents.blue,
+            foregroundComponents.blue,
+            opacity,
+        ),
+    );
     const alpha = blendComponent(
         backgroundComponents.alpha,
         foregroundComponents.alpha,
@@ -101,13 +123,13 @@ export const blendColors = (background: string, foreground: string, opacity: num
         let b = blue.toString(16);
 
         if (r.length === 1) {
-            r = '0' + r;
+            r = "0" + r;
         }
         if (g.length === 1) {
-            g = '0' + g;
+            g = "0" + g;
         }
         if (b.length === 1) {
-            b = '0' + b;
+            b = "0" + b;
         }
 
         return `#${r + g + b}`;
@@ -121,25 +143,29 @@ type ThemeTypeMap = Record<ThemeType | LegacyThemeType, ThemeKey>;
 // object mapping theme types to their respective keys for retrieving the source themes directly
 // - supports mapping old themes to new themes
 const themeTypeMap: ThemeTypeMap = {
-    Mattermost: 'denim',
-    Organization: 'sapphire',
-    'Mattermost Dark': 'indigo',
-    'Windows Dark': 'onyx',
-    Denim: 'denim',
-    Sapphire: 'sapphire',
-    Quartz: 'quartz',
-    Indigo: 'indigo',
-    Onyx: 'onyx',
+    Mattermost: "denim",
+    Organization: "sapphire",
+    "Mattermost Dark": "indigo",
+    "Windows Dark": "onyx",
+    Denim: "denim",
+    Sapphire: "sapphire",
+    Quartz: "quartz",
+    Indigo: "indigo",
+    Onyx: "onyx",
 };
 
 // setThemeDefaults will set defaults on the theme for any unset properties.
 export function setThemeDefaults(theme: Partial<Theme>): Theme {
     const defaultTheme = Preferences.THEMES.denim;
 
-    const processedTheme = {...theme};
+    const processedTheme = { ...theme };
 
     // If this is a system theme, return the source theme object matching the theme preference type
-    if (theme.type && theme.type !== 'custom' && Object.keys(themeTypeMap).includes(theme.type)) {
+    if (
+        theme.type &&
+        theme.type !== "custom" &&
+        Object.keys(themeTypeMap).includes(theme.type)
+    ) {
         return Preferences.THEMES[themeTypeMap[theme.type]];
     }
 
@@ -151,7 +177,10 @@ export function setThemeDefaults(theme: Partial<Theme>): Theme {
     }
 
     for (const property in defaultTheme) {
-        if (property === 'type' || (property === 'sidebarTeamBarBg' && theme.sidebarHeaderBg)) {
+        if (
+            property === "type" ||
+            (property === "sidebarTeamBarBg" && theme.sidebarHeaderBg)
+        ) {
             continue;
         }
         if (theme[property] == null) {
@@ -165,7 +194,12 @@ export function setThemeDefaults(theme: Partial<Theme>): Theme {
     }
 
     if (!theme.sidebarTeamBarBg && theme.sidebarHeaderBg) {
-        processedTheme.sidebarTeamBarBg = blendColors(theme.sidebarHeaderBg, '#000000', 0.2, true);
+        processedTheme.sidebarTeamBarBg = blendColors(
+            theme.sidebarHeaderBg,
+            "#000000",
+            0.2,
+            true,
+        );
     }
 
     return processedTheme as Theme;

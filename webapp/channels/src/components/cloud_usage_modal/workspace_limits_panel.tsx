@@ -1,18 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import React from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 
-import type {CloudUsage, Limits} from '@mattermost/types/cloud';
+import type { CloudUsage, Limits } from "@mattermost/types/cloud";
 
-import type {Message} from 'utils/i18n';
-import {asGBString, inK} from 'utils/limits';
+import type { Message } from "utils/i18n";
+import { asGBString, inK } from "utils/limits";
 
-import LimitLine from './limit_line';
+import LimitLine from "./limit_line";
 
-export function messageToElement(x: Message | React.ReactNode): React.ReactNode {
-    if (Object.prototype.hasOwnProperty.call(x, 'defaultMessage')) {
+export function messageToElement(
+    x: Message | React.ReactNode,
+): React.ReactNode {
+    if (Object.prototype.hasOwnProperty.call(x, "defaultMessage")) {
         return (
             <FormattedMessage
                 id={(x as Message).id}
@@ -36,46 +38,58 @@ export default function WorkspaceLimitsPanel(props: Props) {
     return (
         <div>
             <LimitLine
-                icon='icon-message-text-outline'
+                icon="icon-message-text-outline"
                 showIcons={props.showIcons}
-                percent={props.usage.messages.history / (props.limits?.messages?.history || Number.MAX_VALUE)}
-                limitName={(
+                percent={
+                    props.usage.messages.history /
+                    (props.limits?.messages?.history || Number.MAX_VALUE)
+                }
+                limitName={
                     <FormattedMessage
-                        id='workspace_limits.message_history.short'
-                        defaultMessage='Messages'
+                        id="workspace_limits.message_history.short"
+                        defaultMessage="Messages"
                     />
-                )}
-                limitStatus={(
+                }
+                limitStatus={
                     <FormattedMessage
-                        id='workspace_limits.message_history.short.usage'
-                        defaultMessage='{actual} / {limit}'
+                        id="workspace_limits.message_history.short.usage"
+                        defaultMessage="{actual} / {limit}"
                         values={{
                             actual: inK(props.usage.messages.history),
                             limit: inK(props.limits?.messages?.history || 0),
                         }}
                     />
-                )}
+                }
             />
             <LimitLine
-                icon='icon-folder-outline'
+                icon="icon-folder-outline"
                 showIcons={props.showIcons}
-                percent={props.usage.files.totalStorage / (props.limits?.files?.total_storage || Number.MAX_VALUE)}
-                limitName={(
+                percent={
+                    props.usage.files.totalStorage /
+                    (props.limits?.files?.total_storage || Number.MAX_VALUE)
+                }
+                limitName={
                     <FormattedMessage
-                        id='workspace_limits.file_storage.short'
-                        defaultMessage='Files'
+                        id="workspace_limits.file_storage.short"
+                        defaultMessage="Files"
                     />
-                )}
-                limitStatus={(
+                }
+                limitStatus={
                     <FormattedMessage
-                        id='workspace_limits.file_storage.short.usage'
-                        defaultMessage='{actual} / {limit}'
+                        id="workspace_limits.file_storage.short.usage"
+                        defaultMessage="{actual} / {limit}"
                         values={{
-                            actual: asGBString(props.usage.files.totalStorage, intl.formatNumber),
-                            limit: asGBString(props.limits?.files?.total_storage || 0, intl.formatNumber),
+                            actual: asGBString(
+                                props.usage.files.totalStorage,
+                                intl.formatNumber,
+                            ),
+                            limit: asGBString(
+                                props.limits?.files?.total_storage || 0,
+                                intl.formatNumber,
+                            ),
                         }}
                     />
-                )}
+                }
             />
         </div>
     );

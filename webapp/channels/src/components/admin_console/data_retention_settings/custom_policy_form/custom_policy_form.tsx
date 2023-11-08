@@ -1,50 +1,79 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {ChannelWithTeamData} from '@mattermost/types/channels';
+import type { ChannelWithTeamData } from "@mattermost/types/channels";
 import type {
     DataRetentionCustomPolicy,
     CreateDataRetentionCustomPolicy,
     PatchDataRetentionCustomPolicy,
-} from '@mattermost/types/data_retention';
-import type {Team} from '@mattermost/types/teams';
-import type {IDMappedObjects} from '@mattermost/types/utilities';
+} from "@mattermost/types/data_retention";
+import type { Team } from "@mattermost/types/teams";
+import type { IDMappedObjects } from "@mattermost/types/utilities";
 
-import BlockableLink from 'components/admin_console/blockable_link';
-import ChannelList from 'components/admin_console/data_retention_settings/channel_list';
-import {keepForeverOption, yearsOption, daysOption, FOREVER, YEARS} from 'components/admin_console/data_retention_settings/dropdown_options/dropdown_options';
-import TeamList from 'components/admin_console/data_retention_settings/team_list';
-import Card from 'components/card/card';
-import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
-import ChannelSelectorModal from 'components/channel_selector_modal';
-import SaveButton from 'components/save_button';
-import TeamSelectorModal from 'components/team_selector_modal';
-import AdminHeader from 'components/widgets/admin_console/admin_header';
-import DropdownInputHybrid from 'components/widgets/inputs/dropdown_input_hybrid';
-import Input from 'components/widgets/inputs/input/input';
+import BlockableLink from "components/admin_console/blockable_link";
+import ChannelList from "components/admin_console/data_retention_settings/channel_list";
+import {
+    keepForeverOption,
+    yearsOption,
+    daysOption,
+    FOREVER,
+    YEARS,
+} from "components/admin_console/data_retention_settings/dropdown_options/dropdown_options";
+import TeamList from "components/admin_console/data_retention_settings/team_list";
+import Card from "components/card/card";
+import TitleAndButtonCardHeader from "components/card/title_and_button_card_header/title_and_button_card_header";
+import ChannelSelectorModal from "components/channel_selector_modal";
+import SaveButton from "components/save_button";
+import TeamSelectorModal from "components/team_selector_modal";
+import AdminHeader from "components/widgets/admin_console/admin_header";
+import DropdownInputHybrid from "components/widgets/inputs/dropdown_input_hybrid";
+import Input from "components/widgets/inputs/input/input";
 
-import {getHistory} from 'utils/browser_history';
-import {ItemStatus} from 'utils/constants';
-import * as Utils from 'utils/utils';
+import { getHistory } from "utils/browser_history";
+import { ItemStatus } from "utils/constants";
+import * as Utils from "utils/utils";
 
-import './custom_policy_form.scss';
+import "./custom_policy_form.scss";
 
 type Props = {
     policyId?: string;
     policy?: DataRetentionCustomPolicy | null;
     teams?: Team[];
     actions: {
-        fetchPolicy: (id: string) => Promise<{ data: DataRetentionCustomPolicy; error?: Error }>;
-        fetchPolicyTeams: (id: string, page: number, perPage: number) => Promise<{ data: Team[]; error?: Error }>;
-        createDataRetentionCustomPolicy: (policy: CreateDataRetentionCustomPolicy) => Promise<{ data: DataRetentionCustomPolicy; error?: Error }>;
-        updateDataRetentionCustomPolicy: (id: string, policy: PatchDataRetentionCustomPolicy) => Promise<{ data: DataRetentionCustomPolicy; error?: Error }>;
-        addDataRetentionCustomPolicyTeams: (id: string, policy: string[]) => Promise<{ data?: {status: string}; error?: Error }>;
-        removeDataRetentionCustomPolicyTeams: (id: string, policy: string[]) => Promise<{ data?: {status: string}; error?: Error }>;
-        addDataRetentionCustomPolicyChannels: (id: string, policy: string[]) => Promise<{ data?: {status: string}; error?: Error }>;
-        removeDataRetentionCustomPolicyChannels: (id: string, policy: string[]) => Promise<{ data?: {status: string}; error?: Error }>;
+        fetchPolicy: (
+            id: string,
+        ) => Promise<{ data: DataRetentionCustomPolicy; error?: Error }>;
+        fetchPolicyTeams: (
+            id: string,
+            page: number,
+            perPage: number,
+        ) => Promise<{ data: Team[]; error?: Error }>;
+        createDataRetentionCustomPolicy: (
+            policy: CreateDataRetentionCustomPolicy,
+        ) => Promise<{ data: DataRetentionCustomPolicy; error?: Error }>;
+        updateDataRetentionCustomPolicy: (
+            id: string,
+            policy: PatchDataRetentionCustomPolicy,
+        ) => Promise<{ data: DataRetentionCustomPolicy; error?: Error }>;
+        addDataRetentionCustomPolicyTeams: (
+            id: string,
+            policy: string[],
+        ) => Promise<{ data?: { status: string }; error?: Error }>;
+        removeDataRetentionCustomPolicyTeams: (
+            id: string,
+            policy: string[],
+        ) => Promise<{ data?: { status: string }; error?: Error }>;
+        addDataRetentionCustomPolicyChannels: (
+            id: string,
+            policy: string[],
+        ) => Promise<{ data?: { status: string }; error?: Error }>;
+        removeDataRetentionCustomPolicyChannels: (
+            id: string,
+            policy: string[],
+        ) => Promise<{ data?: { status: string }; error?: Error }>;
         setNavigationBlocked: (blocked: boolean) => void;
     };
 };
@@ -54,7 +83,10 @@ type State = {
     addTeamOpen: boolean;
     addChannelOpen: boolean;
     messageRetentionInputValue: string;
-    messageRetentionDropdownValue: {label: string | JSX.Element; value: string};
+    messageRetentionDropdownValue: {
+        label: string | JSX.Element;
+        value: string;
+    };
     removedTeamsCount: number;
     removedTeams: IDMappedObjects<Team>;
     newTeams: IDMappedObjects<Team>;
@@ -66,17 +98,22 @@ type State = {
     serverError: boolean;
     inputErrorText: string;
     formErrorText: string;
-}
+};
 
-export default class CustomPolicyForm extends React.PureComponent<Props, State> {
+export default class CustomPolicyForm extends React.PureComponent<
+    Props,
+    State
+> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            policyName: '',
+            policyName: "",
             addTeamOpen: false,
             addChannelOpen: false,
-            messageRetentionInputValue: this.getMessageRetentionDefaultInputValue(),
-            messageRetentionDropdownValue: this.getMessageRetentionDefaultDropdownValue(),
+            messageRetentionInputValue:
+                this.getMessageRetentionDefaultInputValue(),
+            messageRetentionDropdownValue:
+                this.getMessageRetentionDefaultDropdownValue(),
             removedTeamsCount: 0,
             removedTeams: {},
             newTeams: {},
@@ -86,29 +123,33 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
             saveNeeded: false,
             saving: false,
             serverError: false,
-            inputErrorText: '',
-            formErrorText: '',
+            inputErrorText: "",
+            formErrorText: "",
         };
     }
 
     openAddChannel = () => {
-        this.setState({addChannelOpen: true});
+        this.setState({ addChannelOpen: true });
     };
 
     closeAddChannel = () => {
-        this.setState({addChannelOpen: false});
+        this.setState({ addChannelOpen: false });
     };
 
     openAddTeam = () => {
-        this.setState({addTeamOpen: true});
+        this.setState({ addTeamOpen: true });
     };
 
     closeAddTeam = () => {
-        this.setState({addTeamOpen: false});
+        this.setState({ addTeamOpen: false });
     };
     getMessageRetentionDefaultInputValue = (): string => {
-        if (!this.props.policy || Object.keys(this.props.policy).length === 0 || (this.props.policy && this.props.policy.post_duration === -1)) {
-            return '';
+        if (
+            !this.props.policy ||
+            Object.keys(this.props.policy).length === 0 ||
+            (this.props.policy && this.props.policy.post_duration === -1)
+        ) {
+            return "";
         }
         if (this.props.policy && this.props.policy.post_duration % 365 === 0) {
             return (this.props.policy.post_duration / 365).toString();
@@ -116,7 +157,10 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
         return this.props.policy.post_duration.toString();
     };
     getMessageRetentionDefaultDropdownValue = () => {
-        if (!this.props.policyId || (this.props.policy && this.props.policy.post_duration === -1)) {
+        if (
+            !this.props.policyId ||
+            (this.props.policy && this.props.policy.post_duration === -1)
+        ) {
             return keepForeverOption();
         }
         if (this.props.policy && this.props.policy.post_duration % 365 === 0) {
@@ -133,15 +177,17 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
             await this.props.actions.fetchPolicy(this.props.policyId);
             this.setState({
                 policyName: this.props.policy?.display_name,
-                messageRetentionInputValue: this.getMessageRetentionDefaultInputValue(),
-                messageRetentionDropdownValue: this.getMessageRetentionDefaultDropdownValue(),
+                messageRetentionInputValue:
+                    this.getMessageRetentionDefaultInputValue(),
+                messageRetentionDropdownValue:
+                    this.getMessageRetentionDefaultDropdownValue(),
             });
         }
     };
 
     addToNewTeams = (teams: Team[]) => {
-        let {removedTeamsCount} = this.state;
-        const {newTeams, removedTeams} = this.state;
+        let { removedTeamsCount } = this.state;
+        const { newTeams, removedTeams } = this.state;
         teams.forEach((team: Team) => {
             if (removedTeams[team.id]?.id === team.id) {
                 delete removedTeams[team.id];
@@ -150,26 +196,36 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                 newTeams[team.id] = team;
             }
         });
-        this.setState({newTeams: {...newTeams}, removedTeams: {...removedTeams}, removedTeamsCount, saveNeeded: true});
+        this.setState({
+            newTeams: { ...newTeams },
+            removedTeams: { ...removedTeams },
+            removedTeamsCount,
+            saveNeeded: true,
+        });
         this.props.actions.setNavigationBlocked(true);
     };
 
     addToRemovedTeams = (team: Team) => {
-        let {removedTeamsCount} = this.state;
-        const {newTeams, removedTeams} = this.state;
+        let { removedTeamsCount } = this.state;
+        const { newTeams, removedTeams } = this.state;
         if (newTeams[team.id]?.id === team.id) {
             delete newTeams[team.id];
         } else if (removedTeams[team.id]?.id !== team.id) {
             removedTeamsCount += 1;
             removedTeams[team.id] = team;
         }
-        this.setState({removedTeams: {...removedTeams}, newTeams: {...newTeams}, removedTeamsCount, saveNeeded: true});
+        this.setState({
+            removedTeams: { ...removedTeams },
+            newTeams: { ...newTeams },
+            removedTeamsCount,
+            saveNeeded: true,
+        });
         this.props.actions.setNavigationBlocked(true);
     };
 
     addToNewChannels = (channels: ChannelWithTeamData[]) => {
-        let {removedChannelsCount} = this.state;
-        const {newChannels, removedChannels} = this.state;
+        let { removedChannelsCount } = this.state;
+        const { newChannels, removedChannels } = this.state;
         channels.forEach((channel: ChannelWithTeamData) => {
             if (removedChannels[channel.id]?.id === channel.id) {
                 delete removedChannels[channel.id];
@@ -178,26 +234,36 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                 newChannels[channel.id] = channel;
             }
         });
-        this.setState({newChannels: {...newChannels}, removedChannels: {...removedChannels}, removedChannelsCount, saveNeeded: true});
+        this.setState({
+            newChannels: { ...newChannels },
+            removedChannels: { ...removedChannels },
+            removedChannelsCount,
+            saveNeeded: true,
+        });
         this.props.actions.setNavigationBlocked(true);
     };
 
     addToRemovedChannels = (channel: ChannelWithTeamData) => {
-        let {removedChannelsCount} = this.state;
-        const {newChannels, removedChannels} = this.state;
+        let { removedChannelsCount } = this.state;
+        const { newChannels, removedChannels } = this.state;
         if (newChannels[channel.id]?.id === channel.id) {
             delete newChannels[channel.id];
         } else if (removedChannels[channel.id]?.id !== channel.id) {
             removedChannelsCount += 1;
             removedChannels[channel.id] = channel;
         }
-        this.setState({removedChannels: {...removedChannels}, newChannels: {...newChannels}, removedChannelsCount, saveNeeded: true});
+        this.setState({
+            removedChannels: { ...removedChannels },
+            newChannels: { ...newChannels },
+            removedChannelsCount,
+            saveNeeded: true,
+        });
         this.props.actions.setNavigationBlocked(true);
     };
 
     getTeamsToExclude = () => {
-        const {teams} = this.props;
-        const {newTeams, removedTeams} = this.state;
+        const { teams } = this.props;
+        const { newTeams, removedTeams } = this.state;
 
         let teamsToDisplay = teams?.map((team) => {
             return team.id;
@@ -212,8 +278,16 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
         return teamsToDisplay;
     };
     handleSubmit = async () => {
-        const {policyName, messageRetentionInputValue, messageRetentionDropdownValue, newTeams, removedTeams, newChannels, removedChannels} = this.state;
-        const {policyId, policy} = this.props;
+        const {
+            policyName,
+            messageRetentionInputValue,
+            messageRetentionDropdownValue,
+            newTeams,
+            removedTeams,
+            newChannels,
+            removedChannels,
+        } = this.state;
+        const { policyId, policy } = this.props;
         const {
             updateDataRetentionCustomPolicy,
             addDataRetentionCustomPolicyTeams,
@@ -222,7 +296,7 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
             removeDataRetentionCustomPolicyChannels,
         } = this.props.actions;
 
-        this.setState({saving: true});
+        this.setState({ saving: true });
 
         const teamsToAdd = Object.keys(newTeams);
         const teamsToRemove = Object.keys(removedTeams);
@@ -233,7 +307,13 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
         let postDuration = parseInt(messageRetentionInputValue, 10);
 
         if (postDuration <= 0) {
-            this.setState({formErrorText: Utils.localizeMessage('admin.data_retention.custom_policy.form.durationInput.error', 'Error parsing message retention.'), saving: false});
+            this.setState({
+                formErrorText: Utils.localizeMessage(
+                    "admin.data_retention.custom_policy.form.durationInput.error",
+                    "Error parsing message retention.",
+                ),
+                saving: false,
+            });
             return;
         }
         if (messageRetentionDropdownValue.value === FOREVER) {
@@ -243,7 +323,13 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
         }
 
         if (!policyName?.trim()) {
-            this.setState({inputErrorText: Utils.localizeMessage('admin.data_retention.custom_policy.form.input.error', 'Policy name can\'t be blank.'), saving: false});
+            this.setState({
+                inputErrorText: Utils.localizeMessage(
+                    "admin.data_retention.custom_policy.form.input.error",
+                    "Policy name can't be blank.",
+                ),
+                saving: false,
+            });
             return;
         }
 
@@ -253,23 +339,57 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                 post_duration: postDuration,
             };
 
-            if (((policy?.team_count + teamsToAdd.length) - teamsToRemove.length) === 0 && ((policy?.channel_count + channelsToAdd.length) - channelsToRemove.length) === 0) {
-                this.setState({formErrorText: Utils.localizeMessage('admin.data_retention.custom_policy.form.teamsError', 'You must add a team or a channel to the policy.'), saving: false});
+            if (
+                policy?.team_count +
+                    teamsToAdd.length -
+                    teamsToRemove.length ===
+                    0 &&
+                policy?.channel_count +
+                    channelsToAdd.length -
+                    channelsToRemove.length ===
+                    0
+            ) {
+                this.setState({
+                    formErrorText: Utils.localizeMessage(
+                        "admin.data_retention.custom_policy.form.teamsError",
+                        "You must add a team or a channel to the policy.",
+                    ),
+                    saving: false,
+                });
                 return;
             }
 
-            const actions: Array<Promise<{data?: any; error?: Error}>> = [updateDataRetentionCustomPolicy(policyId, policyInfo)];
+            const actions: Array<Promise<{ data?: any; error?: Error }>> = [
+                updateDataRetentionCustomPolicy(policyId, policyInfo),
+            ];
             if (teamsToAdd.length > 0) {
-                actions.push(addDataRetentionCustomPolicyTeams(policyId, teamsToAdd));
+                actions.push(
+                    addDataRetentionCustomPolicyTeams(policyId, teamsToAdd),
+                );
             }
             if (teamsToRemove.length > 0) {
-                actions.push(removeDataRetentionCustomPolicyTeams(policyId, teamsToRemove));
+                actions.push(
+                    removeDataRetentionCustomPolicyTeams(
+                        policyId,
+                        teamsToRemove,
+                    ),
+                );
             }
             if (channelsToAdd.length > 0) {
-                actions.push(addDataRetentionCustomPolicyChannels(policyId, channelsToAdd));
+                actions.push(
+                    addDataRetentionCustomPolicyChannels(
+                        policyId,
+                        channelsToAdd,
+                    ),
+                );
             }
             if (channelsToRemove.length > 0) {
-                actions.push(removeDataRetentionCustomPolicyChannels(policyId, channelsToRemove));
+                actions.push(
+                    removeDataRetentionCustomPolicyChannels(
+                        policyId,
+                        channelsToRemove,
+                    ),
+                );
             }
             const results = await Promise.all(actions);
 
@@ -280,7 +400,13 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
             }
         } else {
             if (teamsToAdd.length < 1 && channelsToAdd.length < 1) {
-                this.setState({formErrorText: Utils.localizeMessage('admin.data_retention.custom_policy.form.teamsError', 'You must add a team or a channel to the policy.'), saving: false});
+                this.setState({
+                    formErrorText: Utils.localizeMessage(
+                        "admin.data_retention.custom_policy.form.teamsError",
+                        "You must add a team or a channel to the policy.",
+                    ),
+                    saving: false,
+                });
                 return;
             }
             const newPolicy = {
@@ -290,145 +416,184 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                 channel_ids: channelsToAdd,
             };
 
-            const result = await this.props.actions.createDataRetentionCustomPolicy(newPolicy);
+            const result =
+                await this.props.actions.createDataRetentionCustomPolicy(
+                    newPolicy,
+                );
             if (result.error) {
                 error = true;
             }
         }
 
         if (error) {
-            this.setState({serverError: true, saving: false});
+            this.setState({ serverError: true, saving: false });
         } else {
             this.props.actions.setNavigationBlocked(false);
-            getHistory().push('/admin_console/compliance/data_retention_settings');
+            getHistory().push(
+                "/admin_console/compliance/data_retention_settings",
+            );
         }
     };
 
     render = () => {
-        const {serverError, formErrorText} = this.state;
+        const { serverError, formErrorText } = this.state;
         return (
-            <div className='wrapper--fixed DataRetentionSettings'>
+            <div className="wrapper--fixed DataRetentionSettings">
                 <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
-                            to='/admin_console/compliance/data_retention_settings'
-                            className='fa fa-angle-left back'
+                            to="/admin_console/compliance/data_retention_settings"
+                            className="fa fa-angle-left back"
                         />
                         <FormattedMessage
-                            id='admin.data_retention.customTitle'
-                            defaultMessage='Custom Retention Policy'
+                            id="admin.data_retention.customTitle"
+                            defaultMessage="Custom Retention Policy"
                         />
                     </div>
                 </AdminHeader>
-                <div className='admin-console__wrapper'>
-                    <div className='admin-console__content'>
-                        <Card
-                            expanded={true}
-                            className={'console'}
-                        >
+                <div className="admin-console__wrapper">
+                    <div className="admin-console__content">
+                        <Card expanded={true} className={"console"}>
                             <Card.Header>
                                 <TitleAndButtonCardHeader
                                     title={
                                         <FormattedMessage
-                                            id='admin.data_retention.custom_policy.form.title'
-                                            defaultMessage='Name and retention'
+                                            id="admin.data_retention.custom_policy.form.title"
+                                            defaultMessage="Name and retention"
                                         />
                                     }
                                     subtitle={
                                         <FormattedMessage
-                                            id='admin.data_retention.custom_policy.form.subTitle'
-                                            defaultMessage='Give your policy a name and configure retention settings.'
+                                            id="admin.data_retention.custom_policy.form.subTitle"
+                                            defaultMessage="Give your policy a name and configure retention settings."
                                         />
                                     }
                                 />
                             </Card.Header>
-                            <Card.Body
-                                expanded={true}
-                            >
-                                <div
-                                    className='CustomPolicy__fields'
-                                >
+                            <Card.Body expanded={true}>
+                                <div className="CustomPolicy__fields">
                                     <Input
-                                        name='policyName'
-                                        aria-label='Policy name'
-                                        type='text'
+                                        name="policyName"
+                                        aria-label="Policy name"
+                                        type="text"
                                         value={this.state.policyName}
                                         onChange={(e) => {
-                                            this.setState({policyName: e.target.value, saveNeeded: true});
-                                            this.props.actions.setNavigationBlocked(true);
+                                            this.setState({
+                                                policyName: e.target.value,
+                                                saveNeeded: true,
+                                            });
+                                            this.props.actions.setNavigationBlocked(
+                                                true,
+                                            );
                                         }}
-                                        placeholder={Utils.localizeMessage('admin.data_retention.custom_policy.form.input', 'Policy name')}
-                                        customMessage={{type: ItemStatus.ERROR, value: this.state.inputErrorText}}
+                                        placeholder={Utils.localizeMessage(
+                                            "admin.data_retention.custom_policy.form.input",
+                                            "Policy name",
+                                        )}
+                                        customMessage={{
+                                            type: ItemStatus.ERROR,
+                                            value: this.state.inputErrorText,
+                                        }}
                                     />
                                     <DropdownInputHybrid
                                         onDropdownChange={(value) => {
-                                            if (this.state.messageRetentionDropdownValue.value !== value.value) {
-                                                this.setState({messageRetentionDropdownValue: value, saveNeeded: true});
-                                                this.props.actions.setNavigationBlocked(true);
+                                            if (
+                                                this.state
+                                                    .messageRetentionDropdownValue
+                                                    .value !== value.value
+                                            ) {
+                                                this.setState({
+                                                    messageRetentionDropdownValue:
+                                                        value,
+                                                    saveNeeded: true,
+                                                });
+                                                this.props.actions.setNavigationBlocked(
+                                                    true,
+                                                );
                                             }
                                         }}
                                         onInputChange={(e) => {
-                                            this.setState({messageRetentionInputValue: e.target.value, saveNeeded: true});
-                                            this.props.actions.setNavigationBlocked(true);
+                                            this.setState({
+                                                messageRetentionInputValue:
+                                                    e.target.value,
+                                                saveNeeded: true,
+                                            });
+                                            this.props.actions.setNavigationBlocked(
+                                                true,
+                                            );
                                         }}
-                                        value={this.state.messageRetentionDropdownValue}
-                                        inputValue={this.state.messageRetentionInputValue}
+                                        value={
+                                            this.state
+                                                .messageRetentionDropdownValue
+                                        }
+                                        inputValue={
+                                            this.state
+                                                .messageRetentionInputValue
+                                        }
                                         width={95}
                                         exceptionToInput={[FOREVER]}
                                         defaultValue={keepForeverOption()}
-                                        options={[daysOption(), yearsOption(), keepForeverOption()]}
-                                        legend={Utils.localizeMessage('admin.data_retention.form.channelAndDirectMessageRetention', 'Channel & direct message retention')}
-                                        placeholder={Utils.localizeMessage('admin.data_retention.form.channelAndDirectMessageRetention', 'Channel & direct message retention')}
-                                        inputType={'number'}
-                                        name={'message_retention'}
-                                        dropdownClassNamePrefix={'message_retention'}
-                                        inputId={'message_retention_input'}
+                                        options={[
+                                            daysOption(),
+                                            yearsOption(),
+                                            keepForeverOption(),
+                                        ]}
+                                        legend={Utils.localizeMessage(
+                                            "admin.data_retention.form.channelAndDirectMessageRetention",
+                                            "Channel & direct message retention",
+                                        )}
+                                        placeholder={Utils.localizeMessage(
+                                            "admin.data_retention.form.channelAndDirectMessageRetention",
+                                            "Channel & direct message retention",
+                                        )}
+                                        inputType={"number"}
+                                        name={"message_retention"}
+                                        dropdownClassNamePrefix={
+                                            "message_retention"
+                                        }
+                                        inputId={"message_retention_input"}
                                     />
                                 </div>
-
                             </Card.Body>
                         </Card>
-                        {this.state.addTeamOpen &&
+                        {this.state.addTeamOpen && (
                             <TeamSelectorModal
                                 onModalDismissed={this.closeAddTeam}
                                 onTeamsSelected={(teams) => {
                                     this.addToNewTeams(teams);
                                 }}
-                                modalID={'CUSTOM_POLICY_TEAMS'}
-                                alreadySelected={Object.keys(this.state.newTeams)}
+                                modalID={"CUSTOM_POLICY_TEAMS"}
+                                alreadySelected={Object.keys(
+                                    this.state.newTeams,
+                                )}
                                 excludePolicyConstrained={true}
                             />
-                        }
-                        <Card
-                            expanded={true}
-                            className={'console'}
-                        >
+                        )}
+                        <Card expanded={true} className={"console"}>
                             <Card.Header>
                                 <TitleAndButtonCardHeader
                                     title={
                                         <FormattedMessage
-                                            id='admin.data_retention.custom_policy.team_selector.title'
-                                            defaultMessage='Assigned teams'
+                                            id="admin.data_retention.custom_policy.team_selector.title"
+                                            defaultMessage="Assigned teams"
                                         />
                                     }
                                     subtitle={
                                         <FormattedMessage
-                                            id='admin.data_retention.custom_policy.team_selector.subTitle'
-                                            defaultMessage='Add teams that will follow this retention policy.'
+                                            id="admin.data_retention.custom_policy.team_selector.subTitle"
+                                            defaultMessage="Add teams that will follow this retention policy."
                                         />
                                     }
                                     buttonText={
                                         <FormattedMessage
-                                            id='admin.data_retention.custom_policy.team_selector.addTeams'
-                                            defaultMessage='Add teams'
+                                            id="admin.data_retention.custom_policy.team_selector.addTeams"
+                                            defaultMessage="Add teams"
                                         />
                                     }
                                     onClick={this.openAddTeam}
                                 />
                             </Card.Header>
-                            <Card.Body
-                                expanded={true}
-                            >
+                            <Card.Body expanded={true}>
                                 <TeamList
                                     onRemoveCallback={this.addToRemovedTeams}
                                     onAddCallback={this.addToNewTeams}
@@ -438,52 +603,51 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                                 />
                             </Card.Body>
                         </Card>
-                        {this.state.addChannelOpen &&
+                        {this.state.addChannelOpen && (
                             <ChannelSelectorModal
                                 onModalDismissed={this.closeAddChannel}
                                 onChannelsSelected={(channels) => {
                                     this.addToNewChannels(channels);
                                 }}
-                                groupID={''}
-                                alreadySelected={Object.keys(this.state.newChannels)}
+                                groupID={""}
+                                alreadySelected={Object.keys(
+                                    this.state.newChannels,
+                                )}
                                 excludePolicyConstrained={true}
                                 excludeTeamIds={this.getTeamsToExclude()}
                             />
-                        }
-                        <Card
-                            expanded={true}
-                            className={'console'}
-                        >
+                        )}
+                        <Card expanded={true} className={"console"}>
                             <Card.Header>
                                 <TitleAndButtonCardHeader
                                     title={
                                         <FormattedMessage
-                                            id='admin.data_retention.custom_policy.channel_selector.title'
-                                            defaultMessage='Assigned channels'
+                                            id="admin.data_retention.custom_policy.channel_selector.title"
+                                            defaultMessage="Assigned channels"
                                         />
                                     }
                                     subtitle={
                                         <FormattedMessage
-                                            id='admin.data_retention.custom_policy.channel_selector.subTitle'
-                                            defaultMessage='Add channels that will follow this retention policy.'
+                                            id="admin.data_retention.custom_policy.channel_selector.subTitle"
+                                            defaultMessage="Add channels that will follow this retention policy."
                                         />
                                     }
                                     buttonText={
                                         <FormattedMessage
-                                            id='admin.data_retention.custom_policy.channel_selector.addChannels'
-                                            defaultMessage='Add channels'
+                                            id="admin.data_retention.custom_policy.channel_selector.addChannels"
+                                            defaultMessage="Add channels"
                                         />
                                     }
                                     onClick={this.openAddChannel}
                                 />
                             </Card.Header>
-                            <Card.Body
-                                expanded={true}
-                            >
+                            <Card.Body expanded={true}>
                                 <ChannelList
                                     onRemoveCallback={this.addToRemovedChannels}
                                     onAddCallback={this.addToNewChannels}
-                                    channelsToRemove={this.state.removedChannels}
+                                    channelsToRemove={
+                                        this.state.removedChannels
+                                    }
                                     channelsToAdd={this.state.newChannels}
                                     policyId={this.props.policyId}
                                 />
@@ -491,43 +655,42 @@ export default class CustomPolicyForm extends React.PureComponent<Props, State> 
                         </Card>
                     </div>
                 </div>
-                <div className='admin-console-save'>
+                <div className="admin-console-save">
                     <SaveButton
                         saving={this.state.saving}
                         disabled={!this.state.saveNeeded}
                         onClick={this.handleSubmit}
-                        defaultMessage={(
+                        defaultMessage={
                             <FormattedMessage
-                                id='admin.data_retention.custom_policy.save'
-                                defaultMessage='Save'
+                                id="admin.data_retention.custom_policy.save"
+                                defaultMessage="Save"
                             />
-                        )}
+                        }
                     />
                     <BlockableLink
-                        className='cancel-button'
-                        to='/admin_console/compliance/data_retention_settings'
+                        className="cancel-button"
+                        to="/admin_console/compliance/data_retention_settings"
                     >
                         <FormattedMessage
-                            id='admin.data_retention.custom_policy.cancel'
-                            defaultMessage='Cancel'
+                            id="admin.data_retention.custom_policy.cancel"
+                            defaultMessage="Cancel"
                         />
                     </BlockableLink>
-                    {serverError &&
-                        <span className='CustomPolicy__error'>
-                            <i className='icon icon-alert-outline'/>
+                    {serverError && (
+                        <span className="CustomPolicy__error">
+                            <i className="icon icon-alert-outline" />
                             <FormattedMessage
-                                id='admin.data_retention.custom_policy.serverError'
-                                defaultMessage='There are errors in the form above'
+                                id="admin.data_retention.custom_policy.serverError"
+                                defaultMessage="There are errors in the form above"
                             />
                         </span>
-                    }
-                    {
-                        formErrorText &&
-                        <span className='CustomPolicy__error'>
-                            <i className='icon icon-alert-outline'/>
+                    )}
+                    {formErrorText && (
+                        <span className="CustomPolicy__error">
+                            <i className="icon icon-alert-outline" />
                             {formErrorText}
                         </span>
-                    }
+                    )}
                 </div>
             </div>
         );

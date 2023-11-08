@@ -1,31 +1,41 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import type {ConnectedProps} from 'react-redux';
+import { connect } from "react-redux";
+import type { ConnectedProps } from "react-redux";
 
-import type {Channel} from '@mattermost/types/channels';
+import type { Channel } from "@mattermost/types/channels";
 
-import {favoriteChannel, unfavoriteChannel, markChannelAsRead} from 'mattermost-redux/actions/channels';
-import Permissions from 'mattermost-redux/constants/permissions';
-import {getCategoryInTeamWithChannel} from 'mattermost-redux/selectors/entities/channel_categories';
-import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getMyChannelMemberships, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
+import {
+    favoriteChannel,
+    unfavoriteChannel,
+    markChannelAsRead,
+} from "mattermost-redux/actions/channels";
+import Permissions from "mattermost-redux/constants/permissions";
+import { getCategoryInTeamWithChannel } from "mattermost-redux/selectors/entities/channel_categories";
+import { isFavoriteChannel } from "mattermost-redux/selectors/entities/channels";
+import {
+    getMyChannelMemberships,
+    getCurrentUserId,
+} from "mattermost-redux/selectors/entities/common";
+import { haveIChannelPermission } from "mattermost-redux/selectors/entities/roles";
+import { getCurrentTeam } from "mattermost-redux/selectors/entities/teams";
+import { isChannelMuted } from "mattermost-redux/utils/channel_utils";
 
-import {unmuteChannel, muteChannel} from 'actions/channel_actions';
-import {markMostRecentPostInChannelAsUnread} from 'actions/post_actions';
-import {addChannelsInSidebar} from 'actions/views/channel_sidebar';
-import {openModal} from 'actions/views/modals';
-import {getCategoriesForCurrentTeam, getDisplayedChannels} from 'selectors/views/channel_sidebar';
+import { unmuteChannel, muteChannel } from "actions/channel_actions";
+import { markMostRecentPostInChannelAsUnread } from "actions/post_actions";
+import { addChannelsInSidebar } from "actions/views/channel_sidebar";
+import { openModal } from "actions/views/modals";
+import {
+    getCategoriesForCurrentTeam,
+    getDisplayedChannels,
+} from "selectors/views/channel_sidebar";
 
-import {getSiteURL} from 'utils/url';
+import { getSiteURL } from "utils/url";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import SidebarChannelMenu from './sidebar_channel_menu';
+import SidebarChannelMenu from "./sidebar_channel_menu";
 
 export type OwnProps = {
     channel: Channel;
@@ -33,7 +43,7 @@ export type OwnProps = {
     isUnread: boolean;
     channelLeaveHandler?: (callback: () => void) => void;
     onMenuToggle: (open: boolean) => void;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const member = getMyChannelMemberships(state)[ownProps.channel.id];
@@ -45,10 +55,24 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     let currentCategory;
 
     if (currentTeam) {
-        managePublicChannelMembers = haveIChannelPermission(state, currentTeam.id, ownProps.channel.id, Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS);
-        managePrivateChannelMembers = haveIChannelPermission(state, currentTeam.id, ownProps.channel.id, Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS);
+        managePublicChannelMembers = haveIChannelPermission(
+            state,
+            currentTeam.id,
+            ownProps.channel.id,
+            Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
+        );
+        managePrivateChannelMembers = haveIChannelPermission(
+            state,
+            currentTeam.id,
+            ownProps.channel.id,
+            Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS,
+        );
         categories = getCategoriesForCurrentTeam(state);
-        currentCategory = getCategoryInTeamWithChannel(state, currentTeam.id, ownProps.channel.id);
+        currentCategory = getCategoryInTeamWithChannel(
+            state,
+            currentTeam.id,
+            ownProps.channel.id,
+        );
     }
 
     return {
@@ -62,7 +86,8 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         managePublicChannelMembers,
         managePrivateChannelMembers,
         displayedChannels: getDisplayedChannels(state),
-        multiSelectedChannelIds: state.views.channelSidebar.multiSelectedChannelIds,
+        multiSelectedChannelIds:
+            state.views.channelSidebar.multiSelectedChannelIds,
     };
 }
 

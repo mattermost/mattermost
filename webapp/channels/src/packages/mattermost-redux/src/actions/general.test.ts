@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import nock from 'nock';
+import nock from "nock";
 
-import * as Actions from 'mattermost-redux/actions/general';
-import {Client4} from 'mattermost-redux/client';
+import * as Actions from "mattermost-redux/actions/general";
+import { Client4 } from "mattermost-redux/client";
 
-import TestHelper from '../../test/test_helper';
-import configureStore from '../../test/test_store';
+import TestHelper from "../../test/test_helper";
+import configureStore from "../../test/test_store";
 
-const OK_RESPONSE = {status: 'OK'};
+const OK_RESPONSE = { status: "OK" };
 
-describe('Actions.General', () => {
+describe("Actions.General", () => {
     let store = configureStore();
     beforeAll(() => {
         TestHelper.initBasic(Client4);
@@ -25,11 +25,16 @@ describe('Actions.General', () => {
         TestHelper.tearDown();
     });
 
-    it('getClientConfig', async () => {
-        nock(Client4.getBaseRoute()).
-            get('/config/client').
-            query(true).
-            reply(200, {Version: '4.0.0', BuildNumber: '3', BuildDate: 'Yesterday', BuildHash: '1234'});
+    it("getClientConfig", async () => {
+        nock(Client4.getBaseRoute())
+            .get("/config/client")
+            .query(true)
+            .reply(200, {
+                Version: "4.0.0",
+                BuildNumber: "3",
+                BuildDate: "Yesterday",
+                BuildHash: "1234",
+            });
 
         await Actions.getClientConfig()(store.dispatch, store.getState);
 
@@ -42,11 +47,11 @@ describe('Actions.General', () => {
         expect(clientConfig.BuildHash).toBeTruthy();
     });
 
-    it('getLicenseConfig', async () => {
-        nock(Client4.getBaseRoute()).
-            get('/license/client').
-            query(true).
-            reply(200, {IsLicensed: 'false'});
+    it("getLicenseConfig", async () => {
+        nock(Client4.getBaseRoute())
+            .get("/license/client")
+            .query(true)
+            .reply(200, { IsLicensed: "false" });
 
         await Actions.getLicenseConfig()(store.dispatch, store.getState);
 
@@ -56,15 +61,15 @@ describe('Actions.General', () => {
         expect(licenseConfig.IsLicensed).not.toEqual(undefined);
     });
 
-    it('setServerVersion', async () => {
-        const version = '3.7.0';
+    it("setServerVersion", async () => {
+        const version = "3.7.0";
         await Actions.setServerVersion(version)(store.dispatch, store.getState);
         await TestHelper.wait(100);
-        const {serverVersion} = store.getState().entities.general;
+        const { serverVersion } = store.getState().entities.general;
         expect(serverVersion).toEqual(version);
     });
 
-    it('getDataRetentionPolicy', async () => {
+    it("getDataRetentionPolicy", async () => {
         const responseData = {
             message_deletion_enabled: true,
             file_deletion_enabled: false,
@@ -72,58 +77,66 @@ describe('Actions.General', () => {
             file_retention_cutoff: 0,
         };
 
-        nock(Client4.getBaseRoute()).
-            get('/data_retention/policy').
-            query(true).
-            reply(200, responseData);
+        nock(Client4.getBaseRoute())
+            .get("/data_retention/policy")
+            .query(true)
+            .reply(200, responseData);
 
         await Actions.getDataRetentionPolicy()(store.dispatch, store.getState);
         await TestHelper.wait(100);
-        const {dataRetentionPolicy} = store.getState().entities.general;
+        const { dataRetentionPolicy } = store.getState().entities.general;
         expect(dataRetentionPolicy).toEqual(responseData);
     });
 
-    it('getWarnMetricsStatus', async () => {
+    it("getWarnMetricsStatus", async () => {
         const responseData = {
             metric1: true,
             metric2: false,
         };
 
-        nock(Client4.getBaseRoute()).
-            get('/warn_metrics/status').
-            query(true).
-            reply(200, responseData);
+        nock(Client4.getBaseRoute())
+            .get("/warn_metrics/status")
+            .query(true)
+            .reply(200, responseData);
 
         await Actions.getWarnMetricsStatus()(store.dispatch, store.getState);
-        const {warnMetricsStatus} = store.getState().entities.general;
+        const { warnMetricsStatus } = store.getState().entities.general;
         expect(warnMetricsStatus.metric1).toEqual(true);
         expect(warnMetricsStatus.metric2).toEqual(false);
     });
 
-    it('getFirstAdminVisitMarketplaceStatus', async () => {
+    it("getFirstAdminVisitMarketplaceStatus", async () => {
         const responseData = {
-            name: 'FirstAdminVisitMarketplace',
-            value: 'false',
+            name: "FirstAdminVisitMarketplace",
+            value: "false",
         };
 
-        nock(Client4.getPluginsRoute()).
-            get('/marketplace/first_admin_visit').
-            query(true).
-            reply(200, responseData);
+        nock(Client4.getPluginsRoute())
+            .get("/marketplace/first_admin_visit")
+            .query(true)
+            .reply(200, responseData);
 
-        await Actions.getFirstAdminVisitMarketplaceStatus()(store.dispatch, store.getState);
-        const {firstAdminVisitMarketplaceStatus} = store.getState().entities.general;
+        await Actions.getFirstAdminVisitMarketplaceStatus()(
+            store.dispatch,
+            store.getState,
+        );
+        const { firstAdminVisitMarketplaceStatus } =
+            store.getState().entities.general;
         expect(firstAdminVisitMarketplaceStatus).toEqual(false);
     });
 
-    it('setFirstAdminVisitMarketplaceStatus', async () => {
-        nock(Client4.getPluginsRoute()).
-            post('/marketplace/first_admin_visit').
-            reply(200, OK_RESPONSE);
+    it("setFirstAdminVisitMarketplaceStatus", async () => {
+        nock(Client4.getPluginsRoute())
+            .post("/marketplace/first_admin_visit")
+            .reply(200, OK_RESPONSE);
 
-        await Actions.setFirstAdminVisitMarketplaceStatus()(store.dispatch, store.getState);
+        await Actions.setFirstAdminVisitMarketplaceStatus()(
+            store.dispatch,
+            store.getState,
+        );
 
-        const {firstAdminVisitMarketplaceStatus} = store.getState().entities.general;
+        const { firstAdminVisitMarketplaceStatus } =
+            store.getState().entities.general;
         expect(firstAdminVisitMarketplaceStatus).toEqual(true);
     });
 });

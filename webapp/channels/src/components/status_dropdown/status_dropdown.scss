@@ -153,12 +153,11 @@ button.custom_status__row {
         cursor: pointer;
 
         .status {
-            background-image:
-                linear-gradient(
-                    0deg,
-                    rgba(var(--global-header-text-rgb), 0.08),
-                    rgba(var(--global-header-text-rgb), 0.08)
-                );
+            background-image: linear-gradient(
+                0deg,
+                rgba(var(--global-header-text-rgb), 0.08),
+                rgba(var(--global-header-text-rgb), 0.08)
+            );
         }
     }
 
@@ -166,12 +165,11 @@ button.custom_status__row {
         background: rgba(var(--global-header-text-rgb), 0.16);
 
         .status {
-            background-image:
-                linear-gradient(
-                    0deg,
-                    rgba(var(--global-header-text-rgb), 0.16),
-                    rgba(var(--global-header-text-rgb), 0.16)
-                );
+            background-image: linear-gradient(
+                0deg,
+                rgba(var(--global-header-text-rgb), 0.16),
+                rgba(var(--global-header-text-rgb), 0.16)
+            );
         }
     }
 

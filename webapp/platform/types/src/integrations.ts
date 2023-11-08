@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {MessageAttachment} from './message_attachments';
-import {IDMappedObjects} from './utilities';
+import { MessageAttachment } from "./message_attachments";
+import { IDMappedObjects } from "./utilities";
 
 export type IncomingWebhook = {
     id: string;
@@ -39,30 +39,30 @@ export type OutgoingWebhook = {
 };
 
 export type Command = {
-    'id': string;
-    'token': string;
-    'create_at': number;
-    'update_at': number;
-    'delete_at': number;
-    'creator_id': string;
-    'team_id': string;
-    'trigger': string;
-    'method': 'P' | 'G' | '';
-    'username': string;
-    'icon_url': string;
-    'auto_complete': boolean;
-    'auto_complete_desc': string;
-    'auto_complete_hint': string;
-    'display_name': string;
-    'description': string;
-    'url': string;
+    id: string;
+    token: string;
+    create_at: number;
+    update_at: number;
+    delete_at: number;
+    creator_id: string;
+    team_id: string;
+    trigger: string;
+    method: "P" | "G" | "";
+    username: string;
+    icon_url: string;
+    auto_complete: boolean;
+    auto_complete_desc: string;
+    auto_complete_hint: string;
+    display_name: string;
+    description: string;
+    url: string;
 };
 
 export type CommandArgs = {
     channel_id: string;
     team_id?: string;
     root_id?: string;
-}
+};
 
 export type CommandResponse = {
     response_type: string;
@@ -91,17 +91,17 @@ export type AutocompleteSuggestion = {
 export type CommandAutocompleteSuggestion = AutocompleteSuggestion; // TODO remove this alias after the mattermost-redux migration
 
 export type OAuthApp = {
-    'id': string;
-    'creator_id': string;
-    'create_at': number;
-    'update_at': number;
-    'client_secret': string;
-    'name': string;
-    'description': string;
-    'icon_url': string;
-    'callback_urls': string[];
-    'homepage': string;
-    'is_trusted': boolean;
+    id: string;
+    creator_id: string;
+    create_at: number;
+    update_at: number;
+    client_secret: string;
+    name: string;
+    description: string;
+    icon_url: string;
+    callback_urls: string[];
+    homepage: string;
+    is_trusted: boolean;
 };
 
 export type IntegrationsState = {

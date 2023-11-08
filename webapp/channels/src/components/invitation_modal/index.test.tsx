@@ -1,35 +1,35 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from '@mattermost/types/channels';
+import type { Channel } from "@mattermost/types/channels";
 
-import {Permissions} from 'mattermost-redux/constants';
+import { Permissions } from "mattermost-redux/constants";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import {mapStateToProps} from './index';
+import { mapStateToProps } from "./index";
 
-describe('mapStateToProps', () => {
-    const currentTeamId = 'team-id';
-    const currentUserId = 'user-id';
-    const currentChannelId = 'channel-id';
+describe("mapStateToProps", () => {
+    const currentTeamId = "team-id";
+    const currentUserId = "user-id";
+    const currentChannelId = "channel-id";
 
     const initialState = {
         entities: {
             general: {
                 config: {
-                    EnableGuestAccounts: 'true',
-                    BuildEnterpriseReady: 'true',
+                    EnableGuestAccounts: "true",
+                    BuildEnterpriseReady: "true",
                 },
                 license: {
-                    IsLicensed: 'true',
+                    IsLicensed: "true",
                 },
             },
             teams: {
                 currentTeamId,
                 teams: {
                     [currentTeamId]: {
-                        display_name: 'team1',
+                        display_name: "team1",
                     },
                 },
                 myMembers: {},
@@ -40,7 +40,7 @@ describe('mapStateToProps', () => {
             channels: {
                 channels: {
                     [currentChannelId]: {
-                        display_name: 'team1',
+                        display_name: "team1",
                     },
                 },
                 currentChannelId,
@@ -53,13 +53,13 @@ describe('mapStateToProps', () => {
                 profiles: {
                     [currentUserId]: {
                         id: currentUserId,
-                        roles: 'test_user_role',
+                        roles: "test_user_role",
                     },
                 },
             },
             roles: {
                 roles: {
-                    test_user_role: {permissions: [Permissions.INVITE_GUEST]},
+                    test_user_role: { permissions: [Permissions.INVITE_GUEST] },
                 },
             },
             cloud: {},
@@ -74,7 +74,7 @@ describe('mapStateToProps', () => {
         requests: {},
     } as unknown as GlobalState;
 
-    test('canInviteGuests is false when group_constrained is true', () => {
+    test("canInviteGuests is false when group_constrained is true", () => {
         const testState = {
             ...initialState,
             entities: {
@@ -95,18 +95,18 @@ describe('mapStateToProps', () => {
         expect(props.canInviteGuests).toBe(false);
     });
 
-    test('canInviteGuests is false when BuildEnterpriseReady is false', () => {
+    test("canInviteGuests is false when BuildEnterpriseReady is false", () => {
         const testState = {
             ...initialState,
             entities: {
                 ...initialState.entities,
                 general: {
                     config: {
-                        EnableGuestAccounts: 'true',
-                        BuildEnterpriseReady: 'false',
+                        EnableGuestAccounts: "true",
+                        BuildEnterpriseReady: "false",
                     },
                     license: {
-                        IsLicensed: 'true',
+                        IsLicensed: "true",
                     },
                 },
                 teams: {
@@ -125,7 +125,7 @@ describe('mapStateToProps', () => {
         expect(props.canInviteGuests).toBe(false);
     });
 
-    test('canInviteGuests is true when group_constrained is false', () => {
+    test("canInviteGuests is true when group_constrained is false", () => {
         const testState = {
             ...initialState,
             entities: {
@@ -149,7 +149,7 @@ describe('mapStateToProps', () => {
         expect(props.canInviteGuests).toBe(true);
     });
 
-    test('grabs the team info based on the ownProps channelToInvite value', () => {
+    test("grabs the team info based on the ownProps channelToInvite value", () => {
         const testState = {
             ...initialState,
             entities: {
@@ -164,19 +164,21 @@ describe('mapStateToProps', () => {
                             id: currentTeamId,
                             group_constrained: false,
                         },
-                        currentTeamId: '',
+                        currentTeamId: "",
                     },
                 },
             },
         } as unknown as GlobalState;
 
         const testChannel = {
-            display_name: 'team1',
+            display_name: "team1",
             channel_id: currentChannelId,
             team_id: currentTeamId,
         } as unknown as Channel;
 
-        const props = mapStateToProps(testState, {channelToInvite: testChannel});
+        const props = mapStateToProps(testState, {
+            channelToInvite: testChannel,
+        });
 
         expect(props.currentTeam.id).toBe(testChannel.team_id);
     });

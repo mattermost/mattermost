@@ -1,43 +1,43 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
 import type {
     Post,
     PostEmbed,
     PostImage,
     PostMetadata,
-} from '@mattermost/types/posts';
+} from "@mattermost/types/posts";
 
-import {getEmbedFromMetadata} from 'mattermost-redux/utils/post_utils';
+import { getEmbedFromMetadata } from "mattermost-redux/utils/post_utils";
 
-import MessageAttachmentList from 'components/post_view/message_attachments/message_attachment_list';
-import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
-import PostImageComponent from 'components/post_view/post_image';
-import YoutubeVideo from 'components/youtube_video';
+import MessageAttachmentList from "components/post_view/message_attachments/message_attachment_list";
+import PostAttachmentOpenGraph from "components/post_view/post_attachment_opengraph";
+import PostImageComponent from "components/post_view/post_image";
+import YoutubeVideo from "components/youtube_video";
 
-import PostBodyAdditionalContent from './post_body_additional_content';
-import type {Props} from './post_body_additional_content';
+import PostBodyAdditionalContent from "./post_body_additional_content";
+import type { Props } from "./post_body_additional_content";
 
-jest.mock('mattermost-redux/utils/post_utils', () => {
-    const actual = jest.requireActual('mattermost-redux/utils/post_utils');
+jest.mock("mattermost-redux/utils/post_utils", () => {
+    const actual = jest.requireActual("mattermost-redux/utils/post_utils");
     return {
         ...actual,
         getEmbedFromMetadata: jest.fn(actual.getEmbedFromMetadata),
     };
 });
 
-describe('PostBodyAdditionalContent', () => {
+describe("PostBodyAdditionalContent", () => {
     const baseProps: Props = {
-        children: <span>{'some children'}</span>,
+        children: <span>{"some children"}</span>,
         post: {
-            id: 'post_id_1',
-            root_id: 'root_id',
-            channel_id: 'channel_id',
+            id: "post_id_1",
+            root_id: "root_id",
+            channel_id: "channel_id",
             create_at: 1,
-            message: '',
+            message: "",
             metadata: {} as PostMetadata,
         } as Post,
         isEmbedVisible: true,
@@ -48,8 +48,8 @@ describe('PostBodyAdditionalContent', () => {
         appsEnabled: false,
     };
 
-    describe('with an image preview', () => {
-        const imageUrl = 'https://example.com/image.png';
+    describe("with an image preview", () => {
+        const imageUrl = "https://example.com/image.png";
         const imageMetadata = {} as PostImage; // This can be empty since we're checking equality with ===
 
         const imageBaseProps = {
@@ -58,10 +58,12 @@ describe('PostBodyAdditionalContent', () => {
                 ...baseProps.post,
                 message: imageUrl,
                 metadata: {
-                    embeds: [{
-                        type: 'image',
-                        url: imageUrl,
-                    }],
+                    embeds: [
+                        {
+                            type: "image",
+                            url: imageUrl,
+                        },
+                    ],
                     images: {
                         [imageUrl]: imageMetadata,
                     },
@@ -72,41 +74,45 @@ describe('PostBodyAdditionalContent', () => {
             },
         };
 
-        test('should render correctly', () => {
-            const wrapper = shallow(<PostBodyAdditionalContent {...imageBaseProps}/>);
+        test("should render correctly", () => {
+            const wrapper = shallow(
+                <PostBodyAdditionalContent {...imageBaseProps} />,
+            );
 
             expect(wrapper).toMatchSnapshot();
             expect(wrapper.find(PostImageComponent).exists()).toBe(true);
-            expect(wrapper.find(PostImageComponent).prop('imageMetadata')).toBe(imageMetadata);
+            expect(wrapper.find(PostImageComponent).prop("imageMetadata")).toBe(
+                imageMetadata,
+            );
         });
 
-        test('should render the toggle after a message containing more than just a link', () => {
+        test("should render the toggle after a message containing more than just a link", () => {
             const props = {
                 ...imageBaseProps,
                 post: {
                     ...imageBaseProps.post,
-                    message: 'This is an image: ' + imageUrl,
+                    message: "This is an image: " + imageUrl,
                 },
             };
 
-            const wrapper = shallow(<PostBodyAdditionalContent {...props}/>);
+            const wrapper = shallow(<PostBodyAdditionalContent {...props} />);
 
             expect(wrapper).toMatchSnapshot();
         });
 
-        test('should not render content when isEmbedVisible is false', () => {
+        test("should not render content when isEmbedVisible is false", () => {
             const props = {
                 ...imageBaseProps,
                 isEmbedVisible: false,
             };
 
-            const wrapper = shallow(<PostBodyAdditionalContent {...props}/>);
+            const wrapper = shallow(<PostBodyAdditionalContent {...props} />);
 
             expect(wrapper.find(PostImageComponent).exists()).toBe(false);
         });
     });
 
-    describe('with a message attachment', () => {
+    describe("with a message attachment", () => {
         const attachments: any[] = []; // This can be empty since we're checking equality with ===
 
         const messageAttachmentBaseProps = {
@@ -114,9 +120,11 @@ describe('PostBodyAdditionalContent', () => {
             post: {
                 ...baseProps.post,
                 metadata: {
-                    embeds: [{
-                        type: 'message_attachment',
-                    }],
+                    embeds: [
+                        {
+                            type: "message_attachment",
+                        },
+                    ],
                 } as PostMetadata,
                 props: {
                     attachments,
@@ -124,28 +132,32 @@ describe('PostBodyAdditionalContent', () => {
             },
         };
 
-        test('should render correctly', () => {
-            const wrapper = shallow(<PostBodyAdditionalContent {...messageAttachmentBaseProps}/>);
+        test("should render correctly", () => {
+            const wrapper = shallow(
+                <PostBodyAdditionalContent {...messageAttachmentBaseProps} />,
+            );
 
             expect(wrapper).toMatchSnapshot();
             expect(wrapper.find(MessageAttachmentList).exists()).toBe(true);
-            expect(wrapper.find(MessageAttachmentList).prop('attachments')).toBe(attachments);
+            expect(
+                wrapper.find(MessageAttachmentList).prop("attachments"),
+            ).toBe(attachments);
         });
 
-        test('should render content when isEmbedVisible is false', () => {
+        test("should render content when isEmbedVisible is false", () => {
             const props = {
                 ...messageAttachmentBaseProps,
                 isEmbedVisible: false,
             };
 
-            const wrapper = shallow(<PostBodyAdditionalContent {...props}/>);
+            const wrapper = shallow(<PostBodyAdditionalContent {...props} />);
 
             expect(wrapper.find(MessageAttachmentList).exists()).toBe(true);
         });
     });
 
-    describe('with an opengraph preview', () => {
-        const ogUrl = 'https://example.com/image.png';
+    describe("with an opengraph preview", () => {
+        const ogUrl = "https://example.com/image.png";
 
         const ogBaseProps = {
             ...baseProps,
@@ -153,49 +165,53 @@ describe('PostBodyAdditionalContent', () => {
                 ...baseProps.post,
                 message: ogUrl,
                 metadata: {
-                    embeds: [{
-                        type: 'opengraph',
-                        url: ogUrl,
-                    }],
+                    embeds: [
+                        {
+                            type: "opengraph",
+                            url: ogUrl,
+                        },
+                    ],
                 } as PostMetadata,
             },
         };
 
-        test('should render correctly', () => {
-            const wrapper = shallow(<PostBodyAdditionalContent {...ogBaseProps}/>);
+        test("should render correctly", () => {
+            const wrapper = shallow(
+                <PostBodyAdditionalContent {...ogBaseProps} />,
+            );
 
             expect(wrapper.find(PostAttachmentOpenGraph).exists()).toBe(true);
             expect(wrapper).toMatchSnapshot();
         });
 
-        test('should render the toggle after a message containing more than just a link', () => {
+        test("should render the toggle after a message containing more than just a link", () => {
             const props = {
                 ...ogBaseProps,
                 post: {
                     ...ogBaseProps.post,
-                    message: 'This is a link: ' + ogUrl,
+                    message: "This is a link: " + ogUrl,
                 },
             };
 
-            const wrapper = shallow(<PostBodyAdditionalContent {...props}/>);
+            const wrapper = shallow(<PostBodyAdditionalContent {...props} />);
 
             expect(wrapper).toMatchSnapshot();
         });
 
-        test('should render content when isEmbedVisible is false', () => {
+        test("should render content when isEmbedVisible is false", () => {
             const props = {
                 ...ogBaseProps,
                 isEmbedVisible: false,
             };
 
-            const wrapper = shallow(<PostBodyAdditionalContent {...props}/>);
+            const wrapper = shallow(<PostBodyAdditionalContent {...props} />);
 
             expect(wrapper.find(PostAttachmentOpenGraph).exists()).toBe(true);
         });
     });
 
-    describe('with a YouTube video', () => {
-        const youtubeUrl = 'https://www.youtube.com/watch?v=d-YO3v-wJts';
+    describe("with a YouTube video", () => {
+        const youtubeUrl = "https://www.youtube.com/watch?v=d-YO3v-wJts";
 
         const youtubeBaseProps = {
             ...baseProps,
@@ -203,50 +219,54 @@ describe('PostBodyAdditionalContent', () => {
                 ...baseProps.post,
                 message: youtubeUrl,
                 metadata: {
-                    embeds: [{
-                        type: 'opengraph',
-                        url: youtubeUrl,
-                    }],
+                    embeds: [
+                        {
+                            type: "opengraph",
+                            url: youtubeUrl,
+                        },
+                    ],
                 } as PostMetadata,
             },
         };
 
-        test('should render correctly', () => {
-            const wrapper = shallow(<PostBodyAdditionalContent {...youtubeBaseProps}/>);
+        test("should render correctly", () => {
+            const wrapper = shallow(
+                <PostBodyAdditionalContent {...youtubeBaseProps} />,
+            );
 
             expect(wrapper.find(YoutubeVideo).exists()).toBe(true);
             expect(wrapper).toMatchSnapshot();
         });
 
-        test('should render the toggle after a message containing more than just a link', () => {
+        test("should render the toggle after a message containing more than just a link", () => {
             const props = {
                 ...youtubeBaseProps,
                 post: {
                     ...youtubeBaseProps.post,
-                    message: 'This is a video: ' + youtubeUrl,
+                    message: "This is a video: " + youtubeUrl,
                 },
             };
 
-            const wrapper = shallow(<PostBodyAdditionalContent {...props}/>);
+            const wrapper = shallow(<PostBodyAdditionalContent {...props} />);
 
             expect(wrapper).toMatchSnapshot();
         });
 
-        test('should not render content when isEmbedVisible is false', () => {
+        test("should not render content when isEmbedVisible is false", () => {
             const props = {
                 ...youtubeBaseProps,
                 isEmbedVisible: false,
             };
 
-            const wrapper = shallow(<PostBodyAdditionalContent {...props}/>);
+            const wrapper = shallow(<PostBodyAdditionalContent {...props} />);
 
             expect(wrapper.find(YoutubeVideo).exists()).toBe(false);
             expect(wrapper).toMatchSnapshot();
         });
     });
 
-    describe('with a normal link', () => {
-        const mp3Url = 'https://example.com/song.mp3';
+    describe("with a normal link", () => {
+        const mp3Url = "https://example.com/song.mp3";
 
         const EmbedMP3 = () => <></>;
 
@@ -256,10 +276,12 @@ describe('PostBodyAdditionalContent', () => {
                 ...baseProps.post,
                 message: mp3Url,
                 metadata: {
-                    embeds: [{
-                        type: 'link',
-                        url: mp3Url,
-                    }],
+                    embeds: [
+                        {
+                            type: "link",
+                            url: mp3Url,
+                        },
+                    ],
                 } as PostMetadata,
             },
         };
@@ -269,8 +291,8 @@ describe('PostBodyAdditionalContent', () => {
                 ...linkBaseProps,
                 pluginPostWillRenderEmbedComponents: [
                     {
-                        id: '',
-                        pluginId: '',
+                        id: "",
+                        pluginId: "",
                         match: () => false,
                         toggleable: true,
                         component: EmbedMP3,
@@ -278,59 +300,63 @@ describe('PostBodyAdditionalContent', () => {
                 ],
             };
 
-            const wrapper = shallow(<PostBodyAdditionalContent {...props}/>);
+            const wrapper = shallow(<PostBodyAdditionalContent {...props} />);
             expect(wrapper.find(EmbedMP3).exists()).toBe(false);
             expect(wrapper).toMatchSnapshot();
         });
 
-        test('Should render the plugin component if it matches and is toggeable', () => {
+        test("Should render the plugin component if it matches and is toggeable", () => {
             const props = {
                 ...linkBaseProps,
                 pluginPostWillRenderEmbedComponents: [
                     {
-                        id: '',
-                        pluginId: '',
-                        match: ({url}: PostEmbed) => url === mp3Url,
+                        id: "",
+                        pluginId: "",
+                        match: ({ url }: PostEmbed) => url === mp3Url,
                         toggleable: true,
                         component: EmbedMP3,
                     },
                 ],
             };
 
-            const wrapper = shallow(<PostBodyAdditionalContent {...props}/>);
+            const wrapper = shallow(<PostBodyAdditionalContent {...props} />);
             expect(wrapper.find(EmbedMP3).exists()).toBe(true);
-            expect(wrapper.find('button.post__embed-visibility').exists()).toBe(true);
+            expect(wrapper.find("button.post__embed-visibility").exists()).toBe(
+                true,
+            );
             expect(wrapper).toMatchSnapshot();
         });
 
-        test('Should render the plugin component if it matches and is not toggeable', () => {
+        test("Should render the plugin component if it matches and is not toggeable", () => {
             const props = {
                 ...linkBaseProps,
                 pluginPostWillRenderEmbedComponents: [
                     {
-                        id: '',
-                        pluginId: '',
-                        match: ({url}: PostEmbed) => url === mp3Url,
+                        id: "",
+                        pluginId: "",
+                        match: ({ url }: PostEmbed) => url === mp3Url,
                         toggleable: false,
                         component: EmbedMP3,
                     },
                 ],
             };
 
-            const wrapper = shallow(<PostBodyAdditionalContent {...props}/>);
+            const wrapper = shallow(<PostBodyAdditionalContent {...props} />);
             expect(wrapper.find(EmbedMP3).exists()).toBe(true);
-            expect(wrapper.find('button.post__embed-visibility').exists()).toBe(false);
+            expect(wrapper.find("button.post__embed-visibility").exists()).toBe(
+                false,
+            );
             expect(wrapper).toMatchSnapshot();
         });
 
-        test('Should render nothing if the plugin matches but isEmbedVisible is false', () => {
+        test("Should render nothing if the plugin matches but isEmbedVisible is false", () => {
             const props = {
                 ...linkBaseProps,
                 pluginPostWillRenderEmbedComponents: [
                     {
-                        id: '',
-                        pluginId: '',
-                        match: ({url}: PostEmbed) => url === mp3Url,
+                        id: "",
+                        pluginId: "",
+                        match: ({ url }: PostEmbed) => url === mp3Url,
                         toggleable: false,
                         component: EmbedMP3,
                     },
@@ -338,26 +364,34 @@ describe('PostBodyAdditionalContent', () => {
                 isEmbedVisible: false,
             };
 
-            const wrapper = shallow(<PostBodyAdditionalContent {...props}/>);
+            const wrapper = shallow(<PostBodyAdditionalContent {...props} />);
             expect(wrapper.find(EmbedMP3).exists()).toBe(false);
             expect(wrapper).toMatchSnapshot();
         });
     });
 
-    test('should call toggleEmbedVisibility with post id', () => {
-        const wrapper = shallow<PostBodyAdditionalContent>(<PostBodyAdditionalContent {...baseProps}/>);
+    test("should call toggleEmbedVisibility with post id", () => {
+        const wrapper = shallow<PostBodyAdditionalContent>(
+            <PostBodyAdditionalContent {...baseProps} />,
+        );
 
         wrapper.instance().toggleEmbedVisibility();
 
-        expect(baseProps.actions.toggleEmbedVisibility).toHaveBeenCalledTimes(1);
-        expect(baseProps.actions.toggleEmbedVisibility).toBeCalledWith('post_id_1');
+        expect(baseProps.actions.toggleEmbedVisibility).toHaveBeenCalledTimes(
+            1,
+        );
+        expect(baseProps.actions.toggleEmbedVisibility).toBeCalledWith(
+            "post_id_1",
+        );
     });
 
-    test('should call getEmbedFromMetadata with metadata', () => {
+    test("should call getEmbedFromMetadata with metadata", () => {
         const metadata = {
-            embeds: [{
-                type: 'message_attachment',
-            }],
+            embeds: [
+                {
+                    type: "message_attachment",
+                },
+            ],
         } as PostMetadata;
         const props = {
             ...baseProps,
@@ -367,14 +401,17 @@ describe('PostBodyAdditionalContent', () => {
             },
         };
 
-        const wrapper = shallow<PostBodyAdditionalContent>(<PostBodyAdditionalContent {...props}/>);
+        const wrapper = shallow<PostBodyAdditionalContent>(
+            <PostBodyAdditionalContent {...props} />,
+        );
         wrapper.instance().getEmbed();
 
         expect(getEmbedFromMetadata).toHaveBeenCalledWith(metadata);
     });
 
-    describe('with a permalinklink', () => {
-        const permalinkUrl = 'https://community.mattermost.com/core/pl/123456789';
+    describe("with a permalinklink", () => {
+        const permalinkUrl =
+            "https://community.mattermost.com/core/pl/123456789";
 
         const permalinkBaseProps = {
             ...baseProps,
@@ -382,17 +419,19 @@ describe('PostBodyAdditionalContent', () => {
                 ...baseProps.post,
                 message: permalinkUrl,
                 metadata: {
-                    embeds: [{
-                        type: 'permalink',
-                        url: '',
-                        data: {
-                            post_id: 'post_id123',
-                            channel_display_name: 'channel1',
-                            team_name: 'core',
-                            channel_type: 'O',
-                            channel_id: 'channel_id',
+                    embeds: [
+                        {
+                            type: "permalink",
+                            url: "",
+                            data: {
+                                post_id: "post_id123",
+                                channel_display_name: "channel1",
+                                team_name: "core",
+                                channel_type: "O",
+                                channel_id: "channel_id",
+                            },
                         },
-                    }],
+                    ],
                     images: {},
                     emojis: [],
                     files: [],
@@ -401,17 +440,21 @@ describe('PostBodyAdditionalContent', () => {
             },
         };
 
-        test('Render permalink preview', () => {
-            const wrapper = shallow(<PostBodyAdditionalContent {...permalinkBaseProps}/>);
+        test("Render permalink preview", () => {
+            const wrapper = shallow(
+                <PostBodyAdditionalContent {...permalinkBaseProps} />,
+            );
             expect(wrapper).toMatchSnapshot();
         });
 
-        test('Render permalink preview with no data', () => {
+        test("Render permalink preview with no data", () => {
             const metadata = {
-                embeds: [{
-                    type: 'permalink',
-                    url: '',
-                }],
+                embeds: [
+                    {
+                        type: "permalink",
+                        url: "",
+                    },
+                ],
             } as PostMetadata;
             const props = {
                 ...permalinkBaseProps,
@@ -421,7 +464,7 @@ describe('PostBodyAdditionalContent', () => {
                 },
             };
 
-            const wrapper = shallow(<PostBodyAdditionalContent {...props}/>);
+            const wrapper = shallow(<PostBodyAdditionalContent {...props} />);
             expect(wrapper).toMatchSnapshot();
         });
     });

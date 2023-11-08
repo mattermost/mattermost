@@ -1,46 +1,38 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import MuiMenuList from '@mui/material/MenuList';
-import type {PopoverOrigin} from '@mui/material/Popover';
-import React, {
-    useState,
-    useEffect,
-    useMemo,
-    useCallback,
-} from 'react';
-import type {
-    ReactNode,
-    MouseEvent,
-    KeyboardEvent} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import MuiMenuList from "@mui/material/MenuList";
+import type { PopoverOrigin } from "@mui/material/Popover";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import type { ReactNode, MouseEvent, KeyboardEvent } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-import {GenericModal} from '@mattermost/components';
+import { GenericModal } from "@mattermost/components";
 
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import { getTheme } from "mattermost-redux/selectors/entities/preferences";
 
-import {openModal, closeModal} from 'actions/views/modals';
-import {getIsMobileView} from 'selectors/views/browser';
-import {isAnyModalOpen} from 'selectors/views/modals';
+import { openModal, closeModal } from "actions/views/modals";
+import { getIsMobileView } from "selectors/views/browser";
+import { isAnyModalOpen } from "selectors/views/modals";
 
-import CompassDesignProvider from 'components/compass_design_provider';
+import CompassDesignProvider from "components/compass_design_provider";
 
-import Constants, {A11yClassNames} from 'utils/constants';
-import {isKeyPressed} from 'utils/keyboard';
+import Constants, { A11yClassNames } from "utils/constants";
+import { isKeyPressed } from "utils/keyboard";
 
-import {SubMenuContext, useMenuContextValue} from './menu_context';
-import {MenuItem} from './menu_item';
-import type {Props as MenuItemProps} from './menu_item';
-import {MuiMenuStyled} from './menu_styled';
+import { SubMenuContext, useMenuContextValue } from "./menu_context";
+import { MenuItem } from "./menu_item";
+import type { Props as MenuItemProps } from "./menu_item";
+import { MuiMenuStyled } from "./menu_styled";
 
-import './sub_menu.scss';
+import "./sub_menu.scss";
 
 interface Props {
-    id: MenuItemProps['id'];
-    leadingElement?: MenuItemProps['leadingElement'];
-    labels: MenuItemProps['labels'];
-    trailingElements?: MenuItemProps['trailingElements'];
-    isDestructive?: MenuItemProps['isDestructive'];
+    id: MenuItemProps["id"];
+    leadingElement?: MenuItemProps["leadingElement"];
+    labels: MenuItemProps["labels"];
+    trailingElements?: MenuItemProps["trailingElements"];
+    isDestructive?: MenuItemProps["isDestructive"];
 
     // Menu props
     menuId: string;
@@ -64,7 +56,9 @@ export function SubMenu(props: Props) {
         ...rest
     } = props;
 
-    const [anchorElement, setAnchorElement] = useState<null | HTMLElement>(null);
+    const [anchorElement, setAnchorElement] = useState<null | HTMLElement>(
+        null,
+    );
     const isSubMenuOpen = Boolean(anchorElement);
 
     const isMobileView = useSelector(getIsMobileView);
@@ -87,7 +81,10 @@ export function SubMenu(props: Props) {
         setAnchorElement(null);
     }, []);
 
-    const providerValue = useMenuContextValue(closeSubMenu, Boolean(anchorElement));
+    const providerValue = useMenuContextValue(
+        closeSubMenu,
+        Boolean(anchorElement),
+    );
 
     const hasSubmenuItems = Boolean(children);
     if (!hasSubmenuItems) {
@@ -116,10 +113,16 @@ export function SubMenu(props: Props) {
     }
 
     function handleSubMenuKeyDown(event: KeyboardEvent<HTMLUListElement>) {
-        if (isKeyPressed(event, Constants.KeyCodes.UP) || isKeyPressed(event, Constants.KeyCodes.DOWN)) {
+        if (
+            isKeyPressed(event, Constants.KeyCodes.UP) ||
+            isKeyPressed(event, Constants.KeyCodes.DOWN)
+        ) {
             // Stop the event from propagating upwards since that causes navigation to move by 2 items at a time
             event.stopPropagation();
-        } else if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) || isKeyPressed(event, Constants.KeyCodes.LEFT)) {
+        } else if (
+            isKeyPressed(event, Constants.KeyCodes.ESCAPE) ||
+            isKeyPressed(event, Constants.KeyCodes.LEFT)
+        ) {
             event.preventDefault();
             setAnchorElement(null);
         }
@@ -127,22 +130,24 @@ export function SubMenu(props: Props) {
 
     // This is used in MobileView to open the submenu in a modal
     function handleOnClick() {
-        dispatch(openModal<SubMenuModalProps>({
-            modalId: menuId,
-            dialogType: SubMenuModal,
-            dialogProps: {
-                menuId,
-                menuAriaLabel,
-                children,
-            },
-        }));
+        dispatch(
+            openModal<SubMenuModalProps>({
+                modalId: menuId,
+                dialogType: SubMenuModal,
+                dialogProps: {
+                    menuId,
+                    menuAriaLabel,
+                    children,
+                },
+            }),
+        );
     }
 
     const passedInTriggerButtonProps = {
         id,
-        'aria-controls': menuId,
-        'aria-haspopup': true,
-        'aria-expanded': isSubMenuOpen,
+        "aria-controls": menuId,
+        "aria-haspopup": true,
+        "aria-expanded": isSubMenuOpen,
         disableRipple: true,
         leadingElement,
         labels,
@@ -152,7 +157,7 @@ export function SubMenu(props: Props) {
     };
 
     if (isMobileView) {
-        return (<MenuItem {...passedInTriggerButtonProps}/>);
+        return <MenuItem {...passedInTriggerButtonProps} />;
     }
 
     return (
@@ -169,19 +174,19 @@ export function SubMenu(props: Props) {
                 asSubMenu={true}
                 anchorOrigin={originOfAnchorAndTransform.anchorOrigin}
                 transformOrigin={originOfAnchorAndTransform.transformOrigin}
-                sx={{pointerEvents: 'none'}}
+                sx={{ pointerEvents: "none" }}
             >
                 {/* This component is needed here to re enable pointer events for the submenu items which we had to disable above as */}
                 {/* pointer turns to default as soon as it leaves the parent menu */}
                 {/* Notice we dont use the below component in menu.tsx  */}
                 <MuiMenuList
                     id={menuId}
-                    component='ul'
+                    component="ul"
                     aria-label={menuAriaLabel}
                     className={A11yClassNames.POPUP}
                     onKeyDown={handleSubMenuKeyDown}
                     sx={{
-                        pointerEvents: 'auto', // reset pointer events to default from here on
+                        pointerEvents: "auto", // reset pointer events to default from here on
                         paddingTop: 0,
                         paddingBottom: 0,
                     }}
@@ -196,9 +201,9 @@ export function SubMenu(props: Props) {
 }
 
 interface SubMenuModalProps {
-    menuId: Props['menuId'];
-    menuAriaLabel?: Props['menuAriaLabel'];
-    children: Props['children'];
+    menuId: Props["menuId"];
+    menuAriaLabel?: Props["menuAriaLabel"];
+    children: Props["children"];
 }
 
 function SubMenuModal(props: SubMenuModalProps) {
@@ -217,12 +222,9 @@ function SubMenuModal(props: SubMenuModalProps) {
                 ariaLabel={props.menuAriaLabel}
                 onExited={handleModalClose}
                 backdrop={true}
-                className='menuModal'
+                className="menuModal"
             >
-                <MuiMenuList
-                    aria-hidden={true}
-                    onClick={handleModalClose}
-                >
+                <MuiMenuList aria-hidden={true} onClick={handleModalClose}>
                     {props.children}
                 </MuiMenuList>
             </GenericModal>
@@ -232,27 +234,30 @@ function SubMenuModal(props: SubMenuModalProps) {
 
 const openAtLeft = {
     anchorOrigin: {
-        vertical: 'top',
-        horizontal: 'left',
+        vertical: "top",
+        horizontal: "left",
     } as PopoverOrigin,
     transformOrigin: {
-        vertical: 'top',
-        horizontal: 'right',
+        vertical: "top",
+        horizontal: "right",
     } as PopoverOrigin,
 };
 
 const openAtRight = {
     anchorOrigin: {
-        vertical: 'top',
-        horizontal: 'right',
+        vertical: "top",
+        horizontal: "right",
     } as PopoverOrigin,
     transformOrigin: {
-        vertical: 'top',
-        horizontal: 'left',
+        vertical: "top",
+        horizontal: "left",
     } as PopoverOrigin,
 };
 
-function getOriginOfAnchorAndTransform(forceOpenOnLeft = false, anchorElement: HTMLElement | null): {anchorOrigin: PopoverOrigin; transformOrigin: PopoverOrigin} {
+function getOriginOfAnchorAndTransform(
+    forceOpenOnLeft = false,
+    anchorElement: HTMLElement | null,
+): { anchorOrigin: PopoverOrigin; transformOrigin: PopoverOrigin } {
     if (!anchorElement) {
         return openAtRight;
     }
@@ -263,8 +268,10 @@ function getOriginOfAnchorAndTransform(forceOpenOnLeft = false, anchorElement: H
 
     if (window && window.innerWidth) {
         const windowWidth = window.innerWidth;
-        const anchorElementLeft = anchorElement?.getBoundingClientRect()?.left ?? 0;
-        const anchorElementRight = anchorElement?.getBoundingClientRect()?.right ?? 0;
+        const anchorElementLeft =
+            anchorElement?.getBoundingClientRect()?.left ?? 0;
+        const anchorElementRight =
+            anchorElement?.getBoundingClientRect()?.right ?? 0;
 
         const leftSpace = anchorElementLeft;
         const rightSpace = windowWidth - anchorElementRight;

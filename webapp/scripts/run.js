@@ -3,41 +3,44 @@
 
 /* eslint-disable no-console, no-process-env */
 
-const chalk = require('chalk');
-const concurrently = require('concurrently');
+const chalk = require("chalk");
+const concurrently = require("concurrently");
 
-const {makeRunner} = require('./runner.js');
-const {getExitCode, getPlatformCommands} = require('./utils.js');
+const { makeRunner } = require("./runner.js");
+const { getExitCode, getPlatformCommands } = require("./utils.js");
 
 async function watchAll(useRunner) {
     if (!useRunner) {
-        console.log(chalk.inverse.bold('Watching web app and all subpackages...'));
+        console.log(
+            chalk.inverse.bold("Watching web app and all subpackages..."),
+        );
     }
 
     const commands = [
-        {command: 'npm:run --workspace=channels', name: 'webapp', prefixColor: 'cyan'},
+        {
+            command: "npm:run --workspace=channels",
+            name: "webapp",
+            prefixColor: "cyan",
+        },
     ];
 
-    commands.push(...getPlatformCommands('run'));
+    commands.push(...getPlatformCommands("run"));
 
     let runner;
     if (useRunner) {
         runner = makeRunner(commands);
     }
 
-    console.log('\n');
+    console.log("\n");
 
-    const {result, commands: runningCommands} = concurrently(
-        commands,
-        {
-            killOthers: 'failure',
-            outputStream: runner?.getOutputStream(),
-        },
-    );
+    const { result, commands: runningCommands } = concurrently(commands, {
+        killOthers: "failure",
+        outputStream: runner?.getOutputStream(),
+    });
 
     runner?.addCloseListener(() => {
         for (const command of runningCommands) {
-            command.kill('SIGINT');
+            command.kill("SIGINT");
         }
     });
 
@@ -50,9 +53,9 @@ async function watchAll(useRunner) {
     return exitCode;
 }
 
-const useRunner = process.argv[2] === '--runner' || process.env.MM_USE_WEBAPP_RUNNER;
+const useRunner =
+    process.argv[2] === "--runner" || process.env.MM_USE_WEBAPP_RUNNER;
 
 watchAll(useRunner).then((exitCode) => {
     process.exit(exitCode);
 });
-

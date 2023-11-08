@@ -38,7 +38,7 @@
 
             &::after {
                 display: block;
-                content: '';
+                content: "";
             }
         }
 
@@ -68,7 +68,7 @@
             right: 0;
             padding: 0 10px;
             color: $white;
-            font-family: 'Open Sans', sans-serif;
+            font-family: "Open Sans", sans-serif;
             font-size: 20px;
             font-weight: 600;
             text-decoration: none;
@@ -92,7 +92,7 @@
     i {
         margin-right: 4px;
         color: #fff;
-        font-family: 'compass-icons';
+        font-family: "compass-icons";
         font-size: 16px;
     }
 

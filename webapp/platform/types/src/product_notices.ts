@@ -2,11 +2,10 @@
 // See LICENSE.txt for license information.
 
 export enum Action {
-    URL = 'url',
+    URL = "url",
 }
 
 export type ProductNotice = {
-
     /** Unique identifier for this notice. Can be a running number. Used for storing 'viewed' state on the server. */
     id: string;
 
@@ -30,7 +29,7 @@ export type ProductNotice = {
 
     sysAdminOnly: boolean;
     teamAdminOnly: boolean;
-}
+};
 
 /** List of product notices. Order is important and is used to resolve priorities.
  * Each notice will only be show if conditions are met.

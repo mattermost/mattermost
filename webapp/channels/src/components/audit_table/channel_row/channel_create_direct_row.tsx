@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import React from "react";
+import { useIntl } from "react-intl";
+import { useSelector } from "react-redux";
 
-import type {Audit} from '@mattermost/types/audits';
-import type {Channel} from '@mattermost/types/channels';
+import type { Audit } from "@mattermost/types/audits";
+import type { Channel } from "@mattermost/types/channels";
 
-import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
+import { getDirectTeammate } from "mattermost-redux/selectors/entities/channels";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import AuditRow from '../audit_row/audit_row';
-import holders from '../holders';
+import AuditRow from "../audit_row/audit_row";
+import holders from "../holders";
 
 type Props = {
     audit: Audit;
@@ -22,7 +22,7 @@ type Props = {
     showIp: boolean;
     showSession: boolean;
     channelObj?: Channel | null;
-}
+};
 
 export default function ChannelCreateDirectRow({
     audit,
@@ -34,7 +34,7 @@ export default function ChannelCreateDirectRow({
 }: Props) {
     const intl = useIntl();
 
-    const channelId = channelObj?.id ?? '';
+    const channelId = channelObj?.id ?? "";
 
     const desc = intl.formatMessage(holders.establishedDM, {
         username: useSelector((state: GlobalState) =>

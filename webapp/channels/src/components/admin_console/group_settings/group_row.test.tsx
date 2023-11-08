@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import GroupRow from 'components/admin_console/group_settings/group_row';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import GroupRow from "components/admin_console/group_settings/group_row";
+import LoadingSpinner from "components/widgets/loading/loading_spinner";
 
-describe('components/admin_console/group_settings/GroupRow', () => {
-    test('should match snapshot, on linked and configured row', () => {
+describe("components/admin_console/group_settings/GroupRow", () => {
+    test("should match snapshot, on linked and configured row", () => {
         const wrapper = shallow(
             <GroupRow
-                primary_key='primary_key'
-                name='name'
-                mattermost_group_id='group-id'
+                primary_key="primary_key"
+                name="name"
+                mattermost_group_id="group-id"
                 has_syncables={true}
                 checked={false}
                 failed={false}
@@ -27,12 +27,12 @@ describe('components/admin_console/group_settings/GroupRow', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, on linked but not configured row', () => {
+    test("should match snapshot, on linked but not configured row", () => {
         const wrapper = shallow(
             <GroupRow
-                primary_key='primary_key'
-                name='name'
-                mattermost_group_id='group-id'
+                primary_key="primary_key"
+                name="name"
+                mattermost_group_id="group-id"
                 has_syncables={false}
                 checked={false}
                 failed={false}
@@ -46,11 +46,11 @@ describe('components/admin_console/group_settings/GroupRow', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, on not linked row', () => {
+    test("should match snapshot, on not linked row", () => {
         const wrapper = shallow(
             <GroupRow
-                primary_key='primary_key'
-                name='name'
+                primary_key="primary_key"
+                name="name"
                 mattermost_group_id={undefined}
                 has_syncables={undefined}
                 checked={false}
@@ -65,11 +65,11 @@ describe('components/admin_console/group_settings/GroupRow', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, on checked row', () => {
+    test("should match snapshot, on checked row", () => {
         const wrapper = shallow(
             <GroupRow
-                primary_key='primary_key'
-                name='name'
+                primary_key="primary_key"
+                name="name"
                 mattermost_group_id={undefined}
                 has_syncables={undefined}
                 checked={true}
@@ -84,12 +84,12 @@ describe('components/admin_console/group_settings/GroupRow', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, on failed linked row', () => {
+    test("should match snapshot, on failed linked row", () => {
         const wrapper = shallow(
             <GroupRow
-                primary_key='primary_key'
-                name='name'
-                mattermost_group_id='group-id'
+                primary_key="primary_key"
+                name="name"
+                mattermost_group_id="group-id"
                 has_syncables={undefined}
                 checked={false}
                 failed={true}
@@ -103,11 +103,11 @@ describe('components/admin_console/group_settings/GroupRow', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, on failed not linked row', () => {
+    test("should match snapshot, on failed not linked row", () => {
         const wrapper = shallow(
             <GroupRow
-                primary_key='primary_key'
-                name='name'
+                primary_key="primary_key"
+                name="name"
                 mattermost_group_id={undefined}
                 has_syncables={undefined}
                 checked={false}
@@ -122,12 +122,12 @@ describe('components/admin_console/group_settings/GroupRow', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('onRowClick call to onCheckToggle', () => {
+    test("onRowClick call to onCheckToggle", () => {
         const onCheckToggle = jest.fn();
         const wrapper = shallow(
             <GroupRow
-                primary_key='primary_key'
-                name='name'
+                primary_key="primary_key"
+                name="name"
                 mattermost_group_id={undefined}
                 has_syncables={undefined}
                 checked={false}
@@ -140,16 +140,18 @@ describe('components/admin_console/group_settings/GroupRow', () => {
             />,
         );
 
-        wrapper.find('.group').prop('onClick')?.({} as unknown as React.MouseEvent);
-        expect(onCheckToggle).toHaveBeenCalledWith('primary_key');
+        wrapper.find(".group").prop("onClick")?.(
+            {} as unknown as React.MouseEvent,
+        );
+        expect(onCheckToggle).toHaveBeenCalledWith("primary_key");
     });
 
-    test('linkHandler must run the link action', async () => {
+    test("linkHandler must run the link action", async () => {
         const link = jest.fn().mockReturnValue(Promise.resolve());
         const wrapper = shallow(
             <GroupRow
-                primary_key='primary_key'
-                name='name'
+                primary_key="primary_key"
+                name="name"
                 mattermost_group_id={undefined}
                 has_syncables={undefined}
                 checked={false}
@@ -162,18 +164,21 @@ describe('components/admin_console/group_settings/GroupRow', () => {
             />,
         );
 
-        await wrapper.find('a').prop('onClick')?.({stopPropagation: jest.fn(), preventDefault: jest.fn()} as unknown as React.MouseEvent);
+        await wrapper.find("a").prop("onClick")?.({
+            stopPropagation: jest.fn(),
+            preventDefault: jest.fn(),
+        } as unknown as React.MouseEvent);
         expect(wrapper.find(LoadingSpinner).exists()).toBe(false);
-        expect(link).toHaveBeenCalledWith('primary_key');
+        expect(link).toHaveBeenCalledWith("primary_key");
     });
 
-    test('unlinkHandler must run the unlink action', async () => {
+    test("unlinkHandler must run the unlink action", async () => {
         const unlink = jest.fn().mockReturnValue(Promise.resolve());
         const wrapper = shallow(
             <GroupRow
-                primary_key='primary_key'
-                name='name'
-                mattermost_group_id='group-id'
+                primary_key="primary_key"
+                name="name"
+                mattermost_group_id="group-id"
                 has_syncables={undefined}
                 checked={false}
                 failed={false}
@@ -185,8 +190,11 @@ describe('components/admin_console/group_settings/GroupRow', () => {
             />,
         );
 
-        await wrapper.find('a').prop('onClick')?.({stopPropagation: jest.fn(), preventDefault: jest.fn()} as unknown as React.MouseEvent);
+        await wrapper.find("a").prop("onClick")?.({
+            stopPropagation: jest.fn(),
+            preventDefault: jest.fn(),
+        } as unknown as React.MouseEvent);
         expect(wrapper.find(LoadingSpinner).exists()).toBe(false);
-        expect(unlink).toHaveBeenCalledWith('primary_key');
+        expect(unlink).toHaveBeenCalledWith("primary_key");
     });
 });

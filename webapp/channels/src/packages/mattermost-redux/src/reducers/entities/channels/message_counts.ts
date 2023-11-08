@@ -5,79 +5,85 @@ import type {
     Channel,
     ChannelMessageCount,
     ServerChannel,
-} from '@mattermost/types/channels';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
+} from "@mattermost/types/channels";
+import type { RelationOneToOne } from "@mattermost/types/utilities";
 
 import {
     AdminTypes,
     ChannelTypes,
     UserTypes,
     SchemeTypes,
-} from 'mattermost-redux/action_types';
-import {General} from 'mattermost-redux/constants';
-import type {GenericAction} from 'mattermost-redux/types/actions';
+} from "mattermost-redux/action_types";
+import { General } from "mattermost-redux/constants";
+import type { GenericAction } from "mattermost-redux/types/actions";
 
-export default function messageCounts(state: RelationOneToOne<Channel, ChannelMessageCount> = {}, action: GenericAction): RelationOneToOne<Channel, ChannelMessageCount> {
+export default function messageCounts(
+    state: RelationOneToOne<Channel, ChannelMessageCount> = {},
+    action: GenericAction,
+): RelationOneToOne<Channel, ChannelMessageCount> {
     switch (action.type) {
-    case ChannelTypes.RECEIVED_CHANNEL: {
-        const channel: ServerChannel = action.data;
+        case ChannelTypes.RECEIVED_CHANNEL: {
+            const channel: ServerChannel = action.data;
 
-        return updateMessageCount(state, channel);
-    }
-    case AdminTypes.RECEIVED_DATA_RETENTION_CUSTOM_POLICY_CHANNELS: {
-        const channels: ServerChannel[] = action.data.channels;
+            return updateMessageCount(state, channel);
+        }
+        case AdminTypes.RECEIVED_DATA_RETENTION_CUSTOM_POLICY_CHANNELS: {
+            const channels: ServerChannel[] = action.data.channels;
 
-        return channels.reduce(updateMessageCount, state);
-    }
-    case AdminTypes.RECEIVED_DATA_RETENTION_CUSTOM_POLICY_CHANNELS_SEARCH:
-    case ChannelTypes.RECEIVED_CHANNELS:
-    case ChannelTypes.RECEIVED_ALL_CHANNELS:
-    case SchemeTypes.RECEIVED_SCHEME_CHANNELS: {
-        const channels: ServerChannel[] = action.data;
+            return channels.reduce(updateMessageCount, state);
+        }
+        case AdminTypes.RECEIVED_DATA_RETENTION_CUSTOM_POLICY_CHANNELS_SEARCH:
+        case ChannelTypes.RECEIVED_CHANNELS:
+        case ChannelTypes.RECEIVED_ALL_CHANNELS:
+        case SchemeTypes.RECEIVED_SCHEME_CHANNELS: {
+            const channels: ServerChannel[] = action.data;
 
-        return channels.reduce(updateMessageCount, state);
-    }
-
-    case ChannelTypes.LEAVE_CHANNEL: {
-        const channel: ServerChannel | undefined = action.data;
-
-        if (!channel || channel.type !== General.OPEN_CHANNEL) {
-            return state;
+            return channels.reduce(updateMessageCount, state);
         }
 
-        const nextState = {...state};
-        Reflect.deleteProperty(nextState, channel.id);
-        return nextState;
-    }
+        case ChannelTypes.LEAVE_CHANNEL: {
+            const channel: ServerChannel | undefined = action.data;
 
-    case ChannelTypes.INCREMENT_TOTAL_MSG_COUNT: {
-        const channelId: string = action.data.channelId;
-        const amount: number = action.data.amount;
-        const amountRoot: number = action.data.amountRoot;
+            if (!channel || channel.type !== General.OPEN_CHANNEL) {
+                return state;
+            }
 
-        const existing = state[channelId];
-
-        if (!existing) {
-            return state;
+            const nextState = { ...state };
+            Reflect.deleteProperty(nextState, channel.id);
+            return nextState;
         }
 
-        return {
-            ...state,
-            [channelId]: {
-                root: existing.root + amountRoot,
-                total: existing.total + amount,
-            },
-        };
-    }
+        case ChannelTypes.INCREMENT_TOTAL_MSG_COUNT: {
+            const channelId: string = action.data.channelId;
+            const amount: number = action.data.amount;
+            const amountRoot: number = action.data.amountRoot;
 
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-    default:
-        return state;
+            const existing = state[channelId];
+
+            if (!existing) {
+                return state;
+            }
+
+            return {
+                ...state,
+                [channelId]: {
+                    root: existing.root + amountRoot,
+                    total: existing.total + amount,
+                },
+            };
+        }
+
+        case UserTypes.LOGOUT_SUCCESS:
+            return {};
+        default:
+            return state;
     }
 }
 
-export function updateMessageCount(state: RelationOneToOne<Channel, ChannelMessageCount>, channel: ServerChannel) {
+export function updateMessageCount(
+    state: RelationOneToOne<Channel, ChannelMessageCount>,
+    channel: ServerChannel,
+) {
     const existing = state[channel.id];
     if (
         existing &&

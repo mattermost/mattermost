@@ -1,91 +1,91 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
-import type {MovementMode, DropResult} from 'react-beautiful-dnd';
+import { shallow } from "enzyme";
+import React from "react";
+import type { MovementMode, DropResult } from "react-beautiful-dnd";
 
-import {CategorySorting} from '@mattermost/types/channel_categories';
-import type {ChannelType} from '@mattermost/types/channels';
-import type {TeamType} from '@mattermost/types/teams';
+import { CategorySorting } from "@mattermost/types/channel_categories";
+import type { ChannelType } from "@mattermost/types/channels";
+import type { TeamType } from "@mattermost/types/teams";
 
-import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
+import { CategoryTypes } from "mattermost-redux/constants/channel_categories";
 
-import {DraggingStates, DraggingStateTypes} from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
+import { DraggingStates, DraggingStateTypes } from "utils/constants";
+import { TestHelper } from "utils/test_helper";
 
-import SidebarList from './sidebar_list';
+import SidebarList from "./sidebar_list";
 
-describe('SidebarList', () => {
+describe("SidebarList", () => {
     const currentChannel = TestHelper.getChannelMock({
-        id: 'channel_id',
-        display_name: 'channel_display_name',
+        id: "channel_id",
+        display_name: "channel_display_name",
         create_at: 0,
         update_at: 0,
         delete_at: 0,
-        team_id: '',
-        type: 'O' as ChannelType,
-        name: '',
-        header: '',
-        purpose: '',
+        team_id: "",
+        type: "O" as ChannelType,
+        name: "",
+        header: "",
+        purpose: "",
         last_post_at: 0,
         last_root_post_at: 0,
-        creator_id: '',
-        scheme_id: '',
+        creator_id: "",
+        scheme_id: "",
         group_constrained: false,
     });
 
     const unreadChannel = {
-        id: 'channel_id_2',
-        display_name: 'channel_display_name_2',
+        id: "channel_id_2",
+        display_name: "channel_display_name_2",
         create_at: 0,
         update_at: 0,
         delete_at: 0,
-        team_id: '',
-        type: 'O' as ChannelType,
-        name: '',
-        header: '',
-        purpose: '',
+        team_id: "",
+        type: "O" as ChannelType,
+        name: "",
+        header: "",
+        purpose: "",
         last_post_at: 0,
         last_root_post_at: 0,
-        creator_id: '',
-        scheme_id: '',
+        creator_id: "",
+        scheme_id: "",
         group_constrained: false,
     };
 
     const baseProps = {
         currentTeam: TestHelper.getTeamMock({
-            id: 'kemjcpu9bi877yegqjs18ndp4r',
-            invite_id: 'ojsnudhqzbfzpk6e4n6ip1hwae',
-            name: 'test',
+            id: "kemjcpu9bi877yegqjs18ndp4r",
+            invite_id: "ojsnudhqzbfzpk6e4n6ip1hwae",
+            name: "test",
             create_at: 123,
             update_at: 123,
             delete_at: 123,
-            display_name: 'test',
-            description: 'test',
-            email: 'test',
-            type: 'O' as TeamType,
-            company_name: 'test',
-            allowed_domains: 'test',
+            display_name: "test",
+            description: "test",
+            email: "test",
+            type: "O" as TeamType,
+            company_name: "test",
+            allowed_domains: "test",
             allow_open_invite: false,
-            scheme_id: 'test',
+            scheme_id: "test",
             group_constrained: false,
         }),
         currentChannelId: currentChannel.id,
         categories: [
             {
-                id: 'category1',
-                team_id: 'team1',
-                user_id: '',
+                id: "category1",
+                team_id: "team1",
+                user_id: "",
                 type: CategoryTypes.CUSTOM,
-                display_name: 'custom_category_1',
+                display_name: "custom_category_1",
                 sorting: CategorySorting.Alphabetical,
-                channel_ids: ['channel_id', 'channel_id_2'],
+                channel_ids: ["channel_id", "channel_id_2"],
                 muted: false,
                 collapsed: false,
             },
         ],
-        unreadChannelIds: ['channel_id_2'],
+        unreadChannelIds: ["channel_id_2"],
         displayedChannels: [currentChannel, unreadChannel],
         newCategoryIds: [],
         multiSelectedChannelIds: [],
@@ -98,7 +98,7 @@ describe('SidebarList', () => {
         showUnreadsCategory: false,
         collapsedThreads: true,
         hasUnreadThreads: false,
-        currentStaticPageId: '',
+        currentStaticPageId: "",
         staticPages: [],
         actions: {
             switchToChannelById: jest.fn(),
@@ -114,34 +114,26 @@ describe('SidebarList', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <SidebarList {...baseProps}/>,
-        );
+    test("should match snapshot", () => {
+        const wrapper = shallow(<SidebarList {...baseProps} />);
 
         expect(wrapper).toMatchSnapshot();
 
-        const draggable = wrapper.find('Connect(Droppable)').first();
-        const children: any = draggable.prop('children')!;
-        const inner = shallow(
-            children({}, {}),
-        );
+        const draggable = wrapper.find("Connect(Droppable)").first();
+        const children: any = draggable.prop("children")!;
+        const inner = shallow(children({}, {}));
         expect(inner).toMatchSnapshot();
     });
 
-    test('should close sidebar on mobile when channel is selected (ie. changed)', () => {
-        const wrapper = shallow(
-            <SidebarList {...baseProps}/>,
-        );
+    test("should close sidebar on mobile when channel is selected (ie. changed)", () => {
+        const wrapper = shallow(<SidebarList {...baseProps} />);
 
-        wrapper.setProps({currentChannelId: 'new_channel_id'});
+        wrapper.setProps({ currentChannelId: "new_channel_id" });
         expect(baseProps.actions.close).toHaveBeenCalled();
     });
 
-    test('should scroll to top when team changes', () => {
-        const wrapper = shallow<SidebarList>(
-            <SidebarList {...baseProps}/>,
-        );
+    test("should scroll to top when team changes", () => {
+        const wrapper = shallow<SidebarList>(<SidebarList {...baseProps} />);
 
         wrapper.instance().scrollbar = {
             current: {
@@ -151,17 +143,17 @@ describe('SidebarList', () => {
 
         const newCurrentTeam = {
             ...baseProps.currentTeam,
-            id: 'new_team',
+            id: "new_team",
         };
 
-        wrapper.setProps({currentTeam: newCurrentTeam});
-        expect(wrapper.instance().scrollbar.current!.scrollToTop).toHaveBeenCalled();
+        wrapper.setProps({ currentTeam: newCurrentTeam });
+        expect(
+            wrapper.instance().scrollbar.current!.scrollToTop,
+        ).toHaveBeenCalled();
     });
 
-    test('should display unread scroll indicator when channels appear outside visible area', () => {
-        const wrapper = shallow<SidebarList>(
-            <SidebarList {...baseProps}/>,
-        );
+    test("should display unread scroll indicator when channels appear outside visible area", () => {
+        const wrapper = shallow<SidebarList>(<SidebarList {...baseProps} />);
         const instance = wrapper.instance();
 
         instance.scrollbar = {
@@ -188,10 +180,8 @@ describe('SidebarList', () => {
         expect(instance.state.showBottomUnread).toBe(true);
     });
 
-    test('should scroll to correct position when scrolling to channel', () => {
-        const wrapper = shallow<SidebarList>(
-            <SidebarList {...baseProps}/>,
-        );
+    test("should scroll to correct position when scrolling to channel", () => {
+        const wrapper = shallow<SidebarList>(<SidebarList {...baseProps} />);
         const instance = wrapper.instance();
 
         instance.scrollToPosition = jest.fn();
@@ -213,18 +203,18 @@ describe('SidebarList', () => {
         expect(instance.scrollToPosition).toBeCalledWith(8); // includes margin and category header height
     });
 
-    test('should set the dragging state based on type', () => {
-        (global as any).document.querySelectorAll = jest.fn().mockReturnValue([{
-            style: {},
-        }]);
+    test("should set the dragging state based on type", () => {
+        (global as any).document.querySelectorAll = jest.fn().mockReturnValue([
+            {
+                style: {},
+            },
+        ]);
 
-        const wrapper = shallow<SidebarList>(
-            <SidebarList {...baseProps}/>,
-        );
+        const wrapper = shallow<SidebarList>(<SidebarList {...baseProps} />);
 
         const categoryBefore = {
             draggableId: baseProps.categories[0].id,
-            mode: 'SNAP' as MovementMode,
+            mode: "SNAP" as MovementMode,
         };
         const expectedCategoryBefore = {
             state: DraggingStates.CAPTURE,
@@ -233,11 +223,13 @@ describe('SidebarList', () => {
         };
 
         wrapper.instance().onBeforeCapture(categoryBefore);
-        expect(baseProps.actions.setDraggingState).toHaveBeenCalledWith(expectedCategoryBefore);
+        expect(baseProps.actions.setDraggingState).toHaveBeenCalledWith(
+            expectedCategoryBefore,
+        );
 
         const channelBefore = {
             draggableId: currentChannel.id,
-            mode: 'SNAP' as MovementMode,
+            mode: "SNAP" as MovementMode,
         };
         const expectedChannelBefore = {
             state: DraggingStates.CAPTURE,
@@ -246,35 +238,39 @@ describe('SidebarList', () => {
         };
 
         wrapper.instance().onBeforeCapture(channelBefore);
-        expect(baseProps.actions.setDraggingState).toHaveBeenCalledWith(expectedChannelBefore);
+        expect(baseProps.actions.setDraggingState).toHaveBeenCalledWith(
+            expectedChannelBefore,
+        );
     });
 
-    test('should call correct action on dropping item', () => {
-        const wrapper = shallow<SidebarList>(
-            <SidebarList {...baseProps}/>,
-        );
+    test("should call correct action on dropping item", () => {
+        const wrapper = shallow<SidebarList>(<SidebarList {...baseProps} />);
 
         const categoryResult: DropResult = {
-            reason: 'DROP',
-            type: 'SIDEBAR_CATEGORY',
+            reason: "DROP",
+            type: "SIDEBAR_CATEGORY",
             source: {
-                droppableId: 'droppable-categories',
+                droppableId: "droppable-categories",
                 index: 0,
             },
             destination: {
-                droppableId: 'droppable-categories',
+                droppableId: "droppable-categories",
                 index: 5,
             },
             draggableId: baseProps.categories[0].id,
-            mode: 'SNAP' as MovementMode,
+            mode: "SNAP" as MovementMode,
         };
 
         wrapper.instance().onDragEnd(categoryResult);
-        expect(baseProps.actions.moveCategory).toHaveBeenCalledWith(baseProps.currentTeam.id, categoryResult.draggableId, categoryResult.destination!.index);
+        expect(baseProps.actions.moveCategory).toHaveBeenCalledWith(
+            baseProps.currentTeam.id,
+            categoryResult.draggableId,
+            categoryResult.destination!.index,
+        );
 
         const channelResult: DropResult = {
-            reason: 'DROP',
-            type: 'SIDEBAR_CHANNEL',
+            reason: "DROP",
+            type: "SIDEBAR_CHANNEL",
             source: {
                 droppableId: baseProps.categories[0].id,
                 index: 0,
@@ -284,10 +280,14 @@ describe('SidebarList', () => {
                 index: 5,
             },
             draggableId: baseProps.categories[0].id,
-            mode: 'SNAP' as MovementMode,
+            mode: "SNAP" as MovementMode,
         };
 
         wrapper.instance().onDragEnd(channelResult);
-        expect(baseProps.actions.moveChannelsInSidebar).toHaveBeenCalledWith(channelResult.destination!.droppableId, channelResult.destination!.index, channelResult.draggableId);
+        expect(baseProps.actions.moveChannelsInSidebar).toHaveBeenCalledWith(
+            channelResult.destination!.droppableId,
+            channelResult.destination!.index,
+            channelResult.draggableId,
+        );
     });
 });

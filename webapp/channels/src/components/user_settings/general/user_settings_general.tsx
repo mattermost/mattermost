@@ -3,92 +3,105 @@
 
 /* eslint-disable max-lines */
 
-import React from 'react';
-import {defineMessages, FormattedDate, FormattedMessage, injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import React from "react";
+import {
+    defineMessages,
+    FormattedDate,
+    FormattedMessage,
+    injectIntl,
+} from "react-intl";
+import type { IntlShape } from "react-intl";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import {isEmail} from 'mattermost-redux/utils/helpers';
+import { isEmail } from "mattermost-redux/utils/helpers";
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
+import { trackEvent } from "actions/telemetry_actions.jsx";
 
-import SettingItem from 'components/setting_item';
-import SettingItemMax from 'components/setting_item_max';
-import SettingPicture from 'components/setting_picture';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+import SettingItem from "components/setting_item";
+import SettingItemMax from "components/setting_item_max";
+import SettingPicture from "components/setting_picture";
+import LoadingWrapper from "components/widgets/loading/loading_wrapper";
 
-import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
-import * as Utils from 'utils/utils';
+import {
+    AnnouncementBarMessages,
+    AnnouncementBarTypes,
+    AcceptedProfileImageTypes,
+    Constants,
+    ValidationErrors,
+} from "utils/constants";
+import * as Utils from "utils/utils";
 
 const holders = defineMessages({
     usernameReserved: {
-        id: 'user.settings.general.usernameReserved',
-        defaultMessage: 'This username is reserved, please choose a new one.',
+        id: "user.settings.general.usernameReserved",
+        defaultMessage: "This username is reserved, please choose a new one.",
     },
     usernameGroupNameUniqueness: {
-        id: 'user.settings.general.usernameGroupNameUniqueness',
-        defaultMessage: 'This username conflicts with an existing group name.',
+        id: "user.settings.general.usernameGroupNameUniqueness",
+        defaultMessage: "This username conflicts with an existing group name.",
     },
     usernameRestrictions: {
-        id: 'user.settings.general.usernameRestrictions',
-        defaultMessage: "Username must begin with a letter, and contain between {min} to {max} lowercase characters made up of numbers, letters, and the symbols '.', '-', and '_'.",
+        id: "user.settings.general.usernameRestrictions",
+        defaultMessage:
+            "Username must begin with a letter, and contain between {min} to {max} lowercase characters made up of numbers, letters, and the symbols '.', '-', and '_'.",
     },
     validEmail: {
-        id: 'user.settings.general.validEmail',
-        defaultMessage: 'Please enter a valid email address.',
+        id: "user.settings.general.validEmail",
+        defaultMessage: "Please enter a valid email address.",
     },
     emailMatch: {
-        id: 'user.settings.general.emailMatch',
-        defaultMessage: 'The new emails you entered do not match.',
+        id: "user.settings.general.emailMatch",
+        defaultMessage: "The new emails you entered do not match.",
     },
     incorrectPassword: {
-        id: 'user.settings.general.incorrectPassword',
-        defaultMessage: 'Your password is incorrect.',
+        id: "user.settings.general.incorrectPassword",
+        defaultMessage: "Your password is incorrect.",
     },
     emptyPassword: {
-        id: 'user.settings.general.emptyPassword',
-        defaultMessage: 'Please enter your current password.',
+        id: "user.settings.general.emptyPassword",
+        defaultMessage: "Please enter your current password.",
     },
     validImage: {
-        id: 'user.settings.general.validImage',
-        defaultMessage: 'Only BMP, JPG, JPEG, or PNG images may be used for profile pictures',
+        id: "user.settings.general.validImage",
+        defaultMessage:
+            "Only BMP, JPG, JPEG, or PNG images may be used for profile pictures",
     },
     imageTooLarge: {
-        id: 'user.settings.general.imageTooLarge',
-        defaultMessage: 'Unable to upload profile image. File is too large.',
+        id: "user.settings.general.imageTooLarge",
+        defaultMessage: "Unable to upload profile image. File is too large.",
     },
     uploadImage: {
-        id: 'user.settings.general.uploadImage',
+        id: "user.settings.general.uploadImage",
         defaultMessage: "Click 'Edit' to upload an image.",
     },
     uploadImageMobile: {
-        id: 'user.settings.general.mobile.uploadImage',
-        defaultMessage: 'Click to upload an image',
+        id: "user.settings.general.mobile.uploadImage",
+        defaultMessage: "Click to upload an image",
     },
     fullName: {
-        id: 'user.settings.general.fullName',
-        defaultMessage: 'Full Name',
+        id: "user.settings.general.fullName",
+        defaultMessage: "Full Name",
     },
     nickname: {
-        id: 'user.settings.general.nickname',
-        defaultMessage: 'Nickname',
+        id: "user.settings.general.nickname",
+        defaultMessage: "Nickname",
     },
     username: {
-        id: 'user.settings.general.username',
-        defaultMessage: 'Username',
+        id: "user.settings.general.username",
+        defaultMessage: "Username",
     },
     profilePicture: {
-        id: 'user.settings.general.profilePicture',
-        defaultMessage: 'Profile Picture',
+        id: "user.settings.general.profilePicture",
+        defaultMessage: "Profile Picture",
     },
     close: {
-        id: 'user.settings.general.close',
-        defaultMessage: 'Close',
+        id: "user.settings.general.close",
+        defaultMessage: "Close",
     },
     position: {
-        id: 'user.settings.general.position',
-        defaultMessage: 'Position',
+        id: "user.settings.general.position",
+        defaultMessage: "Position",
     },
 });
 
@@ -103,7 +116,10 @@ export type Props = {
     isMobileView: boolean;
     maxFileSize: number;
     actions: {
-        logError: ({message, type}: {message: any; type: string}, status: boolean) => void;
+        logError: (
+            { message, type }: { message: any; type: string },
+            status: boolean,
+        ) => void;
         clearErrors: () => void;
         updateMe: (user: UserProfile) => Promise<{
             data: boolean;
@@ -119,7 +135,10 @@ export type Props = {
             };
         }>;
         setDefaultProfileImage: (id: string) => void;
-        uploadProfileImage: (id: string, file: File) => Promise<{
+        uploadProfileImage: (
+            id: string,
+            file: File,
+        ) => Promise<{
             data: boolean;
             error?: {
                 message: string;
@@ -136,7 +155,7 @@ export type Props = {
     ldapPositionAttributeSet?: boolean;
     samlPositionAttributeSet?: boolean;
     ldapPictureAttributeSet?: boolean;
-}
+};
 
 type State = {
     username: string;
@@ -154,9 +173,9 @@ type State = {
     showSpinner: boolean;
     resendStatus?: string;
     clientError?: string | null;
-    serverError?: string | {server_error_id: string; message: string};
+    serverError?: string | { server_error_id: string; message: string };
     emailError?: string;
-}
+};
 
 export class UserSettingsGeneralTab extends React.Component<Props, State> {
     public submitActive = false;
@@ -168,22 +187,27 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
     }
 
     handleEmailResend = (email: string) => {
-        this.setState({resendStatus: 'sending', showSpinner: true});
-        this.props.actions.sendVerificationEmail(email).then(({data, error: err}) => {
-            if (data) {
-                this.setState({resendStatus: 'success'});
-            } else if (err) {
-                this.setState({resendStatus: 'failure'});
-            }
-        });
+        this.setState({ resendStatus: "sending", showSpinner: true });
+        this.props.actions
+            .sendVerificationEmail(email)
+            .then(({ data, error: err }) => {
+                if (data) {
+                    this.setState({ resendStatus: "success" });
+                } else if (err) {
+                    this.setState({ resendStatus: "failure" });
+                }
+            });
     };
 
     createEmailResendLink = (email: string) => {
         return (
-            <span className='resend-verification-wrapper'>
+            <span className="resend-verification-wrapper">
                 <LoadingWrapper
                     loading={this.state.showSpinner}
-                    text={Utils.localizeMessage('user.settings.general.sending', 'Sending')}
+                    text={Utils.localizeMessage(
+                        "user.settings.general.sending",
+                        "Sending",
+                    )}
                 >
                     <a
                         onClick={() => {
@@ -196,8 +220,8 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         }}
                     >
                         <FormattedMessage
-                            id='user.settings.general.sendAgain'
-                            defaultMessage='Send again'
+                            id="user.settings.general.sendAgain"
+                            defaultMessage="Send again"
                         />
                     </a>
                 </LoadingWrapper>
@@ -209,27 +233,36 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         const user = Object.assign({}, this.props.user);
         const username = this.state.username.trim().toLowerCase();
 
-        const {formatMessage} = this.props.intl;
+        const { formatMessage } = this.props.intl;
         const usernameError = Utils.isValidUsername(username);
         if (usernameError) {
             let errObj;
             if (usernameError.id === ValidationErrors.RESERVED_NAME) {
-                errObj = {clientError: formatMessage(holders.usernameReserved), serverError: ''};
+                errObj = {
+                    clientError: formatMessage(holders.usernameReserved),
+                    serverError: "",
+                };
             } else {
-                errObj = {clientError: formatMessage(holders.usernameRestrictions, {min: Constants.MIN_USERNAME_LENGTH, max: Constants.MAX_USERNAME_LENGTH}), serverError: ''};
+                errObj = {
+                    clientError: formatMessage(holders.usernameRestrictions, {
+                        min: Constants.MIN_USERNAME_LENGTH,
+                        max: Constants.MAX_USERNAME_LENGTH,
+                    }),
+                    serverError: "",
+                };
             }
             this.setState(errObj);
             return;
         }
 
         if (user.username === username) {
-            this.updateSection('');
+            this.updateSection("");
             return;
         }
 
         user.username = username;
 
-        trackEvent('settings', 'user_settings_update', {field: 'username'});
+        trackEvent("settings", "user_settings_update", { field: "username" });
 
         this.submitUser(user, false);
     };
@@ -239,13 +272,13 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         const nickname = this.state.nickname.trim();
 
         if (user.nickname === nickname) {
-            this.updateSection('');
+            this.updateSection("");
             return;
         }
 
         user.nickname = nickname;
 
-        trackEvent('settings', 'user_settings_update', {field: 'nickname'});
+        trackEvent("settings", "user_settings_update", { field: "nickname" });
 
         this.submitUser(user, false);
     };
@@ -256,14 +289,14 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         const lastName = this.state.lastName.trim();
 
         if (user.first_name === firstName && user.last_name === lastName) {
-            this.updateSection('');
+            this.updateSection("");
             return;
         }
 
         user.first_name = firstName;
         user.last_name = lastName;
 
-        trackEvent('settings', 'user_settings_update', {field: 'fullname'});
+        trackEvent("settings", "user_settings_update", { field: "fullname" });
 
         this.submitUser(user, false);
     };
@@ -274,72 +307,103 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         const confirmEmail = this.state.confirmEmail.trim().toLowerCase();
         const currentPassword = this.state.currentPassword;
 
-        const {formatMessage} = this.props.intl;
+        const { formatMessage } = this.props.intl;
 
-        if (email === user.email && (confirmEmail === '' || confirmEmail === user.email)) {
-            this.updateSection('');
+        if (
+            email === user.email &&
+            (confirmEmail === "" || confirmEmail === user.email)
+        ) {
+            this.updateSection("");
             return;
         }
 
-        if (email === '' || !isEmail(email)) {
-            this.setState({emailError: formatMessage(holders.validEmail), clientError: '', serverError: ''});
+        if (email === "" || !isEmail(email)) {
+            this.setState({
+                emailError: formatMessage(holders.validEmail),
+                clientError: "",
+                serverError: "",
+            });
             return;
         }
 
         if (email !== confirmEmail) {
-            this.setState({emailError: formatMessage(holders.emailMatch), clientError: '', serverError: ''});
+            this.setState({
+                emailError: formatMessage(holders.emailMatch),
+                clientError: "",
+                serverError: "",
+            });
             return;
         }
 
-        if (currentPassword === '') {
-            this.setState({emailError: formatMessage(holders.emptyPassword), clientError: '', serverError: ''});
+        if (currentPassword === "") {
+            this.setState({
+                emailError: formatMessage(holders.emptyPassword),
+                clientError: "",
+                serverError: "",
+            });
             return;
         }
 
         user.email = email;
         user.password = currentPassword;
-        trackEvent('settings', 'user_settings_update', {field: 'email'});
+        trackEvent("settings", "user_settings_update", { field: "email" });
         this.submitUser(user, true);
     };
 
     submitUser = (user: UserProfile, emailUpdated: boolean) => {
-        const {formatMessage} = this.props.intl;
-        this.setState({sectionIsSaving: true});
+        const { formatMessage } = this.props.intl;
+        this.setState({ sectionIsSaving: true });
 
-        this.props.actions.updateMe(user).
-            then(({data, error: err}) => {
-                if (data) {
-                    this.updateSection('');
+        this.props.actions.updateMe(user).then(({ data, error: err }) => {
+            if (data) {
+                this.updateSection("");
 
-                    const verificationEnabled = this.props.requireEmailVerification && emailUpdated;
-                    if (verificationEnabled) {
-                        this.props.actions.clearErrors();
-                        this.props.actions.logError({
-                            message: AnnouncementBarMessages.EMAIL_VERIFICATION_REQUIRED,
+                const verificationEnabled =
+                    this.props.requireEmailVerification && emailUpdated;
+                if (verificationEnabled) {
+                    this.props.actions.clearErrors();
+                    this.props.actions.logError(
+                        {
+                            message:
+                                AnnouncementBarMessages.EMAIL_VERIFICATION_REQUIRED,
                             type: AnnouncementBarTypes.SUCCESS,
-                        }, true);
-                    }
-                } else if (err) {
-                    let serverError;
-                    if (err.server_error_id &&
-                        err.server_error_id === 'api.user.check_user_password.invalid.app_error') {
-                        serverError = formatMessage(holders.incorrectPassword);
-                    } else if (err.server_error_id === 'app.user.group_name_conflict') {
-                        serverError = formatMessage(holders.usernameGroupNameUniqueness);
-                    } else if (err.message) {
-                        serverError = err.message;
-                    } else {
-                        serverError = err;
-                    }
-                    this.setState({serverError, emailError: '', clientError: '', sectionIsSaving: false});
+                        },
+                        true,
+                    );
                 }
-            });
+            } else if (err) {
+                let serverError;
+                if (
+                    err.server_error_id &&
+                    err.server_error_id ===
+                        "api.user.check_user_password.invalid.app_error"
+                ) {
+                    serverError = formatMessage(holders.incorrectPassword);
+                } else if (
+                    err.server_error_id === "app.user.group_name_conflict"
+                ) {
+                    serverError = formatMessage(
+                        holders.usernameGroupNameUniqueness,
+                    );
+                } else if (err.message) {
+                    serverError = err.message;
+                } else {
+                    serverError = err;
+                }
+                this.setState({
+                    serverError,
+                    emailError: "",
+                    clientError: "",
+                    sectionIsSaving: false,
+                });
+            }
+        });
     };
 
     setDefaultProfilePicture = async () => {
         try {
             await this.props.actions.setDefaultProfileImage(this.props.user.id);
-            this.updateSection('');
+            this.updateSection("");
             this.submitActive = false;
         } catch (err) {
             let serverError;
@@ -348,7 +412,12 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
             } else {
                 serverError = err;
             }
-            this.setState({serverError, emailError: '', clientError: '', sectionIsSaving: false});
+            this.setState({
+                serverError,
+                emailError: "",
+                clientError: "",
+                sectionIsSaving: false,
+            });
         }
     };
 
@@ -361,25 +430,32 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
             return;
         }
 
-        trackEvent('settings', 'user_settings_update', {field: 'picture'});
+        trackEvent("settings", "user_settings_update", { field: "picture" });
 
-        const {formatMessage} = this.props.intl;
+        const { formatMessage } = this.props.intl;
         const file = this.state.pictureFile;
 
         if (!AcceptedProfileImageTypes.includes(file.type)) {
-            this.setState({clientError: formatMessage(holders.validImage), serverError: ''});
+            this.setState({
+                clientError: formatMessage(holders.validImage),
+                serverError: "",
+            });
             return;
         } else if (file.size > this.props.maxFileSize) {
-            this.setState({clientError: formatMessage(holders.imageTooLarge), serverError: ''});
+            this.setState({
+                clientError: formatMessage(holders.imageTooLarge),
+                serverError: "",
+            });
             return;
         }
 
-        this.setState({loadingPicture: true});
+        this.setState({ loadingPicture: true });
 
-        this.props.actions.uploadProfileImage(this.props.user.id, file).
-            then(({data, error: err}) => {
+        this.props.actions
+            .uploadProfileImage(this.props.user.id, file)
+            .then(({ data, error: err }) => {
                 if (data) {
-                    this.updateSection('');
+                    this.updateSection("");
                     this.submitActive = false;
                 } else if (err) {
                     const state = this.setupInitialState(this.props);
@@ -394,62 +470,69 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         const position = this.state.position.trim();
 
         if (user.position === position) {
-            this.updateSection('');
+            this.updateSection("");
             return;
         }
 
         user.position = position;
 
-        trackEvent('settings', 'user_settings_update', {field: 'position'});
+        trackEvent("settings", "user_settings_update", { field: "position" });
 
         this.submitUser(user, false);
     };
 
     updateUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({username: e.target.value});
+        this.setState({ username: e.target.value });
     };
 
     updateFirstName = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({firstName: e.target.value});
+        this.setState({ firstName: e.target.value });
     };
 
     updateLastName = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({lastName: e.target.value});
+        this.setState({ lastName: e.target.value });
     };
 
     updateNickname = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({nickname: e.target.value});
+        this.setState({ nickname: e.target.value });
     };
 
     updatePosition = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({position: e.target.value});
+        this.setState({ position: e.target.value });
     };
 
     updateEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({email: e.target.value});
+        this.setState({ email: e.target.value });
     };
 
     updateConfirmEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({confirmEmail: e.target.value});
+        this.setState({ confirmEmail: e.target.value });
     };
 
     updateCurrentPassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({currentPassword: e.target.value});
+        this.setState({ currentPassword: e.target.value });
     };
 
     updatePicture = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            this.setState({pictureFile: e.target.files[0]});
+            this.setState({ pictureFile: e.target.files[0] });
 
             this.submitActive = true;
-            this.setState({clientError: null});
+            this.setState({ clientError: null });
         } else {
-            this.setState({pictureFile: null});
+            this.setState({ pictureFile: null });
         }
     };
 
     updateSection = (section: string) => {
-        this.setState(Object.assign({}, this.setupInitialState(this.props), {clientError: '', serverError: '', emailError: '', sectionIsSaving: false}));
+        this.setState(
+            Object.assign({}, this.setupInitialState(this.props), {
+                clientError: "",
+                serverError: "",
+                emailError: "",
+                sectionIsSaving: false,
+            }),
+        );
         this.submitActive = false;
         this.props.updateSection(section);
     };
@@ -464,80 +547,86 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
             nickname: user.nickname,
             position: user.position,
             originalEmail: user.email,
-            email: '',
-            confirmEmail: '',
-            currentPassword: '',
+            email: "",
+            confirmEmail: "",
+            currentPassword: "",
             pictureFile: null,
             loadingPicture: false,
             sectionIsSaving: false,
             showSpinner: false,
-            serverError: '',
+            serverError: "",
         };
     }
 
     createEmailSection() {
-        const {formatMessage} = this.props.intl;
+        const { formatMessage } = this.props.intl;
 
-        const active = this.props.activeSection === 'email';
+        const active = this.props.activeSection === "email";
         let max = null;
         if (active) {
-            const emailVerificationEnabled = this.props.requireEmailVerification;
+            const emailVerificationEnabled =
+                this.props.requireEmailVerification;
             const inputs = [];
 
             let helpText = (
                 <FormattedMessage
-                    id='user.settings.general.emailHelp1'
-                    defaultMessage='Email is used for sign-in, notifications, and password reset. Email requires verification if changed.'
+                    id="user.settings.general.emailHelp1"
+                    defaultMessage="Email is used for sign-in, notifications, and password reset. Email requires verification if changed."
                 />
             );
 
             if (!emailVerificationEnabled) {
                 helpText = (
                     <FormattedMessage
-                        id='user.settings.general.emailHelp3'
-                        defaultMessage='Email is used for sign-in, notifications, and password reset.'
+                        id="user.settings.general.emailHelp3"
+                        defaultMessage="Email is used for sign-in, notifications, and password reset."
                     />
                 );
             }
 
             let submit = null;
 
-            if (this.props.user.auth_service === '') {
+            if (this.props.user.auth_service === "") {
                 inputs.push(
-                    <div key='currentEmailSetting'>
-                        <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                    <div key="currentEmailSetting">
+                        <div className="form-group">
+                            <label className="col-sm-5 control-label">
                                 <FormattedMessage
-                                    id='user.settings.general.currentEmail'
-                                    defaultMessage='Current Email'
+                                    id="user.settings.general.currentEmail"
+                                    defaultMessage="Current Email"
                                 />
                             </label>
-                            <div className='col-sm-7'>
-                                <label className='control-label word-break--all text-left'>{this.state.originalEmail}</label>
+                            <div className="col-sm-7">
+                                <label className="control-label word-break--all text-left">
+                                    {this.state.originalEmail}
+                                </label>
                             </div>
                         </div>
                     </div>,
                 );
 
                 inputs.push(
-                    <div key='emailSetting'>
-                        <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                    <div key="emailSetting">
+                        <div className="form-group">
+                            <label className="col-sm-5 control-label">
                                 <FormattedMessage
-                                    id='user.settings.general.newEmail'
-                                    defaultMessage='New Email'
+                                    id="user.settings.general.newEmail"
+                                    defaultMessage="New Email"
                                 />
                             </label>
-                            <div className='col-sm-7'>
+                            <div className="col-sm-7">
                                 <input
                                     autoFocus={true}
-                                    id='primaryEmail'
-                                    className='form-control'
-                                    type='email'
+                                    id="primaryEmail"
+                                    className="form-control"
+                                    type="email"
                                     onChange={this.updateEmail}
                                     maxLength={Constants.MAX_EMAIL_LENGTH}
                                     value={this.state.email}
-                                    aria-label={formatMessage({id: 'user.settings.general.newEmail', defaultMessage: 'New Email'})}
+                                    aria-label={formatMessage({
+                                        id: "user.settings.general.newEmail",
+                                        defaultMessage: "New Email",
+                                    })}
                                 />
                             </div>
                         </div>
@@ -545,23 +634,26 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                 );
 
                 inputs.push(
-                    <div key='confirmEmailSetting'>
-                        <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                    <div key="confirmEmailSetting">
+                        <div className="form-group">
+                            <label className="col-sm-5 control-label">
                                 <FormattedMessage
-                                    id='user.settings.general.confirmEmail'
-                                    defaultMessage='Confirm Email'
+                                    id="user.settings.general.confirmEmail"
+                                    defaultMessage="Confirm Email"
                                 />
                             </label>
-                            <div className='col-sm-7'>
+                            <div className="col-sm-7">
                                 <input
-                                    id='confirmEmail'
-                                    className='form-control'
-                                    type='email'
+                                    id="confirmEmail"
+                                    className="form-control"
+                                    type="email"
                                     onChange={this.updateConfirmEmail}
                                     maxLength={Constants.MAX_EMAIL_LENGTH}
                                     value={this.state.confirmEmail}
-                                    aria-label={formatMessage({id: 'user.settings.general.confirmEmail', defaultMessage: 'Confirm Email'})}
+                                    aria-label={formatMessage({
+                                        id: "user.settings.general.confirmEmail",
+                                        defaultMessage: "Confirm Email",
+                                    })}
                                 />
                             </div>
                         </div>
@@ -569,22 +661,25 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                 );
 
                 inputs.push(
-                    <div key='currentPassword'>
-                        <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                    <div key="currentPassword">
+                        <div className="form-group">
+                            <label className="col-sm-5 control-label">
                                 <FormattedMessage
-                                    id='user.settings.general.currentPassword'
-                                    defaultMessage='Current Password'
+                                    id="user.settings.general.currentPassword"
+                                    defaultMessage="Current Password"
                                 />
                             </label>
-                            <div className='col-sm-7'>
+                            <div className="col-sm-7">
                                 <input
-                                    id='currentPassword'
-                                    className='form-control'
-                                    type='password'
+                                    id="currentPassword"
+                                    className="form-control"
+                                    type="password"
                                     onChange={this.updateCurrentPassword}
                                     value={this.state.currentPassword}
-                                    aria-label={formatMessage({id: 'user.settings.general.currentPassword', defaultMessage: 'Current Password'})}
+                                    aria-label={formatMessage({
+                                        id: "user.settings.general.currentPassword",
+                                        defaultMessage: "Current Password",
+                                    })}
                                 />
                             </div>
                         </div>
@@ -593,16 +688,15 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                 );
 
                 submit = this.submitEmail;
-            } else if (this.props.user.auth_service === Constants.GITLAB_SERVICE) {
+            } else if (
+                this.props.user.auth_service === Constants.GITLAB_SERVICE
+            ) {
                 inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='form-group'
-                    >
-                        <div className='setting-list__hint pb-3'>
+                    <div key="oauthEmailInfo" className="form-group">
+                        <div className="setting-list__hint pb-3">
                             <FormattedMessage
-                                id='user.settings.general.emailGitlabCantUpdate'
-                                defaultMessage='Login occurs through GitLab. Email cannot be updated. Email address used for notifications is {email}.'
+                                id="user.settings.general.emailGitlabCantUpdate"
+                                defaultMessage="Login occurs through GitLab. Email cannot be updated. Email address used for notifications is {email}."
                                 values={{
                                     email: this.state.originalEmail,
                                 }}
@@ -611,16 +705,15 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         {helpText}
                     </div>,
                 );
-            } else if (this.props.user.auth_service === Constants.GOOGLE_SERVICE) {
+            } else if (
+                this.props.user.auth_service === Constants.GOOGLE_SERVICE
+            ) {
                 inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='form-group'
-                    >
-                        <div className='setting-list__hint pb-3'>
+                    <div key="oauthEmailInfo" className="form-group">
+                        <div className="setting-list__hint pb-3">
                             <FormattedMessage
-                                id='user.settings.general.emailGoogleCantUpdate'
-                                defaultMessage='Login occurs through Google Apps. Email cannot be updated. Email address used for notifications is {email}.'
+                                id="user.settings.general.emailGoogleCantUpdate"
+                                defaultMessage="Login occurs through Google Apps. Email cannot be updated. Email address used for notifications is {email}."
                                 values={{
                                     email: this.state.originalEmail,
                                 }}
@@ -629,16 +722,15 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         {helpText}
                     </div>,
                 );
-            } else if (this.props.user.auth_service === Constants.OFFICE365_SERVICE) {
+            } else if (
+                this.props.user.auth_service === Constants.OFFICE365_SERVICE
+            ) {
                 inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='form-group'
-                    >
-                        <div className='setting-list__hint pb-3'>
+                    <div key="oauthEmailInfo" className="form-group">
+                        <div className="setting-list__hint pb-3">
                             <FormattedMessage
-                                id='user.settings.general.emailOffice365CantUpdate'
-                                defaultMessage='Login occurs through Office 365. Email cannot be updated. Email address used for notifications is {email}.'
+                                id="user.settings.general.emailOffice365CantUpdate"
+                                defaultMessage="Login occurs through Office 365. Email cannot be updated. Email address used for notifications is {email}."
                                 values={{
                                     email: this.state.originalEmail,
                                 }}
@@ -647,16 +739,15 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         {helpText}
                     </div>,
                 );
-            } else if (this.props.user.auth_service === Constants.OPENID_SERVICE) {
+            } else if (
+                this.props.user.auth_service === Constants.OPENID_SERVICE
+            ) {
                 inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='form-group'
-                    >
-                        <div className='setting-list__hint pb-3'>
+                    <div key="oauthEmailInfo" className="form-group">
+                        <div className="setting-list__hint pb-3">
                             <FormattedMessage
-                                id='user.settings.general.emailOpenIdCantUpdate'
-                                defaultMessage='Login occurs through OpenID Connect. Email cannot be updated. Email address used for notifications is {email}.'
+                                id="user.settings.general.emailOpenIdCantUpdate"
+                                defaultMessage="Login occurs through OpenID Connect. Email cannot be updated. Email address used for notifications is {email}."
                                 values={{
                                     email: this.state.originalEmail,
                                 }}
@@ -665,16 +756,15 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         {helpText}
                     </div>,
                 );
-            } else if (this.props.user.auth_service === Constants.LDAP_SERVICE) {
+            } else if (
+                this.props.user.auth_service === Constants.LDAP_SERVICE
+            ) {
                 inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='pb-2'
-                    >
-                        <div className='setting-list__hint pb-3'>
+                    <div key="oauthEmailInfo" className="pb-2">
+                        <div className="setting-list__hint pb-3">
                             <FormattedMessage
-                                id='user.settings.general.emailLdapCantUpdate'
-                                defaultMessage='Login occurs through AD/LDAP. Email cannot be updated. Email address used for notifications is {email}.'
+                                id="user.settings.general.emailLdapCantUpdate"
+                                defaultMessage="Login occurs through AD/LDAP. Email cannot be updated. Email address used for notifications is {email}."
                                 values={{
                                     email: this.state.originalEmail,
                                 }}
@@ -682,16 +772,15 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         </div>
                     </div>,
                 );
-            } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {
+            } else if (
+                this.props.user.auth_service === Constants.SAML_SERVICE
+            ) {
                 inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='pb-2'
-                    >
-                        <div className='setting-list__hint pb-3'>
+                    <div key="oauthEmailInfo" className="pb-2">
+                        <div className="setting-list__hint pb-3">
                             <FormattedMessage
-                                id='user.settings.general.emailSamlCantUpdate'
-                                defaultMessage='Login occurs through SAML. Email cannot be updated. Email address used for notifications is {email}.'
+                                id="user.settings.general.emailSamlCantUpdate"
+                                defaultMessage="Login occurs through SAML. Email cannot be updated. Email address used for notifications is {email}."
                                 values={{
                                     email: this.state.originalEmail,
                                 }}
@@ -706,8 +795,8 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                 <SettingItemMax
                     title={
                         <FormattedMessage
-                            id='user.settings.general.email'
-                            defaultMessage='Email'
+                            id="user.settings.general.email"
+                            defaultMessage="Email"
                         />
                     }
                     inputs={inputs}
@@ -720,14 +809,14 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
             );
         }
 
-        let describe: JSX.Element|string = '';
-        if (this.props.user.auth_service === '') {
+        let describe: JSX.Element | string = "";
+        if (this.props.user.auth_service === "") {
             describe = this.props.user.email;
         } else if (this.props.user.auth_service === Constants.GITLAB_SERVICE) {
             describe = (
                 <FormattedMessage
-                    id='user.settings.general.loginGitlab'
-                    defaultMessage='Login done through GitLab ({email})'
+                    id="user.settings.general.loginGitlab"
+                    defaultMessage="Login done through GitLab ({email})"
                     values={{
                         email: this.state.originalEmail,
                     }}
@@ -736,18 +825,20 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         } else if (this.props.user.auth_service === Constants.GOOGLE_SERVICE) {
             describe = (
                 <FormattedMessage
-                    id='user.settings.general.loginGoogle'
-                    defaultMessage='Login done through Google Apps ({email})'
+                    id="user.settings.general.loginGoogle"
+                    defaultMessage="Login done through Google Apps ({email})"
                     values={{
                         email: this.state.originalEmail,
                     }}
                 />
             );
-        } else if (this.props.user.auth_service === Constants.OFFICE365_SERVICE) {
+        } else if (
+            this.props.user.auth_service === Constants.OFFICE365_SERVICE
+        ) {
             describe = (
                 <FormattedMessage
-                    id='user.settings.general.loginOffice365'
-                    defaultMessage='Login done through Office 365 ({email})'
+                    id="user.settings.general.loginOffice365"
+                    defaultMessage="Login done through Office 365 ({email})"
                     values={{
                         email: this.state.originalEmail,
                     }}
@@ -756,8 +847,8 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         } else if (this.props.user.auth_service === Constants.LDAP_SERVICE) {
             describe = (
                 <FormattedMessage
-                    id='user.settings.general.loginLdap'
-                    defaultMessage='Login done through AD/LDAP ({email})'
+                    id="user.settings.general.loginLdap"
+                    defaultMessage="Login done through AD/LDAP ({email})"
                     values={{
                         email: this.state.originalEmail,
                     }}
@@ -766,8 +857,8 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {
             describe = (
                 <FormattedMessage
-                    id='user.settings.general.loginSaml'
-                    defaultMessage='Login done through SAML ({email})'
+                    id="user.settings.general.loginSaml"
+                    defaultMessage="Login done through SAML ({email})"
                     values={{
                         email: this.state.originalEmail,
                     }}
@@ -778,15 +869,15 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         return (
             <SettingItem
                 active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
+                areAllSectionsInactive={this.props.activeSection === ""}
                 title={
                     <FormattedMessage
-                        id='user.settings.general.email'
-                        defaultMessage='Email'
+                        id="user.settings.general.email"
+                        defaultMessage="Email"
                     />
                 }
                 describe={describe}
-                section={'email'}
+                section={"email"}
                 updateSection={this.updateSection}
                 max={max}
             />
@@ -795,9 +886,9 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
 
     createNameSection = () => {
         const user = this.props.user;
-        const {formatMessage} = this.props.intl;
+        const { formatMessage } = this.props.intl;
 
-        const active = this.props.activeSection === 'name';
+        const active = this.props.activeSection === "name";
         let max = null;
         if (active) {
             const inputs = [];
@@ -806,67 +897,69 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
             let submit = null;
             if (
                 (this.props.user.auth_service === Constants.LDAP_SERVICE &&
-                    (this.props.ldapFirstNameAttributeSet || this.props.ldapLastNameAttributeSet)) ||
+                    (this.props.ldapFirstNameAttributeSet ||
+                        this.props.ldapLastNameAttributeSet)) ||
                 (this.props.user.auth_service === Constants.SAML_SERVICE &&
-                    (this.props.samlFirstNameAttributeSet || this.props.samlLastNameAttributeSet)) ||
-                (Constants.OAUTH_SERVICES.includes(this.props.user.auth_service))
+                    (this.props.samlFirstNameAttributeSet ||
+                        this.props.samlLastNameAttributeSet)) ||
+                Constants.OAUTH_SERVICES.includes(this.props.user.auth_service)
             ) {
                 extraInfo = (
                     <span>
                         <FormattedMessage
-                            id='user.settings.general.field_handled_externally'
-                            defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                            id="user.settings.general.field_handled_externally"
+                            defaultMessage="This field is handled through your login provider. If you want to change it, you need to do so through your login provider."
                         />
                     </span>
                 );
             } else {
                 inputs.push(
-                    <div
-                        key='firstNameSetting'
-                        className='form-group'
-                    >
-                        <label className='col-sm-5 control-label'>
+                    <div key="firstNameSetting" className="form-group">
+                        <label className="col-sm-5 control-label">
                             <FormattedMessage
-                                id='user.settings.general.firstName'
-                                defaultMessage='First Name'
+                                id="user.settings.general.firstName"
+                                defaultMessage="First Name"
                             />
                         </label>
-                        <div className='col-sm-7'>
+                        <div className="col-sm-7">
                             <input
-                                id='firstName'
+                                id="firstName"
                                 autoFocus={true}
-                                className='form-control'
-                                type='text'
+                                className="form-control"
+                                type="text"
                                 onChange={this.updateFirstName}
                                 maxLength={Constants.MAX_FIRSTNAME_LENGTH}
                                 value={this.state.firstName}
                                 onFocus={Utils.moveCursorToEnd}
-                                aria-label={formatMessage({id: 'user.settings.general.firstName', defaultMessage: 'First Name'})}
+                                aria-label={formatMessage({
+                                    id: "user.settings.general.firstName",
+                                    defaultMessage: "First Name",
+                                })}
                             />
                         </div>
                     </div>,
                 );
 
                 inputs.push(
-                    <div
-                        key='lastNameSetting'
-                        className='form-group'
-                    >
-                        <label className='col-sm-5 control-label'>
+                    <div key="lastNameSetting" className="form-group">
+                        <label className="col-sm-5 control-label">
                             <FormattedMessage
-                                id='user.settings.general.lastName'
-                                defaultMessage='Last Name'
+                                id="user.settings.general.lastName"
+                                defaultMessage="Last Name"
                             />
                         </label>
-                        <div className='col-sm-7'>
+                        <div className="col-sm-7">
                             <input
-                                id='lastName'
-                                className='form-control'
-                                type='text'
+                                id="lastName"
+                                className="form-control"
+                                type="text"
                                 onChange={this.updateLastName}
                                 maxLength={Constants.MAX_LASTNAME_LENGTH}
                                 value={this.state.lastName}
-                                aria-label={formatMessage({id: 'user.settings.general.lastName', defaultMessage: 'Last Name'})}
+                                aria-label={formatMessage({
+                                    id: "user.settings.general.lastName",
+                                    defaultMessage: "Last Name",
+                                })}
                             />
                         </div>
                     </div>,
@@ -874,18 +967,15 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
 
                 const notifClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.preventDefault();
-                    this.updateSection('');
-                    this.props.updateTab('notifications');
+                    this.updateSection("");
+                    this.props.updateTab("notifications");
                 };
 
                 const notifLink = (
-                    <a
-                        href='#'
-                        onClick={notifClick.bind(this)}
-                    >
+                    <a href="#" onClick={notifClick.bind(this)}>
                         <FormattedMessage
-                            id='user.settings.general.notificationsLink'
-                            defaultMessage='Notifications'
+                            id="user.settings.general.notificationsLink"
+                            defaultMessage="Notifications"
                         />
                     </a>
                 );
@@ -893,10 +983,10 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                 extraInfo = (
                     <span>
                         <FormattedMessage
-                            id='user.settings.general.notificationsExtra'
-                            defaultMessage='By default, you will receive mention notifications when someone types your first name. Go to {notify} settings to change this default.'
+                            id="user.settings.general.notificationsExtra"
+                            defaultMessage="By default, you will receive mention notifications when someone types your first name. Go to {notify} settings to change this default."
                             values={{
-                                notify: (notifLink),
+                                notify: notifLink,
                             }}
                         />
                     </span>
@@ -919,10 +1009,10 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
             );
         }
 
-        let describe: JSX.Element|string = '';
+        let describe: JSX.Element | string = "";
 
         if (user.first_name && user.last_name) {
-            describe = user.first_name + ' ' + user.last_name;
+            describe = user.first_name + " " + user.last_name;
         } else if (user.first_name) {
             describe = user.first_name;
         } else if (user.last_name) {
@@ -930,15 +1020,15 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         } else {
             describe = (
                 <FormattedMessage
-                    id='user.settings.general.emptyName'
+                    id="user.settings.general.emptyName"
                     defaultMessage="Click 'Edit' to add your full name"
                 />
             );
             if (this.props.isMobileView) {
                 describe = (
                     <FormattedMessage
-                        id='user.settings.general.mobile.emptyName'
-                        defaultMessage='Click to add your full name'
+                        id="user.settings.general.mobile.emptyName"
+                        defaultMessage="Click to add your full name"
                     />
                 );
             }
@@ -947,10 +1037,10 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         return (
             <SettingItem
                 active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
+                areAllSectionsInactive={this.props.activeSection === ""}
                 title={formatMessage(holders.fullName)}
                 describe={describe}
-                section={'name'}
+                section={"name"}
                 updateSection={this.updateSection}
                 max={max}
             />
@@ -959,52 +1049,59 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
 
     createNicknameSection = () => {
         const user = this.props.user;
-        const {formatMessage} = this.props.intl;
+        const { formatMessage } = this.props.intl;
 
-        const active = this.props.activeSection === 'nickname';
+        const active = this.props.activeSection === "nickname";
         let max = null;
         if (active) {
             const inputs = [];
 
             let extraInfo;
             let submit = null;
-            if ((this.props.user.auth_service === 'ldap' && this.props.ldapNicknameAttributeSet) || (this.props.user.auth_service === Constants.SAML_SERVICE && this.props.samlNicknameAttributeSet)) {
+            if (
+                (this.props.user.auth_service === "ldap" &&
+                    this.props.ldapNicknameAttributeSet) ||
+                (this.props.user.auth_service === Constants.SAML_SERVICE &&
+                    this.props.samlNicknameAttributeSet)
+            ) {
                 extraInfo = (
                     <span>
                         <FormattedMessage
-                            id='user.settings.general.field_handled_externally'
-                            defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                            id="user.settings.general.field_handled_externally"
+                            defaultMessage="This field is handled through your login provider. If you want to change it, you need to do so through your login provider."
                         />
                     </span>
                 );
             } else {
-                let nicknameLabel: JSX.Element|string = (
+                let nicknameLabel: JSX.Element | string = (
                     <FormattedMessage
-                        id='user.settings.general.nickname'
-                        defaultMessage='Nickname'
+                        id="user.settings.general.nickname"
+                        defaultMessage="Nickname"
                     />
                 );
                 if (this.props.isMobileView) {
-                    nicknameLabel = '';
+                    nicknameLabel = "";
                 }
 
                 inputs.push(
-                    <div
-                        key='nicknameSetting'
-                        className='form-group'
-                    >
-                        <label className='col-sm-5 control-label'>{nicknameLabel}</label>
-                        <div className='col-sm-7'>
+                    <div key="nicknameSetting" className="form-group">
+                        <label className="col-sm-5 control-label">
+                            {nicknameLabel}
+                        </label>
+                        <div className="col-sm-7">
                             <input
-                                id='nickname'
+                                id="nickname"
                                 autoFocus={true}
-                                className='form-control'
-                                type='text'
+                                className="form-control"
+                                type="text"
                                 onChange={this.updateNickname}
                                 value={this.state.nickname}
                                 maxLength={Constants.MAX_NICKNAME_LENGTH}
-                                autoCapitalize='off'
-                                aria-label={formatMessage({id: 'user.settings.general.nickname', defaultMessage: 'Nickname'})}
+                                autoCapitalize="off"
+                                aria-label={formatMessage({
+                                    id: "user.settings.general.nickname",
+                                    defaultMessage: "Nickname",
+                                })}
                             />
                         </div>
                     </div>,
@@ -1013,8 +1110,8 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                 extraInfo = (
                     <span>
                         <FormattedMessage
-                            id='user.settings.general.nicknameExtra'
-                            defaultMessage='Use Nickname for a name you might be called that is different from your first name and username. This is most often used when two or more people have similar sounding names and usernames.'
+                            id="user.settings.general.nicknameExtra"
+                            defaultMessage="Use Nickname for a name you might be called that is different from your first name and username. This is most often used when two or more people have similar sounding names and usernames."
                         />
                     </span>
                 );
@@ -1036,21 +1133,21 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
             );
         }
 
-        let describe: JSX.Element|string = '';
+        let describe: JSX.Element | string = "";
         if (user.nickname) {
             describe = user.nickname;
         } else {
             describe = (
                 <FormattedMessage
-                    id='user.settings.general.emptyNickname'
+                    id="user.settings.general.emptyNickname"
                     defaultMessage="Click 'Edit' to add a nickname"
                 />
             );
             if (this.props.isMobileView) {
                 describe = (
                     <FormattedMessage
-                        id='user.settings.general.mobile.emptyNickname'
-                        defaultMessage='Click to add a nickname'
+                        id="user.settings.general.mobile.emptyNickname"
+                        defaultMessage="Click to add a nickname"
                     />
                 );
             }
@@ -1059,10 +1156,10 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         return (
             <SettingItem
                 active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
+                areAllSectionsInactive={this.props.activeSection === ""}
                 title={formatMessage(holders.nickname)}
                 describe={describe}
-                section={'nickname'}
+                section={"nickname"}
                 updateSection={this.updateSection}
                 max={max}
             />
@@ -1070,44 +1167,46 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
     };
 
     createUsernameSection = () => {
-        const {formatMessage} = this.props.intl;
+        const { formatMessage } = this.props.intl;
 
-        const active = this.props.activeSection === 'username';
+        const active = this.props.activeSection === "username";
         let max = null;
         if (active) {
             const inputs = [];
 
             let extraInfo;
             let submit = null;
-            if (this.props.user.auth_service === '') {
+            if (this.props.user.auth_service === "") {
                 let usernameLabel: JSX.Element | string = (
                     <FormattedMessage
-                        id='user.settings.general.username'
-                        defaultMessage='Username'
+                        id="user.settings.general.username"
+                        defaultMessage="Username"
                     />
                 );
                 if (this.props.isMobileView) {
-                    usernameLabel = '';
+                    usernameLabel = "";
                 }
 
                 inputs.push(
-                    <div
-                        key='usernameSetting'
-                        className='form-group'
-                    >
-                        <label className='col-sm-5 control-label'>{usernameLabel}</label>
-                        <div className='col-sm-7'>
+                    <div key="usernameSetting" className="form-group">
+                        <label className="col-sm-5 control-label">
+                            {usernameLabel}
+                        </label>
+                        <div className="col-sm-7">
                             <input
-                                id='username'
+                                id="username"
                                 autoFocus={true}
                                 maxLength={Constants.MAX_USERNAME_LENGTH}
-                                className='form-control'
-                                type='text'
+                                className="form-control"
+                                type="text"
                                 onChange={this.updateUsername}
                                 value={this.state.username}
-                                autoCapitalize='off'
+                                autoCapitalize="off"
                                 onFocus={Utils.moveCursorToEnd}
-                                aria-label={formatMessage({id: 'user.settings.general.username', defaultMessage: 'Username'})}
+                                aria-label={formatMessage({
+                                    id: "user.settings.general.username",
+                                    defaultMessage: "Username",
+                                })}
                             />
                         </div>
                     </div>,
@@ -1116,8 +1215,8 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                 extraInfo = (
                     <span>
                         <FormattedMessage
-                            id='user.settings.general.usernameInfo'
-                            defaultMessage='Pick something easy for teammates to recognize and recall.'
+                            id="user.settings.general.usernameInfo"
+                            defaultMessage="Pick something easy for teammates to recognize and recall."
                         />
                     </span>
                 );
@@ -1127,8 +1226,8 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                 extraInfo = (
                     <span>
                         <FormattedMessage
-                            id='user.settings.general.field_handled_externally'
-                            defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                            id="user.settings.general.field_handled_externally"
+                            defaultMessage="This field is handled through your login provider. If you want to change it, you need to do so through your login provider."
                         />
                     </span>
                 );
@@ -1150,10 +1249,10 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         return (
             <SettingItem
                 active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
+                areAllSectionsInactive={this.props.activeSection === ""}
                 title={formatMessage(holders.username)}
                 describe={this.props.user.username}
-                section={'username'}
+                section={"username"}
                 updateSection={this.updateSection}
                 max={max}
             />
@@ -1162,53 +1261,60 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
 
     createPositionSection = () => {
         const user = this.props.user;
-        const {formatMessage} = this.props.intl;
+        const { formatMessage } = this.props.intl;
 
-        const active = this.props.activeSection === 'position';
+        const active = this.props.activeSection === "position";
         let max = null;
         if (active) {
             const inputs = [];
 
-            let extraInfo: JSX.Element|string;
+            let extraInfo: JSX.Element | string;
             let submit = null;
-            if ((this.props.user.auth_service === Constants.LDAP_SERVICE && this.props.ldapPositionAttributeSet) || (this.props.user.auth_service === Constants.SAML_SERVICE && this.props.samlPositionAttributeSet)) {
+            if (
+                (this.props.user.auth_service === Constants.LDAP_SERVICE &&
+                    this.props.ldapPositionAttributeSet) ||
+                (this.props.user.auth_service === Constants.SAML_SERVICE &&
+                    this.props.samlPositionAttributeSet)
+            ) {
                 extraInfo = (
                     <span>
                         <FormattedMessage
-                            id='user.settings.general.field_handled_externally'
-                            defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                            id="user.settings.general.field_handled_externally"
+                            defaultMessage="This field is handled through your login provider. If you want to change it, you need to do so through your login provider."
                         />
                     </span>
                 );
             } else {
                 let positionLabel: JSX.Element | string = (
                     <FormattedMessage
-                        id='user.settings.general.position'
-                        defaultMessage='Position'
+                        id="user.settings.general.position"
+                        defaultMessage="Position"
                     />
                 );
                 if (this.props.isMobileView) {
-                    positionLabel = '';
+                    positionLabel = "";
                 }
 
                 inputs.push(
-                    <div
-                        key='positionSetting'
-                        className='form-group'
-                    >
-                        <label className='col-sm-5 control-label'>{positionLabel}</label>
-                        <div className='col-sm-7'>
+                    <div key="positionSetting" className="form-group">
+                        <label className="col-sm-5 control-label">
+                            {positionLabel}
+                        </label>
+                        <div className="col-sm-7">
                             <input
-                                id='position'
+                                id="position"
                                 autoFocus={true}
-                                className='form-control'
-                                type='text'
+                                className="form-control"
+                                type="text"
                                 onChange={this.updatePosition}
                                 value={this.state.position}
                                 maxLength={Constants.MAX_POSITION_LENGTH}
-                                autoCapitalize='off'
+                                autoCapitalize="off"
                                 onFocus={Utils.moveCursorToEnd}
-                                aria-label={formatMessage({id: 'user.settings.general.position', defaultMessage: 'Position'})}
+                                aria-label={formatMessage({
+                                    id: "user.settings.general.position",
+                                    defaultMessage: "Position",
+                                })}
                             />
                         </div>
                     </div>,
@@ -1217,8 +1323,8 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                 extraInfo = (
                     <span>
                         <FormattedMessage
-                            id='user.settings.general.positionExtra'
-                            defaultMessage='Use Position for your role or job title. This will be shown in your profile popover.'
+                            id="user.settings.general.positionExtra"
+                            defaultMessage="Use Position for your role or job title. This will be shown in your profile popover."
                         />
                     </span>
                 );
@@ -1240,21 +1346,21 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
             );
         }
 
-        let describe: JSX.Element|string = '';
+        let describe: JSX.Element | string = "";
         if (user.position) {
             describe = user.position;
         } else {
             describe = (
                 <FormattedMessage
-                    id='user.settings.general.emptyPosition'
+                    id="user.settings.general.emptyPosition"
                     defaultMessage="Click 'Edit' to add your job title / position"
                 />
             );
             if (this.props.isMobileView) {
                 describe = (
                     <FormattedMessage
-                        id='user.settings.general.mobile.emptyPosition'
-                        defaultMessage='Click to add your job title / position'
+                        id="user.settings.general.mobile.emptyPosition"
+                        defaultMessage="Click to add your job title / position"
                     />
                 );
             }
@@ -1263,10 +1369,10 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         return (
             <SettingItem
                 active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
+                areAllSectionsInactive={this.props.activeSection === ""}
                 title={formatMessage(holders.position)}
                 describe={describe}
-                section={'position'}
+                section={"position"}
                 updateSection={this.updateSection}
                 max={max}
             />
@@ -1275,9 +1381,9 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
 
     createPictureSection = () => {
         const user = this.props.user;
-        const {formatMessage} = this.props.intl;
+        const { formatMessage } = this.props.intl;
 
-        const active = this.props.activeSection === 'picture';
+        const active = this.props.activeSection === "picture";
         let max = null;
 
         if (active) {
@@ -1286,24 +1392,36 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
             let helpText = null;
             let imgSrc = null;
 
-            if ((this.props.user.auth_service === Constants.LDAP_SERVICE || this.props.user.auth_service === Constants.SAML_SERVICE) && this.props.ldapPictureAttributeSet) {
+            if (
+                (this.props.user.auth_service === Constants.LDAP_SERVICE ||
+                    this.props.user.auth_service === Constants.SAML_SERVICE) &&
+                this.props.ldapPictureAttributeSet
+            ) {
                 helpText = (
                     <span>
                         <FormattedMessage
-                            id='user.settings.general.field_handled_externally'
-                            defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                            id="user.settings.general.field_handled_externally"
+                            defaultMessage="This field is handled through your login provider. If you want to change it, you need to do so through your login provider."
                         />
                     </span>
                 );
             } else {
                 submit = this.submitPicture;
-                setDefault = user.last_picture_update > 0 ? this.setDefaultProfilePicture : null;
-                imgSrc = Utils.imageURLForUser(user.id, user.last_picture_update);
+                setDefault =
+                    user.last_picture_update > 0
+                        ? this.setDefaultProfilePicture
+                        : null;
+                imgSrc = Utils.imageURLForUser(
+                    user.id,
+                    user.last_picture_update,
+                );
                 helpText = (
                     <FormattedMessage
-                        id='setting_picture.help.profile'
-                        defaultMessage='Upload a picture in BMP, JPG, JPEG, or PNG format. Maximum file size: {max}'
-                        values={{max: Utils.fileSizeToString(this.props.maxFileSize)}}
+                        id="setting_picture.help.profile"
+                        defaultMessage="Upload a picture in BMP, JPG, JPEG, or PNG format. Maximum file size: {max}"
+                        values={{
+                            max: Utils.fileSizeToString(this.props.maxFileSize),
+                        }}
                     />
                 );
             }
@@ -1318,7 +1436,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                     serverError={this.state.serverError}
                     clientError={this.state.clientError}
                     updateSection={(e: React.MouseEvent) => {
-                        this.updateSection('');
+                        this.updateSection("");
                         e.preventDefault();
                     }}
                     file={this.state.pictureFile}
@@ -1331,22 +1449,24 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
             );
         }
 
-        let minMessage: JSX.Element|string = formatMessage(holders.uploadImage);
+        let minMessage: JSX.Element | string = formatMessage(
+            holders.uploadImage,
+        );
         if (this.props.isMobileView) {
             minMessage = formatMessage(holders.uploadImageMobile);
         }
         if (user.last_picture_update > 0) {
             minMessage = (
                 <FormattedMessage
-                    id='user.settings.general.imageUpdated'
-                    defaultMessage='Image last updated {date}'
+                    id="user.settings.general.imageUpdated"
+                    defaultMessage="Image last updated {date}"
                     values={{
                         date: (
                             <FormattedDate
                                 value={new Date(user.last_picture_update)}
-                                day='2-digit'
-                                month='short'
-                                year='numeric'
+                                day="2-digit"
+                                month="short"
+                                year="numeric"
                             />
                         ),
                     }}
@@ -1356,10 +1476,10 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         return (
             <SettingItem
                 active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
+                areAllSectionsInactive={this.props.activeSection === ""}
                 title={formatMessage(holders.profilePicture)}
                 describe={minMessage}
-                section={'picture'}
+                section={"picture"}
                 updateSection={this.updateSection}
                 max={max}
             />
@@ -1367,7 +1487,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
     };
 
     render() {
-        const {formatMessage} = this.props.intl;
+        const { formatMessage } = this.props.intl;
 
         const nameSection = this.createNameSection();
         const nicknameSection = this.createNicknameSection();
@@ -1377,55 +1497,55 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         const pictureSection = this.createPictureSection();
 
         return (
-            <div id='generalSettings'>
-                <div className='modal-header'>
+            <div id="generalSettings">
+                <div className="modal-header">
                     <button
-                        id='closeUserSettings'
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
+                        id="closeUserSettings"
+                        type="button"
+                        className="close"
+                        data-dismiss="modal"
                         aria-label={formatMessage(holders.close)}
                         onClick={this.props.closeModal}
                     >
-                        <span aria-hidden='true'>{'×'}</span>
+                        <span aria-hidden="true">{"×"}</span>
                     </button>
-                    <h4 className='modal-title'>
-                        <div className='modal-back'>
+                    <h4 className="modal-title">
+                        <div className="modal-back">
                             <i
-                                className='fa fa-angle-left'
-                                title={this.props.intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
+                                className="fa fa-angle-left"
+                                title={this.props.intl.formatMessage({
+                                    id: "generic_icons.collapse",
+                                    defaultMessage: "Collapse Icon",
+                                })}
                                 onClick={this.props.collapseModal}
                             />
                         </div>
                         <FormattedMessage
-                            id='user.settings.modal.profile'
-                            defaultMessage='Profile'
+                            id="user.settings.modal.profile"
+                            defaultMessage="Profile"
                         />
                     </h4>
                 </div>
-                <div className='user-settings'>
-                    <h3
-                        id='generalSettingsTitle'
-                        className='tab-header'
-                    >
+                <div className="user-settings">
+                    <h3 id="generalSettingsTitle" className="tab-header">
                         <FormattedMessage
-                            id='user.settings.modal.profile'
-                            defaultMessage='Profile'
+                            id="user.settings.modal.profile"
+                            defaultMessage="Profile"
                         />
                     </h3>
-                    <div className='divider-dark first'/>
+                    <div className="divider-dark first" />
                     {nameSection}
-                    <div className='divider-light'/>
+                    <div className="divider-light" />
                     {usernameSection}
-                    <div className='divider-light'/>
+                    <div className="divider-light" />
                     {nicknameSection}
-                    <div className='divider-light'/>
+                    <div className="divider-light" />
                     {positionSection}
-                    <div className='divider-light'/>
+                    <div className="divider-light" />
                     {emailSection}
-                    <div className='divider-light'/>
+                    <div className="divider-light" />
                     {pictureSection}
-                    <div className='divider-dark'/>
+                    <div className="divider-dark" />
                 </div>
             </div>
         );

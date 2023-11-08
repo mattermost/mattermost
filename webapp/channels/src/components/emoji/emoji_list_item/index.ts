@@ -1,21 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {Dispatch} from 'redux';
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import type { Dispatch } from "redux";
 
-import {deleteCustomEmoji} from 'mattermost-redux/actions/emojis';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {getUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import { deleteCustomEmoji } from "mattermost-redux/actions/emojis";
+import { getCurrentTeam } from "mattermost-redux/selectors/entities/teams";
+import {
+    getUser,
+    getCurrentUserId,
+} from "mattermost-redux/selectors/entities/users";
+import type { GenericAction } from "mattermost-redux/types/actions";
 
-import {getDisplayNameByUser} from 'utils/utils';
+import { getDisplayNameByUser } from "utils/utils";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import EmojiListItem from './emoji_list_item';
-import type {Props} from './emoji_list_item';
+import EmojiListItem from "./emoji_list_item";
+import type { Props } from "./emoji_list_item";
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {
     const emoji = state.entities.emojis.customEmoji[ownProps.emojiId!];
@@ -24,7 +27,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     return {
         emoji,
         creatorDisplayName: getDisplayNameByUser(state, creator),
-        creatorUsername: creator ? creator.username : '',
+        creatorUsername: creator ? creator.username : "",
         currentUserId: getCurrentUserId(state),
         currentTeam: getCurrentTeam(state),
     };
@@ -32,9 +35,12 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators({
-            deleteCustomEmoji,
-        }, dispatch),
+        actions: bindActionCreators(
+            {
+                deleteCustomEmoji,
+            },
+            dispatch,
+        ),
     };
 }
 

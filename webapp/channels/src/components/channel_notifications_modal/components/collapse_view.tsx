@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import SettingItemMin from 'components/setting_item_min';
+import SettingItemMin from "components/setting_item_min";
 
-import Describe from './describe';
-import SectionTitle from './section_title';
+import Describe from "./describe";
+import SectionTitle from "./section_title";
 
 type Props = {
     ignoreChannelMentions?: string;
@@ -15,12 +15,19 @@ type Props = {
     globalNotifyLevel?: string;
     memberNotifyLevel: string;
     section: string;
-}
+};
 
-export default function CollapseView({onExpandSection, globalNotifyLevel, memberNotifyLevel, section, ignoreChannelMentions, channelAutoFollowThreads}: Props) {
+export default function CollapseView({
+    onExpandSection,
+    globalNotifyLevel,
+    memberNotifyLevel,
+    section,
+    ignoreChannelMentions,
+    channelAutoFollowThreads,
+}: Props) {
     return (
         <SettingItemMin
-            title={<SectionTitle section={section}/>}
+            title={<SectionTitle section={section} />}
             describe={
                 <Describe
                     section={section}

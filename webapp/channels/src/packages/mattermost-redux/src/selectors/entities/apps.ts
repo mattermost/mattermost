@@ -1,26 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AppBinding} from '@mattermost/types/apps';
-import type {ClientConfig} from '@mattermost/types/config';
-import type {GlobalState} from '@mattermost/types/store';
+import type { AppBinding } from "@mattermost/types/apps";
+import type { ClientConfig } from "@mattermost/types/config";
+import type { GlobalState } from "@mattermost/types/store";
 
-import {AppBindingLocations} from 'mattermost-redux/constants/apps';
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import { AppBindingLocations } from "mattermost-redux/constants/apps";
+import { createSelector } from "mattermost-redux/selectors/create_selector";
+import { getConfig } from "mattermost-redux/selectors/entities/general";
 
-export const appsPluginIsEnabled = (state: GlobalState) => state.entities.apps.pluginEnabled;
+export const appsPluginIsEnabled = (state: GlobalState) =>
+    state.entities.apps.pluginEnabled;
 
 export const appsFeatureFlagEnabled = createSelector(
-    'appsConfiguredAsEnabled',
+    "appsConfiguredAsEnabled",
     (state: GlobalState) => getConfig(state),
     (config: Partial<ClientConfig>) => {
-        return config?.['FeatureFlagAppsEnabled' as keyof Partial<ClientConfig>] === 'true';
+        return (
+            config?.[
+                "FeatureFlagAppsEnabled" as keyof Partial<ClientConfig>
+            ] === "true"
+        );
     },
 );
 
 export const appsEnabled = createSelector(
-    'appsEnabled',
+    "appsEnabled",
     appsFeatureFlagEnabled,
     appsPluginIsEnabled,
     (featureFlagEnabled: boolean, pluginEnabled: boolean) => {
@@ -29,16 +34,16 @@ export const appsEnabled = createSelector(
 );
 
 export const appBarEnabled = createSelector(
-    'appBarEnabled',
+    "appBarEnabled",
     (state: GlobalState) => getConfig(state),
     (config?: Partial<ClientConfig>) => {
-        return config?.DisableAppBar === 'false';
+        return config?.DisableAppBar === "false";
     },
 );
 
 export const makeAppBindingsSelector = (location: string) => {
     return createSelector(
-        'makeAppBindingsSelector',
+        "makeAppBindingsSelector",
         (state: GlobalState) => state.entities.apps.main.bindings,
         (state: GlobalState) => appsEnabled(state),
         (bindings: AppBinding[], areAppsEnabled: boolean) => {
@@ -46,14 +51,20 @@ export const makeAppBindingsSelector = (location: string) => {
                 return [];
             }
 
-            const headerBindings = bindings.filter((b) => b.location === location);
-            return headerBindings.reduce((accum: AppBinding[], current: AppBinding) => accum.concat(current.bindings || []), []);
+            const headerBindings = bindings.filter(
+                (b) => b.location === location,
+            );
+            return headerBindings.reduce(
+                (accum: AppBinding[], current: AppBinding) =>
+                    accum.concat(current.bindings || []),
+                [],
+            );
         },
     );
 };
 
 export const getChannelHeaderAppBindings = createSelector(
-    'getChannelHeaderAppBindings',
+    "getChannelHeaderAppBindings",
     appBarEnabled,
     makeAppBindingsSelector(AppBindingLocations.CHANNEL_HEADER_ICON),
     (enabled: boolean, channelHeaderBindings: AppBinding[]) => {
@@ -62,17 +73,23 @@ export const getChannelHeaderAppBindings = createSelector(
 );
 
 export const getAppBarAppBindings = createSelector(
-    'getAppBarAppBindings',
+    "getAppBarAppBindings",
     appBarEnabled,
     makeAppBindingsSelector(AppBindingLocations.CHANNEL_HEADER_ICON),
     makeAppBindingsSelector(AppBindingLocations.APP_BAR),
-    (enabled: boolean, channelHeaderBindings: AppBinding[], appBarBindings: AppBinding[]) => {
+    (
+        enabled: boolean,
+        channelHeaderBindings: AppBinding[],
+        appBarBindings: AppBinding[],
+    ) => {
         if (!enabled) {
             return [];
         }
 
         const appIds = appBarBindings.map((b) => b.app_id);
-        const backwardsCompatibleBindings = channelHeaderBindings.filter((b) => !appIds.includes(b.app_id));
+        const backwardsCompatibleBindings = channelHeaderBindings.filter(
+            (b) => !appIds.includes(b.app_id),
+        );
 
         return appBarBindings.concat(backwardsCompatibleBindings);
     },
@@ -80,7 +97,7 @@ export const getAppBarAppBindings = createSelector(
 
 export const makeRHSAppBindingSelector = (location: string) => {
     return createSelector(
-        'makeRHSAppBindingSelector',
+        "makeRHSAppBindingSelector",
         (state: GlobalState) => state.entities.apps.rhs.bindings,
         (state: GlobalState) => appsEnabled(state),
         (bindings: AppBinding[], areAppsEnabled: boolean) => {
@@ -88,8 +105,14 @@ export const makeRHSAppBindingSelector = (location: string) => {
                 return [];
             }
 
-            const headerBindings = bindings.filter((b) => b.location === location);
-            return headerBindings.reduce((accum: AppBinding[], current: AppBinding) => accum.concat(current.bindings || []), []);
+            const headerBindings = bindings.filter(
+                (b) => b.location === location,
+            );
+            return headerBindings.reduce(
+                (accum: AppBinding[], current: AppBinding) =>
+                    accum.concat(current.bindings || []),
+                [],
+            );
         },
     );
 };

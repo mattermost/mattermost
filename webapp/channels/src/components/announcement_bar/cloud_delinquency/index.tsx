@@ -1,32 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
+import React from "react";
+import { FormattedMessage } from "react-intl";
+import { useSelector } from "react-redux";
 
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
+import { getCurrentUser } from "mattermost-redux/selectors/entities/users";
+import { isSystemAdmin } from "mattermost-redux/utils/user_utils";
 
-import {trackEvent} from 'actions/telemetry_actions';
+import { trackEvent } from "actions/telemetry_actions";
 
-import {useDelinquencySubscription} from 'components/common/hooks/useDelinquencySubscription';
-import useGetSubscription from 'components/common/hooks/useGetSubscription';
-import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
+import { useDelinquencySubscription } from "components/common/hooks/useDelinquencySubscription";
+import useGetSubscription from "components/common/hooks/useGetSubscription";
+import useOpenCloudPurchaseModal from "components/common/hooks/useOpenCloudPurchaseModal";
 
-import {
-    AnnouncementBarTypes, TELEMETRY_CATEGORIES,
-} from 'utils/constants';
-import {t} from 'utils/i18n';
+import { AnnouncementBarTypes, TELEMETRY_CATEGORIES } from "utils/constants";
+import { t } from "utils/i18n";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import AnnouncementBar from '../default_announcement_bar';
+import AnnouncementBar from "../default_announcement_bar";
 
 const CloudDelinquencyAnnouncementBar = () => {
     const subscription = useGetSubscription();
     const openPurchaseModal = useOpenCloudPurchaseModal({});
-    const {isDelinquencySubscription} = useDelinquencySubscription();
+    const { isDelinquencySubscription } = useDelinquencySubscription();
     const currentUser = useSelector((state: GlobalState) =>
         getCurrentUser(state),
     );
@@ -54,17 +52,17 @@ const CloudDelinquencyAnnouncementBar = () => {
     const bannerType = getBannerType();
 
     let message = {
-        id: t('cloud_delinquency.banner.title'),
+        id: t("cloud_delinquency.banner.title"),
         defaultMessage:
-            'Update your billing information now to keep paid features.',
+            "Update your billing information now to keep paid features.",
     };
 
     // If critical banner, wording is different
     if (bannerType === AnnouncementBarTypes.CRITICAL) {
         message = {
-            id: t('cloud_delinquency.post_downgrade_banner.title'),
+            id: t("cloud_delinquency.post_downgrade_banner.title"),
             defaultMessage:
-                'Update your billing information now to re-activate paid features.',
+                "Update your billing information now to re-activate paid features.",
         };
     }
 
@@ -73,19 +71,20 @@ const CloudDelinquencyAnnouncementBar = () => {
             type={bannerType}
             showCloseButton={false}
             onButtonClick={() => {
-                trackEvent(TELEMETRY_CATEGORIES.CLOUD_DELINQUENCY, 'click_update_billing');
+                trackEvent(
+                    TELEMETRY_CATEGORIES.CLOUD_DELINQUENCY,
+                    "click_update_billing",
+                );
                 openPurchaseModal({
-                    trackingLocation:
-                        'cloud_delinquency_announcement_bar',
+                    trackingLocation: "cloud_delinquency_announcement_bar",
                 });
-            }
-            }
-            modalButtonText={t('cloud_delinquency.banner.buttonText')}
-            modalButtonDefaultText={'Update billing now'}
-            message={<FormattedMessage {...message}/>}
+            }}
+            modalButtonText={t("cloud_delinquency.banner.buttonText")}
+            modalButtonDefaultText={"Update billing now"}
+            message={<FormattedMessage {...message} />}
             showLinkAsButton={true}
             isTallBanner={true}
-            icon={<i className='icon icon-alert-outline'/>}
+            icon={<i className="icon icon-alert-outline" />}
         />
     );
 };

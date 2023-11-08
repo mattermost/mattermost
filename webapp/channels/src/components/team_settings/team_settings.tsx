@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {Team} from '@mattermost/types/teams';
+import type { Team } from "@mattermost/types/teams";
 
-import GeneralTab from 'components/team_general_tab';
+import GeneralTab from "components/team_general_tab";
 
 type Props = {
     activeTab: string;
@@ -17,8 +17,8 @@ type Props = {
 };
 
 const TeamSettings = ({
-    activeTab = '',
-    activeSection = '',
+    activeTab = "",
+    activeSection = "",
     updateSection,
     closeModal,
     collapseModal,
@@ -30,24 +30,22 @@ const TeamSettings = ({
 
     let result;
     switch (activeTab) {
-    case 'general':
-        result = (
-            <div>
-                <GeneralTab
-                    team={team}
-                    activeSection={activeSection}
-                    updateSection={updateSection}
-                    closeModal={closeModal}
-                    collapseModal={collapseModal}
-                />
-            </div>
-        );
-        break;
-    default:
-        result = (
-            <div/>
-        );
-        break;
+        case "general":
+            result = (
+                <div>
+                    <GeneralTab
+                        team={team}
+                        activeSection={activeSection}
+                        updateSection={updateSection}
+                        closeModal={closeModal}
+                        collapseModal={collapseModal}
+                    />
+                </div>
+            );
+            break;
+        default:
+            result = <div />;
+            break;
     }
 
     return result;

@@ -1,28 +1,38 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from '@mattermost/types/channels';
-import type {Post, PostType, PostMetadata, PostEmbed} from '@mattermost/types/posts';
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {GlobalState} from '@mattermost/types/store';
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Channel } from "@mattermost/types/channels";
+import type {
+    Post,
+    PostType,
+    PostMetadata,
+    PostEmbed,
+} from "@mattermost/types/posts";
+import type { PreferenceType } from "@mattermost/types/preferences";
+import type { GlobalState } from "@mattermost/types/store";
+import type { Team } from "@mattermost/types/teams";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import { haveIChannelPermission } from "mattermost-redux/selectors/entities/roles";
 
-import {getPreferenceKey} from './preference_utils';
+import { getPreferenceKey } from "./preference_utils";
 
-import {Posts, Preferences, Permissions} from '../constants';
+import { Posts, Preferences, Permissions } from "../constants";
 
-export function isPostFlagged(postId: Post['id'], myPreferences: {
-    [x: string]: PreferenceType;
-}): boolean {
+export function isPostFlagged(
+    postId: Post["id"],
+    myPreferences: {
+        [x: string]: PreferenceType;
+    },
+): boolean {
     const key = getPreferenceKey(Preferences.CATEGORY_FLAGGED_POST, postId);
     return myPreferences.hasOwnProperty(key);
 }
 
 export function isSystemMessage(post: Post): boolean {
-    return Boolean(post.type && post.type.startsWith(Posts.SYSTEM_MESSAGE_PREFIX));
+    return Boolean(
+        post.type && post.type.startsWith(Posts.SYSTEM_MESSAGE_PREFIX),
+    );
 }
 
 export function isMeMessage(post: Post): boolean {
@@ -34,16 +44,30 @@ export function isFromWebhook(post: Post): boolean {
 }
 
 export function isPostEphemeral(post: Post): boolean {
-    return post.type === Posts.POST_TYPES.EPHEMERAL || post.type === Posts.POST_TYPES.EPHEMERAL_ADD_TO_CHANNEL || post.state === Posts.POST_DELETED;
+    return (
+        post.type === Posts.POST_TYPES.EPHEMERAL ||
+        post.type === Posts.POST_TYPES.EPHEMERAL_ADD_TO_CHANNEL ||
+        post.state === Posts.POST_DELETED
+    );
 }
 
-export function isUserAddedInChannel(post: Post, userId?: UserProfile['id']): boolean {
-    const postTypeCheck = post.type && (post.type === Posts.POST_TYPES.ADD_TO_CHANNEL);
-    const userIdCheck = post.props && post.props.addedUserId && (post.props.addedUserId === userId);
+export function isUserAddedInChannel(
+    post: Post,
+    userId?: UserProfile["id"],
+): boolean {
+    const postTypeCheck =
+        post.type && post.type === Posts.POST_TYPES.ADD_TO_CHANNEL;
+    const userIdCheck =
+        post.props &&
+        post.props.addedUserId &&
+        post.props.addedUserId === userId;
     return postTypeCheck && userIdCheck;
 }
 
-export function shouldIgnorePost(post: Post, userId?: UserProfile['id']): boolean {
+export function shouldIgnorePost(
+    post: Post,
+    userId?: UserProfile["id"],
+): boolean {
     if (isUserAddedInChannel(post, userId)) {
         return false;
     }
@@ -54,7 +78,7 @@ export function isUserActivityPost(postType: PostType): boolean {
     return Posts.USER_ACTIVITY_POST_TYPES.includes(postType);
 }
 
-export function isPostOwner(userId: UserProfile['id'], post: Post) {
+export function isPostOwner(userId: UserProfile["id"], post: Post) {
     return userId === post.user_id;
 }
 
@@ -62,7 +86,15 @@ export function isEdited(post: Post): boolean {
     return post.edit_at > 0;
 }
 
-export function canEditPost(state: GlobalState, config: any, license: any, teamId: Team['id'], channelId: Channel['id'], userId: UserProfile['id'], post: Post): boolean {
+export function canEditPost(
+    state: GlobalState,
+    config: any,
+    license: any,
+    teamId: Team["id"],
+    channelId: Channel["id"],
+    userId: UserProfile["id"],
+    post: Post,
+): boolean {
     if (!post || isSystemMessage(post)) {
         return false;
     }
@@ -70,10 +102,17 @@ export function canEditPost(state: GlobalState, config: any, license: any, teamI
     const isOwner = isPostOwner(userId, post);
     let canEdit = true;
 
-    const permission = isOwner ? Permissions.EDIT_POST : Permissions.EDIT_OTHERS_POSTS;
+    const permission = isOwner
+        ? Permissions.EDIT_POST
+        : Permissions.EDIT_OTHERS_POSTS;
     canEdit = haveIChannelPermission(state, teamId, channelId, permission);
-    if (license.IsLicensed === 'true' && config.PostEditTimeLimit !== '-1' && config.PostEditTimeLimit !== -1) {
-        const timeLeft = (post.create_at + (config.PostEditTimeLimit * 1000)) - Date.now();
+    if (
+        license.IsLicensed === "true" &&
+        config.PostEditTimeLimit !== "-1" &&
+        config.PostEditTimeLimit !== -1
+    ) {
+        const timeLeft =
+            post.create_at + config.PostEditTimeLimit * 1000 - Date.now();
         if (timeLeft <= 0) {
             canEdit = false;
         }
@@ -107,7 +146,11 @@ const joinLeavePostTypes = [
 ];
 
 // Returns true if a post should be hidden when the user has Show Join/Leave Messages disabled
-export function shouldFilterJoinLeavePost(post: Post, showJoinLeave: boolean, currentUsername: string): boolean {
+export function shouldFilterJoinLeavePost(
+    post: Post,
+    showJoinLeave: boolean,
+    currentUsername: string,
+): boolean {
     if (showJoinLeave) {
         return false;
     }
@@ -121,7 +164,10 @@ export function shouldFilterJoinLeavePost(post: Post, showJoinLeave: boolean, cu
     return !isJoinLeavePostForUsername(post, currentUsername);
 }
 
-function isJoinLeavePostForUsername(post: Post, currentUsername: string): boolean {
+function isJoinLeavePostForUsername(
+    post: Post,
+    currentUsername: string,
+): boolean {
     if (!post.props || !currentUsername) {
         return false;
     }
@@ -136,9 +182,11 @@ function isJoinLeavePostForUsername(post: Post, currentUsername: string): boolea
         }
     }
 
-    return post.props.username === currentUsername ||
+    return (
+        post.props.username === currentUsername ||
         post.props.addedUsername === currentUsername ||
-        post.props.removedUsername === currentUsername;
+        post.props.removedUsername === currentUsername
+    );
 }
 
 export function isPostPendingOrFailed(post: Post): boolean {
@@ -163,7 +211,17 @@ export function comparePosts(a: Post, b: Post): number {
     return 0;
 }
 
-export function isPostCommentMention({post, currentUser, threadRepliedToByCurrentUser, rootPost}: {post: Post; currentUser: UserProfile; threadRepliedToByCurrentUser: boolean; rootPost: Post}): boolean {
+export function isPostCommentMention({
+    post,
+    currentUser,
+    threadRepliedToByCurrentUser,
+    rootPost,
+}: {
+    post: Post;
+    currentUser: UserProfile;
+    threadRepliedToByCurrentUser: boolean;
+    rootPost: Post;
+}): boolean {
     let commentsNotifyLevel = Preferences.COMMENTS_NEVER;
     let isCommentMention = false;
     let threadCreatedByCurrentUser = false;
@@ -175,11 +233,19 @@ export function isPostCommentMention({post, currentUser, threadRepliedToByCurren
         commentsNotifyLevel = currentUser.notify_props.comments;
     }
 
-    const notCurrentUser = post.user_id !== currentUser.id || (post.props && post.props.from_webhook);
+    const notCurrentUser =
+        post.user_id !== currentUser.id ||
+        (post.props && post.props.from_webhook);
     if (notCurrentUser) {
-        if (commentsNotifyLevel === Preferences.COMMENTS_ANY && (threadCreatedByCurrentUser || threadRepliedToByCurrentUser)) {
+        if (
+            commentsNotifyLevel === Preferences.COMMENTS_ANY &&
+            (threadCreatedByCurrentUser || threadRepliedToByCurrentUser)
+        ) {
             isCommentMention = true;
-        } else if (commentsNotifyLevel === Preferences.COMMENTS_ROOT && threadCreatedByCurrentUser) {
+        } else if (
+            commentsNotifyLevel === Preferences.COMMENTS_ROOT &&
+            threadCreatedByCurrentUser
+        ) {
             isCommentMention = true;
         }
     }
@@ -187,7 +253,7 @@ export function isPostCommentMention({post, currentUser, threadRepliedToByCurren
 }
 
 export function fromAutoResponder(post: Post): boolean {
-    return Boolean(post.type && (post.type === Posts.SYSTEM_AUTO_RESPONDER));
+    return Boolean(post.type && post.type === Posts.SYSTEM_AUTO_RESPONDER);
 }
 
 export function getEmbedFromMetadata(metadata: PostMetadata): PostEmbed | null {
@@ -201,7 +267,7 @@ export function getEmbedFromMetadata(metadata: PostMetadata): PostEmbed | null {
 export function isPermalink(post: Post) {
     if (post.metadata && post.metadata.embeds) {
         for (const embed of post.metadata.embeds) {
-            if (embed.type === 'permalink') {
+            if (embed.type === "permalink") {
                 return true;
             }
         }
@@ -210,7 +276,10 @@ export function isPermalink(post: Post) {
     return false;
 }
 
-export function shouldUpdatePost(receivedPost: Post, storedPost?: Post): boolean {
+export function shouldUpdatePost(
+    receivedPost: Post,
+    storedPost?: Post,
+): boolean {
     if (!storedPost) {
         return true;
     }
@@ -221,14 +290,16 @@ export function shouldUpdatePost(receivedPost: Post, storedPost?: Post): boolean
     }
 
     if (
-        storedPost.update_at && receivedPost.update_at &&
+        storedPost.update_at &&
+        receivedPost.update_at &&
         storedPost.update_at === receivedPost.update_at
     ) {
         // The stored post has the same update at with the one we've received
         if (
             storedPost.is_following !== receivedPost.is_following ||
             storedPost.reply_count !== receivedPost.reply_count ||
-            storedPost.participants?.length !== receivedPost.participants?.length
+            storedPost.participants?.length !==
+                receivedPost.participants?.length
         ) {
             // CRT properties are not the same between posts
             // e.g: in the case of toggling CRT on/off

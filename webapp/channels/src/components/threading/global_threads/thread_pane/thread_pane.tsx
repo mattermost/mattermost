@@ -1,31 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback} from 'react';
-import type {ReactNode} from 'react';
-import {useIntl} from 'react-intl';
-import {useSelector, useDispatch} from 'react-redux';
+import React, { memo, useCallback } from "react";
+import type { ReactNode } from "react";
+import { useIntl } from "react-intl";
+import { useSelector, useDispatch } from "react-redux";
 
-import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
-import type {UserThread} from '@mattermost/types/threads';
+import { DotsVerticalIcon } from "@mattermost/compass-icons/components";
+import type { UserThread } from "@mattermost/types/threads";
 
-import {setThreadFollow} from 'mattermost-redux/actions/threads';
-import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
+import { setThreadFollow } from "mattermost-redux/actions/threads";
+import { makeGetChannel } from "mattermost-redux/selectors/entities/channels";
+import {
+    getPost,
+    makeGetPostsForThread,
+} from "mattermost-redux/selectors/entities/posts";
 
-import Header from 'components/widgets/header';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
+import Header from "components/widgets/header";
+import SimpleTooltip from "components/widgets/simple_tooltip";
 
-import {t} from 'utils/i18n';
+import { t } from "utils/i18n";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import Button from '../../common/button';
-import FollowButton from '../../common/follow_button';
-import {useThreadRouting} from '../../hooks';
-import ThreadMenu from '../thread_menu';
+import Button from "../../common/button";
+import FollowButton from "../../common/follow_button";
+import { useThreadRouting } from "../../hooks";
+import ThreadMenu from "../thread_menu";
 
-import './thread_pane.scss';
+import "./thread_pane.scss";
 
 const getChannel = makeGetChannel();
 const getPostsForThread = makeGetPostsForThread();
@@ -35,30 +38,25 @@ type Props = {
     children?: ReactNode;
 };
 
-const ThreadPane = ({
-    thread,
-    children,
-}: Props) => {
-    const {formatMessage} = useIntl();
+const ThreadPane = ({ thread, children }: Props) => {
+    const { formatMessage } = useIntl();
     const dispatch = useDispatch();
-    const {
-        currentTeamId,
-        currentUserId,
-        goToInChannel,
-        select,
-    } = useThreadRouting();
+    const { currentTeamId, currentUserId, goToInChannel, select } =
+        useThreadRouting();
 
     const {
         id: threadId,
         is_following: isFollowing,
-        post: {
-            channel_id: channelId,
-        },
+        post: { channel_id: channelId },
     } = thread;
 
-    const channel = useSelector((state: GlobalState) => getChannel(state, {id: channelId}));
+    const channel = useSelector((state: GlobalState) =>
+        getChannel(state, { id: channelId }),
+    );
     const post = useSelector((state: GlobalState) => getPost(state, thread.id));
-    const postsInThread = useSelector((state: GlobalState) => getPostsForThread(state, post.id));
+    const postsInThread = useSelector((state: GlobalState) =>
+        getPostsForThread(state, post.id),
+    );
     const selectHandler = useCallback(() => select(), []);
     let unreadTimestamp = post.edit_at || post.create_at;
 
@@ -73,33 +71,37 @@ const ThreadPane = ({
     }, [goToInChannel, threadId]);
 
     const followHandler = useCallback(() => {
-        dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
+        dispatch(
+            setThreadFollow(
+                currentUserId,
+                currentTeamId,
+                threadId,
+                !isFollowing,
+            ),
+        );
     }, [currentUserId, currentTeamId, threadId, isFollowing, setThreadFollow]);
 
     return (
-        <div
-            id={'thread-pane-container'}
-            className='ThreadPane'
-        >
+        <div id={"thread-pane-container"} className="ThreadPane">
             <Header
-                className='ThreadPane___header'
-                heading={(
+                className="ThreadPane___header"
+                heading={
                     <>
                         <Button
-                            className='Button___icon Button___large back'
+                            className="Button___icon Button___large back"
                             onClick={selectHandler}
                         >
-                            <i className='icon icon-arrow-back-ios'/>
+                            <i className="icon icon-arrow-back-ios" />
                         </Button>
                         <h3>
-                            <span className='separated'>
+                            <span className="separated">
                                 {formatMessage({
-                                    id: 'threading.header.heading',
-                                    defaultMessage: 'Thread',
+                                    id: "threading.header.heading",
+                                    defaultMessage: "Thread",
                                 })}
                             </span>
                             <Button
-                                className='separated'
+                                className="separated"
                                 allowTextOverflow={true}
                                 onClick={goToInChannelHandler}
                             >
@@ -107,8 +109,8 @@ const ThreadPane = ({
                             </Button>
                         </h3>
                     </>
-                )}
-                right={(
+                }
+                right={
                     <>
                         <FollowButton
                             isFollowing={isFollowing}
@@ -118,23 +120,25 @@ const ThreadPane = ({
                         <ThreadMenu
                             threadId={threadId}
                             isFollowing={isFollowing}
-                            hasUnreads={Boolean(thread.unread_replies || thread.unread_mentions)}
+                            hasUnreads={Boolean(
+                                thread.unread_replies || thread.unread_mentions,
+                            )}
                             unreadTimestamp={unreadTimestamp}
                         >
                             <SimpleTooltip
-                                id='threadActionMenu'
+                                id="threadActionMenu"
                                 content={formatMessage({
-                                    id: t('threading.threadHeader.menu'),
-                                    defaultMessage: 'More Actions',
+                                    id: t("threading.threadHeader.menu"),
+                                    defaultMessage: "More Actions",
                                 })}
                             >
-                                <Button className='Button___icon Button___large'>
-                                    <DotsVerticalIcon size={18}/>
+                                <Button className="Button___icon Button___large">
+                                    <DotsVerticalIcon size={18} />
                                 </Button>
                             </SimpleTooltip>
                         </ThreadMenu>
                     </>
-                )}
+                }
             />
             {children}
         </div>

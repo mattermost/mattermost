@@ -1,59 +1,74 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelTypes, UserTypes, PostTypes, AdminTypes} from 'mattermost-redux/action_types';
-import {General, Permissions} from 'mattermost-redux/constants';
-import TestHelper from 'mattermost-redux/test/test_helper';
-import deepFreeze from 'mattermost-redux/utils/deep_freeze';
+import {
+    ChannelTypes,
+    UserTypes,
+    PostTypes,
+    AdminTypes,
+} from "mattermost-redux/action_types";
+import { General, Permissions } from "mattermost-redux/constants";
+import TestHelper from "mattermost-redux/test/test_helper";
+import deepFreeze from "mattermost-redux/utils/deep_freeze";
 
-import channelsReducer, * as Reducers from './channels';
+import channelsReducer, * as Reducers from "./channels";
 
-describe('channels', () => {
-    describe('RECEIVED_CHANNEL_DELETED', () => {
-        test('should mark channel as deleted', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
+describe("channels", () => {
+    describe("RECEIVED_CHANNEL_DELETED", () => {
+        test("should mark channel as deleted", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                            },
+                            channel2: {
+                                id: "channel2",
+                            },
+                        },
                     },
-                    channel2: {
-                        id: 'channel2',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_DELETED,
                 data: {
-                    id: 'channel1',
+                    id: "channel1",
                     deleteAt: 1000,
                 },
             });
 
             expect(nextState).not.toBe(state);
             expect(nextState.channels.channel1).toEqual({
-                id: 'channel1',
+                id: "channel1",
                 delete_at: 1000,
             });
             expect(nextState.channels.channel2).toBe(state.channels.channel2);
         });
 
-        test('should do nothing for a channel that is not loaded', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
+        test("should do nothing for a channel that is not loaded", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                            },
+                            channel2: {
+                                id: "channel2",
+                            },
+                        },
                     },
-                    channel2: {
-                        id: 'channel2',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_DELETED,
                 data: {
-                    id: 'channel3',
+                    id: "channel3",
                     deleteAt: 1000,
                 },
             });
@@ -62,51 +77,61 @@ describe('channels', () => {
         });
     });
 
-    describe('RECEIVED_CHANNEL_UNARCHIVED', () => {
-        test('should mark channel as active', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        delete_at: 1000,
+    describe("RECEIVED_CHANNEL_UNARCHIVED", () => {
+        test("should mark channel as active", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                                delete_at: 1000,
+                            },
+                            channel2: {
+                                id: "channel2",
+                            },
+                        },
                     },
-                    channel2: {
-                        id: 'channel2',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED,
                 data: {
-                    id: 'channel1',
+                    id: "channel1",
                 },
             });
 
             expect(nextState).not.toBe(state);
             expect(nextState.channels.channel1).toEqual({
-                id: 'channel1',
+                id: "channel1",
                 delete_at: 0,
             });
             expect(nextState.channels.channel2).toBe(state.channels.channel2);
         });
 
-        test('should do nothing for a channel that is not loaded', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
+        test("should do nothing for a channel that is not loaded", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                            },
+                            channel2: {
+                                id: "channel2",
+                            },
+                        },
                     },
-                    channel2: {
-                        id: 'channel2',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED,
                 data: {
-                    id: 'channel3',
+                    id: "channel3",
                 },
             });
 
@@ -114,19 +139,24 @@ describe('channels', () => {
         });
     });
 
-    describe('INCREMENT_FILE_COUNT', () => {
-        test('should change channel file count stats', () => {
-            const state = deepFreeze(channelsReducer({
-                stats: {
-                    channel1: {
-                        id: 'channel1',
-                        files_count: 1,
+    describe("INCREMENT_FILE_COUNT", () => {
+        test("should change channel file count stats", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        stats: {
+                            channel1: {
+                                id: "channel1",
+                                files_count: 1,
+                            },
+                        },
                     },
-                },
-            }, {}));
+                    {},
+                ),
+            );
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.INCREMENT_FILE_COUNT,
-                id: 'channel1',
+                id: "channel1",
                 amount: 3,
             });
 
@@ -135,54 +165,64 @@ describe('channels', () => {
         });
     });
 
-    describe('UPDATE_CHANNEL_HEADER', () => {
-        test('should update channel header', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        header: 'old',
+    describe("UPDATE_CHANNEL_HEADER", () => {
+        test("should update channel header", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                                header: "old",
+                            },
+                            channel2: {
+                                id: "channel2",
+                            },
+                        },
                     },
-                    channel2: {
-                        id: 'channel2',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.UPDATE_CHANNEL_HEADER,
                 data: {
-                    channelId: 'channel1',
-                    header: 'new',
+                    channelId: "channel1",
+                    header: "new",
                 },
             });
 
             expect(nextState).not.toBe(state);
             expect(nextState.channels.channel1).toEqual({
-                id: 'channel1',
-                header: 'new',
+                id: "channel1",
+                header: "new",
             });
             expect(nextState.channels.channel2).toBe(state.channels.channel2);
         });
 
-        test('should do nothing for a channel that is not loaded', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        header: 'old',
+        test("should do nothing for a channel that is not loaded", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                                header: "old",
+                            },
+                            channel2: {
+                                id: "channel2",
+                            },
+                        },
                     },
-                    channel2: {
-                        id: 'channel2',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.UPDATE_CHANNEL_HEADER,
                 data: {
-                    channelId: 'channel3',
-                    header: 'new',
+                    channelId: "channel3",
+                    header: "new",
                 },
             });
 
@@ -190,54 +230,64 @@ describe('channels', () => {
         });
     });
 
-    describe('UPDATE_CHANNEL_PURPOSE', () => {
-        test('should update channel purpose', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        purpose: 'old',
+    describe("UPDATE_CHANNEL_PURPOSE", () => {
+        test("should update channel purpose", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                                purpose: "old",
+                            },
+                            channel2: {
+                                id: "channel2",
+                            },
+                        },
                     },
-                    channel2: {
-                        id: 'channel2',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.UPDATE_CHANNEL_PURPOSE,
                 data: {
-                    channelId: 'channel1',
-                    purpose: 'new',
+                    channelId: "channel1",
+                    purpose: "new",
                 },
             });
 
             expect(nextState).not.toBe(state);
             expect(nextState.channels.channel1).toEqual({
-                id: 'channel1',
-                purpose: 'new',
+                id: "channel1",
+                purpose: "new",
             });
             expect(nextState.channels.channel2).toBe(state.channels.channel2);
         });
 
-        test('should do nothing for a channel that is not loaded', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        header: 'old',
+        test("should do nothing for a channel that is not loaded", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                                header: "old",
+                            },
+                            channel2: {
+                                id: "channel2",
+                            },
+                        },
                     },
-                    channel2: {
-                        id: 'channel2',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.UPDATE_CHANNEL_PURPOSE,
                 data: {
-                    channelId: 'channel3',
-                    purpose: 'new',
+                    channelId: "channel3",
+                    purpose: "new",
                 },
             });
 
@@ -245,71 +295,88 @@ describe('channels', () => {
         });
     });
 
-    describe('REMOVE_MEMBER_FROM_CHANNEL', () => {
-        test('should remove the channel member', () => {
-            const state = deepFreeze(channelsReducer({
-                membersInChannel: {
-                    channel1: {
-                        memberId1: 'member-data-1',
+    describe("REMOVE_MEMBER_FROM_CHANNEL", () => {
+        test("should remove the channel member", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        membersInChannel: {
+                            channel1: {
+                                memberId1: "member-data-1",
+                            },
+                            channel2: {
+                                memberId2: "member-data-2",
+                            },
+                        },
                     },
-                    channel2: {
-                        memberId2: 'member-data-2',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.REMOVE_MEMBER_FROM_CHANNEL,
                 data: {
-                    id: 'channel2',
-                    user_id: 'memberId2',
+                    id: "channel2",
+                    user_id: "memberId2",
                 },
             });
 
             expect(nextState.membersInChannel.channel2).toEqual({});
-            expect(nextState.membersInChannel.channel1).toEqual(state.membersInChannel.channel1);
+            expect(nextState.membersInChannel.channel1).toEqual(
+                state.membersInChannel.channel1,
+            );
         });
 
-        test('should work when channel member doesn\'t exist', () => {
-            const state = deepFreeze(channelsReducer({
-                membersInChannel: {
-                    channel1: {
-                        memberId1: 'member-data-1',
+        test("should work when channel member doesn't exist", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        membersInChannel: {
+                            channel1: {
+                                memberId1: "member-data-1",
+                            },
+                            channel2: {
+                                memberId2: "member-data-2",
+                            },
+                        },
                     },
-                    channel2: {
-                        memberId2: 'member-data-2',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.REMOVE_MEMBER_FROM_CHANNEL,
                 data: {
-                    id: 'channel2',
-                    user_id: 'test',
+                    id: "channel2",
+                    user_id: "test",
                 },
             });
 
             expect(nextState).toEqual(state);
         });
 
-        test('should work when channel doesn\'t exist', () => {
-            const state = deepFreeze(channelsReducer({
-                membersInChannel: {
-                    channel1: {
-                        memberId1: 'member-data-1',
+        test("should work when channel doesn't exist", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        membersInChannel: {
+                            channel1: {
+                                memberId1: "member-data-1",
+                            },
+                            channel2: {
+                                memberId2: "member-data-2",
+                            },
+                        },
                     },
-                    channel2: {
-                        memberId2: 'member-data-2',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.REMOVE_MEMBER_FROM_CHANNEL,
                 data: {
-                    id: 'channel3',
-                    user_id: 'memberId2',
+                    id: "channel3",
+                    user_id: "memberId2",
                 },
             });
 
@@ -317,119 +384,139 @@ describe('channels', () => {
         });
     });
 
-    describe('RECEIVED_NEW_POST', () => {
-        test('should update channel last_post_at', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        last_post_at: 1234,
-                        last_root_post_at: 1234,
+    describe("RECEIVED_NEW_POST", () => {
+        test("should update channel last_post_at", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                                last_post_at: 1234,
+                                last_root_post_at: 1234,
+                            },
+                            channel2: {
+                                id: "channel2",
+                            },
+                        },
                     },
-                    channel2: {
-                        id: 'channel2',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: PostTypes.RECEIVED_NEW_POST,
                 data: {
-                    channel_id: 'channel1',
+                    channel_id: "channel1",
                     create_at: 1235,
-                    root_id: '',
+                    root_id: "",
                 },
-                features: {crtEnabled: false},
+                features: { crtEnabled: false },
             });
 
             expect(nextState).not.toBe(state);
             expect(nextState.channels.channel1).toEqual({
-                id: 'channel1',
+                id: "channel1",
                 last_post_at: 1235,
                 last_root_post_at: 1235,
             });
             expect(nextState.channels.channel2).toBe(state.channels.channel2);
         });
 
-        test('should not update channel last_root_post_at for threads with crtEnabled', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        last_post_at: 1234,
-                        last_root_post_at: 1234,
+        test("should not update channel last_root_post_at for threads with crtEnabled", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                                last_post_at: 1234,
+                                last_root_post_at: 1234,
+                            },
+                            channel2: {
+                                id: "channel2",
+                            },
+                        },
                     },
-                    channel2: {
-                        id: 'channel2',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: PostTypes.RECEIVED_NEW_POST,
                 data: {
-                    channel_id: 'channel1',
+                    channel_id: "channel1",
                     create_at: 1235,
-                    root_id: 'post1',
+                    root_id: "post1",
                 },
-                features: {crtEnabled: true},
+                features: { crtEnabled: true },
             });
 
             expect(nextState).not.toBe(state);
             expect(nextState.channels.channel1).toEqual({
-                id: 'channel1',
+                id: "channel1",
                 last_post_at: 1235,
                 last_root_post_at: 1234,
             });
             expect(nextState.channels.channel2).toBe(state.channels.channel2);
         });
-        test('should do nothing for a channel that is not loaded', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
+        test("should do nothing for a channel that is not loaded", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                            },
+                            channel2: {
+                                id: "channel2",
+                            },
+                        },
                     },
-                    channel2: {
-                        id: 'channel2',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: PostTypes.RECEIVED_NEW_POST,
                 data: {
-                    id: 'channel3',
+                    id: "channel3",
                 },
             });
 
             expect(nextState).toBe(state);
         });
 
-        test('should not update channel last_post_at if existing value is greater than new post timestamp', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        last_post_at: 1237,
-                        last_root_post_at: 1236,
+        test("should not update channel last_post_at if existing value is greater than new post timestamp", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                                last_post_at: 1237,
+                                last_root_post_at: 1236,
+                            },
+                            channel2: {
+                                id: "channel2",
+                            },
+                        },
                     },
-                    channel2: {
-                        id: 'channel2',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: PostTypes.RECEIVED_NEW_POST,
                 data: {
-                    channel_id: 'channel1',
+                    channel_id: "channel1",
                     create_at: 1235,
                 },
             });
 
             expect(nextState).not.toBe(state);
             expect(nextState.channels.channel1).toEqual({
-                id: 'channel1',
+                id: "channel1",
                 last_post_at: 1237,
                 last_root_post_at: 1236,
             });
@@ -437,46 +524,44 @@ describe('channels', () => {
         });
     });
 
-    describe('MANUALLY_UNREAD', () => {
-        test('should mark channel as manually unread', () => {
+    describe("MANUALLY_UNREAD", () => {
+        test("should mark channel as manually unread", () => {
             const state = deepFreeze({
                 channel1: false,
             });
             const nextState = Reducers.manuallyUnread(state, {
                 type: ChannelTypes.POST_UNREAD_SUCCESS,
-                data: {channelId: 'channel1'},
+                data: { channelId: "channel1" },
             });
             expect(nextState.channel1).toBe(true);
         });
-        test('should mark channel as manually unread even if undefined', () => {
-            const state = deepFreeze({
-            });
+        test("should mark channel as manually unread even if undefined", () => {
+            const state = deepFreeze({});
             const nextState = Reducers.manuallyUnread(state, {
                 type: ChannelTypes.POST_UNREAD_SUCCESS,
-                data: {channelId: 'channel1'},
+                data: { channelId: "channel1" },
             });
             expect(nextState.channel1).toBe(true);
         });
-        test('should remove channel as manually unread', () => {
+        test("should remove channel as manually unread", () => {
             const state = deepFreeze({
                 channel1: true,
             });
             const nextState = Reducers.manuallyUnread(state, {
                 type: ChannelTypes.REMOVE_MANUALLY_UNREAD,
-                data: {channelId: 'channel1'},
+                data: { channelId: "channel1" },
             });
             expect(nextState.channel1).toBe(undefined);
         });
-        test('shouldn\'t do nothing if channel was undefined', () => {
-            const state = deepFreeze({
-            });
+        test("shouldn't do nothing if channel was undefined", () => {
+            const state = deepFreeze({});
             const nextState = Reducers.manuallyUnread(state, {
                 type: ChannelTypes.REMOVE_MANUALLY_UNREAD,
-                data: {channelId: 'channel1'},
+                data: { channelId: "channel1" },
             });
             expect(nextState.channel1).toBe(undefined);
         });
-        test('remove all marks if user logs out', () => {
+        test("remove all marks if user logs out", () => {
             const state = deepFreeze({
                 channel1: true,
                 channel231: false,
@@ -490,20 +575,25 @@ describe('channels', () => {
         });
     });
 
-    describe('RECEIVED_CHANNEL', () => {
-        test('should not store message count sent by server', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
+    describe("RECEIVED_CHANNEL", () => {
+        test("should not store message count sent by server", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                            },
+                        },
                     },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             let nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL,
                 data: {
-                    id: 'channel1',
+                    id: "channel1",
                     total_msg_count: 123,
                     total_msg_count_root: 456,
                 },
@@ -511,14 +601,14 @@ describe('channels', () => {
 
             expect(nextState.channels).toEqual({
                 channel1: {
-                    id: 'channel1',
+                    id: "channel1",
                 },
             });
 
             nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL,
                 data: {
-                    id: 'channel2',
+                    id: "channel2",
                     total_msg_count: 123,
                     total_msg_count_root: 456,
                 },
@@ -526,183 +616,203 @@ describe('channels', () => {
 
             expect(nextState.channels).toEqual({
                 channel1: {
-                    id: 'channel1',
+                    id: "channel1",
                 },
                 channel2: {
-                    id: 'channel2',
+                    id: "channel2",
                 },
             });
         });
     });
 
-    describe('RECEIVED_CHANNELS', () => {
-        test('should not remove current channel', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        team_id: 'team',
+    describe("RECEIVED_CHANNELS", () => {
+        test("should not remove current channel", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                                team_id: "team",
+                            },
+                            channel2: {
+                                id: "channel2",
+                                team_id: "team",
+                            },
+                            channel3: {
+                                id: "channel3",
+                                team_id: "team",
+                            },
+                        },
                     },
-                    channel2: {
-                        id: 'channel2',
-                        team_id: 'team',
-                    },
-                    channel3: {
-                        id: 'channel3',
-                        team_id: 'team',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNELS,
-                currentChannelId: 'channel3',
-                teamId: 'team',
-                data: [{
-                    id: 'channel1',
-                    team_id: 'team',
-                }],
+                currentChannelId: "channel3",
+                teamId: "team",
+                data: [
+                    {
+                        id: "channel1",
+                        team_id: "team",
+                    },
+                ],
             });
 
             expect(nextState).not.toBe(state);
             expect(nextState.channels.channel1).toEqual({
-                id: 'channel1',
-                team_id: 'team',
+                id: "channel1",
+                team_id: "team",
             });
             expect(nextState.channels.channel2).toEqual({
-                id: 'channel2',
-                team_id: 'team',
+                id: "channel2",
+                team_id: "team",
             });
             expect(nextState.channels.channel3).toEqual({
-                id: 'channel3',
-                team_id: 'team',
+                id: "channel3",
+                team_id: "team",
             });
         });
 
-        test('should preserve existing display_name if none incoming on DMs', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    no_display_name: {
-                        id: 'no_display_name',
-                        team_id: 'team',
-                        type: General.DM_CHANNEL,
+        test("should preserve existing display_name if none incoming on DMs", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            no_display_name: {
+                                id: "no_display_name",
+                                team_id: "team",
+                                type: General.DM_CHANNEL,
+                            },
+                            empty_display_name: {
+                                id: "empty_display_name",
+                                team_id: "team",
+                                display_name: "", // empty display name
+                                type: General.DM_CHANNEL,
+                            },
+                            existing_display_name: {
+                                id: "existing_display_name",
+                                team_id: "team",
+                                display_name: "existing",
+                                type: General.DM_CHANNEL,
+                            },
+                            replaced_display_name: {
+                                id: "new_display_name",
+                                team_id: "team",
+                                display_name: "existing",
+                                type: General.DM_CHANNEL,
+                            },
+                            not_a_dm: {
+                                id: "not_a_dm",
+                                team_id: "team",
+                                display_name: "not a dm, replaced",
+                                type: General.GM_CHANNEL,
+                            },
+                        },
                     },
-                    empty_display_name: {
-                        id: 'empty_display_name',
-                        team_id: 'team',
-                        display_name: '', // empty display name
-                        type: General.DM_CHANNEL,
-                    },
-                    existing_display_name: {
-                        id: 'existing_display_name',
-                        team_id: 'team',
-                        display_name: 'existing',
-                        type: General.DM_CHANNEL,
-                    },
-                    replaced_display_name: {
-                        id: 'new_display_name',
-                        team_id: 'team',
-                        display_name: 'existing',
-                        type: General.DM_CHANNEL,
-                    },
-                    not_a_dm: {
-                        id: 'not_a_dm',
-                        team_id: 'team',
-                        display_name: 'not a dm, replaced',
-                        type: General.GM_CHANNEL,
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
-            const nextState = channelsReducer(state, deepFreeze({
-                type: ChannelTypes.RECEIVED_CHANNELS,
-                currentChannelId: 'existing_display_name',
-                teamId: 'team',
-                data: [
-                    {
-                        id: 'no_display_name',
-                        team_id: 'team',
-                        display_name: 'new for no_display_name',
-                        type: General.DM_CHANNEL,
-                    },
-                    {
-                        id: 'empty_display_name',
-                        team_id: 'team',
-                        display_name: 'new for empty_display_name',
-                        type: General.DM_CHANNEL,
-                    },
-                    {
-                        id: 'existing_display_name',
-                        team_id: 'team',
-                        type: General.DM_CHANNEL,
-                    },
-                    {
-                        id: 'new_display_name',
-                        team_id: 'team',
-                        display_name: 'new for new_display_name',
-                        type: General.DM_CHANNEL,
-                    },
-                    {
-                        id: 'not_a_dm',
-                        team_id: 'team',
-                        display_name: 'new for not_a_dm',
-                        type: General.GM_CHANNEL,
-                    },
-                ],
-            }));
+            const nextState = channelsReducer(
+                state,
+                deepFreeze({
+                    type: ChannelTypes.RECEIVED_CHANNELS,
+                    currentChannelId: "existing_display_name",
+                    teamId: "team",
+                    data: [
+                        {
+                            id: "no_display_name",
+                            team_id: "team",
+                            display_name: "new for no_display_name",
+                            type: General.DM_CHANNEL,
+                        },
+                        {
+                            id: "empty_display_name",
+                            team_id: "team",
+                            display_name: "new for empty_display_name",
+                            type: General.DM_CHANNEL,
+                        },
+                        {
+                            id: "existing_display_name",
+                            team_id: "team",
+                            type: General.DM_CHANNEL,
+                        },
+                        {
+                            id: "new_display_name",
+                            team_id: "team",
+                            display_name: "new for new_display_name",
+                            type: General.DM_CHANNEL,
+                        },
+                        {
+                            id: "not_a_dm",
+                            team_id: "team",
+                            display_name: "new for not_a_dm",
+                            type: General.GM_CHANNEL,
+                        },
+                    ],
+                }),
+            );
 
             expect(nextState).not.toBe(state);
             expect(nextState.channels.no_display_name).toEqual({
-                id: 'no_display_name',
-                team_id: 'team',
-                display_name: 'new for no_display_name',
+                id: "no_display_name",
+                team_id: "team",
+                display_name: "new for no_display_name",
                 type: General.DM_CHANNEL,
             });
             expect(nextState.channels.empty_display_name).toEqual({
-                id: 'empty_display_name',
-                team_id: 'team',
-                display_name: 'new for empty_display_name',
+                id: "empty_display_name",
+                team_id: "team",
+                display_name: "new for empty_display_name",
                 type: General.DM_CHANNEL,
             });
             expect(nextState.channels.existing_display_name).toEqual({
-                id: 'existing_display_name',
-                team_id: 'team',
-                display_name: 'existing',
+                id: "existing_display_name",
+                team_id: "team",
+                display_name: "existing",
                 type: General.DM_CHANNEL,
             });
             expect(nextState.channels.new_display_name).toEqual({
-                id: 'new_display_name',
-                team_id: 'team',
-                display_name: 'new for new_display_name',
+                id: "new_display_name",
+                team_id: "team",
+                display_name: "new for new_display_name",
                 type: General.DM_CHANNEL,
             });
             expect(nextState.channels.not_a_dm).toEqual({
-                id: 'not_a_dm',
-                team_id: 'team',
-                display_name: 'new for not_a_dm',
+                id: "not_a_dm",
+                team_id: "team",
+                display_name: "new for not_a_dm",
                 type: General.GM_CHANNEL,
             });
         });
 
-        test('should not store message count sent by server', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
+        test("should not store message count sent by server", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                            },
+                        },
                     },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNELS,
                 data: [
                     {
-                        id: 'channel1',
+                        id: "channel1",
                         total_msg_count: 123,
                         total_msg_count_root: 456,
                     },
                     {
-                        id: 'channel2',
+                        id: "channel2",
                         total_msg_count: 123,
                         total_msg_count_root: 456,
                     },
@@ -712,36 +822,42 @@ describe('channels', () => {
             expect(nextState).not.toBe(state);
             expect(nextState.channels).toEqual({
                 channel1: {
-                    id: 'channel1',
+                    id: "channel1",
                 },
                 channel2: {
-                    id: 'channel2',
+                    id: "channel2",
                 },
             });
         });
     });
 
-    describe('RECEIVED_CHANNEL_MODERATIONS', () => {
-        test('Should add new channel moderations', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        team_id: 'team',
+    describe("RECEIVED_CHANNEL_MODERATIONS", () => {
+        test("Should add new channel moderations", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                                team_id: "team",
+                            },
+                        },
                     },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_MODERATIONS,
                 sync: true,
-                currentChannelId: 'channel1',
-                teamId: 'team',
+                currentChannelId: "channel1",
+                teamId: "team",
                 data: {
-                    channelId: 'channel1',
+                    channelId: "channel1",
                     moderations: [
                         {
-                            name: Permissions.CHANNEL_MODERATED_PERMISSIONS.CREATE_POST,
+                            name: Permissions.CHANNEL_MODERATED_PERMISSIONS
+                                .CREATE_POST,
                             roles: {
                                 members: true,
                             },
@@ -750,37 +866,51 @@ describe('channels', () => {
                 },
             });
 
-            expect(nextState.channelModerations.channel1[0].name).toEqual(Permissions.CHANNEL_MODERATED_PERMISSIONS.CREATE_POST);
-            expect(nextState.channelModerations.channel1[0].roles.members).toEqual(true);
+            expect(nextState.channelModerations.channel1[0].name).toEqual(
+                Permissions.CHANNEL_MODERATED_PERMISSIONS.CREATE_POST,
+            );
+            expect(
+                nextState.channelModerations.channel1[0].roles.members,
+            ).toEqual(true);
         });
-        test('Should replace existing channel moderations', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        team_id: 'team',
-                    },
-                },
-                channelModerations: {
-                    channel1: [{
-                        name: Permissions.CHANNEL_MODERATED_PERMISSIONS.CREATE_POST,
-                        roles: {
-                            members: true,
+        test("Should replace existing channel moderations", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                                team_id: "team",
+                            },
                         },
-                    }],
-                },
-            }, {}));
+                        channelModerations: {
+                            channel1: [
+                                {
+                                    name: Permissions
+                                        .CHANNEL_MODERATED_PERMISSIONS
+                                        .CREATE_POST,
+                                    roles: {
+                                        members: true,
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_MODERATIONS,
                 sync: true,
-                currentChannelId: 'channel1',
-                teamId: 'team',
+                currentChannelId: "channel1",
+                teamId: "team",
                 data: {
-                    channelId: 'channel1',
+                    channelId: "channel1",
                     moderations: [
                         {
-                            name: Permissions.CHANNEL_MODERATED_PERMISSIONS.CREATE_REACTIONS,
+                            name: Permissions.CHANNEL_MODERATED_PERMISSIONS
+                                .CREATE_REACTIONS,
                             roles: {
                                 members: true,
                                 guests: false,
@@ -790,38 +920,49 @@ describe('channels', () => {
                 },
             });
 
-            expect(nextState.channelModerations.channel1[0].name).toEqual(Permissions.CHANNEL_MODERATED_PERMISSIONS.CREATE_REACTIONS);
-            expect(nextState.channelModerations.channel1[0].roles.members).toEqual(true);
-            expect(nextState.channelModerations.channel1[0].roles.guests).toEqual(false);
+            expect(nextState.channelModerations.channel1[0].name).toEqual(
+                Permissions.CHANNEL_MODERATED_PERMISSIONS.CREATE_REACTIONS,
+            );
+            expect(
+                nextState.channelModerations.channel1[0].roles.members,
+            ).toEqual(true);
+            expect(
+                nextState.channelModerations.channel1[0].roles.guests,
+            ).toEqual(false);
         });
     });
 
-    describe('RECEIVED_CHANNEL_MEMBER_COUNTS_BY_GROUP', () => {
-        test('Should add new channel member counts', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        team_id: 'team',
+    describe("RECEIVED_CHANNEL_MEMBER_COUNTS_BY_GROUP", () => {
+        test("Should add new channel member counts", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                                team_id: "team",
+                            },
+                        },
                     },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_MEMBER_COUNTS_BY_GROUP,
                 sync: true,
-                currentChannelId: 'channel1',
-                teamId: 'team',
+                currentChannelId: "channel1",
+                teamId: "team",
                 data: {
-                    channelId: 'channel1',
+                    channelId: "channel1",
                     memberCounts: [
                         {
-                            group_id: 'group-1',
+                            group_id: "group-1",
                             channel_member_count: 1,
                             channel_member_timezones_count: 1,
                         },
                         {
-                            group_id: 'group-2',
+                            group_id: "group-2",
                             channel_member_count: 999,
                             channel_member_timezones_count: 131,
                         },
@@ -829,54 +970,71 @@ describe('channels', () => {
                 },
             });
 
-            expect(nextState.channelMemberCountsByGroup.channel1['group-1'].channel_member_count).toEqual(1);
-            expect(nextState.channelMemberCountsByGroup.channel1['group-1'].channel_member_timezones_count).toEqual(1);
+            expect(
+                nextState.channelMemberCountsByGroup.channel1["group-1"]
+                    .channel_member_count,
+            ).toEqual(1);
+            expect(
+                nextState.channelMemberCountsByGroup.channel1["group-1"]
+                    .channel_member_timezones_count,
+            ).toEqual(1);
 
-            expect(nextState.channelMemberCountsByGroup.channel1['group-2'].channel_member_count).toEqual(999);
-            expect(nextState.channelMemberCountsByGroup.channel1['group-2'].channel_member_timezones_count).toEqual(131);
+            expect(
+                nextState.channelMemberCountsByGroup.channel1["group-2"]
+                    .channel_member_count,
+            ).toEqual(999);
+            expect(
+                nextState.channelMemberCountsByGroup.channel1["group-2"]
+                    .channel_member_timezones_count,
+            ).toEqual(131);
         });
-        test('Should replace existing channel member counts', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        team_id: 'team',
+        test("Should replace existing channel member counts", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                                team_id: "team",
+                            },
+                        },
+                        channelMemberCountsByGroup: {
+                            "group-1": {
+                                group_id: "group-1",
+                                channel_member_count: 1,
+                                channel_member_timezones_count: 1,
+                            },
+                            "group-2": {
+                                group_id: "group-2",
+                                channel_member_count: 999,
+                                channel_member_timezones_count: 131,
+                            },
+                        },
                     },
-                },
-                channelMemberCountsByGroup: {
-                    'group-1': {
-                        group_id: 'group-1',
-                        channel_member_count: 1,
-                        channel_member_timezones_count: 1,
-                    },
-                    'group-2': {
-                        group_id: 'group-2',
-                        channel_member_count: 999,
-                        channel_member_timezones_count: 131,
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_MEMBER_COUNTS_BY_GROUP,
                 sync: true,
-                currentChannelId: 'channel1',
-                teamId: 'team',
+                currentChannelId: "channel1",
+                teamId: "team",
                 data: {
-                    channelId: 'channel1',
+                    channelId: "channel1",
                     memberCounts: [
                         {
-                            group_id: 'group-1',
+                            group_id: "group-1",
                             channel_member_count: 5,
                             channel_member_timezones_count: 2,
                         },
                         {
-                            group_id: 'group-2',
+                            group_id: "group-2",
                             channel_member_count: 1002,
                             channel_member_timezones_count: 133,
                         },
                         {
-                            group_id: 'group-3',
+                            group_id: "group-3",
                             channel_member_count: 12,
                             channel_member_timezones_count: 13,
                         },
@@ -884,173 +1042,211 @@ describe('channels', () => {
                 },
             });
 
-            expect(nextState.channelMemberCountsByGroup.channel1['group-1'].channel_member_count).toEqual(5);
-            expect(nextState.channelMemberCountsByGroup.channel1['group-1'].channel_member_timezones_count).toEqual(2);
+            expect(
+                nextState.channelMemberCountsByGroup.channel1["group-1"]
+                    .channel_member_count,
+            ).toEqual(5);
+            expect(
+                nextState.channelMemberCountsByGroup.channel1["group-1"]
+                    .channel_member_timezones_count,
+            ).toEqual(2);
 
-            expect(nextState.channelMemberCountsByGroup.channel1['group-2'].channel_member_count).toEqual(1002);
-            expect(nextState.channelMemberCountsByGroup.channel1['group-2'].channel_member_timezones_count).toEqual(133);
+            expect(
+                nextState.channelMemberCountsByGroup.channel1["group-2"]
+                    .channel_member_count,
+            ).toEqual(1002);
+            expect(
+                nextState.channelMemberCountsByGroup.channel1["group-2"]
+                    .channel_member_timezones_count,
+            ).toEqual(133);
 
-            expect(nextState.channelMemberCountsByGroup.channel1['group-3'].channel_member_count).toEqual(12);
-            expect(nextState.channelMemberCountsByGroup.channel1['group-3'].channel_member_timezones_count).toEqual(13);
+            expect(
+                nextState.channelMemberCountsByGroup.channel1["group-3"]
+                    .channel_member_count,
+            ).toEqual(12);
+            expect(
+                nextState.channelMemberCountsByGroup.channel1["group-3"]
+                    .channel_member_timezones_count,
+            ).toEqual(13);
         });
     });
 
-    describe('Data Retention Channels', () => {
-        test('RECEIVED_DATA_RETENTION_CUSTOM_POLICY_CHANNELS', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        team_id: 'team',
+    describe("Data Retention Channels", () => {
+        test("RECEIVED_DATA_RETENTION_CUSTOM_POLICY_CHANNELS", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                                team_id: "team",
+                            },
+                            channel2: {
+                                id: "channel2",
+                                team_id: "team",
+                            },
+                            channel3: {
+                                id: "channel3",
+                                team_id: "team",
+                            },
+                        },
                     },
-                    channel2: {
-                        id: 'channel2',
-                        team_id: 'team',
-                    },
-                    channel3: {
-                        id: 'channel3',
-                        team_id: 'team',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: AdminTypes.RECEIVED_DATA_RETENTION_CUSTOM_POLICY_CHANNELS,
                 data: {
-                    channels: [{
-                        id: 'channel4',
-                        team_id: 'team',
-                    }],
+                    channels: [
+                        {
+                            id: "channel4",
+                            team_id: "team",
+                        },
+                    ],
                     total_count: 1,
                 },
             });
 
             expect(nextState).not.toBe(state);
             expect(nextState.channels.channel1).toEqual({
-                id: 'channel1',
-                team_id: 'team',
+                id: "channel1",
+                team_id: "team",
             });
             expect(nextState.channels.channel2).toEqual({
-                id: 'channel2',
-                team_id: 'team',
+                id: "channel2",
+                team_id: "team",
             });
             expect(nextState.channels.channel3).toEqual({
-                id: 'channel3',
-                team_id: 'team',
+                id: "channel3",
+                team_id: "team",
             });
             expect(nextState.channels.channel4).toEqual({
-                id: 'channel4',
-                team_id: 'team',
+                id: "channel4",
+                team_id: "team",
             });
         });
 
-        test('REMOVE_DATA_RETENTION_CUSTOM_POLICY_CHANNELS_SUCCESS', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        team_id: 'team',
-                        policy_id: 'policy1',
+        test("REMOVE_DATA_RETENTION_CUSTOM_POLICY_CHANNELS_SUCCESS", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                                team_id: "team",
+                                policy_id: "policy1",
+                            },
+                            channel2: {
+                                id: "channel2",
+                                team_id: "team",
+                                policy_id: "policy1",
+                            },
+                            channel3: {
+                                id: "channel3",
+                                team_id: "team",
+                                policy_id: "policy1",
+                            },
+                        },
                     },
-                    channel2: {
-                        id: 'channel2',
-                        team_id: 'team',
-                        policy_id: 'policy1',
-                    },
-                    channel3: {
-                        id: 'channel3',
-                        team_id: 'team',
-                        policy_id: 'policy1',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: AdminTypes.REMOVE_DATA_RETENTION_CUSTOM_POLICY_CHANNELS_SUCCESS,
                 data: {
-                    channels: ['channel1', 'channel2'],
+                    channels: ["channel1", "channel2"],
                 },
             });
 
             expect(nextState).not.toBe(state);
             expect(nextState.channels.channel1).toEqual({
-                id: 'channel1',
-                team_id: 'team',
+                id: "channel1",
+                team_id: "team",
                 policy_id: null,
             });
             expect(nextState.channels.channel2).toEqual({
-                id: 'channel2',
-                team_id: 'team',
+                id: "channel2",
+                team_id: "team",
                 policy_id: null,
             });
             expect(nextState.channels.channel3).toEqual({
-                id: 'channel3',
-                team_id: 'team',
-                policy_id: 'policy1',
+                id: "channel3",
+                team_id: "team",
+                policy_id: "policy1",
             });
         });
-        test('RECEIVED_DATA_RETENTION_CUSTOM_POLICY_CHANNELS_SEARCH', () => {
-            const state = deepFreeze(channelsReducer({
-                channels: {
-                    channel1: {
-                        id: 'channel1',
-                        team_id: 'team',
+        test("RECEIVED_DATA_RETENTION_CUSTOM_POLICY_CHANNELS_SEARCH", () => {
+            const state = deepFreeze(
+                channelsReducer(
+                    {
+                        channels: {
+                            channel1: {
+                                id: "channel1",
+                                team_id: "team",
+                            },
+                            channel2: {
+                                id: "channel2",
+                                team_id: "team",
+                            },
+                            channel3: {
+                                id: "channel3",
+                                team_id: "team",
+                            },
+                        },
                     },
-                    channel2: {
-                        id: 'channel2',
-                        team_id: 'team',
-                    },
-                    channel3: {
-                        id: 'channel3',
-                        team_id: 'team',
-                    },
-                },
-            }, {}));
+                    {},
+                ),
+            );
 
             const nextState = channelsReducer(state, {
                 type: AdminTypes.RECEIVED_DATA_RETENTION_CUSTOM_POLICY_CHANNELS_SEARCH,
                 data: [
                     {
-                        id: 'channel1',
-                        team_id: 'team',
+                        id: "channel1",
+                        team_id: "team",
                     },
                     {
-                        id: 'channel4',
-                        team_id: 'team',
+                        id: "channel4",
+                        team_id: "team",
                     },
                 ],
             });
 
             expect(nextState).not.toBe(state);
             expect(nextState.channels.channel1).toEqual({
-                id: 'channel1',
-                team_id: 'team',
+                id: "channel1",
+                team_id: "team",
             });
             expect(nextState.channels.channel2).toEqual({
-                id: 'channel2',
-                team_id: 'team',
+                id: "channel2",
+                team_id: "team",
             });
             expect(nextState.channels.channel3).toEqual({
-                id: 'channel3',
-                team_id: 'team',
+                id: "channel3",
+                team_id: "team",
             });
             expect(nextState.channels.channel4).toEqual({
-                id: 'channel4',
-                team_id: 'team',
+                id: "channel4",
+                team_id: "team",
             });
         });
     });
 });
 
-describe('myMembers', () => {
-    const userId = 'userId';
-    const channelId = 'channelId';
+describe("myMembers", () => {
+    const userId = "userId";
+    const channelId = "channelId";
 
-    describe('RECEIVED_MY_CHANNEL_MEMBER', () => {
-        test('should save a newly received channel member', () => {
+    describe("RECEIVED_MY_CHANNEL_MEMBER", () => {
+        test("should save a newly received channel member", () => {
             const state = deepFreeze({});
 
-            const channelMember = TestHelper.fakeChannelMember(userId, channelId);
+            const channelMember = TestHelper.fakeChannelMember(
+                userId,
+                channelId,
+            );
 
             const nextState = Reducers.myMembers(state, {
                 type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
@@ -1062,7 +1258,7 @@ describe('myMembers', () => {
             });
         });
 
-        test('should update an existing channel member', () => {
+        test("should update an existing channel member", () => {
             const state = deepFreeze({
                 [channelId]: {
                     ...TestHelper.fakeChannelMember(userId, channelId),
@@ -1085,7 +1281,7 @@ describe('myMembers', () => {
             });
         });
 
-        test('should not overwrite a more up to date last_viewed_at', () => {
+        test("should not overwrite a more up to date last_viewed_at", () => {
             const state = deepFreeze({
                 [channelId]: {
                     ...TestHelper.fakeChannelMember(userId, channelId),
@@ -1117,11 +1313,14 @@ describe('myMembers', () => {
         });
     });
 
-    describe('RECEIVED_MY_CHANNEL_MEMBERS', () => {
-        test('should save a newly received channel member', () => {
+    describe("RECEIVED_MY_CHANNEL_MEMBERS", () => {
+        test("should save a newly received channel member", () => {
             const state = deepFreeze({});
 
-            const channelMember = TestHelper.fakeChannelMember(userId, channelId);
+            const channelMember = TestHelper.fakeChannelMember(
+                userId,
+                channelId,
+            );
 
             const nextState = Reducers.myMembers(state, {
                 type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
@@ -1133,7 +1332,7 @@ describe('myMembers', () => {
             });
         });
 
-        test('should update an existing channel member', () => {
+        test("should update an existing channel member", () => {
             const state = deepFreeze({
                 [channelId]: {
                     ...TestHelper.fakeChannelMember(userId, channelId),
@@ -1156,7 +1355,7 @@ describe('myMembers', () => {
             });
         });
 
-        test('should not overwrite a more up to date last_viewed_at', () => {
+        test("should not overwrite a more up to date last_viewed_at", () => {
             const state = deepFreeze({
                 [channelId]: {
                     ...TestHelper.fakeChannelMember(userId, channelId),
@@ -1188,8 +1387,8 @@ describe('myMembers', () => {
         });
     });
 
-    describe('POST_UNREAD_SUCCESS', () => {
-        test('should update the channel member', () => {
+    describe("POST_UNREAD_SUCCESS", () => {
+        test("should update the channel member", () => {
             const originalChannelMember = {
                 ...TestHelper.fakeChannelMember(userId, channelId),
                 last_viewed_at: 10000,
@@ -1227,7 +1426,7 @@ describe('myMembers', () => {
             });
         });
 
-        test('shouldn\'t make any changes if the channel member hasn\t been loaded yet', () => {
+        test("shouldn't make any changes if the channel member hasn\t been loaded yet", () => {
             const state = deepFreeze({});
 
             const nextState = Reducers.myMembers(state, {

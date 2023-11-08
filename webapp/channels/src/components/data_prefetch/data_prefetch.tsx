@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PQueue from 'p-queue';
-import React from 'react';
+import PQueue from "p-queue";
+import React from "react";
 
-import type {Channel} from '@mattermost/types/channels';
+import type { Channel } from "@mattermost/types/channels";
 
-import {loadProfilesForSidebar} from 'actions/user_actions';
+import { loadProfilesForSidebar } from "actions/user_actions";
 
-import {Constants} from 'utils/constants';
+import { Constants } from "utils/constants";
 
-const queue = new PQueue({concurrency: 2});
+const queue = new PQueue({ concurrency: 2 });
 
 type Props = {
     currentChannelId: string;
@@ -25,10 +25,15 @@ type Props = {
     disableWebappPrefetchAllowed: boolean;
     dataPrefetchEnabled: boolean;
     actions: {
-        prefetchChannelPosts: (channelId: string, delay?: number) => Promise<any>;
-        trackPreloadedChannels: (prefetchQueueObj: Record<string, string[]>) => void;
+        prefetchChannelPosts: (
+            channelId: string,
+            delay?: number,
+        ) => Promise<any>;
+        trackPreloadedChannels: (
+            prefetchQueueObj: Record<string, string[]>,
+        ) => void;
     };
-}
+};
 
 /*
     This component is responsible for prefetching data. As of now component only fetches for channel posts based on the below set of rules.
@@ -55,9 +60,21 @@ export default class DataPrefetch extends React.PureComponent<Props> {
     private prefetchTimeout?: number;
 
     async componentDidUpdate(prevProps: Props) {
-        const {currentChannelId, prefetchQueueObj, sidebarLoaded, disableWebappPrefetchAllowed, dataPrefetchEnabled} = this.props;
-        const enablePrefetch = (!disableWebappPrefetchAllowed) || (disableWebappPrefetchAllowed && dataPrefetchEnabled);
-        if (currentChannelId && sidebarLoaded && (!prevProps.currentChannelId || !prevProps.sidebarLoaded)) {
+        const {
+            currentChannelId,
+            prefetchQueueObj,
+            sidebarLoaded,
+            disableWebappPrefetchAllowed,
+            dataPrefetchEnabled,
+        } = this.props;
+        const enablePrefetch =
+            !disableWebappPrefetchAllowed ||
+            (disableWebappPrefetchAllowed && dataPrefetchEnabled);
+        if (
+            currentChannelId &&
+            sidebarLoaded &&
+            (!prevProps.currentChannelId || !prevProps.sidebarLoaded)
+        ) {
             queue.add(async () => this.prefetchPosts(currentChannelId));
             await loadProfilesForSidebar();
             if (enablePrefetch) {
@@ -71,16 +88,27 @@ export default class DataPrefetch extends React.PureComponent<Props> {
             }
         }
 
-        if (currentChannelId && sidebarLoaded && (!prevProps.currentChannelId || !prevProps.sidebarLoaded)) {
+        if (
+            currentChannelId &&
+            sidebarLoaded &&
+            (!prevProps.currentChannelId || !prevProps.sidebarLoaded)
+        ) {
             this.props.actions.trackPreloadedChannels(prefetchQueueObj);
         }
     }
 
     public prefetchPosts = (channelId: string) => {
         let delay;
-        const channel = this.props.unreadChannels.find((unreadChannel) => channelId === unreadChannel.id);
-        if (channel && (channel.type === Constants.PRIVATE_CHANNEL || channel.type === Constants.OPEN_CHANNEL)) {
-            const isLatestPostInLastMin = (Date.now() - channel.last_post_at) <= 1000;
+        const channel = this.props.unreadChannels.find(
+            (unreadChannel) => channelId === unreadChannel.id,
+        );
+        if (
+            channel &&
+            (channel.type === Constants.PRIVATE_CHANNEL ||
+                channel.type === Constants.OPEN_CHANNEL)
+        ) {
+            const isLatestPostInLastMin =
+                Date.now() - channel.last_post_at <= 1000;
             if (isLatestPostInLastMin) {
                 delay = Math.random() * 1000; // 1ms - 1000ms random wait to not choke server
             }
@@ -89,7 +117,7 @@ export default class DataPrefetch extends React.PureComponent<Props> {
     };
 
     private prefetchData = () => {
-        const {prefetchRequestStatus, prefetchQueueObj} = this.props;
+        const { prefetchRequestStatus, prefetchQueueObj } = this.props;
         for (const priority in prefetchQueueObj) {
             if (!prefetchQueueObj.hasOwnProperty(priority)) {
                 continue;

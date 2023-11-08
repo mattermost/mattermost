@@ -1,34 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import type {ChannelType} from '@mattermost/types/channels';
+import type { ChannelType } from "@mattermost/types/channels";
 
-import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
+import SidebarChannelLink from "components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link";
 
-describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
+describe("components/sidebar/sidebar_channel/sidebar_channel_link", () => {
     const baseProps = {
         channel: {
-            id: 'channel_id',
-            display_name: 'channel_display_name',
+            id: "channel_id",
+            display_name: "channel_display_name",
             create_at: 0,
             update_at: 0,
             delete_at: 0,
-            team_id: '',
-            type: 'O' as ChannelType,
-            name: '',
-            header: '',
-            purpose: '',
+            team_id: "",
+            type: "O" as ChannelType,
+            name: "",
+            header: "",
+            purpose: "",
             last_post_at: 0,
             last_root_post_at: 0,
-            creator_id: '',
-            scheme_id: '',
+            creator_id: "",
+            scheme_id: "",
             group_constrained: false,
         },
-        link: 'http://a.fake.link',
-        label: 'channel_label',
+        link: "http://a.fake.link",
+        label: "channel_label",
         icon: null,
         unreadMentions: 0,
         isUnread: false,
@@ -48,52 +48,44 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <SidebarChannelLink {...baseProps}/>,
-        );
+    test("should match snapshot", () => {
+        const wrapper = shallow(<SidebarChannelLink {...baseProps} />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot for desktop', () => {
-        const userAgentMock = jest.requireMock('utils/user_agent');
+    test("should match snapshot for desktop", () => {
+        const userAgentMock = jest.requireMock("utils/user_agent");
         userAgentMock.isDesktopApp.mockImplementation(() => false);
 
-        const wrapper = shallow(
-            <SidebarChannelLink {...baseProps}/>,
-        );
+        const wrapper = shallow(<SidebarChannelLink {...baseProps} />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when tooltip is enabled', () => {
-        const wrapper = shallow(
-            <SidebarChannelLink {...baseProps}/>,
-        );
+    test("should match snapshot when tooltip is enabled", () => {
+        const wrapper = shallow(<SidebarChannelLink {...baseProps} />);
 
-        wrapper.setState({showTooltip: true});
+        wrapper.setState({ showTooltip: true });
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with aria label prefix and unread mentions', () => {
+    test("should match snapshot with aria label prefix and unread mentions", () => {
         const props = {
             ...baseProps,
             isUnread: true,
             unreadMentions: 2,
-            ariaLabelPrefix: 'aria_label_prefix_',
+            ariaLabelPrefix: "aria_label_prefix_",
         };
 
-        const wrapper = shallow(
-            <SidebarChannelLink {...props}/>,
-        );
+        const wrapper = shallow(<SidebarChannelLink {...props} />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should enable tooltip when needed', () => {
+    test("should enable tooltip when needed", () => {
         const wrapper = shallow<SidebarChannelLink>(
-            <SidebarChannelLink {...baseProps}/>,
+            <SidebarChannelLink {...baseProps} />,
         );
         const instance = wrapper.instance();
 

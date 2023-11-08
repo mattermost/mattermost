@@ -10,20 +10,19 @@ export type DataModel = {
         icon: React.ReactNode;
         hide?: boolean;
     };
-}
+};
 
 export enum ItemStatus {
-
     /** Return NONE if it's not relevant, not configured, or not an option */
-    NONE = 'none',
+    NONE = "none",
 
     /** Return OK if all checks for this have passed */
-    OK = 'ok',
+    OK = "ok",
 
     /** Return info if it might not be relevant to them, but they could utilize it */
-    INFO = 'info',
-    WARNING = 'warning',
-    ERROR = 'error',
+    INFO = "info",
+    WARNING = "warning",
+    ERROR = "error",
 }
 
 export type ItemModel = {
@@ -38,7 +37,7 @@ export type ItemModel = {
     telemetryAction?: string;
     infoUrl?: string;
     infoText?: string;
-}
+};
 
 export type UpdatesParam = {
     serverVersion: {
@@ -46,7 +45,7 @@ export type UpdatesParam = {
         status: ItemStatus;
         description: string;
     };
-}
+};
 
 type Analytics = {
     DAILY_ACTIVE_USERS: number;
@@ -60,7 +59,7 @@ type Analytics = {
     TOTAL_TEAMS: number;
     TOTAL_USERS: number;
     TOTAL_WEBSOCKET_CONNECTIONS: number;
-}
+};
 export type Options = {
     isLicensed: boolean;
     isEnterpriseLicense: boolean;

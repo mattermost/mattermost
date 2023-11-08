@@ -1,23 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
-import {batchActions} from 'redux-batched-actions';
+import type { AnyAction } from "redux";
+import { batchActions } from "redux-batched-actions";
 
-import type {CustomEmoji} from '@mattermost/types/emojis';
-import type {GlobalState} from '@mattermost/types/store';
+import type { CustomEmoji } from "@mattermost/types/emojis";
+import type { GlobalState } from "@mattermost/types/store";
 
-import {EmojiTypes} from 'mattermost-redux/action_types';
-import {Client4} from 'mattermost-redux/client';
-import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
-import {parseEmojiNamesFromText} from 'mattermost-redux/utils/emoji_utils';
+import { EmojiTypes } from "mattermost-redux/action_types";
+import { Client4 } from "mattermost-redux/client";
+import { getCustomEmojisByName as selectCustomEmojisByName } from "mattermost-redux/selectors/entities/emojis";
+import type {
+    GetStateFunc,
+    DispatchFunc,
+    ActionFunc,
+} from "mattermost-redux/types/actions";
+import { parseEmojiNamesFromText } from "mattermost-redux/utils/emoji_utils";
 
-import {logError} from './errors';
-import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
-import {getProfilesByIds} from './users';
+import { logError } from "./errors";
+import { bindClientFunc, forceLogoutIfNecessary } from "./helpers";
+import { getProfilesByIds } from "./users";
 
-import {General, Emoji} from '../constants';
+import { General, Emoji } from "../constants";
 
 export let systemEmojis: Set<string> = new Set();
 export function setSystemEmojis(emojis: Set<string>) {
@@ -28,10 +32,7 @@ export function createCustomEmoji(emoji: any, image: any): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.createCustomEmoji,
         onSuccess: EmojiTypes.RECEIVED_CUSTOM_EMOJI,
-        params: [
-            emoji,
-            image,
-        ],
+        params: [emoji, image],
     });
 }
 
@@ -39,9 +40,7 @@ export function getCustomEmoji(emojiId: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getCustomEmoji,
         onSuccess: EmojiTypes.RECEIVED_CUSTOM_EMOJI,
-        params: [
-            emojiId,
-        ],
+        params: [emojiId],
     });
 }
 
@@ -55,12 +54,15 @@ export function getCustomEmojiByName(name: string): ActionFunc {
             forceLogoutIfNecessary(error, dispatch, getState);
 
             if (error.status_code === 404) {
-                dispatch({type: EmojiTypes.CUSTOM_EMOJI_DOES_NOT_EXIST, data: name});
+                dispatch({
+                    type: EmojiTypes.CUSTOM_EMOJI_DOES_NOT_EXIST,
+                    data: name,
+                });
             } else {
                 dispatch(logError(error));
             }
 
-            return {error};
+            return { error };
         }
 
         dispatch({
@@ -68,7 +70,7 @@ export function getCustomEmojiByName(name: string): ActionFunc {
             data,
         });
 
-        return {data};
+        return { data };
     };
 }
 
@@ -77,7 +79,7 @@ export function getCustomEmojisByName(names: string[]): ActionFunc {
         const neededNames = filterNeededCustomEmojis(getState(), names);
 
         if (neededNames.length === 0) {
-            return {data: true};
+            return { data: true };
         }
 
         // If necessary, split up the list of names into batches based on api4.GetEmojisByNamesMax on the server
@@ -90,20 +92,24 @@ export function getCustomEmojisByName(names: string[]): ActionFunc {
 
         let results;
         try {
-            results = await Promise.all(batches.map((batch) => {
-                return Client4.getCustomEmojisByNames(batch);
-            }));
+            results = await Promise.all(
+                batches.map((batch) => {
+                    return Client4.getCustomEmojisByNames(batch);
+                }),
+            );
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         const data = results.flat();
-        const actions: AnyAction[] = [{
-            type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
-            data,
-        }];
+        const actions: AnyAction[] = [
+            {
+                type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
+                data,
+            },
+        ];
 
         if (data.length !== neededNames.length) {
             const foundNames = new Set(data.map((emoji) => emoji.name));
@@ -120,7 +126,9 @@ export function getCustomEmojisByName(names: string[]): ActionFunc {
             }
         }
 
-        return dispatch(actions.length > 1 ? batchActions(actions) : actions[0]);
+        return dispatch(
+            actions.length > 1 ? batchActions(actions) : actions[0],
+        );
     };
 }
 
@@ -129,14 +137,18 @@ function filterNeededCustomEmojis(state: GlobalState, names: string[]) {
     const customEmojisByName = selectCustomEmojisByName(state);
 
     return names.filter((name) => {
-        return !systemEmojis.has(name) && !nonExistentEmoji.has(name) && !customEmojisByName.has(name);
+        return (
+            !systemEmojis.has(name) &&
+            !nonExistentEmoji.has(name) &&
+            !customEmojisByName.has(name)
+        );
     });
 }
 
 export function getCustomEmojisInText(text: string): ActionFunc {
     return (dispatch: DispatchFunc) => {
         if (!text) {
-            return {data: true};
+            return { data: true };
         }
 
         return dispatch(getCustomEmojisByName(parseEmojiNamesFromText(text)));
@@ -157,7 +169,7 @@ export function getCustomEmojis(
             forceLogoutIfNecessary(error, dispatch, getState);
 
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         if (loadUsers) {
@@ -169,7 +181,7 @@ export function getCustomEmojis(
             data,
         });
 
-        return {data};
+        return { data };
     };
 }
 
@@ -188,7 +200,7 @@ export function loadProfilesForCustomEmojis(emojis: CustomEmoji[]): ActionFunc {
             await dispatch(getProfilesByIds(userIds));
         }
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -200,19 +212,23 @@ export function deleteCustomEmoji(emojiId: string): ActionFunc {
             forceLogoutIfNecessary(error, dispatch, getState);
 
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         dispatch({
             type: EmojiTypes.DELETED_CUSTOM_EMOJI,
-            data: {id: emojiId},
+            data: { id: emojiId },
         });
 
-        return {data: true};
+        return { data: true };
     };
 }
 
-export function searchCustomEmojis(term: string, options: any = {}, loadUsers = false): ActionFunc {
+export function searchCustomEmojis(
+    term: string,
+    options: any = {},
+    loadUsers = false,
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let data;
         try {
@@ -221,7 +237,7 @@ export function searchCustomEmojis(term: string, options: any = {}, loadUsers = 
             forceLogoutIfNecessary(error, dispatch, getState);
 
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         if (loadUsers) {
@@ -233,7 +249,7 @@ export function searchCustomEmojis(term: string, options: any = {}, loadUsers = 
             data,
         });
 
-        return {data};
+        return { data };
     };
 }
 
@@ -246,7 +262,7 @@ export function autocompleteCustomEmojis(name: string): ActionFunc {
             forceLogoutIfNecessary(error, dispatch, getState);
 
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         dispatch({
@@ -254,6 +270,6 @@ export function autocompleteCustomEmojis(name: string): ActionFunc {
             data,
         });
 
-        return {data};
+        return { data };
     };
 }

@@ -2,6 +2,6 @@
 // See LICENSE.txt for license information.
 
 export const ScopeTypes = {
-    TEAM: 'team',
-    CHANNEL: 'channel',
+    TEAM: "team",
+    CHANNEL: "channel",
 };

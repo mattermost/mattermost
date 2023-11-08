@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import {Tooltip} from 'react-bootstrap';
+import classNames from "classnames";
+import React from "react";
+import { Tooltip } from "react-bootstrap";
 
-import OverlayTrigger from 'components/overlay_trigger';
+import OverlayTrigger from "components/overlay_trigger";
 
-import Constants from 'utils/constants';
+import Constants from "utils/constants";
 
-import './action.scss';
+import "./action.scss";
 
 type Props = {
     icon: string;
@@ -19,31 +19,27 @@ type Props = {
     tooltipText: React.ReactNode;
 };
 
-function Action({name, icon, onClick, id, tooltipText}: Props) {
+function Action({ name, icon, onClick, id, tooltipText }: Props) {
     return (
-        <div className='DraftAction'>
+        <div className="DraftAction">
             <OverlayTrigger
-                className='hidden-xs'
+                className="hidden-xs"
                 delayShow={Constants.OVERLAY_TIME_DELAY}
-                placement='top'
+                placement="top"
                 overlay={
-                    <Tooltip
-                        id={`tooltip_${id}`}
-                        className='hidden-xs'
-                    >
+                    <Tooltip id={`tooltip_${id}`} className="hidden-xs">
                         {tooltipText}
                     </Tooltip>
                 }
             >
                 <button
-                    className={classNames(
-                        'DraftAction__button',
-                        {'DraftAction__button--delete': name === 'delete'},
-                    )}
+                    className={classNames("DraftAction__button", {
+                        "DraftAction__button--delete": name === "delete",
+                    })}
                     id={`draft_{icon}_${id}`}
                     onClick={onClick}
                 >
-                    <i className={`icon ${icon}`}/>
+                    <i className={`icon ${icon}`} />
                 </button>
             </OverlayTrigger>
         </div>

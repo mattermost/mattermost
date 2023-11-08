@@ -1,27 +1,41 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AppCall, AppExpand, AppFormValues} from '@mattermost/types/apps';
-import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+import type { AppCall, AppExpand, AppFormValues } from "@mattermost/types/apps";
+import type {
+    MarketplaceApp,
+    MarketplacePlugin,
+} from "@mattermost/types/marketplace";
 
-import {Client4} from 'mattermost-redux/client';
-import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import { Client4 } from "mattermost-redux/client";
+import {
+    AppBindingLocations,
+    AppCallResponseTypes,
+} from "mattermost-redux/constants/apps";
+import { appsEnabled } from "mattermost-redux/selectors/entities/apps";
+import { getCurrentChannelId } from "mattermost-redux/selectors/entities/channels";
+import { getCurrentTeamId } from "mattermost-redux/selectors/entities/teams";
+import type {
+    ActionFunc,
+    DispatchFunc,
+    GetStateFunc,
+} from "mattermost-redux/types/actions";
 
-import {getFilter, getPlugin} from 'selectors/views/marketplace';
+import { getFilter, getPlugin } from "selectors/views/marketplace";
 
-import {intlShim} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
-import type {DoAppCallResult} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
+import { intlShim } from "components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies";
+import type { DoAppCallResult } from "components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies";
 
-import {createCallContext, createCallRequest} from 'utils/apps';
-import {ActionTypes} from 'utils/constants';
+import { createCallContext, createCallRequest } from "utils/apps";
+import { ActionTypes } from "utils/constants";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import {doAppSubmit, openAppsModal, postEphemeralCallResponseForContext} from './apps';
+import {
+    doAppSubmit,
+    openAppsModal,
+    postEphemeralCallResponseForContext,
+} from "./apps";
 
 export function fetchRemoteListing(): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
@@ -34,9 +48,9 @@ export function fetchRemoteListing(): ActionFunc {
                 type: ActionTypes.RECEIVED_MARKETPLACE_PLUGINS,
                 plugins,
             });
-            return {data: plugins};
+            return { data: plugins };
         } catch (error: any) {
-            return {error};
+            return { error };
         }
     };
 }
@@ -54,10 +68,14 @@ export function fetchListing(localOnly = false): ActionFunc {
             plugins = await Client4.getMarketplacePlugins(filter, localOnly);
         } catch (error: any) {
             // If the marketplace server is unreachable, try to get the local plugins only.
-            if (error.server_error_id === 'app.plugin.marketplace_client.failed_to_fetch' && !localOnly) {
+            if (
+                error.server_error_id ===
+                    "app.plugin.marketplace_client.failed_to_fetch" &&
+                !localOnly
+            ) {
                 await dispatch(fetchListing(true));
             }
-            return {error};
+            return { error };
         }
 
         dispatch({
@@ -69,7 +87,7 @@ export function fetchListing(localOnly = false): ActionFunc {
             try {
                 apps = await Client4.getMarketplaceApps(filter);
             } catch (error) {
-                return {data: plugins};
+                return { data: plugins };
             }
 
             dispatch({
@@ -79,10 +97,14 @@ export function fetchListing(localOnly = false): ActionFunc {
         }
 
         if (plugins) {
-            return {data: (plugins as Array<MarketplacePlugin | MarketplaceApp>).concat(apps)};
+            return {
+                data: (
+                    plugins as Array<MarketplacePlugin | MarketplaceApp>
+                ).concat(apps),
+            };
         }
 
-        return {data: apps};
+        return { data: apps };
     };
 }
 
@@ -102,7 +124,10 @@ export function filterListing(filter: string): ActionFunc {
 //
 // On success, it also requests the current state of the plugins to reflect the newly installed plugin.
 export function installPlugin(id: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc): Promise<void> => {
+    return async (
+        dispatch: DispatchFunc,
+        getState: GetStateFunc,
+    ): Promise<void> => {
         dispatch({
             type: ActionTypes.INSTALLING_MARKETPLACE_ITEM,
             id,
@@ -115,7 +140,7 @@ export function installPlugin(id: string) {
             dispatch({
                 type: ActionTypes.INSTALLING_MARKETPLACE_ITEM_FAILED,
                 id,
-                error: 'Unknown plugin: ' + id,
+                error: "Unknown plugin: " + id,
             });
             return;
         }
@@ -143,20 +168,23 @@ export function installPlugin(id: string) {
 //
 // On success, it also requests the current state of the apps to reflect the newly installed app.
 export function installApp(id: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc): Promise<boolean> => {
+    return async (
+        dispatch: DispatchFunc,
+        getState: GetStateFunc,
+    ): Promise<boolean> => {
         dispatch({
             type: ActionTypes.INSTALLING_MARKETPLACE_ITEM,
             id,
         });
 
-        const callPath = '/install-listed';
+        const callPath = "/install-listed";
         const call: AppCall = {
             path: callPath,
         };
 
         const expand: AppExpand = {
-            acting_user: '+summary',
-            locale: 'all',
+            acting_user: "+summary",
+            locale: "all",
         };
 
         const values: AppFormValues = {
@@ -170,11 +198,13 @@ export function installApp(id: string) {
         const channelID = getCurrentChannelId(state);
         const teamID = getCurrentTeamId(state);
         const location = AppBindingLocations.MARKETPLACE;
-        const context = createCallContext('apps', location, channelID, teamID);
+        const context = createCallContext("apps", location, channelID, teamID);
 
         const creq = createCallRequest(call, context, expand, values);
 
-        const res = await dispatch(doAppSubmit(creq, intlShim)) as DoAppCallResult;
+        const res = (await dispatch(
+            doAppSubmit(creq, intlShim),
+        )) as DoAppCallResult;
 
         if (res.error) {
             const errorResponse = res.error;
@@ -197,7 +227,13 @@ export function installApp(id: string) {
         }
 
         if (callResp.text) {
-            dispatch(postEphemeralCallResponseForContext(callResp, callResp.text, context));
+            dispatch(
+                postEphemeralCallResponseForContext(
+                    callResp,
+                    callResp.text,
+                    context,
+                ),
+            );
         }
 
         return true;

@@ -1,23 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
-import {CSSTransition} from 'react-transition-group';
+import React, { useState, useEffect } from "react";
+import { FormattedMessage } from "react-intl";
+import { useDispatch } from "react-redux";
+import { CSSTransition } from "react-transition-group";
 
-import {GeneralTypes} from 'mattermost-redux/action_types';
+import { GeneralTypes } from "mattermost-redux/action_types";
 
-import LogoSvg from 'components/common/svg_images_components/logo_dark_blue_svg';
+import LogoSvg from "components/common/svg_images_components/logo_dark_blue_svg";
 
-import loadingIcon from 'images/spinner-48x48-blue.apng';
+import loadingIcon from "images/spinner-48x48-blue.apng";
 
-import Description from './description';
-import {Animations, mapAnimationReasonToClass} from './steps';
-import type {PreparingWorkspacePageProps} from './steps';
-import Title from './title';
+import Description from "./description";
+import { Animations, mapAnimationReasonToClass } from "./steps";
+import type { PreparingWorkspacePageProps } from "./steps";
+import Title from "./title";
 
-import './launching_workspace.scss';
+import "./launching_workspace.scss";
 
 type Props = PreparingWorkspacePageProps & {
     fullscreen?: boolean;
@@ -56,32 +56,33 @@ function LaunchingWorkspace(props: Props) {
 
             // Needs to happen after animation time plays out
             setTimeout(() => {
-                dispatch({type: GeneralTypes.SHOW_LAUNCHING_WORKSPACE, open: false});
+                dispatch({
+                    type: GeneralTypes.SHOW_LAUNCHING_WORKSPACE,
+                    open: false,
+                });
             }, TRANSITION_DURATION);
         }, START_TRANSITIONING_OUT);
     }, [hasEntered, props.fullscreen]);
 
-    let bodyClass = 'LaunchingWorkspace-body';
+    let bodyClass = "LaunchingWorkspace-body";
     if (!props.fullscreen) {
-        bodyClass += ' LaunchingWorkspace-body--non-fullscreen';
+        bodyClass += " LaunchingWorkspace-body--non-fullscreen";
     }
     const body = (
         <div className={bodyClass}>
-            <div className='LaunchingWorkspace__spinner'>
-                <img
-                    src={loadingIcon}
-                />
+            <div className="LaunchingWorkspace__spinner">
+                <img src={loadingIcon} />
             </div>
             <Title>
                 <FormattedMessage
-                    id='onboarding_wizard.launching_workspace.title'
-                    defaultMessage='Launching your workspace now'
+                    id="onboarding_wizard.launching_workspace.title"
+                    defaultMessage="Launching your workspace now"
                 />
             </Title>
             <Description>
                 <FormattedMessage
-                    id='onboarding_wizard.launching_workspace.description'
-                    defaultMessage='It’ll be ready in a moment'
+                    id="onboarding_wizard.launching_workspace.description"
+                    defaultMessage="It’ll be ready in a moment"
                 />
             </Description>
         </div>
@@ -93,32 +94,34 @@ function LaunchingWorkspace(props: Props) {
             <CSSTransition
                 in={props.show && !hasEntered}
                 timeout={TRANSITION_DURATION}
-                classNames={'LaunchingWorkspaceFullscreenWrapper'}
+                classNames={"LaunchingWorkspaceFullscreenWrapper"}
                 exit={true}
                 enter={false}
                 mountOnEnter={true}
                 unmountOnExit={true}
             >
                 <div
-                    className='LaunchingWorkspaceFullscreenWrapper-body'
+                    className="LaunchingWorkspaceFullscreenWrapper-body"
                     style={{
                         zIndex: props.zIndex,
                     }}
                 >
-                    <div className='LaunchingWorkspaceFullscreenWrapper__logo'>
-                        <LogoSvg/>
+                    <div className="LaunchingWorkspaceFullscreenWrapper__logo">
+                        <LogoSvg />
                     </div>
                     {body}
                 </div>
             </CSSTransition>
-
         );
     } else {
         content = (
             <CSSTransition
                 in={props.show}
                 timeout={Animations.PAGE_SLIDE}
-                classNames={mapAnimationReasonToClass('LaunchingWorkspace', props.transitionDirection)}
+                classNames={mapAnimationReasonToClass(
+                    "LaunchingWorkspace",
+                    props.transitionDirection,
+                )}
                 mountOnEnter={true}
                 unmountOnExit={true}
             >

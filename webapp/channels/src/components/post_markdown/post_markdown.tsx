@@ -1,23 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import memoize from 'memoize-one';
-import React from 'react';
+import memoize from "memoize-one";
+import React from "react";
 
-import type {Channel} from '@mattermost/types/channels';
-import type {Post} from '@mattermost/types/posts';
-import type {Team} from '@mattermost/types/teams';
+import type { Channel } from "@mattermost/types/channels";
+import type { Post } from "@mattermost/types/posts";
+import type { Team } from "@mattermost/types/teams";
 
-import {Posts} from 'mattermost-redux/constants';
+import { Posts } from "mattermost-redux/constants";
 
-import Markdown from 'components/markdown';
+import Markdown from "components/markdown";
 
-import type {MentionKey, TextFormattingOptions} from 'utils/text_formatting';
+import type { MentionKey, TextFormattingOptions } from "utils/text_formatting";
 
-import {renderReminderSystemBotMessage, renderSystemMessage} from './system_message_helpers';
+import {
+    renderReminderSystemBotMessage,
+    renderSystemMessage,
+} from "./system_message_helpers";
 
 type Props = {
-
     /*
      * Any extra props that should be passed into the image component
      */
@@ -62,7 +64,7 @@ type Props = {
     timezone?: string;
 
     hideGuestTags: boolean;
-}
+};
 
 export default class PostMarkdown extends React.PureComponent<Props> {
     static defaultProps = {
@@ -72,40 +74,55 @@ export default class PostMarkdown extends React.PureComponent<Props> {
     };
 
     getOptions = memoize(
-        (options?: TextFormattingOptions, disableGroupHighlight?: boolean, mentionHighlight?: boolean, editedAt?: number) => {
+        (
+            options?: TextFormattingOptions,
+            disableGroupHighlight?: boolean,
+            mentionHighlight?: boolean,
+            editedAt?: number,
+        ) => {
             return {
                 ...options,
                 disableGroupHighlight,
                 mentionHighlight,
                 editedAt,
             };
-        });
+        },
+    );
 
     render() {
-        let {message} = this.props;
-        const {post, mentionKeys} = this.props;
+        let { message } = this.props;
+        const { post, mentionKeys } = this.props;
 
         if (post) {
-            const renderedSystemMessage = renderSystemMessage(post,
+            const renderedSystemMessage = renderSystemMessage(
+                post,
                 this.props.currentTeam,
                 this.props.channel,
                 this.props.hideGuestTags,
                 this.props.isUserCanManageMembers,
                 this.props.isMilitaryTime,
-                this.props.timezone);
+                this.props.timezone,
+            );
             if (renderedSystemMessage) {
                 return <div>{renderedSystemMessage}</div>;
             }
         }
 
         if (post && post.type === Posts.POST_TYPES.REMINDER) {
-            const renderedSystemBotMessage = renderReminderSystemBotMessage(post, this.props.currentTeam);
+            const renderedSystemBotMessage = renderReminderSystemBotMessage(
+                post,
+                this.props.currentTeam,
+            );
             return <div>{renderedSystemBotMessage}</div>;
         }
 
         // Proxy images if we have an image proxy and the server hasn't already rewritten the post's image URLs.
-        const proxyImages = !post || !post.message_source || post.message === post.message_source;
-        const channelNamesMap = post && post.props && post.props.channel_mentions;
+        const proxyImages =
+            !post ||
+            !post.message_source ||
+            post.message === post.message_source;
+        const channelNamesMap =
+            post && post.props && post.props.channel_mentions;
 
         this.props.pluginHooks?.forEach((o) => {
             if (o && o.hook && post) {
@@ -136,7 +153,11 @@ export default class PostMarkdown extends React.PureComponent<Props> {
                 hasPluginTooltips={this.props.hasPluginTooltips}
                 imagesMetadata={this.props.post?.metadata?.images}
                 postId={this.props.post?.id}
-                editedAt={this.props.showPostEditedIndicator ? this.props.post?.edit_at : undefined}
+                editedAt={
+                    this.props.showPostEditedIndicator
+                        ? this.props.post?.edit_at
+                        : undefined
+                }
             />
         );
     }

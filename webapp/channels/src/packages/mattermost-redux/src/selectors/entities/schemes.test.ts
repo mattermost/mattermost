@@ -1,31 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from '@mattermost/types/channels';
-import type {Scheme} from '@mattermost/types/schemes';
-import type {Team} from '@mattermost/types/teams';
+import type { Channel } from "@mattermost/types/channels";
+import type { Scheme } from "@mattermost/types/schemes";
+import type { Team } from "@mattermost/types/teams";
 
-import {ScopeTypes} from 'mattermost-redux/constants/schemes';
-import * as Selectors from 'mattermost-redux/selectors/entities/schemes';
-import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
+import { ScopeTypes } from "mattermost-redux/constants/schemes";
+import * as Selectors from "mattermost-redux/selectors/entities/schemes";
+import deepFreezeAndThrowOnMutation from "mattermost-redux/utils/deep_freeze";
 
-import TestHelper from '../../../test/test_helper';
+import TestHelper from "../../../test/test_helper";
 
-describe('Selectors.Schemes', () => {
+describe("Selectors.Schemes", () => {
     const scheme1 = TestHelper.mockSchemeWithId();
-    scheme1.scope = ScopeTypes.CHANNEL as 'channel';
+    scheme1.scope = ScopeTypes.CHANNEL as "channel";
 
     const scheme2 = TestHelper.mockSchemeWithId();
-    scheme2.scope = ScopeTypes.TEAM as 'team';
+    scheme2.scope = ScopeTypes.TEAM as "team";
 
     const schemes: Record<string, Scheme> = {};
     schemes[scheme1.id] = scheme1;
     schemes[scheme2.id] = scheme2;
 
-    const channel1 = TestHelper.fakeChannelWithId('');
+    const channel1 = TestHelper.fakeChannelWithId("");
     channel1.scheme_id = scheme1.id;
 
-    const channel2 = TestHelper.fakeChannelWithId('');
+    const channel2 = TestHelper.fakeChannelWithId("");
 
     const channels: Record<string, Channel> = {};
     channels[channel1.id] = channel1;
@@ -42,43 +42,43 @@ describe('Selectors.Schemes', () => {
 
     const testState = deepFreezeAndThrowOnMutation({
         entities: {
-            schemes: {schemes},
-            channels: {channels},
-            teams: {teams},
+            schemes: { schemes },
+            channels: { channels },
+            teams: { teams },
         },
     });
 
-    it('getSchemes', () => {
+    it("getSchemes", () => {
         expect(Selectors.getSchemes(testState)).toEqual(schemes);
     });
 
-    it('getScheme', () => {
+    it("getScheme", () => {
         expect(Selectors.getScheme(testState, scheme1.id)).toEqual(scheme1);
     });
 
-    it('makeGetSchemeChannels', () => {
+    it("makeGetSchemeChannels", () => {
         const getSchemeChannels = Selectors.makeGetSchemeChannels();
-        const results = getSchemeChannels(testState, {schemeId: scheme1.id});
+        const results = getSchemeChannels(testState, { schemeId: scheme1.id });
         expect(results.length).toEqual(1);
         expect(results[0].name).toEqual(channel1.name);
     });
 
-    it('makeGetSchemeChannels with team scope scheme', () => {
+    it("makeGetSchemeChannels with team scope scheme", () => {
         const getSchemeChannels = Selectors.makeGetSchemeChannels();
-        const results = getSchemeChannels(testState, {schemeId: scheme2.id});
+        const results = getSchemeChannels(testState, { schemeId: scheme2.id });
         expect(results.length).toEqual(0);
     });
 
-    it('makeGetSchemeTeams', () => {
+    it("makeGetSchemeTeams", () => {
         const getSchemeTeams = Selectors.makeGetSchemeTeams();
-        const results = getSchemeTeams(testState, {schemeId: scheme2.id});
+        const results = getSchemeTeams(testState, { schemeId: scheme2.id });
         expect(results.length).toEqual(1);
         expect(results[0].name).toEqual(team1.name);
     });
 
-    it('getSchemeTeams with channel scope scheme', () => {
+    it("getSchemeTeams with channel scope scheme", () => {
         const getSchemeTeams = Selectors.makeGetSchemeTeams();
-        const results = getSchemeTeams(testState, {schemeId: scheme1.id});
+        const results = getSchemeTeams(testState, { schemeId: scheme1.id });
         expect(results.length).toEqual(0);
     });
 });

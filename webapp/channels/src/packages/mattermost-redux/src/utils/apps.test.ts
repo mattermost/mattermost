@@ -1,15 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AppBinding, AppCall, AppField, AppForm, AppSelectOption} from '@mattermost/types/apps';
+import type {
+    AppBinding,
+    AppCall,
+    AppField,
+    AppForm,
+    AppSelectOption,
+} from "@mattermost/types/apps";
 
-import {AppBindingLocations, AppFieldTypes} from 'mattermost-redux/constants/apps';
+import {
+    AppBindingLocations,
+    AppFieldTypes,
+} from "mattermost-redux/constants/apps";
 
-import {cleanForm, cleanBinding, validateBindings} from './apps';
+import { cleanForm, cleanBinding, validateBindings } from "./apps";
 
-describe('Apps Utils', () => {
+describe("Apps Utils", () => {
     const basicCall: AppCall = {
-        path: 'url',
+        path: "url",
     };
     const basicSubmitForm: AppForm = {
         submit: basicCall,
@@ -18,181 +27,181 @@ describe('Apps Utils', () => {
         source: basicCall,
     };
 
-    describe('fillAndTrimBindingsInformation', () => {
-        test('Apps IDs propagate down, and locations get formed', () => {
+    describe("fillAndTrimBindingsInformation", () => {
+        test("Apps IDs propagate down, and locations get formed", () => {
             const inBinding: AppBinding = {
-                app_id: 'id',
-                location: 'loc1',
+                app_id: "id",
+                location: "loc1",
                 bindings: [
                     {
-                        location: 'loc2',
+                        location: "loc2",
                         bindings: [
                             {
-                                location: 'loc3',
+                                location: "loc3",
                                 submit: basicCall,
                             },
                             {
-                                location: 'loc4',
+                                location: "loc4",
                                 form: basicSubmitForm,
                             },
                         ],
                     },
                     {
-                        location: 'loc5',
+                        location: "loc5",
                         form: basicFetchForm,
                     },
                 ],
             } as AppBinding;
 
             const outBinding: AppBinding = {
-                app_id: 'id',
-                location: 'loc1',
+                app_id: "id",
+                location: "loc1",
                 bindings: [
                     {
-                        location: 'loc1/loc2',
-                        app_id: 'id',
-                        label: 'loc2',
+                        location: "loc1/loc2",
+                        app_id: "id",
+                        label: "loc2",
                         bindings: [
                             {
-                                location: 'loc1/loc2/loc3',
-                                app_id: 'id',
-                                label: 'loc3',
+                                location: "loc1/loc2/loc3",
+                                app_id: "id",
+                                label: "loc3",
                                 submit: basicCall,
                             },
                             {
-                                location: 'loc1/loc2/loc4',
-                                app_id: 'id',
-                                label: 'loc4',
+                                location: "loc1/loc2/loc4",
+                                app_id: "id",
+                                label: "loc4",
                                 form: basicSubmitForm,
                             },
                         ],
                     },
                     {
-                        location: 'loc1/loc5',
-                        app_id: 'id',
-                        label: 'loc5',
+                        location: "loc1/loc5",
+                        app_id: "id",
+                        label: "loc5",
                         form: basicFetchForm,
                     },
                 ],
             } as AppBinding;
 
-            cleanBinding(inBinding, '');
+            cleanBinding(inBinding, "");
             expect(inBinding).toEqual(outBinding);
         });
 
-        test('Trim branches without call.', () => {
+        test("Trim branches without call.", () => {
             const inBinding: AppBinding = {
-                location: 'loc1',
-                app_id: 'id',
+                location: "loc1",
+                app_id: "id",
                 bindings: [
                     {
-                        location: 'loc2',
+                        location: "loc2",
                         bindings: [
                             {
-                                location: 'loc3',
+                                location: "loc3",
                             },
                             {
-                                location: 'loc4',
+                                location: "loc4",
                                 form: basicSubmitForm,
                             },
                             {
-                                location: 'loc5',
+                                location: "loc5",
                                 form: basicFetchForm,
                             },
                         ],
                     },
                     {
-                        location: 'loc6',
+                        location: "loc6",
                     },
                     {
-                        location: 'loc7',
+                        location: "loc7",
                         submit: basicCall,
                     },
                     {
-                        location: 'loc8',
+                        location: "loc8",
                         form: {},
                     },
                 ],
             } as AppBinding;
 
             const outBinding: AppBinding = {
-                app_id: 'id',
-                location: 'loc1',
+                app_id: "id",
+                location: "loc1",
                 bindings: [
                     {
-                        location: 'loc1/loc2',
-                        app_id: 'id',
-                        label: 'loc2',
+                        location: "loc1/loc2",
+                        app_id: "id",
+                        label: "loc2",
                         bindings: [
                             {
-                                location: 'loc1/loc2/loc4',
-                                app_id: 'id',
+                                location: "loc1/loc2/loc4",
+                                app_id: "id",
                                 form: basicSubmitForm,
-                                label: 'loc4',
+                                label: "loc4",
                             },
                             {
-                                location: 'loc1/loc2/loc5',
-                                app_id: 'id',
+                                location: "loc1/loc2/loc5",
+                                app_id: "id",
                                 form: basicFetchForm,
-                                label: 'loc5',
+                                label: "loc5",
                             },
                         ],
                     },
                     {
-                        location: 'loc1/loc7',
-                        app_id: 'id',
+                        location: "loc1/loc7",
+                        app_id: "id",
                         submit: basicCall,
-                        label: 'loc7',
+                        label: "loc7",
                     },
                 ],
             } as AppBinding;
 
-            cleanBinding(inBinding, '');
+            cleanBinding(inBinding, "");
             expect(inBinding).toEqual(outBinding);
         });
-        test('Trim branches with calls, bindings and forms.', () => {
+        test("Trim branches with calls, bindings and forms.", () => {
             const inBinding: AppBinding = {
-                location: 'loc1',
-                app_id: 'id',
+                location: "loc1",
+                app_id: "id",
                 bindings: [
                     {
-                        location: 'loc2',
+                        location: "loc2",
                         bindings: [
                             {
-                                location: 'loc3',
+                                location: "loc3",
                                 submit: basicCall,
                                 form: basicSubmitForm,
                             },
                             {
-                                location: 'loc4',
+                                location: "loc4",
                                 form: basicSubmitForm,
                             },
                             {
-                                location: 'loc5',
+                                location: "loc5",
                                 form: basicFetchForm,
                             },
                         ],
                     },
                     {
-                        location: 'loc6',
+                        location: "loc6",
                         submit: basicCall,
                         bindings: [
                             {
-                                location: 'loc9',
+                                location: "loc9",
                                 submit: basicCall,
                             },
                         ],
                     },
                     {
-                        location: 'loc7',
+                        location: "loc7",
                         submit: basicCall,
                     },
                     {
-                        location: 'loc8',
+                        location: "loc8",
                         form: basicFetchForm,
                         bindings: [
                             {
-                                location: 'loc10',
+                                location: "loc10",
                                 submit: basicCall,
                             },
                         ],
@@ -201,55 +210,55 @@ describe('Apps Utils', () => {
             } as AppBinding;
 
             const outBinding: AppBinding = {
-                app_id: 'id',
-                location: 'loc1',
+                app_id: "id",
+                location: "loc1",
                 bindings: [
                     {
-                        location: 'loc1/loc2',
-                        app_id: 'id',
-                        label: 'loc2',
+                        location: "loc1/loc2",
+                        app_id: "id",
+                        label: "loc2",
                         bindings: [
                             {
-                                location: 'loc1/loc2/loc4',
-                                app_id: 'id',
+                                location: "loc1/loc2/loc4",
+                                app_id: "id",
                                 form: basicSubmitForm,
-                                label: 'loc4',
+                                label: "loc4",
                             },
                             {
-                                location: 'loc1/loc2/loc5',
-                                app_id: 'id',
+                                location: "loc1/loc2/loc5",
+                                app_id: "id",
                                 form: basicFetchForm,
-                                label: 'loc5',
+                                label: "loc5",
                             },
                         ],
                     },
                     {
-                        location: 'loc1/loc7',
-                        app_id: 'id',
+                        location: "loc1/loc7",
+                        app_id: "id",
                         submit: basicCall,
-                        label: 'loc7',
+                        label: "loc7",
                     },
                 ],
             } as AppBinding;
 
-            cleanBinding(inBinding, '');
+            cleanBinding(inBinding, "");
             expect(inBinding).toEqual(outBinding);
         });
-        test('Trim branches with whitespace labels.', () => {
+        test("Trim branches with whitespace labels.", () => {
             const inBinding: AppBinding = {
-                location: 'loc1',
-                app_id: 'id',
+                location: "loc1",
+                app_id: "id",
                 bindings: [
                     {
-                        location: 'loc2',
-                        label: ' ',
+                        location: "loc2",
+                        label: " ",
                         bindings: [
                             {
-                                location: 'loc4',
+                                location: "loc4",
                                 form: basicSubmitForm,
                             },
                             {
-                                location: 'loc5',
+                                location: "loc5",
                                 form: basicFetchForm,
                             },
                         ],
@@ -258,25 +267,25 @@ describe('Apps Utils', () => {
             } as AppBinding;
 
             const outBinding: AppBinding = {
-                app_id: 'id',
-                location: 'loc1',
+                app_id: "id",
+                location: "loc1",
                 bindings: [] as AppBinding[],
             } as AppBinding;
 
-            cleanBinding(inBinding, '');
+            cleanBinding(inBinding, "");
             expect(inBinding).toEqual(outBinding);
         });
     });
-    describe('cleanForm', () => {
-        test('no field filter on names', () => {
+    describe("cleanForm", () => {
+        test("no field filter on names", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.TEXT,
                     },
                     {
-                        name: 'opt2',
+                        name: "opt2",
                         type: AppFieldTypes.TEXT,
                     },
                 ],
@@ -284,11 +293,11 @@ describe('Apps Utils', () => {
             const outForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.TEXT,
                     },
                     {
-                        name: 'opt2',
+                        name: "opt2",
                         type: AppFieldTypes.TEXT,
                     },
                 ],
@@ -297,32 +306,32 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('no field filter on labels', () => {
+        test("no field filter on labels", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.TEXT,
-                        label: 'opt1',
+                        label: "opt1",
                     },
                     {
-                        name: 'opt2',
+                        name: "opt2",
                         type: AppFieldTypes.TEXT,
-                        label: 'opt2',
+                        label: "opt2",
                     },
                 ],
             };
             const outForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.TEXT,
-                        label: 'opt1',
+                        label: "opt1",
                     },
                     {
-                        name: 'opt2',
+                        name: "opt2",
                         type: AppFieldTypes.TEXT,
-                        label: 'opt2',
+                        label: "opt2",
                     },
                 ],
             };
@@ -330,26 +339,26 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('no field filter with no name', () => {
+        test("no field filter with no name", () => {
             const inForm: AppForm = {
                 fields: [
                     {
                         type: AppFieldTypes.TEXT,
-                        label: 'opt1',
+                        label: "opt1",
                     } as AppField,
                     {
-                        name: 'opt2',
+                        name: "opt2",
                         type: AppFieldTypes.TEXT,
-                        label: 'opt2',
+                        label: "opt2",
                     },
                 ],
             };
             const outForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt2',
+                        name: "opt2",
                         type: AppFieldTypes.TEXT,
-                        label: 'opt2',
+                        label: "opt2",
                     },
                 ],
             };
@@ -357,15 +366,15 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('field filter with same label inferred from name', () => {
+        test("field filter with same label inferred from name", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'same',
+                        name: "same",
                         type: AppFieldTypes.TEXT,
                     },
                     {
-                        name: 'same',
+                        name: "same",
                         type: AppFieldTypes.BOOL,
                     },
                 ],
@@ -373,7 +382,7 @@ describe('Apps Utils', () => {
             const outForm: AppForm = {
                 fields: [
                     {
-                        name: 'same',
+                        name: "same",
                         type: AppFieldTypes.TEXT,
                     },
                 ],
@@ -382,27 +391,27 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('field filter with same labels', () => {
+        test("field filter with same labels", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.TEXT,
-                        label: 'same',
+                        label: "same",
                     },
                     {
-                        name: 'opt2',
+                        name: "opt2",
                         type: AppFieldTypes.TEXT,
-                        label: 'same',
+                        label: "same",
                     },
                 ],
             };
             const outForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.TEXT,
-                        label: 'same',
+                        label: "same",
                     },
                 ],
             };
@@ -410,27 +419,27 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('field filter with multiword name', () => {
+        test("field filter with multiword name", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.TEXT,
-                        label: 'opt1',
+                        label: "opt1",
                     },
                     {
-                        name: 'opt 2',
+                        name: "opt 2",
                         type: AppFieldTypes.TEXT,
-                        label: 'opt2',
+                        label: "opt2",
                     },
                 ],
             };
             const outForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.TEXT,
-                        label: 'opt1',
+                        label: "opt1",
                     },
                 ],
             };
@@ -438,27 +447,27 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('field filter with multiword label', () => {
+        test("field filter with multiword label", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.TEXT,
-                        label: 'opt1',
+                        label: "opt1",
                     },
                     {
-                        name: 'opt2',
+                        name: "opt2",
                         type: AppFieldTypes.TEXT,
-                        label: 'opt 2',
+                        label: "opt 2",
                     },
                 ],
             };
             const outForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.TEXT,
-                        label: 'opt1',
+                        label: "opt1",
                     },
                 ],
             };
@@ -466,32 +475,32 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('field filter more than one field', () => {
+        test("field filter more than one field", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.TEXT,
-                        label: 'same',
+                        label: "same",
                     },
                     {
-                        name: 'opt2',
+                        name: "opt2",
                         type: AppFieldTypes.BOOL,
-                        label: 'same',
+                        label: "same",
                     },
                     {
-                        name: 'opt2',
+                        name: "opt2",
                         type: AppFieldTypes.USER,
-                        label: 'same',
+                        label: "same",
                     },
                 ],
             };
             const outForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.TEXT,
-                        label: 'same',
+                        label: "same",
                     },
                 ],
             };
@@ -499,11 +508,11 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('field filter static with no options', () => {
+        test("field filter static with no options", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.STATIC_SELECT,
                     },
                 ],
@@ -515,14 +524,14 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('field filter static options with no value', () => {
+        test("field filter static options with no value", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.STATIC_SELECT,
                         options: [
-                            {value: 'opt1'} as AppSelectOption,
+                            { value: "opt1" } as AppSelectOption,
                             {} as AppSelectOption,
                         ],
                     },
@@ -531,11 +540,9 @@ describe('Apps Utils', () => {
             const outForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.STATIC_SELECT,
-                        options: [
-                            {value: 'opt1'} as AppSelectOption,
-                        ],
+                        options: [{ value: "opt1" } as AppSelectOption],
                     },
                 ],
             };
@@ -543,20 +550,20 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('field filter static options with same label inferred from value', () => {
+        test("field filter static options with same label inferred from value", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.STATIC_SELECT,
                         options: [
                             {
-                                value: 'same',
-                                icon_data: 'opt1',
+                                value: "same",
+                                icon_data: "opt1",
                             } as AppSelectOption,
                             {
-                                value: 'same',
-                                icon_data: 'opt2',
+                                value: "same",
+                                icon_data: "opt2",
                             } as AppSelectOption,
                         ],
                     },
@@ -565,12 +572,12 @@ describe('Apps Utils', () => {
             const outForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.STATIC_SELECT,
                         options: [
                             {
-                                value: 'same',
-                                icon_data: 'opt1',
+                                value: "same",
+                                icon_data: "opt1",
                             } as AppSelectOption,
                         ],
                     },
@@ -580,20 +587,20 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('field filter static options with same label', () => {
+        test("field filter static options with same label", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.STATIC_SELECT,
                         options: [
                             {
-                                value: 'opt1',
-                                label: 'same',
+                                value: "opt1",
+                                label: "same",
                             },
                             {
-                                value: 'opt2',
-                                label: 'same',
+                                value: "opt2",
+                                label: "same",
                             },
                         ],
                     },
@@ -602,12 +609,12 @@ describe('Apps Utils', () => {
             const outForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.STATIC_SELECT,
                         options: [
                             {
-                                value: 'opt1',
-                                label: 'same',
+                                value: "opt1",
+                                label: "same",
                             },
                         ],
                     },
@@ -617,20 +624,20 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('field filter static options with same value', () => {
+        test("field filter static options with same value", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.STATIC_SELECT,
                         options: [
                             {
-                                label: 'opt1',
-                                value: 'same',
+                                label: "opt1",
+                                value: "same",
                             },
                             {
-                                label: 'opt2',
-                                value: 'same',
+                                label: "opt2",
+                                value: "same",
                             },
                         ],
                     },
@@ -639,12 +646,12 @@ describe('Apps Utils', () => {
             const outForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.STATIC_SELECT,
                         options: [
                             {
-                                label: 'opt1',
-                                value: 'same',
+                                label: "opt1",
+                                value: "same",
                             },
                         ],
                     },
@@ -654,28 +661,28 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('invalid static options don\'t consume namespace', () => {
+        test("invalid static options don't consume namespace", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.STATIC_SELECT,
                         options: [
                             {
-                                label: 'same1',
-                                value: 'same1',
+                                label: "same1",
+                                value: "same1",
                             },
                             {
-                                label: 'same1',
-                                value: 'same2',
+                                label: "same1",
+                                value: "same2",
                             },
                             {
-                                label: 'same2',
-                                value: 'same1',
+                                label: "same2",
+                                value: "same1",
                             },
                             {
-                                label: 'same2',
-                                value: 'same2',
+                                label: "same2",
+                                value: "same2",
                             },
                         ],
                     },
@@ -684,16 +691,16 @@ describe('Apps Utils', () => {
             const outForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.STATIC_SELECT,
                         options: [
                             {
-                                label: 'same1',
-                                value: 'same1',
+                                label: "same1",
+                                value: "same1",
                             },
                             {
-                                label: 'same2',
-                                value: 'same2',
+                                label: "same2",
+                                value: "same2",
                             },
                         ],
                     },
@@ -703,15 +710,13 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('field filter static with no valid options', () => {
+        test("field filter static with no valid options", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.STATIC_SELECT,
-                        options: [
-                            {} as AppSelectOption,
-                        ],
+                        options: [{} as AppSelectOption],
                     },
                 ],
             };
@@ -722,18 +727,16 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('invalid static field does not consume namespace', () => {
+        test("invalid static field does not consume namespace", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'field1',
+                        name: "field1",
                         type: AppFieldTypes.STATIC_SELECT,
-                        options: [
-                            {} as AppSelectOption,
-                        ],
+                        options: [{} as AppSelectOption],
                     },
                     {
-                        name: 'field1',
+                        name: "field1",
                         type: AppFieldTypes.TEXT,
                     },
                 ],
@@ -741,7 +744,7 @@ describe('Apps Utils', () => {
             const outForm: AppForm = {
                 fields: [
                     {
-                        name: 'field1',
+                        name: "field1",
                         type: AppFieldTypes.TEXT,
                     },
                 ],
@@ -750,16 +753,16 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('field filter dynamic with no valid lookup call', () => {
+        test("field filter dynamic with no valid lookup call", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.DYNAMIC_SELECT,
                         lookup: basicCall,
                     },
                     {
-                        name: 'opt2',
+                        name: "opt2",
                         type: AppFieldTypes.DYNAMIC_SELECT,
                     },
                 ],
@@ -767,7 +770,7 @@ describe('Apps Utils', () => {
             const outForm: AppForm = {
                 fields: [
                     {
-                        name: 'opt1',
+                        name: "opt1",
                         type: AppFieldTypes.DYNAMIC_SELECT,
                         lookup: basicCall,
                     },
@@ -777,15 +780,15 @@ describe('Apps Utils', () => {
             cleanForm(inForm);
             expect(inForm).toEqual(outForm);
         });
-        test('invalid dynamic field does not consume namespace', () => {
+        test("invalid dynamic field does not consume namespace", () => {
             const inForm: AppForm = {
                 fields: [
                     {
-                        name: 'field1',
+                        name: "field1",
                         type: AppFieldTypes.DYNAMIC_SELECT,
                     },
                     {
-                        name: 'field1',
+                        name: "field1",
                         type: AppFieldTypes.TEXT,
                     },
                 ],
@@ -793,7 +796,7 @@ describe('Apps Utils', () => {
             const outForm: AppForm = {
                 fields: [
                     {
-                        name: 'field1',
+                        name: "field1",
                         type: AppFieldTypes.TEXT,
                     },
                 ],
@@ -803,64 +806,64 @@ describe('Apps Utils', () => {
             expect(inForm).toEqual(outForm);
         });
     });
-    describe('cleanCommands', () => {
-        test('happy path', () => {
+    describe("cleanCommands", () => {
+        test("happy path", () => {
             const inBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: [
                     {
-                        app_id: 'app',
-                        location: 'loc1',
-                        label: 'loc1',
+                        app_id: "app",
+                        location: "loc1",
+                        label: "loc1",
                         bindings: [
                             {
-                                app_id: 'app',
-                                location: 'loc11',
-                                label: 'loc11',
+                                app_id: "app",
+                                location: "loc11",
+                                label: "loc11",
                                 submit: basicCall,
                             },
                             {
-                                app_id: 'app',
-                                location: 'loc12',
-                                label: 'loc12',
+                                app_id: "app",
+                                location: "loc12",
+                                label: "loc12",
                                 form: basicSubmitForm,
                             },
                         ],
                     },
                     {
-                        app_id: 'app',
-                        location: 'loc2',
-                        label: 'loc2',
+                        app_id: "app",
+                        location: "loc2",
+                        label: "loc2",
                         form: basicFetchForm,
                     },
                 ],
             } as AppBinding;
             const outBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: [
                     {
-                        app_id: 'app',
-                        location: '/command/loc1',
-                        label: 'loc1',
+                        app_id: "app",
+                        location: "/command/loc1",
+                        label: "loc1",
                         bindings: [
                             {
-                                app_id: 'app',
-                                location: '/command/loc1/loc11',
-                                label: 'loc11',
+                                app_id: "app",
+                                location: "/command/loc1/loc11",
+                                label: "loc11",
                                 submit: basicCall,
                             },
                             {
-                                app_id: 'app',
-                                location: '/command/loc1/loc12',
-                                label: 'loc12',
+                                app_id: "app",
+                                location: "/command/loc1/loc12",
+                                label: "loc12",
                                 form: basicSubmitForm,
                             },
                         ],
                     },
                     {
-                        app_id: 'app',
-                        location: '/command/loc2',
-                        label: 'loc2',
+                        app_id: "app",
+                        location: "/command/loc2",
+                        label: "loc2",
                         form: basicFetchForm,
                     },
                 ],
@@ -869,74 +872,74 @@ describe('Apps Utils', () => {
             cleanBinding(inBinding, AppBindingLocations.COMMAND);
             expect(inBinding).toEqual(outBinding);
         });
-        test('no label nor location', () => {
+        test("no label nor location", () => {
             const inBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: [
                     {
-                        app_id: 'app',
-                        location: 'loc1',
-                        label: 'loc1',
+                        app_id: "app",
+                        location: "loc1",
+                        label: "loc1",
                         bindings: [
                             {
-                                app_id: 'app',
-                                location: 'loc11',
-                                label: 'loc11',
+                                app_id: "app",
+                                location: "loc11",
+                                label: "loc11",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             },
                             {
-                                app_id: 'app',
+                                app_id: "app",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             } as AppBinding,
                         ],
                     },
                     {
-                        app_id: 'app',
-                        location: 'loc2',
-                        label: 'loc2',
+                        app_id: "app",
+                        location: "loc2",
+                        label: "loc2",
                         form: {
                             submit: {
-                                path: '/path',
+                                path: "/path",
                             },
                         },
                     },
                 ],
             } as AppBinding;
             const outBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: [
                     {
-                        app_id: 'app',
-                        location: '/command/loc1',
-                        label: 'loc1',
+                        app_id: "app",
+                        location: "/command/loc1",
+                        label: "loc1",
                         bindings: [
                             {
-                                app_id: 'app',
-                                location: '/command/loc1/loc11',
-                                label: 'loc11',
+                                app_id: "app",
+                                location: "/command/loc1/loc11",
+                                label: "loc11",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             },
                         ],
                     },
                     {
-                        app_id: 'app',
-                        location: '/command/loc2',
-                        label: 'loc2',
+                        app_id: "app",
+                        location: "/command/loc2",
+                        label: "loc2",
                         form: {
                             submit: {
-                                path: '/path',
+                                path: "/path",
                             },
                         },
                     },
@@ -946,75 +949,75 @@ describe('Apps Utils', () => {
             cleanBinding(inBinding, AppBindingLocations.COMMAND);
             expect(inBinding).toEqual(outBinding);
         });
-        test('no multiword infered from location', () => {
+        test("no multiword infered from location", () => {
             const inBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: [
                     {
-                        app_id: 'app',
-                        location: 'loc1',
-                        label: 'loc1',
+                        app_id: "app",
+                        location: "loc1",
+                        label: "loc1",
                         bindings: [
                             {
-                                app_id: 'app',
-                                location: 'loc11',
-                                label: 'loc11',
+                                app_id: "app",
+                                location: "loc11",
+                                label: "loc11",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             },
                             {
-                                app_id: 'app',
-                                location: 'loc1 2',
+                                app_id: "app",
+                                location: "loc1 2",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             } as AppBinding,
                         ],
                     },
                     {
-                        app_id: 'app',
-                        location: 'loc2',
-                        label: 'loc2',
+                        app_id: "app",
+                        location: "loc2",
+                        label: "loc2",
                         form: {
                             submit: {
-                                path: '/path',
+                                path: "/path",
                             },
                         },
                     },
                 ],
             } as AppBinding;
             const outBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: [
                     {
-                        app_id: 'app',
-                        location: '/command/loc1',
-                        label: 'loc1',
+                        app_id: "app",
+                        location: "/command/loc1",
+                        label: "loc1",
                         bindings: [
                             {
-                                app_id: 'app',
-                                location: '/command/loc1/loc11',
-                                label: 'loc11',
+                                app_id: "app",
+                                location: "/command/loc1/loc11",
+                                label: "loc11",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             },
                         ],
                     },
                     {
-                        app_id: 'app',
-                        location: '/command/loc2',
-                        label: 'loc2',
+                        app_id: "app",
+                        location: "/command/loc2",
+                        label: "loc2",
                         form: {
                             submit: {
-                                path: '/path',
+                                path: "/path",
                             },
                         },
                     },
@@ -1024,76 +1027,76 @@ describe('Apps Utils', () => {
             cleanBinding(inBinding, AppBindingLocations.COMMAND);
             expect(inBinding).toEqual(outBinding);
         });
-        test('no multiword on label', () => {
+        test("no multiword on label", () => {
             const inBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: [
                     {
-                        app_id: 'app',
-                        location: 'loc1',
-                        label: 'loc1',
+                        app_id: "app",
+                        location: "loc1",
+                        label: "loc1",
                         bindings: [
                             {
-                                app_id: 'app',
-                                location: 'loc11',
-                                label: 'loc11',
+                                app_id: "app",
+                                location: "loc11",
+                                label: "loc11",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             },
                             {
-                                app_id: 'app',
-                                location: 'loc12',
-                                label: 'loc1 2',
+                                app_id: "app",
+                                location: "loc12",
+                                label: "loc1 2",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             },
                         ],
                     },
                     {
-                        app_id: 'app',
-                        location: 'loc2',
-                        label: 'loc2',
+                        app_id: "app",
+                        location: "loc2",
+                        label: "loc2",
                         form: {
                             submit: {
-                                path: '/path',
+                                path: "/path",
                             },
                         },
                     },
                 ],
             } as AppBinding;
             const outBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: [
                     {
-                        app_id: 'app',
-                        location: '/command/loc1',
-                        label: 'loc1',
+                        app_id: "app",
+                        location: "/command/loc1",
+                        label: "loc1",
                         bindings: [
                             {
-                                app_id: 'app',
-                                location: '/command/loc1/loc11',
-                                label: 'loc11',
+                                app_id: "app",
+                                location: "/command/loc1/loc11",
+                                label: "loc11",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             },
                         ],
                     },
                     {
-                        app_id: 'app',
-                        location: '/command/loc2',
-                        label: 'loc2',
+                        app_id: "app",
+                        location: "/command/loc2",
+                        label: "loc2",
                         form: {
                             submit: {
-                                path: '/path',
+                                path: "/path",
                             },
                         },
                     },
@@ -1103,77 +1106,77 @@ describe('Apps Utils', () => {
             cleanBinding(inBinding, AppBindingLocations.COMMAND);
             expect(inBinding).toEqual(outBinding);
         });
-        test('filter repeated label', () => {
+        test("filter repeated label", () => {
             const inBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: [
                     {
-                        app_id: 'app',
-                        location: 'loc1',
-                        label: 'loc1',
+                        app_id: "app",
+                        location: "loc1",
+                        label: "loc1",
                         bindings: [
                             {
-                                app_id: 'app',
-                                location: 'same',
-                                description: 'loc11',
+                                app_id: "app",
+                                location: "same",
+                                description: "loc11",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             } as AppBinding,
                             {
-                                app_id: 'app',
-                                location: 'same',
-                                description: 'loc12',
+                                app_id: "app",
+                                location: "same",
+                                description: "loc12",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             } as AppBinding,
                         ],
                     },
                     {
-                        app_id: 'app',
-                        location: 'loc2',
-                        label: 'loc2',
+                        app_id: "app",
+                        location: "loc2",
+                        label: "loc2",
                         form: {
                             submit: {
-                                path: '/path',
+                                path: "/path",
                             },
                         },
                     },
                 ],
             } as AppBinding;
             const outBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: [
                     {
-                        app_id: 'app',
-                        location: '/command/loc1',
-                        label: 'loc1',
+                        app_id: "app",
+                        location: "/command/loc1",
+                        label: "loc1",
                         bindings: [
                             {
-                                app_id: 'app',
-                                location: '/command/loc1/same',
-                                label: 'same',
-                                description: 'loc11',
+                                app_id: "app",
+                                location: "/command/loc1/same",
+                                label: "same",
+                                description: "loc11",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             } as AppBinding,
                         ],
                     },
                     {
-                        app_id: 'app',
-                        location: '/command/loc2',
-                        label: 'loc2',
+                        app_id: "app",
+                        location: "/command/loc2",
+                        label: "loc2",
                         form: {
                             submit: {
-                                path: '/path',
+                                path: "/path",
                             },
                         },
                     },
@@ -1183,76 +1186,76 @@ describe('Apps Utils', () => {
             cleanBinding(inBinding, AppBindingLocations.COMMAND);
             expect(inBinding).toEqual(outBinding);
         });
-        test('filter with same label', () => {
+        test("filter with same label", () => {
             const inBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: [
                     {
-                        app_id: 'app',
-                        location: 'loc1',
-                        label: 'loc1',
+                        app_id: "app",
+                        location: "loc1",
+                        label: "loc1",
                         bindings: [
                             {
-                                app_id: 'app',
-                                location: 'loc11',
-                                label: 'same',
+                                app_id: "app",
+                                location: "loc11",
+                                label: "same",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             },
                             {
-                                app_id: 'app',
-                                location: 'loc12',
-                                label: 'same',
+                                app_id: "app",
+                                location: "loc12",
+                                label: "same",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             },
                         ],
                     },
                     {
-                        app_id: 'app',
-                        location: 'loc2',
-                        label: 'loc2',
+                        app_id: "app",
+                        location: "loc2",
+                        label: "loc2",
                         form: {
                             submit: {
-                                path: '/path',
+                                path: "/path",
                             },
                         },
                     },
                 ],
             } as AppBinding;
             const outBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: [
                     {
-                        app_id: 'app',
-                        location: '/command/loc1',
-                        label: 'loc1',
+                        app_id: "app",
+                        location: "/command/loc1",
+                        label: "loc1",
                         bindings: [
                             {
-                                app_id: 'app',
-                                location: '/command/loc1/loc11',
-                                label: 'same',
+                                app_id: "app",
+                                location: "/command/loc1/loc11",
+                                label: "same",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             },
                         ],
                     },
                     {
-                        app_id: 'app',
-                        location: '/command/loc2',
-                        label: 'loc2',
+                        app_id: "app",
+                        location: "/command/loc2",
+                        label: "loc2",
                         form: {
                             submit: {
-                                path: '/path',
+                                path: "/path",
                             },
                         },
                     },
@@ -1262,49 +1265,49 @@ describe('Apps Utils', () => {
             cleanBinding(inBinding, AppBindingLocations.COMMAND);
             expect(inBinding).toEqual(outBinding);
         });
-        test('non-leaf command removed when it has no subcommands', () => {
+        test("non-leaf command removed when it has no subcommands", () => {
             const inBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: [
                     {
-                        app_id: 'app',
-                        location: 'loc1',
-                        label: 'loc1',
+                        app_id: "app",
+                        location: "loc1",
+                        label: "loc1",
                         bindings: [
                             {
-                                app_id: 'app',
-                                location: 'loc11',
-                                label: 'loc 1 1',
+                                app_id: "app",
+                                location: "loc11",
+                                label: "loc 1 1",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             },
                         ],
                     },
                     {
-                        app_id: 'app',
-                        location: 'loc2',
-                        label: 'loc2',
+                        app_id: "app",
+                        location: "loc2",
+                        label: "loc2",
                         form: {
                             submit: {
-                                path: '/path',
+                                path: "/path",
                             },
                         },
                     },
                 ],
             } as AppBinding;
             const outBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: [
                     {
-                        app_id: 'app',
-                        location: '/command/loc2',
-                        label: 'loc2',
+                        app_id: "app",
+                        location: "/command/loc2",
+                        label: "loc2",
                         form: {
                             submit: {
-                                path: '/path',
+                                path: "/path",
                             },
                         },
                     },
@@ -1316,35 +1319,35 @@ describe('Apps Utils', () => {
         });
     });
 
-    describe('validateBindings', () => {
-        test('return validated binding when bindings are NOT empty', () => {
+    describe("validateBindings", () => {
+        test("return validated binding when bindings are NOT empty", () => {
             const outBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: [
                     {
-                        app_id: 'app',
-                        location: '/command/loc1',
-                        label: 'loc1',
+                        app_id: "app",
+                        location: "/command/loc1",
+                        label: "loc1",
                         bindings: [
                             {
-                                app_id: 'app',
-                                location: '/command/loc1/loc11',
-                                label: 'same',
+                                app_id: "app",
+                                location: "/command/loc1/loc11",
+                                label: "same",
                                 form: {
                                     submit: {
-                                        path: '/path',
+                                        path: "/path",
                                     },
                                 },
                             },
                         ],
                     },
                     {
-                        app_id: 'app',
-                        location: '/command/loc2',
-                        label: 'loc2',
+                        app_id: "app",
+                        location: "/command/loc2",
+                        label: "loc2",
                         form: {
                             submit: {
-                                path: '/path',
+                                path: "/path",
                             },
                         },
                     },
@@ -1355,9 +1358,9 @@ describe('Apps Utils', () => {
             expect([outBinding]).toEqual(bindings);
         });
 
-        test('return empty array when bindings are empty', () => {
+        test("return empty array when bindings are empty", () => {
             const inBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: [] as AppBinding[],
             } as AppBinding;
 
@@ -1365,9 +1368,9 @@ describe('Apps Utils', () => {
             expect([]).toEqual(bindings);
         });
 
-        test('return empty array when bindings is NULL', () => {
+        test("return empty array when bindings is NULL", () => {
             const inBinding: AppBinding = {
-                location: '/command',
+                location: "/command",
                 bindings: null,
             } as unknown as AppBinding;
 

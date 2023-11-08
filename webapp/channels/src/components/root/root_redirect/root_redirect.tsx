@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
-import {Redirect, useHistory} from 'react-router-dom';
+import React, { useEffect } from "react";
+import { Redirect, useHistory } from "react-router-dom";
 
-import * as GlobalActions from 'actions/global_actions';
+import * as GlobalActions from "actions/global_actions";
 
 export type Props = {
     isElegibleForFirstAdmingOnboarding: boolean;
@@ -12,9 +12,12 @@ export type Props = {
     location?: Location;
     isFirstAdmin: boolean;
     actions: {
-        getFirstAdminSetupComplete: () => Promise<{data: boolean; error: any}>;
+        getFirstAdminSetupComplete: () => Promise<{
+            data: boolean;
+            error: any;
+        }>;
     };
-}
+};
 
 export default function RootRedirect(props: Props) {
     const history = useHistory();
@@ -22,14 +25,19 @@ export default function RootRedirect(props: Props) {
     useEffect(() => {
         if (props.currentUserId) {
             if (props.isElegibleForFirstAdmingOnboarding) {
-                props.actions.getFirstAdminSetupComplete().then((firstAdminCompletedSignup) => {
-                    // root.tsx ensures admin profiles are eventually loaded
-                    if (firstAdminCompletedSignup.data === false && props.isFirstAdmin) {
-                        history.push('/preparing-workspace');
-                    } else {
-                        GlobalActions.redirectUserToDefaultTeam();
-                    }
-                });
+                props.actions
+                    .getFirstAdminSetupComplete()
+                    .then((firstAdminCompletedSignup) => {
+                        // root.tsx ensures admin profiles are eventually loaded
+                        if (
+                            firstAdminCompletedSignup.data === false &&
+                            props.isFirstAdmin
+                        ) {
+                            history.push("/preparing-workspace");
+                        } else {
+                            GlobalActions.redirectUserToDefaultTeam();
+                        }
+                    });
             } else {
                 GlobalActions.redirectUserToDefaultTeam();
             }
@@ -45,7 +53,7 @@ export default function RootRedirect(props: Props) {
         <Redirect
             to={{
                 ...props.location,
-                pathname: '/login',
+                pathname: "/login",
             }}
         />
     );

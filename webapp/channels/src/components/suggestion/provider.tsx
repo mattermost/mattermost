@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {RequireOnlyOne} from '@mattermost/types/utilities';
+import type { RequireOnlyOne } from "@mattermost/types/utilities";
 
 export type ProviderResult<Item> = {
     matchedPretext: string;
@@ -29,14 +29,17 @@ export default abstract class Provider {
     triggerCharacter?: string;
 
     constructor() {
-        this.latestPrefix = '';
+        this.latestPrefix = "";
         this.latestComplete = true;
         this.disableDispatches = false;
         this.requestStarted = false;
         this.forceDispatch = false;
     }
 
-    abstract handlePretextChanged(pretext: string, callback: (res: ProviderResult<unknown>) => void): boolean;
+    abstract handlePretextChanged(
+        pretext: string,
+        callback: (res: ProviderResult<unknown>) => void,
+    ): boolean;
 
     resetRequest() {
         this.requestStarted = false;
@@ -75,6 +78,6 @@ export default abstract class Provider {
     }
 
     presentationType() {
-        return 'text';
+        return "text";
     }
 }

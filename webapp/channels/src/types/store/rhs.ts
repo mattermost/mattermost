@@ -1,31 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from '@mattermost/types/channels';
-import type {Post, PostType} from '@mattermost/types/posts';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Channel } from "@mattermost/types/channels";
+import type { Post, PostType } from "@mattermost/types/posts";
+import type { UserProfile } from "@mattermost/types/users";
 
-import type {SidebarSize} from 'components/resizable_sidebar/constants';
+import type { SidebarSize } from "components/resizable_sidebar/constants";
 
-import type {RHSStates} from 'utils/constants';
+import type { RHSStates } from "utils/constants";
 
-export type SearchType = '' | 'files' | 'messages';
+export type SearchType = "" | "files" | "messages";
 
 export type FakePost = {
-    id: Post['id'];
+    id: Post["id"];
     exists: boolean;
     type: PostType;
     message: string;
-    channel_id: Channel['id'];
-    user_id: UserProfile['id'];
+    channel_id: Channel["id"];
+    user_id: UserProfile["id"];
 };
 
 export type RhsViewState = {
-    selectedPostId: Post['id'];
+    selectedPostId: Post["id"];
     selectedPostFocussedAt: number;
-    selectedPostCardId: Post['id'];
-    selectedChannelId: Channel['id'];
-    highlightedPostId: Post['id'];
+    selectedPostCardId: Post["id"];
+    selectedChannelId: Channel["id"];
+    highlightedPostId: Post["id"];
     previousRhsStates: RhsState[];
     filesSearchExtFilter: string[];
     rhsState: RhsState;
@@ -42,4 +42,4 @@ export type RhsViewState = {
     size: SidebarSize;
 };
 
-export type RhsState = typeof RHSStates[keyof typeof RHSStates] | null;
+export type RhsState = (typeof RHSStates)[keyof typeof RHSStates] | null;

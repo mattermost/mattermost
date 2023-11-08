@@ -1,31 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import SuggestionList from 'components/suggestion/suggestion_list';
+import SuggestionList from "components/suggestion/suggestion_list";
 
-describe('components/SuggestionList', () => {
+describe("components/SuggestionList", () => {
     const baseProps = {
         open: true,
         onCompleteWord: jest.fn(),
-        pretext: '',
+        pretext: "",
         cleared: false,
         matchedPretext: [],
         items: [],
         terms: [],
-        selection: '',
+        selection: "",
         components: [],
         onItemHover: jest.fn(),
     };
 
-    test('should not throw error when currentLabel is null and label is generated', () => {
+    test("should not throw error when currentLabel is null and label is generated", () => {
         const wrapper = shallow<SuggestionList>(
-            <SuggestionList
-                {...baseProps}
-                ariaLiveRef={React.createRef()}
-            />,
+            <SuggestionList {...baseProps} ariaLiveRef={React.createRef()} />,
         );
 
         const instance = wrapper.instance();

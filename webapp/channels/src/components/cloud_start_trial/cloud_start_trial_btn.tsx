@@ -1,26 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
-import type {ReactNode} from 'react';
-import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import React, { useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import { useIntl } from "react-intl";
+import { useDispatch } from "react-redux";
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import type { DispatchFunc } from "mattermost-redux/types/actions";
 
-import {requestCloudTrial, validateWorkspaceBusinessEmail, getCloudLimits} from 'actions/cloud';
-import {trackEvent} from 'actions/telemetry_actions';
-import {openModal, closeModal} from 'actions/views/modals';
+import {
+    requestCloudTrial,
+    validateWorkspaceBusinessEmail,
+    getCloudLimits,
+} from "actions/cloud";
+import { trackEvent } from "actions/telemetry_actions";
+import { openModal, closeModal } from "actions/views/modals";
 
-import useGetSubscription from 'components/common/hooks/useGetSubscription';
-import ExternalLink from 'components/external_link';
-import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
+import useGetSubscription from "components/common/hooks/useGetSubscription";
+import ExternalLink from "components/external_link";
+import TrialBenefitsModal from "components/trial_benefits_modal/trial_benefits_modal";
 
-import {ModalIdentifiers, TELEMETRY_CATEGORIES, LicenseLinks} from 'utils/constants';
+import {
+    ModalIdentifiers,
+    TELEMETRY_CATEGORIES,
+    LicenseLinks,
+} from "utils/constants";
 
-import RequestBusinessEmailModal from './request_business_email_modal';
+import RequestBusinessEmailModal from "./request_business_email_modal";
 
-import './cloud_start_trial_btn.scss';
+import "./cloud_start_trial_btn.scss";
 
 export type CloudStartTrialBtnProps = {
     message: string;
@@ -33,11 +41,11 @@ export type CloudStartTrialBtnProps = {
 };
 
 enum TrialLoadStatus {
-    NotStarted = 'NOT_STARTED',
-    Started = 'STARTED',
-    Success = 'SUCCESS',
-    Failed = 'FAILED',
-    Embargoed = 'EMBARGOED',
+    NotStarted = "NOT_STARTED",
+    Started = "STARTED",
+    Success = "SUCCESS",
+    Failed = "FAILED",
+    Embargoed = "EMBARGOED",
 }
 
 const TIME_UNTIL_CACHE_PURGE_GUESS = 5000;
@@ -51,7 +59,7 @@ const CloudStartTrialButton = ({
     email,
     disabled = false,
 }: CloudStartTrialBtnProps) => {
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
     const dispatch = useDispatch<DispatchFunc>();
     const subscription = useGetSubscription();
     const [openBusinessEmailModal, setOpenBusinessEmailModal] = useState(false);
@@ -78,7 +86,7 @@ const CloudStartTrialButton = ({
         if (openBusinessEmailModal && !email) {
             trackEvent(
                 TELEMETRY_CATEGORIES.CLOUD_START_TRIAL_BUTTON,
-                'trial_request_attempt_with_no_valid_business_email',
+                "trial_request_attempt_with_no_valid_business_email",
             );
             await dispatch(closeModal(ModalIdentifiers.LEARN_MORE_TRIAL_MODAL));
             openRequestBusinessEmailModal();
@@ -86,7 +94,13 @@ const CloudStartTrialButton = ({
             return TrialLoadStatus.Failed;
         }
 
-        const subscriptionUpdated = await dispatch(requestCloudTrial('start_cloud_trial_btn', subscription?.id as string, (email || '')));
+        const subscriptionUpdated = await dispatch(
+            requestCloudTrial(
+                "start_cloud_trial_btn",
+                subscription?.id as string,
+                email || "",
+            ),
+        );
         if (!subscriptionUpdated) {
             setLoadStatus(TrialLoadStatus.Failed);
             return TrialLoadStatus.Failed;
@@ -117,47 +131,61 @@ const CloudStartTrialButton = ({
         if (status !== TrialLoadStatus.Success) {
             return;
         }
-        await dispatch(openModal({
-            modalId: ModalIdentifiers.TRIAL_BENEFITS_MODAL,
-            dialogType: TrialBenefitsModal,
-            dialogProps: {trialJustStarted: true},
-        }));
+        await dispatch(
+            openModal({
+                modalId: ModalIdentifiers.TRIAL_BENEFITS_MODAL,
+                dialogType: TrialBenefitsModal,
+                dialogProps: { trialJustStarted: true },
+            }),
+        );
     };
 
     const openRequestBusinessEmailModal = () => {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.REQUEST_BUSINESS_EMAIL_MODAL,
-            dialogType: RequestBusinessEmailModal,
-        }));
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.REQUEST_BUSINESS_EMAIL_MODAL,
+                dialogType: RequestBusinessEmailModal,
+            }),
+        );
     };
 
     const btnText = (status: TrialLoadStatus) => {
         switch (status) {
-        case TrialLoadStatus.Started:
-            return formatMessage({id: 'start_cloud_trial.modal.gettingTrial', defaultMessage: 'Getting Trial...'});
-        case TrialLoadStatus.Success:
-            return formatMessage({id: 'start_cloud_trial.modal.loaded', defaultMessage: 'Loaded!'});
-        case TrialLoadStatus.Failed:
-            return formatMessage({id: 'start_cloud_trial.modal.failed', defaultMessage: 'Failed'});
-        case TrialLoadStatus.Embargoed:
-            return formatMessage<ReactNode>(
-                {
-                    id: 'admin.license.trial-request.embargoed',
-                    defaultMessage: 'We were unable to process the request due to limitations for embargoed countries. <link>Learn more in our documentation</link>, or reach out to legal@mattermost.com for questions around export limitations.',
-                },
-                {
-                    link: (text: string) => (
-                        <ExternalLink
-                            location='trial_banner'
-                            href={LicenseLinks.EMBARGOED_COUNTRIES}
-                        >
-                            {text}
-                        </ExternalLink>
-                    ),
-                },
-            );
-        default:
-            return message;
+            case TrialLoadStatus.Started:
+                return formatMessage({
+                    id: "start_cloud_trial.modal.gettingTrial",
+                    defaultMessage: "Getting Trial...",
+                });
+            case TrialLoadStatus.Success:
+                return formatMessage({
+                    id: "start_cloud_trial.modal.loaded",
+                    defaultMessage: "Loaded!",
+                });
+            case TrialLoadStatus.Failed:
+                return formatMessage({
+                    id: "start_cloud_trial.modal.failed",
+                    defaultMessage: "Failed",
+                });
+            case TrialLoadStatus.Embargoed:
+                return formatMessage<ReactNode>(
+                    {
+                        id: "admin.license.trial-request.embargoed",
+                        defaultMessage:
+                            "We were unable to process the request due to limitations for embargoed countries. <link>Learn more in our documentation</link>, or reach out to legal@mattermost.com for questions around export limitations.",
+                    },
+                    {
+                        link: (text: string) => (
+                            <ExternalLink
+                                location="trial_banner"
+                                href={LicenseLinks.EMBARGOED_COUNTRIES}
+                            >
+                                {text}
+                            </ExternalLink>
+                        ),
+                    },
+                );
+            default:
+                return message;
         }
     };
     const startCloudTrial = async () => {
@@ -171,10 +199,7 @@ const CloudStartTrialButton = ({
             return;
         }
 
-        trackEvent(
-            TELEMETRY_CATEGORIES.CLOUD_START_TRIAL_BUTTON,
-            telemetryId,
-        );
+        trackEvent(TELEMETRY_CATEGORIES.CLOUD_START_TRIAL_BUTTON, telemetryId);
 
         // on click will execute whatever action is sent from the invoking place, if nothing is sent, open the trial benefits modal
         if (onClick) {
@@ -187,7 +212,7 @@ const CloudStartTrialButton = ({
 
     return (
         <button
-            id='start_cloud_trial_btn'
+            id="start_cloud_trial_btn"
             className={`CloudStartTrialButton ${extraClass}`}
             onClick={startCloudTrial}
             disabled={disabled || status === TrialLoadStatus.Failed}

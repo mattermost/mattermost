@@ -13,18 +13,18 @@ import {
     useRole,
     flip,
     shift,
-} from '@floating-ui/react-dom-interactions';
-import classNames from 'classnames';
-import React, {memo, useCallback, useState} from 'react';
-import {useIntl} from 'react-intl';
+} from "@floating-ui/react-dom-interactions";
+import classNames from "classnames";
+import React, { memo, useCallback, useState } from "react";
+import { useIntl } from "react-intl";
 
-import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
-import type {PostPriorityMetadata} from '@mattermost/types/posts';
+import { AlertCircleOutlineIcon } from "@mattermost/compass-icons/components";
+import type { PostPriorityMetadata } from "@mattermost/types/posts";
 
-import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
-import useTooltip from 'components/common/hooks/useTooltip';
+import { IconContainer } from "components/advanced_text_editor/formatting_bar/formatting_icon";
+import useTooltip from "components/common/hooks/useTooltip";
 
-import PostPriorityPicker from './post_priority_picker';
+import PostPriorityPicker from "./post_priority_picker";
 
 type Props = {
     disabled: boolean;
@@ -40,15 +40,18 @@ function PostPriorityPickerOverlay({
     onClose,
 }: Props) {
     const [pickerOpen, setPickerOpen] = useState(false);
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
 
-    const messagePriority = formatMessage({id: 'shortcuts.msgs.formatting_bar.post_priority', defaultMessage: 'Message priority'});
+    const messagePriority = formatMessage({
+        id: "shortcuts.msgs.formatting_bar.post_priority",
+        defaultMessage: "Message priority",
+    });
     const {
         reference: tooltipRef,
         getReferenceProps: getTooltipReferenceProps,
         tooltip,
     } = useTooltip({
-        placement: 'top',
+        placement: "top",
         message: messagePriority,
     });
 
@@ -67,12 +70,12 @@ function PostPriorityPickerOverlay({
     } = useFloating({
         open: pickerOpen,
         onOpenChange: setPickerOpen,
-        placement: 'top-start',
+        placement: "top-start",
         whileElementsMounted: autoUpdate,
         middleware: [
-            offset({mainAxis: 4}),
+            offset({ mainAxis: 4 }),
             flip({
-                fallbackPlacements: ['top'],
+                fallbackPlacements: ["top"],
             }),
             shift({
                 padding: 16,
@@ -91,26 +94,23 @@ function PostPriorityPickerOverlay({
 
     return (
         <>
-            <div
-                ref={tooltipRef}
-                {...getTooltipReferenceProps()}
-            >
+            <div ref={tooltipRef} {...getTooltipReferenceProps()}>
                 <IconContainer
-                    id='messagePriority'
+                    id="messagePriority"
                     ref={pickerRef}
-                    className={classNames({control: true, active: pickerOpen})}
+                    className={classNames({
+                        control: true,
+                        active: pickerOpen,
+                    })}
                     disabled={disabled}
-                    type='button'
+                    type="button"
                     aria-label={messagePriority}
                     {...getPickerReferenceProps()}
                 >
-                    <AlertCircleOutlineIcon
-                        size={18}
-                        color='currentColor'
-                    />
+                    <AlertCircleOutlineIcon size={18} color="currentColor" />
                 </IconContainer>
             </div>
-            <FloatingPortal id='root-portal'>
+            <FloatingPortal id="root-portal">
                 {pickerOpen && (
                     <FloatingFocusManager
                         context={pickerContext}
@@ -121,7 +121,7 @@ function PostPriorityPickerOverlay({
                         <div
                             ref={pickerFloating}
                             style={{
-                                width: 'max-content',
+                                width: "max-content",
                                 position: pickerStrategy,
                                 top: pickerY ?? 0,
                                 left: pickerX ?? 0,

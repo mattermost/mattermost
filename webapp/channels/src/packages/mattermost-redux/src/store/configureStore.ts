@@ -1,23 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {composeWithDevTools} from '@redux-devtools/extension';
-import {
-    applyMiddleware,
-    legacy_createStore,
-} from 'redux';
-import type {
-    Reducer,
-    Store} from 'redux';
-import thunk from 'redux-thunk';
+import { composeWithDevTools } from "@redux-devtools/extension";
+import { applyMiddleware, legacy_createStore } from "redux";
+import type { Reducer, Store } from "redux";
+import thunk from "redux-thunk";
 
-import type {GlobalState} from '@mattermost/types/store';
+import type { GlobalState } from "@mattermost/types/store";
 
-import {createReducer} from './helpers';
-import initialState from './initial_state';
-import reducerRegistry from './reducer_registry';
+import { createReducer } from "./helpers";
+import initialState from "./initial_state";
+import reducerRegistry from "./reducer_registry";
 
-import serviceReducers from '../reducers';
+import serviceReducers from "../reducers";
 
 /**
  * Configures and constructs the redux store. Accepts the following parameters:
@@ -52,25 +47,29 @@ export default function configureStore<S extends GlobalState>({
 
     const baseReducer = createReducer(serviceReducers, appReducers);
 
-    const store = legacy_createStore(
-        baseReducer,
-        baseState,
-        enhancers,
-    );
+    const store = legacy_createStore(baseReducer, baseState, enhancers);
 
     reducerRegistry.setChangeListener((reducers: Record<string, Reducer>) => {
-        store.replaceReducer(createReducer(reducers, serviceReducers, appReducers));
+        store.replaceReducer(
+            createReducer(reducers, serviceReducers, appReducers),
+        );
     });
 
     if (module.hot) {
         // Enable Webpack hot module replacement for reducers
         module.hot.accept(() => {
             const registryReducers = reducerRegistry.getReducers();
-            const nextServiceReducers = require('../reducers').default; // eslint-disable-line global-require
+            const nextServiceReducers = require("../reducers").default; // eslint-disable-line global-require
             const nextAppReducers = getAppReducers();
 
             // Ensure registryReducers comes first so that stored service/app reducers are replaced by the new ones
-            store.replaceReducer(createReducer(registryReducers, nextServiceReducers, nextAppReducers));
+            store.replaceReducer(
+                createReducer(
+                    registryReducers,
+                    nextServiceReducers,
+                    nextAppReducers,
+                ),
+            );
         });
     }
 

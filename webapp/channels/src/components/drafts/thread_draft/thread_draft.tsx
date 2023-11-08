@@ -1,40 +1,43 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback, useMemo, useEffect} from 'react';
-import {useDispatch} from 'react-redux';
+import React, { memo, useCallback, useMemo, useEffect } from "react";
+import { useDispatch } from "react-redux";
 
-import type {Channel} from '@mattermost/types/channels';
-import type {Post} from '@mattermost/types/posts';
-import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
+import type { Channel } from "@mattermost/types/channels";
+import type { Post } from "@mattermost/types/posts";
+import type {
+    UserThread,
+    UserThreadSynthetic,
+} from "@mattermost/types/threads";
+import type { UserProfile, UserStatus } from "@mattermost/types/users";
 
-import {getPost} from 'mattermost-redux/actions/posts';
+import { getPost } from "mattermost-redux/actions/posts";
 
-import {makeOnSubmit} from 'actions/views/create_comment';
-import {removeDraft} from 'actions/views/drafts';
-import {selectPost} from 'actions/views/rhs';
+import { makeOnSubmit } from "actions/views/create_comment";
+import { removeDraft } from "actions/views/drafts";
+import { selectPost } from "actions/views/rhs";
 
-import type {PostDraft} from 'types/store/draft';
+import type { PostDraft } from "types/store/draft";
 
-import DraftActions from '../draft_actions';
-import DraftTitle from '../draft_title';
-import Panel from '../panel/panel';
-import PanelBody from '../panel/panel_body';
-import Header from '../panel/panel_header';
+import DraftActions from "../draft_actions";
+import DraftTitle from "../draft_title";
+import Panel from "../panel/panel";
+import PanelBody from "../panel/panel_body";
+import Header from "../panel/panel_header";
 
 type Props = {
     channel: Channel;
     displayName: string;
     draftId: string;
-    rootId: UserThread['id'] | UserThreadSynthetic['id'];
-    status: UserStatus['status'];
+    rootId: UserThread["id"] | UserThreadSynthetic["id"];
+    status: UserStatus["status"];
     thread?: UserThread | UserThreadSynthetic;
-    type: 'channel' | 'thread';
+    type: "channel" | "thread";
     user: UserProfile;
     value: PostDraft;
     isRemote?: boolean;
-}
+};
 
 function ThreadDraft({
     channel,
@@ -58,26 +61,32 @@ function ThreadDraft({
 
     const onSubmit = useMemo(() => {
         if (thread) {
-            return makeOnSubmit(channel.id, thread.id, '');
+            return makeOnSubmit(channel.id, thread.id, "");
         }
 
-        return () => Promise.resolve({data: true});
+        return () => Promise.resolve({ data: true });
     }, [channel.id, thread?.id]);
 
-    const handleOnDelete = useCallback((id: string) => {
-        dispatch(removeDraft(id, channel.id, rootId));
-    }, [channel.id, rootId]);
+    const handleOnDelete = useCallback(
+        (id: string) => {
+            dispatch(removeDraft(id, channel.id, rootId));
+        },
+        [channel.id, rootId],
+    );
 
     const handleOnEdit = useCallback(() => {
-        dispatch(selectPost({id: rootId, channel_id: channel.id} as Post));
+        dispatch(selectPost({ id: rootId, channel_id: channel.id } as Post));
     }, [channel]);
 
-    const handleOnSend = useCallback(async (id: string) => {
-        await dispatch(onSubmit(value));
+    const handleOnSend = useCallback(
+        async (id: string) => {
+            await dispatch(onSubmit(value));
 
-        handleOnDelete(id);
-        handleOnEdit();
-    }, [value, onSubmit]);
+            handleOnDelete(id);
+            handleOnEdit();
+        },
+        [value, onSubmit],
+    );
 
     if (!thread) {
         return null;
@@ -85,11 +94,11 @@ function ThreadDraft({
 
     return (
         <Panel onClick={handleOnEdit}>
-            {({hover}) => (
+            {({ hover }) => (
                 <>
                     <Header
                         hover={hover}
-                        actions={(
+                        actions={
                             <DraftActions
                                 channelDisplayName={channel.display_name}
                                 channelName={channel.name}
@@ -100,14 +109,14 @@ function ThreadDraft({
                                 onEdit={handleOnEdit}
                                 onSend={handleOnSend}
                             />
-                        )}
-                        title={(
+                        }
+                        title={
                             <DraftTitle
                                 type={type}
                                 channel={channel}
                                 userId={user.id}
                             />
-                        )}
+                        }
                         timestamp={value.updateAt}
                         remote={isRemote || false}
                     />

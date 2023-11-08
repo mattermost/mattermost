@@ -1,28 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
-import styled from 'styled-components';
+import React, { memo } from "react";
+import styled from "styled-components";
 
-import type {Channel, ChannelStats} from '@mattermost/types/channels';
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Channel, ChannelStats } from "@mattermost/types/channels";
+import type { Team } from "@mattermost/types/teams";
+import type { UserProfile } from "@mattermost/types/users";
 
-import ChannelInviteModal from 'components/channel_invite_modal';
-import ChannelNotificationsModal from 'components/channel_notifications_modal';
-import EditChannelHeaderModal from 'components/edit_channel_header_modal';
-import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
-import MoreDirectChannels from 'components/more_direct_channels';
+import ChannelInviteModal from "components/channel_invite_modal";
+import ChannelNotificationsModal from "components/channel_notifications_modal";
+import EditChannelHeaderModal from "components/edit_channel_header_modal";
+import EditChannelPurposeModal from "components/edit_channel_purpose_modal";
+import MoreDirectChannels from "components/more_direct_channels";
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
-import {getSiteURL} from 'utils/url';
+import Constants, { ModalIdentifiers } from "utils/constants";
+import { getSiteURL } from "utils/url";
 
-import type {ModalData} from 'types/actions';
+import type { ModalData } from "types/actions";
 
-import AboutArea from './about_area';
-import Header from './header';
-import Menu from './menu';
-import TopButtons from './top_buttons';
+import AboutArea from "./about_area";
+import Header from "./header";
+import Menu from "./menu";
+import TopButtons from "./top_buttons";
 
 const Divider = styled.div`
     width: 88%;
@@ -65,7 +65,7 @@ export interface Props {
         showChannelFiles: (channelId: string) => void;
         showPinnedPosts: (channelId: string | undefined) => void;
         showChannelMembers: (channelId: string) => void;
-        getChannelStats: (channelId: string) => Promise<{data: ChannelStats}>;
+        getChannelStats: (channelId: string) => Promise<{ data: ChannelStats }>;
     };
 }
 
@@ -86,7 +86,8 @@ const ChannelInfoRhs = ({
     actions,
 }: Props) => {
     const currentUserId = currentUser.id;
-    const channelURL = getSiteURL() + '/' + currentTeam.name + '/channels/' + channel.name;
+    const channelURL =
+        getSiteURL() + "/" + currentTeam.name + "/channels/" + channel.name;
 
     const toggleFavorite = () => {
         if (isFavorite) {
@@ -109,34 +110,37 @@ const ChannelInfoRhs = ({
             return actions.openModal({
                 modalId: ModalIdentifiers.CREATE_DM_CHANNEL,
                 dialogType: MoreDirectChannels,
-                dialogProps: {isExistingChannel: true},
+                dialogProps: { isExistingChannel: true },
             });
         }
 
         return actions.openModal({
             modalId: ModalIdentifiers.CHANNEL_INVITE,
             dialogType: ChannelInviteModal,
-            dialogProps: {channel},
+            dialogProps: { channel },
         });
     };
 
-    const editChannelPurpose = () => actions.openModal({
-        modalId: ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
-        dialogType: EditChannelPurposeModal,
-        dialogProps: {channel},
-    });
+    const editChannelPurpose = () =>
+        actions.openModal({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
+            dialogType: EditChannelPurposeModal,
+            dialogProps: { channel },
+        });
 
-    const editChannelHeader = () => actions.openModal({
-        modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
-        dialogType: EditChannelHeaderModal,
-        dialogProps: {channel},
-    });
+    const editChannelHeader = () =>
+        actions.openModal({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: { channel },
+        });
 
-    const openNotificationSettings = () => actions.openModal({
-        modalId: ModalIdentifiers.CHANNEL_NOTIFICATIONS,
-        dialogType: ChannelNotificationsModal,
-        dialogProps: {channel, currentUser},
-    });
+    const openNotificationSettings = () =>
+        actions.openModal({
+            modalId: ModalIdentifiers.CHANNEL_NOTIFICATIONS,
+            dialogType: ChannelNotificationsModal,
+            dialogProps: { channel, currentUser },
+        });
 
     const gmUsers = channelMembers.filter((user) => {
         return user.id !== currentUser.id;
@@ -145,10 +149,7 @@ const ChannelInfoRhs = ({
     const canEditChannelProperties = !isArchived && canManageProperties;
 
     return (
-        <div
-            id='rhsContainer'
-            className='sidebar-right__body'
-        >
+        <div id="rhsContainer" className="sidebar-right__body">
             <Header
                 channel={channel}
                 isArchived={isArchived}
@@ -159,31 +160,25 @@ const ChannelInfoRhs = ({
             <TopButtons
                 channelType={channel.type}
                 channelURL={channelURL}
-
                 isFavorite={isFavorite}
                 isMuted={isMuted}
                 isInvitingPeople={isInvitingPeople}
-
                 canAddPeople={canManageMembers}
-
-                actions={{toggleFavorite, toggleMute, addPeople}}
+                actions={{ toggleFavorite, toggleMute, addPeople }}
             />
 
             <AboutArea
                 channel={channel}
-
                 dmUser={dmUser}
                 gmUsers={gmUsers}
-
                 canEditChannelProperties={canEditChannelProperties}
-
                 actions={{
                     editChannelHeader,
                     editChannelPurpose,
                 }}
             />
 
-            <Divider/>
+            <Divider />
 
             <Menu
                 channel={channel}

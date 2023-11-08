@@ -1,21 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {Post} from '@mattermost/types/posts';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Post } from "@mattermost/types/posts";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {sendAddToChannelEphemeralPost} from 'actions/global_actions';
+import { sendAddToChannelEphemeralPost } from "actions/global_actions";
 
-import AtMention from 'components/at_mention';
+import AtMention from "components/at_mention";
 
-import {Constants} from 'utils/constants';
-import {t} from 'utils/i18n';
+import { Constants } from "utils/constants";
+import { t } from "utils/i18n";
 
 interface Actions {
-    addChannelMember: (channelId: string, userId: string, rootId: string) => void;
+    addChannelMember: (
+        channelId: string,
+        userId: string,
+        rootId: string,
+    ) => void;
     removePost: (post: Post) => void;
 }
 
@@ -34,7 +38,10 @@ interface State {
     expanded: boolean;
 }
 
-export default class PostAddChannelMember extends React.PureComponent<Props, State> {
+export default class PostAddChannelMember extends React.PureComponent<
+    Props,
+    State
+> {
     constructor(props: Props) {
         super(props);
 
@@ -44,14 +51,25 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
     }
 
     handleAddChannelMember = () => {
-        const {currentUser, post, userIds, usernames} = this.props;
+        const { currentUser, post, userIds, usernames } = this.props;
 
         if (post && post.channel_id) {
             let createAt = post.create_at;
             userIds.forEach((userId, index) => {
                 createAt++;
-                this.props.actions.addChannelMember(post.channel_id, userId, post.root_id);
-                sendAddToChannelEphemeralPost(currentUser, usernames[index], userId, post.channel_id, post.root_id, createAt);
+                this.props.actions.addChannelMember(
+                    post.channel_id,
+                    userId,
+                    post.root_id,
+                );
+                sendAddToChannelEphemeralPost(
+                    currentUser,
+                    usernames[index],
+                    userId,
+                    post.channel_id,
+                    post.root_id,
+                    createAt,
+                );
             });
 
             this.props.actions.removePost(post);
@@ -59,7 +77,7 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
     };
 
     expand = () => {
-        this.setState({expanded: true});
+        this.setState({ expanded: true });
     };
 
     generateAtMentions(usernames = [] as string[]) {
@@ -75,21 +93,23 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
                 return (
                     <FormattedMessage
                         key={key}
-                        id={'post_body.check_for_out_of_channel_mentions.link.and'}
-                        defaultMessage={' and '}
+                        id={
+                            "post_body.check_for_out_of_channel_mentions.link.and"
+                        }
+                        defaultMessage={" and "}
                     />
                 );
             }
 
             function commaSeparator(key: number) {
-                return <span key={key}>{', '}</span>;
+                return <span key={key}>{", "}</span>;
             }
 
             if (this.state.expanded || usernames.length <= 3) {
                 return (
                     <span>
-                        {
-                            usernames.map((username) => {
+                        {usernames
+                            .map((username) => {
                                 return (
                                     <AtMention
                                         key={username}
@@ -97,7 +117,8 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
                                         channelId={this.props.post?.channel_id}
                                     />
                                 );
-                            }).reduce((acc, el, idx, arr) => {
+                            })
+                            .reduce((acc, el, idx, arr) => {
                                 if (idx === 0) {
                                     return [el];
                                 } else if (idx === arr.length - 1) {
@@ -105,8 +126,7 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
                                 }
 
                                 return [...acc, commaSeparator(idx), el];
-                            }, [] as JSX.Element[])
-                        }
+                            }, [] as JSX.Element[])}
                     </span>
                 );
             }
@@ -122,12 +142,14 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
                     />
                     {commaSeparator(1)}
                     <a
-                        className='PostBody_otherUsersLink'
+                        className="PostBody_otherUsersLink"
                         onClick={this.expand}
                     >
                         <FormattedMessage
-                            id={'post_body.check_for_out_of_channel_mentions.others'}
-                            defaultMessage={'{numOthers} others'}
+                            id={
+                                "post_body.check_for_out_of_channel_mentions.others"
+                            }
+                            defaultMessage={"{numOthers} others"}
                             values={{
                                 numOthers: otherUsers.length,
                             }}
@@ -143,11 +165,12 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
             );
         }
 
-        return '';
+        return "";
     }
 
     render() {
-        const {channelType, postId, usernames, noGroupsUsernames} = this.props;
+        const { channelType, postId, usernames, noGroupsUsernames } =
+            this.props;
         if (!postId || !channelType) {
             return null;
         }
@@ -155,30 +178,44 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
         let linkId;
         let linkText;
         if (channelType === Constants.PRIVATE_CHANNEL) {
-            linkId = t('post_body.check_for_out_of_channel_mentions.link.private');
-            linkText = 'add them to this private channel';
+            linkId = t(
+                "post_body.check_for_out_of_channel_mentions.link.private",
+            );
+            linkText = "add them to this private channel";
         } else if (channelType === Constants.OPEN_CHANNEL) {
-            linkId = t('post_body.check_for_out_of_channel_mentions.link.public');
-            linkText = 'add them to the channel';
+            linkId = t(
+                "post_body.check_for_out_of_channel_mentions.link.public",
+            );
+            linkText = "add them to the channel";
         }
 
         let outOfChannelMessageID;
         let outOfChannelMessageText;
         const outOfChannelAtMentions = this.generateAtMentions(usernames);
         if (usernames.length === 1) {
-            outOfChannelMessageID = t('post_body.check_for_out_of_channel_mentions.message.one');
-            outOfChannelMessageText = 'did not get notified by this mention because they are not in the channel. Would you like to ';
+            outOfChannelMessageID = t(
+                "post_body.check_for_out_of_channel_mentions.message.one",
+            );
+            outOfChannelMessageText =
+                "did not get notified by this mention because they are not in the channel. Would you like to ";
         } else if (usernames.length > 1) {
-            outOfChannelMessageID = t('post_body.check_for_out_of_channel_mentions.message.multiple');
-            outOfChannelMessageText = 'did not get notified by this mention because they are not in the channel. Would you like to ';
+            outOfChannelMessageID = t(
+                "post_body.check_for_out_of_channel_mentions.message.multiple",
+            );
+            outOfChannelMessageText =
+                "did not get notified by this mention because they are not in the channel. Would you like to ";
         }
 
         let outOfGroupsMessageID;
         let outOfGroupsMessageText;
-        const outOfGroupsAtMentions = this.generateAtMentions(noGroupsUsernames);
+        const outOfGroupsAtMentions =
+            this.generateAtMentions(noGroupsUsernames);
         if (noGroupsUsernames.length) {
-            outOfGroupsMessageID = t('post_body.check_for_out_of_channel_groups_mentions.message');
-            outOfGroupsMessageText = 'did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.';
+            outOfGroupsMessageID = t(
+                "post_body.check_for_out_of_channel_groups_mentions.message",
+            );
+            outOfGroupsMessageText =
+                "did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.";
         }
 
         let outOfChannelMessage = null;
@@ -187,14 +224,13 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
         if (usernames.length) {
             outOfChannelMessage = (
                 <p>
-                    {outOfChannelAtMentions}
-                    {' '}
+                    {outOfChannelAtMentions}{" "}
                     <FormattedMessage
                         id={outOfChannelMessageID}
                         defaultMessage={outOfChannelMessageText}
                     />
                     <a
-                        className='PostBody_addChannelMemberLink'
+                        className="PostBody_addChannelMemberLink"
                         onClick={this.handleAddChannelMember}
                     >
                         <FormattedMessage
@@ -203,8 +239,12 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
                         />
                     </a>
                     <FormattedMessage
-                        id={'post_body.check_for_out_of_channel_mentions.message_last'}
-                        defaultMessage={'? They will have access to all message history.'}
+                        id={
+                            "post_body.check_for_out_of_channel_mentions.message_last"
+                        }
+                        defaultMessage={
+                            "? They will have access to all message history."
+                        }
                     />
                 </p>
             );
@@ -213,8 +253,7 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
         if (noGroupsUsernames.length) {
             outOfGroupsMessage = (
                 <p>
-                    {outOfGroupsAtMentions}
-                    {' '}
+                    {outOfGroupsAtMentions}{" "}
                     <FormattedMessage
                         id={outOfGroupsMessageID}
                         defaultMessage={outOfGroupsMessageText}

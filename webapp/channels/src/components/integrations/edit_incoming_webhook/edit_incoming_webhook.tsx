@@ -1,25 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {IncomingWebhook} from '@mattermost/types/integrations';
-import type {Team} from '@mattermost/types/teams';
+import type { IncomingWebhook } from "@mattermost/types/integrations";
+import type { Team } from "@mattermost/types/teams";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import AbstractIncomingWebhook from 'components/integrations/abstract_incoming_webhook';
-import LoadingScreen from 'components/loading_screen';
+import AbstractIncomingWebhook from "components/integrations/abstract_incoming_webhook";
+import LoadingScreen from "components/loading_screen";
 
-import {getHistory} from 'utils/browser_history';
-import {t} from 'utils/i18n';
+import { getHistory } from "utils/browser_history";
+import { t } from "utils/i18n";
 
-const HEADER = {id: t('integrations.edit'), defaultMessage: 'Edit'};
-const FOOTER = {id: t('update_incoming_webhook.update'), defaultMessage: 'Update'};
-const LOADING = {id: t('update_incoming_webhook.updating'), defaultMessage: 'Updating...'};
+const HEADER = { id: t("integrations.edit"), defaultMessage: "Edit" };
+const FOOTER = {
+    id: t("update_incoming_webhook.update"),
+    defaultMessage: "Update",
+};
+const LOADING = {
+    id: t("update_incoming_webhook.updating"),
+    defaultMessage: "Updating...",
+};
 
 type Props = {
-
     /**
      * The current team
      */
@@ -51,7 +56,6 @@ type Props = {
     enablePostIconOverride: boolean;
 
     actions: {
-
         /**
          * The function to call to update an incoming webhook
          */
@@ -69,7 +73,10 @@ type State = {
     serverError: string;
 };
 
-export default class EditIncomingWebhook extends React.PureComponent<Props, State> {
+export default class EditIncomingWebhook extends React.PureComponent<
+    Props,
+    State
+> {
     private newHook?: IncomingWebhook;
 
     constructor(props: Props) {
@@ -77,7 +84,7 @@ export default class EditIncomingWebhook extends React.PureComponent<Props, Stat
 
         this.state = {
             showConfirmModal: false,
-            serverError: '',
+            serverError: "",
         };
     }
 
@@ -98,28 +105,32 @@ export default class EditIncomingWebhook extends React.PureComponent<Props, Stat
     };
 
     submitHook = async () => {
-        this.setState({serverError: ''});
+        this.setState({ serverError: "" });
 
         if (!this.newHook) {
             return;
         }
 
-        const result = await this.props.actions.updateIncomingHook(this.newHook);
+        const result = await this.props.actions.updateIncomingHook(
+            this.newHook,
+        );
 
-        if ('data' in result) {
-            getHistory().push(`/${this.props.team.name}/integrations/incoming_webhooks`);
+        if ("data" in result) {
+            getHistory().push(
+                `/${this.props.team.name}/integrations/incoming_webhooks`,
+            );
             return;
         }
 
-        if ('error' in result) {
-            const {error} = result;
-            this.setState({serverError: error.message});
+        if ("error" in result) {
+            const { error } = result;
+            this.setState({ serverError: error.message });
         }
     };
 
     render() {
         if (!this.props.hook) {
-            return <LoadingScreen/>;
+            return <LoadingScreen />;
         }
 
         return (
@@ -128,7 +139,9 @@ export default class EditIncomingWebhook extends React.PureComponent<Props, Stat
                 header={HEADER}
                 footer={FOOTER}
                 loading={LOADING}
-                enablePostUsernameOverride={this.props.enablePostUsernameOverride}
+                enablePostUsernameOverride={
+                    this.props.enablePostUsernameOverride
+                }
                 enablePostIconOverride={this.props.enablePostIconOverride}
                 action={this.editIncomingHook}
                 serverError={this.state.serverError}

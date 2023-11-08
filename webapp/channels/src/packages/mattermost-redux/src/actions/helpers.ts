@@ -1,27 +1,43 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ServerError} from '@mattermost/types/errors';
+import type { ServerError } from "@mattermost/types/errors";
 
-import {UserTypes} from 'mattermost-redux/action_types';
-import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc, GenericAction, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import { UserTypes } from "mattermost-redux/action_types";
+import { Client4 } from "mattermost-redux/client";
+import type {
+    ActionFunc,
+    GenericAction,
+    DispatchFunc,
+    GetStateFunc,
+} from "mattermost-redux/types/actions";
 
-import {logError} from './errors';
+import { logError } from "./errors";
 
 type ActionType = string;
 const HTTP_UNAUTHORIZED = 401;
-export function forceLogoutIfNecessary(err: ServerError, dispatch: DispatchFunc, getState: GetStateFunc) {
-    const {currentUserId} = getState().entities.users;
+export function forceLogoutIfNecessary(
+    err: ServerError,
+    dispatch: DispatchFunc,
+    getState: GetStateFunc,
+) {
+    const { currentUserId } = getState().entities.users;
 
-    if ('status_code' in err && err.status_code === HTTP_UNAUTHORIZED && err.url && err.url.indexOf('/login') === -1 && currentUserId) {
-        Client4.setToken('');
-        dispatch({type: UserTypes.LOGOUT_SUCCESS, data: {}});
+    if (
+        "status_code" in err &&
+        err.status_code === HTTP_UNAUTHORIZED &&
+        err.url &&
+        err.url.indexOf("/login") === -1 &&
+        currentUserId
+    ) {
+        Client4.setToken("");
+        dispatch({ type: UserTypes.LOGOUT_SUCCESS, data: {} });
     }
 }
 
 function dispatcher(type: ActionType, data: any, dispatch: DispatchFunc) {
-    if (type.indexOf('SUCCESS') === -1) { // we don't want to pass the data for the request types
+    if (type.indexOf("SUCCESS") === -1) {
+        // we don't want to pass the data for the request types
         dispatch(requestSuccess(type, data));
     } else {
         dispatch(requestData(type));
@@ -90,7 +106,7 @@ export function bindClientFunc({
                 dispatch(requestFailure(onFailure, error));
             }
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         if (Array.isArray(onSuccess)) {
@@ -101,14 +117,19 @@ export function bindClientFunc({
             dispatcher(onSuccess, data, dispatch);
         }
 
-        return {data};
+        return { data };
     };
 }
 
 // Debounce function based on underscores modified to use es6 and a cb
 
-export function debounce(func: (...args: any) => unknown, wait: number, immediate?: boolean, cb?: () => unknown) {
-    let timeout: NodeJS.Timeout|null;
+export function debounce(
+    func: (...args: any) => unknown,
+    wait: number,
+    immediate?: boolean,
+    cb?: () => unknown,
+) {
+    let timeout: NodeJS.Timeout | null;
     return function fx(...args: any[]) {
         const runLater = () => {
             timeout = null;
@@ -149,4 +170,3 @@ export class FormattedError extends Error {
         };
     }
 }
-

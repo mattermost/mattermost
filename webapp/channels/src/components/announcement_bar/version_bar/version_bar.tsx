@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import {AnnouncementBarTypes} from 'utils/constants';
+import { AnnouncementBarTypes } from "utils/constants";
 
-import AnnouncementBar from '../default_announcement_bar';
+import AnnouncementBar from "../default_announcement_bar";
 
 interface Props {
     buildHash?: string;
@@ -16,7 +16,7 @@ interface State {
     buildHashOnAppLoad?: string;
 }
 
-export default class VersionBar extends React.PureComponent <Props, State> {
+export default class VersionBar extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -40,8 +40,8 @@ export default class VersionBar extends React.PureComponent <Props, State> {
     };
 
     render() {
-        const {buildHashOnAppLoad} = this.state;
-        const {buildHash} = this.props;
+        const { buildHashOnAppLoad } = this.state;
+        const { buildHash } = this.props;
 
         if (!buildHashOnAppLoad) {
             return null;
@@ -54,19 +54,19 @@ export default class VersionBar extends React.PureComponent <Props, State> {
                     message={
                         <React.Fragment>
                             <FormattedMessage
-                                id='version_bar.new'
-                                defaultMessage='A new version of Mattermost is available.'
+                                id="version_bar.new"
+                                defaultMessage="A new version of Mattermost is available."
                             />
                             <a
                                 onClick={this.reloadPage}
-                                style={{marginLeft: '.5rem'}}
+                                style={{ marginLeft: ".5rem" }}
                             >
                                 <FormattedMessage
-                                    id='version_bar.refresh'
-                                    defaultMessage='Refresh the app now'
+                                    id="version_bar.refresh"
+                                    defaultMessage="Refresh the app now"
                                 />
                             </a>
-                            {'.'}
+                            {"."}
                         </React.Fragment>
                     }
                 />

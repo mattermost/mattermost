@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
-import {useIntl} from 'react-intl';
+import React, { useCallback } from "react";
+import { useIntl } from "react-intl";
 
-import type {Job} from '@mattermost/types/jobs';
+import type { Job } from "@mattermost/types/jobs";
 
-import {JobStatuses} from 'utils/constants';
+import { JobStatuses } from "utils/constants";
 
-import './job_cancel_button.scss';
+import "./job_cancel_button.scss";
 
 type Props = {
     job: Job;
@@ -16,24 +16,34 @@ type Props = {
     onClick: (id: string) => void;
 };
 
-const JobCancelButton = (props: Props): JSX.Element|null => {
-    const {job, disabled, onClick} = props;
+const JobCancelButton = (props: Props): JSX.Element | null => {
+    const { job, disabled, onClick } = props;
     const intl = useIntl();
     let cancelButton = null;
 
-    const handleClick = useCallback((e) => {
-        e.preventDefault();
-        onClick(job.id);
-    }, [onClick, job.id]);
+    const handleClick = useCallback(
+        (e) => {
+            e.preventDefault();
+            onClick(job.id);
+        },
+        [onClick, job.id],
+    );
 
-    if (!disabled && (job.status === JobStatuses.PENDING || job.status === JobStatuses.IN_PROGRESS)) {
+    if (
+        !disabled &&
+        (job.status === JobStatuses.PENDING ||
+            job.status === JobStatuses.IN_PROGRESS)
+    ) {
         cancelButton = (
             <span
                 onClick={handleClick}
-                className='JobCancelButton'
-                title={intl.formatMessage({id: 'admin.jobTable.cancelButton', defaultMessage: 'Cancel'})}
+                className="JobCancelButton"
+                title={intl.formatMessage({
+                    id: "admin.jobTable.cancelButton",
+                    defaultMessage: "Cancel",
+                })}
             >
-                {'×'}
+                {"×"}
             </span>
         );
     }

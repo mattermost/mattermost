@@ -1,40 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {Channel} from '@mattermost/types/channels';
-import type {Group} from '@mattermost/types/groups';
-import type {Team} from '@mattermost/types/teams';
+import type { Channel } from "@mattermost/types/channels";
+import type { Group } from "@mattermost/types/groups";
+import type { Team } from "@mattermost/types/teams";
 
-import AbstractList from 'components/admin_console/team_channel_settings/abstract_list';
+import AbstractList from "components/admin_console/team_channel_settings/abstract_list";
 
-import GroupRow from './group_row';
+import GroupRow from "./group_row";
 
 const Header = () => {
     return (
-        <div className='groups-list--header'>
-            <div className='group-name group-name-adjusted'>
+        <div className="groups-list--header">
+            <div className="group-name group-name-adjusted">
                 <FormattedMessage
-                    id='admin.team_channel_settings.group_list.nameHeader'
-                    defaultMessage='Group Name'
+                    id="admin.team_channel_settings.group_list.nameHeader"
+                    defaultMessage="Group Name"
                 />
             </div>
-            <div className='group-content'>
-                <div className='group-description group-description-adjusted'>
+            <div className="group-content">
+                <div className="group-description group-description-adjusted">
                     <FormattedMessage
-                        id='admin.team_channel_settings.group_list.membersHeader'
-                        defaultMessage='Member Count'
+                        id="admin.team_channel_settings.group_list.membersHeader"
+                        defaultMessage="Member Count"
                     />
                 </div>
-                <div className='group-description group-description-adjusted'>
+                <div className="group-description group-description-adjusted">
                     <FormattedMessage
-                        id='admin.team_channel_settings.group_list.rolesHeader'
-                        defaultMessage='Roles'
+                        id="admin.team_channel_settings.group_list.rolesHeader"
+                        defaultMessage="Roles"
                     />
                 </div>
-                <div className='group-actions'/>
+                <div className="group-actions" />
             </div>
         </div>
     );
@@ -74,7 +74,7 @@ export default class GroupList extends React.PureComponent<Props> {
     render(): JSX.Element {
         return (
             <AbstractList
-                header={<Header/>}
+                header={<Header />}
                 renderRow={this.renderRow}
                 {...this.props}
             />

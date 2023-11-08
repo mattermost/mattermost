@@ -1,22 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import type {Placement} from 'tippy.js';
+import React from "react";
+import { FormattedMessage } from "react-intl";
+import type { Placement } from "tippy.js";
 
-import type {PunchOutCoordsHeightAndWidth} from '@mattermost/components';
-import {TourTip} from '@mattermost/components';
+import type { PunchOutCoordsHeightAndWidth } from "@mattermost/components";
+import { TourTip } from "@mattermost/components";
 
-import {t} from 'utils/i18n';
+import { t } from "utils/i18n";
 
-import {useTourTipManager} from './tour_manager';
-import {getLastStep} from './utils';
+import { useTourTipManager } from "./tour_manager";
+import { getLastStep } from "./utils";
 
 // TODO MM-51399 These strings are properly defined in @mattermost/components, but the i18n tooling currently can't
 // find them there, so we've had to redefine them here
-t('tutorial_tip.out');
-t('tutorial_tip.seen');
+t("tutorial_tip.out");
+t("tutorial_tip.seen");
 
 export type ChannelsTourTipProps = {
     screen: JSX.Element;
@@ -25,8 +25,8 @@ export type ChannelsTourTipProps = {
     overlayPunchOut: PunchOutCoordsHeightAndWidth | null;
     singleTip?: boolean;
     placement?: Placement;
-    pulsatingDotPlacement?: Omit<Placement, 'auto'| 'auto-end'>;
-    pulsatingDotTranslate?: {x: number; y: number};
+    pulsatingDotPlacement?: Omit<Placement, "auto" | "auto-end">;
+    pulsatingDotTranslate?: { x: number; y: number };
     offset?: [number, number];
     width?: string | number;
     tourCategory: string;
@@ -34,7 +34,7 @@ export type ChannelsTourTipProps = {
     tippyBlueStyle?: boolean;
     showOptOut?: boolean;
     interactivePunchOut?: boolean;
-}
+};
 
 export const ChannelsTourTip = ({
     title,
@@ -45,7 +45,7 @@ export const ChannelsTourTip = ({
     pulsatingDotTranslate,
     pulsatingDotPlacement,
     offset = [-18, 4],
-    placement = 'right-start',
+    placement = "right-start",
     width = 320,
     tourCategory,
     hideBackdrop = false,
@@ -67,11 +67,8 @@ export const ChannelsTourTip = ({
 
     const prevBtn = (
         <>
-            <i className='icon icon-chevron-left'/>
-            <FormattedMessage
-                id='generic.previous'
-                defaultMessage='Previous'
-            />
+            <i className="icon icon-chevron-left" />
+            <FormattedMessage id="generic.previous" defaultMessage="Previous" />
         </>
     );
 
@@ -79,17 +76,17 @@ export const ChannelsTourTip = ({
         let buttonText = (
             <>
                 <FormattedMessage
-                    id={'tutorial_tip.ok'}
-                    defaultMessage={'Next'}
+                    id={"tutorial_tip.ok"}
+                    defaultMessage={"Next"}
                 />
-                <i className='icon icon-chevron-right'/>
+                <i className="icon icon-chevron-right" />
             </>
         );
         if (singleTip) {
             buttonText = (
                 <FormattedMessage
-                    id={'tutorial_tip.got_it'}
-                    defaultMessage={'Got it'}
+                    id={"tutorial_tip.got_it"}
+                    defaultMessage={"Got it"}
                 />
             );
             return buttonText;
@@ -99,8 +96,8 @@ export const ChannelsTourTip = ({
         if (currentStep === lastStep) {
             buttonText = (
                 <FormattedMessage
-                    id={'tutorial_tip.done'}
-                    defaultMessage={'Done'}
+                    id={"tutorial_tip.done"}
+                    defaultMessage={"Done"}
                 />
             );
         }

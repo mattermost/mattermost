@@ -1,27 +1,39 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type { PreferenceType } from "@mattermost/types/preferences";
 
-import {PreferenceTypes} from 'mattermost-redux/action_types';
-import {Client4} from 'mattermost-redux/client';
-import {getMyPreferences as getMyPreferencesSelector, makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+import { PreferenceTypes } from "mattermost-redux/action_types";
+import { Client4 } from "mattermost-redux/client";
+import {
+    getMyPreferences as getMyPreferencesSelector,
+    makeGetCategory,
+} from "mattermost-redux/selectors/entities/preferences";
+import type { Theme } from "mattermost-redux/selectors/entities/preferences";
+import { getCurrentUserId } from "mattermost-redux/selectors/entities/users";
+import type {
+    GetStateFunc,
+    DispatchFunc,
+    ActionFunc,
+} from "mattermost-redux/types/actions";
+import { getPreferenceKey } from "mattermost-redux/utils/preference_utils";
 
-import {getChannelAndMyMember, getMyChannelMember} from './channels';
-import {bindClientFunc} from './helpers';
-import {getProfilesByIds, getProfilesInChannel} from './users';
+import { getChannelAndMyMember, getMyChannelMember } from "./channels";
+import { bindClientFunc } from "./helpers";
+import { getProfilesByIds, getProfilesInChannel } from "./users";
 
-import {Preferences} from '../constants';
+import { Preferences } from "../constants";
 
-export function deletePreferences(userId: string, preferences: PreferenceType[]): ActionFunc {
+export function deletePreferences(
+    userId: string,
+    preferences: PreferenceType[],
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
         const myPreferences = getMyPreferencesSelector(state);
-        const currentPreferences = preferences.map((pref) => myPreferences[getPreferenceKey(pref.category, pref.name)]);
+        const currentPreferences = preferences.map(
+            (pref) => myPreferences[getPreferenceKey(pref.category, pref.name)],
+        );
 
         (async function deletePreferencesWrapper() {
             try {
@@ -37,9 +49,9 @@ export function deletePreferences(userId: string, preferences: PreferenceType[])
                     data: currentPreferences,
                 });
             }
-        }());
+        })();
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -50,44 +62,60 @@ export function getMyPreferences(): ActionFunc {
     });
 }
 
-export function makeDirectChannelVisibleIfNecessary(otherUserId: string): ActionFunc {
+export function makeDirectChannelVisibleIfNecessary(
+    otherUserId: string,
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
         const myPreferences = getMyPreferencesSelector(state);
         const currentUserId = getCurrentUserId(state);
 
-        let preference = myPreferences[getPreferenceKey(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, otherUserId)];
+        let preference =
+            myPreferences[
+                getPreferenceKey(
+                    Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
+                    otherUserId,
+                )
+            ];
 
-        if (!preference || preference.value === 'false') {
+        if (!preference || preference.value === "false") {
             preference = {
                 user_id: currentUserId,
                 category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
                 name: otherUserId,
-                value: 'true',
+                value: "true",
             };
             getProfilesByIds([otherUserId])(dispatch, getState);
             savePreferences(currentUserId, [preference])(dispatch);
         }
 
-        return {data: true};
+        return { data: true };
     };
 }
 
-export function makeGroupMessageVisibleIfNecessary(channelId: string): ActionFunc {
+export function makeGroupMessageVisibleIfNecessary(
+    channelId: string,
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
         const myPreferences = getMyPreferencesSelector(state);
         const currentUserId = getCurrentUserId(state);
-        const {channels} = state.entities.channels;
+        const { channels } = state.entities.channels;
 
-        let preference = myPreferences[getPreferenceKey(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId)];
+        let preference =
+            myPreferences[
+                getPreferenceKey(
+                    Preferences.CATEGORY_GROUP_CHANNEL_SHOW,
+                    channelId,
+                )
+            ];
 
-        if (!preference || preference.value === 'false') {
+        if (!preference || preference.value === "false") {
             preference = {
                 user_id: currentUserId,
                 category: Preferences.CATEGORY_GROUP_CHANNEL_SHOW,
                 name: channelId,
-                value: 'true',
+                value: "true",
             };
 
             if (channels[channelId]) {
@@ -100,11 +128,13 @@ export function makeGroupMessageVisibleIfNecessary(channelId: string): ActionFun
             savePreferences(currentUserId, [preference])(dispatch);
         }
 
-        return {data: true};
+        return { data: true };
     };
 }
 
-export function setActionsMenuInitialisationState(initializationState: Record<string, boolean>) {
+export function setActionsMenuInitialisationState(
+    initializationState: Record<string, boolean>,
+) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -118,7 +148,9 @@ export function setActionsMenuInitialisationState(initializationState: Record<st
     };
 }
 
-export function setCustomStatusInitialisationState(initializationState: Record<string, boolean>) {
+export function setCustomStatusInitialisationState(
+    initializationState: Record<string, boolean>,
+) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -148,9 +180,9 @@ export function savePreferences(userId: string, preferences: PreferenceType[]) {
                     data: preferences,
                 });
             }
-        }());
+        })();
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -161,12 +193,12 @@ export function saveTheme(teamId: string, theme: Theme): ActionFunc {
         const preference: PreferenceType = {
             user_id: currentUserId,
             category: Preferences.CATEGORY_THEME,
-            name: teamId || '',
+            name: teamId || "",
             value: JSON.stringify(theme),
         };
 
         await savePreferences(currentUserId, [preference])(dispatch);
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -174,14 +206,20 @@ export function deleteTeamSpecificThemes(): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
 
-        const themePreferences: PreferenceType[] = makeGetCategory()(state, Preferences.CATEGORY_THEME);
+        const themePreferences: PreferenceType[] = makeGetCategory()(
+            state,
+            Preferences.CATEGORY_THEME,
+        );
         const currentUserId = getCurrentUserId(state);
 
-        const toDelete = themePreferences.filter((pref) => pref.name !== '');
+        const toDelete = themePreferences.filter((pref) => pref.name !== "");
         if (toDelete.length > 0) {
-            await deletePreferences(currentUserId, toDelete)(dispatch, getState);
+            await deletePreferences(currentUserId, toDelete)(
+                dispatch,
+                getState,
+            );
         }
 
-        return {data: true};
+        return { data: true };
     };
 }

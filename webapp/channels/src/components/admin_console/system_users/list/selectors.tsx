@@ -1,18 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {GlobalState} from '@mattermost/types/store';
-import type {UserProfile} from '@mattermost/types/users';
+import type { GlobalState } from "@mattermost/types/store";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {getUser, getProfiles, getProfilesInTeam, getProfilesWithoutTeam, makeSearchProfilesStartingWithTerm, searchProfilesInTeam} from 'mattermost-redux/selectors/entities/users';
+import {
+    getUser,
+    getProfiles,
+    getProfilesInTeam,
+    getProfilesWithoutTeam,
+    makeSearchProfilesStartingWithTerm,
+    searchProfilesInTeam,
+} from "mattermost-redux/selectors/entities/users";
 
-import {userSelectorOptionsFromFilter} from 'utils/filter_users';
+import { userSelectorOptionsFromFilter } from "utils/filter_users";
 
-const ALL_USERS = '';
-const NO_TEAM = 'no_team';
+const ALL_USERS = "";
+const NO_TEAM = "no_team";
 const USER_ID_LENGTH = 26;
 
-export function getUsers(state: GlobalState, loading: boolean, teamId: string, term: string, filter: string): UserProfile[] {
+export function getUsers(
+    state: GlobalState,
+    loading: boolean,
+    teamId: string,
+    term: string,
+    filter: string,
+): UserProfile[] {
     if (loading) {
         // Show no users while loading.
         return [];
@@ -47,7 +60,13 @@ export function getUsers(state: GlobalState, loading: boolean, teamId: string, t
     return getProfilesInTeam(state, teamId, filters);
 }
 
-export function getNonBotUsers(state: GlobalState, loading: boolean, teamId: string, term: string, filter: string): UserProfile[] {
+export function getNonBotUsers(
+    state: GlobalState,
+    loading: boolean,
+    teamId: string,
+    term: string,
+    filter: string,
+): UserProfile[] {
     return getUsers(state, loading, teamId, term, filter).filter((user) => {
         return !user.is_bot;
     });

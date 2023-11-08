@@ -1,15 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combineReducers} from 'redux';
+import { combineReducers } from "redux";
 
-import type {FilesRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+import type {
+    FilesRequestsStatuses,
+    RequestStatusType,
+} from "@mattermost/types/requests";
 
-import {FileTypes} from 'mattermost-redux/action_types';
-import {RequestStatus} from 'mattermost-redux/constants';
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import { FileTypes } from "mattermost-redux/action_types";
+import { RequestStatus } from "mattermost-redux/constants";
+import type { GenericAction } from "mattermost-redux/types/actions";
 
-import {initialRequestState} from './helpers';
+import { initialRequestState } from "./helpers";
 
 export function handleUploadFilesRequest(
     REQUEST: string,
@@ -20,42 +23,47 @@ export function handleUploadFilesRequest(
     action: GenericAction,
 ): RequestStatusType {
     switch (action.type) {
-    case REQUEST:
-        return {
-            ...state,
-            status: RequestStatus.STARTED,
-        };
-    case SUCCESS:
-        return {
-            ...state,
-            status: RequestStatus.SUCCESS,
-            error: null,
-        };
-    case FAILURE: {
-        let error = action.error;
+        case REQUEST:
+            return {
+                ...state,
+                status: RequestStatus.STARTED,
+            };
+        case SUCCESS:
+            return {
+                ...state,
+                status: RequestStatus.SUCCESS,
+                error: null,
+            };
+        case FAILURE: {
+            let error = action.error;
 
-        if (error instanceof Error) {
-            error = error.hasOwnProperty('intl') ? {...error} : error.toString();
+            if (error instanceof Error) {
+                error = error.hasOwnProperty("intl")
+                    ? { ...error }
+                    : error.toString();
+            }
+
+            return {
+                ...state,
+                status: RequestStatus.FAILURE,
+                error,
+            };
         }
-
-        return {
-            ...state,
-            status: RequestStatus.FAILURE,
-            error,
-        };
-    }
-    case CANCEL:
-        return {
-            ...state,
-            status: RequestStatus.CANCELLED,
-            error: null,
-        };
-    default:
-        return state;
+        case CANCEL:
+            return {
+                ...state,
+                status: RequestStatus.CANCELLED,
+                error: null,
+            };
+        default:
+            return state;
     }
 }
 
-function uploadFiles(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function uploadFiles(
+    state: RequestStatusType = initialRequestState(),
+    action: GenericAction,
+): RequestStatusType {
     return handleUploadFilesRequest(
         FileTypes.UPLOAD_FILES_REQUEST,
         FileTypes.UPLOAD_FILES_SUCCESS,
@@ -66,6 +74,6 @@ function uploadFiles(state: RequestStatusType = initialRequestState(), action: G
     );
 }
 
-export default (combineReducers({
+export default combineReducers({
     uploadFiles,
-}) as (b: FilesRequestsStatuses, a: GenericAction) => FilesRequestsStatuses);
+}) as (b: FilesRequestsStatuses, a: GenericAction) => FilesRequestsStatuses;

@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
+import { connect } from "react-redux";
 
-import type {Post} from '@mattermost/types/posts';
+import type { Post } from "@mattermost/types/posts";
 
-import {makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import { makeGetPostsForThread } from "mattermost-redux/selectors/entities/posts";
+import { getCurrentTeam } from "mattermost-redux/selectors/entities/teams";
 
-import {getSelectedChannel, getSelectedPost} from 'selectors/rhs';
+import { getSelectedChannel, getSelectedPost } from "selectors/rhs";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import RhsThread from './rhs_thread';
+import RhsThread from "./rhs_thread";
 
 function makeMapStateToProps() {
     const getPostsForThread = makeGetPostsForThread();

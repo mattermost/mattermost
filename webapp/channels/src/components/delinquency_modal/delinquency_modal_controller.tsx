@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {Subscription} from '@mattermost/types/cloud';
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type { Subscription } from "@mattermost/types/cloud";
+import type { PreferenceType } from "@mattermost/types/preferences";
 
-import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
+import withGetCloudSubscription from "components/common/hocs/cloud/with_get_cloud_subscription";
 
-import type {ModalData} from 'types/actions';
+import type { ModalData } from "types/actions";
 
-import {useDelinquencyModalController} from './useDelinquencyModalController';
+import { useDelinquencyModalController } from "./useDelinquencyModalController";
 
 interface DelinquencyModalControllerProps {
     userIsAdmin: boolean;

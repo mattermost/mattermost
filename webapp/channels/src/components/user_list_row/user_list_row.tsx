@@ -1,24 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ReactNode} from 'react';
-import type {ConnectedComponent} from 'react-redux';
-import styled from 'styled-components';
+import React from "react";
+import type { ReactNode } from "react";
+import type { ConnectedComponent } from "react-redux";
+import styled from "styled-components";
 
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile as UserProfileType} from '@mattermost/types/users';
+import type { Channel, ChannelMembership } from "@mattermost/types/channels";
+import type { TeamMembership } from "@mattermost/types/teams";
+import type { UserProfile as UserProfileType } from "@mattermost/types/users";
 
-import {Client4} from 'mattermost-redux/client';
+import { Client4 } from "mattermost-redux/client";
 
-import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import Nbsp from 'components/html_entities/nbsp';
-import ProfilePicture from 'components/profile_picture';
-import UserProfile from 'components/user_profile';
+import CustomStatusEmoji from "components/custom_status/custom_status_emoji";
+import FormattedMarkdownMessage from "components/formatted_markdown_message";
+import Nbsp from "components/html_entities/nbsp";
+import ProfilePicture from "components/profile_picture";
+import UserProfile from "components/user_profile";
 
-import {createSafeId, displayFullAndNicknameForUser} from 'utils/utils';
+import { createSafeId, displayFullAndNicknameForUser } from "utils/utils";
 
 const CustomStatus = styled.span`
     margin: auto 0;
@@ -56,7 +56,17 @@ type Props = {
     userCount?: number;
 };
 
-const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, actionUserProps = {}, index, totalUsers, userCount}: Props) => {
+const UserListRow = ({
+    user,
+    status,
+    extraInfo = [],
+    actions = [],
+    actionProps,
+    actionUserProps = {},
+    index,
+    totalUsers,
+    userCount,
+}: Props) => {
     let buttons = null;
     if (actions) {
         buttons = actions.map((Action, actionIndex) => {
@@ -75,19 +85,19 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
 
     // QUICK HACK, NEEDS A PROP FOR TOGGLING STATUS
     let emailProp: ReactNode = user.email;
-    let emailStyle = 'more-modal__description';
+    let emailStyle = "more-modal__description";
     let statusProp: string | undefined;
     if (extraInfo && extraInfo.length > 0) {
         emailProp = (
             <FormattedMarkdownMessage
-                id='admin.user_item.emailTitle'
-                defaultMessage='**Email:** {email}'
+                id="admin.user_item.emailTitle"
+                defaultMessage="**Email:** {email}"
                 values={{
                     email: user.email,
                 }}
             />
         );
-        emailStyle = '';
+        emailStyle = "";
     } else if (user.status) {
         statusProp = user.status;
     } else {
@@ -102,50 +112,44 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
     let userCountID: string | undefined;
     let userCountEmail: string | undefined;
     if (userCount && userCount >= 0) {
-        userCountID = createSafeId('userListRowName' + userCount);
-        userCountEmail = createSafeId('userListRowEmail' + userCount);
+        userCountID = createSafeId("userListRowName" + userCount);
+        userCountEmail = createSafeId("userListRowEmail" + userCount);
     }
 
     return (
-        <div
-            key={user.id}
-            className='more-modal__row'
-        >
+        <div key={user.id} className="more-modal__row">
             <ProfilePicture
-                src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
+                src={Client4.getProfilePictureUrl(
+                    user.id,
+                    user.last_picture_update,
+                )}
                 status={statusProp}
-                size='md'
+                size="md"
                 userId={user.id}
                 hasMention={true}
                 username={user.username}
             />
             <div
-                className='more-modal__details'
-                data-testid='userListItemDetails'
+                className="more-modal__details"
+                data-testid="userListItemDetails"
             >
-                <div className='d-flex whitespace--nowrap'>
-                    <div
-                        id={userCountID}
-                        className='more-modal__name'
-                    >
+                <div className="d-flex whitespace--nowrap">
+                    <div id={userCountID} className="more-modal__name">
                         <UserProfile
                             userId={user.id}
                             hasMention={true}
                             displayUsername={true}
                         />
-                        {
-                            (user.first_name || user.last_name || user.nickname) && (
-                                <>
-                                    <Nbsp/>
-                                    {'-'}
-                                    <Nbsp/>
-                                    {
-                                        displayFullAndNicknameForUser(user)
-                                    }
-                                </>
-                            )
-                        }
-
+                        {(user.first_name ||
+                            user.last_name ||
+                            user.nickname) && (
+                            <>
+                                <Nbsp />
+                                {"-"}
+                                <Nbsp />
+                                {displayFullAndNicknameForUser(user)}
+                            </>
+                        )}
                     </div>
                     <CustomStatus>
                         <CustomStatusEmoji
@@ -153,25 +157,21 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
                             emojiSize={16}
                             showTooltip={true}
                             spanStyle={{
-                                display: 'flex',
-                                flex: '0 0 auto',
-                                alignItems: 'center',
+                                display: "flex",
+                                flex: "0 0 auto",
+                                alignItems: "center",
                             }}
                         />
                     </CustomStatus>
-
                 </div>
-                <div
-                    id={userCountEmail}
-                    className={emailStyle}
-                >
+                <div id={userCountEmail} className={emailStyle}>
                     {emailProp}
                 </div>
                 {extraInfo}
             </div>
             <div
-                data-testid='userListItemActions'
-                className='more-modal__actions'
+                data-testid="userListItemActions"
+                className="more-modal__actions"
             >
                 {buttons}
             </div>

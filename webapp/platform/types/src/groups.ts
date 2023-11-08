@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from './users';
+import { UserProfile } from "./users";
 
-import {RelationOneToOne} from './utilities';
+import { RelationOneToOne } from "./utilities";
 
 export enum SyncableType {
-    Team = 'team',
-    Channel = 'channel'
+    Team = "team",
+    Channel = "channel",
 }
 
 export type SyncablePatch = {
@@ -45,8 +45,8 @@ export type Group = {
 };
 
 export enum GroupSource {
-    Ldap = 'ldap',
-    Custom = 'custom',
+    Ldap = "ldap",
+    Custom = "custom",
 }
 
 export type GroupTeam = {
@@ -84,7 +84,7 @@ export type GroupSyncable = {
     create_at: number;
     delete_at: number;
     update_at: number;
-    type: 'Team' | 'Channel';
+    type: "Team" | "Channel";
 };
 
 export type GroupSyncablesState = {
@@ -135,7 +135,7 @@ export type GroupsWithCount = {
     // These fields are added by the client after the groups are returned by the server
     channelID?: string;
     teamID?: string;
-}
+};
 
 export type UsersWithGroupsAndCount = {
     users: UserWithGroup[];
@@ -149,7 +149,7 @@ export type GroupCreateWithUserIds = {
     source: string;
     user_ids: string[];
     description?: string;
-}
+};
 
 export type GetGroupsParams = {
     filter_allow_reference?: boolean;
@@ -159,26 +159,26 @@ export type GetGroupsParams = {
     include_archived?: boolean;
     filter_archived?: boolean;
     include_member_ids?: boolean;
-}
+};
 
 export type GetGroupsForUserParams = GetGroupsParams & {
     filter_has_member: string;
-}
+};
 
 export type GroupSearchParams = GetGroupsParams & {
     q: string;
     filter_has_member?: string;
     include_timezones?: string;
     include_channel_member_count?: string;
-}
+};
 
 export type GroupMembership = {
     user_id: string;
     roles: string;
-}
+};
 
 export type GroupPermissions = {
     can_delete: boolean;
     can_manage_members: boolean;
     can_restore: boolean;
-}
+};

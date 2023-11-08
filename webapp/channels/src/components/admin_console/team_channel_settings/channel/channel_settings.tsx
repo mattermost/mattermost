@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import ChannelsList from 'components/admin_console/team_channel_settings/channel/list';
-import AdminHeader from 'components/widgets/admin_console/admin_header';
-import AdminPanel from 'components/widgets/admin_console/admin_panel';
+import ChannelsList from "components/admin_console/team_channel_settings/channel/list";
+import AdminHeader from "components/widgets/admin_console/admin_header";
+import AdminPanel from "components/widgets/admin_console/admin_panel";
 
-import {t} from 'utils/i18n';
+import { t } from "utils/i18n";
 
 interface Props {
     siteName?: string;
@@ -32,26 +32,26 @@ export class ChannelsSettings extends React.PureComponent<Props> {
 
     render = () => {
         return (
-            <div className='wrapper--fixed'>
+            <div className="wrapper--fixed">
                 <AdminHeader>
                     <FormattedMessage
-                        id='admin.channel_settings.groupsPageTitle'
-                        defaultMessage='{siteName} Channels'
-                        values={{siteName: this.props.siteName}}
+                        id="admin.channel_settings.groupsPageTitle"
+                        defaultMessage="{siteName} Channels"
+                        values={{ siteName: this.props.siteName }}
                     />
                 </AdminHeader>
 
-                <div className='admin-console__wrapper'>
-                    <div className='admin-console__content'>
+                <div className="admin-console__wrapper">
+                    <div className="admin-console__content">
                         <AdminPanel
-                            id='channels'
-                            titleId={t('admin.channel_settings.title')}
-                            titleDefault='Channels'
-                            subtitleId={t('admin.channel_settings.description')}
-                            subtitleDefault={'Manage channel settings.'}
-                            subtitleValues={{...this.state}}
+                            id="channels"
+                            titleId={t("admin.channel_settings.title")}
+                            titleDefault="Channels"
+                            subtitleId={t("admin.channel_settings.description")}
+                            subtitleDefault={"Manage channel settings."}
+                            subtitleValues={{ ...this.state }}
                         >
-                            <ChannelsList/>
+                            <ChannelsList />
                         </AdminPanel>
                     </div>
                 </div>

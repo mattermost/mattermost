@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import styled, {keyframes} from 'styled-components';
+import styled, { keyframes } from "styled-components";
 
 const skeletonFade = keyframes`
     0% { 
@@ -35,7 +35,9 @@ export interface CircleSkeletonLoaderProps {
  * <CircleSkeletonLoader size={20}/>
  * <CircleSkeletonLoader size="50%"/>
  */
-export const CircleSkeletonLoader = styled(BaseLoader)<CircleSkeletonLoaderProps>`
+export const CircleSkeletonLoader = styled(
+    BaseLoader,
+)<CircleSkeletonLoaderProps>`
     display: block;
     border-radius: 50%;
     height: ${(props) => getCorrectSizeDimension(props.size)};
@@ -64,17 +66,22 @@ export interface RectangleSkeletonLoaderProps {
  * <RectangleSkeletonLoader height='100px' />
  * <RectangleSkeletonLoader height={40} width={100} borderRadius={4} margin='0 10px 0 0' flex='1' />
  */
-export const RectangleSkeletonLoader = styled(BaseLoader)<RectangleSkeletonLoaderProps>`
+export const RectangleSkeletonLoader = styled(
+    BaseLoader,
+)<RectangleSkeletonLoaderProps>`
     height: ${(props) => getCorrectSizeDimension(props.height)};
-    width: ${(props) => getCorrectSizeDimension(props.width, '100%')};
+    width: ${(props) => getCorrectSizeDimension(props.width, "100%")};
     border-radius: ${(props) => props?.borderRadius ?? 8}px;
     margin: ${(props) => props?.margin ?? null};
     flex: ${(props) => props?.flex ?? null};
 `;
 
-function getCorrectSizeDimension(size: number | string | undefined, fallback: string | null = null) {
+function getCorrectSizeDimension(
+    size: number | string | undefined,
+    fallback: string | null = null,
+) {
     if (size) {
-        return (typeof size === 'string') ? size : `${size}px`;
+        return typeof size === "string" ? size : `${size}px`;
     }
 
     return fallback;

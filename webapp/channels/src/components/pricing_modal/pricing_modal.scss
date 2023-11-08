@@ -34,7 +34,7 @@
             h1 {
                 margin: 0;
                 color: var(--center-channel-color);
-                font-family: 'Metropolis', sans-serif;
+                font-family: "Metropolis", sans-serif;
                 font-size: 22px;
                 font-style: normal;
                 font-weight: 600;
@@ -43,10 +43,11 @@
 
             div {
                 padding-left: 8px;
-                border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                border-left: 1px solid
+                    rgba(var(--center-channel-color-rgb), 0.16);
                 margin-left: 8px;
                 color: rgba(var(--center-channel-color-rgb), 0.56);
-                font-family: 'Open Sans';
+                font-family: "Open Sans";
                 font-size: 12px;
                 font-style: normal;
                 font-weight: 400;
@@ -102,7 +103,7 @@
 
             span {
                 color: var(--center-channel-color);
-                font-family: 'Open Sans';
+                font-family: "Open Sans";
                 font-size: 14px;
                 font-style: normal;
                 font-weight: 600;
@@ -112,7 +113,7 @@
 
             a {
                 color: var(--denim-button-bg);
-                font-family: 'Open Sans';
+                font-family: "Open Sans";
                 font-size: 14px;
                 font-style: normal;
                 font-weight: 600;
@@ -137,17 +138,19 @@
             }
 
             hr {
-                border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                border-top: 1px solid
+                    rgba(var(--center-channel-color-rgb), 0.16);
             }
 
             .description {
-                border-bottom: 1px solid rgba(var(--center-channel-color-rgb) 0.16);
+                border-bottom: 1px solid
+                    rgba(var(--center-channel-color-rgb) 0.16);
                 text-align: left;
 
                 .title {
                     margin-top: 24px;
                     margin-bottom: 8px;
-                    font-family: 'Open Sans';
+                    font-family: "Open Sans";
                     font-size: 14px;
                     font-style: normal;
                     font-weight: 600;
@@ -166,7 +169,7 @@
                 .content {
                     margin-bottom: 25px;
                     color: rgba(var(--center-channel-color-rgb), 0.72);
-                    font-family: 'Open Sans';
+                    font-family: "Open Sans";
                     font-size: 14px;
                     font-style: normal;
                     font-weight: 400;
@@ -179,7 +182,7 @@
                 margin-top: 24px;
                 background: rgba(var(--denim-button-bg-rgb), 0.08);
                 border-radius: 8px;
-                font-family: 'Open Sans';
+                font-family: "Open Sans";
                 font-size: 14px;
                 font-style: normal;
                 font-weight: 600;
@@ -250,7 +253,7 @@
                         h3 {
                             margin-top: 32px;
                             color: var(--center-channel-color);
-                            font-family: 'Metropolis';
+                            font-family: "Metropolis";
                             font-size: 24px;
                             font-style: normal;
                             font-weight: 700;
@@ -261,7 +264,7 @@
                         h1 {
                             margin: 0;
                             color: var(--center-channel-color);
-                            font-family: 'Metropolis';
+                            font-family: "Metropolis";
                             font-size: 52px;
                             font-style: normal;
                             font-weight: 700;
@@ -273,7 +276,7 @@
                         p {
                             margin-bottom: 32px;
                             color: rgba(var(--center-channel-color-rgb), 0.72);
-                            font-family: 'Metropolis';
+                            font-family: "Metropolis";
                             font-size: 16px;
                             font-style: normal;
                             font-weight: 400;
@@ -293,7 +296,7 @@
                         }
 
                         .billed_annually {
-                            font-family: 'Open sans', sans-serif;
+                            font-family: "Open sans", sans-serif;
                             font-size: 16px;
                         }
                     }
@@ -340,13 +343,22 @@
                             font-weight: 600;
 
                             &.grayed {
-                                background: rgba(var(--center-channel-color-rgb), 0.08);
-                                color: rgba(var(--center-channel-color-rgb), 0.32);
+                                background: rgba(
+                                    var(--center-channel-color-rgb),
+                                    0.08
+                                );
+                                color: rgba(
+                                    var(--center-channel-color-rgb),
+                                    0.32
+                                );
                                 cursor: not-allowed;
                             }
 
                             &.secondary {
-                                background: rgba(var(--denim-button-bg-rgb), 0.08);
+                                background: rgba(
+                                    var(--denim-button-bg-rgb),
+                                    0.08
+                                );
                                 color: var(--denim-button-bg);
                             }
 
@@ -370,7 +382,8 @@
                         height: auto;
 
                         hr {
-                            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                            border-top: 1px solid
+                                rgba(var(--center-channel-color-rgb), 0.16);
                         }
 
                         .plan_briefing_content {
@@ -378,7 +391,7 @@
 
                             .title {
                                 color: var(--center-channel-color);
-                                font-family: 'Metropolis';
+                                font-family: "Metropolis";
                                 font-size: 13px;
                                 font-style: normal;
                                 font-weight: 600;
@@ -400,8 +413,11 @@
 
                                 p {
                                     margin: 0;
-                                    color: rgba(var(--center-channel-color-rgb), 0.72);
-                                    font-family: 'Metropolis';
+                                    color: rgba(
+                                        var(--center-channel-color-rgb),
+                                        0.72
+                                    );
+                                    font-family: "Metropolis";
                                     font-size: 14px;
                                     font-style: normal;
                                     font-weight: 400;
@@ -421,7 +437,10 @@
                     position: relative;
                     height: auto;
                     padding: 37px 24px 24px 24px;
-                    background-color: rgba(var(--center-channel-text-rgb), 0.56);
+                    background-color: rgba(
+                        var(--center-channel-text-rgb),
+                        0.56
+                    );
                     border-radius: 0 0 4px 4px;
                     color: var(--sidebar-text);
 
@@ -432,7 +451,7 @@
                     }
 
                     .title {
-                        font-family: 'Metropolis';
+                        font-family: "Metropolis";
                         font-size: 16px;
                         font-style: normal;
                         font-weight: 700;

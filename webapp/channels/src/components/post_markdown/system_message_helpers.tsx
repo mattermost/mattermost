@@ -1,27 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ReactNode} from 'react';
-import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
+import React from "react";
+import type { ReactNode } from "react";
+import { FormattedDate, FormattedMessage, FormattedTime } from "react-intl";
 
-import type {Channel} from '@mattermost/types/channels';
-import type {Post} from '@mattermost/types/posts';
-import type {Team} from '@mattermost/types/teams';
+import type { Channel } from "@mattermost/types/channels";
+import type { Post } from "@mattermost/types/posts";
+import type { Team } from "@mattermost/types/teams";
 
-import {General, Posts} from 'mattermost-redux/constants';
-import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
+import { General, Posts } from "mattermost-redux/constants";
+import { isPostEphemeral } from "mattermost-redux/utils/post_utils";
 
-import Markdown from 'components/markdown';
-import CombinedSystemMessage from 'components/post_view/combined_system_message';
-import GMConversionMessage from 'components/post_view/gm_conversion_message/gm_conversion_message';
-import PostAddChannelMember from 'components/post_view/post_add_channel_member';
+import Markdown from "components/markdown";
+import CombinedSystemMessage from "components/post_view/combined_system_message";
+import GMConversionMessage from "components/post_view/gm_conversion_message/gm_conversion_message";
+import PostAddChannelMember from "components/post_view/post_add_channel_member";
 
-import type {TextFormattingOptions} from 'utils/text_formatting';
-import {getSiteURL} from 'utils/url';
+import type { TextFormattingOptions } from "utils/text_formatting";
+import { getSiteURL } from "utils/url";
 
 export function renderUsername(value: string): ReactNode {
-    const username = (value[0] === '@') ? value : `@${value}`;
+    const username = value[0] === "@" ? value : `@${value}`;
 
     const options = {
         markdown: false,
@@ -30,7 +30,11 @@ export function renderUsername(value: string): ReactNode {
     return renderFormattedText(username, options);
 }
 
-function renderFormattedText(value: string, options?: Partial<TextFormattingOptions>, post?: Post): ReactNode {
+function renderFormattedText(
+    value: string,
+    options?: Partial<TextFormattingOptions>,
+    post?: Post,
+): ReactNode {
     return (
         <Markdown
             message={value}
@@ -46,14 +50,17 @@ function renderJoinChannelMessage(post: Post): ReactNode {
 
     return (
         <FormattedMessage
-            id='api.channel.join_channel.post_and_forget'
-            defaultMessage='{username} joined the channel.'
-            values={{username}}
+            id="api.channel.join_channel.post_and_forget"
+            defaultMessage="{username} joined the channel."
+            values={{ username }}
         />
     );
 }
 
-function renderGuestJoinChannelMessage(post: Post, hideGuestTags: boolean): ReactNode {
+function renderGuestJoinChannelMessage(
+    post: Post,
+    hideGuestTags: boolean,
+): ReactNode {
     if (hideGuestTags) {
         return renderJoinChannelMessage(post);
     }
@@ -61,9 +68,9 @@ function renderGuestJoinChannelMessage(post: Post, hideGuestTags: boolean): Reac
 
     return (
         <FormattedMessage
-            id='api.channel.guest_join_channel.post_and_forget'
-            defaultMessage='{username} joined the channel as a guest.'
-            values={{username}}
+            id="api.channel.guest_join_channel.post_and_forget"
+            defaultMessage="{username} joined the channel as a guest."
+            values={{ username }}
         />
     );
 }
@@ -73,9 +80,9 @@ function renderLeaveChannelMessage(post: Post): ReactNode {
 
     return (
         <FormattedMessage
-            id='api.channel.leave.left'
-            defaultMessage='{username} has left the channel.'
-            values={{username}}
+            id="api.channel.leave.left"
+            defaultMessage="{username} has left the channel."
+            values={{ username }}
         />
     );
 }
@@ -86,8 +93,8 @@ function renderAddToChannelMessage(post: Post): ReactNode {
 
     return (
         <FormattedMessage
-            id='api.channel.add_member.added'
-            defaultMessage='{addedUsername} added to the channel by {username}.'
+            id="api.channel.add_member.added"
+            defaultMessage="{addedUsername} added to the channel by {username}."
             values={{
                 username,
                 addedUsername,
@@ -96,7 +103,10 @@ function renderAddToChannelMessage(post: Post): ReactNode {
     );
 }
 
-function renderAddGuestToChannelMessage(post: Post, hideGuestTags: boolean): ReactNode {
+function renderAddGuestToChannelMessage(
+    post: Post,
+    hideGuestTags: boolean,
+): ReactNode {
     if (hideGuestTags) {
         return renderAddToChannelMessage(post);
     }
@@ -105,8 +115,8 @@ function renderAddGuestToChannelMessage(post: Post, hideGuestTags: boolean): Rea
 
     return (
         <FormattedMessage
-            id='api.channel.add_guest.added'
-            defaultMessage='{addedUsername} added to the channel as a guest by {username}.'
+            id="api.channel.add_guest.added"
+            defaultMessage="{addedUsername} added to the channel as a guest by {username}."
             values={{
                 username,
                 addedUsername,
@@ -120,8 +130,8 @@ function renderRemoveFromChannelMessage(post: Post): ReactNode {
 
     return (
         <FormattedMessage
-            id='api.channel.remove_member.removed'
-            defaultMessage='{removedUsername} was removed from the channel'
+            id="api.channel.remove_member.removed"
+            defaultMessage="{removedUsername} was removed from the channel"
             values={{
                 removedUsername,
             }}
@@ -134,9 +144,9 @@ function renderJoinTeamMessage(post: Post): ReactNode {
 
     return (
         <FormattedMessage
-            id='api.team.join_team.post_and_forget'
-            defaultMessage='{username} joined the team.'
-            values={{username}}
+            id="api.team.join_team.post_and_forget"
+            defaultMessage="{username} joined the team."
+            values={{ username }}
         />
     );
 }
@@ -146,9 +156,9 @@ function renderLeaveTeamMessage(post: Post): ReactNode {
 
     return (
         <FormattedMessage
-            id='api.team.leave.left'
-            defaultMessage='{username} left the team.'
-            values={{username}}
+            id="api.team.leave.left"
+            defaultMessage="{username} left the team."
+            values={{ username }}
         />
     );
 }
@@ -159,8 +169,8 @@ function renderAddToTeamMessage(post: Post): ReactNode {
 
     return (
         <FormattedMessage
-            id='api.team.add_member.added'
-            defaultMessage='{addedUsername} added to the team by {username}.'
+            id="api.team.add_member.added"
+            defaultMessage="{addedUsername} added to the team by {username}."
             values={{
                 username,
                 addedUsername,
@@ -174,8 +184,8 @@ function renderRemoveFromTeamMessage(post: Post): ReactNode {
 
     return (
         <FormattedMessage
-            id='api.team.remove_user_from_team.removed'
-            defaultMessage='{removedUsername} was removed from the team.'
+            id="api.team.remove_user_from_team.removed"
+            defaultMessage="{removedUsername} was removed from the team."
             values={{
                 removedUsername,
             }}
@@ -194,21 +204,32 @@ function renderHeaderChangeMessage(post: Post): ReactNode {
     };
 
     const username = renderUsername(post.props.username);
-    const oldHeader = post.props.old_header ? renderFormattedText(post.props.old_header, headerOptions, post) : null;
-    const newHeader = post.props.new_header ? renderFormattedText(post.props.new_header, headerOptions, post) : null;
+    const oldHeader = post.props.old_header
+        ? renderFormattedText(post.props.old_header, headerOptions, post)
+        : null;
+    const newHeader = post.props.new_header
+        ? renderFormattedText(post.props.new_header, headerOptions, post)
+        : null;
 
     if (post.props.new_header) {
         if (post.props.old_header) {
             return (
                 <FormattedMessage
-                    id='api.channel.post_update_channel_header_message_and_forget.updated_from'
-                    defaultMessage='{username} updated the channel header <br></br><strong>From:</strong> {old} <br></br><strong>To:</strong> {new}'
+                    id="api.channel.post_update_channel_header_message_and_forget.updated_from"
+                    defaultMessage="{username} updated the channel header <br></br><strong>From:</strong> {old} <br></br><strong>To:</strong> {new}"
                     values={{
                         username,
                         old: oldHeader,
                         new: newHeader,
-                        strong: (chunks: React.ReactNode) => (<strong>{chunks}</strong>),
-                        br: (x: React.ReactNode) => (<><br/>{x}</>),
+                        strong: (chunks: React.ReactNode) => (
+                            <strong>{chunks}</strong>
+                        ),
+                        br: (x: React.ReactNode) => (
+                            <>
+                                <br />
+                                {x}
+                            </>
+                        ),
                     }}
                 />
             );
@@ -216,8 +237,8 @@ function renderHeaderChangeMessage(post: Post): ReactNode {
 
         return (
             <FormattedMessage
-                id='api.channel.post_update_channel_header_message_and_forget.updated_to'
-                defaultMessage='{username} updated the channel header to: {new}'
+                id="api.channel.post_update_channel_header_message_and_forget.updated_to"
+                defaultMessage="{username} updated the channel header to: {new}"
                 values={{
                     username,
                     new: newHeader,
@@ -227,8 +248,8 @@ function renderHeaderChangeMessage(post: Post): ReactNode {
     } else if (post.props.old_header) {
         return (
             <FormattedMessage
-                id='api.channel.post_update_channel_header_message_and_forget.removed'
-                defaultMessage='{username} removed the channel header (was: {old})'
+                id="api.channel.post_update_channel_header_message_and_forget.removed"
+                defaultMessage="{username} removed the channel header (was: {old})"
                 values={{
                     username,
                     old: oldHeader,
@@ -241,7 +262,13 @@ function renderHeaderChangeMessage(post: Post): ReactNode {
 }
 
 function renderDisplayNameChangeMessage(post: Post): ReactNode {
-    if (!(post.props.username && post.props.old_displayname && post.props.new_displayname)) {
+    if (
+        !(
+            post.props.username &&
+            post.props.old_displayname &&
+            post.props.new_displayname
+        )
+    ) {
         return null;
     }
 
@@ -251,8 +278,8 @@ function renderDisplayNameChangeMessage(post: Post): ReactNode {
 
     return (
         <FormattedMessage
-            id='api.channel.post_update_channel_displayname_message_and_forget.updated_from'
-            defaultMessage='{username} updated the channel display name from: {old} to: {new}'
+            id="api.channel.post_update_channel_displayname_message_and_forget.updated_from"
+            defaultMessage="{username} updated the channel display name from: {old} to: {new}"
             values={{
                 username,
                 old: oldDisplayName,
@@ -263,7 +290,7 @@ function renderDisplayNameChangeMessage(post: Post): ReactNode {
 }
 
 function renderConvertChannelToPrivateMessage(post: Post): ReactNode {
-    if (!(post.props.username)) {
+    if (!post.props.username) {
         return null;
     }
 
@@ -271,8 +298,8 @@ function renderConvertChannelToPrivateMessage(post: Post): ReactNode {
 
     return (
         <FormattedMessage
-            id='api.channel.post_convert_channel_to_private.updated_from'
-            defaultMessage='{username} converted the channel from public to private'
+            id="api.channel.post_convert_channel_to_private.updated_from"
+            defaultMessage="{username} converted the channel from public to private"
             values={{
                 username,
             }}
@@ -293,8 +320,8 @@ function renderPurposeChangeMessage(post: Post): ReactNode {
         if (post.props.old_purpose) {
             return (
                 <FormattedMessage
-                    id='app.channel.post_update_channel_purpose_message.updated_from'
-                    defaultMessage='{username} updated the channel purpose from: {old} to: {new}'
+                    id="app.channel.post_update_channel_purpose_message.updated_from"
+                    defaultMessage="{username} updated the channel purpose from: {old} to: {new}"
                     values={{
                         username,
                         old: oldPurpose,
@@ -306,8 +333,8 @@ function renderPurposeChangeMessage(post: Post): ReactNode {
 
         return (
             <FormattedMessage
-                id='app.channel.post_update_channel_purpose_message.updated_to'
-                defaultMessage='{username} updated the channel purpose to: {new}'
+                id="app.channel.post_update_channel_purpose_message.updated_to"
+                defaultMessage="{username} updated the channel purpose to: {new}"
                 values={{
                     username,
                     new: newPurpose,
@@ -317,8 +344,8 @@ function renderPurposeChangeMessage(post: Post): ReactNode {
     } else if (post.props.old_purpose) {
         return (
             <FormattedMessage
-                id='app.channel.post_update_channel_purpose_message.removed'
-                defaultMessage='{username} removed the channel purpose (was: {old})'
+                id="app.channel.post_update_channel_purpose_message.removed"
+                defaultMessage="{username} removed the channel purpose (was: {old})"
                 values={{
                     username,
                     old: oldPurpose,
@@ -339,9 +366,9 @@ function renderChannelDeletedMessage(post: Post): ReactNode {
 
     return (
         <FormattedMessage
-            id='api.channel.delete_channel.archived'
-            defaultMessage='{username} has archived the channel.'
-            values={{username}}
+            id="api.channel.delete_channel.archived"
+            defaultMessage="{username} has archived the channel."
+            values={{ username }}
         />
     );
 }
@@ -355,16 +382,16 @@ function renderChannelUnarchivedMessage(post: Post): ReactNode {
 
     return (
         <FormattedMessage
-            id='api.channel.restore_channel.unarchived'
-            defaultMessage='{username} has unarchived the channel.'
-            values={{username}}
+            id="api.channel.restore_channel.unarchived"
+            defaultMessage="{username} has unarchived the channel."
+            values={{ username }}
         />
     );
 }
 
 function renderMeMessage(post: Post): ReactNode {
     // Trim off the leading and trailing asterisk added to /me messages
-    const message = post.message.replace(/^\*|\*$/g, '');
+    const message = post.message.replace(/^\*|\*$/g, "");
 
     return renderFormattedText(message);
 }
@@ -388,13 +415,29 @@ const systemMessageRenderers = {
     [Posts.POST_TYPES.ME]: renderMeMessage,
 };
 
-export function renderSystemMessage(post: Post, currentTeam: Team, channel: Channel, hideGuestTags: boolean, isUserCanManageMembers?: boolean, isMilitaryTime?: boolean, timezone?: string): ReactNode {
+export function renderSystemMessage(
+    post: Post,
+    currentTeam: Team,
+    channel: Channel,
+    hideGuestTags: boolean,
+    isUserCanManageMembers?: boolean,
+    isMilitaryTime?: boolean,
+    timezone?: string,
+): ReactNode {
     const isEphemeral = isPostEphemeral(post);
     if (isEphemeral && post.props?.type === Posts.POST_TYPES.REMINDER) {
-        return renderReminderACKMessage(post, currentTeam, Boolean(isMilitaryTime), timezone);
+        return renderReminderACKMessage(
+            post,
+            currentTeam,
+            Boolean(isMilitaryTime),
+            timezone,
+        );
     }
     if (post.props && post.props.add_channel_member) {
-        if (channel && (channel.type === General.PRIVATE_CHANNEL || channel.type === General.OPEN_CHANNEL) &&
+        if (
+            channel &&
+            (channel.type === General.PRIVATE_CHANNEL ||
+                channel.type === General.OPEN_CHANNEL) &&
             isUserCanManageMembers &&
             isEphemeral
         ) {
@@ -417,7 +460,8 @@ export function renderSystemMessage(post: Post, currentTeam: Team, channel: Chan
     } else if (post.type === Posts.POST_TYPES.ADD_GUEST_TO_CHANNEL) {
         return renderAddGuestToChannelMessage(post, hideGuestTags);
     } else if (post.type === Posts.POST_TYPES.COMBINED_USER_ACTIVITY) {
-        const {allUserIds, allUsernames, messageData} = post.props.user_activity;
+        const { allUserIds, allUsernames, messageData } =
+            post.props.user_activity;
 
         return (
             <CombinedSystemMessage
@@ -430,17 +474,22 @@ export function renderSystemMessage(post: Post, currentTeam: Team, channel: Chan
         // This is rendered via a separate component instead of registering in
         // systemMessageRenderers because we need to format a list with keeping i18n support
         // which cannot be done outside a react component.
-        return (
-            <GMConversionMessage post={post}/>
-        );
+        return <GMConversionMessage post={post} />;
     }
 
     return null;
 }
 
-function renderReminderACKMessage(post: Post, currentTeam: Team, isMilitaryTime: boolean, timezone?: string): ReactNode {
+function renderReminderACKMessage(
+    post: Post,
+    currentTeam: Team,
+    isMilitaryTime: boolean,
+    timezone?: string,
+): ReactNode {
     const username = renderUsername(post.props.username);
-    const teamUrl = `${getSiteURL()}/${post.props.team_name || currentTeam.name}`;
+    const teamUrl = `${getSiteURL()}/${
+        post.props.team_name || currentTeam.name
+    }`;
     const link = `${teamUrl}/pl/${post.props.post_id}`;
     const permaLink = renderFormattedText(`[${link}](${link})`);
     const localTime = new Date(post.props.target_time * 1000);
@@ -450,19 +499,21 @@ function renderReminderACKMessage(post: Post, currentTeam: Team, isMilitaryTime:
             value={localTime}
             hour12={!isMilitaryTime}
             timeZone={timezone}
-        />);
+        />
+    );
     const reminderDate = (
         <FormattedDate
             value={localTime}
-            day='2-digit'
-            month='short'
-            year='numeric'
+            day="2-digit"
+            month="short"
+            year="numeric"
             timeZone={timezone}
-        />);
+        />
+    );
     return (
         <FormattedMessage
-            id={'post.reminder.acknowledgement'}
-            defaultMessage='You will be reminded at {reminderTime}, {reminderDate} about this message from {username}: {permaLink}'
+            id={"post.reminder.acknowledgement"}
+            defaultMessage="You will be reminded at {reminderTime}, {reminderDate} about this message from {username}: {permaLink}"
             values={{
                 reminderTime,
                 reminderDate,
@@ -473,14 +524,21 @@ function renderReminderACKMessage(post: Post, currentTeam: Team, isMilitaryTime:
     );
 }
 
-export function renderReminderSystemBotMessage(post: Post, currentTeam: Team): ReactNode {
-    const username = post.props.username ? renderUsername(post.props.username) : '';
-    const teamUrl = `${getSiteURL()}/${post.props.team_name || currentTeam.name}`;
+export function renderReminderSystemBotMessage(
+    post: Post,
+    currentTeam: Team,
+): ReactNode {
+    const username = post.props.username
+        ? renderUsername(post.props.username)
+        : "";
+    const teamUrl = `${getSiteURL()}/${
+        post.props.team_name || currentTeam.name
+    }`;
     const link = `${teamUrl}/pl/${post.props.post_id}`;
     const permaLink = renderFormattedText(`[${link}](${link})`);
     return (
         <FormattedMessage
-            id={'post.reminder.systemBot'}
+            id={"post.reminder.systemBot"}
             defaultMessage="Hi there, here's your reminder about this message from {username}: {permaLink}"
             values={{
                 username,

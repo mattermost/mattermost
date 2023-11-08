@@ -2,8 +2,8 @@
     display: grid;
     overflow: hidden;
     grid-template-areas:
-        'header'
-        'list';
+        "header"
+        "list";
     grid-template-rows: 56px 1fr;
 
     .Header {

@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import AutocompleteSelector from './autocomplete_selector';
+import AutocompleteSelector from "./autocomplete_selector";
 
-describe('components/widgets/settings/AutocompleteSelector', () => {
-    test('render component with required props', () => {
+describe("components/widgets/settings/AutocompleteSelector", () => {
+    test("render component with required props", () => {
         const wrapper = shallow(
             <AutocompleteSelector
-                id='string.id'
-                label='some label'
-                value='some value'
+                id="string.id"
+                label="some label"
+                value="some value"
                 providers={[]}
             />,
         );
@@ -51,12 +51,12 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
         `);
     });
 
-    test('check snapshot with value prop and changing focus', () => {
+    test("check snapshot with value prop and changing focus", () => {
         const wrapper = shallow<AutocompleteSelector>(
             <AutocompleteSelector
                 providers={[]}
-                label='some label'
-                value='value from prop'
+                label="some label"
+                value="value from prop"
             />,
         );
 
@@ -96,7 +96,11 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
             </div>
         `);
 
-        wrapper.instance().onChange(({target: {value: 'value from input'} as HTMLInputElement}));
+        wrapper
+            .instance()
+            .onChange({
+                target: { value: "value from input" } as HTMLInputElement,
+            });
         wrapper.instance().onFocus();
 
         expect(wrapper).toMatchInlineSnapshot(`
@@ -134,18 +138,24 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
         `);
     });
 
-    test('onSelected', () => {
+    test("onSelected", () => {
         const onSelected = jest.fn();
         const wrapper = shallow<AutocompleteSelector>(
             <AutocompleteSelector
-                label='some label'
-                value='some value'
+                label="some label"
+                value="some value"
                 providers={[]}
                 onSelected={onSelected}
             />,
         );
 
-        const selected = {text: 'sometext', value: 'somevalue', id: '', username: '', display_name: ''};
+        const selected = {
+            text: "sometext",
+            value: "somevalue",
+            id: "",
+            username: "",
+            display_name: "",
+        };
         wrapper.instance().handleSelected(selected);
 
         expect(onSelected).toHaveBeenCalledTimes(1);

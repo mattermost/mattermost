@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {Emoji} from '@mattermost/types/emojis';
+import type { Emoji } from "@mattermost/types/emojis";
 
-import Permissions from 'mattermost-redux/constants/permissions';
+import Permissions from "mattermost-redux/constants/permissions";
 
-import OverlayTrigger from 'components/overlay_trigger';
-import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import Tooltip from 'components/tooltip';
+import OverlayTrigger from "components/overlay_trigger";
+import ChannelPermissionGate from "components/permissions_gates/channel_permission_gate";
+import Tooltip from "components/tooltip";
 
-import {Locations} from 'utils/constants';
+import { Locations } from "utils/constants";
 
-import EmojiItem from './recent_reactions_emoji_item';
+import EmojiItem from "./recent_reactions_emoji_item";
 
-type LocationTypes = 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT';
+type LocationTypes = "CENTER" | "RHS_ROOT" | "RHS_COMMENT";
 
 type Props = {
     channelId?: string;
@@ -29,24 +29,27 @@ type Props = {
     actions: {
         addReaction: (postId: string, emojiName: string) => void;
     };
-}
+};
 
 type State = {
     location: LocationTypes;
-}
+};
 
-export default class PostRecentReactions extends React.PureComponent<Props, State> {
+export default class PostRecentReactions extends React.PureComponent<
+    Props,
+    State
+> {
     public static defaultProps: Partial<Props> = {
-        location: Locations.CENTER as 'CENTER',
+        location: Locations.CENTER as "CENTER",
         size: 3,
     };
 
     handleAddEmoji = (emoji: Emoji): void => {
-        const emojiName = 'short_name' in emoji ? emoji.short_name : emoji.name;
+        const emojiName = "short_name" in emoji ? emoji.short_name : emoji.name;
         this.props.actions.addReaction(this.props.postId, emojiName);
     };
 
-    complementEmojis = (emojis: Emoji[]): (Emoji[]) => {
+    complementEmojis = (emojis: Emoji[]): Emoji[] => {
         const additional = this.props.defaultEmojis.filter((e) => {
             let ignore = false;
             for (const emoji of emojis) {
@@ -69,15 +72,12 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
         function capitalizeFirstLetter(s: string) {
             return s[0].toLocaleUpperCase(locale) + s.slice(1);
         }
-        const name = 'short_name' in emoji ? emoji.short_name : emoji.name;
-        return capitalizeFirstLetter(name.replace(/_/g, ' '));
+        const name = "short_name" in emoji ? emoji.short_name : emoji.name;
+        return capitalizeFirstLetter(name.replace(/_/g, " "));
     };
 
     render() {
-        const {
-            channelId,
-            teamId,
-        } = this.props;
+        const { channelId, teamId } = this.props;
 
         let emojis = [...this.props.emojis].slice(0, this.props.size);
         if (emojis.length < this.props.size) {
@@ -92,13 +92,13 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
                 permissions={[Permissions.ADD_REACTION]}
             >
                 <OverlayTrigger
-                    className='hidden-xs'
+                    className="hidden-xs"
                     delayShow={500}
-                    placement='top'
+                    placement="top"
                     overlay={
                         <Tooltip
-                            id='post_info.emoji.tooltip'
-                            className='hidden-xs'
+                            id="post_info.emoji.tooltip"
+                            className="hidden-xs"
                         >
                             {this.emojiName(emoji, this.props.locale)}
                         </Tooltip>
@@ -115,7 +115,6 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
                     </div>
                 </OverlayTrigger>
             </ChannelPermissionGate>
-        ),
-        );
+        ));
     }
 }

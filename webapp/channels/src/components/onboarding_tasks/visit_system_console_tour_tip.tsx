@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import React, { useEffect } from "react";
+import { FormattedMessage } from "react-intl";
+import { useDispatch, useSelector } from "react-redux";
 
-import {TourTip, useMeasurePunchouts} from '@mattermost/components';
+import { TourTip, useMeasurePunchouts } from "@mattermost/components";
 
-import {setShowOnboardingVisitConsoleTour} from 'actions/views/onboarding_tasks';
-import {isShowOnboardingVisitConsoleTour} from 'selectors/views/onboarding_tasks';
+import { setShowOnboardingVisitConsoleTour } from "actions/views/onboarding_tasks";
+import { isShowOnboardingVisitConsoleTour } from "selectors/views/onboarding_tasks";
 
-import {OnboardingTasksName, TaskNameMapToSteps} from './constants';
-import {useHandleOnBoardingTaskData} from './onboarding_tasks_manager';
+import { OnboardingTasksName, TaskNameMapToSteps } from "./constants";
+import { useHandleOnBoardingTaskData } from "./onboarding_tasks_manager";
 
-const translate = {x: 0, y: -2};
+const translate = { x: 0, y: -2 };
 
 export const VisitSystemConsoleTour = () => {
     const dispatch = useDispatch();
@@ -30,25 +30,30 @@ export const VisitSystemConsoleTour = () => {
 
     const title = (
         <FormattedMessage
-            id='onboardingTask.visitSystemConsole.title'
-            defaultMessage={'Visit the System Console'}
+            id="onboardingTask.visitSystemConsole.title"
+            defaultMessage={"Visit the System Console"}
         />
     );
     const screen = (
         <p>
             <FormattedMessage
-                id='onboardingTask.visitSystemConsole.Description'
-                defaultMessage={'More detailed configuration settings for your workspace can be accessed here.'}
+                id="onboardingTask.visitSystemConsole.Description"
+                defaultMessage={
+                    "More detailed configuration settings for your workspace can be accessed here."
+                }
             />
         </p>
     );
 
-    const overlayPunchOut = useMeasurePunchouts(['product-switcher-menu-dropdown'], []);
+    const overlayPunchOut = useMeasurePunchouts(
+        ["product-switcher-menu-dropdown"],
+        [],
+    );
 
     const onDismiss = (e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
-        handleTask(taskName, steps.START, true, 'dismiss');
+        handleTask(taskName, steps.START, true, "dismiss");
     };
 
     return (
@@ -58,8 +63,8 @@ export const VisitSystemConsoleTour = () => {
             screen={screen}
             overlayPunchOut={overlayPunchOut}
             step={steps.STARTED}
-            placement='left-start'
-            pulsatingDotPlacement='right'
+            placement="left-start"
+            pulsatingDotPlacement="right"
             pulsatingDotTranslate={translate}
             handleDismiss={onDismiss}
             singleTip={true}

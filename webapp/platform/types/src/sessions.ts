@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {TeamMembership} from './teams';
+import { TeamMembership } from "./teams";
 
 export type Session = {
     id: string;
@@ -16,4 +16,4 @@ export type Session = {
     props: Record<string, any>;
     team_members: TeamMembership[];
     local: boolean;
-}
+};

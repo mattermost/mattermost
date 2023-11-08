@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React, { useMemo } from "react";
 
-import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
+import { sortFileInfos } from "mattermost-redux/utils/file_utils";
 
-import FileAttachment from 'components/file_attachment';
-import FilePreviewModal from 'components/file_preview_modal';
-import SingleImageView from 'components/single_image_view';
+import FileAttachment from "components/file_attachment";
+import FilePreviewModal from "components/file_preview_modal";
+import SingleImageView from "components/single_image_view";
 
-import {FileTypes, ModalIdentifiers} from 'utils/constants';
-import {getFileType} from 'utils/utils';
+import { FileTypes, ModalIdentifiers } from "utils/constants";
+import { getFileType } from "utils/utils";
 
-import type {OwnProps, PropsFromRedux} from './index';
+import type { OwnProps, PropsFromRedux } from "./index";
 
 type Props = OwnProps & PropsFromRedux;
 
@@ -38,11 +38,17 @@ export default function FileAttachmentList(props: Props) {
         isInPermalink,
     } = props;
 
-    const sortedFileInfos = useMemo(() => sortFileInfos(fileInfos ? [...fileInfos] : [], locale), [fileInfos, locale]);
+    const sortedFileInfos = useMemo(
+        () => sortFileInfos(fileInfos ? [...fileInfos] : [], locale),
+        [fileInfos, locale],
+    );
     if (fileInfos && fileInfos.length === 1 && !fileInfos[0].archived) {
         const fileType = getFileType(fileInfos[0].extension);
 
-        if (fileType === FileTypes.IMAGE || (fileType === FileTypes.SVG && enableSVGs)) {
+        if (
+            fileType === FileTypes.IMAGE ||
+            (fileType === FileTypes.SVG && enableSVGs)
+        ) {
             return (
                 <SingleImageView
                     fileInfo={fileInfos[0]}
@@ -54,9 +60,7 @@ export default function FileAttachmentList(props: Props) {
             );
         }
     } else if (fileCount === 1 && props.isEmbedVisible && !fileInfos?.[0]) {
-        return (
-            <div style={style.minHeightPlaceholder}/>
-        );
+        return <div style={style.minHeightPlaceholder} />;
     }
 
     const postFiles = [];
@@ -80,7 +84,7 @@ export default function FileAttachmentList(props: Props) {
             postFiles.push(
                 <div
                     key={`fileCount-${i}`}
-                    className='post-image__column post-image__column--placeholder'
+                    className="post-image__column post-image__column--placeholder"
                 />,
             );
         }
@@ -88,8 +92,8 @@ export default function FileAttachmentList(props: Props) {
 
     return (
         <div
-            data-testid='fileAttachmentList'
-            className='post-image__columns clearfix'
+            data-testid="fileAttachmentList"
+            className="post-image__columns clearfix"
         >
             {postFiles}
         </div>
@@ -97,5 +101,5 @@ export default function FileAttachmentList(props: Props) {
 }
 
 const style = {
-    minHeightPlaceholder: {minHeight: '385px'},
+    minHeightPlaceholder: { minHeight: "385px" },
 };

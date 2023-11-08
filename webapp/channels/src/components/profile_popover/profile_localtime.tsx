@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DateTime, Duration} from 'luxon';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import { DateTime, Duration } from "luxon";
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {UserTimezone} from '@mattermost/types/users';
+import type { UserTimezone } from "@mattermost/types/users";
 
-import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
+import { getUserCurrentTimezone } from "mattermost-redux/utils/timezone_utils";
 
-import Timestamp from 'components/timestamp';
+import Timestamp from "components/timestamp";
 
 type ProfileTimezoneProps = {
     profileUserTimezone?: UserTimezone;
     currentUserTimezone: string | undefined;
-}
+};
 
 const returnTimeDiff = (
     currentUserTimezone: string | undefined | null,
@@ -34,52 +34,53 @@ const returnTimeDiff = (
         return undefined;
     }
 
-    const timeOffset = offset.toHuman({unitDisplay: 'short', signDisplay: 'never'});
+    const timeOffset = offset.toHuman({
+        unitDisplay: "short",
+        signDisplay: "never",
+    });
 
     return offset.valueOf() > 0 ? (
         <FormattedMessage
-            id='user_profile.account.hoursAhead'
-            defaultMessage='({timeOffset} ahead)'
-            values={{timeOffset}}
+            id="user_profile.account.hoursAhead"
+            defaultMessage="({timeOffset} ahead)"
+            values={{ timeOffset }}
         />
     ) : (
         <FormattedMessage
-            id='user_profile.account.hoursBehind'
-            defaultMessage='({timeOffset} behind)'
-            values={{timeOffset}}
+            id="user_profile.account.hoursBehind"
+            defaultMessage="({timeOffset} behind)"
+            values={{ timeOffset }}
         />
     );
 };
 
-export const ProfileTimezone = (
-    {
-        currentUserTimezone,
-        profileUserTimezone,
-    }: ProfileTimezoneProps,
-) => {
-    const profileTimezone = getUserCurrentTimezone(profileUserTimezone) || 'UTC';
-    const profileTimezoneShort = profileTimezone ? DateTime.now().setZone(profileTimezone).offsetNameShort : undefined;
+export const ProfileTimezone = ({
+    currentUserTimezone,
+    profileUserTimezone,
+}: ProfileTimezoneProps) => {
+    const profileTimezone =
+        getUserCurrentTimezone(profileUserTimezone) || "UTC";
+    const profileTimezoneShort = profileTimezone
+        ? DateTime.now().setZone(profileTimezone).offsetNameShort
+        : undefined;
 
     return (
-        <div
-            className='user-popover__time-status-container'
-        >
-            <span className='user-popover__subtitle'>
+        <div className="user-popover__time-status-container">
+            <span className="user-popover__subtitle">
                 {profileTimezoneShort ? (
                     <FormattedMessage
-                        id='user_profile.account.localTimeWithTimezone'
-                        defaultMessage='Local Time ({timezone})'
+                        id="user_profile.account.localTimeWithTimezone"
+                        defaultMessage="Local Time ({timezone})"
                         values={{
                             timezone: profileTimezoneShort,
                         }}
                     />
                 ) : (
                     <FormattedMessage
-                        id='user_profile.account.localTime'
-                        defaultMessage='Local Time'
+                        id="user_profile.account.localTime"
+                        defaultMessage="Local Time"
                     />
                 )}
-
             </span>
             <span>
                 <Timestamp
@@ -87,14 +88,12 @@ export const ProfileTimezone = (
                     useDate={false}
                     userTimezone={profileUserTimezone}
                     useTime={{
-                        hour: 'numeric',
-                        minute: 'numeric',
+                        hour: "numeric",
+                        minute: "numeric",
                     }}
-                />
-                {' '}
+                />{" "}
                 {returnTimeDiff(currentUserTimezone, profileTimezone)}
             </span>
-
         </div>
     );
 };

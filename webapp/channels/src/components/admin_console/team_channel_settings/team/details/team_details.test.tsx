@@ -1,28 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import {TestHelper} from 'utils/test_helper';
+import { TestHelper } from "utils/test_helper";
 
-import TeamDetails from './team_details';
+import TeamDetails from "./team_details";
 
-describe('admin_console/team_channel_settings/team/TeamDetails', () => {
-    const groups = [TestHelper.getGroupMock({
-        id: '123',
-        display_name: 'DN',
-        member_count: 3,
-    })];
+describe("admin_console/team_channel_settings/team/TeamDetails", () => {
+    const groups = [
+        TestHelper.getGroupMock({
+            id: "123",
+            display_name: "DN",
+            member_count: 3,
+        }),
+    ];
     const allGroups = {
         123: groups[0],
     };
     const testTeam = TestHelper.getTeamMock({
-        id: '123',
+        id: "123",
         allow_open_invite: false,
-        allowed_domains: '',
+        allowed_domains: "",
         group_constrained: false,
-        display_name: 'team',
+        display_name: "team",
         delete_at: 0,
     });
 
@@ -49,16 +51,12 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <TeamDetails
-                {...baseProps}
-            />,
-        );
+    test("should match snapshot", () => {
+        const wrapper = shallow(<TeamDetails {...baseProps} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with isLocalArchived true', () => {
+    test("should match snapshot with isLocalArchived true", () => {
         const props = {
             ...baseProps,
             team: {
@@ -66,11 +64,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
                 delete_at: 16465313,
             },
         };
-        const wrapper = shallow(
-            <TeamDetails
-                {...props}
-            />,
-        );
+        const wrapper = shallow(<TeamDetails {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 });

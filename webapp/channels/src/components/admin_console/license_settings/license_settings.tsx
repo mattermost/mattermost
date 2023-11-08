@@ -1,40 +1,49 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {StatusOK} from '@mattermost/types/client4';
-import type {ClientLicense} from '@mattermost/types/config';
-import type {ServerError} from '@mattermost/types/errors';
-import type {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/users';
+import type { StatusOK } from "@mattermost/types/client4";
+import type { ClientLicense } from "@mattermost/types/config";
+import type { ServerError } from "@mattermost/types/errors";
+import type {
+    GetFilteredUsersStatsOpts,
+    UsersStats,
+} from "@mattermost/types/users";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import {trackEvent} from 'actions/telemetry_actions';
+import { trackEvent } from "actions/telemetry_actions";
 
-import ExternalLink from 'components/external_link';
-import AdminHeader from 'components/widgets/admin_console/admin_header';
+import ExternalLink from "components/external_link";
+import AdminHeader from "components/widgets/admin_console/admin_header";
 
-import {AboutLinks, CloudLinks, ModalIdentifiers} from 'utils/constants';
-import {isLicenseExpired, isLicenseExpiring, isTrialLicense, isEnterpriseOrE20License, licenseSKUWithFirstLetterCapitalized} from 'utils/license_utils';
+import { AboutLinks, CloudLinks, ModalIdentifiers } from "utils/constants";
+import {
+    isLicenseExpired,
+    isLicenseExpiring,
+    isTrialLicense,
+    isEnterpriseOrE20License,
+    licenseSKUWithFirstLetterCapitalized,
+} from "utils/license_utils";
 
-import type {ModalData} from 'types/actions';
+import type { ModalData } from "types/actions";
 
-import EnterpriseEditionLeftPanel from './enterprise_edition/enterprise_edition_left_panel';
-import EnterpriseEditionRightPanel from './enterprise_edition/enterprise_edition_right_panel';
-import ConfirmLicenseRemovalModal from './modals/confirm_license_removal_modal';
-import EELicenseModal from './modals/ee_license_modal';
-import UploadLicenseModal from './modals/upload_license_modal';
-import RenewLinkCard from './renew_license_card/renew_license_card';
-import StarterLeftPanel from './starter_edition/starter_left_panel';
-import StarterRightPanel from './starter_edition/starter_right_panel';
-import TeamEditionLeftPanel from './team_edition/team_edition_left_panel';
-import TeamEditionRightPanel from './team_edition/team_edition_right_panel';
-import TrialBanner from './trial_banner/trial_banner';
-import TrialLicenseCard from './trial_license_card/trial_license_card';
+import EnterpriseEditionLeftPanel from "./enterprise_edition/enterprise_edition_left_panel";
+import EnterpriseEditionRightPanel from "./enterprise_edition/enterprise_edition_right_panel";
+import ConfirmLicenseRemovalModal from "./modals/confirm_license_removal_modal";
+import EELicenseModal from "./modals/ee_license_modal";
+import UploadLicenseModal from "./modals/upload_license_modal";
+import RenewLinkCard from "./renew_license_card/renew_license_card";
+import StarterLeftPanel from "./starter_edition/starter_left_panel";
+import StarterRightPanel from "./starter_edition/starter_right_panel";
+import TeamEditionLeftPanel from "./team_edition/team_edition_left_panel";
+import TeamEditionRightPanel from "./team_edition/team_edition_right_panel";
+import TrialBanner from "./trial_banner/trial_banner";
+import TrialLicenseCard from "./trial_license_card/trial_license_card";
 
-import './license_settings.scss';
+import "./license_settings.scss";
 
 type Props = {
     license: ClientLicense;
@@ -49,17 +58,25 @@ type Props = {
         removeLicense: () => Promise<ActionResult>;
         getPrevTrialLicense: () => void;
         upgradeToE0: () => Promise<StatusOK>;
-        upgradeToE0Status: () => Promise<{percentage: number; error: string | JSX.Element}>;
+        upgradeToE0Status: () => Promise<{
+            percentage: number;
+            error: string | JSX.Element;
+        }>;
         restartServer: () => Promise<StatusOK>;
-        ping: () => Promise<{status: string}>;
-        requestTrialLicense: (users: number, termsAccepted: boolean, receiveEmailsAccepted: boolean, featureName: string) => Promise<ActionResult>;
+        ping: () => Promise<{ status: string }>;
+        requestTrialLicense: (
+            users: number,
+            termsAccepted: boolean,
+            receiveEmailsAccepted: boolean,
+            featureName: string,
+        ) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
         getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{
             data?: UsersStats;
             error?: ServerError;
         }>;
     };
-}
+};
 
 type State = {
     fileSelected: boolean;
@@ -106,11 +123,17 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
             this.reloadPercentage();
         }
         this.props.actions.getLicenseConfig();
-        this.props.actions.getFilteredUsersStats({include_bots: false, include_deleted: false});
+        this.props.actions.getFilteredUsersStats({
+            include_bots: false,
+            include_deleted: false,
+        });
     }
 
     componentDidUpdate(prevProps: Props, prevState: State) {
-        if (prevState.fileSelected !== this.state.fileSelected && this.state.fileSelected) {
+        if (
+            prevState.fileSelected !== this.state.fileSelected &&
+            this.state.fileSelected
+        ) {
             this.props.actions.openModal({
                 modalId: ModalIdentifiers.UPLOAD_LICENSE,
                 dialogType: UploadLicenseModal,
@@ -119,7 +142,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                 },
             });
         }
-        this.setState({fileSelected: false, file: null});
+        this.setState({ fileSelected: false, file: null });
     }
 
     componentWillUnmount() {
@@ -129,27 +152,31 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
     }
 
     reloadPercentage = async () => {
-        const {percentage, error} = await this.props.actions.upgradeToE0Status();
+        const { percentage, error } =
+            await this.props.actions.upgradeToE0Status();
         if (percentage === 100 || error) {
             if (this.interval) {
                 clearInterval(this.interval);
                 this.interval = null;
                 if (error) {
-                    trackEvent('api', 'upgrade_to_e0_failed', {error});
+                    trackEvent("api", "upgrade_to_e0_failed", { error });
                 } else {
-                    trackEvent('api', 'upgrade_to_e0_success');
+                    trackEvent("api", "upgrade_to_e0_success");
                 }
             }
         } else if (percentage > 0 && !this.interval) {
             this.interval = setInterval(this.reloadPercentage, 2000);
         }
-        this.setState({upgradingPercentage: percentage || 0, upgradeError: error as string});
+        this.setState({
+            upgradingPercentage: percentage || 0,
+            upgradeError: error as string,
+        });
     };
 
     handleChange = () => {
         const element = this.fileInputRef.current;
         if (element?.files?.length) {
-            this.setState({fileSelected: true, file: element.files[0]});
+            this.setState({ fileSelected: true, file: element.files[0] });
         }
     };
 
@@ -164,24 +191,29 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
         this.props.actions.openModal({
             modalId: ModalIdentifiers.CONFIRM_LICENSE_REMOVAL,
             dialogType: ConfirmLicenseRemovalModal,
-            dialogProps: {handleRemove: this.handleRemove, currentLicenseSKU: licenseSKUWithFirstLetterCapitalized(this.props.license)},
+            dialogProps: {
+                handleRemove: this.handleRemove,
+                currentLicenseSKU: licenseSKUWithFirstLetterCapitalized(
+                    this.props.license,
+                ),
+            },
         });
     };
 
     handleRemove = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
-        this.setState({removing: true});
+        this.setState({ removing: true });
 
-        const {error} = await this.props.actions.removeLicense();
+        const { error } = await this.props.actions.removeLicense();
         if (error) {
-            this.setState({serverError: error.message, removing: false});
+            this.setState({ serverError: error.message, removing: false });
             return;
         }
 
         this.props.actions.getPrevTrialLicense();
         await this.props.actions.getLicenseConfig();
-        this.setState({serverError: null, removing: false});
+        this.setState({ serverError: null, removing: false });
     };
 
     handleUpgrade = async (e?: React.MouseEvent<HTMLButtonElement>) => {
@@ -193,51 +225,59 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
         }
         try {
             await this.props.actions.upgradeToE0();
-            this.setState({upgradingPercentage: 1});
+            this.setState({ upgradingPercentage: 1 });
             await this.reloadPercentage();
         } catch (error: any) {
-            trackEvent('api', 'upgrade_to_e0_failed', {error: error.message as string});
-            this.setState({upgradeError: error.message, upgradingPercentage: 0});
+            trackEvent("api", "upgrade_to_e0_failed", {
+                error: error.message as string,
+            });
+            this.setState({
+                upgradeError: error.message,
+                upgradingPercentage: 0,
+            });
         }
     };
 
     checkRestarted = () => {
-        this.props.actions.ping().then(() => {
-            window.location.reload();
-        }).catch(() => {
-            setTimeout(this.checkRestarted, 1000);
-        });
+        this.props.actions
+            .ping()
+            .then(() => {
+                window.location.reload();
+            })
+            .catch(() => {
+                setTimeout(this.checkRestarted, 1000);
+            });
     };
 
     handleRestart = async (e?: React.MouseEvent<HTMLButtonElement>) => {
         if (e) {
             e.preventDefault();
         }
-        this.setState({restarting: true});
+        this.setState({ restarting: true });
         try {
             await this.props.actions.restartServer();
         } catch (err) {
-            this.setState({restarting: false, restartError: err as string});
+            this.setState({ restarting: false, restartError: err as string });
         }
         setTimeout(this.checkRestarted, 1000);
     };
 
     setClickNormalUpgradeBtn = () => {
-        this.setState({clickNormalUpgradeBtn: true});
+        this.setState({ clickNormalUpgradeBtn: true });
     };
 
     currentPlan = (
-        <div className='current-plan-legend'>
-            <i className='icon-check-circle'/>
-            {'Current Plan'}
+        <div className="current-plan-legend">
+            <i className="icon-check-circle" />
+            {"Current Plan"}
         </div>
     );
 
     createLink = (link: string, text: string) => {
         return (
             <ExternalLink
-                location='license_settings'
-                id='privacyLink'
+                location="license_settings"
+                id="privacyLink"
                 href={link}
             >
                 {text}
@@ -246,28 +286,32 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
     };
 
     termsAndPolicy = (
-        <div className='terms-and-policy'>
-            {'See also '}
-            {this.createLink(AboutLinks.TERMS_OF_SERVICE, 'Enterprise Edition Terms of Use')}
-            {' and '}
-            {this.createLink(AboutLinks.PRIVACY_POLICY, 'Privacy Policy')}
+        <div className="terms-and-policy">
+            {"See also "}
+            {this.createLink(
+                AboutLinks.TERMS_OF_SERVICE,
+                "Enterprise Edition Terms of Use",
+            )}
+            {" and "}
+            {this.createLink(AboutLinks.PRIVACY_POLICY, "Privacy Policy")}
         </div>
     );
 
     comparePlans = (
-        <div className='compare-plans-text'>
-            {'Curious about upgrading? '}
-            {this.createLink(CloudLinks.PRICING, 'Compare Plans')}
+        <div className="compare-plans-text">
+            {"Curious about upgrading? "}
+            {this.createLink(CloudLinks.PRICING, "Compare Plans")}
         </div>
     );
 
     render() {
-        const {license, upgradedFromTE, isDisabled} = this.props;
+        const { license, upgradedFromTE, isDisabled } = this.props;
 
         let leftPanel = null;
         let rightPanel = null;
 
-        if (!this.props.enterpriseReady) { // Team Edition
+        if (!this.props.enterpriseReady) {
+            // Team Edition
             // Note: DO NOT LOCALISE THESE STRINGS. Legally we can not since the license is in English.
             leftPanel = (
                 <TeamEditionLeftPanel
@@ -288,7 +332,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                     setClickNormalUpgradeBtn={this.setClickNormalUpgradeBtn}
                 />
             );
-        } else if (license.IsLicensed === 'true') {
+        } else if (license.IsLicensed === "true") {
             // Note: DO NOT LOCALISE THESE STRINGS. Legally we can not since the license is in English.
             leftPanel = (
                 <EnterpriseEditionLeftPanel
@@ -324,53 +368,59 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                 />
             );
 
-            rightPanel = (
-                <StarterRightPanel/>
-            );
+            rightPanel = <StarterRightPanel />;
         }
 
         return (
-            <div className='wrapper--fixed'>
+            <div className="wrapper--fixed">
                 <AdminHeader>
                     <FormattedMessage
-                        id='admin.license.title'
-                        defaultMessage='Edition and License'
+                        id="admin.license.title"
+                        defaultMessage="Edition and License"
                     />
                 </AdminHeader>
-                <div className='admin-console__wrapper'>
-                    <div className='admin-console__content'>
-                        <div className='admin-console__banner_section'>
-                            {!this.state.clickNormalUpgradeBtn && license.IsLicensed !== 'true' &&
-                                this.props.prevTrialLicense?.IsLicensed !== 'true' &&
-                                <TrialBanner
-                                    isDisabled={isDisabled}
-                                    gettingTrialResponseCode={this.state.gettingTrialResponseCode}
-                                    gettingTrialError={this.state.gettingTrialError}
-                                    gettingTrial={this.state.gettingTrial}
-                                    enterpriseReady={this.props.enterpriseReady}
-                                    upgradingPercentage={this.state.upgradingPercentage}
-                                    handleUpgrade={this.handleUpgrade}
-                                    upgradeError={this.state.upgradeError}
-                                    restartError={this.state.restartError}
-                                    handleRestart={this.handleRestart}
-                                    restarting={this.state.restarting}
-                                    openEEModal={this.openEELicenseModal}
-                                />
-                            }
+                <div className="admin-console__wrapper">
+                    <div className="admin-console__content">
+                        <div className="admin-console__banner_section">
+                            {!this.state.clickNormalUpgradeBtn &&
+                                license.IsLicensed !== "true" &&
+                                this.props.prevTrialLicense?.IsLicensed !==
+                                    "true" && (
+                                    <TrialBanner
+                                        isDisabled={isDisabled}
+                                        gettingTrialResponseCode={
+                                            this.state.gettingTrialResponseCode
+                                        }
+                                        gettingTrialError={
+                                            this.state.gettingTrialError
+                                        }
+                                        gettingTrial={this.state.gettingTrial}
+                                        enterpriseReady={
+                                            this.props.enterpriseReady
+                                        }
+                                        upgradingPercentage={
+                                            this.state.upgradingPercentage
+                                        }
+                                        handleUpgrade={this.handleUpgrade}
+                                        upgradeError={this.state.upgradeError}
+                                        restartError={this.state.restartError}
+                                        handleRestart={this.handleRestart}
+                                        restarting={this.state.restarting}
+                                        openEEModal={this.openEELicenseModal}
+                                    />
+                                )}
                             {this.renewLicenseCard()}
                         </div>
-                        <div className='top-wrapper'>
-                            <div className='left-panel'>
-                                <div className='panel-card'>
-                                    {leftPanel}
-                                </div>
-                                {(!isTrialLicense(license)) && this.termsAndPolicy}
+                        <div className="top-wrapper">
+                            <div className="left-panel">
+                                <div className="panel-card">{leftPanel}</div>
+                                {!isTrialLicense(license) &&
+                                    this.termsAndPolicy}
                             </div>
-                            <div className='right-panel'>
-                                <div className='panel-card'>
-                                    {rightPanel}
-                                </div>
-                                {!isEnterpriseOrE20License(license) && this.comparePlans}
+                            <div className="right-panel">
+                                <div className="panel-card">{rightPanel}</div>
+                                {!isEnterpriseOrE20License(license) &&
+                                    this.comparePlans}
                             </div>
                         </div>
                     </div>
@@ -380,16 +430,15 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
     }
 
     renewLicenseCard = () => {
-        const {isDisabled} = this.props;
+        const { isDisabled } = this.props;
 
         if (isTrialLicense(this.props.license)) {
-            return (
-                <TrialLicenseCard
-                    license={this.props.license}
-                />
-            );
+            return <TrialLicenseCard license={this.props.license} />;
         }
-        if (isLicenseExpired(this.props.license) || isLicenseExpiring(this.props.license)) {
+        if (
+            isLicenseExpired(this.props.license) ||
+            isLicenseExpiring(this.props.license)
+        ) {
             return (
                 <RenewLinkCard
                     license={this.props.license}

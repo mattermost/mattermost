@@ -1,27 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import textboxReducer from 'reducers/views/textbox';
+import textboxReducer from "reducers/views/textbox";
 
-import {ActionTypes} from 'utils/constants';
+import { ActionTypes } from "utils/constants";
 
-describe('Reducers.RHS', () => {
+describe("Reducers.RHS", () => {
     const initialState = {
         shouldShowPreviewOnCreateComment: false,
         shouldShowPreviewOnCreatePost: false,
         shouldShowPreviewOnEditChannelHeaderModal: false,
     };
 
-    test('Initial state', () => {
-        const nextState = textboxReducer(
-            {},
-            {},
-        );
+    test("Initial state", () => {
+        const nextState = textboxReducer({}, {});
 
         expect(nextState).toEqual(initialState);
     });
 
-    test('update show preview value on create comment', () => {
+    test("update show preview value on create comment", () => {
         const nextState = textboxReducer(
             {},
             {
@@ -36,7 +33,7 @@ describe('Reducers.RHS', () => {
         });
     });
 
-    test('update show preview value on create post', () => {
+    test("update show preview value on create post", () => {
         const nextState = textboxReducer(
             {},
             {
@@ -51,7 +48,7 @@ describe('Reducers.RHS', () => {
         });
     });
 
-    test('update show preview value on edit channel header modal', () => {
+    test("update show preview value on edit channel header modal", () => {
         const nextState = textboxReducer(
             {},
             {

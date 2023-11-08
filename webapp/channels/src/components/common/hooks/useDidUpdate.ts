@@ -4,7 +4,7 @@
 // Disable consistent return since the effectCallback allows for non consistent returns.
 /* eslint-disable consistent-return */
 
-import {useEffect, useRef} from 'react';
+import { useEffect, useRef } from "react";
 
 const useDidUpdate: typeof useEffect = (effect, deps) => {
     const mounted = useRef(false);

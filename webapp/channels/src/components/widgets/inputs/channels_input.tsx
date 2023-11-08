@@ -1,32 +1,35 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import type {RefObject} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {components} from 'react-select';
-import type {ValueType, ActionMeta, InputActionMeta} from 'react-select';
-import type {Async} from 'react-select/async';
-import AsyncSelect from 'react-select/async';
+import classNames from "classnames";
+import React from "react";
+import type { RefObject } from "react";
+import { FormattedMessage } from "react-intl";
+import { components } from "react-select";
+import type { ValueType, ActionMeta, InputActionMeta } from "react-select";
+import type { Async } from "react-select/async";
+import AsyncSelect from "react-select/async";
 
-import type {Channel} from '@mattermost/types/channels';
+import type { Channel } from "@mattermost/types/channels";
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
-import PublicChannelIcon from 'components/widgets/icons/globe_icon';
-import PrivateChannelIcon from 'components/widgets/icons/lock_icon';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import FormattedMarkdownMessage from "components/formatted_markdown_message";
+import CloseCircleSolidIcon from "components/widgets/icons/close_circle_solid_icon";
+import PublicChannelIcon from "components/widgets/icons/globe_icon";
+import PrivateChannelIcon from "components/widgets/icons/lock_icon";
+import LoadingSpinner from "components/widgets/loading/loading_spinner";
 
-import {Constants} from 'utils/constants';
-import {t} from 'utils/i18n';
+import { Constants } from "utils/constants";
+import { t } from "utils/i18n";
 
-import './channels_input.scss';
+import "./channels_input.scss";
 
 type Props = {
     placeholder: React.ReactNode;
     ariaLabel: string;
-    channelsLoader: (value: string, callback?: (channels: Channel[]) => void) => Promise<Channel[]>;
+    channelsLoader: (
+        value: string,
+        callback?: (channels: Channel[]) => void,
+    ) => Promise<Channel[]>;
     onChange: (channels: Channel[]) => void;
     value: Channel[];
     onInputChange: (change: string) => void;
@@ -35,7 +38,7 @@ type Props = {
     loadingMessageDefault?: string;
     noOptionsMessageId?: string;
     noOptionsMessageDefault?: string;
-}
+};
 
 type State = {
     options: Channel[];
@@ -43,12 +46,19 @@ type State = {
 
 export default class ChannelsInput extends React.PureComponent<Props, State> {
     static defaultProps = {
-        loadingMessageId: t('widgets.channels_input.loading'),
-        loadingMessageDefault: 'Loading',
-        noOptionsMessageId: t('widgets.channels_input.empty'),
-        noOptionsMessageDefault: 'No channels found',
+        loadingMessageId: t("widgets.channels_input.loading"),
+        loadingMessageDefault: "Loading",
+        noOptionsMessageId: t("widgets.channels_input.empty"),
+        noOptionsMessageDefault: "No channels found",
     };
-    private selectRef: RefObject<Async<Channel> & {handleInputChange: (newValue: string, actionMeta: InputActionMeta | {action: 'custom'}) => string}>;
+    private selectRef: RefObject<
+        Async<Channel> & {
+            handleInputChange: (
+                newValue: string,
+                actionMeta: InputActionMeta | { action: "custom" },
+            ) => string;
+        }
+    >;
 
     constructor(props: Props) {
         super(props);
@@ -61,26 +71,35 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
     getOptionValue = (channel: Channel) => channel.id;
 
     handleInputChange = (inputValue: string, action: InputActionMeta) => {
-        if (action.action === 'input-blur' && inputValue !== '') {
+        if (action.action === "input-blur" && inputValue !== "") {
             for (const option of this.state.options) {
                 if (this.props.inputValue === option.name) {
-                    this.onChange([...this.props.value, option], {} as ActionMeta<Channel>);
-                    this.props.onInputChange('');
+                    this.onChange(
+                        [...this.props.value, option],
+                        {} as ActionMeta<Channel>,
+                    );
+                    this.props.onInputChange("");
                     return;
                 }
             }
         }
-        if (action.action !== 'input-blur' && action.action !== 'menu-close') {
+        if (action.action !== "input-blur" && action.action !== "menu-close") {
             this.props.onInputChange(inputValue);
         }
     };
 
-    optionsLoader = (_input: string, callback: (options: Channel[]) => void) => {
+    optionsLoader = (
+        _input: string,
+        callback: (options: Channel[]) => void,
+    ) => {
         const customCallback = (options: Channel[]) => {
-            this.setState({options});
+            this.setState({ options });
             callback(options);
         };
-        const result = this.props.channelsLoader(this.props.inputValue, customCallback);
+        const result = this.props.channelsLoader(
+            this.props.inputValue,
+            customCallback,
+        );
         if (result && result.then) {
             result.then(customCallback);
         }
@@ -95,7 +114,7 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
         );
 
         // faking types due to longstanding mismatches in react-select & @types/react-select
-        return (<LoadingSpinner text={text}/> as unknown as string);
+        return (<LoadingSpinner text={text} />) as unknown as string;
     };
 
     NoOptionsMessage = (props: Record<string, any>) => {
@@ -105,12 +124,12 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
         }
         const Msg: any = components.NoOptionsMessage;
         return (
-            <div className='channels-input__option channels-input__option--no-matches'>
+            <div className="channels-input__option channels-input__option--no-matches">
                 <Msg {...props}>
                     <FormattedMarkdownMessage
                         id={this.props.noOptionsMessageId}
                         defaultMessage={this.props.noOptionsMessageDefault}
-                        values={{text: inputValue}}
+                        values={{ text: inputValue }}
                     />
                 </Msg>
             </div>
@@ -118,15 +137,15 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
     };
 
     formatOptionLabel = (channel: Channel) => {
-        let icon = <PublicChannelIcon className='public-channel-icon'/>;
+        let icon = <PublicChannelIcon className="public-channel-icon" />;
         if (channel.type === Constants.PRIVATE_CHANNEL) {
-            icon = <PrivateChannelIcon className='private-channel-icon'/>;
+            icon = <PrivateChannelIcon className="private-channel-icon" />;
         }
         return (
             <React.Fragment>
                 {icon}
                 {channel.display_name}
-                <span className='channel-name'>{channel.name}</span>
+                <span className="channel-name">{channel.name}</span>
             </React.Fragment>
         );
     };
@@ -138,11 +157,13 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
         }
     };
 
-    MultiValueRemove = ({children, innerProps}: {children: React.ReactNode | React.ReactNodeArray; innerProps: Record<string, any>}) => (
-        <div {...innerProps}>
-            {children || <CloseCircleSolidIcon/>}
-        </div>
-    );
+    MultiValueRemove = ({
+        children,
+        innerProps,
+    }: {
+        children: React.ReactNode | React.ReactNodeArray;
+        innerProps: Record<string, any>;
+    }) => <div {...innerProps}>{children || <CloseCircleSolidIcon />}</div>;
 
     components = {
         NoOptionsMessage: this.NoOptionsMessage,
@@ -151,20 +172,28 @@ export default class ChannelsInput extends React.PureComponent<Props, State> {
     };
 
     onFocus = () => {
-        this.selectRef.current?.handleInputChange(this.props.inputValue, {action: 'custom'});
+        this.selectRef.current?.handleInputChange(this.props.inputValue, {
+            action: "custom",
+        });
     };
 
     render() {
         return (
             <AsyncSelect
                 ref={this.selectRef}
-                onChange={this.onChange as (value: ValueType<Channel>, _meta: ActionMeta<Channel>) => void}
-
+                onChange={
+                    this.onChange as (
+                        value: ValueType<Channel>,
+                        _meta: ActionMeta<Channel>,
+                    ) => void
+                }
                 loadOptions={this.optionsLoader}
                 isMulti={true}
                 isClearable={false}
-                className={classNames('ChannelsInput', {empty: this.props.inputValue === ''})}
-                classNamePrefix='channels-input'
+                className={classNames("ChannelsInput", {
+                    empty: this.props.inputValue === "",
+                })}
+                classNamePrefix="channels-input"
                 placeholder={this.props.placeholder}
                 components={this.components}
                 getOptionValue={this.getOptionValue}

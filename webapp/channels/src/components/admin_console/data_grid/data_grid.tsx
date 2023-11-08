@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import type {CSSProperties} from 'react';
-import {FormattedMessage} from 'react-intl';
+import classNames from "classnames";
+import React from "react";
+import type { CSSProperties } from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {FilterOptions} from 'components/admin_console/filter/filter';
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import type { FilterOptions } from "components/admin_console/filter/filter";
+import NextIcon from "components/widgets/icons/fa_next_icon";
+import PreviousIcon from "components/widgets/icons/fa_previous_icon";
+import LoadingSpinner from "components/widgets/loading/loading_spinner";
 
-import DataGridHeader from './data_grid_header';
-import DataGridRow from './data_grid_row';
-import DataGridSearch from './data_grid_search';
+import DataGridHeader from "./data_grid_header";
+import DataGridRow from "./data_grid_row";
+import DataGridSearch from "./data_grid_search";
 
-import './data_grid.scss';
+import "./data_grid.scss";
 
 export type Column = {
     name: string | JSX.Element;
@@ -25,16 +25,29 @@ export type Column = {
     // Optional styling overrides
     className?: string;
     width?: number;
-    textAlign?: '-moz-initial' | 'inherit' | 'initial' | 'revert' | 'unset' | 'center' | 'end' | 'justify' | 'left' | 'match-parent' | 'right' | 'start' | undefined;
+    textAlign?:
+        | "-moz-initial"
+        | "inherit"
+        | "initial"
+        | "revert"
+        | "unset"
+        | "center"
+        | "end"
+        | "justify"
+        | "left"
+        | "match-parent"
+        | "right"
+        | "start"
+        | undefined;
     overflow?: string;
-}
+};
 
 export type Row = {
     cells: {
         [key: string]: JSX.Element | string | null;
     };
     onClick?: () => void;
-}
+};
 
 type Props = {
     rows: Row[];
@@ -81,14 +94,16 @@ class DataGrid extends React.PureComponent<Props, State> {
     private ref: React.RefObject<HTMLDivElement>;
 
     static defaultProps = {
-        term: '',
-        searchPlaceholder: '',
+        term: "",
+        searchPlaceholder: "",
     };
 
     public constructor(props: Props) {
         super(props);
 
-        const minimumColumnWidth = props.minimumColumnWidth ? props.minimumColumnWidth : MINIMUM_COLUMN_WIDTH;
+        const minimumColumnWidth = props.minimumColumnWidth
+            ? props.minimumColumnWidth
+            : MINIMUM_COLUMN_WIDTH;
 
         this.state = {
             visibleColumns: this.props.columns,
@@ -102,16 +117,16 @@ class DataGrid extends React.PureComponent<Props, State> {
 
     componentDidMount() {
         this.handleResize();
-        window.addEventListener('resize', this.handleResize);
+        window.addEventListener("resize", this.handleResize);
     }
 
     componentDidUpdate(prevProps: Props) {
         if (this.props.columns !== prevProps.columns) {
-            this.setState({visibleColumns: this.props.columns});
+            this.setState({ visibleColumns: this.props.columns });
         }
     }
     componentWillUnmount() {
-        window.removeEventListener('resize', this.handleResize);
+        window.removeEventListener("resize", this.handleResize);
     }
 
     private handleResize = () => {
@@ -119,11 +134,12 @@ class DataGrid extends React.PureComponent<Props, State> {
             return;
         }
 
-        const {minimumColumnWidth, fixedColumns} = this.state;
-        const fixedColumnWidth = (fixedColumns.length * minimumColumnWidth);
+        const { minimumColumnWidth, fixedColumns } = this.state;
+        const fixedColumnWidth = fixedColumns.length * minimumColumnWidth;
 
         let visibleColumns: Column[] = this.props.columns;
-        let availableWidth = this.ref.current.clientWidth - fixedColumnWidth - 50;
+        let availableWidth =
+            this.ref.current.clientWidth - fixedColumnWidth - 50;
 
         visibleColumns = visibleColumns.filter((column) => {
             if (availableWidth > minimumColumnWidth) {
@@ -134,28 +150,28 @@ class DataGrid extends React.PureComponent<Props, State> {
             return Boolean(column.fixed);
         });
 
-        this.setState({visibleColumns});
+        this.setState({ visibleColumns });
     };
 
     private renderRows(): JSX.Element {
-        const {rows, rowsContainerStyles} = this.props;
-        const {visibleColumns} = this.state;
+        const { rows, rowsContainerStyles } = this.props;
+        const { visibleColumns } = this.state;
         let rowsToRender: JSX.Element | JSX.Element[] | null = null;
 
         if (this.props.loading) {
             if (this.props.loadingIndicator) {
                 rowsToRender = (
-                    <div className='DataGrid_loading'>
+                    <div className="DataGrid_loading">
                         {this.props.loadingIndicator}
                     </div>
                 );
             } else {
                 rowsToRender = (
-                    <div className='DataGrid_loading'>
-                        <LoadingSpinner/>
+                    <div className="DataGrid_loading">
+                        <LoadingSpinner />
                         <FormattedMessage
-                            id='admin.data_grid.loading'
-                            defaultMessage='Loading'
+                            id="admin.data_grid.loading"
+                            defaultMessage="Loading"
                         />
                     </div>
                 );
@@ -163,15 +179,11 @@ class DataGrid extends React.PureComponent<Props, State> {
         } else if (rows.length === 0) {
             const placeholder = this.props.placeholderEmpty || (
                 <FormattedMessage
-                    id='admin.data_grid.empty'
-                    defaultMessage='No items found'
+                    id="admin.data_grid.empty"
+                    defaultMessage="No items found"
                 />
             );
-            rowsToRender = (
-                <div className='DataGrid_empty'>
-                    {placeholder}
-                </div>
-            );
+            rowsToRender = <div className="DataGrid_empty">{placeholder}</div>;
         } else {
             rowsToRender = rows.map((row, index) => {
                 return (
@@ -184,21 +196,14 @@ class DataGrid extends React.PureComponent<Props, State> {
             });
         }
         return (
-            <div
-                className='DataGrid_rows'
-                style={rowsContainerStyles || {}}
-            >
+            <div className="DataGrid_rows" style={rowsContainerStyles || {}}>
                 {rowsToRender}
             </div>
         );
     }
 
     private renderHeader(): JSX.Element {
-        return (
-            <DataGridHeader
-                columns={this.state.visibleColumns}
-            />
-        );
+        return <DataGridHeader columns={this.state.visibleColumns} />;
     }
 
     private renderSearch(): JSX.Element | null {
@@ -235,7 +240,7 @@ class DataGrid extends React.PureComponent<Props, State> {
     };
 
     private renderFooter = (): JSX.Element | null => {
-        const {startCount, endCount, total} = this.props;
+        const { startCount, endCount, total } = this.props;
         let footer: JSX.Element | null = null;
 
         if (total) {
@@ -253,11 +258,11 @@ class DataGrid extends React.PureComponent<Props, State> {
             }
 
             footer = (
-                <div className='DataGrid_footer'>
-                    <div className='DataGrid_cell'>
+                <div className="DataGrid_footer">
+                    <div className="DataGrid_cell">
                         <FormattedMessage
-                            id='admin.data_grid.paginatorCount'
-                            defaultMessage='{startCount, number} - {endCount, number} of {total, number}'
+                            id="admin.data_grid.paginatorCount"
+                            defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
                             values={{
                                 startCount,
                                 endCount,
@@ -265,20 +270,26 @@ class DataGrid extends React.PureComponent<Props, State> {
                             }}
                         />
                         <button
-                            type='button'
-                            className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
+                            type="button"
+                            className={
+                                "btn btn-quaternary btn-icon btn-sm ml-2 prev " +
+                                (firstPage ? "disabled" : "")
+                            }
                             onClick={prevPageFn}
                             disabled={firstPage}
                         >
-                            <PreviousIcon/>
+                            <PreviousIcon />
                         </button>
                         <button
-                            type='button'
-                            className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
+                            type="button"
+                            className={
+                                "btn btn-quaternary btn-icon btn-sm next " +
+                                (lastPage ? "disabled" : "")
+                            }
                             onClick={nextPageFn}
                             disabled={lastPage}
                         >
-                            <NextIcon/>
+                            <NextIcon />
                         </button>
                     </div>
                 </div>
@@ -291,7 +302,7 @@ class DataGrid extends React.PureComponent<Props, State> {
     public render() {
         return (
             <div
-                className={classNames('DataGrid', this.props.className)}
+                className={classNames("DataGrid", this.props.className)}
                 ref={this.ref}
             >
                 {this.renderSearch()}

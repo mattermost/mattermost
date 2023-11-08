@@ -10,16 +10,16 @@ import {
     useInteractions,
     FloatingFocusManager,
     useDismiss,
-} from '@floating-ui/react-dom-interactions';
-import type {Locale} from 'date-fns';
-import React, {useCallback, useEffect, useState} from 'react';
-import {DayPicker} from 'react-day-picker';
-import type {DayPickerProps} from 'react-day-picker';
+} from "@floating-ui/react-dom-interactions";
+import type { Locale } from "date-fns";
+import React, { useCallback, useEffect, useState } from "react";
+import { DayPicker } from "react-day-picker";
+import type { DayPickerProps } from "react-day-picker";
 
-import {getDatePickerLocalesForDateFns} from 'utils/utils';
+import { getDatePickerLocalesForDateFns } from "utils/utils";
 
-import 'react-day-picker/dist/style.css';
-import './date_picker.scss';
+import "react-day-picker/dist/style.css";
+import "./date_picker.scss";
 
 type Props = {
     children: React.ReactNode;
@@ -27,23 +27,40 @@ type Props = {
     isPopperOpen: boolean;
     locale: string;
     handlePopperOpenState: (isOpen: boolean) => void;
-}
+};
 
-const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenState, locale}: Props) => {
-    const [loadedLocales, setLoadedLocales] = useState<Record<string, Locale>>({});
-    const {x, y, reference, floating, strategy, context} = useFloating({
+const DatePicker = ({
+    children,
+    datePickerProps,
+    isPopperOpen,
+    handlePopperOpenState,
+    locale,
+}: Props) => {
+    const [loadedLocales, setLoadedLocales] = useState<Record<string, Locale>>(
+        {},
+    );
+    const { x, y, reference, floating, strategy, context } = useFloating({
         open: isPopperOpen,
         onOpenChange: () => handlePopperOpenState(false),
-        placement: 'bottom-start',
+        placement: "bottom-start",
         whileElementsMounted: autoUpdate,
         middleware: [
             offset(5),
-            flip({fallbackPlacements: ['bottom-end', 'top-start', 'top-end', 'right-start', 'left-start'], padding: 5}),
+            flip({
+                fallbackPlacements: [
+                    "bottom-end",
+                    "top-start",
+                    "top-end",
+                    "right-start",
+                    "left-start",
+                ],
+                padding: 5,
+            }),
             shift(),
         ],
     });
 
-    const {getReferenceProps, getFloatingProps} = useInteractions([
+    const { getReferenceProps, getFloatingProps } = useInteractions([
         useDismiss(context, {
             enabled: true,
             outsidePress: true,
@@ -55,23 +72,16 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
     }, [loadedLocales, locale]);
 
     const iconLeft = useCallback(() => {
-        return (
-            <i className='icon icon-chevron-left'/>
-        );
+        return <i className="icon icon-chevron-left" />;
     }, []);
 
     const iconRight = useCallback(() => {
-        return (
-            <i className='icon icon-chevron-right'/>
-        );
+        return <i className="icon icon-chevron-right" />;
     }, []);
 
     return (
         <div>
-            <div
-                ref={reference}
-                {...getReferenceProps()}
-            >
+            <div ref={reference} {...getReferenceProps()}>
                 {children}
             </div>
             {isPopperOpen && (
@@ -86,14 +96,14 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
                             position: strategy,
                             top: y ?? 0,
                             left: x ?? 0,
-                            width: 'auto',
+                            width: "auto",
                             zIndex: 999,
                         }}
                         {...getFloatingProps()}
                     >
                         <DayPicker
                             {...datePickerProps}
-                            className='date-picker__popper'
+                            className="date-picker__popper"
                             locale={loadedLocales[locale]}
                             components={{
                                 IconRight: iconRight,
@@ -101,7 +111,6 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
                             }}
                         />
                     </div>
-
                 </FloatingFocusManager>
             )}
         </div>

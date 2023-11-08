@@ -1,18 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import {MenuItemActionImpl} from './menu_item_action';
+import { MenuItemActionImpl } from "./menu_item_action";
 
-describe('components/MenuItemAction', () => {
-    test('should match snapshot', () => {
+describe("components/MenuItemAction", () => {
+    test("should match snapshot", () => {
         const wrapper = shallow(
-            <MenuItemActionImpl
-                onClick={jest.fn()}
-                text='Whatever'
-            />,
+            <MenuItemActionImpl onClick={jest.fn()} text="Whatever" />,
         );
 
         expect(wrapper).toMatchInlineSnapshot(`
@@ -30,12 +27,12 @@ describe('components/MenuItemAction', () => {
             </Fragment>
         `);
     });
-    test('should match snapshot with extra text', () => {
+    test("should match snapshot with extra text", () => {
         const wrapper = shallow(
             <MenuItemActionImpl
                 onClick={jest.fn()}
-                text='Whatever'
-                extraText='Extra Text'
+                text="Whatever"
+                extraText="Extra Text"
             />,
         );
 

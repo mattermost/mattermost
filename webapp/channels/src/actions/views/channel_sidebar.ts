@@ -1,19 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createCategory as createCategoryRedux, moveChannelsToCategory} from 'mattermost-redux/actions/channel_categories';
-import {General} from 'mattermost-redux/constants';
-import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-import {getCategory, makeGetChannelIdsForCategory} from 'mattermost-redux/selectors/entities/channel_categories';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {insertMultipleWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
+import {
+    createCategory as createCategoryRedux,
+    moveChannelsToCategory,
+} from "mattermost-redux/actions/channel_categories";
+import { General } from "mattermost-redux/constants";
+import { CategoryTypes } from "mattermost-redux/constants/channel_categories";
+import {
+    getCategory,
+    makeGetChannelIdsForCategory,
+} from "mattermost-redux/selectors/entities/channel_categories";
+import { getCurrentChannelId } from "mattermost-redux/selectors/entities/channels";
+import type {
+    DispatchFunc,
+    GetStateFunc,
+} from "mattermost-redux/types/actions";
+import { insertMultipleWithoutDuplicates } from "mattermost-redux/utils/array_utils";
 
-import {getCategoriesForCurrentTeam, getChannelsInCategoryOrder, getDisplayedChannels} from 'selectors/views/channel_sidebar';
+import {
+    getCategoriesForCurrentTeam,
+    getChannelsInCategoryOrder,
+    getDisplayedChannels,
+} from "selectors/views/channel_sidebar";
 
-import {ActionTypes} from 'utils/constants';
+import { ActionTypes } from "utils/constants";
 
-import type {DraggingState, GlobalState} from 'types/store';
+import type { DraggingState, GlobalState } from "types/store";
 
 export function setUnreadFilterEnabled(enabled: boolean) {
     return {
@@ -30,14 +43,19 @@ export function setDraggingState(data: DraggingState) {
 }
 
 export function stopDragging() {
-    return {type: ActionTypes.SIDEBAR_DRAGGING_STOP};
+    return { type: ActionTypes.SIDEBAR_DRAGGING_STOP };
 }
 
-export function createCategory(teamId: string, displayName: string, channelIds?: string[]) {
+export function createCategory(
+    teamId: string,
+    displayName: string,
+    channelIds?: string[],
+) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         if (channelIds) {
             const state = getState() as GlobalState;
-            const multiSelectedChannelIds = state.views.channelSidebar.multiSelectedChannelIds;
+            const multiSelectedChannelIds =
+                state.views.channelSidebar.multiSelectedChannelIds;
             channelIds.forEach((channelId) => {
                 if (multiSelectedChannelIds.indexOf(channelId) >= 0) {
                     dispatch(multiSelectChannelAdd(channelId));
@@ -45,7 +63,9 @@ export function createCategory(teamId: string, displayName: string, channelIds?:
             });
         }
 
-        const result: any = await dispatch(createCategoryRedux(teamId, displayName, channelIds));
+        const result: any = await dispatch(
+            createCategoryRedux(teamId, displayName, channelIds),
+        );
         return dispatch({
             type: ActionTypes.ADD_NEW_CATEGORY_ID,
             data: result.data.id,
@@ -61,44 +81,94 @@ export function addChannelsInSidebar(categoryId: string, channelId: string) {
 
 // moveChannelsInSidebar moves channels to a given category in the sidebar, but it accounts for when the target index
 // may have changed due to archived channels not being shown in the sidebar.
-export function moveChannelsInSidebar(categoryId: string, targetIndex: number, draggableChannelId: string, setManualSorting = true) {
+export function moveChannelsInSidebar(
+    categoryId: string,
+    targetIndex: number,
+    draggableChannelId: string,
+    setManualSorting = true,
+) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
-        const multiSelectedChannelIds = state.views.channelSidebar.multiSelectedChannelIds;
+        const multiSelectedChannelIds =
+            state.views.channelSidebar.multiSelectedChannelIds;
         let channelIds = [];
 
         // Multi channel case
-        if (multiSelectedChannelIds.length && multiSelectedChannelIds.indexOf(draggableChannelId) !== -1) {
+        if (
+            multiSelectedChannelIds.length &&
+            multiSelectedChannelIds.indexOf(draggableChannelId) !== -1
+        ) {
             const categories = getCategoriesForCurrentTeam(state);
             const displayedChannels = getDisplayedChannels(state);
 
             let channelsToMove = [draggableChannelId];
 
             // Filter out channels that can't go in the category specified
-            const targetCategory = categories.find((category) => category.id === categoryId);
+            const targetCategory = categories.find(
+                (category) => category.id === categoryId,
+            );
             channelsToMove = multiSelectedChannelIds.filter((channelId) => {
-                const selectedChannel = displayedChannels.find((channel) => channelId === channel.id);
-                const isDMGM = selectedChannel?.type === General.DM_CHANNEL || selectedChannel?.type === General.GM_CHANNEL;
-                return targetCategory?.type === CategoryTypes.CUSTOM || targetCategory?.type === CategoryTypes.FAVORITES || (isDMGM && targetCategory?.type === CategoryTypes.DIRECT_MESSAGES) || (!isDMGM && targetCategory?.type !== CategoryTypes.DIRECT_MESSAGES);
+                const selectedChannel = displayedChannels.find(
+                    (channel) => channelId === channel.id,
+                );
+                const isDMGM =
+                    selectedChannel?.type === General.DM_CHANNEL ||
+                    selectedChannel?.type === General.GM_CHANNEL;
+                return (
+                    targetCategory?.type === CategoryTypes.CUSTOM ||
+                    targetCategory?.type === CategoryTypes.FAVORITES ||
+                    (isDMGM &&
+                        targetCategory?.type ===
+                            CategoryTypes.DIRECT_MESSAGES) ||
+                    (!isDMGM &&
+                        targetCategory?.type !== CategoryTypes.DIRECT_MESSAGES)
+                );
             });
 
             // Reorder such that the channels move in the order that they appear in the sidebar
-            const displayedChannelIds = displayedChannels.map((channel) => channel.id);
-            channelsToMove.sort((a, b) => displayedChannelIds.indexOf(a) - displayedChannelIds.indexOf(b));
+            const displayedChannelIds = displayedChannels.map(
+                (channel) => channel.id,
+            );
+            channelsToMove.sort(
+                (a, b) =>
+                    displayedChannelIds.indexOf(a) -
+                    displayedChannelIds.indexOf(b),
+            );
 
             // Remove selection from channels that were moved
-            channelsToMove.forEach((channelId) => dispatch(multiSelectChannelAdd(channelId)));
+            channelsToMove.forEach((channelId) =>
+                dispatch(multiSelectChannelAdd(channelId)),
+            );
             channelIds = channelsToMove;
         } else {
             channelIds = [draggableChannelId];
         }
 
-        const newIndex = adjustTargetIndexForMove(state, categoryId, channelIds, targetIndex, draggableChannelId);
-        return dispatch(moveChannelsToCategory(categoryId, channelIds, newIndex, setManualSorting));
+        const newIndex = adjustTargetIndexForMove(
+            state,
+            categoryId,
+            channelIds,
+            targetIndex,
+            draggableChannelId,
+        );
+        return dispatch(
+            moveChannelsToCategory(
+                categoryId,
+                channelIds,
+                newIndex,
+                setManualSorting,
+            ),
+        );
     };
 }
 
-export function adjustTargetIndexForMove(state: GlobalState, categoryId: string, channelIds: string[], targetIndex: number, draggableChannelId: string) {
+export function adjustTargetIndexForMove(
+    state: GlobalState,
+    categoryId: string,
+    channelIds: string[],
+    targetIndex: number,
+    draggableChannelId: string,
+) {
     if (targetIndex === 0) {
         // The channel is being placed first, so there's nothing above that could affect the index
         return 0;
@@ -109,7 +179,12 @@ export function adjustTargetIndexForMove(state: GlobalState, categoryId: string,
 
     // When dragging multiple channels, we don't actually remove all of them from the list as react-beautiful-dnd doesn't support that
     // Account for channels removed above the insert point, except the one currently being dragged which is already accounted for by react-beautiful-dnd
-    const removedChannelsAboveInsert = filteredChannelIds.filter((channel, index) => channel !== draggableChannelId && channelIds.indexOf(channel) !== -1 && index <= targetIndex);
+    const removedChannelsAboveInsert = filteredChannelIds.filter(
+        (channel, index) =>
+            channel !== draggableChannelId &&
+            channelIds.indexOf(channel) !== -1 &&
+            index <= targetIndex,
+    );
     const shiftedIndex = targetIndex - removedChannelsAboveInsert.length;
 
     if (category.channel_ids.length === filteredChannelIds.length) {
@@ -117,10 +192,15 @@ export function adjustTargetIndexForMove(state: GlobalState, categoryId: string,
         return shiftedIndex;
     }
 
-    const updatedChannelIds = insertMultipleWithoutDuplicates(filteredChannelIds, channelIds, shiftedIndex);
+    const updatedChannelIds = insertMultipleWithoutDuplicates(
+        filteredChannelIds,
+        channelIds,
+        shiftedIndex,
+    );
 
     // After "moving" the channel in the sidebar, find what channel comes above it
-    const previousChannelId = updatedChannelIds[updatedChannelIds.indexOf(channelIds[0]) - 1];
+    const previousChannelId =
+        updatedChannelIds[updatedChannelIds.indexOf(channelIds[0]) - 1];
 
     // We want the channel to still be below that channel, so place the new index below it
     let newIndex = category.channel_ids.indexOf(previousChannelId) + 1;
@@ -143,7 +223,7 @@ export function clearChannelSelection() {
 
         if (state.views.channelSidebar.multiSelectedChannelIds.length === 0) {
             // No selection to clear
-            return Promise.resolve({data: true});
+            return Promise.resolve({ data: true });
         }
 
         return dispatch({
@@ -155,7 +235,8 @@ export function clearChannelSelection() {
 export function multiSelectChannelAdd(channelId: string) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
-        const multiSelectedChannelIds = state.views.channelSidebar.multiSelectedChannelIds;
+        const multiSelectedChannelIds =
+            state.views.channelSidebar.multiSelectedChannelIds;
 
         // Nothing already selected, so we include the active channel
         if (!multiSelectedChannelIds.length) {
@@ -187,7 +268,8 @@ export function setFirstChannelName(channelName: string) {
 export function multiSelectChannelTo(channelId: string) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
-        const multiSelectedChannelIds = state.views.channelSidebar.multiSelectedChannelIds;
+        const multiSelectedChannelIds =
+            state.views.channelSidebar.multiSelectedChannelIds;
         let lastSelected = state.views.channelSidebar.lastSelectedChannel;
 
         // Nothing already selected, so start with the active channel
@@ -200,7 +282,9 @@ export function multiSelectChannelTo(channelId: string) {
             lastSelected = currentChannel;
         }
 
-        const allChannelsIdsInOrder = getChannelsInCategoryOrder(state).map((channel) => channel.id);
+        const allChannelsIdsInOrder = getChannelsInCategoryOrder(state).map(
+            (channel) => channel.id,
+        );
         const indexOfNew: number = allChannelsIdsInOrder.indexOf(channelId);
         const indexOfLast: number = allChannelsIdsInOrder.indexOf(lastSelected);
 

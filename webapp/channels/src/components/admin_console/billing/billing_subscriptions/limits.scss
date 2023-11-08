@@ -1,5 +1,5 @@
-@import 'utils/variables';
-@import './mixins';
+@import "utils/variables";
+@import "./mixins";
 
 .ProductLimitsPanel {
     @include cloud-card;

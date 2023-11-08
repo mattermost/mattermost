@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
+import { connect } from "react-redux";
 
-import {getIsMobileView} from 'selectors/views/browser';
+import { getIsMobileView } from "selectors/views/browser";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import SettingItemMin from './setting_item_min';
+import SettingItemMin from "./setting_item_min";
 
 function mapStateToProps(state: GlobalState) {
     return {
@@ -15,4 +15,6 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-export default connect(mapStateToProps, null, null, {forwardRef: true})(SettingItemMin);
+export default connect(mapStateToProps, null, null, { forwardRef: true })(
+    SettingItemMin,
+);

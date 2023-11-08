@@ -1,25 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {FileInfo} from '@mattermost/types/files';
+import type { FileInfo } from "@mattermost/types/files";
 
-import FileInfoPreview from 'components/file_info_preview';
+import FileInfoPreview from "components/file_info_preview";
 
-import Constants from 'utils/constants';
+import Constants from "utils/constants";
 
 type Props = {
     fileInfo: FileInfo;
     fileUrl: string;
     isMobileView: boolean;
-}
+};
 
 type State = {
     canPlay: boolean;
-}
+};
 
-export default class AudioVideoPreview extends React.PureComponent<Props, State> {
+export default class AudioVideoPreview extends React.PureComponent<
+    Props,
+    State
+> {
     sourceRef = React.createRef<HTMLSourceElement>();
     videoRef = React.createRef<HTMLVideoElement>();
 
@@ -35,7 +38,11 @@ export default class AudioVideoPreview extends React.PureComponent<Props, State>
         this.handleFileInfoChanged();
 
         if (this.sourceRef.current) {
-            this.sourceRef.current.addEventListener('error', this.handleLoadError, {once: true});
+            this.sourceRef.current.addEventListener(
+                "error",
+                this.handleLoadError,
+                { once: true },
+            );
         }
     }
 
@@ -45,14 +52,18 @@ export default class AudioVideoPreview extends React.PureComponent<Props, State>
         }
 
         if (this.sourceRef.current) {
-            this.sourceRef.current.addEventListener('error', this.handleLoadError, {once: true});
+            this.sourceRef.current.addEventListener(
+                "error",
+                this.handleLoadError,
+                { once: true },
+            );
         }
     }
 
     handleFileInfoChanged = () => {
         let video = this.videoRef.current;
         if (!video) {
-            video = document.createElement('video');
+            video = document.createElement("video");
         }
 
         this.setState({
@@ -96,15 +107,12 @@ export default class AudioVideoPreview extends React.PureComponent<Props, State>
             <video
                 key={this.props.fileInfo.id}
                 ref={this.videoRef}
-                data-setup='{}'
+                data-setup="{}"
                 controls={true}
                 width={width}
                 height={height}
             >
-                <source
-                    ref={this.sourceRef}
-                    src={this.props.fileUrl}
-                />
+                <source ref={this.sourceRef} src={this.props.fileUrl} />
             </video>
         );
     }

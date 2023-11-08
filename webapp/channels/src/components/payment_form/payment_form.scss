@@ -1,4 +1,4 @@
-@import './mixins';
+@import "./mixins";
 
 .PaymentForm {
     @include payment-form-padding;
@@ -49,7 +49,9 @@
 
         .DropDown__menu {
             background-color: var(--center-channel-bg) !important;
-            box-shadow: 0 0 0 1px var(--center-channel-color), 0 4px 11px var(--center-channel-color) !important;
+            box-shadow:
+                0 0 0 1px var(--center-channel-color),
+                0 4px 11px var(--center-channel-color) !important;
         }
     }
 
@@ -79,7 +81,7 @@
         }
 
         &.Input_fieldset___legend {
-            >legend {
+            > legend {
                 margin-left: 11px;
             }
         }

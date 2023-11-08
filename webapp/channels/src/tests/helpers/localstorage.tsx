@@ -3,7 +3,7 @@
 
 // Based on https://stackoverflow.com/a/41434763
 class LocalStorageMock {
-    store: {[key: string]: string};
+    store: { [key: string]: string };
 
     constructor() {
         this.store = {};
@@ -17,7 +17,7 @@ class LocalStorageMock {
         return this.store[key] || null;
     }
 
-    setItem(key: string, value: {toString: () => string}) {
+    setItem(key: string, value: { toString: () => string }) {
         this.store[key] = value.toString();
     }
 

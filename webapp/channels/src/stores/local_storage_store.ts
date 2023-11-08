@@ -1,29 +1,35 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
+import { getRedirectChannelNameForTeam } from "mattermost-redux/selectors/entities/channels";
 
-import {getBasePath} from 'selectors/general';
-import store from 'stores/redux_store';
+import { getBasePath } from "selectors/general";
+import store from "stores/redux_store";
 
-import {PreviousViewedTypes} from 'utils/constants';
+import { PreviousViewedTypes } from "utils/constants";
 
-const getPreviousTeamIdKey = (userId: string) => ['user_prev_team', userId].join(':');
-const getPreviousChannelNameKey = (userId: string | null, teamId: string) => ['user_team_prev_channel', userId, teamId].join(':');
-const getPreviousViewedTypeKey = (userId: string | null, teamId: string) => ['user_team_prev_viewed_type', userId, teamId].join(':');
-const getPenultimateViewedTypeKey = (userId: string, teamId: string) => ['user_team_penultimate_viewed_type', userId, teamId].join(':');
-export const getPenultimateChannelNameKey = (userId: string, teamId: string) => ['user_team_penultimate_channel', userId, teamId].join(':');
-const getRecentEmojisKey = (userId: string) => ['recent_emojis', userId].join(':');
-const getWasLoggedInKey = () => 'was_logged_in';
-const teamIdJoinedOnLoadKey = 'teamIdJoinedOnLoad';
-const wasNotifiedOfLogInKey = 'was_notified_of_login';
+const getPreviousTeamIdKey = (userId: string) =>
+    ["user_prev_team", userId].join(":");
+const getPreviousChannelNameKey = (userId: string | null, teamId: string) =>
+    ["user_team_prev_channel", userId, teamId].join(":");
+const getPreviousViewedTypeKey = (userId: string | null, teamId: string) =>
+    ["user_team_prev_viewed_type", userId, teamId].join(":");
+const getPenultimateViewedTypeKey = (userId: string, teamId: string) =>
+    ["user_team_penultimate_viewed_type", userId, teamId].join(":");
+export const getPenultimateChannelNameKey = (userId: string, teamId: string) =>
+    ["user_team_penultimate_channel", userId, teamId].join(":");
+const getRecentEmojisKey = (userId: string) =>
+    ["recent_emojis", userId].join(":");
+const getWasLoggedInKey = () => "was_logged_in";
+const teamIdJoinedOnLoadKey = "teamIdJoinedOnLoad";
+const wasNotifiedOfLogInKey = "was_notified_of_login";
 
 const getPathScopedKey = (path: string, key: string) => {
-    if (path === '' || path === '/') {
+    if (path === "" || path === "/") {
         return key;
     }
 
-    return [path, key].join(':');
+    return [path, key].join(":");
 };
 
 // LocalStorageStore exposes an interface for accessing entries in the localStorage.
@@ -45,15 +51,32 @@ class LocalStorageStoreClass {
         const state = store.getState();
         const basePath = getBasePath(state);
 
-        localStorage.setItem(getPathScopedKey(basePath, key), value === null ? 'null' : value);
+        localStorage.setItem(
+            getPathScopedKey(basePath, key),
+            value === null ? "null" : value,
+        );
     }
 
-    getPreviousChannelName(userId: string | null, teamId: string, state = store.getState()) {
-        return this.getItem(getPreviousChannelNameKey(userId, teamId), state) || getRedirectChannelNameForTeam(state, teamId);
+    getPreviousChannelName(
+        userId: string | null,
+        teamId: string,
+        state = store.getState(),
+    ) {
+        return (
+            this.getItem(getPreviousChannelNameKey(userId, teamId), state) ||
+            getRedirectChannelNameForTeam(state, teamId)
+        );
     }
 
-    getPreviousViewedType(userId: string | null, teamId: string, state = store.getState()) {
-        return this.getItem(getPreviousViewedTypeKey(userId, teamId), state) ?? PreviousViewedTypes.CHANNELS;
+    getPreviousViewedType(
+        userId: string | null,
+        teamId: string,
+        state = store.getState(),
+    ) {
+        return (
+            this.getItem(getPreviousViewedTypeKey(userId, teamId), state) ??
+            PreviousViewedTypes.CHANNELS
+        );
     }
 
     removeItem(key: string) {
@@ -63,7 +86,11 @@ class LocalStorageStoreClass {
         localStorage.removeItem(getPathScopedKey(basePath, key));
     }
 
-    setPreviousChannelName(userId: string, teamId: string, channelName: string) {
+    setPreviousChannelName(
+        userId: string,
+        teamId: string,
+        channelName: string,
+    ) {
         this.setItem(getPreviousChannelNameKey(userId, teamId), channelName);
     }
 
@@ -71,32 +98,72 @@ class LocalStorageStoreClass {
         this.setItem(getPreviousViewedTypeKey(userId, teamId), channelType);
     }
 
-    getPenultimateViewedType(userId: string, teamId: string, state = store.getState()) {
-        return this.getItem(getPenultimateViewedTypeKey(userId, teamId), state) ?? PreviousViewedTypes.CHANNELS;
+    getPenultimateViewedType(
+        userId: string,
+        teamId: string,
+        state = store.getState(),
+    ) {
+        return (
+            this.getItem(getPenultimateViewedTypeKey(userId, teamId), state) ??
+            PreviousViewedTypes.CHANNELS
+        );
     }
 
-    setPenultimateViewedType(userId: string, teamId: string, channelType: string) {
+    setPenultimateViewedType(
+        userId: string,
+        teamId: string,
+        channelType: string,
+    ) {
         this.setItem(getPenultimateViewedTypeKey(userId, teamId), channelType);
     }
-    getPenultimateChannelName(userId: string, teamId: string, state = store.getState()) {
-        return this.getItem(getPenultimateChannelNameKey(userId, teamId), state) || getRedirectChannelNameForTeam(state, teamId);
+    getPenultimateChannelName(
+        userId: string,
+        teamId: string,
+        state = store.getState(),
+    ) {
+        return (
+            this.getItem(getPenultimateChannelNameKey(userId, teamId), state) ||
+            getRedirectChannelNameForTeam(state, teamId)
+        );
     }
 
-    setPenultimateChannelName(userId: string, teamId: string, channelName: string) {
+    setPenultimateChannelName(
+        userId: string,
+        teamId: string,
+        channelName: string,
+    ) {
         this.setItem(getPenultimateChannelNameKey(userId, teamId), channelName);
     }
 
-    removePreviousChannelName(userId: string, teamId: string, state = store.getState()) {
-        this.setItem(getPreviousChannelNameKey(userId, teamId), this.getPenultimateChannelName(userId, teamId, state));
+    removePreviousChannelName(
+        userId: string,
+        teamId: string,
+        state = store.getState(),
+    ) {
+        this.setItem(
+            getPreviousChannelNameKey(userId, teamId),
+            this.getPenultimateChannelName(userId, teamId, state),
+        );
         this.removeItem(getPenultimateChannelNameKey(userId, teamId));
     }
 
-    removePreviousChannelType(userId: string, teamId: string, state = store.getStore()) {
-        this.setItem(getPreviousViewedTypeKey(userId, teamId), this.getPenultimateViewedType(userId, teamId, state));
+    removePreviousChannelType(
+        userId: string,
+        teamId: string,
+        state = store.getStore(),
+    ) {
+        this.setItem(
+            getPreviousViewedTypeKey(userId, teamId),
+            this.getPenultimateViewedType(userId, teamId, state),
+        );
         this.removeItem(getPenultimateViewedTypeKey(userId, teamId));
     }
 
-    removePreviousChannel(userId: string, teamId: string, state = store.getStore()) {
+    removePreviousChannel(
+        userId: string,
+        teamId: string,
+        state = store.getStore(),
+    ) {
         this.removePreviousChannelName(userId, teamId, state);
         this.removePreviousChannelType(userId, teamId, state);
     }
@@ -148,14 +215,14 @@ class LocalStorageStoreClass {
 
     setWasLoggedIn(wasLoggedIn: boolean) {
         if (wasLoggedIn) {
-            this.setItem(getWasLoggedInKey(), 'true');
+            this.setItem(getWasLoggedInKey(), "true");
         } else {
-            this.setItem(getWasLoggedInKey(), 'false');
+            this.setItem(getWasLoggedInKey(), "false");
         }
     }
 
     getWasLoggedIn() {
-        return this.getItem(getWasLoggedInKey()) === 'true';
+        return this.getItem(getWasLoggedInKey()) === "true";
     }
 
     // the following flag's setter and getter are used to make sure a user is notified (via aria-label)
@@ -165,7 +232,7 @@ class LocalStorageStoreClass {
     }
 
     getWasNotifiedOfLogIn() {
-        return this.getItem(wasNotifiedOfLogInKey) === 'true';
+        return this.getItem(wasNotifiedOfLogInKey) === "true";
     }
 }
 

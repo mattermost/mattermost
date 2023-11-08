@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import GlobalPolicyForm from 'components/admin_console/data_retention_settings/global_policy_form/global_policy_form';
+import GlobalPolicyForm from "components/admin_console/data_retention_settings/global_policy_form/global_policy_form";
 
-describe('components/PluginManagement', () => {
+describe("components/PluginManagement", () => {
     const defaultProps = {
         config: {
             DataRetentionSettings: {
@@ -14,7 +14,7 @@ describe('components/PluginManagement', () => {
                 EnableFileDeletion: true,
                 MessageRetentionDays: 60,
                 FileRetentionDays: 40,
-                DeletionJobStartTime: '10:00',
+                DeletionJobStartTime: "10:00",
             },
         },
         actions: {
@@ -23,9 +23,9 @@ describe('components/PluginManagement', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const props = {...defaultProps};
-        const wrapper = shallow(<GlobalPolicyForm {...props}/>);
+    test("should match snapshot", () => {
+        const props = { ...defaultProps };
+        const wrapper = shallow(<GlobalPolicyForm {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 });

@@ -1,36 +1,42 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Tooltip} from 'react-bootstrap';
-import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import React from "react";
+import { Tooltip } from "react-bootstrap";
+import { useIntl } from "react-intl";
+import { useDispatch, useSelector } from "react-redux";
 
-import type {AppBinding, AppCallResponse} from '@mattermost/types/apps';
+import type { AppBinding, AppCallResponse } from "@mattermost/types/apps";
 
-import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import { AppCallResponseTypes } from "mattermost-redux/constants/apps";
+import { getCurrentChannelId } from "mattermost-redux/selectors/entities/common";
+import { getCurrentTeamId } from "mattermost-redux/selectors/entities/teams";
 
-import {handleBindingClick, openAppsModal, postEphemeralCallResponseForContext} from 'actions/apps';
+import {
+    handleBindingClick,
+    openAppsModal,
+    postEphemeralCallResponseForContext,
+} from "actions/apps";
 
-import OverlayTrigger from 'components/overlay_trigger';
+import OverlayTrigger from "components/overlay_trigger";
 
-import {createCallContext} from 'utils/apps';
-import Constants from 'utils/constants';
+import { createCallContext } from "utils/apps";
+import Constants from "utils/constants";
 
-import type {DoAppCallResult} from 'types/apps';
+import type { DoAppCallResult } from "types/apps";
 
-export const isAppBinding = (x: Record<string, any> | undefined): x is AppBinding => {
+export const isAppBinding = (
+    x: Record<string, any> | undefined,
+): x is AppBinding => {
     return Boolean(x?.app_id);
 };
 
 type BindingComponentProps = {
     binding: AppBinding;
-}
+};
 
 const AppBarBinding = (props: BindingComponentProps) => {
-    const {binding} = props;
+    const { binding } = props;
 
     const dispatch = useDispatch();
     const intl = useIntl();
@@ -46,38 +52,62 @@ const AppBarBinding = (props: BindingComponentProps) => {
             teamId,
         );
 
-        const result = await dispatch(handleBindingClick(binding, context, intl)) as DoAppCallResult;
+        const result = (await dispatch(
+            handleBindingClick(binding, context, intl),
+        )) as DoAppCallResult;
 
         if (result.error) {
-            const errMsg = result.error.text || 'An error occurred';
-            dispatch(postEphemeralCallResponseForContext(result.error, errMsg, context));
+            const errMsg = result.error.text || "An error occurred";
+            dispatch(
+                postEphemeralCallResponseForContext(
+                    result.error,
+                    errMsg,
+                    context,
+                ),
+            );
             return;
         }
 
         const callResp = result.data as AppCallResponse;
 
         switch (callResp.type) {
-        case AppCallResponseTypes.OK:
-            if (callResp.text) {
-                dispatch(postEphemeralCallResponseForContext(callResp, callResp.text, context));
+            case AppCallResponseTypes.OK:
+                if (callResp.text) {
+                    dispatch(
+                        postEphemeralCallResponseForContext(
+                            callResp,
+                            callResp.text,
+                            context,
+                        ),
+                    );
+                }
+                return;
+            case AppCallResponseTypes.FORM:
+                if (callResp.form) {
+                    dispatch(openAppsModal(callResp.form, context));
+                }
+                return;
+            case AppCallResponseTypes.NAVIGATE:
+                return;
+            default: {
+                const errorMessage = intl.formatMessage(
+                    {
+                        id: "apps.error.responses.unknown_type",
+                        defaultMessage:
+                            "App response type not supported. Response type: {type}.",
+                    },
+                    {
+                        type: callResp.type,
+                    },
+                );
+                dispatch(
+                    postEphemeralCallResponseForContext(
+                        callResp,
+                        errorMessage,
+                        context,
+                    ),
+                );
             }
-            return;
-        case AppCallResponseTypes.FORM:
-            if (callResp.form) {
-                dispatch(openAppsModal(callResp.form, context));
-            }
-            return;
-        case AppCallResponseTypes.NAVIGATE:
-            return;
-        default: {
-            const errorMessage = intl.formatMessage({
-                id: 'apps.error.responses.unknown_type',
-                defaultMessage: 'App response type not supported. Response type: {type}.',
-            }, {
-                type: callResp.type,
-            });
-            dispatch(postEphemeralCallResponseForContext(callResp, errorMessage, context));
-        }
         }
     };
 
@@ -85,26 +115,26 @@ const AppBarBinding = (props: BindingComponentProps) => {
     const label = binding.label || binding.app_id;
 
     const tooltip = (
-        <Tooltip id={'tooltip-' + id}>
+        <Tooltip id={"tooltip-" + id}>
             <span>{label}</span>
         </Tooltip>
     );
 
     return (
         <OverlayTrigger
-            trigger={['hover', 'focus']}
+            trigger={["hover", "focus"]}
             delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement='left'
+            placement="left"
             overlay={tooltip}
         >
             <div
                 id={id}
                 aria-label={label}
-                className={'app-bar__icon'}
+                className={"app-bar__icon"}
                 onClick={submitAppCall}
             >
-                <div className={'app-bar__icon-inner'}>
-                    <img src={binding.icon}/>
+                <div className={"app-bar__icon-inner"}>
+                    <img src={binding.icon} />
                 </div>
             </div>
         </OverlayTrigger>

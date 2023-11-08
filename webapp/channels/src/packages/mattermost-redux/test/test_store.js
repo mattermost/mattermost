@@ -1,10 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import configureStore from 'mattermost-redux/store';
+import configureStore from "mattermost-redux/store";
 
 export default function testConfigureStore(preloadedState) {
-    const store = configureStore({preloadedState, appReducers: {}, getAppReducers: () => {}});
+    const store = configureStore({
+        preloadedState,
+        appReducers: {},
+        getAppReducers: () => {},
+    });
 
     return store;
 }

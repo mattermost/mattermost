@@ -1,25 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import type {CSSProperties} from 'react';
+import classNames from "classnames";
+import React from "react";
+import type { CSSProperties } from "react";
 
-import type {Row, Column} from './data_grid';
+import type { Row, Column } from "./data_grid";
 
-import './data_grid.scss';
+import "./data_grid.scss";
 
 type DataGridRowProps = {
     columns: Column[];
     row: Row;
-}
+};
 
 type DataGridCellProps = {
     column: Column;
     row: Row;
-}
+};
 
-const DataGridCell = ({row, column}: DataGridCellProps) => {
+const DataGridCell = ({ row, column }: DataGridCellProps) => {
     const style: CSSProperties = {};
     if (column.width) {
         style.flexGrow = column.width;
@@ -36,7 +36,7 @@ const DataGridCell = ({row, column}: DataGridCellProps) => {
     return (
         <div
             key={column.field}
-            className={classNames('DataGrid_cell', column.className)}
+            className={classNames("DataGrid_cell", column.className)}
             style={style}
         >
             {row.cells[column.field]}
@@ -44,19 +44,12 @@ const DataGridCell = ({row, column}: DataGridCellProps) => {
     );
 };
 
-const DataGridRow = ({row, columns}: DataGridRowProps) => {
+const DataGridRow = ({ row, columns }: DataGridRowProps) => {
     const cells = columns.map((column, index) => (
-        <DataGridCell
-            key={index}
-            row={row}
-            column={column}
-        />
+        <DataGridCell key={index} row={row} column={column} />
     ));
     return (
-        <div
-            className='DataGrid_row'
-            onClick={row.onClick}
-        >
+        <div className="DataGrid_row" onClick={row.onClick}>
             {cells}
         </div>
     );

@@ -1,17 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {ClientLicense} from '@mattermost/types/config';
-import type {Role} from '@mattermost/types/roles';
+import type { ClientLicense } from "@mattermost/types/config";
+import type { Role } from "@mattermost/types/roles";
 
-import Permissions from 'mattermost-redux/constants/permissions';
+import Permissions from "mattermost-redux/constants/permissions";
 
-import {isEnterpriseLicense, isNonEnterpriseLicense} from 'utils/license_utils';
+import {
+    isEnterpriseLicense,
+    isNonEnterpriseLicense,
+} from "utils/license_utils";
 
-import PermissionGroup from './permission_group';
+import PermissionGroup from "./permission_group";
 
 interface Props {
     role?: Partial<Role>;
@@ -25,7 +28,7 @@ interface Props {
 
 const groups = [
     {
-        id: 'playbook_public',
+        id: "playbook_public",
         permissions: [
             Permissions.PLAYBOOK_PUBLIC_MANAGE_PROPERTIES,
             Permissions.PLAYBOOK_PUBLIC_MANAGE_MEMBERS,
@@ -33,7 +36,7 @@ const groups = [
         isVisible: isNonEnterpriseLicense,
     },
     {
-        id: 'playbook_public',
+        id: "playbook_public",
         permissions: [
             Permissions.PLAYBOOK_PUBLIC_MANAGE_PROPERTIES,
             Permissions.PLAYBOOK_PUBLIC_MANAGE_MEMBERS,
@@ -42,7 +45,7 @@ const groups = [
         isVisible: isEnterpriseLicense,
     },
     {
-        id: 'playbook_private',
+        id: "playbook_private",
         permissions: [
             Permissions.PLAYBOOK_PRIVATE_MANAGE_PROPERTIES,
             Permissions.PLAYBOOK_PRIVATE_MANAGE_MEMBERS,
@@ -51,10 +54,8 @@ const groups = [
         isVisible: isEnterpriseLicense,
     },
     {
-        id: 'runs',
-        permissions: [
-            Permissions.RUN_CREATE,
-        ],
+        id: "runs",
+        permissions: [Permissions.RUN_CREATE],
     },
 ];
 
@@ -63,7 +64,7 @@ const PermissionsTreePlaybooks = (props: Props) => {
         if (props.readOnly) {
             return;
         }
-        props.onToggle(props.role?.name || '', ids);
+        props.onToggle(props.role?.name || "", ids);
     };
 
     const filteredGroups = groups.filter((group) => {
@@ -75,25 +76,25 @@ const PermissionsTreePlaybooks = (props: Props) => {
     });
 
     return (
-        <div className='permissions-tree'>
-            <div className='permissions-tree--header'>
-                <div className='permission-name'>
+        <div className="permissions-tree">
+            <div className="permissions-tree--header">
+                <div className="permission-name">
                     <FormattedMessage
-                        id='admin.permissions.permissionsTree.permission'
-                        defaultMessage='Permission'
+                        id="admin.permissions.permissionsTree.permission"
+                        defaultMessage="Permission"
                     />
                 </div>
-                <div className='permission-description'>
+                <div className="permission-description">
                     <FormattedMessage
-                        id='admin.permissions.permissionsTree.description'
-                        defaultMessage='Description'
+                        id="admin.permissions.permissionsTree.description"
+                        defaultMessage="Description"
                     />
                 </div>
             </div>
-            <div className='permissions-tree--body'>
+            <div className="permissions-tree--body">
                 <PermissionGroup
-                    key='all'
-                    id='all'
+                    key="all"
+                    id="all"
                     parentRole={props.parentRole}
                     uniqId={props.role?.name}
                     selectRow={props.selectRow}

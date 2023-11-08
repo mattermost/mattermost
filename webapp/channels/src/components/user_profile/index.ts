@@ -1,20 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
+import { connect } from "react-redux";
 
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-import {getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
+import { getTheme } from "mattermost-redux/selectors/entities/preferences";
+import {
+    getUser,
+    makeGetDisplayName,
+} from "mattermost-redux/selectors/entities/users";
 
-import {getIsMobileView} from 'selectors/views/browser';
+import { getIsMobileView } from "selectors/views/browser";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import UserProfile from './user_profile';
+import UserProfile from "./user_profile";
 
 type OwnProps = {
     userId: string;
-}
+};
 
 function makeMapStateToProps() {
     const getDisplayName = makeGetDisplayName();

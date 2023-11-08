@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ChartData} from 'chart.js';
-import Chart from 'chart.js/auto';
-import deepEqual from 'fast-deep-equal';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type { ChartData } from "chart.js";
+import Chart from "chart.js/auto";
+import deepEqual from "fast-deep-equal";
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
 type Props = {
     title: React.ReactNode;
     width: number;
     height: number;
     data?: ChartData;
-}
+};
 
 export default class DoughnutChart extends React.PureComponent<Props> {
     private canvasRef = React.createRef<HTMLCanvasElement>();
@@ -36,7 +36,7 @@ export default class DoughnutChart extends React.PureComponent<Props> {
     }
 
     public initChart = (update?: boolean): void => {
-        if (typeof this.props.data === 'undefined') {
+        if (typeof this.props.data === "undefined") {
             return;
         }
 
@@ -44,23 +44,29 @@ export default class DoughnutChart extends React.PureComponent<Props> {
             return;
         }
 
-        const ctx = this.canvasRef.current.getContext('2d') as CanvasRenderingContext2D;
+        const ctx = this.canvasRef.current.getContext(
+            "2d",
+        ) as CanvasRenderingContext2D;
         const dataCopy = JSON.parse(JSON.stringify(this.props.data));
 
         if (update) {
             this.chart?.update();
         } else {
-            this.chart = new Chart(ctx, {type: 'doughnut', data: dataCopy, options: {}});
+            this.chart = new Chart(ctx, {
+                type: "doughnut",
+                data: dataCopy,
+                options: {},
+            });
         }
     };
 
     public render(): JSX.Element {
         let content;
-        if (typeof this.props.data === 'undefined') {
+        if (typeof this.props.data === "undefined") {
             content = (
                 <FormattedMessage
-                    id='analytics.chart.loading'
-                    defaultMessage='Loading...'
+                    id="analytics.chart.loading"
+                    defaultMessage="Loading..."
                 />
             );
         } else {
@@ -74,14 +80,10 @@ export default class DoughnutChart extends React.PureComponent<Props> {
         }
 
         return (
-            <div className='col-sm-6'>
-                <div className='total-count'>
-                    <div className='title'>
-                        {this.props.title}
-                    </div>
-                    <div className='content'>
-                        {content}
-                    </div>
+            <div className="col-sm-6">
+                <div className="total-count">
+                    <div className="title">{this.props.title}</div>
+                    <div className="content">{content}</div>
                 </div>
             </div>
         );

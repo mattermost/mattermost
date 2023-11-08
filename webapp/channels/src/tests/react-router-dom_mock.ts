@@ -3,11 +3,11 @@
 
 (global as any).historyMock = {
     length: -1,
-    action: 'PUSH',
+    action: "PUSH",
     location: {
-        pathname: '/a-mocked-location',
-        search: '',
-        hash: '',
+        pathname: "/a-mocked-location",
+        search: "",
+        hash: "",
     },
     push: jest.fn(),
     replace: jest.fn(),
@@ -19,8 +19,8 @@
     createHref: jest.fn(),
 };
 
-jest.mock('react-router-dom', () => {
-    const actual = jest.requireActual('react-router-dom');
+jest.mock("react-router-dom", () => {
+    const actual = jest.requireActual("react-router-dom");
 
     return {
         ...actual,
@@ -28,7 +28,7 @@ jest.mock('react-router-dom', () => {
     };
 });
 
-jest.mock('utils/browser_history', () => {
+jest.mock("utils/browser_history", () => {
     return {
         getHistory: () => (global as any).historyMock,
     };

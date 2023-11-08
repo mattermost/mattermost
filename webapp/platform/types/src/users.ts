@@ -1,31 +1,42 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Audit} from './audits';
-import {Channel} from './channels';
-import {Group} from './groups';
-import {Session} from './sessions';
-import {Team} from './teams';
-import {IDMappedObjects, RelationOneToMany, RelationOneToManyUnique, RelationOneToOne} from './utilities';
+import { Audit } from "./audits";
+import { Channel } from "./channels";
+import { Group } from "./groups";
+import { Session } from "./sessions";
+import { Team } from "./teams";
+import {
+    IDMappedObjects,
+    RelationOneToMany,
+    RelationOneToManyUnique,
+    RelationOneToOne,
+} from "./utilities";
 
 export type UserNotifyProps = {
-    desktop: 'default' | 'all' | 'mention' | 'none';
-    desktop_sound: 'true' | 'false';
-    calls_desktop_sound: 'true' | 'false';
-    email: 'true' | 'false';
-    mark_unread: 'all' | 'mention';
-    push: 'default' | 'all' | 'mention' | 'none';
-    push_status: 'ooo' | 'offline' | 'away' | 'dnd' | 'online';
-    comments: 'never' | 'root' | 'any';
-    first_name: 'true' | 'false';
-    channel: 'true' | 'false';
+    desktop: "default" | "all" | "mention" | "none";
+    desktop_sound: "true" | "false";
+    calls_desktop_sound: "true" | "false";
+    email: "true" | "false";
+    mark_unread: "all" | "mention";
+    push: "default" | "all" | "mention" | "none";
+    push_status: "ooo" | "offline" | "away" | "dnd" | "online";
+    comments: "never" | "root" | "any";
+    first_name: "true" | "false";
+    channel: "true" | "false";
     mention_keys: string;
-    desktop_notification_sound?: 'Bing' | 'Crackle' | 'Down' | 'Hello' | 'Ripple' | 'Upstairs';
-    calls_notification_sound?: 'Dynamic' | 'Calm' | 'Urgent' | 'Cheerful';
-    desktop_threads?: 'default' | 'all' | 'mention' | 'none';
-    email_threads?: 'default' | 'all' | 'mention' | 'none';
-    push_threads?: 'default' | 'all' | 'mention' | 'none';
-    auto_responder_active?: 'true' | 'false';
+    desktop_notification_sound?:
+        | "Bing"
+        | "Crackle"
+        | "Down"
+        | "Hello"
+        | "Ripple"
+        | "Upstairs";
+    calls_notification_sound?: "Dynamic" | "Calm" | "Urgent" | "Cheerful";
+    desktop_threads?: "default" | "all" | "mention" | "none";
+    email_threads?: "default" | "all" | "mention" | "none";
+    push_threads?: "default" | "all" | "mention" | "none";
+    auto_responder_active?: "true" | "false";
     auto_responder_message?: string;
 };
 
@@ -99,14 +110,14 @@ export type UserStatus = {
 };
 
 export enum CustomStatusDuration {
-    DONT_CLEAR = '',
-    THIRTY_MINUTES = 'thirty_minutes',
-    ONE_HOUR = 'one_hour',
-    FOUR_HOURS = 'four_hours',
-    TODAY = 'today',
-    THIS_WEEK = 'this_week',
-    DATE_AND_TIME = 'date_and_time',
-    CUSTOM_DATE_TIME = 'custom_date_time',
+    DONT_CLEAR = "",
+    THIRTY_MINUTES = "thirty_minutes",
+    ONE_HOUR = "one_hour",
+    FOUR_HOURS = "four_hours",
+    TODAY = "today",
+    THIS_WEEK = "this_week",
+    DATE_AND_TIME = "date_and_time",
+    CUSTOM_DATE_TIME = "custom_date_time",
 }
 
 export type UserCustomStatus = {

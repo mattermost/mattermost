@@ -1,16 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combineReducers} from 'redux';
+import { combineReducers } from "redux";
 
-import type {TeamsRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+import type {
+    TeamsRequestsStatuses,
+    RequestStatusType,
+} from "@mattermost/types/requests";
 
-import {TeamTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import { TeamTypes } from "mattermost-redux/action_types";
+import type { GenericAction } from "mattermost-redux/types/actions";
 
-import {handleRequest, initialRequestState} from './helpers';
+import { handleRequest, initialRequestState } from "./helpers";
 
-function getMyTeams(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function getMyTeams(
+    state: RequestStatusType = initialRequestState(),
+    action: GenericAction,
+): RequestStatusType {
     return handleRequest(
         TeamTypes.MY_TEAMS_REQUEST,
         TeamTypes.MY_TEAMS_SUCCESS,
@@ -20,7 +26,10 @@ function getMyTeams(state: RequestStatusType = initialRequestState(), action: Ge
     );
 }
 
-function getTeams(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function getTeams(
+    state: RequestStatusType = initialRequestState(),
+    action: GenericAction,
+): RequestStatusType {
     return handleRequest(
         TeamTypes.GET_TEAMS_REQUEST,
         TeamTypes.GET_TEAMS_SUCCESS,
@@ -30,7 +39,10 @@ function getTeams(state: RequestStatusType = initialRequestState(), action: Gene
     );
 }
 
-function joinTeam(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function joinTeam(
+    state: RequestStatusType = initialRequestState(),
+    action: GenericAction,
+): RequestStatusType {
     return handleRequest(
         TeamTypes.JOIN_TEAM_REQUEST,
         TeamTypes.JOIN_TEAM_SUCCESS,
@@ -40,8 +52,8 @@ function joinTeam(state: RequestStatusType = initialRequestState(), action: Gene
     );
 }
 
-export default (combineReducers({
+export default combineReducers({
     getTeams,
     getMyTeams,
     joinTeam,
-}) as (b: TeamsRequestsStatuses, a: GenericAction) => TeamsRequestsStatuses);
+}) as (b: TeamsRequestsStatuses, a: GenericAction) => TeamsRequestsStatuses;

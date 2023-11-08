@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
-import {Provider} from 'react-redux';
+import { shallow } from "enzyme";
+import React from "react";
+import { Provider } from "react-redux";
 
-import {GenericModal} from '@mattermost/components';
+import { GenericModal } from "@mattermost/components";
 
-import ThreeDaysLeftTrialModal from 'components/three_days_left_trial_modal/three_days_left_trial_modal';
+import ThreeDaysLeftTrialModal from "components/three_days_left_trial_modal/three_days_left_trial_modal";
 
-import TestHelper from 'packages/mattermost-redux/test/test_helper';
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import TestHelper from "packages/mattermost-redux/test/test_helper";
+import { mountWithIntl } from "tests/helpers/intl-test-helper";
+import mockStore from "tests/test_store";
 
-describe('components/three_days_left_trial_modal/three_days_left_trial_modal', () => {
+describe("components/three_days_left_trial_modal/three_days_left_trial_modal", () => {
     // required state to mount using the provider
     const user = TestHelper.fakeUserWithId();
 
@@ -25,8 +25,8 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
         entities: {
             general: {
                 license: {
-                    IsLicensed: 'true',
-                    Cloud: 'true',
+                    IsLicensed: "true",
+                    Cloud: "true",
                 },
             },
             cloud: {
@@ -66,7 +66,7 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
             modals: {
                 modalState: {
                     three_days_left_trial_modal: {
-                        open: 'true',
+                        open: "true",
                     },
                 },
             },
@@ -80,58 +80,53 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
 
     const store = mockStore(state);
 
-    test('should match snapshot', () => {
+    test("should match snapshot", () => {
         const wrapper = shallow(
             <Provider store={store}>
-                <ThreeDaysLeftTrialModal {...props}/>
+                <ThreeDaysLeftTrialModal {...props} />
             </Provider>,
         );
         expect(wrapper.debug()).toMatchSnapshot();
     });
 
-    test('should match snapshot when limits are overpassed and show the limits panel', () => {
+    test("should match snapshot when limits are overpassed and show the limits panel", () => {
         const wrapper = shallow(
             <Provider store={store}>
-                <ThreeDaysLeftTrialModal
-                    {...props}
-                    limitsOverpassed={true}
-                />
+                <ThreeDaysLeftTrialModal {...props} limitsOverpassed={true} />
             </Provider>,
         );
         expect(wrapper.debug()).toMatchSnapshot();
     });
 
-    test('should show the three days left modal with the three cards', () => {
+    test("should show the three days left modal with the three cards", () => {
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <ThreeDaysLeftTrialModal {...props}/>
+                <ThreeDaysLeftTrialModal {...props} />
             </Provider>,
         );
 
-        expect(wrapper.find('ThreeDaysLeftTrialModal ThreeDaysLeftTrialCard')).toHaveLength(3);
+        expect(
+            wrapper.find("ThreeDaysLeftTrialModal ThreeDaysLeftTrialCard"),
+        ).toHaveLength(3);
     });
 
-    test('should show the workspace limits panel when limits are overpassed', () => {
+    test("should show the workspace limits panel when limits are overpassed", () => {
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <ThreeDaysLeftTrialModal
-                    {...props}
-                    limitsOverpassed={true}
-                />
+                <ThreeDaysLeftTrialModal {...props} limitsOverpassed={true} />
             </Provider>,
         );
-        expect(wrapper.find('ThreeDaysLeftTrialModal WorkspaceLimitsPanel')).toHaveLength(1);
+        expect(
+            wrapper.find("ThreeDaysLeftTrialModal WorkspaceLimitsPanel"),
+        ).toHaveLength(1);
     });
 
-    test('should call on exited', () => {
+    test("should call on exited", () => {
         const mockOnExited = jest.fn();
 
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <ThreeDaysLeftTrialModal
-                    {...props}
-                    onExited={mockOnExited}
-                />
+                <ThreeDaysLeftTrialModal {...props} onExited={mockOnExited} />
             </Provider>,
         );
 

@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type React from 'react';
+import type React from "react";
 
-import type {AnalyticsRow} from '@mattermost/types/admin';
-import type {Channel} from '@mattermost/types/channels';
+import type { AnalyticsRow } from "@mattermost/types/admin";
+import type { Channel } from "@mattermost/types/channels";
 
 export type Notice = {
     name: string;
@@ -20,4 +20,4 @@ export type Notice = {
         analytics?: Record<string, number | AnalyticsRow[]>,
         currentChannel?: Channel,
     ): boolean;
-}
+};

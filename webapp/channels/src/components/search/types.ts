@@ -1,18 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type React from 'react';
-import type {Action} from 'redux';
+import type React from "react";
+import type { Action } from "redux";
 
-import type {UserAutocomplete} from '@mattermost/types/autocomplete';
-import type {Channel} from '@mattermost/types/channels';
-import type {ServerError} from '@mattermost/types/errors';
+import type { UserAutocomplete } from "@mattermost/types/autocomplete";
+import type { Channel } from "@mattermost/types/channels";
+import type { ServerError } from "@mattermost/types/errors";
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type { ActionFunc } from "mattermost-redux/types/actions";
 
-import type {SearchType} from 'types/store/rhs';
+import type { SearchType } from "types/store/rhs";
 
-export type SearchFilterType = 'all' | 'documents' | 'spreadsheets' | 'presentations' | 'code' | 'images' | 'audio' | 'video';
+export type SearchFilterType =
+    | "all"
+    | "documents"
+    | "spreadsheets"
+    | "presentations"
+    | "code"
+    | "images"
+    | "audio"
+    | "video";
 
 export type OwnProps = {
     isSideBarRight?: boolean;
@@ -22,7 +30,7 @@ export type OwnProps = {
     channelDisplayName?: string;
     getFocus?: (searchBarFocus: () => void) => void;
     children?: React.ReactNode;
-}
+};
 
 export type StateProps = {
     isRhsExpanded: boolean;
@@ -38,7 +46,7 @@ export type StateProps = {
     isChannelFiles: boolean;
     currentChannel?: Channel;
     isMobileView: boolean;
-}
+};
 
 export type DispatchProps = {
     actions: {
@@ -51,14 +59,20 @@ export type DispatchProps = {
         showFlaggedPosts: () => void;
         setRhsExpanded: (expanded: boolean) => Action;
         closeRightHandSide: () => void;
-        autocompleteChannelsForSearch: (term: string, success: (channels: Channel[]) => void, error: (err: ServerError) => void) => ActionFunc;
-        autocompleteUsersInTeam: (username: string) => Promise<UserAutocomplete>;
+        autocompleteChannelsForSearch: (
+            term: string,
+            success: (channels: Channel[]) => void,
+            error: (err: ServerError) => void,
+        ) => ActionFunc;
+        autocompleteUsersInTeam: (
+            username: string,
+        ) => Promise<UserAutocomplete>;
         updateRhsState: (rhsState: string) => void;
         getMorePostsForSearch: () => ActionFunc;
         openRHSSearch: () => void;
         getMoreFilesForSearch: () => ActionFunc;
         filterFilesSearchByExt: (extensions: string[]) => void;
     };
-}
+};
 
 export type Props = StateProps & DispatchProps & OwnProps;

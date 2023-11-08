@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, { useCallback, useMemo } from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {ClientLicense} from '@mattermost/types/config';
-import type {Role} from '@mattermost/types/roles';
+import type { ClientLicense } from "@mattermost/types/config";
+import type { Role } from "@mattermost/types/roles";
 
-import Permissions from 'mattermost-redux/constants/permissions';
+import Permissions from "mattermost-redux/constants/permissions";
 
-import EditPostTimeLimitButton from '../edit_post_time_limit_button';
-import EditPostTimeLimitModal from '../edit_post_time_limit_modal';
-import PermissionGroup from '../permission_group';
-import type {Permissions as PermissionsType} from '../permissions_tree/types';
+import EditPostTimeLimitButton from "../edit_post_time_limit_button";
+import EditPostTimeLimitModal from "../edit_post_time_limit_modal";
+import PermissionGroup from "../permission_group";
+import type { Permissions as PermissionsType } from "../permissions_tree/types";
 
 type Props = {
     license: ClientLicense;
@@ -23,9 +23,18 @@ type Props = {
     parentRole?: Role;
     selected?: string;
     role?: Partial<Role>;
-}
+};
 
-const GuestPermissionsTree = ({license, onToggle, readOnly, scope, selectRow, parentRole, selected, role = {permissions: []}}: Props) => {
+const GuestPermissionsTree = ({
+    license,
+    onToggle,
+    readOnly,
+    scope,
+    selectRow,
+    parentRole,
+    selected,
+    role = { permissions: [] },
+}: Props) => {
     const setPermissions = () => {
         const defaultPermissions = [
             Permissions.CREATE_PRIVATE_CHANNEL,
@@ -33,7 +42,7 @@ const GuestPermissionsTree = ({license, onToggle, readOnly, scope, selectRow, pa
             Permissions.DELETE_POST,
             Permissions.CREATE_POST,
             {
-                id: 'guest_reactions',
+                id: "guest_reactions",
                 combined: true,
                 permissions: [
                     Permissions.ADD_REACTION,
@@ -42,11 +51,15 @@ const GuestPermissionsTree = ({license, onToggle, readOnly, scope, selectRow, pa
             },
             Permissions.USE_CHANNEL_MENTIONS,
         ];
-        if (license && license.IsLicensed === 'true' && license.LDAPGroups === 'true') {
+        if (
+            license &&
+            license.IsLicensed === "true" &&
+            license.LDAPGroups === "true"
+        ) {
             defaultPermissions.push(Permissions.USE_GROUP_MENTIONS);
         }
         return defaultPermissions.map((permission) => {
-            if (typeof (permission) === 'string') {
+            if (typeof permission === "string") {
                 return {
                     id: `guest_${permission}`,
                     combined: true,
@@ -57,7 +70,8 @@ const GuestPermissionsTree = ({license, onToggle, readOnly, scope, selectRow, pa
         });
     };
 
-    const [editTimeLimitModalIsVisible, setEditTimeLimitModalIsVisible] = React.useState(false);
+    const [editTimeLimitModalIsVisible, setEditTimeLimitModalIsVisible] =
+        React.useState(false);
     const permissions = useMemo<PermissionsType>(setPermissions, [license]);
 
     const openPostTimeLimitModal = useCallback(() => {
@@ -66,12 +80,15 @@ const GuestPermissionsTree = ({license, onToggle, readOnly, scope, selectRow, pa
     const closePostTimeLimitModal = useCallback(() => {
         setEditTimeLimitModalIsVisible(false);
     }, []);
-    const toggleGroup = useCallback((ids: string[]) => {
-        if (readOnly) {
-            return;
-        }
-        onToggle(role.name!, ids);
-    }, [onToggle, readOnly, role.name]);
+    const toggleGroup = useCallback(
+        (ids: string[]) => {
+            if (readOnly) {
+                return;
+            }
+            onToggle(role.name!, ids);
+        },
+        [onToggle, readOnly, role.name],
+    );
 
     const ADDITIONAL_VALUES = useMemo(() => {
         return {
@@ -87,25 +104,25 @@ const GuestPermissionsTree = ({license, onToggle, readOnly, scope, selectRow, pa
     }, [openPostTimeLimitModal, readOnly]);
 
     return (
-        <div className='permissions-tree guest'>
-            <div className='permissions-tree--header'>
-                <div className='permission-name'>
+        <div className="permissions-tree guest">
+            <div className="permissions-tree--header">
+                <div className="permission-name">
                     <FormattedMessage
-                        id='admin.permissions.permissionsTree.permission'
-                        defaultMessage='Permission'
+                        id="admin.permissions.permissionsTree.permission"
+                        defaultMessage="Permission"
                     />
                 </div>
-                <div className='permission-description'>
+                <div className="permission-description">
                     <FormattedMessage
-                        id='admin.permissions.permissionsTree.description'
-                        defaultMessage='Description'
+                        id="admin.permissions.permissionsTree.description"
+                        defaultMessage="Description"
                     />
                 </div>
             </div>
-            <div className='permissions-tree--body'>
+            <div className="permissions-tree--body">
                 <PermissionGroup
-                    key='all'
-                    id='all'
+                    key="all"
+                    id="all"
                     uniqId={role.name}
                     selected={selected}
                     selectRow={selectRow}

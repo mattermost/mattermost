@@ -1,4 +1,4 @@
-@import 'utils/variables';
+@import "utils/variables";
 
 .ChannelsInput {
     &.empty {
@@ -44,7 +44,7 @@
         .channels-input__input {
             border-bottom: 1px dotted red;
 
-            >div {
+            > div {
                 width: 1px;
             }
         }
@@ -76,7 +76,9 @@
     .channels-input__menu {
         margin-top: 0;
         background: var(--center-channel-bg);
-        box-shadow: 0 0 0 0 hsla(0, 0%, 0%, 0.1), 0 4px 11px hsla(0, 0%, 0%, 0.1);
+        box-shadow:
+            0 0 0 0 hsla(0, 0%, 0%, 0.1),
+            0 4px 11px hsla(0, 0%, 0%, 0.1);
         color: var(--center-channel-color);
     }
 

@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useMemo} from 'react';
-import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import { useEffect, useMemo } from "react";
+import { useIntl } from "react-intl";
+import { useDispatch, useSelector } from "react-redux";
 
-import type {LicenseSelfServeStatusReducer} from '@mattermost/types/cloud';
+import type { LicenseSelfServeStatusReducer } from "@mattermost/types/cloud";
 
-import {getLicenseSelfServeStatus} from 'mattermost-redux/actions/cloud';
+import { getLicenseSelfServeStatus } from "mattermost-redux/actions/cloud";
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-import {getExpandSeatsLink} from 'selectors/cloud';
+import { trackEvent } from "actions/telemetry_actions.jsx";
+import { getExpandSeatsLink } from "selectors/cloud";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
 type UseExpandOverageUsersCheckArgs = {
     isWarningState: boolean;
     shouldRequest: boolean;
     licenseId?: string;
-    banner: 'global banner' | 'invite modal';
+    banner: "global banner" | "invite modal";
     canSelfHostedExpand: boolean;
-}
+};
 
 export const useExpandOverageUsersCheck = ({
     shouldRequest,
@@ -29,38 +29,51 @@ export const useExpandOverageUsersCheck = ({
     banner,
     canSelfHostedExpand,
 }: UseExpandOverageUsersCheckArgs) => {
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
     const dispatch = useDispatch();
-    const {getRequestState, is_expandable: isExpandable}: LicenseSelfServeStatusReducer = useSelector((state: GlobalState) => state.entities.cloud.subscriptionStats || {is_expandable: false, getRequestState: 'IDLE'});
+    const {
+        getRequestState,
+        is_expandable: isExpandable,
+    }: LicenseSelfServeStatusReducer = useSelector(
+        (state: GlobalState) =>
+            state.entities.cloud.subscriptionStats || {
+                is_expandable: false,
+                getRequestState: "IDLE",
+            },
+    );
     const expandableLink = useSelector(getExpandSeatsLink);
 
     const cta = useMemo(() => {
         if (isExpandable && !canSelfHostedExpand) {
             return formatMessage({
-                id: 'licensingPage.overageUsersBanner.ctaExpandSeats',
-                defaultMessage: 'Purchase additional seats',
+                id: "licensingPage.overageUsersBanner.ctaExpandSeats",
+                defaultMessage: "Purchase additional seats",
             });
         } else if (isExpandable && canSelfHostedExpand) {
             return formatMessage({
-                id: 'licensingPage.overageUsersBanner.ctaUpdateSeats',
-                defaultMessage: 'Update seat count',
+                id: "licensingPage.overageUsersBanner.ctaUpdateSeats",
+                defaultMessage: "Update seat count",
             });
         }
         return formatMessage({
-            id: 'licensingPage.overageUsersBanner.cta',
-            defaultMessage: 'Contact Sales',
+            id: "licensingPage.overageUsersBanner.cta",
+            defaultMessage: "Contact Sales",
         });
     }, [isExpandable]);
 
-    const trackEventFn = (cta: 'Contact Sales' | 'Self Serve') => {
-        trackEvent('insights', isWarningState ? 'click_true_up_warning' : 'click_true_up_error', {
-            cta,
-            banner,
-        });
+    const trackEventFn = (cta: "Contact Sales" | "Self Serve") => {
+        trackEvent(
+            "insights",
+            isWarningState ? "click_true_up_warning" : "click_true_up_error",
+            {
+                cta,
+                banner,
+            },
+        );
     };
 
     useEffect(() => {
-        if (shouldRequest && licenseId && getRequestState === 'IDLE') {
+        if (shouldRequest && licenseId && getRequestState === "IDLE") {
             dispatch(getLicenseSelfServeStatus());
         }
     }, [dispatch, getRequestState, licenseId, shouldRequest]);

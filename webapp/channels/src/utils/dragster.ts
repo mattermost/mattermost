@@ -6,7 +6,7 @@ type Options = {
     leave?: (event: CustomEvent) => void;
     over?: (event: CustomEvent) => void;
     drop?: (event: CustomEvent) => void;
-}
+};
 
 export default function dragster(query: string, options: Options) {
     const preventDefault = (e: Event) => {
@@ -37,7 +37,7 @@ export default function dragster(query: string, options: Options) {
         }
 
         first = true;
-        const enterEvent = new CustomEvent('dragster:enter', {detail: event});
+        const enterEvent = new CustomEvent("dragster:enter", { detail: event });
         node.dispatchEvent(enterEvent);
     };
 
@@ -48,13 +48,15 @@ export default function dragster(query: string, options: Options) {
             first = false;
         }
         if (!first && !second) {
-            const leaveEvent = new CustomEvent('dragster:leave', {detail: event});
+            const leaveEvent = new CustomEvent("dragster:leave", {
+                detail: event,
+            });
             node.dispatchEvent(leaveEvent);
         }
     };
 
     const dragover = (event: Event) => {
-        const overEvent = new CustomEvent('dragster:over', {detail: event});
+        const overEvent = new CustomEvent("dragster:over", { detail: event });
         node.dispatchEvent(overEvent);
     };
 
@@ -65,33 +67,34 @@ export default function dragster(query: string, options: Options) {
             first = false;
         }
         if (!first && !second) {
-            const dropEvent = new CustomEvent('dragster:drop', {detail: event});
+            const dropEvent = new CustomEvent("dragster:drop", {
+                detail: event,
+            });
             node.dispatchEvent(dropEvent);
         }
     };
 
-    node.addEventListener('dragenter', dragenter);
-    node.addEventListener('dragleave', dragleave);
-    node.addEventListener('dragover', dragover);
-    node.addEventListener('drop', drop);
+    node.addEventListener("dragenter", dragenter);
+    node.addEventListener("dragleave", dragleave);
+    node.addEventListener("dragover", dragover);
+    node.addEventListener("drop", drop);
 
-    node.addEventListener('dragster:enter', settings.enter);
-    node.addEventListener('dragster:leave', settings.leave);
-    node.addEventListener('dragster:over', settings.over);
-    node.addEventListener('dragster:drop', settings.drop);
+    node.addEventListener("dragster:enter", settings.enter);
+    node.addEventListener("dragster:leave", settings.leave);
+    node.addEventListener("dragster:over", settings.over);
+    node.addEventListener("dragster:drop", settings.drop);
 
     const unbindEvents = () => {
-        node.removeEventListener('dragenter', dragenter);
-        node.removeEventListener('dragleave', dragleave);
-        node.removeEventListener('dragover', dragover);
-        node.removeEventListener('drop', drop);
+        node.removeEventListener("dragenter", dragenter);
+        node.removeEventListener("dragleave", dragleave);
+        node.removeEventListener("dragover", dragover);
+        node.removeEventListener("drop", drop);
 
-        node.removeEventListener('dragster:enter', settings.enter);
-        node.removeEventListener('dragster:leave', settings.leave);
-        node.removeEventListener('dragster:over', settings.over);
-        node.removeEventListener('dragster:drop', settings.drop);
+        node.removeEventListener("dragster:enter", settings.enter);
+        node.removeEventListener("dragster:leave", settings.leave);
+        node.removeEventListener("dragster:over", settings.over);
+        node.removeEventListener("dragster:drop", settings.drop);
     };
 
     return unbindEvents;
 }
-

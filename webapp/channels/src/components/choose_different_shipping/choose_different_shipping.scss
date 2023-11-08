@@ -1,4 +1,4 @@
-@import '../payment_form/mixins';
+@import "../payment_form/mixins";
 
 .shipping-address-section {
     display: flex;
@@ -28,12 +28,12 @@
     .Form-checkbox-label {
         padding-left: 12px;
         cursor: default;
-        font-family: 'Open Sans', sans-serif;
+        font-family: "Open Sans", sans-serif;
     }
 
     .billing_address_btn_text {
         color: var(--center-channel-color);
-        font-family: 'Open Sans', sans-serif;
+        font-family: "Open Sans", sans-serif;
         font-weight: bold;
     }
 }

@@ -1,46 +1,45 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import {Client4} from 'mattermost-redux/client';
+import { Client4 } from "mattermost-redux/client";
 
-import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
+import { uploadBrandImage, deleteBrandImage } from "actions/admin_actions.jsx";
 
-import FormError from 'components/form_error';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import FormError from "components/form_error";
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
 
-import {Constants} from 'utils/constants';
+import { Constants } from "utils/constants";
 
 const HTTP_STATUS_OK = 200;
 
 type Props = {
-
     /*
-   * Set for testing purpose
-   */
+     * Set for testing purpose
+     */
     id?: string;
 
     /*
-   * Set to disable the setting
-   */
+     * Set to disable the setting
+     */
     disabled: boolean;
 
     /*
-   * Set the save needed in the admin schema settings to trigger the save button to turn on
-   */
+     * Set the save needed in the admin schema settings to trigger the save button to turn on
+     */
     setSaveNeeded: () => void;
 
     /*
-   * Registers the function suppose to be run when the save button is pressed
-   */
+     * Registers the function suppose to be run when the save button is pressed
+     */
     registerSaveAction: (saveAction: () => Promise<unknown>) => void;
 
     /*
-   * Unregisters the function on unmount of the component suppose to be run when the save button is pressed
-   */
+     * Unregisters the function on unmount of the component suppose to be run when the save button is pressed
+     */
     unRegisterSaveAction: (saveAction: () => Promise<unknown>) => void;
 };
 
@@ -52,7 +51,10 @@ type State = {
     error: string;
 };
 
-export default class BrandImageSetting extends React.PureComponent<Props, State> {
+export default class BrandImageSetting extends React.PureComponent<
+    Props,
+    State
+> {
     private imageRef: React.RefObject<HTMLImageElement>;
     private fileInputRef: React.RefObject<HTMLInputElement>;
 
@@ -63,7 +65,7 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
             deleteBrandImage: false,
             brandImageExists: false,
             brandImageTimestamp: Date.now(),
-            error: '',
+            error: "",
         };
 
         this.imageRef = React.createRef();
@@ -71,18 +73,18 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
     }
 
     componentDidMount() {
-        fetch(
-            Client4.getBrandImageUrl(String(this.state.brandImageTimestamp)),
-        ).then((resp) => {
-            if (resp.status === HTTP_STATUS_OK) {
-                this.setState({brandImageExists: true});
-            } else {
-                this.setState({brandImageExists: false});
-            }
-        }).catch((err) => {
-            console.error(`unable to retrieve brand image: ${err}`); //eslint-disable-line no-console
-            this.setState({brandImageExists: false});
-        });
+        fetch(Client4.getBrandImageUrl(String(this.state.brandImageTimestamp)))
+            .then((resp) => {
+                if (resp.status === HTTP_STATUS_OK) {
+                    this.setState({ brandImageExists: true });
+                } else {
+                    this.setState({ brandImageExists: false });
+                }
+            })
+            .catch((err) => {
+                console.error(`unable to retrieve brand image: ${err}`); //eslint-disable-line no-console
+                this.setState({ brandImageExists: false });
+            });
 
         this.props.registerSaveAction(this.handleSave);
     }
@@ -98,10 +100,12 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
             const img = this.imageRef.current;
             reader.onload = (e) => {
                 const src =
-          e.target?.result instanceof ArrayBuffer ? e.target?.result.toString() : e.target?.result;
+                    e.target?.result instanceof ArrayBuffer
+                        ? e.target?.result.toString()
+                        : e.target?.result;
 
                 if (src) {
-                    img.setAttribute('src', src);
+                    img.setAttribute("src", src);
                 }
             };
 
@@ -136,7 +140,7 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
 
     handleSave = async () => {
         this.setState({
-            error: '',
+            error: "",
         });
 
         let error;
@@ -174,19 +178,15 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
                 },
             );
         }
-        return {error};
+        return { error };
     };
 
     render() {
         let img = null;
         if (this.state.brandImage) {
             img = (
-                <div className='remove-image__img mb-5'>
-                    <img
-                        ref={this.imageRef}
-                        alt='brand image'
-                        src=''
-                    />
+                <div className="remove-image__img mb-5">
+                    <img ref={this.imageRef} alt="brand image" src="" />
                 </div>
             );
         } else if (this.state.brandImageExists) {
@@ -195,32 +195,32 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
                 overlay = (
                     <OverlayTrigger
                         delayShow={Constants.OVERLAY_TIME_DELAY}
-                        placement='right'
+                        placement="right"
                         overlay={
-                            <Tooltip id='removeIcon'>
+                            <Tooltip id="removeIcon">
                                 <div aria-hidden={true}>
                                     <FormattedMessage
-                                        id='admin.team.removeBrandImage'
-                                        defaultMessage='Remove brand image'
+                                        id="admin.team.removeBrandImage"
+                                        defaultMessage="Remove brand image"
                                     />
                                 </div>
                             </Tooltip>
                         }
                     >
                         <button
-                            type='button'
-                            className='remove-image__btn'
+                            type="button"
+                            className="remove-image__btn"
                             onClick={this.handleDeleteButtonPressed}
                         >
-                            <span aria-hidden={true}>{'×'}</span>
+                            <span aria-hidden={true}>{"×"}</span>
                         </button>
                     </OverlayTrigger>
                 );
             }
             img = (
-                <div className='remove-image__img mb-5'>
+                <div className="remove-image__img mb-5">
                     <img
-                        alt='brand image'
+                        alt="brand image"
                         src={Client4.getBrandImageUrl(
                             String(this.state.brandImageTimestamp),
                         )}
@@ -230,56 +230,53 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
             );
         } else {
             img = (
-                <p className='mt-2'>
+                <p className="mt-2">
                     <FormattedMessage
-                        id='admin.team.noBrandImage'
-                        defaultMessage='No brand image uploaded'
+                        id="admin.team.noBrandImage"
+                        defaultMessage="No brand image uploaded"
                     />
                 </p>
             );
         }
 
         return (
-            <div
-                data-testid={this.props.id}
-                className='form-group'
-            >
-                <label className='control-label col-sm-4'>
+            <div data-testid={this.props.id} className="form-group">
+                <label className="control-label col-sm-4">
                     <FormattedMessage
-                        id='admin.team.brandImageTitle'
-                        defaultMessage='Custom Brand Image:'
+                        id="admin.team.brandImageTitle"
+                        defaultMessage="Custom Brand Image:"
                     />
                 </label>
-                <div className='col-sm-8'>
-                    <div className='remove-image'>{img}</div>
+                <div className="col-sm-8">
+                    <div className="remove-image">{img}</div>
                 </div>
-                <div className='col-sm-4'/>
-                <div className='col-sm-8'>
-                    <div className='file__upload mt-5'>
+                <div className="col-sm-4" />
+                <div className="col-sm-8">
+                    <div className="file__upload mt-5">
                         <button
-                            type='button'
-                            className='btn btn-tertiary'
+                            type="button"
+                            className="btn btn-tertiary"
                             disabled={this.props.disabled}
                         >
                             <FormattedMessage
-                                id='admin.team.chooseImage'
-                                defaultMessage='Select Image'
+                                id="admin.team.chooseImage"
+                                defaultMessage="Select Image"
                             />
                         </button>
                         <input
                             ref={this.fileInputRef}
-                            type='file'
+                            type="file"
                             accept={Constants.ACCEPT_STATIC_IMAGE}
                             disabled={this.props.disabled}
                             onChange={this.handleImageChange}
                         />
                     </div>
-                    <br/>
-                    <FormError error={this.state.error}/>
-                    <p className='help-text m-0'>
+                    <br />
+                    <FormError error={this.state.error} />
+                    <p className="help-text m-0">
                         <FormattedMessage
-                            id='admin.team.uploadDesc'
-                            defaultMessage='Customize your user experience by adding a custom image to your login screen. Recommended maximum image size is less than 2 MB.'
+                            id="admin.team.uploadDesc"
+                            defaultMessage="Customize your user experience by adding a custom image to your login screen. Recommended maximum image size is less than 2 MB."
                         />
                     </p>
                 </div>

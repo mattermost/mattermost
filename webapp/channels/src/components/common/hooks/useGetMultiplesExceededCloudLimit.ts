@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useMemo} from 'react';
+import { useMemo } from "react";
 
-import type {CloudUsage, Limits} from '@mattermost/types/cloud';
+import type { CloudUsage, Limits } from "@mattermost/types/cloud";
 
-import {limitThresholds, LimitTypes} from 'utils/limits';
+import { limitThresholds, LimitTypes } from "utils/limits";
 
-type LimitsKeys = typeof LimitTypes[keyof typeof LimitTypes];
+type LimitsKeys = (typeof LimitTypes)[keyof typeof LimitTypes];
 
 interface MaybeLimitSummary {
     id: LimitsKeys;
@@ -21,15 +21,21 @@ export interface LimitSummary {
 }
 
 function refineToDefined(...args: MaybeLimitSummary[]): LimitSummary[] {
-    return args.reduce((acc: LimitSummary[], maybeLimitType: MaybeLimitSummary) => {
-        if (maybeLimitType.limit !== undefined) {
-            acc.push(maybeLimitType as LimitSummary);
-        }
-        return acc;
-    }, []);
+    return args.reduce(
+        (acc: LimitSummary[], maybeLimitType: MaybeLimitSummary) => {
+            if (maybeLimitType.limit !== undefined) {
+                acc.push(maybeLimitType as LimitSummary);
+            }
+            return acc;
+        },
+        [],
+    );
 }
 
-export default function useGetMultiplesExceededCloudLimit(usage: CloudUsage, limits: Limits): LimitsKeys[] {
+export default function useGetMultiplesExceededCloudLimit(
+    usage: CloudUsage,
+    limits: Limits,
+): LimitsKeys[] {
     return useMemo(() => {
         if (Object.keys(limits).length === 0) {
             return [];
@@ -52,14 +58,13 @@ export default function useGetMultiplesExceededCloudLimit(usage: CloudUsage, lim
                 limit: maybeFileStorageLimit,
                 usage: fileStorageUsage,
             },
-        ).
-            reduce((acc: LimitsKeys[], curr: LimitSummary) => {
-                if ((curr.usage / curr.limit) > (limitThresholds.exceeded / 100)) {
-                    acc.push(curr.id);
-                    return acc;
-                }
+        ).reduce((acc: LimitsKeys[], curr: LimitSummary) => {
+            if (curr.usage / curr.limit > limitThresholds.exceeded / 100) {
+                acc.push(curr.id);
                 return acc;
-            }, [] as LimitsKeys[]);
+            }
+            return acc;
+        }, [] as LimitsKeys[]);
 
         return highestLimit;
     }, [usage, limits]);

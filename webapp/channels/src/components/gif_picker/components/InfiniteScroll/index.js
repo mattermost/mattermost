@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
-import React, {PureComponent} from 'react';
+import PropTypes from "prop-types";
+import React, { PureComponent } from "react";
 
 export default class InfiniteScroll extends PureComponent {
     static propTypes = {
@@ -21,7 +21,7 @@ export default class InfiniteScroll extends PureComponent {
     };
 
     static defaultProps = {
-        element: 'div',
+        element: "div",
         hasMore: false,
         initialLoad: true,
         pageStart: 0,
@@ -63,9 +63,16 @@ export default class InfiniteScroll extends PureComponent {
             this.scrollComponent = node;
         };
 
-        const elementProps = containerHeight ? {...props, style: {height: containerHeight}} : props;
+        const elementProps = containerHeight
+            ? { ...props, style: { height: containerHeight } }
+            : props;
 
-        return React.createElement(element, elementProps, children, hasMore && (loader || this.defaultLoader));
+        return React.createElement(
+            element,
+            elementProps,
+            children,
+            hasMore && (loader || this.defaultLoader),
+        );
     }
 
     calculateTopPosition(el) {
@@ -76,7 +83,7 @@ export default class InfiniteScroll extends PureComponent {
     }
 
     setScrollPosition() {
-        const {scrollPosition} = this.props;
+        const { scrollPosition } = this.props;
         if (scrollPosition !== null) {
             window.scrollTo(0, scrollPosition);
         }
@@ -88,24 +95,36 @@ export default class InfiniteScroll extends PureComponent {
 
         let offset;
         if (this.props.useWindow) {
-            var scrollTop = ('pageYOffset' in scrollEl) ? scrollEl.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
+            var scrollTop =
+                "pageYOffset" in scrollEl
+                    ? scrollEl.pageYOffset
+                    : (
+                          document.documentElement ||
+                          document.body.parentNode ||
+                          document.body
+                      ).scrollTop;
             if (this.props.isReverse) {
                 offset = scrollTop;
             } else {
-                offset = this.calculateTopPosition(el) + (el.offsetHeight - scrollTop - window.innerHeight);
+                offset =
+                    this.calculateTopPosition(el) +
+                    (el.offsetHeight - scrollTop - window.innerHeight);
             }
         } else if (this.props.isReverse) {
             offset = el.parentNode.scrollTop;
         } else {
-            offset = el.scrollHeight - el.parentNode.scrollTop - el.parentNode.clientHeight;
+            offset =
+                el.scrollHeight -
+                el.parentNode.scrollTop -
+                el.parentNode.clientHeight;
         }
 
         if (offset < Number(this.props.threshold)) {
             this.detachScrollListener();
 
             // Call loadMore after detachScrollListener to allow for non-async loadMore functions
-            if (typeof this.props.loadMore === 'function') {
-                this.props.loadMore(this.pageLoaded += 1);
+            if (typeof this.props.loadMore === "function") {
+                this.props.loadMore((this.pageLoaded += 1));
             }
         }
     };
@@ -120,8 +139,8 @@ export default class InfiniteScroll extends PureComponent {
             scrollEl = this.scrollComponent.parentNode;
         }
 
-        scrollEl.addEventListener('scroll', this.scrollListener);
-        scrollEl.addEventListener('resize', this.scrollListener);
+        scrollEl.addEventListener("scroll", this.scrollListener);
+        scrollEl.addEventListener("resize", this.scrollListener);
 
         if (this.props.initialLoad) {
             this.scrollListener();
@@ -134,8 +153,8 @@ export default class InfiniteScroll extends PureComponent {
             scrollEl = this.scrollComponent.parentNode;
         }
 
-        scrollEl.removeEventListener('scroll', this.scrollListener);
-        scrollEl.removeEventListener('resize', this.scrollListener);
+        scrollEl.removeEventListener("scroll", this.scrollListener);
+        scrollEl.removeEventListener("resize", this.scrollListener);
     }
 
     componentWillUnmount() {

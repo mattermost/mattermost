@@ -1,23 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import ActionsMenu from 'components/actions_menu/actions_menu';
-import type {Props} from 'components/actions_menu/actions_menu';
+import ActionsMenu from "components/actions_menu/actions_menu";
+import type { Props } from "components/actions_menu/actions_menu";
 
-import {TestHelper} from 'utils/test_helper';
+import { TestHelper } from "utils/test_helper";
 
-jest.mock('utils/utils', () => {
+jest.mock("utils/utils", () => {
     return {
         isMobile: jest.fn(() => false),
-        localizeMessage: jest.fn().mockReturnValue(''),
+        localizeMessage: jest.fn().mockReturnValue(""),
     };
 });
 
-jest.mock('utils/post_utils', () => {
-    const original = jest.requireActual('utils/post_utils');
+jest.mock("utils/post_utils", () => {
+    const original = jest.requireActual("utils/post_utils");
     return {
         ...original,
         isSystemMessage: jest.fn(() => true),
@@ -26,10 +26,10 @@ jest.mock('utils/post_utils', () => {
 
 describe('components/actions_menu/ActionsMenu returning empty ("")', () => {
     test('should match snapshot, return empty ("") on Center', () => {
-        const baseProps: Omit<Props, 'intl'> = {
-            post: TestHelper.getPostMock({id: 'post_id_1'}),
+        const baseProps: Omit<Props, "intl"> = {
+            post: TestHelper.getPostMock({ id: "post_id_1" }),
             components: {},
-            teamId: 'team_id_1',
+            teamId: "team_id_1",
             actions: {
                 openModal: jest.fn(),
                 openAppsModal: jest.fn(),
@@ -44,9 +44,7 @@ describe('components/actions_menu/ActionsMenu returning empty ("")', () => {
             canOpenMarketplace: false,
         };
 
-        const wrapper = shallow(
-            <ActionsMenu {...baseProps}/>,
-        );
+        const wrapper = shallow(<ActionsMenu {...baseProps} />);
 
         expect(wrapper).toMatchSnapshot();
     });

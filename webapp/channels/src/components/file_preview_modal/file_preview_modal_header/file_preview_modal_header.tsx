@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, { memo } from "react";
 
-import type {FileInfo} from '@mattermost/types/files';
-import type {Post} from '@mattermost/types/posts';
+import type { FileInfo } from "@mattermost/types/files";
+import type { Post } from "@mattermost/types/posts";
 
-import FilePreviewModalInfo from '../file_preview_modal_info/file_preview_modal_info';
-import FilePreviewModalMainActions from '../file_preview_modal_main_actions/file_preview_modal_main_actions';
-import FilePreviewModalMainNav from '../file_preview_modal_main_nav/file_preview_modal_main_nav';
-import type {LinkInfo} from '../types';
+import FilePreviewModalInfo from "../file_preview_modal_info/file_preview_modal_info";
+import FilePreviewModalMainActions from "../file_preview_modal_main_actions/file_preview_modal_main_actions";
+import FilePreviewModalMainNav from "../file_preview_modal_main_nav/file_preview_modal_main_nav";
+import type { LinkInfo } from "../types";
 
-import './file_preview_modal_header.scss';
+import "./file_preview_modal_header.scss";
 
 interface Props {
     isMobileView: boolean;
@@ -32,8 +32,13 @@ interface Props {
     content: string;
 }
 
-const FilePreviewModalHeader: React.FC<Props> = ({post, totalFiles, fileIndex, ...actionProps}: Props) => {
-    let mainActions = (<div/>);
+const FilePreviewModalHeader: React.FC<Props> = ({
+    post,
+    totalFiles,
+    fileIndex,
+    ...actionProps
+}: Props) => {
+    let mainActions = <div />;
     if (totalFiles > 1) {
         mainActions = (
             <FilePreviewModalMainNav
@@ -48,18 +53,19 @@ const FilePreviewModalHeader: React.FC<Props> = ({post, totalFiles, fileIndex, .
         <FilePreviewModalMainActions
             {...actionProps}
             showOnlyClose={actionProps.isMobileView}
-            usedInside='Header'
-        />);
+            usedInside="Header"
+        />
+    );
     return (
-        <div className='file-preview-modal-header'>
+        <div className="file-preview-modal-header">
             {actionProps.isMobileView && actions}
-            {!actionProps.isMobileView &&
-            <FilePreviewModalInfo
-                showFileName={true}
-                post={post}
-                filename={actionProps.filename}
-            />
-            }
+            {!actionProps.isMobileView && (
+                <FilePreviewModalInfo
+                    showFileName={true}
+                    post={post}
+                    filename={actionProps.filename}
+                />
+            )}
             {mainActions}
             {!actionProps.isMobileView && actions}
         </div>
@@ -67,4 +73,3 @@ const FilePreviewModalHeader: React.FC<Props> = ({post, totalFiles, fileIndex, .
 };
 
 export default memo(FilePreviewModalHeader);
-

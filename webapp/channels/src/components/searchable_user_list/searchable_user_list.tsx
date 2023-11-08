@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import Scrollbars from 'react-custom-scrollbars';
-import {FormattedMessage, injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import React from "react";
+import Scrollbars from "react-custom-scrollbars";
+import { FormattedMessage, injectIntl } from "react-intl";
+import type { IntlShape } from "react-intl";
 
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Channel, ChannelMembership } from "@mattermost/types/channels";
+import type { TeamMembership } from "@mattermost/types/teams";
+import type { UserProfile } from "@mattermost/types/users";
 
-import QuickInput from 'components/quick_input';
-import UserList from 'components/user_list';
+import QuickInput from "components/quick_input";
+import UserList from "components/user_list";
 
 const NEXT_BUTTON_TIMEOUT = 500;
 
@@ -19,7 +19,7 @@ type Props = {
     users: UserProfile[] | null;
     usersPerPage: number;
     total: number;
-    extraInfo?: {[key: string]: Array<string | JSX.Element>};
+    extraInfo?: { [key: string]: Array<string | JSX.Element> };
     nextPage: () => void;
     previousPage: () => void;
     search: (term: string) => void;
@@ -43,9 +43,19 @@ type Props = {
         };
     };
     focusOnMount?: boolean;
-    renderCount?: (count: number, total: number, startCount: number, endCount: number, isSearch: boolean) => JSX.Element | null;
+    renderCount?: (
+        count: number,
+        total: number,
+        startCount: number,
+        endCount: number,
+        isSearch: boolean,
+    ) => JSX.Element | null;
     filter?: string;
-    renderFilterRow?: (handleFilter: ((event: React.FormEvent<HTMLInputElement>) => void) | undefined) => JSX.Element;
+    renderFilterRow?: (
+        handleFilter:
+            | ((event: React.FormEvent<HTMLInputElement>) => void)
+            | undefined,
+    ) => JSX.Element;
     page: number;
     term: string;
     onTermChange: (term: string) => void;
@@ -54,24 +64,16 @@ type Props = {
 
     // the type of user list row to render
     rowComponentType?: React.ComponentType<any>;
-}
+};
 
 const renderView = (props: Record<string, unknown>): JSX.Element => (
-    <div
-        {...props}
-        className='scrollbar--view'
-    />
+    <div {...props} className="scrollbar--view" />
 );
 
-const renderThumbHorizontal = (): JSX.Element => (
-    <div/>
-);
+const renderThumbHorizontal = (): JSX.Element => <div />;
 
 const renderThumbVertical = (props: Record<string, unknown>): JSX.Element => (
-    <div
-        {...props}
-        className='scrollbar--vertical'
-    />
+    <div {...props} className="scrollbar--vertical" />
 );
 
 type State = {
@@ -125,7 +127,10 @@ class SearchableUserList extends React.PureComponent<Props, State> {
     }
 
     componentDidUpdate(prevProps: Props) {
-        if (this.props.page !== prevProps.page || this.props.term !== prevProps.term) {
+        if (
+            this.props.page !== prevProps.page ||
+            this.props.term !== prevProps.term
+        ) {
             this.scrollToTop();
         }
     }
@@ -137,8 +142,11 @@ class SearchableUserList extends React.PureComponent<Props, State> {
     nextPage = (e: React.MouseEvent) => {
         e.preventDefault();
 
-        this.setState({nextDisabled: true});
-        this.nextTimeoutId = setTimeout(() => this.setState({nextDisabled: false}), NEXT_BUTTON_TIMEOUT);
+        this.setState({ nextDisabled: true });
+        this.nextTimeoutId = setTimeout(
+            () => this.setState({ nextDisabled: false }),
+            NEXT_BUTTON_TIMEOUT,
+        );
 
         this.props.nextPage();
         this.scrollToTop();
@@ -191,15 +199,21 @@ class SearchableUserList extends React.PureComponent<Props, State> {
         }
 
         if (this.props.renderCount) {
-            return this.props.renderCount(count, this.props.total, startCount, endCount, isSearch);
+            return this.props.renderCount(
+                count,
+                this.props.total,
+                startCount,
+                endCount,
+                isSearch,
+            );
         }
 
         if (this.props.total) {
             if (isSearch) {
                 return (
                     <FormattedMessage
-                        id='filtered_user_list.countTotal'
-                        defaultMessage='{count, number} {count, plural, one {member} other {members}} of {total, number} total'
+                        id="filtered_user_list.countTotal"
+                        defaultMessage="{count, number} {count, plural, one {member} other {members}} of {total, number} total"
                         values={{
                             count,
                             total,
@@ -210,8 +224,8 @@ class SearchableUserList extends React.PureComponent<Props, State> {
 
             return (
                 <FormattedMessage
-                    id='filtered_user_list.countTotalPage'
-                    defaultMessage='{startCount, number} - {endCount, number} {count, plural, one {member} other {members}} of {total, number} total'
+                    id="filtered_user_list.countTotalPage"
+                    defaultMessage="{startCount, number} - {endCount, number} {count, plural, one {member} other {members}} of {total, number} total"
                     values={{
                         count,
                         startCount: startCount + 1,
@@ -244,14 +258,14 @@ class SearchableUserList extends React.PureComponent<Props, State> {
             if (pageEnd < this.props.total) {
                 nextButton = (
                     <button
-                        id='searchableUserListNextBtn'
-                        className='btn btn-tertiary filter-control filter-control__next'
+                        id="searchableUserListNextBtn"
+                        className="btn btn-tertiary filter-control filter-control__next"
                         onClick={this.nextPage}
                         disabled={this.state.nextDisabled}
                     >
                         <FormattedMessage
-                            id='filtered_user_list.next'
-                            defaultMessage='Next'
+                            id="filtered_user_list.next"
+                            defaultMessage="Next"
                         />
                     </button>
                 );
@@ -260,13 +274,13 @@ class SearchableUserList extends React.PureComponent<Props, State> {
             if (this.props.page > 0) {
                 previousButton = (
                     <button
-                        id='searchableUserListPrevBtn'
-                        className='btn btn-tertiary filter-control filter-control__prev'
+                        id="searchableUserListPrevBtn"
+                        className="btn btn-tertiary filter-control filter-control__prev"
                         onClick={this.previousPage}
                     >
                         <FormattedMessage
-                            id='filtered_user_list.prev'
-                            defaultMessage='Previous'
+                            id="filtered_user_list.prev"
+                            defaultMessage="Previous"
                         />
                     </button>
                 );
@@ -278,22 +292,25 @@ class SearchableUserList extends React.PureComponent<Props, State> {
             filterRow = this.props.renderFilterRow(this.handleInput);
         } else {
             filterRow = (
-                <div className='col-xs-12'>
-                    <label
-                        className='hidden-label'
-                        htmlFor='searchUsersInput'
-                    >
+                <div className="col-xs-12">
+                    <label className="hidden-label" htmlFor="searchUsersInput">
                         <FormattedMessage
-                            id='filtered_user_list.search'
-                            defaultMessage='Search users'
+                            id="filtered_user_list.search"
+                            defaultMessage="Search users"
                         />
                     </label>
                     <QuickInput
                         ref={this.filterRef}
-                        id='searchUsersInput'
-                        className='form-control filter-textbox'
-                        placeholder={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
-                        aria-label={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
+                        id="searchUsersInput"
+                        className="form-control filter-textbox"
+                        placeholder={this.props.intl.formatMessage({
+                            id: "filtered_user_list.search",
+                            defaultMessage: "Search users",
+                        })}
+                        aria-label={this.props.intl.formatMessage({
+                            id: "filtered_user_list.search",
+                            defaultMessage: "Search users",
+                        })}
                         onInput={this.handleInput}
                         value={this.props.term}
                     />
@@ -302,20 +319,20 @@ class SearchableUserList extends React.PureComponent<Props, State> {
         }
 
         return (
-            <div className='filtered-user-list'>
-                <div className='filter-row'>
+            <div className="filtered-user-list">
+                <div className="filter-row">
                     {filterRow}
-                    <div className='col-sm-12'>
+                    <div className="col-sm-12">
                         <span
-                            id='searchableUserListTotal'
-                            className='member-count pull-left'
-                            aria-live='polite'
+                            id="searchableUserListTotal"
+                            className="member-count pull-left"
+                            aria-live="polite"
                         >
                             {this.renderCount(usersToDisplay)}
                         </span>
                     </div>
                 </div>
-                <div className='more-modal__list'>
+                <div className="more-modal__list">
                     <Scrollbars
                         ref={this.scrollbarsRef}
                         autoHide={true}
@@ -336,7 +353,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                         />
                     </Scrollbars>
                 </div>
-                <div className='filter-controls'>
+                <div className="filter-controls">
                     {previousButton}
                     {nextButton}
                 </div>

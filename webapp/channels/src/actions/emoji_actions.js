@@ -1,24 +1,35 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as EmojiActions from 'mattermost-redux/actions/emojis';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {getCustomEmojisByName as selectCustomEmojisByName, getCustomEmojisEnabled} from 'mattermost-redux/selectors/entities/emojis';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import * as EmojiActions from "mattermost-redux/actions/emojis";
+import { savePreferences } from "mattermost-redux/actions/preferences";
+import {
+    getCustomEmojisByName as selectCustomEmojisByName,
+    getCustomEmojisEnabled,
+} from "mattermost-redux/selectors/entities/emojis";
+import { getCurrentUserId } from "mattermost-redux/selectors/entities/users";
 
-import {getEmojiMap, getRecentEmojisData, getRecentEmojisNames, isCustomEmojiEnabled} from 'selectors/emojis';
-import {isCustomStatusEnabled, makeGetCustomStatus} from 'selectors/views/custom_status';
-import LocalStorageStore from 'stores/local_storage_store';
+import {
+    getEmojiMap,
+    getRecentEmojisData,
+    getRecentEmojisNames,
+    isCustomEmojiEnabled,
+} from "selectors/emojis";
+import {
+    isCustomStatusEnabled,
+    makeGetCustomStatus,
+} from "selectors/views/custom_status";
+import LocalStorageStore from "stores/local_storage_store";
 
-import Constants, {ActionTypes, Preferences} from 'utils/constants';
-import {EmojiIndicesByAlias} from 'utils/emoji';
+import Constants, { ActionTypes, Preferences } from "utils/constants";
+import { EmojiIndicesByAlias } from "utils/emoji";
 
 export function loadRecentlyUsedCustomEmojis() {
     return (dispatch, getState) => {
         const state = getState();
 
         if (!getCustomEmojisEnabled(state)) {
-            return {data: true};
+            return { data: true };
         }
 
         const recentEmojiNames = getRecentEmojisNames(state);
@@ -33,7 +44,7 @@ export function incrementEmojiPickerPage() {
             type: ActionTypes.INCREMENT_EMOJI_PICKER_PAGE,
         });
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -41,12 +52,14 @@ export function setUserSkinTone(skin) {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
-        const skinTonePreference = [{
-            user_id: currentUserId,
-            name: Preferences.EMOJI_SKINTONE,
-            category: Preferences.CATEGORY_EMOJI,
-            value: skin,
-        }];
+        const skinTonePreference = [
+            {
+                user_id: currentUserId,
+                name: Preferences.EMOJI_SKINTONE,
+                category: Preferences.CATEGORY_EMOJI,
+                value: skin,
+            },
+        ];
         dispatch(savePreferences(currentUserId, skinTonePreference));
     };
 }
@@ -76,9 +89,12 @@ export function addRecentEmojis(aliases) {
                 name = emoji.name;
             }
 
-            const currentEmojiIndexInRecentList = updatedRecentEmojis.findIndex((recentEmoji) => recentEmoji.name === name);
+            const currentEmojiIndexInRecentList = updatedRecentEmojis.findIndex(
+                (recentEmoji) => recentEmoji.name === name,
+            );
             if (currentEmojiIndexInRecentList > -1) {
-                const currentEmojiInRecentList = updatedRecentEmojis[currentEmojiIndexInRecentList];
+                const currentEmojiInRecentList =
+                    updatedRecentEmojis[currentEmojiIndexInRecentList];
 
                 // If the emoji is already in the recent list, remove it and add it to the front with updated usage count
                 const updatedCurrentEmojiData = {
@@ -86,13 +102,19 @@ export function addRecentEmojis(aliases) {
                     usageCount: currentEmojiInRecentList.usageCount + 1,
                 };
                 updatedRecentEmojis.splice(currentEmojiIndexInRecentList, 1);
-                updatedRecentEmojis = [...updatedRecentEmojis, updatedCurrentEmojiData].slice(-MAXIMUM_RECENT_EMOJI);
+                updatedRecentEmojis = [
+                    ...updatedRecentEmojis,
+                    updatedCurrentEmojiData,
+                ].slice(-MAXIMUM_RECENT_EMOJI);
             } else {
                 const currentEmojiData = {
                     name,
                     usageCount: 1,
                 };
-                updatedRecentEmojis = [...updatedRecentEmojis, currentEmojiData].slice(-MAXIMUM_RECENT_EMOJI);
+                updatedRecentEmojis = [
+                    ...updatedRecentEmojis,
+                    currentEmojiData,
+                ].slice(-MAXIMUM_RECENT_EMOJI);
             }
         }
 
@@ -101,9 +123,18 @@ export function addRecentEmojis(aliases) {
             (emojiA, emojiB) => emojiA.usageCount - emojiB.usageCount,
         );
 
-        dispatch(savePreferences(currentUserId, [{category: Constants.Preferences.RECENT_EMOJIS, name: currentUserId, user_id: currentUserId, value: JSON.stringify(updatedRecentEmojis)}]));
+        dispatch(
+            savePreferences(currentUserId, [
+                {
+                    category: Constants.Preferences.RECENT_EMOJIS,
+                    name: currentUserId,
+                    user_id: currentUserId,
+                    value: JSON.stringify(updatedRecentEmojis),
+                },
+            ]),
+        );
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -114,7 +145,7 @@ export function loadCustomEmojisForCustomStatusesByUserIds(userIds) {
         const customEmojiEnabled = isCustomEmojiEnabled(state);
         const customStatusEnabled = isCustomStatusEnabled(state);
         if (!customEmojiEnabled || !customStatusEnabled) {
-            return {data: false};
+            return { data: false };
         }
 
         const emojisToLoad = new Set();
@@ -135,13 +166,13 @@ export function loadCustomEmojisForCustomStatusesByUserIds(userIds) {
 export function loadCustomEmojisIfNeeded(emojis) {
     return (dispatch, getState) => {
         if (!emojis || emojis.length === 0) {
-            return {data: false};
+            return { data: false };
         }
 
         const state = getState();
         const customEmojiEnabled = isCustomEmojiEnabled(state);
         if (!customEmojiEnabled) {
-            return {data: false};
+            return { data: false };
         }
 
         const systemEmojis = EmojiIndicesByAlias;
@@ -179,7 +210,7 @@ export function loadCustomEmojisIfNeeded(emojis) {
 export function loadCustomStatusEmojisForPostList(posts) {
     return (dispatch) => {
         if (!posts || posts.length === 0) {
-            return {data: false};
+            return { data: false };
         }
 
         const userIds = new Set();
@@ -199,16 +230,32 @@ export function migrateRecentEmojis() {
         const currentUserId = getCurrentUserId(state);
         const recentEmojisFromPreference = getRecentEmojisData(state);
         if (recentEmojisFromPreference.length === 0) {
-            const recentEmojisFromLocalStorage = LocalStorageStore.getRecentEmojis(currentUserId);
+            const recentEmojisFromLocalStorage =
+                LocalStorageStore.getRecentEmojis(currentUserId);
             if (recentEmojisFromLocalStorage) {
-                const parsedRecentEmojisFromLocalStorage = JSON.parse(recentEmojisFromLocalStorage);
-                const toSetRecentEmojiData = parsedRecentEmojisFromLocalStorage.map((emojiName) => ({name: emojiName, usageCount: 1}));
+                const parsedRecentEmojisFromLocalStorage = JSON.parse(
+                    recentEmojisFromLocalStorage,
+                );
+                const toSetRecentEmojiData =
+                    parsedRecentEmojisFromLocalStorage.map((emojiName) => ({
+                        name: emojiName,
+                        usageCount: 1,
+                    }));
                 if (toSetRecentEmojiData.length > 0) {
-                    dispatch(savePreferences(currentUserId, [{category: Constants.Preferences.RECENT_EMOJIS, name: currentUserId, user_id: currentUserId, value: JSON.stringify(toSetRecentEmojiData)}]));
+                    dispatch(
+                        savePreferences(currentUserId, [
+                            {
+                                category: Constants.Preferences.RECENT_EMOJIS,
+                                name: currentUserId,
+                                user_id: currentUserId,
+                                value: JSON.stringify(toSetRecentEmojiData),
+                            },
+                        ]),
+                    );
                 }
-                return {data: parsedRecentEmojisFromLocalStorage};
+                return { data: parsedRecentEmojisFromLocalStorage };
             }
         }
-        return {data: recentEmojisFromPreference};
+        return { data: recentEmojisFromPreference };
     };
 }

@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import SystemRolePermissionDropdown from './system_role_permission_dropdown';
-import {readAccess} from './types';
+import SystemRolePermissionDropdown from "./system_role_permission_dropdown";
+import { readAccess } from "./types";
 
-describe('admin_console/system_role_permission_dropdown', () => {
+describe("admin_console/system_role_permission_dropdown", () => {
     const props = {
         section: {
-            name: 'environemnt',
+            name: "environemnt",
             hasDescription: true,
             subsections: [],
         },
@@ -19,21 +19,16 @@ describe('admin_console/system_role_permission_dropdown', () => {
         isDisabled: false,
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <SystemRolePermissionDropdown
-                {...props}
-            />);
+    test("should match snapshot", () => {
+        const wrapper = shallow(<SystemRolePermissionDropdown {...props} />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with isDisabledTrue', () => {
+    test("should match snapshot with isDisabledTrue", () => {
         const wrapper = shallow(
-            <SystemRolePermissionDropdown
-                {...props}
-                isDisabled={true}
-            />);
+            <SystemRolePermissionDropdown {...props} isDisabled={true} />,
+        );
 
         expect(wrapper).toMatchSnapshot();
     });

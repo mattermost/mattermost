@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useState} from 'react';
+import { useEffect, useState } from "react";
 
-export const useFollowElementDimensions = (elementId: string): DOMRectReadOnly => {
+export const useFollowElementDimensions = (
+    elementId: string,
+): DOMRectReadOnly => {
     const [dimensions, setDimensions] = useState(new DOMRect());
 
     useEffect(() => {

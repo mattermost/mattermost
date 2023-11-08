@@ -1,24 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import React from "react";
+import { injectIntl } from "react-intl";
+import type { IntlShape } from "react-intl";
 
-import type {Channel} from '@mattermost/types/channels';
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Channel } from "@mattermost/types/channels";
+import type { PreferenceType } from "@mattermost/types/preferences";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {Client4} from 'mattermost-redux/client';
+import { Client4 } from "mattermost-redux/client";
 
-import {trackEvent} from 'actions/telemetry_actions';
+import { trackEvent } from "actions/telemetry_actions";
 
-import ProfilePicture from 'components/profile_picture';
+import ProfilePicture from "components/profile_picture";
 
-import {getHistory} from 'utils/browser_history';
-import {Constants} from 'utils/constants';
+import { getHistory } from "utils/browser_history";
+import { Constants } from "utils/constants";
 
-import SidebarChannelLink from '../sidebar_channel_link';
+import SidebarChannelLink from "../sidebar_channel_link";
 
 type Props = {
     intl: IntlShape;
@@ -29,8 +29,11 @@ type Props = {
     redirectChannel: string;
     active: boolean;
     actions: {
-        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<{data: boolean}>;
-        leaveDirectChannel: (channelId: string) => Promise<{data: boolean}>;
+        savePreferences: (
+            userId: string,
+            preferences: PreferenceType[],
+        ) => Promise<{ data: boolean }>;
+        leaveDirectChannel: (channelId: string) => Promise<{ data: boolean }>;
     };
 };
 
@@ -40,44 +43,51 @@ class SidebarDirectChannel extends React.PureComponent<Props> {
         const category = Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW;
 
         const currentUserId = this.props.currentUserId;
-        this.props.actions.savePreferences(currentUserId, [{user_id: currentUserId, category, name: id!, value: 'false'}]).then(callback);
+        this.props.actions
+            .savePreferences(currentUserId, [
+                { user_id: currentUserId, category, name: id!, value: "false" },
+            ])
+            .then(callback);
         this.props.actions.leaveDirectChannel(this.props.channel.name);
 
-        trackEvent('ui', 'ui_direct_channel_x_button_clicked');
+        trackEvent("ui", "ui_direct_channel_x_button_clicked");
 
         if (this.props.active) {
-            getHistory().push(`/${this.props.currentTeamName}/channels/${this.props.redirectChannel}`);
+            getHistory().push(
+                `/${this.props.currentTeamName}/channels/${this.props.redirectChannel}`,
+            );
         }
     };
 
     getIcon = () => {
-        const {channel, teammate} = this.props;
+        const { channel, teammate } = this.props;
 
         if (!teammate) {
             return null;
         }
 
         if (teammate.id && teammate.delete_at) {
-            return (
-                <i className='icon icon-archive-outline'/>
-            );
+            return <i className="icon icon-archive-outline" />;
         }
 
-        let className = '';
-        if (channel.status === 'online') {
-            className = 'status-online';
-        } else if (channel.status === 'away') {
-            className = 'status-away';
-        } else if (channel.status === 'dnd') {
-            className = 'status-dnd';
+        let className = "";
+        if (channel.status === "online") {
+            className = "status-online";
+        } else if (channel.status === "away") {
+            className = "status-away";
+        } else if (channel.status === "dnd") {
+            className = "status-dnd";
         }
 
         return (
             <ProfilePicture
-                src={Client4.getProfilePictureUrl(teammate.id, teammate.last_picture_update)}
-                size={'xs'}
-                status={teammate.is_bot ? '' : channel.status}
-                wrapperClass='DirectChannel__profile-picture'
+                src={Client4.getProfilePictureUrl(
+                    teammate.id,
+                    teammate.last_picture_update,
+                )}
+                size={"xs"}
+                status={teammate.is_bot ? "" : channel.status}
+                wrapperClass="DirectChannel__profile-picture"
                 newStatusIcon={true}
                 statusClass={`DirectChannel__status-icon ${className}`}
             />
@@ -85,7 +95,7 @@ class SidebarDirectChannel extends React.PureComponent<Props> {
     };
 
     render() {
-        const {channel, teammate, currentTeamName} = this.props;
+        const { channel, teammate, currentTeamName } = this.props;
 
         if (!teammate) {
             return null;
@@ -93,12 +103,15 @@ class SidebarDirectChannel extends React.PureComponent<Props> {
 
         let displayName = channel.display_name;
         if (this.props.currentUserId === teammate.id) {
-            displayName = this.props.intl.formatMessage({
-                id: 'sidebar.directchannel.you',
-                defaultMessage: '{displayname} (you)',
-            }, {
-                displayname: channel.display_name,
-            });
+            displayName = this.props.intl.formatMessage(
+                {
+                    id: "sidebar.directchannel.you",
+                    defaultMessage: "{displayname} (you)",
+                },
+                {
+                    displayname: channel.display_name,
+                },
+            );
         }
 
         return (

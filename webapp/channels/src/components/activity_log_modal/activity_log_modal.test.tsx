@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
-import type {MouseEvent} from 'react';
+import { shallow } from "enzyme";
+import React from "react";
+import type { MouseEvent } from "react";
 
-import {General} from 'mattermost-redux/constants';
+import { General } from "mattermost-redux/constants";
 
-import ActivityLogModal from 'components/activity_log_modal/activity_log_modal';
+import ActivityLogModal from "components/activity_log_modal/activity_log_modal";
 
-describe('components/ActivityLogModal', () => {
+describe("components/ActivityLogModal", () => {
     const baseProps = {
         sessions: [],
-        currentUserId: '',
+        currentUserId: "",
         onHide: jest.fn(),
         actions: {
             getSessions: jest.fn(),
@@ -21,58 +21,60 @@ describe('components/ActivityLogModal', () => {
         locale: General.DEFAULT_LOCALE,
     };
 
-    test('should match snapshot', () => {
+    test("should match snapshot", () => {
         const wrapper = shallow<ActivityLogModal>(
-            <ActivityLogModal {...baseProps}/>,
+            <ActivityLogModal {...baseProps} />,
         );
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when submitRevoke is called', () => {
-        const revokeSession = jest.fn().mockImplementation(
-            () => {
-                return new Promise<void>((resolve) => {
-                    process.nextTick(() => resolve());
-                });
-            },
-        );
+    test("should match snapshot when submitRevoke is called", () => {
+        const revokeSession = jest.fn().mockImplementation(() => {
+            return new Promise<void>((resolve) => {
+                process.nextTick(() => resolve());
+            });
+        });
         const actions = {
             getSessions: jest.fn(),
             revokeSession,
         };
 
-        const props = {...baseProps, actions};
+        const props = { ...baseProps, actions };
         const wrapper = shallow<ActivityLogModal>(
-            <ActivityLogModal {...props}/>,
+            <ActivityLogModal {...props} />,
         );
 
-        wrapper.instance().submitRevoke('altId', {preventDefault: jest.fn()} as unknown as MouseEvent);
+        wrapper
+            .instance()
+            .submitRevoke("altId", {
+                preventDefault: jest.fn(),
+            } as unknown as MouseEvent);
         expect(wrapper).toMatchSnapshot();
         expect(revokeSession).toHaveBeenCalledTimes(1);
-        expect(revokeSession).toHaveBeenCalledWith('', 'altId');
+        expect(revokeSession).toHaveBeenCalledWith("", "altId");
     });
 
-    test('should have called actions.getUserAudits when onShow is called', () => {
+    test("should have called actions.getUserAudits when onShow is called", () => {
         const actions = {
             getSessions: jest.fn(),
             revokeSession: jest.fn(),
         };
-        const props = {...baseProps, actions};
+        const props = { ...baseProps, actions };
         const wrapper = shallow<ActivityLogModal>(
-            <ActivityLogModal {...props}/>,
+            <ActivityLogModal {...props} />,
         );
 
         wrapper.instance().onShow();
         expect(actions.getSessions).toHaveBeenCalledTimes(2);
     });
 
-    test('should match state when onHide is called', () => {
+    test("should match state when onHide is called", () => {
         const wrapper = shallow<ActivityLogModal>(
-            <ActivityLogModal {...baseProps}/>,
+            <ActivityLogModal {...baseProps} />,
         );
 
-        wrapper.setState({show: true});
+        wrapper.setState({ show: true });
         wrapper.instance().onHide();
-        expect(wrapper.state('show')).toEqual(false);
+        expect(wrapper.state("show")).toEqual(false);
     });
 });

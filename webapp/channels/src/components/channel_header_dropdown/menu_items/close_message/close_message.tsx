@@ -1,21 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {Channel} from '@mattermost/types/channels';
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Channel } from "@mattermost/types/channels";
+import type { PreferenceType } from "@mattermost/types/preferences";
+import type { Team } from "@mattermost/types/teams";
+import type { UserProfile } from "@mattermost/types/users";
 
-import Menu from 'components/widgets/menu/menu';
+import Menu from "components/widgets/menu/menu";
 
-import {getHistory} from 'utils/browser_history';
-import {Constants} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
+import { getHistory } from "utils/browser_history";
+import { Constants } from "utils/constants";
+import { localizeMessage } from "utils/utils";
 
 type Props = {
-
     /**
      * Object with info about currentUser
      */
@@ -45,11 +44,13 @@ type Props = {
      * Object with action creators
      */
     actions: {
-
         /**
          * Action creator to update user preferences
          */
-        savePreferences: (userId: string, preferences: PreferenceType[]) => void;
+        savePreferences: (
+            userId: string,
+            preferences: PreferenceType[],
+        ) => void;
 
         /**
          * Action creator to leave DM/GM
@@ -67,10 +68,7 @@ export default class CloseMessage extends React.PureComponent<Props> {
             currentUser,
             currentTeam,
             redirectChannel,
-            actions: {
-                savePreferences,
-                leaveDirectChannel,
-            },
+            actions: { savePreferences, leaveDirectChannel },
         } = this.props;
 
         let name: string;
@@ -84,25 +82,36 @@ export default class CloseMessage extends React.PureComponent<Props> {
         }
 
         leaveDirectChannel(channel.name);
-        savePreferences(currentUser.id, [{user_id: currentUser.id, category, name, value: 'false'}]);
+        savePreferences(currentUser.id, [
+            { user_id: currentUser.id, category, name, value: "false" },
+        ]);
 
         getHistory().push(`/${currentTeam.name}/channels/${redirectChannel}`);
     };
 
     render(): React.ReactNode {
-        const {id, channel} = this.props;
+        const { id, channel } = this.props;
 
         let text;
         if (channel.type === Constants.DM_CHANNEL) {
-            text = localizeMessage('center_panel.direct.closeDirectMessage', 'Close Direct Message');
+            text = localizeMessage(
+                "center_panel.direct.closeDirectMessage",
+                "Close Direct Message",
+            );
         } else if (channel.type === Constants.GM_CHANNEL) {
-            text = localizeMessage('center_panel.direct.closeGroupMessage', 'Close Group Message');
+            text = localizeMessage(
+                "center_panel.direct.closeGroupMessage",
+                "Close Group Message",
+            );
         }
 
         return (
             <Menu.ItemAction
                 id={id}
-                show={channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL}
+                show={
+                    channel.type === Constants.DM_CHANNEL ||
+                    channel.type === Constants.GM_CHANNEL
+                }
                 onClick={this.handleClose}
                 text={text}
             />

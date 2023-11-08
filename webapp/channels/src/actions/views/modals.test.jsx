@@ -1,28 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Modal} from 'react-bootstrap';
+import React from "react";
+import { Modal } from "react-bootstrap";
 
-import {openModal, closeModal} from 'actions/views/modals';
+import { openModal, closeModal } from "actions/views/modals";
 
-import mockStore from 'tests/test_store';
-import {ActionTypes, ModalIdentifiers} from 'utils/constants';
+import mockStore from "tests/test_store";
+import { ActionTypes, ModalIdentifiers } from "utils/constants";
 
 class TestModal extends React.PureComponent {
     render() {
         return (
-            <Modal
-                show={true}
-            >
-                <Modal.Header closeButton={true}/>
-                <Modal.Body/>
+            <Modal show={true}>
+                <Modal.Header closeButton={true} />
+                <Modal.Body />
             </Modal>
         );
     }
 }
 
-describe('modals view actions', () => {
+describe("modals view actions", () => {
     let store;
     beforeEach(() => {
         store = mockStore();

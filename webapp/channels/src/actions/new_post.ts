@@ -1,50 +1,66 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type * as Redux from 'redux';
-import {batchActions} from 'redux-batched-actions';
+import type * as Redux from "redux";
+import { batchActions } from "redux-batched-actions";
 
-import type {Post} from '@mattermost/types/posts';
+import type { Post } from "@mattermost/types/posts";
 
 import {
     actionsToMarkChannelAsRead,
     actionsToMarkChannelAsUnread,
     markChannelAsViewedOnServer,
-} from 'mattermost-redux/actions/channels';
-import * as PostActions from 'mattermost-redux/actions/posts';
-import {getCurrentChannelId, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
-import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getThread} from 'mattermost-redux/selectors/entities/threads';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+} from "mattermost-redux/actions/channels";
+import * as PostActions from "mattermost-redux/actions/posts";
+import {
+    getCurrentChannelId,
+    isManuallyUnread,
+} from "mattermost-redux/selectors/entities/channels";
+import * as PostSelectors from "mattermost-redux/selectors/entities/posts";
+import { isCollapsedThreadsEnabled } from "mattermost-redux/selectors/entities/preferences";
+import { getThread } from "mattermost-redux/selectors/entities/threads";
+import { getCurrentUserId } from "mattermost-redux/selectors/entities/users";
+import type {
+    ActionFunc,
+    DispatchFunc,
+    GetStateFunc,
+} from "mattermost-redux/types/actions";
 import {
     isFromWebhook,
     isSystemMessage,
     shouldIgnorePost,
-} from 'mattermost-redux/utils/post_utils';
+} from "mattermost-redux/utils/post_utils";
 
-import {sendDesktopNotification} from 'actions/notification_actions.jsx';
-import {updateThreadLastOpened} from 'actions/views/threads';
-import {isThreadOpen, makeGetThreadLastViewedAt} from 'selectors/views/threads';
+import { sendDesktopNotification } from "actions/notification_actions.jsx";
+import { updateThreadLastOpened } from "actions/views/threads";
+import {
+    isThreadOpen,
+    makeGetThreadLastViewedAt,
+} from "selectors/views/threads";
 
-import {ActionTypes} from 'utils/constants';
+import { ActionTypes } from "utils/constants";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
 export type NewPostMessageProps = {
     mentions: string[];
     team_id: string;
-}
+};
 
-export function completePostReceive(post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): ActionFunc {
+export function completePostReceive(
+    post: Post,
+    websocketMessageProps: NewPostMessageProps,
+    fetchedChannelMember?: boolean,
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
         const rootPost = PostSelectors.getPost(state, post.root_id);
         if (post.root_id && !rootPost) {
-            const result = await dispatch(PostActions.getPostThread(post.root_id));
+            const result = await dispatch(
+                PostActions.getPostThread(post.root_id),
+            );
 
-            if ('error' in result) {
+            if ("error" in result) {
                 return result;
             }
         }
@@ -65,10 +81,17 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
             PostActions.receivedNewPost(post, collapsedThreadsEnabled),
         );
 
-        const isCRTReplyByCurrentUser = isCRTReply && post.user_id === getCurrentUserId(state);
+        const isCRTReplyByCurrentUser =
+            isCRTReply && post.user_id === getCurrentUserId(state);
         if (!isCRTReplyByCurrentUser) {
             actions.push(
-                ...setChannelReadAndViewed(dispatch, getState, post as Post, websocketMessageProps, fetchedChannelMember),
+                ...setChannelReadAndViewed(
+                    dispatch,
+                    getState,
+                    post as Post,
+                    websocketMessageProps,
+                    fetchedChannelMember,
+                ),
             );
         }
         dispatch(batchActions(actions));
@@ -77,13 +100,24 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
             dispatch(setThreadRead(post));
         }
 
-        return dispatch(sendDesktopNotification(post, websocketMessageProps) as unknown as ActionFunc);
+        return dispatch(
+            sendDesktopNotification(
+                post,
+                websocketMessageProps,
+            ) as unknown as ActionFunc,
+        );
     };
 }
 
 // setChannelReadAndViewed returns an array of actions to mark the channel read and viewed, and it dispatches an action
 // to asynchronously mark the channel as read on the server if necessary.
-export function setChannelReadAndViewed(dispatch: DispatchFunc, getState: GetStateFunc, post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): Redux.AnyAction[] {
+export function setChannelReadAndViewed(
+    dispatch: DispatchFunc,
+    getState: GetStateFunc,
+    post: Post,
+    websocketMessageProps: NewPostMessageProps,
+    fetchedChannelMember?: boolean,
+): Redux.AnyAction[] {
     const state = getState();
     const currentUserId = getCurrentUserId(state);
 
@@ -122,7 +156,15 @@ export function setChannelReadAndViewed(dispatch: DispatchFunc, getState: GetSta
         return actionsToMarkChannelAsRead(getState, post.channel_id);
     }
 
-    return actionsToMarkChannelAsUnread(getState, websocketMessageProps.team_id, post.channel_id, websocketMessageProps.mentions, fetchedChannelMember, post.root_id === '', post?.metadata?.priority?.priority);
+    return actionsToMarkChannelAsUnread(
+        getState,
+        websocketMessageProps.team_id,
+        post.channel_id,
+        websocketMessageProps.mentions,
+        fetchedChannelMember,
+        post.root_id === "",
+        post?.metadata?.priority?.priority,
+    );
 }
 
 export function setThreadRead(post: Post) {
@@ -135,11 +177,13 @@ export function setThreadRead(post: Post) {
         // mark a thread as read (when the user is viewing the thread)
         if (thread && isThreadOpen(state, thread.id)) {
             // update the new messages line (when there are no previous unreads)
-            if (thread.last_reply_at < getThreadLastViewedAt(state, thread.id)) {
+            if (
+                thread.last_reply_at < getThreadLastViewedAt(state, thread.id)
+            ) {
                 dispatch(updateThreadLastOpened(thread.id, post.create_at));
             }
         }
 
-        return {data: true};
+        return { data: true };
     };
 }

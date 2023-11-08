@@ -1,24 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {OAuthApp} from '@mattermost/types/integrations';
-import type {Team} from '@mattermost/types/teams';
+import type { OAuthApp } from "@mattermost/types/integrations";
+import type { Team } from "@mattermost/types/teams";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import ConfirmModal from 'components/confirm_modal';
-import LoadingScreen from 'components/loading_screen';
+import ConfirmModal from "components/confirm_modal";
+import LoadingScreen from "components/loading_screen";
 
-import {getHistory} from 'utils/browser_history';
+import { getHistory } from "utils/browser_history";
 
-import AbstractOAuthApp from '../abstract_oauth_app';
+import AbstractOAuthApp from "../abstract_oauth_app";
 
-const HEADER = {id: 'integrations.edit', defaultMessage: 'Edit'};
-const FOOTER = {id: 'update_incoming_webhook.update', defaultMessage: 'Update'};
-const LOADING = {id: 'update_incoming_webhook.updating', defaultMessage: 'Updating...'};
+const HEADER = { id: "integrations.edit", defaultMessage: "Edit" };
+const FOOTER = {
+    id: "update_incoming_webhook.update",
+    defaultMessage: "Update",
+};
+const LOADING = {
+    id: "update_incoming_webhook.updating",
+    defaultMessage: "Updating...",
+};
 
 type Actions = {
     getOAuthApp: (id: string) => OAuthApp;
@@ -46,7 +52,7 @@ export default class EditOAuthApp extends React.PureComponent<Props, State> {
 
         this.state = {
             showConfirmModal: false,
-            serverError: '',
+            serverError: "",
         };
         this.newApp = this.props.oauthApp;
     }
@@ -64,8 +70,12 @@ export default class EditOAuthApp extends React.PureComponent<Props, State> {
             app.id = this.props.oauthApp.id;
         }
 
-        const callbackUrlsSame = (this.props.oauthApp.callback_urls.length === app.callback_urls.length) &&
-            this.props.oauthApp.callback_urls.every((v, i) => v === app.callback_urls[i]);
+        const callbackUrlsSame =
+            this.props.oauthApp.callback_urls.length ===
+                app.callback_urls.length &&
+            this.props.oauthApp.callback_urls.every(
+                (v, i) => v === app.callback_urls[i],
+            );
 
         if (callbackUrlsSame === false) {
             this.handleConfirmModal();
@@ -75,50 +85,52 @@ export default class EditOAuthApp extends React.PureComponent<Props, State> {
     };
 
     handleConfirmModal = () => {
-        this.setState({showConfirmModal: true});
+        this.setState({ showConfirmModal: true });
     };
 
     confirmModalDismissed = () => {
-        this.setState({showConfirmModal: false});
+        this.setState({ showConfirmModal: false });
     };
 
     submitOAuthApp = async () => {
-        this.setState({serverError: ''});
+        this.setState({ serverError: "" });
 
         const res = await this.props.actions.editOAuthApp(this.newApp);
 
-        if ('data' in res && res.data) {
-            getHistory().push(`/${this.props.team.name}/integrations/oauth2-apps`);
+        if ("data" in res && res.data) {
+            getHistory().push(
+                `/${this.props.team.name}/integrations/oauth2-apps`,
+            );
             return;
         }
 
-        this.setState({showConfirmModal: false});
+        this.setState({ showConfirmModal: false });
 
-        if ('error' in res) {
-            const {error: err} = res;
-            this.setState({serverError: err.message});
+        if ("error" in res) {
+            const { error: err } = res;
+            this.setState({ serverError: err.message });
         }
     };
 
     renderExtra = () => {
         const confirmButton = (
             <FormattedMessage
-                id='update_command.update'
-                defaultMessage='Update'
+                id="update_command.update"
+                defaultMessage="Update"
             />
         );
 
         const confirmTitle = (
             <FormattedMessage
-                id='update_oauth_app.confirm'
-                defaultMessage='Edit OAuth 2.0 application'
+                id="update_oauth_app.confirm"
+                defaultMessage="Edit OAuth 2.0 application"
             />
         );
 
         const confirmMessage = (
             <FormattedMessage
-                id='update_oauth_app.question'
-                defaultMessage='Your changes may break the existing OAuth 2.0 application. Are you sure you would like to update it?'
+                id="update_oauth_app.question"
+                defaultMessage="Your changes may break the existing OAuth 2.0 application. Are you sure you would like to update it?"
             />
         );
 
@@ -136,7 +148,7 @@ export default class EditOAuthApp extends React.PureComponent<Props, State> {
 
     render() {
         if (!this.props.oauthApp) {
-            return <LoadingScreen/>;
+            return <LoadingScreen />;
         }
 
         return (

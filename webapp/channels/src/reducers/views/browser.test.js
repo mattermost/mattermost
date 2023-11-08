@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import browserReducer from 'reducers/views/browser';
+import browserReducer from "reducers/views/browser";
 
-import {ActionTypes, WindowSizes} from 'utils/constants';
+import { ActionTypes, WindowSizes } from "utils/constants";
 
-describe('Reducers.Browser', () => {
+describe("Reducers.Browser", () => {
     const initialState = {
         focused: true,
         windowSize: WindowSizes.DESKTOP_VIEW,
     };
 
-    test('Initial state', () => {
+    test("Initial state", () => {
         const nextState = browserReducer(
             {
                 focused: true,

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@import 'utils/mixins';
+@import "utils/mixins";
 
 $app-bar-icon-size: 24px;
 $app-bar-width: 48px;
@@ -51,7 +51,7 @@ $app-bar-width: 48px;
                     height: $app-bar-icon-size;
                     background-color: var(--sidebar-text-active-border);
                     border-radius: 0 2px 2px 0;
-                    content: '';
+                    content: "";
                 }
 
                 .app-bar__icon-inner,
@@ -60,7 +60,8 @@ $app-bar-width: 48px;
                     box-shadow: 0 0 0 2px var(--sidebar-text-active-border);
 
                     &:hover {
-                        box-shadow: 0 0 0 2px rgba(var(--sidebar-text-active-border-rgb), 0.92) !important;
+                        box-shadow: 0 0 0 2px
+                            rgba(var(--sidebar-text-active-border-rgb), 0.92) !important;
                     }
                 }
             }
@@ -76,7 +77,8 @@ $app-bar-width: 48px;
                 line-height: 1;
 
                 &:hover {
-                    box-shadow: 0 0 0 2px rgba(var(--center-channel-color-rgb), 0.16);
+                    box-shadow: 0 0 0 2px
+                        rgba(var(--center-channel-color-rgb), 0.16);
                 }
 
                 img {

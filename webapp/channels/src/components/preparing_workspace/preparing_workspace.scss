@@ -1,6 +1,6 @@
-@import 'utils/variables';
-@import 'utils/mixins';
-@import 'mixins';
+@import "utils/variables";
+@import "utils/mixins";
+@import "mixins";
 
 .PreparingWorkspace {
     width: 100vw;
@@ -127,7 +127,6 @@
 }
 
 .PreparingWorkspacePageContainer {
-
     // needed so that channel preview can be positioned relative to this div
     position: relative;
     max-width: 1030px;

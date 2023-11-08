@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 export enum LogLevel {
-    Error = 'ERROR',
-    Warning = 'WARNING',
-    Info = 'INFO',
-    Debug = 'DEBUG',
+    Error = "ERROR",
+    Warning = "WARNING",
+    Info = "INFO",
+    Debug = "DEBUG",
 }
 
 export type ClientResponse<T> = {
@@ -18,22 +18,22 @@ export type Options = {
     headers?: { [x: string]: string };
     method?: string;
     url?: string;
-    credentials?: 'omit' | 'same-origin' | 'include';
+    credentials?: "omit" | "same-origin" | "include";
     body?: any;
-    ignoreStatus?: boolean; /** If true, status codes > 300 are ignored and don't cause an error */
+    ignoreStatus?: boolean /** If true, status codes > 300 are ignored and don't cause an error */;
 };
 
 export type StatusOK = {
-    status: 'OK';
+    status: "OK";
 };
 
 export type FetchPaginatedThreadOptions = {
     fetchThreads?: boolean;
     collapsedThreads?: boolean;
     collapsedThreadsExtended?: boolean;
-    direction?: 'up'|'down';
+    direction?: "up" | "down";
     fetchAll?: boolean;
     perPage?: number;
     fromCreateAt?: number;
     fromPost?: string;
-}
+};

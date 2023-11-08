@@ -1,24 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import React from "react";
+import { FormattedMessage } from "react-intl";
+import { useDispatch, useSelector } from "react-redux";
 
-import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import { getSubscriptionProduct } from "mattermost-redux/selectors/entities/cloud";
 
-import {closeModal} from 'actions/views/modals';
-import {isModalOpen} from 'selectors/views/modals';
+import { closeModal } from "actions/views/modals";
+import { isModalOpen } from "selectors/views/modals";
 
-import PaymentSuccessStandardSvg from 'components/common/svg_images_components/payment_success_standard_svg';
-import IconMessage from 'components/purchase_modal/icon_message';
-import FullScreenModal from 'components/widgets/modals/full_screen_modal';
+import PaymentSuccessStandardSvg from "components/common/svg_images_components/payment_success_standard_svg";
+import IconMessage from "components/purchase_modal/icon_message";
+import FullScreenModal from "components/widgets/modals/full_screen_modal";
 
-import {ModalIdentifiers} from 'utils/constants';
+import { ModalIdentifiers } from "utils/constants";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import './style.scss';
+import "./style.scss";
 
 type Props = {
     onHide?: () => void;
@@ -35,55 +35,55 @@ function SuccessModal(props: Props) {
 
     const onHide = () => {
         dispatch(closeModal(ModalIdentifiers.SUCCESS_MODAL));
-        if (typeof props.onHide === 'function') {
+        if (typeof props.onHide === "function") {
             props.onHide();
         }
     };
 
     return (
-        <FullScreenModal
-            show={isSuccessModalOpen}
-            onClose={onHide}
-        >
-            <div className='cloud_subscribe_result_modal'>
+        <FullScreenModal show={isSuccessModalOpen} onClose={onHide}>
+            <div className="cloud_subscribe_result_modal">
                 <IconMessage
                     formattedTitle={
                         <FormattedMessage
                             defaultMessage={
-                                'You are now subscribed to {selectedProductName}'
+                                "You are now subscribed to {selectedProductName}"
                             }
                             id={
-                                'admin.billing.subscription.proratedPayment.title'
+                                "admin.billing.subscription.proratedPayment.title"
                             }
                             values={{
-                                selectedProductName: props.newProductName ?? subscriptionProduct?.name,
+                                selectedProductName:
+                                    props.newProductName ??
+                                    subscriptionProduct?.name,
                             }}
                         />
                     }
                     formattedSubtitle={
                         <FormattedMessage
-                            id={'success_modal.subtitle'}
+                            id={"success_modal.subtitle"}
                             defaultMessage={
-                                'Your final bill will be prorated. Your workspace now has {plan} limits.'
+                                "Your final bill will be prorated. Your workspace now has {plan} limits."
                             }
-                            values={{plan: props.newProductName ?? subscriptionProduct?.name}}
+                            values={{
+                                plan:
+                                    props.newProductName ??
+                                    subscriptionProduct?.name,
+                            }}
                         />
                     }
                     error={false}
                     icon={
-                        <PaymentSuccessStandardSvg
-                            width={444}
-                            height={313}
-                        />
+                        <PaymentSuccessStandardSvg width={444} height={313} />
                     }
                     formattedButtonText={
                         <FormattedMessage
-                            defaultMessage={'Return to workspace'}
-                            id={'success_modal.return_to_workspace'}
+                            defaultMessage={"Return to workspace"}
+                            id={"success_modal.return_to_workspace"}
                         />
                     }
                     buttonHandler={onHide}
-                    className={'success'}
+                    className={"success"}
                 />
             </div>
         </FullScreenModal>

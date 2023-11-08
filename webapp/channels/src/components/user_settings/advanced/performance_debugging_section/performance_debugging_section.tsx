@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState, useRef, useEffect} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, { useCallback, useState, useRef, useEffect } from "react";
+import { FormattedMessage } from "react-intl";
 
-import {Preferences} from 'mattermost-redux/constants';
+import { Preferences } from "mattermost-redux/constants";
 
-import SettingItemMax from 'components/setting_item_max';
-import SettingItemMin from 'components/setting_item_min';
-import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+import SettingItemMax from "components/setting_item_max";
+import SettingItemMin from "components/setting_item_min";
+import type SettingItemMinComponent from "components/setting_item_min/setting_item_min";
 
-import {AdvancedSections} from 'utils/constants';
+import { AdvancedSections } from "utils/constants";
 
-import type {PropsFromRedux} from './index';
+import type { PropsFromRedux } from "./index";
 
 type Props = PropsFromRedux & {
     active: boolean;
@@ -25,7 +25,11 @@ export default function PerformanceDebuggingSection(props: Props) {
     const prevActiveRef = useRef(false);
 
     useEffect(() => {
-        if (prevActiveRef.current && !props.active && props.areAllSectionsInactive) {
+        if (
+            prevActiveRef.current &&
+            !props.active &&
+            props.areAllSectionsInactive
+        ) {
             minRef.current?.focus();
         }
     });
@@ -40,25 +44,25 @@ export default function PerformanceDebuggingSection(props: Props) {
 
     let settings;
     if (props.active) {
-        settings = <PerformanceDebuggingSectionExpanded {...props}/>;
+        settings = <PerformanceDebuggingSectionExpanded {...props} />;
     } else {
         settings = (
-            <PerformanceDebuggingSectionCollapsed
-                {...props}
-                ref={minRef}
-            />
+            <PerformanceDebuggingSectionCollapsed {...props} ref={minRef} />
         );
     }
 
     return (
         <>
             {settings}
-            <div className='divider-light'/>
+            <div className="divider-light" />
         </>
     );
 }
 
-const PerformanceDebuggingSectionCollapsed = React.forwardRef<SettingItemMinComponent, Props>((props, ref) => {
+const PerformanceDebuggingSectionCollapsed = React.forwardRef<
+    SettingItemMinComponent,
+    Props
+>((props, ref) => {
     let settingsEnabled = 0;
 
     if (props.disableClientPlugins) {
@@ -75,16 +79,16 @@ const PerformanceDebuggingSectionCollapsed = React.forwardRef<SettingItemMinComp
     if (settingsEnabled === 0) {
         description = (
             <FormattedMessage
-                id='user.settings.advance.performance.noneEnabled'
-                defaultMessage='No settings enabled'
+                id="user.settings.advance.performance.noneEnabled"
+                defaultMessage="No settings enabled"
             />
         );
     } else {
         description = (
             <FormattedMessage
-                id='user.settings.advance.performance.settingsEnabled'
-                defaultMessage='{count, number} {count, plural, one {setting} other {settings}} enabled'
-                values={{count: settingsEnabled}}
+                id="user.settings.advance.performance.settingsEnabled"
+                defaultMessage="{count, number} {count, plural, one {setting} other {settings}} enabled"
+                values={{ count: settingsEnabled }}
             />
         );
     }
@@ -93,8 +97,8 @@ const PerformanceDebuggingSectionCollapsed = React.forwardRef<SettingItemMinComp
         <SettingItemMin
             title={
                 <FormattedMessage
-                    id='user.settings.advance.performance.title'
-                    defaultMessage='Performance Debugging'
+                    id="user.settings.advance.performance.title"
+                    defaultMessage="Performance Debugging"
                 />
             }
             describe={description}
@@ -106,9 +110,15 @@ const PerformanceDebuggingSectionCollapsed = React.forwardRef<SettingItemMinComp
 });
 
 function PerformanceDebuggingSectionExpanded(props: Props) {
-    const [disableClientPlugins, setDisableClientPlugins] = useState(props.disableClientPlugins);
-    const [disableTelemetry, setDisableTelemetry] = useState(props.disableTelemetry);
-    const [disableTypingMessages, setDisableTypingMessages] = useState(props.disableTypingMessages);
+    const [disableClientPlugins, setDisableClientPlugins] = useState(
+        props.disableClientPlugins,
+    );
+    const [disableTelemetry, setDisableTelemetry] = useState(
+        props.disableTelemetry,
+    );
+    const [disableTypingMessages, setDisableTypingMessages] = useState(
+        props.disableTypingMessages,
+    );
 
     const handleSubmit = useCallback(() => {
         const preferences = [];
@@ -142,7 +152,7 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
             props.savePreferences(props.currentUserId, preferences);
         }
 
-        props.onUpdateSection('');
+        props.onUpdateSection("");
     }, [
         props.currentUserId,
         props.onUpdateSection,
@@ -156,67 +166,67 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
         <SettingItemMax
             title={
                 <FormattedMessage
-                    id='user.settings.advance.performance.title'
-                    defaultMessage='Performance Debugging'
+                    id="user.settings.advance.performance.title"
+                    defaultMessage="Performance Debugging"
                 />
             }
             inputs={[
-                <fieldset key='settings'>
-                    <div className='checkbox'>
+                <fieldset key="settings">
+                    <div className="checkbox">
                         <label>
                             <input
-                                type='checkbox'
+                                type="checkbox"
                                 checked={disableClientPlugins}
                                 onChange={(e) => {
                                     setDisableClientPlugins(e.target.checked);
                                 }}
                             />
                             <FormattedMessage
-                                id='user.settings.advance.performance.disableClientPlugins'
-                                defaultMessage='Disable Client-side Plugins'
+                                id="user.settings.advance.performance.disableClientPlugins"
+                                defaultMessage="Disable Client-side Plugins"
                             />
                         </label>
                     </div>
-                    <div className='checkbox'>
+                    <div className="checkbox">
                         <label>
                             <input
-                                type='checkbox'
+                                type="checkbox"
                                 checked={disableTelemetry}
                                 onChange={(e) => {
                                     setDisableTelemetry(e.target.checked);
                                 }}
                             />
                             <FormattedMessage
-                                id='user.settings.advance.performance.disableTelemetry'
-                                defaultMessage='Disable telemetry events sent from the client'
+                                id="user.settings.advance.performance.disableTelemetry"
+                                defaultMessage="Disable telemetry events sent from the client"
                             />
                         </label>
                     </div>
-                    <div className='checkbox'>
+                    <div className="checkbox">
                         <label>
                             <input
-                                type='checkbox'
+                                type="checkbox"
                                 checked={disableTypingMessages}
                                 onChange={(e) => {
                                     setDisableTypingMessages(e.target.checked);
                                 }}
                             />
                             <FormattedMessage
-                                id='user.settings.advance.performance.disableTypingMessages'
+                                id="user.settings.advance.performance.disableTypingMessages"
                                 defaultMessage='Disable "User is typing..." messages'
                             />
                         </label>
                     </div>
-                    <div className='mt-5'>
+                    <div className="mt-5">
                         <FormattedMessage
-                            id='user.settings.advance.performance.info1'
+                            id="user.settings.advance.performance.info1"
                             defaultMessage="You may enable these settings temporarily to help isolate performance issues while debugging. We don't recommend leaving these settings enabled for an extended period of time as they can negatively impact your user experience."
                         />
-                        <br/>
-                        <br/>
+                        <br />
+                        <br />
                         <FormattedMessage
-                            id='user.settings.advance.performance.info2'
-                            defaultMessage='You may need to refresh the page before these settings take effect.'
+                            id="user.settings.advance.performance.info2"
+                            defaultMessage="You may need to refresh the page before these settings take effect."
                         />
                     </div>
                 </fieldset>,

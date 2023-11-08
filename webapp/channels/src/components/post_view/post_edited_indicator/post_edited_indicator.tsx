@@ -1,75 +1,96 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {MouseEvent} from 'react';
-import {useIntl} from 'react-intl';
+import React from "react";
+import type { MouseEvent } from "react";
+import { useIntl } from "react-intl";
 
-import {PencilOutlineIcon} from '@mattermost/compass-icons/components';
+import { PencilOutlineIcon } from "@mattermost/compass-icons/components";
 
-import {getDateForTimezone} from 'mattermost-redux/utils/timezone_utils';
+import { getDateForTimezone } from "mattermost-redux/utils/timezone_utils";
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
 
-import {isSameDay, isWithinLastWeek, isYesterday} from 'utils/datetime';
+import { isSameDay, isWithinLastWeek, isYesterday } from "utils/datetime";
 
-import type {Props} from './index';
+import type { Props } from "./index";
 
-const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, postOwner, post, canEdit, actions}: Props): JSX.Element | null => {
-    const {formatMessage, formatDate, formatTime} = useIntl();
+const PostEditedIndicator = ({
+    postId,
+    isMilitaryTime,
+    timeZone,
+    editedAt = 0,
+    postOwner,
+    post,
+    canEdit,
+    actions,
+}: Props): JSX.Element | null => {
+    const { formatMessage, formatDate, formatTime } = useIntl();
 
     if (!postId || editedAt === 0) {
         return null;
     }
 
-    const editedDate = timeZone ? getDateForTimezone(new Date(editedAt), timeZone) : new Date(editedAt);
+    const editedDate = timeZone
+        ? getDateForTimezone(new Date(editedAt), timeZone)
+        : new Date(editedAt);
 
     let date;
     switch (true) {
-    case isSameDay(editedDate):
-        date = formatMessage({id: 'datetime.today', defaultMessage: 'today '});
-        break;
-    case isYesterday(editedDate):
-        date = formatMessage({id: 'datetime.yesterday', defaultMessage: 'yesterday '});
-        break;
-    case isWithinLastWeek(editedDate):
-        date = formatDate(editedDate, {weekday: 'long'});
-        break;
-    case !isWithinLastWeek(editedDate):
-    default:
-        date = formatDate(editedDate, {month: 'long', day: 'numeric'});
+        case isSameDay(editedDate):
+            date = formatMessage({
+                id: "datetime.today",
+                defaultMessage: "today ",
+            });
+            break;
+        case isYesterday(editedDate):
+            date = formatMessage({
+                id: "datetime.yesterday",
+                defaultMessage: "yesterday ",
+            });
+            break;
+        case isWithinLastWeek(editedDate):
+            date = formatDate(editedDate, { weekday: "long" });
+            break;
+        case !isWithinLastWeek(editedDate):
+        default:
+            date = formatDate(editedDate, { month: "long", day: "numeric" });
     }
 
-    const time = formatTime(editedDate, {hour: 'numeric', minute: '2-digit', hour12: !isMilitaryTime});
+    const time = formatTime(editedDate, {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: !isMilitaryTime,
+    });
 
     const editedText = formatMessage({
-        id: 'post_message_view.edited',
-        defaultMessage: 'Edited',
+        id: "post_message_view.edited",
+        defaultMessage: "Edited",
     });
 
-    const formattedTime = formatMessage({
-        id: 'timestamp.datetime',
-        defaultMessage: '{relativeOrDate} at {time}',
-    },
-    {
-        relativeOrDate: date,
-        time,
-    });
+    const formattedTime = formatMessage(
+        {
+            id: "timestamp.datetime",
+            defaultMessage: "{relativeOrDate} at {time}",
+        },
+        {
+            relativeOrDate: date,
+            time,
+        },
+    );
     const viewHistoryText = formatMessage({
-        id: 'post_message_view.view_post_edit_history',
-        defaultMessage: 'Click to view history',
+        id: "post_message_view.view_post_edit_history",
+        defaultMessage: "Click to view history",
     });
 
-    const postOwnerTooltipInfo = (postOwner && canEdit) ? (
-        <span className='view-history__text'>{viewHistoryText}</span>
-    ) : null;
+    const postOwnerTooltipInfo =
+        postOwner && canEdit ? (
+            <span className="view-history__text">{viewHistoryText}</span>
+        ) : null;
 
     const tooltip = (
-        <Tooltip
-            id={`edited-post-tooltip_${postId}`}
-            className='hidden-xs'
-        >
+        <Tooltip id={`edited-post-tooltip_${postId}`} className="hidden-xs">
             {`${editedText} ${formattedTime}`}
             {postOwnerTooltipInfo}
         </Tooltip>
@@ -85,31 +106,30 @@ const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, po
     const editedIndicatorContent = (
         <span
             id={`postEdited_${postId}`}
-            className='post-edited__indicator'
+            className="post-edited__indicator"
             data-post-id={postId}
             data-edited-at={editedAt}
         >
-            <PencilOutlineIcon size={12}/>
+            <PencilOutlineIcon size={12} />
             {editedText}
         </span>
     );
 
-    const editedIndicator = (postOwner && canEdit) ? (
-        <button
-            className={'style--none'}
-            tabIndex={-1}
-            onClick={showPostEditHistory}
-        >
-            {editedIndicatorContent}
-        </button>
-    ) : editedIndicatorContent;
+    const editedIndicator =
+        postOwner && canEdit ? (
+            <button
+                className={"style--none"}
+                tabIndex={-1}
+                onClick={showPostEditHistory}
+            >
+                {editedIndicatorContent}
+            </button>
+        ) : (
+            editedIndicatorContent
+        );
 
     return !postId || editedAt === 0 ? null : (
-        <OverlayTrigger
-            delayShow={250}
-            placement='top'
-            overlay={tooltip}
-        >
+        <OverlayTrigger delayShow={250} placement="top" overlay={tooltip}>
             {editedIndicator}
         </OverlayTrigger>
     );

@@ -1,23 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Audit} from './audits';
-import {Compliance} from './compliance';
-import {AdminConfig, ClientLicense, EnvironmentConfig} from './config';
-import {DataRetentionCustomPolicies} from './data_retention';
-import {MixedUnlinkedGroupRedux} from './groups';
-import {PluginRedux, PluginStatusRedux} from './plugins';
-import {SamlCertificateStatus, SamlMetadataResponse} from './saml';
-import {Team} from './teams';
-import {UserAccessToken, UserProfile} from './users';
-import {RelationOneToOne} from './utilities';
+import { Audit } from "./audits";
+import { Compliance } from "./compliance";
+import { AdminConfig, ClientLicense, EnvironmentConfig } from "./config";
+import { DataRetentionCustomPolicies } from "./data_retention";
+import { MixedUnlinkedGroupRedux } from "./groups";
+import { PluginRedux, PluginStatusRedux } from "./plugins";
+import { SamlCertificateStatus, SamlMetadataResponse } from "./saml";
+import { Team } from "./teams";
+import { UserAccessToken, UserProfile } from "./users";
+import { RelationOneToOne } from "./utilities";
 
 export enum LogLevelEnum {
-    SILLY = 'silly',
-    DEBUG = 'debug',
-    INFO = 'info',
-    WARN = 'warn',
-    ERROR = 'error',
+    SILLY = "silly",
+    DEBUG = "debug",
+    INFO = "info",
+    WARN = "warn",
+    ERROR = "error",
 }
 
 export type LogServerNames = string[];
@@ -32,14 +32,14 @@ export type LogObject = {
     msg: string;
     timestamp: string;
     worker: string;
-}
+};
 
 export type LogFilter = {
     serverNames: LogServerNames;
     logLevels: LogLevels;
     dateFrom: LogDateFrom;
     dateTo: LogDateTo;
-}
+};
 
 export type AdminState = {
     logs: LogObject[];
@@ -54,8 +54,14 @@ export type AdminState = {
     clusterInfo: ClusterInfo[];
     samlCertStatus?: SamlCertificateStatus;
     analytics?: Record<string, number | AnalyticsRow[]>;
-    teamAnalytics?: RelationOneToOne<Team, Record<string, number | AnalyticsRow[]>>;
-    userAccessTokensByUser?: RelationOneToOne<UserProfile, Record<string, UserAccessToken>>;
+    teamAnalytics?: RelationOneToOne<
+        Team,
+        Record<string, number | AnalyticsRow[]>
+    >;
+    userAccessTokensByUser?: RelationOneToOne<
+        UserProfile,
+        Record<string, UserAccessToken>
+    >;
     plugins?: Record<string, PluginRedux>;
     pluginStatuses?: Record<string, PluginStatusRedux>;
     samlMetadataResponse?: SamlMetadataResponse;
@@ -80,7 +86,7 @@ export type AnalyticsRow = {
 
 export type IndexedPluginAnalyticsRow = {
     [key: string]: PluginAnalyticsRow;
-}
+};
 
 export type PluginAnalyticsRow = {
     id: string;

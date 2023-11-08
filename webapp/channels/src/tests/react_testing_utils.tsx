@@ -1,32 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import {createBrowserHistory} from 'history';
-import React from 'react';
-import {IntlProvider} from 'react-intl';
-import {Provider} from 'react-redux';
-import {Router} from 'react-router-dom';
+import { render } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { createBrowserHistory } from "history";
+import React from "react";
+import { IntlProvider } from "react-intl";
+import { Provider } from "react-redux";
+import { Router } from "react-router-dom";
 
-import type {DeepPartial} from '@mattermost/types/utilities';
+import type { DeepPartial } from "@mattermost/types/utilities";
 
-import configureStore from 'store';
+import configureStore from "store";
 
-import WebSocketClient from 'client/web_websocket_client';
-import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import mockStore from 'tests/test_store';
-import {WebSocketContext} from 'utils/use_websocket';
+import WebSocketClient from "client/web_websocket_client";
+import mergeObjects from "packages/mattermost-redux/test/merge_objects";
+import mockStore from "tests/test_store";
+import { WebSocketContext } from "utils/use_websocket";
 
-import type {GlobalState} from 'types/store';
-export * from '@testing-library/react';
-export {userEvent};
+import type { GlobalState } from "types/store";
+export * from "@testing-library/react";
+export { userEvent };
 
-export const renderWithIntl = (component: React.ReactNode | React.ReactNodeArray, locale = 'en') => {
+export const renderWithIntl = (
+    component: React.ReactNode | React.ReactNodeArray,
+    locale = "en",
+) => {
     return render(<IntlProvider locale={locale}>{component}</IntlProvider>);
 };
 
-export const renderWithIntlAndStore = (component: React.ReactNode | React.ReactNodeArray, initialState: DeepPartial<GlobalState> = {}, locale = 'en', divContainer?: HTMLDivElement) => {
+export const renderWithIntlAndStore = (
+    component: React.ReactNode | React.ReactNodeArray,
+    initialState: DeepPartial<GlobalState> = {},
+    locale = "en",
+    divContainer?: HTMLDivElement,
+) => {
     // We use a redux-mock-store store for testing, but we set up a real store to ensure the initial state is complete
     const realStore = configureStore(initialState);
 
@@ -34,15 +42,17 @@ export const renderWithIntlAndStore = (component: React.ReactNode | React.ReactN
 
     return render(
         <IntlProvider locale={locale}>
-            <Provider store={store}>
-                {component}
-            </Provider>
+            <Provider store={store}>{component}</Provider>
         </IntlProvider>,
-        {container: divContainer},
+        { container: divContainer },
     );
 };
 
-export const renderWithFullContext = (component: React.ReactNode | React.ReactNodeArray, initialState: DeepPartial<GlobalState> = {}, locale = 'en') => {
+export const renderWithFullContext = (
+    component: React.ReactNode | React.ReactNodeArray,
+    initialState: DeepPartial<GlobalState> = {},
+    locale = "en",
+) => {
     // We use a redux-mock-store store for testing, but we set up a real store to ensure the initial state is complete
     const testState = configureStore(initialState).getState();
 
@@ -61,9 +71,7 @@ export const renderWithFullContext = (component: React.ReactNode | React.ReactNo
         return (
             <Provider store={renderState.store}>
                 <Router history={renderState.history}>
-                    <IntlProvider
-                        locale={renderState.locale}
-                    >
+                    <IntlProvider locale={renderState.locale}>
                         <WebSocketContext.Provider value={WebSocketClient}>
                             {renderState.component}
                         </WebSocketContext.Provider>

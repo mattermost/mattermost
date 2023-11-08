@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import RadioSetting from 'components/widgets/settings/radio_setting';
-import TextSetting from 'components/widgets/settings/text_setting';
+import RadioSetting from "components/widgets/settings/radio_setting";
+import TextSetting from "components/widgets/settings/text_setting";
 
-import DialogElement from './dialog_element';
+import DialogElement from "./dialog_element";
 
-describe('components/interactive_dialog/DialogElement', () => {
+describe("components/interactive_dialog/DialogElement", () => {
     const baseDialogProps = {
-        displayName: 'Testing',
-        name: 'testing',
-        type: 'text',
+        displayName: "Testing",
+        name: "testing",
+        type: "text",
         maxLength: 100,
         actions: {
             autocompleteChannels: jest.fn(),
@@ -22,46 +22,42 @@ describe('components/interactive_dialog/DialogElement', () => {
         onChange: jest.fn(),
     };
 
-    it('type textarea', () => {
+    it("type textarea", () => {
         const wrapper = shallow(
-            <DialogElement
-                {...baseDialogProps}
-                type='textarea'
-            />,
+            <DialogElement {...baseDialogProps} type="textarea" />,
         );
-        expect(wrapper.find(TextSetting).dive().find('textarea').exists()).toBe(true);
+        expect(wrapper.find(TextSetting).dive().find("textarea").exists()).toBe(
+            true,
+        );
     });
 
-    it('subtype blank', () => {
+    it("subtype blank", () => {
         const wrapper = shallow(
-            <DialogElement
-                {...baseDialogProps}
-                subtype=''
-            />,
+            <DialogElement {...baseDialogProps} subtype="" />,
         );
 
-        expect(wrapper.find(TextSetting).props().type).toEqual('text');
+        expect(wrapper.find(TextSetting).props().type).toEqual("text");
     });
 
-    describe('subtype number', () => {
-        test('value is 0', () => {
+    describe("subtype number", () => {
+        test("value is 0", () => {
             const wrapper = shallow(
                 <DialogElement
                     {...baseDialogProps}
-                    type='text'
-                    subtype='number'
+                    type="text"
+                    subtype="number"
                     value={0}
                 />,
             );
             expect(wrapper.find(TextSetting).props().value).toEqual(0);
         });
 
-        test('value is 123', () => {
+        test("value is 123", () => {
             const wrapper = shallow(
                 <DialogElement
                     {...baseDialogProps}
-                    type='text'
-                    subtype='number'
+                    type="text"
+                    subtype="number"
                     value={123}
                 />,
             );
@@ -69,37 +65,31 @@ describe('components/interactive_dialog/DialogElement', () => {
         });
     });
 
-    it('subtype email', () => {
+    it("subtype email", () => {
         const wrapper = shallow(
-            <DialogElement
-                {...baseDialogProps}
-                subtype='email'
-            />,
+            <DialogElement {...baseDialogProps} subtype="email" />,
         );
-        expect(wrapper.find(TextSetting).props().type).toEqual('email');
+        expect(wrapper.find(TextSetting).props().type).toEqual("email");
     });
 
-    it('subtype password', () => {
+    it("subtype password", () => {
         const wrapper = shallow(
-            <DialogElement
-                {...baseDialogProps}
-                subtype='password'
-            />,
+            <DialogElement {...baseDialogProps} subtype="password" />,
         );
-        expect(wrapper.find(TextSetting).props().type).toEqual('password');
+        expect(wrapper.find(TextSetting).props().type).toEqual("password");
     });
 
-    describe('radioSetting', () => {
+    describe("radioSetting", () => {
         const radioOptions = [
-            {value: 'foo', text: 'foo-text'},
-            {value: 'bar', text: 'bar-text'},
+            { value: "foo", text: "foo-text" },
+            { value: "bar", text: "bar-text" },
         ];
 
-        test('RadioSetting is rendered when type is radio', () => {
+        test("RadioSetting is rendered when type is radio", () => {
             const wrapper = shallow(
                 <DialogElement
                     {...baseDialogProps}
-                    type='radio'
+                    type="radio"
                     options={radioOptions}
                 />,
             );
@@ -107,11 +97,11 @@ describe('components/interactive_dialog/DialogElement', () => {
             expect(wrapper.find(RadioSetting).exists()).toBe(true);
         });
 
-        test('RadioSetting is rendered when options are null', () => {
+        test("RadioSetting is rendered when options are null", () => {
             const wrapper = shallow(
                 <DialogElement
                     {...baseDialogProps}
-                    type='radio'
+                    type="radio"
                     options={undefined}
                 />,
             );
@@ -119,11 +109,11 @@ describe('components/interactive_dialog/DialogElement', () => {
             expect(wrapper.find(RadioSetting).exists()).toBe(true);
         });
 
-        test('RadioSetting is rendered when options are null and value is null', () => {
+        test("RadioSetting is rendered when options are null and value is null", () => {
             const wrapper = shallow(
                 <DialogElement
                     {...baseDialogProps}
-                    type='radio'
+                    type="radio"
                     options={undefined}
                     value={undefined}
                 />,
@@ -132,37 +122,37 @@ describe('components/interactive_dialog/DialogElement', () => {
             expect(wrapper.find(RadioSetting).exists()).toBe(true);
         });
 
-        test('RadioSetting is rendered when options are null and value is not null', () => {
+        test("RadioSetting is rendered when options are null and value is not null", () => {
             const wrapper = shallow(
                 <DialogElement
                     {...baseDialogProps}
-                    type='radio'
+                    type="radio"
                     options={undefined}
-                    value={'a'}
+                    value={"a"}
                 />,
             );
 
             expect(wrapper.find(RadioSetting).exists()).toBe(true);
         });
 
-        test('RadioSetting is rendered when value is not one of the options', () => {
+        test("RadioSetting is rendered when value is not one of the options", () => {
             const wrapper = shallow(
                 <DialogElement
                     {...baseDialogProps}
-                    type='radio'
+                    type="radio"
                     options={radioOptions}
-                    value={'a'}
+                    value={"a"}
                 />,
             );
 
             expect(wrapper.find(RadioSetting).exists()).toBe(true);
         });
 
-        test('No default value is selected from the radio button list', () => {
+        test("No default value is selected from the radio button list", () => {
             const wrapper = shallow(
                 <DialogElement
                     {...baseDialogProps}
-                    type='radio'
+                    type="radio"
                     options={radioOptions}
                 />,
             );
@@ -170,16 +160,23 @@ describe('components/interactive_dialog/DialogElement', () => {
             expect(instance.props.value).toBeUndefined();
         });
 
-        test('The default value can be specified from the list', () => {
+        test("The default value can be specified from the list", () => {
             const wrapper = shallow(
                 <DialogElement
                     {...baseDialogProps}
-                    type='radio'
+                    type="radio"
                     options={radioOptions}
                     value={radioOptions[1].value}
                 />,
             );
-            expect(wrapper.find({options: radioOptions, value: radioOptions[1].value}).exists()).toBe(true);
+            expect(
+                wrapper
+                    .find({
+                        options: radioOptions,
+                        value: radioOptions[1].value,
+                    })
+                    .exists(),
+            ).toBe(true);
         });
     });
 });

@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useRef} from 'react';
-import {useSelector, useDispatch} from 'react-redux';
+import { useEffect, useRef } from "react";
+import { useSelector, useDispatch } from "react-redux";
 
-import {resetReloadPostsInChannel} from 'mattermost-redux/actions/posts';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import { resetReloadPostsInChannel } from "mattermost-redux/actions/posts";
+import { isCollapsedThreadsEnabled } from "mattermost-redux/selectors/entities/preferences";
 
 const PostsChannelResetWatcher = () => {
     const dispatch = useDispatch();

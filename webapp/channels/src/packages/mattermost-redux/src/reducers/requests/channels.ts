@@ -1,16 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combineReducers} from 'redux';
+import { combineReducers } from "redux";
 
-import type {ChannelsRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+import type {
+    ChannelsRequestsStatuses,
+    RequestStatusType,
+} from "@mattermost/types/requests";
 
-import {ChannelTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import { ChannelTypes } from "mattermost-redux/action_types";
+import type { GenericAction } from "mattermost-redux/types/actions";
 
-import {handleRequest, initialRequestState} from './helpers';
+import { handleRequest, initialRequestState } from "./helpers";
 
-function myChannels(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function myChannels(
+    state: RequestStatusType = initialRequestState(),
+    action: GenericAction,
+): RequestStatusType {
     return handleRequest(
         ChannelTypes.CHANNELS_REQUEST,
         ChannelTypes.CHANNELS_SUCCESS,
@@ -20,7 +26,10 @@ function myChannels(state: RequestStatusType = initialRequestState(), action: Ge
     );
 }
 
-function createChannel(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function createChannel(
+    state: RequestStatusType = initialRequestState(),
+    action: GenericAction,
+): RequestStatusType {
     return handleRequest(
         ChannelTypes.CREATE_CHANNEL_REQUEST,
         ChannelTypes.CREATE_CHANNEL_SUCCESS,
@@ -30,7 +39,10 @@ function createChannel(state: RequestStatusType = initialRequestState(), action:
     );
 }
 
-function updateChannel(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function updateChannel(
+    state: RequestStatusType = initialRequestState(),
+    action: GenericAction,
+): RequestStatusType {
     return handleRequest(
         ChannelTypes.UPDATE_CHANNEL_REQUEST,
         ChannelTypes.UPDATE_CHANNEL_SUCCESS,
@@ -40,7 +52,10 @@ function updateChannel(state: RequestStatusType = initialRequestState(), action:
     );
 }
 
-function getChannels(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function getChannels(
+    state: RequestStatusType = initialRequestState(),
+    action: GenericAction,
+): RequestStatusType {
     return handleRequest(
         ChannelTypes.GET_CHANNELS_REQUEST,
         ChannelTypes.GET_CHANNELS_SUCCESS,
@@ -50,7 +65,10 @@ function getChannels(state: RequestStatusType = initialRequestState(), action: G
     );
 }
 
-function getAllChannels(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function getAllChannels(
+    state: RequestStatusType = initialRequestState(),
+    action: GenericAction,
+): RequestStatusType {
     return handleRequest(
         ChannelTypes.GET_ALL_CHANNELS_REQUEST,
         ChannelTypes.GET_ALL_CHANNELS_SUCCESS,
@@ -60,10 +78,13 @@ function getAllChannels(state: RequestStatusType = initialRequestState(), action
     );
 }
 
-export default (combineReducers({
+export default combineReducers({
     getChannels,
     getAllChannels,
     myChannels,
     createChannel,
     updateChannel,
-}) as (b: ChannelsRequestsStatuses, a: GenericAction) => ChannelsRequestsStatuses);
+}) as (
+    b: ChannelsRequestsStatuses,
+    a: GenericAction,
+) => ChannelsRequestsStatuses;

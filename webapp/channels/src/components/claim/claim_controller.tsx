@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Route, Switch} from 'react-router-dom';
+import React from "react";
+import { Route, Switch } from "react-router-dom";
 
-import type {AuthChangeResponse} from '@mattermost/types/users';
+import type { AuthChangeResponse } from "@mattermost/types/users";
 
-import EmailToLDAP from 'components/claim/components/email_to_ldap';
-import EmailToOAuth from 'components/claim/components/email_to_oauth';
-import LDAPToEmail from 'components/claim/components/ldap_to_email';
-import OAuthToEmail from 'components/claim/components/oauth_to_email';
-import BackButton from 'components/common/back_button';
+import EmailToLDAP from "components/claim/components/email_to_ldap";
+import EmailToOAuth from "components/claim/components/email_to_oauth";
+import LDAPToEmail from "components/claim/components/ldap_to_email";
+import OAuthToEmail from "components/claim/components/oauth_to_email";
+import BackButton from "components/common/back_button";
 
-import logoImage from 'images/logo.png';
+import logoImage from "images/logo.png";
 
 export interface PasswordConfig {
     minimumLength: number;
@@ -24,7 +24,7 @@ export interface PasswordConfig {
 
 type Location = {
     search: string;
-}
+};
 
 export type Props = {
     location: Location;
@@ -35,27 +35,41 @@ export type Props = {
         url: string;
     };
     actions: {
-        switchLdapToEmail: (ldapPassword: string, email: string, emailPassword: string, mfaCode?: string) => Promise<{data: AuthChangeResponse; error: {server_error_id: string; message: string}}>;
+        switchLdapToEmail: (
+            ldapPassword: string,
+            email: string,
+            emailPassword: string,
+            mfaCode?: string,
+        ) => Promise<{
+            data: AuthChangeResponse;
+            error: { server_error_id: string; message: string };
+        }>;
     };
-}
+};
 
 export default class ClaimController extends React.PureComponent<Props> {
     render(): JSX.Element {
-        const email = (new URLSearchParams(this.props.location.search)).get('email');
-        const newType = (new URLSearchParams(this.props.location.search)).get('new_type');
-        const currentType = (new URLSearchParams(this.props.location.search)).get('old_type');
+        const email = new URLSearchParams(this.props.location.search).get(
+            "email",
+        );
+        const newType = new URLSearchParams(this.props.location.search).get(
+            "new_type",
+        );
+        const currentType = new URLSearchParams(this.props.location.search).get(
+            "old_type",
+        );
 
         return (
             <div>
-                <BackButton/>
-                <div className='col-sm-12'>
-                    <div className='signup-team__container'>
+                <BackButton />
+                <div className="col-sm-12">
+                    <div className="signup-team__container">
                         <img
-                            alt={'signup logo'}
-                            className='signup-team-logo'
+                            alt={"signup logo"}
+                            className="signup-team-logo"
                             src={logoImage}
                         />
-                        <div id='claim'>
+                        <div id="claim">
                             <Switch>
                                 <Route
                                     path={`${this.props.match.url}/oauth_to_email`}
@@ -64,7 +78,9 @@ export default class ClaimController extends React.PureComponent<Props> {
                                             currentType={currentType}
                                             email={email}
                                             siteName={this.props.siteName}
-                                            passwordConfig={this.props.passwordConfig}
+                                            passwordConfig={
+                                                this.props.passwordConfig
+                                            }
                                         />
                                     )}
                                 />
@@ -73,7 +89,7 @@ export default class ClaimController extends React.PureComponent<Props> {
                                     render={() => (
                                         <EmailToOAuth
                                             newType={newType}
-                                            email={email || ''}
+                                            email={email || ""}
                                             siteName={this.props.siteName}
                                         />
                                     )}
@@ -83,8 +99,13 @@ export default class ClaimController extends React.PureComponent<Props> {
                                     render={() => (
                                         <LDAPToEmail
                                             email={email}
-                                            passwordConfig={this.props.passwordConfig}
-                                            switchLdapToEmail={this.props.actions.switchLdapToEmail}
+                                            passwordConfig={
+                                                this.props.passwordConfig
+                                            }
+                                            switchLdapToEmail={
+                                                this.props.actions
+                                                    .switchLdapToEmail
+                                            }
                                         />
                                     )}
                                 />
@@ -94,7 +115,9 @@ export default class ClaimController extends React.PureComponent<Props> {
                                         <EmailToLDAP
                                             email={email}
                                             siteName={this.props.siteName}
-                                            ldapLoginFieldName={this.props.ldapLoginFieldName}
+                                            ldapLoginFieldName={
+                                                this.props.ldapLoginFieldName
+                                            }
                                         />
                                     )}
                                 />

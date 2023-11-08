@@ -6,7 +6,9 @@
     }
 
     body:not(.layout-changing) & {
-        transition: width 0.25s 0s ease-in, z-index 0.25s 0s step-end;
+        transition:
+            width 0.25s 0s ease-in,
+            z-index 0.25s 0s step-end;
     }
 
     width: var(--overrideRhsWidth, 400px);
@@ -45,7 +47,9 @@
 
     &.is-open {
         body:not(.layout-changing) & {
-            transition: width 0.25s 0s ease-in, z-index 0.25s 0s step-end;
+            transition:
+                width 0.25s 0s ease-in,
+                z-index 0.25s 0s step-end;
         }
     }
 
@@ -58,7 +62,9 @@
         }
 
         body:not(.layout-changing) & {
-            transition: width 0.25s 0s ease-in, z-index 0.15s 0.1s step-start;
+            transition:
+                width 0.25s 0s ease-in,
+                z-index 0.15s 0.1s step-start;
         }
     }
 

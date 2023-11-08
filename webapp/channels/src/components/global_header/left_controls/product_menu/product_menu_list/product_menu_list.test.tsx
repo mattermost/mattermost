@@ -1,36 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import {TestHelper} from 'utils/test_helper';
+import { TestHelper } from "utils/test_helper";
 
-import ProductMenuList from './product_menu_list';
-import type {Props as ProductMenuListProps} from './product_menu_list';
+import ProductMenuList from "./product_menu_list";
+import type { Props as ProductMenuListProps } from "./product_menu_list";
 
-describe('components/global/product_switcher_menu', () => {
+describe("components/global/product_switcher_menu", () => {
     // Neccessary for components enhanced by HOCs due to issue with enzyme.
     // See https://github.com/enzymejs/enzyme/issues/539
     const getMenuWrapper = (props: ProductMenuListProps) => {
-        const wrapper = shallow(<ProductMenuList {...props}/>);
-        return wrapper.find('MenuGroup').shallow();
+        const wrapper = shallow(<ProductMenuList {...props} />);
+        return wrapper.find("MenuGroup").shallow();
     };
 
     const user = TestHelper.getUserMock({
-        id: 'test-user-id',
-        username: 'username',
+        id: "test-user-id",
+        username: "username",
     });
 
     const defaultProps: ProductMenuListProps = {
         isMobile: false,
-        teamId: '',
-        teamName: '',
-        siteName: '',
+        teamId: "",
+        teamName: "",
+        siteName: "",
         currentUser: user,
-        appDownloadLink: 'test–link',
+        appDownloadLink: "test–link",
         isMessaging: true,
         enableCommands: false,
         enableIncomingWebhooks: false,
@@ -51,19 +51,22 @@ describe('components/global/product_switcher_menu', () => {
         },
     };
 
-    test('should match snapshot with id', () => {
-        const props = {...defaultProps, id: 'product-switcher-menu-test'};
-        const wrapper = shallow(<ProductMenuList {...props}/>);
+    test("should match snapshot with id", () => {
+        const props = { ...defaultProps, id: "product-switcher-menu-test" };
+        const wrapper = shallow(<ProductMenuList {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should not render if the user is not logged in', () => {
-        const props = {...defaultProps, currentUser: undefined as unknown as UserProfile};
-        const wrapper = shallow(<ProductMenuList {...props}/>);
+    test("should not render if the user is not logged in", () => {
+        const props = {
+            ...defaultProps,
+            currentUser: undefined as unknown as UserProfile,
+        };
+        const wrapper = shallow(<ProductMenuList {...props} />);
         expect(wrapper.type()).toEqual(null);
     });
 
-    test('should match snapshot with most of the thing enabled', () => {
+    test("should match snapshot with most of the thing enabled", () => {
         const props = {
             ...defaultProps,
             enableCommands: true,
@@ -74,44 +77,44 @@ describe('components/global/product_switcher_menu', () => {
             canManageIntegrations: true,
             enablePluginMarketplace: true,
         };
-        const wrapper = shallow(<ProductMenuList {...props}/>);
+        const wrapper = shallow(<ProductMenuList {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match userGroups snapshot with cloud free', () => {
+    test("should match userGroups snapshot with cloud free", () => {
         const props = {
             ...defaultProps,
             enableCustomUserGroups: false,
             isStarterFree: true,
             isFreeTrial: false,
         };
-        const wrapper = shallow(<ProductMenuList {...props}/>);
-        expect(wrapper.find('#userGroups')).toMatchSnapshot();
+        const wrapper = shallow(<ProductMenuList {...props} />);
+        expect(wrapper.find("#userGroups")).toMatchSnapshot();
     });
 
-    test('should match userGroups snapshot with cloud free trial', () => {
+    test("should match userGroups snapshot with cloud free trial", () => {
         const props = {
             ...defaultProps,
             enableCustomUserGroups: false,
             isStarterFree: false,
             isFreeTrial: true,
         };
-        const wrapper = shallow(<ProductMenuList {...props}/>);
-        expect(wrapper.find('#userGroups')).toMatchSnapshot();
+        const wrapper = shallow(<ProductMenuList {...props} />);
+        expect(wrapper.find("#userGroups")).toMatchSnapshot();
     });
 
-    test('should match userGroups snapshot with EnableCustomGroups config', () => {
+    test("should match userGroups snapshot with EnableCustomGroups config", () => {
         const props = {
             ...defaultProps,
             enableCustomUserGroups: true,
             isStarterFree: false,
             isFreeTrial: false,
         };
-        const wrapper = shallow(<ProductMenuList {...props}/>);
-        expect(wrapper.find('#userGroups')).toMatchSnapshot();
+        const wrapper = shallow(<ProductMenuList {...props} />);
+        expect(wrapper.find("#userGroups")).toMatchSnapshot();
     });
 
-    test('user groups button is disabled for free', () => {
+    test("user groups button is disabled for free", () => {
         const props = {
             ...defaultProps,
             enableCustomUserGroups: true,
@@ -119,57 +122,61 @@ describe('components/global/product_switcher_menu', () => {
             isFreeTrial: false,
         };
         const wrapper = getMenuWrapper(props);
-        expect(wrapper.find('#userGroups').prop('disabled')).toBe(true);
+        expect(wrapper.find("#userGroups").prop("disabled")).toBe(true);
     });
 
-    describe('should show integrations', () => {
-        it('when incoming webhooks enabled', () => {
-            const props = {...defaultProps, enableIncomingWebhooks: true};
-            const wrapper = shallow(<ProductMenuList {...props}/>);
+    describe("should show integrations", () => {
+        it("when incoming webhooks enabled", () => {
+            const props = { ...defaultProps, enableIncomingWebhooks: true };
+            const wrapper = shallow(<ProductMenuList {...props} />);
 
-            expect(wrapper.find('#integrations').prop('show')).toBe(true);
+            expect(wrapper.find("#integrations").prop("show")).toBe(true);
         });
 
-        it('when outgoing webhooks enabled', () => {
-            const props = {...defaultProps, enableOutgoingWebhooks: true};
-            const wrapper = shallow(<ProductMenuList {...props}/>);
+        it("when outgoing webhooks enabled", () => {
+            const props = { ...defaultProps, enableOutgoingWebhooks: true };
+            const wrapper = shallow(<ProductMenuList {...props} />);
 
-            expect(wrapper.find('#integrations').prop('show')).toBe(true);
+            expect(wrapper.find("#integrations").prop("show")).toBe(true);
         });
 
-        it('when slash commands enabled', () => {
-            const props = {...defaultProps, enableCommands: true};
+        it("when slash commands enabled", () => {
+            const props = { ...defaultProps, enableCommands: true };
             const wrapper = getMenuWrapper(props);
 
-            expect(wrapper.find('#integrations').prop('show')).toBe(true);
+            expect(wrapper.find("#integrations").prop("show")).toBe(true);
         });
 
-        it('when oauth providers enabled', () => {
-            const props = {...defaultProps, enableOAuthServiceProvider: true};
+        it("when oauth providers enabled", () => {
+            const props = { ...defaultProps, enableOAuthServiceProvider: true };
             const wrapper = getMenuWrapper(props);
 
-            expect(wrapper.find('#integrations').prop('show')).toBe(true);
+            expect(wrapper.find("#integrations").prop("show")).toBe(true);
         });
 
-        it('when can manage system bots', () => {
-            const props = {...defaultProps, canManageSystemBots: true};
+        it("when can manage system bots", () => {
+            const props = { ...defaultProps, canManageSystemBots: true };
             const wrapper = getMenuWrapper(props);
 
-            expect(wrapper.find('#integrations').prop('show')).toBe(true);
+            expect(wrapper.find("#integrations").prop("show")).toBe(true);
         });
 
-        it('unless cannot manage integrations', () => {
-            const props = {...defaultProps, canManageIntegrations: false, enableCommands: true};
+        it("unless cannot manage integrations", () => {
+            const props = {
+                ...defaultProps,
+                canManageIntegrations: false,
+                enableCommands: true,
+            };
             const wrapper = getMenuWrapper(props);
 
-            expect(wrapper.find('#integrations').prop('show')).toBe(false);
+            expect(wrapper.find("#integrations").prop("show")).toBe(false);
         });
 
-        it('should show integrations modal', () => {
-            const props = {...defaultProps, enableIncomingWebhooks: true};
+        it("should show integrations modal", () => {
+            const props = { ...defaultProps, enableIncomingWebhooks: true };
             const wrapper = getMenuWrapper(props);
 
-            wrapper.find('#integrations').simulate('click');
+            wrapper.find("#integrations").simulate("click");
             expect(wrapper).toMatchSnapshot();
         });
     });

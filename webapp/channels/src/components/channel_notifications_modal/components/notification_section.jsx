@@ -1,17 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
-import React from 'react';
+import PropTypes from "prop-types";
+import React from "react";
 
-import {NotificationSections, NotificationLevels} from 'utils/constants';
+import { NotificationSections, NotificationLevels } from "utils/constants";
 
-import CollapseView from './collapse_view';
-import ExpandView from './expand_view';
+import CollapseView from "./collapse_view";
+import ExpandView from "./expand_view";
 
 export default class NotificationSection extends React.PureComponent {
     static propTypes = {
-
         /**
          * Notification section
          */
@@ -100,7 +99,9 @@ export default class NotificationSection extends React.PureComponent {
     };
 
     handleOnChangeThreads = (e) => {
-        const value = e.target.checked ? NotificationLevels.ALL : NotificationLevels.MENTION;
+        const value = e.target.checked
+            ? NotificationLevels.ALL
+            : NotificationLevels.MENTION;
 
         this.props.onChangeThreads(value);
     };
@@ -110,7 +111,7 @@ export default class NotificationSection extends React.PureComponent {
     };
 
     handleOnChangeNotificationSound = (selectedOption) => {
-        if (selectedOption && 'value' in selectedOption) {
+        if (selectedOption && "value" in selectedOption) {
             this.props.onChangeNotificationSound(selectedOption.value);
         }
     };
@@ -149,17 +150,23 @@ export default class NotificationSection extends React.PureComponent {
                     memberNotifyLevel={memberNotificationLevel}
                     memberThreadsNotifyLevel={memberThreadsNotificationLevel}
                     memberDesktopSound={memberDesktopSound}
-                    memberDesktopNotificationSound={memberDesktopNotificationSound}
+                    memberDesktopNotificationSound={
+                        memberDesktopNotificationSound
+                    }
                     globalNotifyLevel={globalNotificationLevel}
                     globalNotificationSound={globalNotificationSound}
                     ignoreChannelMentions={ignoreChannelMentions}
-                    isNotificationsSettingSameAsGlobal={isNotificationsSettingSameAsGlobal}
+                    isNotificationsSettingSameAsGlobal={
+                        isNotificationsSettingSameAsGlobal
+                    }
                     channelAutoFollowThreads={channelAutoFollowThreads}
                     onChange={this.handleOnChange}
                     onReset={onReset}
                     onChangeThreads={this.handleOnChangeThreads}
                     onChangeDesktopSound={this.handleOnChangeDesktopSound}
-                    onChangeNotificationSound={this.handleOnChangeNotificationSound}
+                    onChangeNotificationSound={
+                        this.handleOnChangeNotificationSound
+                    }
                     onSubmit={onSubmit}
                     serverError={serverError}
                     onCollapseSection={this.handleCollapseSection}

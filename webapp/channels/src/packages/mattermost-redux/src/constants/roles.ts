@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 export default {
-    MEMBERS: 'members',
-    GUESTS: 'guests',
-    ADMINS: 'admins',
+    MEMBERS: "members",
+    GUESTS: "guests",
+    ADMINS: "admins",
 };

@@ -1,29 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {PostType} from '@mattermost/types/posts';
-import type {DeepPartial} from '@mattermost/types/utilities';
+import type { PostType } from "@mattermost/types/posts";
+import type { DeepPartial } from "@mattermost/types/utilities";
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {fireEvent, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-import {Locations} from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
+import { shallowWithIntl } from "tests/helpers/intl-test-helper";
+import {
+    fireEvent,
+    renderWithIntlAndStore,
+    screen,
+} from "tests/react_testing_utils";
+import { Locations } from "utils/constants";
+import { TestHelper } from "utils/test_helper";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import DotMenu from './dot_menu';
-import type {DotMenuClass} from './dot_menu';
+import DotMenu from "./dot_menu";
+import type { DotMenuClass } from "./dot_menu";
 
-jest.mock('./utils');
+jest.mock("./utils");
 
-describe('components/dot_menu/DotMenu', () => {
+describe("components/dot_menu/DotMenu", () => {
     const latestPost = {
-        id: 'latest_post_id',
-        user_id: 'current_user_id',
-        message: 'test msg',
-        channel_id: 'other_gm_channel',
+        id: "latest_post_id",
+        user_id: "current_user_id",
+        message: "test msg",
+        channel_id: "other_gm_channel",
         create_at: Date.now(),
     };
     const initialState: DeepPartial<GlobalState> = {
@@ -34,23 +38,23 @@ describe('components/dot_menu/DotMenu', () => {
             channels: {
                 myMembers: {
                     current_channel_id: {
-                        channel_id: 'current_channel_id',
-                        user_id: 'current_user_id',
+                        channel_id: "current_channel_id",
+                        user_id: "current_user_id",
                     },
                     direct_other_user: {
-                        channel_id: 'direct_other_user',
-                        user_id: 'current_user_id',
-                        roles: 'channel_role',
+                        channel_id: "direct_other_user",
+                        user_id: "current_user_id",
+                        roles: "channel_role",
                         last_viewed_at: 10,
                     },
                     channel_other_user: {
-                        channel_id: 'channel_other_user',
+                        channel_id: "channel_other_user",
                     },
                 },
                 channels: {
                     direct_other_user: {
-                        id: 'direct_other_user',
-                        name: 'current_user_id__other_user',
+                        id: "direct_other_user",
+                        name: "current_user_id__other_user",
                     },
                 },
                 messageCounts: {
@@ -61,31 +65,30 @@ describe('components/dot_menu/DotMenu', () => {
                 },
             },
             preferences: {
-                myPreferences: {
-                },
+                myPreferences: {},
             },
             users: {
                 profiles: {
-                    current_user_id: {roles: 'system_role'},
+                    current_user_id: { roles: "system_role" },
                     other_user1: TestHelper.getUserMock({
-                        id: 'otherUserId',
-                        username: 'UserOther',
-                        roles: '',
-                        email: 'other-user@example.com',
+                        id: "otherUserId",
+                        username: "UserOther",
+                        roles: "",
+                        email: "other-user@example.com",
                     }),
                 },
-                currentUserId: 'current_user_id',
+                currentUserId: "current_user_id",
                 profilesInChannel: {
-                    current_user_id: ['user_1'],
+                    current_user_id: ["user_1"],
                 },
             },
             teams: {
-                currentTeamId: 'currentTeamId',
+                currentTeamId: "currentTeamId",
                 teams: {
                     currentTeamId: {
-                        id: 'currentTeamId',
-                        display_name: 'test',
-                        type: 'O',
+                        id: "currentTeamId",
+                        display_name: "test",
+                        type: "O",
                     },
                 },
             },
@@ -95,7 +98,7 @@ describe('components/dot_menu/DotMenu', () => {
                 },
                 postsInChannel: {
                     other_gm_channel: [
-                        {order: [latestPost.id], recent: true},
+                        { order: [latestPost.id], recent: true },
                     ],
                 },
                 postsInThread: {},
@@ -104,7 +107,7 @@ describe('components/dot_menu/DotMenu', () => {
         views: {
             browser: {
                 focused: false,
-                windowSize: 'desktopView',
+                windowSize: "desktopView",
             },
             modals: {
                 modalState: {},
@@ -113,15 +116,19 @@ describe('components/dot_menu/DotMenu', () => {
         },
     };
     const baseProps = {
-        post: TestHelper.getPostMock({id: 'post_id_1', is_pinned: false, type: '' as PostType}),
+        post: TestHelper.getPostMock({
+            id: "post_id_1",
+            is_pinned: false,
+            type: "" as PostType,
+        }),
         isLicensed: false,
-        postEditTimeLimit: '-1',
+        postEditTimeLimit: "-1",
         handleCommentClick: jest.fn(),
         handleDropdownOpened: jest.fn(),
         enableEmojiPicker: true,
         components: {},
         channelIsArchived: false,
-        currentTeamUrl: '',
+        currentTeamUrl: "",
         actions: {
             flagPost: jest.fn(),
             unflagPost: jest.fn(),
@@ -138,24 +145,22 @@ describe('components/dot_menu/DotMenu', () => {
         canEdit: false,
         canDelete: false,
         isReadOnly: false,
-        teamId: 'team_id_1',
+        teamId: "team_id_1",
         isFollowingThread: false,
         isCollapsedThreadsEnabled: true,
         isMobileView: false,
-        threadId: 'post_id_1',
+        threadId: "post_id_1",
         threadReplyCount: 0,
-        userId: 'user_id_1',
+        userId: "user_id_1",
         isMilitaryTime: false,
     };
 
-    test('should match snapshot, on Center', () => {
+    test("should match snapshot, on Center", () => {
         const props = {
             ...baseProps,
             canEdit: true,
         };
-        const wrapper = shallowWithIntl(
-            <DotMenu {...props}/>,
-        );
+        const wrapper = shallowWithIntl(<DotMenu {...props} />);
 
         expect(wrapper).toMatchSnapshot();
 
@@ -163,127 +168,191 @@ describe('components/dot_menu/DotMenu', () => {
         const setStateMock = jest.fn();
         instance.setState = setStateMock;
         (wrapper.instance() as DotMenuClass).handleEditDisable();
-        expect(setStateMock).toBeCalledWith({canEdit: false});
+        expect(setStateMock).toBeCalledWith({ canEdit: false });
     });
 
-    test('should match snapshot, canDelete', () => {
+    test("should match snapshot, canDelete", () => {
         const props = {
             ...baseProps,
             canEdit: true,
             canDelete: true,
         };
         const wrapper = renderWithIntlAndStore(
-            <DotMenu {...props}/>,
+            <DotMenu {...props} />,
             initialState,
         );
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should show mark as unread when channel is not archived', () => {
+    test("should show mark as unread when channel is not archived", () => {
         const props = {
             ...baseProps,
             location: Locations.CENTER,
         };
-        renderWithIntlAndStore(
-            <DotMenu {...props}/>,
-            initialState,
+        renderWithIntlAndStore(<DotMenu {...props} />, initialState);
+        const button = screen.getByTestId(
+            `PostDotMenu-Button-${baseProps.post.id}`,
         );
-        const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
         fireEvent.click(button);
         const menuItem = screen.getByTestId(`unread_post_${baseProps.post.id}`);
         expect(menuItem).toBeVisible();
     });
 
-    test('should not show mark as unread when channel is archived', () => {
+    test("should not show mark as unread when channel is archived", () => {
         const props = {
             ...baseProps,
             channelIsArchived: true,
         };
-        renderWithIntlAndStore(
-            <DotMenu {...props}/>,
-            initialState,
+        renderWithIntlAndStore(<DotMenu {...props} />, initialState);
+        const button = screen.getByTestId(
+            `PostDotMenu-Button-${baseProps.post.id}`,
         );
-        const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
         fireEvent.click(button);
-        const menuItem = screen.queryByTestId(`unread_post_${baseProps.post.id}`);
+        const menuItem = screen.queryByTestId(
+            `unread_post_${baseProps.post.id}`,
+        );
         expect(menuItem).toBeNull();
     });
 
-    test('should not show mark as unread in search', () => {
+    test("should not show mark as unread in search", () => {
         const props = {
             ...baseProps,
             location: Locations.SEARCH,
         };
-        renderWithIntlAndStore(
-            <DotMenu {...props}/>,
-            initialState,
+        renderWithIntlAndStore(<DotMenu {...props} />, initialState);
+        const button = screen.getByTestId(
+            `PostDotMenu-Button-${baseProps.post.id}`,
         );
-        const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
         fireEvent.click(button);
-        const menuItem = screen.queryByTestId(`unread_post_${baseProps.post.id}`);
+        const menuItem = screen.queryByTestId(
+            `unread_post_${baseProps.post.id}`,
+        );
         expect(menuItem).toBeNull();
     });
 
-    describe('RHS', () => {
+    describe("RHS", () => {
         test.each([
-            [true, {location: Locations.RHS_ROOT, isCollapsedThreadsEnabled: true}],
-            [true, {location: Locations.RHS_COMMENT, isCollapsedThreadsEnabled: true}],
-            [true, {location: Locations.CENTER, isCollapsedThreadsEnabled: true}],
-        ])('follow message/thread menu item should be shown only in RHS and center channel when CRT is enabled', (showing, caseProps) => {
-            const props = {
-                ...baseProps,
-                ...caseProps,
-            };
-            renderWithIntlAndStore(
-                <DotMenu {...props}/>,
-                initialState,
-            );
-            const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
-            fireEvent.click(button);
-            const menuItem = screen.getByTestId(`follow_post_thread_${baseProps.post.id}`);
-            expect(menuItem).toBeVisible();
-        });
+            [
+                true,
+                {
+                    location: Locations.RHS_ROOT,
+                    isCollapsedThreadsEnabled: true,
+                },
+            ],
+            [
+                true,
+                {
+                    location: Locations.RHS_COMMENT,
+                    isCollapsedThreadsEnabled: true,
+                },
+            ],
+            [
+                true,
+                { location: Locations.CENTER, isCollapsedThreadsEnabled: true },
+            ],
+        ])(
+            "follow message/thread menu item should be shown only in RHS and center channel when CRT is enabled",
+            (showing, caseProps) => {
+                const props = {
+                    ...baseProps,
+                    ...caseProps,
+                };
+                renderWithIntlAndStore(<DotMenu {...props} />, initialState);
+                const button = screen.getByTestId(
+                    `PostDotMenu-Button-${baseProps.post.id}`,
+                );
+                fireEvent.click(button);
+                const menuItem = screen.getByTestId(
+                    `follow_post_thread_${baseProps.post.id}`,
+                );
+                expect(menuItem).toBeVisible();
+            },
+        );
 
         test.each([
-            [false, {location: Locations.RHS_ROOT, isCollapsedThreadsEnabled: false}],
-            [false, {location: Locations.RHS_COMMENT, isCollapsedThreadsEnabled: false}],
-            [false, {location: Locations.CENTER, isCollapsedThreadsEnabled: false}],
-            [false, {location: Locations.SEARCH, isCollapsedThreadsEnabled: true}],
-            [false, {location: Locations.NO_WHERE, isCollapsedThreadsEnabled: true}],
-        ])('follow message/thread menu item should be shown only in RHS and center channel when CRT is enabled', (showing, caseProps) => {
-            const props = {
-                ...baseProps,
-                ...caseProps,
-            };
-            renderWithIntlAndStore(
-                <DotMenu {...props}/>,
-                initialState,
-            );
-            const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
-            fireEvent.click(button);
-            const menuItem = screen.queryByTestId(`follow_post_thread_${baseProps.post.id}`);
-            expect(menuItem).toBeNull();
-        });
+            [
+                false,
+                {
+                    location: Locations.RHS_ROOT,
+                    isCollapsedThreadsEnabled: false,
+                },
+            ],
+            [
+                false,
+                {
+                    location: Locations.RHS_COMMENT,
+                    isCollapsedThreadsEnabled: false,
+                },
+            ],
+            [
+                false,
+                {
+                    location: Locations.CENTER,
+                    isCollapsedThreadsEnabled: false,
+                },
+            ],
+            [
+                false,
+                { location: Locations.SEARCH, isCollapsedThreadsEnabled: true },
+            ],
+            [
+                false,
+                {
+                    location: Locations.NO_WHERE,
+                    isCollapsedThreadsEnabled: true,
+                },
+            ],
+        ])(
+            "follow message/thread menu item should be shown only in RHS and center channel when CRT is enabled",
+            (showing, caseProps) => {
+                const props = {
+                    ...baseProps,
+                    ...caseProps,
+                };
+                renderWithIntlAndStore(<DotMenu {...props} />, initialState);
+                const button = screen.getByTestId(
+                    `PostDotMenu-Button-${baseProps.post.id}`,
+                );
+                fireEvent.click(button);
+                const menuItem = screen.queryByTestId(
+                    `follow_post_thread_${baseProps.post.id}`,
+                );
+                expect(menuItem).toBeNull();
+            },
+        );
 
         test.each([
-            ['Follow message', {isFollowingThread: false, threadReplyCount: 0}],
-            ['Unfollow message', {isFollowingThread: true, threadReplyCount: 0}],
-            ['Follow thread', {isFollowingThread: false, threadReplyCount: 1}],
-            ['Unfollow thread', {isFollowingThread: true, threadReplyCount: 1}],
-        ])('should show correct text', (text, caseProps) => {
+            [
+                "Follow message",
+                { isFollowingThread: false, threadReplyCount: 0 },
+            ],
+            [
+                "Unfollow message",
+                { isFollowingThread: true, threadReplyCount: 0 },
+            ],
+            [
+                "Follow thread",
+                { isFollowingThread: false, threadReplyCount: 1 },
+            ],
+            [
+                "Unfollow thread",
+                { isFollowingThread: true, threadReplyCount: 1 },
+            ],
+        ])("should show correct text", (text, caseProps) => {
             const props = {
                 ...baseProps,
                 ...caseProps,
                 location: Locations.RHS_ROOT,
             };
-            renderWithIntlAndStore(
-                <DotMenu {...props}/>,
-                initialState,
+            renderWithIntlAndStore(<DotMenu {...props} />, initialState);
+            const button = screen.getByTestId(
+                `PostDotMenu-Button-${baseProps.post.id}`,
             );
-            const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
             fireEvent.click(button);
-            const menuItem = screen.getByTestId(`follow_post_thread_${baseProps.post.id}`);
+            const menuItem = screen.getByTestId(
+                `follow_post_thread_${baseProps.post.id}`,
+            );
             expect(menuItem).toBeVisible();
             expect(menuItem).toHaveTextContent(text);
         });

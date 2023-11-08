@@ -4,7 +4,11 @@
 // insertWithoutDuplicates inserts an item into an array and returns the result. The provided array is not modified.
 // If the array already contains the given item, that item is moved to the new location instead of adding a duplicate.
 // If the array already had the given item at the given index, the origianl array is returned.
-export function insertWithoutDuplicates<T>(array: T[], item: T, newIndex: number) {
+export function insertWithoutDuplicates<T>(
+    array: T[],
+    item: T,
+    newIndex: number,
+) {
     const index = array.indexOf(item);
     if (newIndex === index) {
         // The item doesn't need to be moved since its location hasn't changed
@@ -24,7 +28,11 @@ export function insertWithoutDuplicates<T>(array: T[], item: T, newIndex: number
     return newArray;
 }
 
-export function insertMultipleWithoutDuplicates<T>(array: T[], items: T[], newIndex: number) {
+export function insertMultipleWithoutDuplicates<T>(
+    array: T[],
+    items: T[],
+    newIndex: number,
+) {
     let newArray = [...array];
 
     items.forEach((item) => {

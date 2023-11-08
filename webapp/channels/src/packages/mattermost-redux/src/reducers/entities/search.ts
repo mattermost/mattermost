@@ -1,144 +1,149 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combineReducers} from 'redux';
+import { combineReducers } from "redux";
 
-import type {Post} from '@mattermost/types/posts';
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {Search} from '@mattermost/types/search';
+import type { Post } from "@mattermost/types/posts";
+import type { PreferenceType } from "@mattermost/types/preferences";
+import type { Search } from "@mattermost/types/search";
 
-import {PostTypes, PreferenceTypes, SearchTypes, UserTypes} from 'mattermost-redux/action_types';
-import {Preferences} from 'mattermost-redux/constants';
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import {
+    PostTypes,
+    PreferenceTypes,
+    SearchTypes,
+    UserTypes,
+} from "mattermost-redux/action_types";
+import { Preferences } from "mattermost-redux/constants";
+import type { GenericAction } from "mattermost-redux/types/actions";
 
 function results(state: string[] = [], action: GenericAction) {
     switch (action.type) {
-    case SearchTypes.RECEIVED_SEARCH_POSTS: {
-        if (action.isGettingMore) {
-            return [...new Set(state.concat(action.data.order))];
+        case SearchTypes.RECEIVED_SEARCH_POSTS: {
+            if (action.isGettingMore) {
+                return [...new Set(state.concat(action.data.order))];
+            }
+            return action.data.order;
         }
-        return action.data.order;
-    }
-    case PostTypes.POST_REMOVED: {
-        const postId = action.data ? action.data.id : null;
-        const index = state.indexOf(postId);
-        if (index !== -1) {
-            const newState = [...state];
-            newState.splice(index, 1);
-            return newState;
+        case PostTypes.POST_REMOVED: {
+            const postId = action.data ? action.data.id : null;
+            const index = state.indexOf(postId);
+            if (index !== -1) {
+                const newState = [...state];
+                newState.splice(index, 1);
+                return newState;
+            }
+            return state;
         }
-        return state;
-    }
-    case SearchTypes.REMOVE_SEARCH_POSTS:
-    case UserTypes.LOGOUT_SUCCESS:
-        return [];
+        case SearchTypes.REMOVE_SEARCH_POSTS:
+        case UserTypes.LOGOUT_SUCCESS:
+            return [];
 
-    default:
-        return state;
+        default:
+            return state;
     }
 }
 
 function fileResults(state: string[] = [], action: GenericAction) {
     switch (action.type) {
-    case SearchTypes.RECEIVED_SEARCH_FILES: {
-        if (action.isGettingMore) {
-            return [...new Set(state.concat(action.data.order))];
+        case SearchTypes.RECEIVED_SEARCH_FILES: {
+            if (action.isGettingMore) {
+                return [...new Set(state.concat(action.data.order))];
+            }
+            return action.data.order;
         }
-        return action.data.order;
-    }
-    case SearchTypes.REMOVE_SEARCH_FILES:
-    case UserTypes.LOGOUT_SUCCESS:
-        return [];
+        case SearchTypes.REMOVE_SEARCH_FILES:
+        case UserTypes.LOGOUT_SUCCESS:
+            return [];
 
-    default:
-        return state;
+        default:
+            return state;
     }
 }
 
 function matches(state: Record<string, string[]> = {}, action: GenericAction) {
     switch (action.type) {
-    case SearchTypes.RECEIVED_SEARCH_POSTS:
-        if (action.isGettingMore) {
-            return Object.assign({}, state, action.data.matches);
+        case SearchTypes.RECEIVED_SEARCH_POSTS:
+            if (action.isGettingMore) {
+                return Object.assign({}, state, action.data.matches);
+            }
+            return action.data.matches || {};
+        case PostTypes.POST_REMOVED: {
+            if (!state[action.data.id]) {
+                return state;
+            }
+
+            const newState = { ...state };
+            Reflect.deleteProperty(newState, action.data.id);
+            return newState;
         }
-        return action.data.matches || {};
-    case PostTypes.POST_REMOVED: {
-        if (!state[action.data.id]) {
+        case SearchTypes.REMOVE_SEARCH_POSTS:
+        case UserTypes.LOGOUT_SUCCESS:
+            return {};
+
+        default:
             return state;
-        }
-
-        const newState = {...state};
-        Reflect.deleteProperty(newState, action.data.id);
-        return newState;
-    }
-    case SearchTypes.REMOVE_SEARCH_POSTS:
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-
-    default:
-        return state;
     }
 }
 
 function flagged(state: string[] = [], action: GenericAction) {
     switch (action.type) {
-    case SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS: {
-        return action.data.order;
-    }
-    case PostTypes.POST_REMOVED: {
-        const postId = action.data ? action.data.id : null;
-        const index = state.indexOf(postId);
-        if (index !== -1) {
-            const newState = [...state];
-            newState.splice(index, 1);
-            return newState;
+        case SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS: {
+            return action.data.order;
         }
-        return state;
-    }
-    case PreferenceTypes.RECEIVED_PREFERENCES: {
-        if (action.data) {
-            const nextState = [...state];
-            let hasNewFlaggedPosts = false;
-            action.data.forEach((pref: PreferenceType) => {
-                if (pref.category === Preferences.CATEGORY_FLAGGED_POST) {
-                    const exists = nextState.find((p) => p === pref.name);
-                    if (!exists) {
-                        hasNewFlaggedPosts = true;
-                        nextState.unshift(pref.name);
+        case PostTypes.POST_REMOVED: {
+            const postId = action.data ? action.data.id : null;
+            const index = state.indexOf(postId);
+            if (index !== -1) {
+                const newState = [...state];
+                newState.splice(index, 1);
+                return newState;
+            }
+            return state;
+        }
+        case PreferenceTypes.RECEIVED_PREFERENCES: {
+            if (action.data) {
+                const nextState = [...state];
+                let hasNewFlaggedPosts = false;
+                action.data.forEach((pref: PreferenceType) => {
+                    if (pref.category === Preferences.CATEGORY_FLAGGED_POST) {
+                        const exists = nextState.find((p) => p === pref.name);
+                        if (!exists) {
+                            hasNewFlaggedPosts = true;
+                            nextState.unshift(pref.name);
+                        }
                     }
-                }
-            });
+                });
 
-            return hasNewFlaggedPosts ? nextState : state;
+                return hasNewFlaggedPosts ? nextState : state;
+            }
+
+            return state;
         }
-
-        return state;
-    }
-    case PreferenceTypes.DELETED_PREFERENCES: {
-        if (action.data) {
-            const nextState = [...state];
-            let flaggedPostsRemoved = false;
-            action.data.forEach((pref: PreferenceType) => {
-                if (pref.category === Preferences.CATEGORY_FLAGGED_POST) {
-                    const index = state.indexOf(pref.name);
-                    if (index !== -1) {
-                        flaggedPostsRemoved = true;
-                        nextState.splice(index, 1);
+        case PreferenceTypes.DELETED_PREFERENCES: {
+            if (action.data) {
+                const nextState = [...state];
+                let flaggedPostsRemoved = false;
+                action.data.forEach((pref: PreferenceType) => {
+                    if (pref.category === Preferences.CATEGORY_FLAGGED_POST) {
+                        const index = state.indexOf(pref.name);
+                        if (index !== -1) {
+                            flaggedPostsRemoved = true;
+                            nextState.splice(index, 1);
+                        }
                     }
-                }
-            });
+                });
 
-            return flaggedPostsRemoved ? nextState : state;
+                return flaggedPostsRemoved ? nextState : state;
+            }
+
+            return state;
         }
+        case SearchTypes.REMOVE_SEARCH_POSTS:
+        case UserTypes.LOGOUT_SUCCESS:
+            return [];
 
-        return state;
-    }
-    case SearchTypes.REMOVE_SEARCH_POSTS:
-    case UserTypes.LOGOUT_SUCCESS:
-        return [];
-
-    default:
-        return state;
+        default:
+            return state;
     }
 }
 
@@ -163,169 +168,174 @@ function removePinnedPost(state: Record<string, string[]>, post: Post) {
 
 function pinned(state: Record<string, string[]> = {}, action: GenericAction) {
     switch (action.type) {
-    case SearchTypes.RECEIVED_SEARCH_PINNED_POSTS: {
-        const {channelId, pinned: posts} = action.data;
-        return {
-            ...state,
-            [channelId]: posts.order.reverse(),
-        };
-    }
-    case PostTypes.POST_DELETED:
-    case PostTypes.POST_REMOVED: {
-        return removePinnedPost(state, action.data);
-    }
-    case PostTypes.RECEIVED_POST: {
-        const post = action.data;
-        if (post && post.is_pinned) {
-            const channelId = post.channel_id;
-            let pinnedPosts: string[] = [];
-
-            if (state[channelId]) {
-                pinnedPosts = [...state[channelId]];
-            }
-
-            if (!pinnedPosts.includes(post.id)) {
-                pinnedPosts.unshift(post.id);
-            }
-
+        case SearchTypes.RECEIVED_SEARCH_PINNED_POSTS: {
+            const { channelId, pinned: posts } = action.data;
             return {
                 ...state,
-                [channelId]: pinnedPosts,
+                [channelId]: posts.order.reverse(),
             };
         }
-
-        return removePinnedPost(state, action.data);
-    }
-    case SearchTypes.REMOVE_SEARCH_PINNED_POSTS: {
-        const {channelId} = action.data;
-        const nextState = {...state};
-        if (nextState[channelId]) {
-            Reflect.deleteProperty(nextState, channelId);
-            return nextState;
+        case PostTypes.POST_DELETED:
+        case PostTypes.POST_REMOVED: {
+            return removePinnedPost(state, action.data);
         }
+        case PostTypes.RECEIVED_POST: {
+            const post = action.data;
+            if (post && post.is_pinned) {
+                const channelId = post.channel_id;
+                let pinnedPosts: string[] = [];
 
-        return state;
-    }
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
+                if (state[channelId]) {
+                    pinnedPosts = [...state[channelId]];
+                }
 
-    default:
-        return state;
+                if (!pinnedPosts.includes(post.id)) {
+                    pinnedPosts.unshift(post.id);
+                }
+
+                return {
+                    ...state,
+                    [channelId]: pinnedPosts,
+                };
+            }
+
+            return removePinnedPost(state, action.data);
+        }
+        case SearchTypes.REMOVE_SEARCH_PINNED_POSTS: {
+            const { channelId } = action.data;
+            const nextState = { ...state };
+            if (nextState[channelId]) {
+                Reflect.deleteProperty(nextState, channelId);
+                return nextState;
+            }
+
+            return state;
+        }
+        case UserTypes.LOGOUT_SUCCESS:
+            return {};
+
+        default:
+            return state;
     }
 }
 
 function recent(state: Record<string, Search[]> = {}, action: GenericAction) {
-    const {data, type} = action;
+    const { data, type } = action;
 
     switch (type) {
-    case SearchTypes.RECEIVED_SEARCH_TERM: {
-        const nextState = {...state};
-        const {teamId, params} = data;
-        const {terms, isOrSearch} = params || {};
-        const team = [...(nextState[teamId] || [])];
-        const index = team.findIndex((r) => r.terms === terms);
-        if (index === -1) {
-            team.push({terms, isOrSearch});
-        } else {
-            team[index] = {terms, isOrSearch};
-        }
-        return {
-            ...nextState,
-            [teamId]: team,
-        };
-    }
-    case SearchTypes.REMOVE_SEARCH_TERM: {
-        const nextState = {...state};
-        const {teamId, terms} = data;
-        const team = [...(nextState[teamId] || [])];
-        const index = team.findIndex((r) => r.terms === terms);
-
-        if (index !== -1) {
-            team.splice(index, 1);
-
+        case SearchTypes.RECEIVED_SEARCH_TERM: {
+            const nextState = { ...state };
+            const { teamId, params } = data;
+            const { terms, isOrSearch } = params || {};
+            const team = [...(nextState[teamId] || [])];
+            const index = team.findIndex((r) => r.terms === terms);
+            if (index === -1) {
+                team.push({ terms, isOrSearch });
+            } else {
+                team[index] = { terms, isOrSearch };
+            }
             return {
                 ...nextState,
                 [teamId]: team,
             };
         }
+        case SearchTypes.REMOVE_SEARCH_TERM: {
+            const nextState = { ...state };
+            const { teamId, terms } = data;
+            const team = [...(nextState[teamId] || [])];
+            const index = team.findIndex((r) => r.terms === terms);
 
-        return nextState;
-    }
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
+            if (index !== -1) {
+                team.splice(index, 1);
 
-    default:
-        return state;
+                return {
+                    ...nextState,
+                    [teamId]: team,
+                };
+            }
+
+            return nextState;
+        }
+        case UserTypes.LOGOUT_SUCCESS:
+            return {};
+
+        default:
+            return state;
     }
 }
 
 function current(state: any = {}, action: GenericAction) {
-    const {data, type} = action;
+    const { data, type } = action;
     switch (type) {
-    case SearchTypes.RECEIVED_SEARCH_TERM: {
-        const nextState = {...state};
-        const {teamId, params, isEnd, isFilesEnd} = data;
-        return {
-            ...nextState,
-            [teamId]: {
-                params,
-                isEnd: typeof isEnd === 'undefined' && state[teamId] ? state[teamId].isEnd : isEnd,
-                isFilesEnd: typeof isFilesEnd === 'undefined' && state[teamId] ? state[teamId].isFilesEnd : isFilesEnd,
-            },
-        };
-    }
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
+        case SearchTypes.RECEIVED_SEARCH_TERM: {
+            const nextState = { ...state };
+            const { teamId, params, isEnd, isFilesEnd } = data;
+            return {
+                ...nextState,
+                [teamId]: {
+                    params,
+                    isEnd:
+                        typeof isEnd === "undefined" && state[teamId]
+                            ? state[teamId].isEnd
+                            : isEnd,
+                    isFilesEnd:
+                        typeof isFilesEnd === "undefined" && state[teamId]
+                            ? state[teamId].isFilesEnd
+                            : isFilesEnd,
+                },
+            };
+        }
+        case UserTypes.LOGOUT_SUCCESS:
+            return {};
 
-    default:
-        return state;
+        default:
+            return state;
     }
 }
 
 function isSearchingTerm(state = false, action: GenericAction) {
     switch (action.type) {
-    case SearchTypes.SEARCH_POSTS_REQUEST:
-        return !action.isGettingMore;
-    case SearchTypes.SEARCH_POSTS_SUCCESS:
-        return false;
-    default:
-        return state;
+        case SearchTypes.SEARCH_POSTS_REQUEST:
+            return !action.isGettingMore;
+        case SearchTypes.SEARCH_POSTS_SUCCESS:
+            return false;
+        default:
+            return state;
     }
 }
 
 function isSearchGettingMore(state = false, action: GenericAction) {
     switch (action.type) {
-    case SearchTypes.SEARCH_POSTS_REQUEST:
-        return action.isGettingMore;
-    case SearchTypes.SEARCH_POSTS_SUCCESS:
-        return false;
-    default:
-        return state;
+        case SearchTypes.SEARCH_POSTS_REQUEST:
+            return action.isGettingMore;
+        case SearchTypes.SEARCH_POSTS_SUCCESS:
+            return false;
+        default:
+            return state;
     }
 }
 
 function isLimitedResults(state = -1, action: GenericAction): number {
     switch (action.type) {
-    case SearchTypes.SEARCH_POSTS_REQUEST: {
-        if (!action.isGettingMore) {
-            return -1;
+        case SearchTypes.SEARCH_POSTS_REQUEST: {
+            if (!action.isGettingMore) {
+                return -1;
+            }
+            return state;
         }
-        return state;
-    }
-    case SearchTypes.RECEIVED_SEARCH_POSTS: {
-        if (action.data?.first_inaccessible_post_time) {
-            return action.data.first_inaccessible_post_time || 0;
+        case SearchTypes.RECEIVED_SEARCH_POSTS: {
+            if (action.data?.first_inaccessible_post_time) {
+                return action.data.first_inaccessible_post_time || 0;
+            }
+            return state;
         }
-        return state;
-    }
-    default: {
-        return state;
-    }
+        default: {
+            return state;
+        }
     }
 }
 
 export default combineReducers({
-
     // An ordered array with posts ids of flagged posts
     flagged,
 

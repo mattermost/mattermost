@@ -1,13 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {TeamTypes, ThreadTypes, PostTypes, ChannelTypes} from 'mattermost-redux/action_types';
-import deepFreeze from 'mattermost-redux/utils/deep_freeze';
+import {
+    TeamTypes,
+    ThreadTypes,
+    PostTypes,
+    ChannelTypes,
+} from "mattermost-redux/action_types";
+import deepFreeze from "mattermost-redux/utils/deep_freeze";
 
-import threadsReducer from './index';
+import threadsReducer from "./index";
 
-describe('threads', () => {
-    test('RECEIVED_THREADS should update the state', () => {
+describe("threads", () => {
+    test("RECEIVED_THREADS should update the state", () => {
         const state = deepFreeze({
             threadsInTeam: {},
             threads: {},
@@ -24,10 +29,8 @@ describe('threads', () => {
         const nextState = threadsReducer(state, {
             type: ThreadTypes.RECEIVED_THREADS,
             data: {
-                team_id: 'a',
-                threads: [
-                    {id: 't1'},
-                ],
+                team_id: "a",
+                threads: [{ id: "t1" }],
                 total: 0,
                 total_unread_threads: 0,
                 total_unread_mentions: 0,
@@ -36,7 +39,7 @@ describe('threads', () => {
 
         expect(nextState).not.toBe(state);
         expect(nextState.threads.t1).toEqual({
-            id: 't1',
+            id: "t1",
         });
         expect(nextState.counts.a).toBe(state.counts.a);
         expect(nextState.countsIncludingDirect.a).toEqual({
@@ -44,10 +47,10 @@ describe('threads', () => {
             total_unread_threads: 0,
             total_unread_mentions: 1,
         });
-        expect(nextState.threadsInTeam.a).toContain('t1');
+        expect(nextState.threadsInTeam.a).toContain("t1");
     });
 
-    test('RECEIVED_THREADS should update the state', () => {
+    test("RECEIVED_THREADS should update the state", () => {
         const state = deepFreeze({
             threadsInTeam: {
                 a: [],
@@ -66,7 +69,7 @@ describe('threads', () => {
         const nextState = threadsReducer(state, {
             type: ThreadTypes.RECEIVED_THREAD_COUNTS,
             data: {
-                team_id: 'a',
+                team_id: "a",
                 threads: null,
                 total: 0,
                 total_unread_threads: 0,
@@ -85,7 +88,7 @@ describe('threads', () => {
         });
     });
 
-    test('RECEIVED_UNREAD_THREADS should update the state', () => {
+    test("RECEIVED_UNREAD_THREADS should update the state", () => {
         const state = deepFreeze({
             threadsInTeam: {},
             unreadThreadsInTeam: {},
@@ -96,10 +99,8 @@ describe('threads', () => {
         const nextState = threadsReducer(state, {
             type: ThreadTypes.RECEIVED_UNREAD_THREADS,
             data: {
-                team_id: 'a',
-                threads: [
-                    {id: 't1'},
-                ],
+                team_id: "a",
+                threads: [{ id: "t1" }],
                 total: 3,
                 total_unread_threads: 0,
                 total_unread_mentions: 1,
@@ -108,13 +109,13 @@ describe('threads', () => {
 
         expect(nextState).not.toBe(state);
         expect(nextState.threads.t1).toEqual({
-            id: 't1',
+            id: "t1",
         });
-        expect(nextState.unreadThreadsInTeam.a).toContain('t1');
+        expect(nextState.unreadThreadsInTeam.a).toContain("t1");
         expect(nextState.threadsInTeam).toBe(state.threadsInTeam);
     });
 
-    test('ALL_TEAM_THREADS_READ should clear the counts', () => {
+    test("ALL_TEAM_THREADS_READ should clear the counts", () => {
         const state = deepFreeze({
             threadsInTeam: {},
             unreadThreadsInTeam: {},
@@ -130,7 +131,7 @@ describe('threads', () => {
         const nextState2 = threadsReducer(state, {
             type: ThreadTypes.ALL_TEAM_THREADS_READ,
             data: {
-                team_id: 'a',
+                team_id: "a",
             },
         });
 
@@ -143,7 +144,7 @@ describe('threads', () => {
         });
     });
 
-    test('FOLLOW_CHANGED_THREAD should increment/decrement the total by 1', () => {
+    test("FOLLOW_CHANGED_THREAD should increment/decrement the total by 1", () => {
         const state = deepFreeze({
             threadsInTeam: {},
             unreadThreadsInTeam: {},
@@ -166,7 +167,7 @@ describe('threads', () => {
         const nextState2 = threadsReducer(state, {
             type: ThreadTypes.FOLLOW_CHANGED_THREAD,
             data: {
-                team_id: 'a',
+                team_id: "a",
                 following: true,
             },
         });
@@ -181,7 +182,7 @@ describe('threads', () => {
         const nextState3 = threadsReducer(state, {
             type: ThreadTypes.FOLLOW_CHANGED_THREAD,
             data: {
-                team_id: 'a',
+                team_id: "a",
                 following: false,
             },
         });
@@ -194,13 +195,13 @@ describe('threads', () => {
         });
     });
 
-    test('READ_CHANGED_THREAD should update the count for thread per channel', () => {
+    test("READ_CHANGED_THREAD should update the count for thread per channel", () => {
         const state = deepFreeze({
             threadsInTeam: {
-                a: ['id'],
+                a: ["id"],
             },
             unreadThreadsInTeam: {
-                a: ['a', 'id', 'c'],
+                a: ["a", "id", "c"],
             },
             threads: {
                 id: {
@@ -232,11 +233,11 @@ describe('threads', () => {
         const nextState2 = threadsReducer(state, {
             type: ThreadTypes.READ_CHANGED_THREAD,
             data: {
-                id: 'id',
-                teamId: 'a',
+                id: "id",
+                teamId: "a",
                 prevUnreadMentions: 3,
                 newUnreadMentions: 0,
-                channelId: 'a',
+                channelId: "a",
             },
         });
 
@@ -246,23 +247,23 @@ describe('threads', () => {
             total_unread_threads: 1,
             total_unread_mentions: 0,
         });
-        expect(nextState2.threadsInTeam.a).toEqual(['id']);
-        expect(nextState2.unreadThreadsInTeam.a).toEqual(['a', 'c']);
+        expect(nextState2.threadsInTeam.a).toEqual(["id"]);
+        expect(nextState2.unreadThreadsInTeam.a).toEqual(["a", "c"]);
 
         const nextState3 = threadsReducer(nextState2, {
             type: ThreadTypes.READ_CHANGED_THREAD,
             data: {
-                id: 'id',
-                teamId: 'a',
+                id: "id",
+                teamId: "a",
                 prevUnreadMentions: 0,
                 newUnreadMentions: 3,
-                channelId: 'a',
+                channelId: "a",
             },
         });
 
         expect(nextState3).not.toBe(nextState2);
-        expect(nextState3.threadsInTeam.a).toEqual(['id']);
-        expect(nextState3.unreadThreadsInTeam.a).toEqual(['a', 'c']);
+        expect(nextState3.threadsInTeam.a).toEqual(["id"]);
+        expect(nextState3.unreadThreadsInTeam.a).toEqual(["a", "c"]);
         expect(nextState3.counts.a).toEqual({
             total: 3,
             total_unread_threads: 1,
@@ -274,7 +275,7 @@ describe('threads', () => {
             total_unread_mentions: 3,
         });
     });
-    test('LEAVE_TEAM should clean the state', () => {
+    test("LEAVE_TEAM should clean the state", () => {
         const state = deepFreeze({
             threadsInTeam: {},
             unreadThreadsInTeam: {},
@@ -285,10 +286,8 @@ describe('threads', () => {
         let nextState = threadsReducer(state, {
             type: ThreadTypes.RECEIVED_THREADS,
             data: {
-                team_id: 'a',
-                threads: [
-                    {id: 't1'},
-                ],
+                team_id: "a",
+                threads: [{ id: "t1" }],
                 total: 3,
                 total_unread_threads: 0,
                 total_unread_mentions: 1,
@@ -301,7 +300,7 @@ describe('threads', () => {
         nextState = threadsReducer(state, {
             type: TeamTypes.LEAVE_TEAM,
             data: {
-                id: 'a',
+                id: "a",
             },
         });
 
@@ -310,23 +309,23 @@ describe('threads', () => {
         expect(nextState.threadsInTeam.a).toBe(undefined);
     });
 
-    test('POST_REMOVED should remove the thread when root post', () => {
+    test("POST_REMOVED should remove the thread when root post", () => {
         const state = deepFreeze({
             threadsInTeam: {
-                a: ['t1', 't2', 't3'],
+                a: ["t1", "t2", "t3"],
             },
             unreadThreadsInTeam: {
-                a: ['t1', 't2', 't3'],
+                a: ["t1", "t2", "t3"],
             },
             threads: {
                 t1: {
-                    id: 't1',
+                    id: "t1",
                 },
                 t2: {
-                    id: 't2',
+                    id: "t2",
                 },
                 t3: {
-                    id: 't3',
+                    id: "t3",
                 },
             },
             counts: {},
@@ -335,34 +334,34 @@ describe('threads', () => {
 
         const nextState = threadsReducer(state, {
             type: PostTypes.POST_REMOVED,
-            data: {id: 't2', root_id: ''},
+            data: { id: "t2", root_id: "" },
         });
 
         expect(nextState).not.toBe(state);
         expect(nextState.threads.t2).toBe(undefined);
-        expect(nextState.threadsInTeam.a).toEqual(['t1', 't3']);
-        expect(nextState.unreadThreadsInTeam.a).toEqual(['t1', 't3']);
+        expect(nextState.threadsInTeam.a).toEqual(["t1", "t3"]);
+        expect(nextState.unreadThreadsInTeam.a).toEqual(["t1", "t3"]);
     });
 
-    test('POST_REMOVED should remove the thread when root post from all teams', () => {
+    test("POST_REMOVED should remove the thread when root post from all teams", () => {
         const state = deepFreeze({
             threadsInTeam: {
-                a: ['t1', 't2', 't3'],
-                b: ['t2'],
+                a: ["t1", "t2", "t3"],
+                b: ["t2"],
             },
             unreadThreadsInTeam: {
-                a: ['t1', 't2', 't3'],
-                b: ['t2'],
+                a: ["t1", "t2", "t3"],
+                b: ["t2"],
             },
             threads: {
                 t1: {
-                    id: 't1',
+                    id: "t1",
                 },
                 t2: {
-                    id: 't2',
+                    id: "t2",
                 },
                 t3: {
-                    id: 't3',
+                    id: "t3",
                 },
             },
             counts: {},
@@ -371,34 +370,34 @@ describe('threads', () => {
 
         const nextState = threadsReducer(state, {
             type: PostTypes.POST_REMOVED,
-            data: {id: 't2', root_id: ''},
+            data: { id: "t2", root_id: "" },
         });
 
         expect(nextState).not.toBe(state);
         expect(nextState.threads.t2).toBe(undefined);
-        expect(nextState.threadsInTeam.a).toEqual(['t1', 't3']);
-        expect(nextState.unreadThreadsInTeam.a).toEqual(['t1', 't3']);
+        expect(nextState.threadsInTeam.a).toEqual(["t1", "t3"]);
+        expect(nextState.unreadThreadsInTeam.a).toEqual(["t1", "t3"]);
         expect(nextState.threadsInTeam.b).toEqual([]);
         expect(nextState.unreadThreadsInTeam.b).toEqual([]);
     });
 
-    test('POST_REMOVED should do nothing when not a root post', () => {
+    test("POST_REMOVED should do nothing when not a root post", () => {
         const state = deepFreeze({
             threadsInTeam: {
-                a: ['t1', 't2', 't3'],
+                a: ["t1", "t2", "t3"],
             },
             unreadThreadsInTeam: {
-                a: ['t1', 't2', 't3'],
+                a: ["t1", "t2", "t3"],
             },
             threads: {
                 t1: {
-                    id: 't1',
+                    id: "t1",
                 },
                 t2: {
-                    id: 't2',
+                    id: "t2",
                 },
                 t3: {
-                    id: 't3',
+                    id: "t3",
                 },
             },
             counts: {},
@@ -407,29 +406,29 @@ describe('threads', () => {
 
         const nextState = threadsReducer(state, {
             type: PostTypes.POST_REMOVED,
-            data: {id: 't2', root_id: 't1'},
+            data: { id: "t2", root_id: "t1" },
         });
 
         expect(nextState).toBe(state);
         expect(nextState.threads.t2).toBe(state.threads.t2);
-        expect(nextState.threadsInTeam.a).toEqual(['t1', 't2', 't3']);
-        expect(nextState.unreadThreadsInTeam.a).toEqual(['t1', 't2', 't3']);
+        expect(nextState.threadsInTeam.a).toEqual(["t1", "t2", "t3"]);
+        expect(nextState.unreadThreadsInTeam.a).toEqual(["t1", "t2", "t3"]);
     });
 
-    test('POST_REMOVED should do nothing when post not exist', () => {
+    test("POST_REMOVED should do nothing when post not exist", () => {
         const state = deepFreeze({
             threadsInTeam: {
-                a: ['t1', 't2'],
+                a: ["t1", "t2"],
             },
             unreadThreadsInTeam: {
-                a: ['t1', 't2'],
+                a: ["t1", "t2"],
             },
             threads: {
                 t1: {
-                    id: 't1',
+                    id: "t1",
                 },
                 t2: {
-                    id: 't2',
+                    id: "t2",
                 },
             },
             counts: {},
@@ -438,80 +437,80 @@ describe('threads', () => {
 
         const nextState = threadsReducer(state, {
             type: PostTypes.POST_REMOVED,
-            data: {id: 't3', root_id: ''},
+            data: { id: "t3", root_id: "" },
         });
 
         expect(nextState).toBe(state);
         expect(nextState.threads.t2).toBe(state.threads.t2);
-        expect(nextState.threadsInTeam.a).toEqual(['t1', 't2']);
-        expect(nextState.unreadThreadsInTeam.a).toEqual(['t1', 't2']);
+        expect(nextState.threadsInTeam.a).toEqual(["t1", "t2"]);
+        expect(nextState.unreadThreadsInTeam.a).toEqual(["t1", "t2"]);
     });
 
-    test('LEAVE_CHANNEL should remove threads that belong to that channel', () => {
+    test("LEAVE_CHANNEL should remove threads that belong to that channel", () => {
         const state = deepFreeze({
             threadsInTeam: {
-                a: ['t1', 't2', 't3'],
-                b: ['t4', 't5', 't6'],
+                a: ["t1", "t2", "t3"],
+                b: ["t4", "t5", "t6"],
             },
             unreadThreadsInTeam: {
-                a: ['t1', 't2', 't3'],
-                b: ['t4', 't5', 't6'],
+                a: ["t1", "t2", "t3"],
+                b: ["t4", "t5", "t6"],
             },
             threads: {
                 t0: {
-                    id: 't0',
+                    id: "t0",
                     unread_replies: 0,
                     unread_mentions: 0,
                     post: {
-                        channel_id: 'ch1',
+                        channel_id: "ch1",
                     },
                 },
                 t1: {
-                    id: 't1',
+                    id: "t1",
                     unread_replies: 1,
                     unread_mentions: 0,
                     post: {
-                        channel_id: 'ch2',
+                        channel_id: "ch2",
                     },
                 },
                 t2: {
-                    id: 't2',
+                    id: "t2",
                     unread_replies: 1,
                     unread_mentions: 1,
                     post: {
-                        channel_id: 'ch1',
+                        channel_id: "ch1",
                     },
                 },
                 t3: {
-                    id: 't3',
+                    id: "t3",
                     unread_replies: 2,
                     unread_mentions: 1,
                     post: {
-                        channel_id: 'ch1',
+                        channel_id: "ch1",
                     },
                 },
                 t4: {
-                    id: 't4',
+                    id: "t4",
                     unread_replies: 1,
                     unread_mentions: 0,
                     post: {
-                        channel_id: 'ch3',
+                        channel_id: "ch3",
                     },
                 },
                 t5: {
-                    id: 't5',
+                    id: "t5",
                     unread_replies: 1,
                     unread_mentions: 1,
                     post: {
-                        channel_id: 'ch4',
+                        channel_id: "ch4",
                     },
                 },
                 t6: {
-                    id: 't6',
+                    id: "t6",
                     unread_replies: 0,
                     unread_mentions: 0,
                     post: {
-                        channel_id: 'ch5',
+                        channel_id: "ch5",
                     },
                 },
             },
@@ -543,7 +542,7 @@ describe('threads', () => {
 
         const nextState = threadsReducer(state, {
             type: ChannelTypes.LEAVE_CHANNEL,
-            data: {id: 'ch1', team_id: 'a'},
+            data: { id: "ch1", team_id: "a" },
         });
 
         expect(nextState).not.toBe(state);
@@ -555,8 +554,8 @@ describe('threads', () => {
             t6: state.threads.t6,
         });
 
-        expect(nextState.threadsInTeam.a).toEqual(['t1']);
-        expect(nextState.unreadThreadsInTeam.a).toEqual(['t1']);
+        expect(nextState.threadsInTeam.a).toEqual(["t1"]);
+        expect(nextState.unreadThreadsInTeam.a).toEqual(["t1"]);
 
         expect(nextState.counts.a).toEqual({
             total: 1,
@@ -574,28 +573,30 @@ describe('threads', () => {
 
         expect(nextState.threadsInTeam.b).toBe(state.threadsInTeam.b);
         expect(nextState.counts.b).toBe(state.counts.b);
-        expect(nextState.countsIncludingDirect.b).toBe(state.countsIncludingDirect.b);
+        expect(nextState.countsIncludingDirect.b).toBe(
+            state.countsIncludingDirect.b,
+        );
     });
 
-    describe('RECEIVED_THREAD', () => {
+    describe("RECEIVED_THREAD", () => {
         const state = deepFreeze({
             threadsInTeam: {
-                a: ['t1', 't2'],
-                b: ['t1'],
+                a: ["t1", "t2"],
+                b: ["t1"],
                 c: [],
             },
             unreadThreadsInTeam: {
-                a: ['t2'],
+                a: ["t2"],
                 b: [],
                 c: [],
             },
             threads: {
                 t1: {
-                    id: 't1',
+                    id: "t1",
                     last_reply_at: 10,
                 },
                 t2: {
-                    id: 't2',
+                    id: "t2",
                     last_reply_at: 20,
                 },
             },
@@ -604,70 +605,317 @@ describe('threads', () => {
         });
 
         test.each([
-            ['a', {id: 't3', last_reply_at: 40, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2', 't3'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't3', last_reply_at: 40, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2', 't3'], unread: ['t2', 't3']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't3', last_reply_at: 40, unread_mentions: 0, unread_replies: 1}, {a: {all: ['t1', 't2', 't3'], unread: ['t2', 't3']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't3', last_reply_at: 5, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't3', last_reply_at: 5, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't2', last_reply_at: 40, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't2', last_reply_at: 40, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't2', last_reply_at: 40, unread_mentions: 0, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't2', last_reply_at: 5, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            ['a', {id: 't2', last_reply_at: 5, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
+            [
+                "a",
+                {
+                    id: "t3",
+                    last_reply_at: 40,
+                    unread_mentions: 0,
+                    unread_replies: 0,
+                },
+                {
+                    a: { all: ["t1", "t2", "t3"], unread: ["t2"] },
+                    b: { all: ["t1"], unread: [] },
+                },
+            ],
+            [
+                "a",
+                {
+                    id: "t3",
+                    last_reply_at: 40,
+                    unread_mentions: 1,
+                    unread_replies: 1,
+                },
+                {
+                    a: { all: ["t1", "t2", "t3"], unread: ["t2", "t3"] },
+                    b: { all: ["t1"], unread: [] },
+                },
+            ],
+            [
+                "a",
+                {
+                    id: "t3",
+                    last_reply_at: 40,
+                    unread_mentions: 0,
+                    unread_replies: 1,
+                },
+                {
+                    a: { all: ["t1", "t2", "t3"], unread: ["t2", "t3"] },
+                    b: { all: ["t1"], unread: [] },
+                },
+            ],
+            [
+                "a",
+                {
+                    id: "t3",
+                    last_reply_at: 5,
+                    unread_mentions: 0,
+                    unread_replies: 0,
+                },
+                {
+                    a: { all: ["t1", "t2"], unread: ["t2"] },
+                    b: { all: ["t1"], unread: [] },
+                },
+            ],
+            [
+                "a",
+                {
+                    id: "t3",
+                    last_reply_at: 5,
+                    unread_mentions: 1,
+                    unread_replies: 1,
+                },
+                {
+                    a: { all: ["t1", "t2"], unread: ["t2"] },
+                    b: { all: ["t1"], unread: [] },
+                },
+            ],
+            [
+                "a",
+                {
+                    id: "t2",
+                    last_reply_at: 40,
+                    unread_mentions: 0,
+                    unread_replies: 0,
+                },
+                {
+                    a: { all: ["t1", "t2"], unread: ["t2"] },
+                    b: { all: ["t1"], unread: [] },
+                },
+            ],
+            [
+                "a",
+                {
+                    id: "t2",
+                    last_reply_at: 40,
+                    unread_mentions: 1,
+                    unread_replies: 1,
+                },
+                {
+                    a: { all: ["t1", "t2"], unread: ["t2"] },
+                    b: { all: ["t1"], unread: [] },
+                },
+            ],
+            [
+                "a",
+                {
+                    id: "t2",
+                    last_reply_at: 40,
+                    unread_mentions: 0,
+                    unread_replies: 1,
+                },
+                {
+                    a: { all: ["t1", "t2"], unread: ["t2"] },
+                    b: { all: ["t1"], unread: [] },
+                },
+            ],
+            [
+                "a",
+                {
+                    id: "t2",
+                    last_reply_at: 5,
+                    unread_mentions: 0,
+                    unread_replies: 0,
+                },
+                {
+                    a: { all: ["t1", "t2"], unread: ["t2"] },
+                    b: { all: ["t1"], unread: [] },
+                },
+            ],
+            [
+                "a",
+                {
+                    id: "t2",
+                    last_reply_at: 5,
+                    unread_mentions: 1,
+                    unread_replies: 1,
+                },
+                {
+                    a: { all: ["t1", "t2"], unread: ["t2"] },
+                    b: { all: ["t1"], unread: [] },
+                },
+            ],
 
             // DM/GM threads
-            [undefined, {id: 't3', last_reply_at: 40, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2', 't3'], unread: ['t2']}, b: {all: ['t1', 't3'], unread: []}}],
-            [undefined, {id: 't3', last_reply_at: 40, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2', 't3'], unread: ['t2', 't3']}, b: {all: ['t1', 't3'], unread: []}}],
-            [undefined, {id: 't3', last_reply_at: 40, unread_mentions: 0, unread_replies: 1}, {a: {all: ['t1', 't2', 't3'], unread: ['t2', 't3']}, b: {all: ['t1', 't3'], unread: []}}],
-            [undefined, {id: 't3', last_reply_at: 5, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            [undefined, {id: 't3', last_reply_at: 5, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            [undefined, {id: 't2', last_reply_at: 40, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1', 't2'], unread: []}}],
-            [undefined, {id: 't2', last_reply_at: 40, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1', 't2'], unread: []}}],
-            [undefined, {id: 't2', last_reply_at: 40, unread_mentions: 0, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1', 't2'], unread: []}}],
-            [undefined, {id: 't2', last_reply_at: 5, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-            [undefined, {id: 't2', last_reply_at: 5, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
-        ])('should handle "%s" team and thread %o', (teamId, thread, expected) => {
-            const nextState = threadsReducer(state, {
-                type: ThreadTypes.RECEIVED_THREAD,
-                data: {
-                    thread,
-                    team_id: teamId,
+            [
+                undefined,
+                {
+                    id: "t3",
+                    last_reply_at: 40,
+                    unread_mentions: 0,
+                    unread_replies: 0,
                 },
-            });
+                {
+                    a: { all: ["t1", "t2", "t3"], unread: ["t2"] },
+                    b: { all: ["t1", "t3"], unread: [] },
+                },
+            ],
+            [
+                undefined,
+                {
+                    id: "t3",
+                    last_reply_at: 40,
+                    unread_mentions: 1,
+                    unread_replies: 1,
+                },
+                {
+                    a: { all: ["t1", "t2", "t3"], unread: ["t2", "t3"] },
+                    b: { all: ["t1", "t3"], unread: [] },
+                },
+            ],
+            [
+                undefined,
+                {
+                    id: "t3",
+                    last_reply_at: 40,
+                    unread_mentions: 0,
+                    unread_replies: 1,
+                },
+                {
+                    a: { all: ["t1", "t2", "t3"], unread: ["t2", "t3"] },
+                    b: { all: ["t1", "t3"], unread: [] },
+                },
+            ],
+            [
+                undefined,
+                {
+                    id: "t3",
+                    last_reply_at: 5,
+                    unread_mentions: 0,
+                    unread_replies: 0,
+                },
+                {
+                    a: { all: ["t1", "t2"], unread: ["t2"] },
+                    b: { all: ["t1"], unread: [] },
+                },
+            ],
+            [
+                undefined,
+                {
+                    id: "t3",
+                    last_reply_at: 5,
+                    unread_mentions: 1,
+                    unread_replies: 1,
+                },
+                {
+                    a: { all: ["t1", "t2"], unread: ["t2"] },
+                    b: { all: ["t1"], unread: [] },
+                },
+            ],
+            [
+                undefined,
+                {
+                    id: "t2",
+                    last_reply_at: 40,
+                    unread_mentions: 0,
+                    unread_replies: 0,
+                },
+                {
+                    a: { all: ["t1", "t2"], unread: ["t2"] },
+                    b: { all: ["t1", "t2"], unread: [] },
+                },
+            ],
+            [
+                undefined,
+                {
+                    id: "t2",
+                    last_reply_at: 40,
+                    unread_mentions: 1,
+                    unread_replies: 1,
+                },
+                {
+                    a: { all: ["t1", "t2"], unread: ["t2"] },
+                    b: { all: ["t1", "t2"], unread: [] },
+                },
+            ],
+            [
+                undefined,
+                {
+                    id: "t2",
+                    last_reply_at: 40,
+                    unread_mentions: 0,
+                    unread_replies: 1,
+                },
+                {
+                    a: { all: ["t1", "t2"], unread: ["t2"] },
+                    b: { all: ["t1", "t2"], unread: [] },
+                },
+            ],
+            [
+                undefined,
+                {
+                    id: "t2",
+                    last_reply_at: 5,
+                    unread_mentions: 0,
+                    unread_replies: 0,
+                },
+                {
+                    a: { all: ["t1", "t2"], unread: ["t2"] },
+                    b: { all: ["t1"], unread: [] },
+                },
+            ],
+            [
+                undefined,
+                {
+                    id: "t2",
+                    last_reply_at: 5,
+                    unread_mentions: 1,
+                    unread_replies: 1,
+                },
+                {
+                    a: { all: ["t1", "t2"], unread: ["t2"] },
+                    b: { all: ["t1"], unread: [] },
+                },
+            ],
+        ])(
+            'should handle "%s" team and thread %o',
+            (teamId, thread, expected) => {
+                const nextState = threadsReducer(state, {
+                    type: ThreadTypes.RECEIVED_THREAD,
+                    data: {
+                        thread,
+                        team_id: teamId,
+                    },
+                });
 
-            // team a
-            expect(nextState.threadsInTeam.a).toEqual(expected.a.all);
-            expect(nextState.unreadThreadsInTeam.a).toEqual(expected.a.unread);
+                // team a
+                expect(nextState.threadsInTeam.a).toEqual(expected.a.all);
+                expect(nextState.unreadThreadsInTeam.a).toEqual(
+                    expected.a.unread,
+                );
 
-            // team b
-            expect(nextState.threadsInTeam.b).toEqual(expected.b.all);
-            expect(nextState.unreadThreadsInTeam.b).toEqual(expected.b.unread);
+                // team b
+                expect(nextState.threadsInTeam.b).toEqual(expected.b.all);
+                expect(nextState.unreadThreadsInTeam.b).toEqual(
+                    expected.b.unread,
+                );
 
-            // team c
-            expect(nextState.threadsInTeam.c).toEqual([]);
-            expect(nextState.unreadThreadsInTeam.c).toEqual([]);
-        });
+                // team c
+                expect(nextState.threadsInTeam.c).toEqual([]);
+                expect(nextState.unreadThreadsInTeam.c).toEqual([]);
+            },
+        );
     });
 
-    describe('unreadThreadsInTeam should handle READ_CHANGED_THREAD', () => {
+    describe("unreadThreadsInTeam should handle READ_CHANGED_THREAD", () => {
         const state = deepFreeze({
             threadsInTeam: {
-                a: ['t1', 't2'],
+                a: ["t1", "t2"],
             },
             unreadThreadsInTeam: {
-                a: ['t2'],
+                a: ["t2"],
             },
             threads: {
                 t1: {
-                    id: 't1',
+                    id: "t1",
                     last_reply_at: 10,
                 },
                 t2: {
-                    id: 't2',
+                    id: "t2",
                     last_reply_at: 20,
                 },
                 t3: {
-                    id: 't3',
+                    id: "t3",
                     last_reply_at: 30,
                 },
             },
@@ -676,23 +924,26 @@ describe('threads', () => {
         });
 
         test.each([
-            [{id: 't1', teamId: 'a', mentions: 0, replies: 0}, ['t2']],
-            [{id: 't1', teamId: 'a', mentions: 1, replies: 0}, ['t2']],
-            [{id: 't2', teamId: 'a', mentions: 0, replies: 0}, []],
-            [{id: 't2', teamId: 'a', mentions: 1, replies: 1}, ['t2']],
-            [{id: 't3', teamId: 'a', mentions: 1, replies: 1}, ['t2', 't3']],
-            [{id: 't4', teamId: 'a', mentions: 1, replies: 1}, ['t2']],
-        ])('should handle thread %o', ({id, teamId, mentions, replies}, expected) => {
-            const nextState = threadsReducer(state, {
-                type: ThreadTypes.READ_CHANGED_THREAD,
-                data: {
-                    id,
-                    teamId,
-                    newUnreadMentions: mentions,
-                    newUnreadReplies: replies,
-                },
-            });
-            expect(nextState.unreadThreadsInTeam.a).toEqual(expected);
-        });
+            [{ id: "t1", teamId: "a", mentions: 0, replies: 0 }, ["t2"]],
+            [{ id: "t1", teamId: "a", mentions: 1, replies: 0 }, ["t2"]],
+            [{ id: "t2", teamId: "a", mentions: 0, replies: 0 }, []],
+            [{ id: "t2", teamId: "a", mentions: 1, replies: 1 }, ["t2"]],
+            [{ id: "t3", teamId: "a", mentions: 1, replies: 1 }, ["t2", "t3"]],
+            [{ id: "t4", teamId: "a", mentions: 1, replies: 1 }, ["t2"]],
+        ])(
+            "should handle thread %o",
+            ({ id, teamId, mentions, replies }, expected) => {
+                const nextState = threadsReducer(state, {
+                    type: ThreadTypes.READ_CHANGED_THREAD,
+                    data: {
+                        id,
+                        teamId,
+                        newUnreadMentions: mentions,
+                        newUnreadReplies: replies,
+                    },
+                });
+                expect(nextState.unreadThreadsInTeam.a).toEqual(expected);
+            },
+        );
     });
 });

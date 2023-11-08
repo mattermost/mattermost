@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import {Coords} from '../common/hooks/useMeasurePunchouts';
+import { Coords } from "../common/hooks/useMeasurePunchouts";
 
-import './pulsating_dot.scss';
+import "./pulsating_dot.scss";
 
 type Props = {
     targetRef?: React.RefObject<HTMLImageElement>;
     className?: string;
     onClick?: (e: React.MouseEvent) => void;
     coords?: Coords;
-}
+};
 
 export class PulsatingDot extends React.PureComponent<Props> {
     public render() {
@@ -22,12 +22,13 @@ export class PulsatingDot extends React.PureComponent<Props> {
                 transform: `translate(${this.props.coords?.x}px, ${this.props.coords?.y}px)`,
             };
         }
-        let effectiveClassName = 'pulsating_dot';
+        let effectiveClassName = "pulsating_dot";
         if (this.props.onClick) {
-            effectiveClassName += ' pulsating_dot-clickable';
+            effectiveClassName += " pulsating_dot-clickable";
         }
         if (this.props.className) {
-            effectiveClassName = effectiveClassName + ' ' + this.props.className;
+            effectiveClassName =
+                effectiveClassName + " " + this.props.className;
         }
 
         return (
@@ -35,8 +36,8 @@ export class PulsatingDot extends React.PureComponent<Props> {
                 className={effectiveClassName}
                 onClick={this.props.onClick}
                 ref={this.props.targetRef}
-                style={{...customStyles}}
-                data-testid={'pulsating_dot'}
+                style={{ ...customStyles }}
+                data-testid={"pulsating_dot"}
             />
         );
     }

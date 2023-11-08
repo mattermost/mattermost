@@ -1,73 +1,73 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
+import { fireEvent, renderWithIntl, screen } from "tests/react_testing_utils";
 
-import EditableArea from './editable_area';
+import EditableArea from "./editable_area";
 
-describe('channel_info_rhs/components/editable_area', () => {
-    test('should be able to see content', async () => {
+describe("channel_info_rhs/components/editable_area", () => {
+    test("should be able to see content", async () => {
         renderWithIntl(
             <EditableArea
-                content='test content'
+                content="test content"
                 editable={true}
-                emptyLabel=''
+                emptyLabel=""
                 onEdit={() => {}}
             />,
         );
 
-        expect(screen.getByText('test content')).toBeInTheDocument();
+        expect(screen.getByText("test content")).toBeInTheDocument();
     });
 
-    test('should be able to edit content', async () => {
+    test("should be able to edit content", async () => {
         const mockOnEdit = jest.fn();
         renderWithIntl(
             <EditableArea
-                content='test content'
+                content="test content"
                 editable={true}
-                emptyLabel=''
+                emptyLabel=""
                 onEdit={mockOnEdit}
             />,
         );
 
-        expect(screen.getByLabelText('Edit')).toBeInTheDocument();
-        fireEvent.click(screen.getByLabelText('Edit'));
+        expect(screen.getByLabelText("Edit")).toBeInTheDocument();
+        fireEvent.click(screen.getByLabelText("Edit"));
         expect(mockOnEdit).toHaveBeenCalled();
     });
 
-    test('should be able prevent edition', async () => {
+    test("should be able prevent edition", async () => {
         renderWithIntl(
             <EditableArea
-                content='test content'
+                content="test content"
                 editable={false}
-                emptyLabel=''
+                emptyLabel=""
                 onEdit={() => {}}
             />,
         );
 
-        expect(screen.queryByLabelText('Edit')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText("Edit")).not.toBeInTheDocument();
     });
 
-    test('should show the empty label when there\'s no content', async () => {
+    test("should show the empty label when there's no content", async () => {
         const mockOnEdit = jest.fn();
         renderWithIntl(
             <EditableArea
-                content=''
+                content=""
                 editable={true}
-                emptyLabel='No content'
+                emptyLabel="No content"
                 onEdit={mockOnEdit}
             />,
         );
 
-        expect(screen.getByText('No content')).toBeInTheDocument();
+        expect(screen.getByText("No content")).toBeInTheDocument();
 
         // We should be able to click on the text...
-        fireEvent.click(screen.getByText('No content'));
+        fireEvent.click(screen.getByText("No content"));
 
         // ... or the Edit icon
-        fireEvent.click(screen.getByLabelText('Edit'));
+        fireEvent.click(screen.getByLabelText("Edit"));
         expect(mockOnEdit).toHaveBeenCalledTimes(2);
     });
 });

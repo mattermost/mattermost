@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {MouseEventHandler} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import type { MouseEventHandler } from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {ServerError} from '@mattermost/types/errors';
+import type { ServerError } from "@mattermost/types/errors";
 
-import {isErrorInvalidSlashCommand} from 'utils/post_utils';
+import { isErrorInvalidSlashCommand } from "utils/post_utils";
 
 interface Props {
     error: ServerError;
@@ -17,25 +17,22 @@ interface Props {
 
 function MessageSubmitError(props: Props) {
     if (isErrorInvalidSlashCommand(props.error)) {
-        const slashCommand = props.submittedMessage?.split(' ')[0];
+        const slashCommand = props.submittedMessage?.split(" ")[0];
 
         return (
-            <div className='has-error'>
-                <label className='control-label'>
+            <div className="has-error">
+                <label className="control-label">
                     <FormattedMessage
-                        id='message_submit_error.invalidCommand'
+                        id="message_submit_error.invalidCommand"
                         defaultMessage="Command with a trigger of ''{slashCommand}'' not found. "
                         values={{
                             slashCommand,
                         }}
                     />
-                    <a
-                        href='#'
-                        onClick={props.handleSubmit}
-                    >
+                    <a href="#" onClick={props.handleSubmit}>
                         <FormattedMessage
-                            id='message_submit_error.sendAsMessageLink'
-                            defaultMessage='Click here to send as a message.'
+                            id="message_submit_error.sendAsMessageLink"
+                            defaultMessage="Click here to send as a message."
                         />
                     </a>
                 </label>
@@ -48,8 +45,10 @@ function MessageSubmitError(props: Props) {
     }
 
     return (
-        <div className='has-error'>
-            <label className='control-label'>{props.error.message.trim()}</label>
+        <div className="has-error">
+            <label className="control-label">
+                {props.error.message.trim()}
+            </label>
         </div>
     );
 }

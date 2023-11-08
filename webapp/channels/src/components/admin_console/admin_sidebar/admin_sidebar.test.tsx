@@ -1,33 +1,38 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {IntlShape} from 'react-intl';
+import React from "react";
+import type { IntlShape } from "react-intl";
 
-import {SelfHostedSignupProgress} from '@mattermost/types/cloud';
-import type {ExperimentalSettings, PluginSettings, SSOSettings, Office365Settings} from '@mattermost/types/config';
+import { SelfHostedSignupProgress } from "@mattermost/types/cloud";
+import type {
+    ExperimentalSettings,
+    PluginSettings,
+    SSOSettings,
+    Office365Settings,
+} from "@mattermost/types/config";
 
-import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
+import { RESOURCE_KEYS } from "mattermost-redux/constants/permissions_sysconsole";
 
-import AdminDefinition from 'components/admin_console/admin_definition';
-import AdminSidebar from 'components/admin_console/admin_sidebar/admin_sidebar';
-import type {Props} from 'components/admin_console/admin_sidebar/admin_sidebar';
+import AdminDefinition from "components/admin_console/admin_definition";
+import AdminSidebar from "components/admin_console/admin_sidebar/admin_sidebar";
+import type { Props } from "components/admin_console/admin_sidebar/admin_sidebar";
 
-import {samplePlugin1} from 'tests/helpers/admin_console_plugin_index_sample_pluings';
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {generateIndex} from 'utils/admin_console_index';
+import { samplePlugin1 } from "tests/helpers/admin_console_plugin_index_sample_pluings";
+import { shallowWithIntl } from "tests/helpers/intl-test-helper";
+import { generateIndex } from "utils/admin_console_index";
 
-jest.mock('utils/utils', () => {
-    const original = jest.requireActual('utils/utils');
+jest.mock("utils/utils", () => {
+    const original = jest.requireActual("utils/utils");
     return {
         ...original,
         isMobile: jest.fn(() => true),
     };
 });
 
-jest.mock('utils/admin_console_index');
+jest.mock("utils/admin_console_index");
 
-describe('components/AdminSidebar', () => {
+describe("components/AdminSidebar", () => {
     const defaultProps: Props = {
         license: {},
         config: {
@@ -44,21 +49,21 @@ describe('components/AdminSidebar', () => {
         adminDefinition: AdminDefinition,
         buildEnterpriseReady: false,
         navigationBlocked: false,
-        siteName: 'test snap',
+        siteName: "test snap",
         subscriptionProduct: undefined,
         plugins: {
             plugin_0: {
                 active: false,
-                description: 'The plugin 0.',
-                id: 'plugin_0',
-                name: 'Plugin 0',
-                version: '0.1.0',
+                description: "The plugin 0.",
+                id: "plugin_0",
+                name: "Plugin 0",
+                version: "0.1.0",
                 settings_schema: {
-                    footer: 'This is a footer',
-                    header: 'This is a header',
+                    footer: "This is a footer",
+                    header: "This is a header",
                     settings: [],
                 },
-                webapp: {bundle_path: 'webapp/dist/main.js'},
+                webapp: { bundle_path: "webapp/dist/main.js" },
             },
         },
         onFilterChange: jest.fn(),
@@ -101,48 +106,50 @@ describe('components/AdminSidebar', () => {
     };
 
     Object.keys(RESOURCE_KEYS).forEach((key) => {
-        Object.values(RESOURCE_KEYS[key as keyof typeof RESOURCE_KEYS]).forEach((value) => {
-            defaultProps.consoleAccess = {
-                ...defaultProps.consoleAccess,
-                read: {
-                    ...defaultProps.consoleAccess.read,
-                    [value]: true,
-                },
-                write: {
-                    ...defaultProps.consoleAccess.write,
-                    [value]: true,
-                },
-            };
-        });
+        Object.values(RESOURCE_KEYS[key as keyof typeof RESOURCE_KEYS]).forEach(
+            (value) => {
+                defaultProps.consoleAccess = {
+                    ...defaultProps.consoleAccess,
+                    read: {
+                        ...defaultProps.consoleAccess.read,
+                        [value]: true,
+                    },
+                    write: {
+                        ...defaultProps.consoleAccess.write,
+                        [value]: true,
+                    },
+                };
+            },
+        );
     });
 
-    test('should match snapshot', () => {
-        const props = {...defaultProps};
-        const wrapper = shallowWithIntl(<AdminSidebar {...props}/>);
+    test("should match snapshot", () => {
+        const props = { ...defaultProps };
+        const wrapper = shallowWithIntl(<AdminSidebar {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with workspace optimization dashboard enabled', () => {
+    test("should match snapshot with workspace optimization dashboard enabled", () => {
         const props = {
             ...defaultProps,
             config: {
                 ...defaultProps.config,
             },
         };
-        const wrapper = shallowWithIntl(<AdminSidebar {...props}/>);
+        const wrapper = shallowWithIntl(<AdminSidebar {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, no access', () => {
+    test("should match snapshot, no access", () => {
         const props = {
             ...defaultProps,
-            consoleAccess: {read: {}, write: {}},
+            consoleAccess: { read: {}, write: {} },
         };
-        const wrapper = shallowWithIntl(<AdminSidebar {...props}/>);
+        const wrapper = shallowWithIntl(<AdminSidebar {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, render plugins without any settings as well', () => {
+    test("should match snapshot, render plugins without any settings as well", () => {
         const props: Props = {
             license: {},
             config: {
@@ -158,38 +165,38 @@ describe('components/AdminSidebar', () => {
             intl: {} as IntlShape,
             adminDefinition: AdminDefinition,
             buildEnterpriseReady: false,
-            siteName: 'test snap',
+            siteName: "test snap",
             subscriptionProduct: undefined,
             navigationBlocked: false,
             plugins: {
                 plugin_0: {
                     active: false,
-                    description: 'The plugin 0.',
-                    id: 'plugin_0',
-                    name: 'Plugin 0',
-                    version: '0.1.0',
+                    description: "The plugin 0.",
+                    id: "plugin_0",
+                    name: "Plugin 0",
+                    version: "0.1.0",
                     settings_schema: {
-                        footer: '',
-                        header: '',
+                        footer: "",
+                        header: "",
                         settings: [],
                     },
-                    webapp: {bundle_path: 'webapp/dist/main.js'},
+                    webapp: { bundle_path: "webapp/dist/main.js" },
                 },
             },
             onFilterChange: jest.fn(),
             actions: {
                 getPlugins: jest.fn(),
             },
-            consoleAccess: {...defaultProps.consoleAccess},
-            cloud: {...defaultProps.cloud},
+            consoleAccess: { ...defaultProps.consoleAccess },
+            cloud: { ...defaultProps.cloud },
             showTaskList: false,
         };
 
-        const wrapper = shallowWithIntl(<AdminSidebar {...props}/>);
+        const wrapper = shallowWithIntl(<AdminSidebar {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, not prevent the console from loading when empty settings_schema provided', () => {
+    test("should match snapshot, not prevent the console from loading when empty settings_schema provided", () => {
         const props: Props = {
             license: {},
             config: {
@@ -205,41 +212,41 @@ describe('components/AdminSidebar', () => {
             intl: {} as IntlShape,
             adminDefinition: AdminDefinition,
             buildEnterpriseReady: false,
-            siteName: 'test snap',
+            siteName: "test snap",
             subscriptionProduct: undefined,
             navigationBlocked: false,
             plugins: {
                 plugin_0: {
                     active: false,
-                    description: 'The plugin 0.',
-                    id: 'plugin_0',
-                    name: 'Plugin 0',
-                    version: '0.1.0',
+                    description: "The plugin 0.",
+                    id: "plugin_0",
+                    name: "Plugin 0",
+                    version: "0.1.0",
                     settings_schema: {
-                        footer: 'This is a footer',
-                        header: 'This is a header',
+                        footer: "This is a footer",
+                        header: "This is a header",
                         settings: [],
                     },
-                    webapp: {bundle_path: 'webapp/dist/main.js'},
+                    webapp: { bundle_path: "webapp/dist/main.js" },
                 },
             },
             onFilterChange: jest.fn(),
             actions: {
                 getPlugins: jest.fn(),
             },
-            consoleAccess: {...defaultProps.consoleAccess},
-            cloud: {...defaultProps.cloud},
+            consoleAccess: { ...defaultProps.consoleAccess },
+            cloud: { ...defaultProps.cloud },
             showTaskList: false,
         };
 
-        const wrapper = shallowWithIntl(<AdminSidebar {...props}/>);
+        const wrapper = shallowWithIntl(<AdminSidebar {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, with license (without any explicit feature)', () => {
+    test("should match snapshot, with license (without any explicit feature)", () => {
         const props: Props = {
             license: {
-                IsLicensed: 'true',
+                IsLicensed: "true",
             },
             config: {
                 ...defaultProps.config,
@@ -255,53 +262,53 @@ describe('components/AdminSidebar', () => {
             adminDefinition: AdminDefinition,
             buildEnterpriseReady: true,
             navigationBlocked: false,
-            siteName: 'test snap',
+            siteName: "test snap",
             subscriptionProduct: undefined,
             plugins: {
                 plugin_0: {
                     active: false,
-                    description: 'The plugin 0.',
-                    id: 'plugin_0',
-                    name: 'Plugin 0',
-                    version: '0.1.0',
+                    description: "The plugin 0.",
+                    id: "plugin_0",
+                    name: "Plugin 0",
+                    version: "0.1.0",
                     settings_schema: {
-                        footer: '',
-                        header: '',
+                        footer: "",
+                        header: "",
                         settings: [],
                     },
-                    webapp: {bundle_path: 'webapp/dist/main.js'},
+                    webapp: { bundle_path: "webapp/dist/main.js" },
                 },
             },
             onFilterChange: jest.fn(),
             actions: {
                 getPlugins: jest.fn(),
             },
-            consoleAccess: {...defaultProps.consoleAccess},
-            cloud: {...defaultProps.cloud},
+            consoleAccess: { ...defaultProps.consoleAccess },
+            cloud: { ...defaultProps.cloud },
             showTaskList: false,
         };
 
-        const wrapper = shallowWithIntl(<AdminSidebar {...props}/>);
+        const wrapper = shallowWithIntl(<AdminSidebar {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, with license (with all feature)', () => {
+    test("should match snapshot, with license (with all feature)", () => {
         const props: Props = {
             license: {
-                IsLicensed: 'true',
-                DataRetention: 'true',
-                LDAPGroups: 'true',
-                LDAP: 'true',
-                Cluster: 'true',
-                SAML: 'true',
-                Compliance: 'true',
-                CustomTermsOfService: 'true',
-                MessageExport: 'true',
-                Elasticsearch: 'true',
-                CustomPermissionsSchemes: 'true',
-                OpenId: 'true',
-                GuestAccounts: 'true',
-                Announcement: 'true',
+                IsLicensed: "true",
+                DataRetention: "true",
+                LDAPGroups: "true",
+                LDAP: "true",
+                Cluster: "true",
+                SAML: "true",
+                Compliance: "true",
+                CustomTermsOfService: "true",
+                MessageExport: "true",
+                Elasticsearch: "true",
+                CustomPermissionsSchemes: "true",
+                OpenId: "true",
+                GuestAccounts: "true",
+                Announcement: "true",
             },
             config: {
                 ...defaultProps.config,
@@ -313,56 +320,56 @@ describe('components/AdminSidebar', () => {
                     EnableUploads: true,
                 } as PluginSettings,
                 GoogleSettings: {
-                    Id: 'googleID',
-                    Secret: 'googleSecret',
-                    Scope: 'scope',
+                    Id: "googleID",
+                    Secret: "googleSecret",
+                    Scope: "scope",
                 } as SSOSettings,
                 GitLabSettings: {
-                    Id: 'gitlabID',
-                    Secret: 'gitlabSecret',
-                    Scope: 'scope',
+                    Id: "gitlabID",
+                    Secret: "gitlabSecret",
+                    Scope: "scope",
                 } as SSOSettings,
                 Office365Settings: {
-                    Id: 'office365ID',
-                    Secret: 'office365Secret',
-                    Scope: 'scope',
+                    Id: "office365ID",
+                    Secret: "office365Secret",
+                    Scope: "scope",
                 } as Office365Settings,
             },
             intl: {} as IntlShape,
             adminDefinition: AdminDefinition,
             buildEnterpriseReady: true,
             navigationBlocked: false,
-            siteName: 'test snap',
+            siteName: "test snap",
             subscriptionProduct: undefined,
             plugins: {
                 plugin_0: {
                     active: false,
-                    description: 'The plugin 0.',
-                    id: 'plugin_0',
-                    name: 'Plugin 0',
-                    version: '0.1.0',
+                    description: "The plugin 0.",
+                    id: "plugin_0",
+                    name: "Plugin 0",
+                    version: "0.1.0",
                     settings_schema: {
-                        footer: '',
-                        header: '',
+                        footer: "",
+                        header: "",
                         settings: [],
                     },
-                    webapp: {bundle_path: 'webapp/dist/main.js'},
+                    webapp: { bundle_path: "webapp/dist/main.js" },
                 },
             },
             onFilterChange: jest.fn(),
             actions: {
                 getPlugins: jest.fn(),
             },
-            consoleAccess: {...defaultProps.consoleAccess},
-            cloud: {...defaultProps.cloud},
+            consoleAccess: { ...defaultProps.consoleAccess },
+            cloud: { ...defaultProps.cloud },
             showTaskList: false,
         };
 
-        const wrapper = shallowWithIntl(<AdminSidebar {...props}/>);
+        const wrapper = shallowWithIntl(<AdminSidebar {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    describe('generateIndex', () => {
+    describe("generateIndex", () => {
         const props: Props = {
             license: {},
             config: {
@@ -379,17 +386,17 @@ describe('components/AdminSidebar', () => {
             adminDefinition: AdminDefinition,
             buildEnterpriseReady: true,
             navigationBlocked: false,
-            siteName: 'test snap',
+            siteName: "test snap",
             subscriptionProduct: undefined,
             plugins: {
-                'mattermost-autolink': samplePlugin1,
+                "mattermost-autolink": samplePlugin1,
             },
             onFilterChange: jest.fn(),
             actions: {
                 getPlugins: jest.fn(),
             },
-            consoleAccess: {...defaultProps.consoleAccess},
-            cloud: {...defaultProps.cloud},
+            consoleAccess: { ...defaultProps.consoleAccess },
+            cloud: { ...defaultProps.cloud },
             showTaskList: false,
         };
 
@@ -397,55 +404,57 @@ describe('components/AdminSidebar', () => {
             (generateIndex as jest.Mock).mockReset();
         });
 
-        test('should refresh the index in case idx is already present and there is a change in plugins or adminDefinition prop', () => {
-            (generateIndex as jest.Mock).mockReturnValue(['mocked-index']);
+        test("should refresh the index in case idx is already present and there is a change in plugins or adminDefinition prop", () => {
+            (generateIndex as jest.Mock).mockReturnValue(["mocked-index"]);
 
-            const wrapper = shallowWithIntl(<AdminSidebar {...props}/>);
-            (wrapper.instance() as any).idx = ['some value'];
+            const wrapper = shallowWithIntl(<AdminSidebar {...props} />);
+            (wrapper.instance() as any).idx = ["some value"];
 
             expect(generateIndex).toHaveBeenCalledTimes(0);
 
-            wrapper.setProps({plugins: {}});
+            wrapper.setProps({ plugins: {} });
             expect(generateIndex).toHaveBeenCalledTimes(1);
 
-            wrapper.setProps({adminDefinition: {}});
+            wrapper.setProps({ adminDefinition: {} });
             expect(generateIndex).toHaveBeenCalledTimes(2);
         });
 
-        test('should not call the generate index in case of idx is not already present', () => {
-            (generateIndex as jest.Mock).mockReturnValue(['mocked-index']);
+        test("should not call the generate index in case of idx is not already present", () => {
+            (generateIndex as jest.Mock).mockReturnValue(["mocked-index"]);
 
-            const wrapper = shallowWithIntl(<AdminSidebar {...props}/>);
+            const wrapper = shallowWithIntl(<AdminSidebar {...props} />);
 
             expect(generateIndex).toHaveBeenCalledTimes(0);
 
-            wrapper.setProps({plugins: {}});
+            wrapper.setProps({ plugins: {} });
             expect(generateIndex).toHaveBeenCalledTimes(0);
 
-            wrapper.setProps({adminDefinition: {}});
+            wrapper.setProps({ adminDefinition: {} });
             expect(generateIndex).toHaveBeenCalledTimes(0);
         });
 
-        test('should not generate index in case of same props', () => {
-            (generateIndex as jest.Mock).mockReturnValue(['mocked-index']);
+        test("should not generate index in case of same props", () => {
+            (generateIndex as jest.Mock).mockReturnValue(["mocked-index"]);
 
-            const wrapper = shallowWithIntl(<AdminSidebar {...props}/>);
-            (wrapper.instance() as any).idx = ['some value'];
+            const wrapper = shallowWithIntl(<AdminSidebar {...props} />);
+            (wrapper.instance() as any).idx = ["some value"];
 
             expect(generateIndex).toHaveBeenCalledTimes(0);
 
-            wrapper.setProps({plugins: {
-                'mattermost-autolink': samplePlugin1,
-            }});
+            wrapper.setProps({
+                plugins: {
+                    "mattermost-autolink": samplePlugin1,
+                },
+            });
             expect(generateIndex).toHaveBeenCalledTimes(0);
 
-            wrapper.setProps({adminDefinition: AdminDefinition});
+            wrapper.setProps({ adminDefinition: AdminDefinition });
             expect(generateIndex).toHaveBeenCalledTimes(0);
         });
     });
 
-    describe('Plugins', () => {
-        const idx = {search: jest.fn()};
+    describe("Plugins", () => {
+        const idx = { search: jest.fn() };
 
         beforeEach(() => {
             idx.search.mockReset();
@@ -468,10 +477,10 @@ describe('components/AdminSidebar', () => {
             adminDefinition: AdminDefinition,
             buildEnterpriseReady: true,
             navigationBlocked: false,
-            siteName: 'test snap',
+            siteName: "test snap",
             subscriptionProduct: undefined,
             plugins: {
-                'mattermost-autolink': samplePlugin1,
+                "mattermost-autolink": samplePlugin1,
             },
             onFilterChange: jest.fn(),
             actions: {
@@ -483,28 +492,36 @@ describe('components/AdminSidebar', () => {
                 },
                 write: {},
             },
-            cloud: {...defaultProps.cloud},
+            cloud: { ...defaultProps.cloud },
             showTaskList: false,
         };
 
-        test('should match snapshot', () => {
-            const wrapper = shallowWithIntl(<AdminSidebar {...props}/>);
+        test("should match snapshot", () => {
+            const wrapper = shallowWithIntl(<AdminSidebar {...props} />);
 
             expect(wrapper).toMatchSnapshot();
         });
 
-        test('should filter plugins', () => {
-            const wrapper = shallowWithIntl(<AdminSidebar {...props}/>);
+        test("should filter plugins", () => {
+            const wrapper = shallowWithIntl(<AdminSidebar {...props} />);
 
-            idx.search.mockReturnValue(['plugin_mattermost-autolink']);
-            wrapper.find('#adminSidebarFilter').simulate('change', {target: {value: 'autolink'}});
+            idx.search.mockReturnValue(["plugin_mattermost-autolink"]);
+            wrapper
+                .find("#adminSidebarFilter")
+                .simulate("change", { target: { value: "autolink" } });
 
-            expect((wrapper.instance().state as any).sections).toEqual(['plugin_mattermost-autolink']);
+            expect((wrapper.instance().state as any).sections).toEqual([
+                "plugin_mattermost-autolink",
+            ]);
             expect(wrapper).toMatchSnapshot();
-            expect(wrapper.find('AdminSidebarCategory')).toHaveLength(1);
-            expect(wrapper.find('AdminSidebarSection')).toHaveLength(1);
-            const autoLinkPluginSection = wrapper.find('AdminSidebarSection').at(0);
-            expect(autoLinkPluginSection.prop('name')).toBe('plugins/plugin_mattermost-autolink');
+            expect(wrapper.find("AdminSidebarCategory")).toHaveLength(1);
+            expect(wrapper.find("AdminSidebarSection")).toHaveLength(1);
+            const autoLinkPluginSection = wrapper
+                .find("AdminSidebarSection")
+                .at(0);
+            expect(autoLinkPluginSection.prop("name")).toBe(
+                "plugins/plugin_mattermost-autolink",
+            );
         });
     });
 });

@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type { Channel, ChannelMembership } from "@mattermost/types/channels";
 
-import type {PluginComponent} from 'types/store/plugins';
+import type { PluginComponent } from "types/store/plugins";
 
 type Props = {
     channel: Channel;
     channelMember?: ChannelMembership;
     pluginButtons: PluginComponent[];
-}
+};
 
 const PluggableIntroButtons = React.memo((props: Props) => {
     const channelIsArchived = props.channel.delete_at !== 0;
@@ -23,8 +23,12 @@ const PluggableIntroButtons = React.memo((props: Props) => {
         return (
             <button
                 key={buttonProps.id}
-                className={'intro-links color--link channelIntroButton style--none'}
-                onClick={() => buttonProps.action?.(props.channel, props.channelMember)}
+                className={
+                    "intro-links color--link channelIntroButton style--none"
+                }
+                onClick={() =>
+                    buttonProps.action?.(props.channel, props.channelMember)
+                }
             >
                 {buttonProps.icon}
                 {buttonProps.text}
@@ -34,6 +38,6 @@ const PluggableIntroButtons = React.memo((props: Props) => {
 
     return <>{buttons}</>;
 });
-PluggableIntroButtons.displayName = 'PluggableIntroButtons';
+PluggableIntroButtons.displayName = "PluggableIntroButtons";
 
 export default PluggableIntroButtons;

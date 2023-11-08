@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {CSSTransition} from 'react-transition-group';
+import React from "react";
+import { CSSTransition } from "react-transition-group";
 
-import {isMobile} from './is_mobile_view_hack';
+import { isMobile } from "./is_mobile_view_hack";
 
 const ANIMATION_DURATION = 80;
 
 type Props = {
     children?: React.ReactNode;
     show: boolean;
-}
+};
 
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
@@ -28,7 +28,7 @@ export default function MenuWrapperAnimation(props: Props) {
     return (
         <CSSTransition
             in={props.show}
-            classNames='MenuWrapperAnimation'
+            classNames="MenuWrapperAnimation"
             enter={true}
             exit={true}
             mountOnEnter={true}
@@ -39,4 +39,3 @@ export default function MenuWrapperAnimation(props: Props) {
         </CSSTransition>
     );
 }
-

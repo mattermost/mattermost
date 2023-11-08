@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import CustomPolicyForm from 'components/admin_console/data_retention_settings/custom_policy_form/custom_policy_form';
+import CustomPolicyForm from "components/admin_console/data_retention_settings/custom_policy_form/custom_policy_form";
 
-describe('components/admin_console/data_retention_settings/custom_policy_form', () => {
+describe("components/admin_console/data_retention_settings/custom_policy_form", () => {
     const defaultProps = {
         actions: {
             setNavigationBlocked: jest.fn(),
@@ -21,22 +21,22 @@ describe('components/admin_console/data_retention_settings/custom_policy_form', 
         },
     };
 
-    test('should match snapshot with creating new policy', () => {
-        const props = {...defaultProps};
-        const wrapper = shallow(<CustomPolicyForm {...props}/>);
+    test("should match snapshot with creating new policy", () => {
+        const props = { ...defaultProps };
+        const wrapper = shallow(<CustomPolicyForm {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with editing existing policy', () => {
-        const props = {...defaultProps};
+    test("should match snapshot with editing existing policy", () => {
+        const props = { ...defaultProps };
 
         const wrapper = shallow(
             <CustomPolicyForm
                 {...props}
-                policyId='fsdgdsgdsgh'
+                policyId="fsdgdsgdsgh"
                 policy={{
-                    id: 'fsdgdsgdsgh',
-                    display_name: 'Test Policy',
+                    id: "fsdgdsgdsgh",
+                    display_name: "Test Policy",
                     post_duration: 22,
                     team_count: 1,
                     channel_count: 2,

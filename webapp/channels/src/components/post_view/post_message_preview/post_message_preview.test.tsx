@@ -1,37 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import type {ChannelType} from '@mattermost/types/channels';
-import type {Post, PostEmbed} from '@mattermost/types/posts';
-import type {UserProfile} from '@mattermost/types/users';
+import type { ChannelType } from "@mattermost/types/channels";
+import type { Post, PostEmbed } from "@mattermost/types/posts";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {General} from 'mattermost-redux/constants';
+import { General } from "mattermost-redux/constants";
 
-import PostMessagePreview from './post_message_preview';
-import type {Props} from './post_message_preview';
+import PostMessagePreview from "./post_message_preview";
+import type { Props } from "./post_message_preview";
 
-describe('PostMessagePreview', () => {
+describe("PostMessagePreview", () => {
     const previewPost = {
-        id: 'post_id',
-        message: 'post message',
+        id: "post_id",
+        message: "post message",
         metadata: {},
     } as Post;
 
     const user = {
-        id: 'user_1',
-        username: 'username1',
+        id: "user_1",
+        username: "username1",
     } as UserProfile;
 
     const baseProps: Props = {
         metadata: {
-            channel_display_name: 'channel name',
-            team_name: 'team1',
-            post_id: 'post_id',
-            channel_type: 'O',
-            channel_id: 'channel_id',
+            channel_display_name: "channel name",
+            team_name: "team1",
+            post_id: "post_id",
+            channel_type: "O",
+            channel_id: "channel_id",
         },
         previewPost,
         user,
@@ -39,8 +39,8 @@ describe('PostMessagePreview', () => {
         enablePostIconOverride: false,
         isEmbedVisible: true,
         compactDisplay: false,
-        currentTeamUrl: 'team1',
-        channelDisplayName: 'channel name',
+        currentTeamUrl: "team1",
+        channelDisplayName: "channel name",
         handleFileDropdownOpened: jest.fn(),
         actions: {
             toggleEmbedVisibility: jest.fn(),
@@ -48,54 +48,43 @@ describe('PostMessagePreview', () => {
         isPostPriorityEnabled: false,
     };
 
-    test('should render correctly', () => {
-        const wrapper = shallow(<PostMessagePreview {...baseProps}/>);
+    test("should render correctly", () => {
+        const wrapper = shallow(<PostMessagePreview {...baseProps} />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should render without preview', () => {
+    test("should render without preview", () => {
         const wrapper = shallow(
-            <PostMessagePreview
-                {...baseProps}
-                previewPost={undefined}
-            />,
+            <PostMessagePreview {...baseProps} previewPost={undefined} />,
         );
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('show render without preview when preview posts becomes undefined after being defined', () => {
-        const props = {...baseProps};
-        let wrapper = shallow(
-            <PostMessagePreview
-                {...props}
-            />,
-        );
+    test("show render without preview when preview posts becomes undefined after being defined", () => {
+        const props = { ...baseProps };
+        let wrapper = shallow(<PostMessagePreview {...props} />);
 
         expect(wrapper).toMatchSnapshot();
-        let permalink = wrapper.find('.permalink');
+        let permalink = wrapper.find(".permalink");
         expect(permalink.length).toBe(1);
 
         // now we'll set the preview post to undefined. This happens when the
         // previewed post is deleted.
         props.previewPost = undefined;
 
-        wrapper = shallow(
-            <PostMessagePreview
-                {...props}
-            />,
-        );
+        wrapper = shallow(<PostMessagePreview {...props} />);
         expect(wrapper).toMatchSnapshot();
-        permalink = wrapper.find('.permalink');
+        permalink = wrapper.find(".permalink");
         expect(permalink.length).toBe(0);
     });
 
-    test('should not render bot icon', () => {
+    test("should not render bot icon", () => {
         const postProps = {
-            override_icon_url: 'https://fakeicon.com/image.jpg',
-            use_user_icon: 'false',
-            from_webhook: 'false',
+            override_icon_url: "https://fakeicon.com/image.jpg",
+            use_user_icon: "false",
+            from_webhook: "false",
         };
 
         const postPreview = {
@@ -107,20 +96,16 @@ describe('PostMessagePreview', () => {
             ...baseProps,
             previewPost: postPreview,
         };
-        const wrapper = shallow(
-            <PostMessagePreview
-                {...props}
-            />,
-        );
+        const wrapper = shallow(<PostMessagePreview {...props} />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should render bot icon', () => {
+    test("should render bot icon", () => {
         const postProps = {
-            override_icon_url: 'https://fakeicon.com/image.jpg',
+            override_icon_url: "https://fakeicon.com/image.jpg",
             use_user_icon: false,
-            from_webhook: 'true',
+            from_webhook: "true",
         };
 
         const postPreview = {
@@ -133,29 +118,22 @@ describe('PostMessagePreview', () => {
             previewPost: postPreview,
             enablePostIconOverride: true,
         };
-        const wrapper = shallow(
-            <PostMessagePreview
-                {...props}
-            />,
-        );
+        const wrapper = shallow(<PostMessagePreview {...props} />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    describe('nested previews', () => {
+    describe("nested previews", () => {
         const files = {
-            file_ids: [
-                'file_1',
-                'file_2',
-            ],
+            file_ids: ["file_1", "file_2"],
         };
 
         const opengraphMetadata = {
-            type: 'opengraph',
-            url: 'https://example.com',
+            type: "opengraph",
+            url: "https://example.com",
         } as PostEmbed;
 
-        test('should render opengraph preview', () => {
+        test("should render opengraph preview", () => {
             const postPreview = {
                 ...previewPost,
                 metadata: {
@@ -168,12 +146,12 @@ describe('PostMessagePreview', () => {
                 previewPost: postPreview,
             };
 
-            const wrapper = shallow(<PostMessagePreview {...props}/>);
+            const wrapper = shallow(<PostMessagePreview {...props} />);
 
             expect(wrapper).toMatchSnapshot();
         });
 
-        test('should render file preview', () => {
+        test("should render file preview", () => {
             const postPreview = {
                 ...previewPost,
                 ...files,
@@ -184,35 +162,37 @@ describe('PostMessagePreview', () => {
                 previewPost: postPreview,
             };
 
-            const wrapper = shallow(<PostMessagePreview {...props}/>);
+            const wrapper = shallow(<PostMessagePreview {...props} />);
 
             expect(wrapper).toMatchSnapshot();
         });
     });
 
-    describe('direct and group messages', () => {
-        const channelTypes = [General.DM_CHANNEL, General.GM_CHANNEL] as ChannelType[];
+    describe("direct and group messages", () => {
+        const channelTypes = [
+            General.DM_CHANNEL,
+            General.GM_CHANNEL,
+        ] as ChannelType[];
 
-        test.each(channelTypes)('should render preview for %s message', (type) => {
-            const metadata = {
-                ...baseProps.metadata,
-                team_name: '',
-                channel_type: type,
-                channel_id: 'channel_id',
-            };
+        test.each(channelTypes)(
+            "should render preview for %s message",
+            (type) => {
+                const metadata = {
+                    ...baseProps.metadata,
+                    team_name: "",
+                    channel_type: type,
+                    channel_id: "channel_id",
+                };
 
-            const props = {
-                ...baseProps,
-                metadata,
-            };
+                const props = {
+                    ...baseProps,
+                    metadata,
+                };
 
-            const wrapper = shallow(
-                <PostMessagePreview
-                    {...props}
-                />,
-            );
+                const wrapper = shallow(<PostMessagePreview {...props} />);
 
-            expect(wrapper).toMatchSnapshot();
-        });
+                expect(wrapper).toMatchSnapshot();
+            },
+        );
     });
 });

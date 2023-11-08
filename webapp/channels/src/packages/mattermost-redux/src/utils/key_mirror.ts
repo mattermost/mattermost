@@ -27,9 +27,11 @@
  * @param {object} obj
  * @return {object}
  */
-export default function keyMirror<T extends Record<string, unknown>>(obj: T): { [K in keyof T]: K } {
+export default function keyMirror<T extends Record<string, unknown>>(
+    obj: T,
+): { [K in keyof T]: K } {
     if (!(obj instanceof Object && !Array.isArray(obj))) {
-        throw new Error('keyMirror(...): Argument must be an object.');
+        throw new Error("keyMirror(...): Argument must be an object.");
     }
 
     const ret: any = {};

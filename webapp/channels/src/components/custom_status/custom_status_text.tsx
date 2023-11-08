@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
-import {useSelector} from 'react-redux';
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
 
-import {isCustomStatusEnabled} from 'selectors/views/custom_status';
+import { isCustomStatusEnabled } from "selectors/views/custom_status";
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
 
-import Constants from 'utils/constants';
+import Constants from "utils/constants";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
 interface ComponentProps {
-    tooltipDirection?: 'top' | 'right' | 'bottom' | 'left';
+    tooltipDirection?: "top" | "right" | "bottom" | "left";
     text: string;
     className?: string;
 }
 
 const CustomStatusText = (props: ComponentProps) => {
-    const {tooltipDirection, text, className} = props;
+    const { tooltipDirection, text, className } = props;
     const customStatusEnabled = useSelector((state: GlobalState) => {
         return isCustomStatusEnabled(state);
     });
@@ -31,7 +31,12 @@ const CustomStatusText = (props: ComponentProps) => {
     }
 
     const showTooltip = () => {
-        setShow(Boolean(spanElement && spanElement.offsetWidth < spanElement.scrollWidth));
+        setShow(
+            Boolean(
+                spanElement &&
+                    spanElement.offsetWidth < spanElement.scrollWidth,
+            ),
+        );
     };
 
     const customStatusTextComponent = (
@@ -54,11 +59,7 @@ const CustomStatusText = (props: ComponentProps) => {
         <OverlayTrigger
             delayShow={Constants.OVERLAY_TIME_DELAY}
             placement={tooltipDirection}
-            overlay={
-                <Tooltip id='custom-status-tooltip'>
-                    {text}
-                </Tooltip>
-            }
+            overlay={<Tooltip id="custom-status-tooltip">{text}</Tooltip>}
         >
             {customStatusTextComponent}
         </OverlayTrigger>
@@ -66,9 +67,9 @@ const CustomStatusText = (props: ComponentProps) => {
 };
 
 CustomStatusText.defaultProps = {
-    tooltipDirection: 'bottom',
-    text: '',
-    className: '',
+    tooltipDirection: "bottom",
+    text: "",
+    className: "",
 };
 
 export default CustomStatusText;

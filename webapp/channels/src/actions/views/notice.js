@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionTypes} from 'utils/constants';
+import { ActionTypes } from "utils/constants";
 
 export function dismissNotice(type) {
     return (dispatch) => {
@@ -10,6 +10,6 @@ export function dismissNotice(type) {
             data: type,
         });
 
-        return {data: true};
+        return { data: true };
     };
 }

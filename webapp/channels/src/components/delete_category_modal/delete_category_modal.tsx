@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import {GenericModal} from '@mattermost/components';
-import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import { GenericModal } from "@mattermost/components";
+import type { ChannelCategory } from "@mattermost/types/channel_categories";
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import FormattedMarkdownMessage from "components/formatted_markdown_message";
 
-import {t} from 'utils/i18n';
-import {localizeMessage} from 'utils/utils';
+import { t } from "utils/i18n";
+import { localizeMessage } from "utils/utils";
 
-import '../category_modal.scss';
+import "../category_modal.scss";
 
 type Props = {
     category: ChannelCategory;
@@ -24,9 +24,12 @@ type Props = {
 
 type State = {
     show: boolean;
-}
+};
 
-export default class DeleteCategoryModal extends React.PureComponent<Props, State> {
+export default class DeleteCategoryModal extends React.PureComponent<
+    Props,
+    State
+> {
     constructor(props: Props) {
         super(props);
 
@@ -46,27 +49,30 @@ export default class DeleteCategoryModal extends React.PureComponent<Props, Stat
     render() {
         return (
             <GenericModal
-                ariaLabel={localizeMessage('delete_category_modal.deleteCategory', 'Delete this category?')}
-                onExited={this.props.onExited}
-                modalHeaderText={(
-                    <FormattedMessage
-                        id='delete_category_modal.deleteCategory'
-                        defaultMessage='Delete this category?'
-                    />
+                ariaLabel={localizeMessage(
+                    "delete_category_modal.deleteCategory",
+                    "Delete this category?",
                 )}
+                onExited={this.props.onExited}
+                modalHeaderText={
+                    <FormattedMessage
+                        id="delete_category_modal.deleteCategory"
+                        defaultMessage="Delete this category?"
+                    />
+                }
                 handleCancel={this.handleCancel}
                 handleConfirm={this.handleConfirm}
-                confirmButtonText={(
+                confirmButtonText={
                     <FormattedMessage
-                        id='delete_category_modal.delete'
-                        defaultMessage='Delete'
+                        id="delete_category_modal.delete"
+                        defaultMessage="Delete"
                     />
-                )}
-                confirmButtonClassName={'delete'}
+                }
+                confirmButtonClassName={"delete"}
             >
-                <span className='delete-category__helpText'>
+                <span className="delete-category__helpText">
                     <FormattedMarkdownMessage
-                        id='delete_category_modal.helpText'
+                        id="delete_category_modal.helpText"
                         defaultMessage="Channels in **{category_name}** will move back to the Channels and Direct messages categories. You're not removed from any channels."
                         values={{
                             category_name: this.props.category.display_name,
@@ -80,8 +86,8 @@ export default class DeleteCategoryModal extends React.PureComponent<Props, Stat
 
 // TODO MM-52680 These strings are properly defined in @mattermost/components, but the i18n tooling currently can't
 // find them there, so we've had to redefine them here
-t('generic_modal.cancel');
-t('generic_modal.confirm');
-t('footer_pagination.count');
-t('footer_pagination.prev');
-t('footer_pagination.next');
+t("generic_modal.cancel");
+t("generic_modal.confirm");
+t("footer_pagination.count");
+t("footer_pagination.prev");
+t("footer_pagination.next");

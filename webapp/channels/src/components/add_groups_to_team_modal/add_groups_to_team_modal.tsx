@@ -1,27 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {RefObject} from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import type { RefObject } from "react";
+import { Modal } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
 
-import type {Group, GroupsWithCount, SyncablePatch} from '@mattermost/types/groups';
-import {SyncableType} from '@mattermost/types/groups';
+import type {
+    Group,
+    GroupsWithCount,
+    SyncablePatch,
+} from "@mattermost/types/groups";
+import { SyncableType } from "@mattermost/types/groups";
 
-import Nbsp from 'components/html_entities/nbsp';
-import MultiSelect from 'components/multiselect/multiselect';
-import type {Value} from 'components/multiselect/multiselect';
-import AddIcon from 'components/widgets/icons/fa_add_icon';
+import Nbsp from "components/html_entities/nbsp";
+import MultiSelect from "components/multiselect/multiselect";
+import type { Value } from "components/multiselect/multiselect";
+import AddIcon from "components/widgets/icons/fa_add_icon";
 
-import groupsAvatar from 'images/groups-avatar.png';
-import Constants from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
+import groupsAvatar from "images/groups-avatar.png";
+import Constants from "utils/constants";
+import { localizeMessage } from "utils/utils";
 
 const GROUPS_PER_PAGE = 50;
 const MAX_SELECTABLE_VALUES = 10;
 
-type GroupValue = Value & {member_count?: number};
+type GroupValue = Value & { member_count?: number };
 
 type Props = {
     currentTeamName: string;
@@ -36,13 +40,27 @@ type Props = {
     skipCommit?: boolean;
     onAddCallback?: (groupIDs: string[]) => void;
     actions: Actions;
-}
+};
 
 export type Actions = {
-    getGroupsNotAssociatedToTeam: (teamID: string, q?: string, page?: number, perPage?: number) => Promise<{ data: Group[] } | { error: Error }>;
+    getGroupsNotAssociatedToTeam: (
+        teamID: string,
+        q?: string,
+        page?: number,
+        perPage?: number,
+    ) => Promise<{ data: Group[] } | { error: Error }>;
     setModalSearchTerm: (term: string) => void;
-    linkGroupSyncable: (groupID: string, syncableID: string, syncableType: SyncableType, patch: SyncablePatch) => Promise<{ data?: boolean; error?: Error }>;
-    getAllGroupsAssociatedToTeam: (teamID: string, filterAllowReference: boolean, includeMemberCount: boolean) => Promise<{ data: GroupsWithCount } | { error: Error }>;
+    linkGroupSyncable: (
+        groupID: string,
+        syncableID: string,
+        syncableType: SyncableType,
+        patch: SyncablePatch,
+    ) => Promise<{ data?: boolean; error?: Error }>;
+    getAllGroupsAssociatedToTeam: (
+        teamID: string,
+        filterAllowReference: boolean,
+        includeMemberCount: boolean,
+    ) => Promise<{ data: GroupsWithCount } | { error: Error }>;
 };
 
 type State = {
@@ -52,9 +70,12 @@ type State = {
     saving: boolean;
     addError: null | string;
     loadingGroups: boolean;
-}
+};
 
-export default class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
+export default class AddGroupsToTeamModal extends React.PureComponent<
+    Props,
+    State
+> {
     private searchTimeoutId: number;
     private readonly selectedItemRef: RefObject<HTMLDivElement>;
 
@@ -77,8 +98,17 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
 
     public componentDidMount() {
         Promise.all([
-            this.props.actions.getGroupsNotAssociatedToTeam(this.props.currentTeamId, '', 0, GROUPS_PER_PAGE + 1),
-            this.props.actions.getAllGroupsAssociatedToTeam(this.props.currentTeamId, false, true),
+            this.props.actions.getGroupsNotAssociatedToTeam(
+                this.props.currentTeamId,
+                "",
+                0,
+                GROUPS_PER_PAGE + 1,
+            ),
+            this.props.actions.getAllGroupsAssociatedToTeam(
+                this.props.currentTeamId,
+                false,
+                true,
+            ),
         ]).then(() => {
             this.setGroupsLoadingState(false);
         });
@@ -89,25 +119,25 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
             clearTimeout(this.searchTimeoutId);
 
             const searchTerm = this.props.searchTerm;
-            if (searchTerm === '') {
+            if (searchTerm === "") {
                 return;
             }
 
-            this.searchTimeoutId = window.setTimeout(
-                async () => {
-                    this.setGroupsLoadingState(true);
-                    await this.props.actions.getGroupsNotAssociatedToTeam(this.props.currentTeamId, searchTerm);
-                    this.setGroupsLoadingState(false);
-                },
-                Constants.SEARCH_TIMEOUT_MILLISECONDS,
-            );
+            this.searchTimeoutId = window.setTimeout(async () => {
+                this.setGroupsLoadingState(true);
+                await this.props.actions.getGroupsNotAssociatedToTeam(
+                    this.props.currentTeamId,
+                    searchTerm,
+                );
+                this.setGroupsLoadingState(false);
+            }, Constants.SEARCH_TIMEOUT_MILLISECONDS);
         }
     }
 
     // public for tests
     public handleHide = () => {
-        this.props.actions.setModalSearchTerm('');
-        this.setState({show: false});
+        this.props.actions.setModalSearchTerm("");
+        this.setState({ show: false });
     };
 
     // public for tests
@@ -142,26 +172,36 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
             return;
         }
 
-        this.setState({saving: true});
+        this.setState({ saving: true });
 
-        await Promise.all(groupIDs.map(async (groupID) => {
-            const {error} = await this.props.actions.linkGroupSyncable(groupID, this.props.currentTeamId, SyncableType.Team, {auto_add: true, scheme_admin: false});
-            this.handleResponse(error);
-            if (!error) {
-                this.handleHide();
-            }
-        }));
+        await Promise.all(
+            groupIDs.map(async (groupID) => {
+                const { error } = await this.props.actions.linkGroupSyncable(
+                    groupID,
+                    this.props.currentTeamId,
+                    SyncableType.Team,
+                    { auto_add: true, scheme_admin: false },
+                );
+                this.handleResponse(error);
+                if (!error) {
+                    this.handleHide();
+                }
+            }),
+        );
     };
 
     // public for tests
     public addValue = (value: GroupValue): void => {
-        const values = Object.assign<GroupValue[], GroupValue[]>([], this.state.values);
+        const values = Object.assign<GroupValue[], GroupValue[]>(
+            [],
+            this.state.values,
+        );
         const userIds = values.map((v) => v.id);
         if (value && value.id && userIds.indexOf(value.id) === -1) {
             values.push(value);
         }
 
-        this.setState({values});
+        this.setState({ values });
     };
 
     private setGroupsLoadingState = (loadingState: boolean) => {
@@ -174,45 +214,61 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
     public handlePageChange = (page: number, prevPage: number): void => {
         if (page > prevPage) {
             this.setGroupsLoadingState(true);
-            this.props.actions.getGroupsNotAssociatedToTeam(this.props.currentTeamId, this.props.searchTerm, page, GROUPS_PER_PAGE + 1).then(() => {
-                this.setGroupsLoadingState(false);
-            });
+            this.props.actions
+                .getGroupsNotAssociatedToTeam(
+                    this.props.currentTeamId,
+                    this.props.searchTerm,
+                    page,
+                    GROUPS_PER_PAGE + 1,
+                )
+                .then(() => {
+                    this.setGroupsLoadingState(false);
+                });
         }
     };
 
     // public for tests
-    public handleDelete = (values: GroupValue[]): void => this.setState({values});
+    public handleDelete = (values: GroupValue[]): void =>
+        this.setState({ values });
 
     // public for tests
-    public search = (term: string): void => this.props.actions.setModalSearchTerm(term);
+    public search = (term: string): void =>
+        this.props.actions.setModalSearchTerm(term);
 
     // public for tests
-    public renderOption = (option: GroupValue, isSelected: boolean, onAdd: (value: GroupValue) => void, onMouseMove: (value: GroupValue) => void): JSX.Element => {
-        const rowSelected = isSelected ? 'more-modal__row--selected' : '';
+    public renderOption = (
+        option: GroupValue,
+        isSelected: boolean,
+        onAdd: (value: GroupValue) => void,
+        onMouseMove: (value: GroupValue) => void,
+    ): JSX.Element => {
+        const rowSelected = isSelected ? "more-modal__row--selected" : "";
 
         return (
             <div
                 key={option.id}
                 ref={isSelected ? this.selectedItemRef : option.id}
-                className={'more-modal__row clickable ' + rowSelected}
+                className={"more-modal__row clickable " + rowSelected}
                 onClick={() => onAdd(option)}
                 onMouseMove={() => onMouseMove(option)}
             >
                 <img
-                    className='more-modal__image'
+                    className="more-modal__image"
                     src={groupsAvatar}
-                    alt='group picture'
-                    width='32'
-                    height='32'
+                    alt="group picture"
+                    width="32"
+                    height="32"
                 />
-                <div
-                    className='more-modal__details'
-                >
-                    <div className='more-modal__name'>
-                        {option.display_name}<Nbsp/>{'-'}<Nbsp/><span className='more-modal__name_sub'>
+                <div className="more-modal__details">
+                    <div className="more-modal__name">
+                        {option.display_name}
+                        <Nbsp />
+                        {"-"}
+                        <Nbsp />
+                        <span className="more-modal__name_sub">
                             <FormattedMessage
-                                id='numMembers'
-                                defaultMessage='{num, number} {num, plural, one {member} other {members}}'
+                                id="numMembers"
+                                defaultMessage="{num, number} {num, plural, one {member} other {members}}"
                                 values={{
                                     num: option.member_count,
                                 }}
@@ -220,9 +276,9 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
                         </span>
                     </div>
                 </div>
-                <div className='more-modal__actions'>
-                    <div className='more-modal__actions--round'>
-                        <AddIcon/>
+                <div className="more-modal__actions">
+                    <div className="more-modal__actions--round">
+                        <AddIcon />
                     </div>
                 </div>
             </div>
@@ -230,14 +286,15 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
     };
 
     // public for tests
-    public renderValue = (props: { data: Value }): string | undefined => props.data.display_name;
+    public renderValue = (props: { data: Value }): string | undefined =>
+        props.data.display_name;
 
     public render(): JSX.Element {
         const numRemainingText = (
-            <div id='numGroupsRemaining'>
+            <div id="numGroupsRemaining">
                 <FormattedMessage
-                    id='multiselect.numGroupsRemaining'
-                    defaultMessage='Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {group} other {groups}}. '
+                    id="multiselect.numGroupsRemaining"
+                    defaultMessage="Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {group} other {groups}}. "
                     values={{
                         num: MAX_SELECTABLE_VALUES - this.state.values.length,
                     }}
@@ -245,14 +302,17 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
             </div>
         );
 
-        const buttonSubmitText = localizeMessage('multiselect.add', 'Add');
-        const buttonSubmitLoadingText = localizeMessage('multiselect.adding', 'Adding...');
+        const buttonSubmitText = localizeMessage("multiselect.add", "Add");
+        const buttonSubmitLoadingText = localizeMessage(
+            "multiselect.adding",
+            "Adding...",
+        );
 
         let addError = null;
         if (this.state.addError) {
             addError = (
-                <div className='has-error col-sm-12'>
-                    <label className='control-label font-weight--normal'>
+                <div className="has-error col-sm-12">
+                    <label className="control-label font-weight--normal">
                         {this.state.addError}
                     </label>
                 </div>
@@ -261,34 +321,41 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
 
         let groupsToShow = this.props.groups;
         if (this.props.excludeGroups) {
-            const hasGroup = (og: Group) => !this.props.excludeGroups?.find((g) => g.id === og.id);
+            const hasGroup = (og: Group) =>
+                !this.props.excludeGroups?.find((g) => g.id === og.id);
             groupsToShow = groupsToShow.filter(hasGroup);
         }
         if (this.props.includeGroups) {
-            const hasGroup = (og: Group) => this.props.includeGroups?.find((g) => g.id === og.id);
-            groupsToShow = [...groupsToShow, ...this.props.includeGroups.filter(hasGroup)];
+            const hasGroup = (og: Group) =>
+                this.props.includeGroups?.find((g) => g.id === og.id);
+            groupsToShow = [
+                ...groupsToShow,
+                ...this.props.includeGroups.filter(hasGroup),
+            ];
         }
 
         const groupsOptionsToShow = groupsToShow.map((group) => {
-            return {...group, label: group.display_name, value: group.id};
+            return { ...group, label: group.display_name, value: group.id };
         });
 
         return (
             <Modal
-                id='addGroupsToTeamModal'
-                dialogClassName={'a11y__modal more-modal more-direct-channels'}
+                id="addGroupsToTeamModal"
+                dialogClassName={"a11y__modal more-modal more-direct-channels"}
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title componentClass='h1'>
+                    <Modal.Title componentClass="h1">
                         <FormattedMessage
-                            id='add_groups_to_team.title'
-                            defaultMessage='Add New Groups to {teamName} Team'
+                            id="add_groups_to_team.title"
+                            defaultMessage="Add New Groups to {teamName} Team"
                             values={{
                                 teamName: (
-                                    <strong>{this.props.currentTeamName}</strong>
+                                    <strong>
+                                        {this.props.currentTeamName}
+                                    </strong>
                                 ),
                             }}
                         />
@@ -297,7 +364,7 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
                 <Modal.Body>
                     {addError}
                     <MultiSelect
-                        key='addGroupsToTeamKey'
+                        key="addGroupsToTeamKey"
                         options={groupsOptionsToShow}
                         optionRenderer={this.renderOption}
                         selectedItemRef={this.selectedItemRef}
@@ -315,7 +382,10 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
                         buttonSubmitLoadingText={buttonSubmitLoadingText}
                         saving={this.state.saving}
                         loading={this.state.loadingGroups}
-                        placeholderText={localizeMessage('multiselect.addGroupsPlaceholder', 'Search and add groups')}
+                        placeholderText={localizeMessage(
+                            "multiselect.addGroupsPlaceholder",
+                            "Search and add groups",
+                        )}
                     />
                 </Modal.Body>
             </Modal>

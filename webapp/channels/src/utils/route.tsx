@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ClientLicense} from '@mattermost/types/config';
-import type {UserProfile} from '@mattermost/types/users';
+import type { ClientLicense } from "@mattermost/types/config";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {isGuest} from 'mattermost-redux/utils/user_utils';
+import { isGuest } from "mattermost-redux/utils/user_utils";
 
-import {ErrorPageTypes} from 'utils/constants';
+import { ErrorPageTypes } from "utils/constants";
 
 export const notFoundParams = {
     type: ErrorPageTypes.PAGE_NOT_FOUND,
 };
 
-const mfaPaths = ['/mfa/setup', '/mfa/confirm'];
+const mfaPaths = ["/mfa/setup", "/mfa/confirm"];
 
-const mfaAuthServices = ['', 'email', 'ldap'];
+const mfaAuthServices = ["", "email", "ldap"];
 
 export type ConfigOption = {
     EnableMultifactorAuthentication?: string;
@@ -29,15 +29,15 @@ export function checkIfMFARequired(
     path: string,
 ): boolean {
     if (
-        license.MFA === 'true' &&
-        config.EnableMultifactorAuthentication === 'true' &&
-        config.EnforceMultifactorAuthentication === 'true' &&
+        license.MFA === "true" &&
+        config.EnableMultifactorAuthentication === "true" &&
+        config.EnforceMultifactorAuthentication === "true" &&
         mfaPaths.indexOf(path) === -1
     ) {
         if (
             user &&
             isGuest(user.roles) &&
-            config.GuestAccountsEnforceMultifactorAuthentication !== 'true'
+            config.GuestAccountsEnforceMultifactorAuthentication !== "true"
         ) {
             return false;
         }

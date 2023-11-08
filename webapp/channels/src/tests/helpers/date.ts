@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-export const fakeDate = (expected: Date): () => void => {
+export const fakeDate = (expected: Date): (() => void) => {
     const OGDate = Date;
 
     // If any Date or number is passed to the constructor

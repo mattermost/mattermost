@@ -1,27 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {RefObject} from 'react';
+import React from "react";
+import type { RefObject } from "react";
 
-import Constants from 'utils/constants';
-import {isKeyPressed} from 'utils/keyboard';
-import * as UserAgent from 'utils/user_agent';
-import {a11yFocus} from 'utils/utils';
+import Constants from "utils/constants";
+import { isKeyPressed } from "utils/keyboard";
+import * as UserAgent from "utils/user_agent";
+import { a11yFocus } from "utils/utils";
 
 export type Tab = {
     icon: string;
     iconTitle: string;
     name: string;
     uiName: string;
-}
+};
 
 export type Props = {
     activeTab?: string;
     tabs: Tab[];
     updateTab: (name: string) => void;
     isMobileView: boolean;
-}
+};
 
 export default class SettingsSidebar extends React.PureComponent<Props> {
     buttonRefs: Array<RefObject<HTMLButtonElement>>;
@@ -34,7 +34,9 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
     public handleClick = (tab: Tab, e: React.MouseEvent) => {
         e.preventDefault();
         this.props.updateTab(tab.name);
-        (e.target as Element).closest('.settings-modal')?.classList.add('display--content');
+        (e.target as Element)
+            .closest(".settings-modal")
+            ?.classList.add("display--content");
     };
 
     public handleKeyUp = (index: number, e: React.KeyboardEvent) => {
@@ -53,7 +55,9 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
 
     public componentDidMount() {
         if (UserAgent.isFirefox()) {
-            document.querySelector('.settings-modal .settings-table .nav')?.classList.add('position--top');
+            document
+                .querySelector(".settings-modal .settings-table .nav")
+                ?.classList.add("position--top");
         }
     }
 
@@ -61,9 +65,9 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
         const tabList = this.props.tabs.map((tab, index) => {
             const key = `${tab.name}_li`;
             const isActive = this.props.activeTab === tab.name;
-            let className = '';
+            let className = "";
             if (isActive) {
-                className = 'active';
+                className = "active";
             }
 
             return (
@@ -71,23 +75,22 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
                     id={`${tab.name}Li`}
                     key={key}
                     className={className}
-                    role='presentation'
+                    role="presentation"
                 >
                     <button
                         ref={this.buttonRefs[index]}
                         id={`${tab.name}Button`}
-                        className='cursor--pointer style--none'
+                        className="cursor--pointer style--none"
                         onClick={this.handleClick.bind(null, tab)}
                         onKeyUp={this.handleKeyUp.bind(null, index)}
                         aria-label={tab.uiName.toLowerCase()}
-                        role='tab'
+                        role="tab"
                         aria-selected={isActive}
-                        tabIndex={!isActive && !this.props.isMobileView ? -1 : 0}
+                        tabIndex={
+                            !isActive && !this.props.isMobileView ? -1 : 0
+                        }
                     >
-                        <i
-                            className={tab.icon}
-                            title={tab.iconTitle}
-                        />
+                        <i className={tab.icon} title={tab.iconTitle} />
                         {tab.uiName}
                     </button>
                 </li>
@@ -97,10 +100,10 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
         return (
             <div>
                 <ul
-                    id='tabList'
-                    className='nav nav-pills nav-stacked'
-                    role='tablist'
-                    aria-orientation='vertical'
+                    id="tabList"
+                    className="nav nav-pills nav-stacked"
+                    role="tablist"
+                    aria-orientation="vertical"
                 >
                     {tabList}
                 </ul>

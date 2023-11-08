@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ReactPortal} from 'react';
-import {Provider} from 'react-redux';
+import React from "react";
+import type { ReactPortal } from "react";
+import { Provider } from "react-redux";
 
-import configureStore from 'store';
+import configureStore from "store";
 
-import * as useGetLimitsHook from 'components/common/hooks/useGetLimits';
-import * as useGetUsageHook from 'components/common/hooks/useGetUsage';
-import ModalController from 'components/modal_controller';
+import * as useGetLimitsHook from "components/common/hooks/useGetLimits";
+import * as useGetUsageHook from "components/common/hooks/useGetUsage";
+import ModalController from "components/modal_controller";
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
-import {Preferences} from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
+import { renderWithIntl, screen } from "tests/react_testing_utils";
+import { Preferences } from "utils/constants";
+import { TestHelper } from "utils/test_helper";
 
-import useShowAdminLimitReached from './useShowAdminLimitReached';
+import useShowAdminLimitReached from "./useShowAdminLimitReached";
 
 function TestComponent() {
     useShowAdminLimitReached();
@@ -27,15 +27,15 @@ const openModalState = {
     entities: {
         general: {
             license: TestHelper.getLicenseMock({
-                Cloud: 'true',
+                Cloud: "true",
             }),
         },
         users: {
-            currentUserId: 'admin',
+            currentUserId: "admin",
             profiles: {
                 admin: TestHelper.getUserMock({
-                    id: 'admin',
-                    roles: 'system_admin',
+                    id: "admin",
+                    roles: "system_admin",
                 }),
             },
         },
@@ -73,10 +73,10 @@ const openModalState = {
                     {
                         category: Preferences.CATEGORY_CLOUD_LIMITS,
                         name: Preferences.SHOWN_LIMITS_REACHED_ON_LOGIN,
-                        value: 'false',
+                        value: "false",
                     },
                 ],
-                'admin',
+                "admin",
             ),
         },
     },
@@ -85,144 +85,147 @@ const openModalState = {
             needsLoggedInLimitReachedCheck: true,
         },
         modals: {
-            modalState: {
-            },
+            modalState: {},
             showLaunchingWorkspace: false,
         },
     },
 };
 
-const modalRegex = /message history.*no longer available.*Upgrade to a paid plan and get unlimited access to your message history/;
+const modalRegex =
+    /message history.*no longer available.*Upgrade to a paid plan and get unlimited access to your message history/;
 
-jest.mock('react-dom', () => ({
-    ...jest.requireActual('react-dom') as typeof import('react-dom'),
+jest.mock("react-dom", () => ({
+    ...(jest.requireActual("react-dom") as typeof import("react-dom")),
     createPortal: (node: React.ReactNode) => node as ReactPortal,
 }));
 
-describe('useShowAdminLimitReached', () => {
-    it('opens cloud usage modal if admin has just logged in on a cloud instance, the instance has exceeded its message history limit, and the admin has not been shown the modal on log in before.', () => {
+describe("useShowAdminLimitReached", () => {
+    it("opens cloud usage modal if admin has just logged in on a cloud instance, the instance has exceeded its message history limit, and the admin has not been shown the modal on log in before.", () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         const store = configureStore(state);
         renderWithIntl(
             <Provider store={store}>
-                <div id='root-portal'/>
-                <ModalController/>
-                <TestComponent/>
+                <div id="root-portal" />
+                <ModalController />
+                <TestComponent />
             </Provider>,
         );
         screen.getByText(modalRegex);
     });
 
-    it('does not open cloud usage modal if admin has already been shown the modal', () => {
+    it("does not open cloud usage modal if admin has already been shown the modal", () => {
         const state = JSON.parse(JSON.stringify(openModalState));
-        state.entities.preferences.myPreferences = TestHelper.getPreferencesMock(
-            [
-                {
-                    category: Preferences.CATEGORY_CLOUD_LIMITS,
-                    name: Preferences.SHOWN_LIMITS_REACHED_ON_LOGIN,
-                    value: 'true',
-                },
-            ],
-            'admin',
-        );
+        state.entities.preferences.myPreferences =
+            TestHelper.getPreferencesMock(
+                [
+                    {
+                        category: Preferences.CATEGORY_CLOUD_LIMITS,
+                        name: Preferences.SHOWN_LIMITS_REACHED_ON_LOGIN,
+                        value: "true",
+                    },
+                ],
+                "admin",
+            );
         const store = configureStore(state);
         renderWithIntl(
             <Provider store={store}>
-                <div id='root-portal'/>
-                <ModalController/>
-                <TestComponent/>
+                <div id="root-portal" />
+                <ModalController />
+                <TestComponent />
             </Provider>,
         );
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
 
-    it('does not open cloud usage modal if workspace has not exceeded limit', () => {
+    it("does not open cloud usage modal if workspace has not exceeded limit", () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.usage.messages.history = 10000;
         const store = configureStore(state);
         renderWithIntl(
             <Provider store={store}>
-                <div id='root-portal'/>
-                <ModalController/>
-                <TestComponent/>
+                <div id="root-portal" />
+                <ModalController />
+                <TestComponent />
             </Provider>,
         );
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
 
-    it('does not open cloud usage modal if there is no message limit', () => {
+    it("does not open cloud usage modal if there is no message limit", () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.cloud.limits = {};
         const store = configureStore(state);
         renderWithIntl(
             <Provider store={store}>
-                <div id='root-portal'/>
-                <ModalController/>
-                <TestComponent/>
+                <div id="root-portal" />
+                <ModalController />
+                <TestComponent />
             </Provider>,
         );
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
 
-    it('does not open cloud usage modal if there is no message limit', () => {
+    it("does not open cloud usage modal if there is no message limit", () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.cloud.limits = {};
         const store = configureStore(state);
         renderWithIntl(
             <Provider store={store}>
-                <div id='root-portal'/>
-                <ModalController/>
-                <TestComponent/>
+                <div id="root-portal" />
+                <ModalController />
+                <TestComponent />
             </Provider>,
         );
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
 
-    it('does not open cloud usage modal if admin was already logged in', () => {
+    it("does not open cloud usage modal if admin was already logged in", () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.views.admin.needsLoggedInLimitReachedCheck = false;
         const store = configureStore(state);
         renderWithIntl(
             <Provider store={store}>
-                <div id='root-portal'/>
-                <ModalController/>
-                <TestComponent/>
+                <div id="root-portal" />
+                <ModalController />
+                <TestComponent />
             </Provider>,
         );
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
 
-    it('does not open cloud usage modal if limits are not yet loaded', () => {
+    it("does not open cloud usage modal if limits are not yet loaded", () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.cloud.limits.limitsLoaded = false;
         const store = configureStore(state);
-        jest.spyOn(useGetLimitsHook, 'default').mockImplementation(() => ([
+        jest.spyOn(useGetLimitsHook, "default").mockImplementation(() => [
             state.entities.cloud.limits.limits,
             false,
-        ]));
+        ]);
         renderWithIntl(
             <Provider store={store}>
-                <div id='root-portal'/>
-                <ModalController/>
-                <TestComponent/>
+                <div id="root-portal" />
+                <ModalController />
+                <TestComponent />
             </Provider>,
         );
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
 
-    it('does not open cloud usage modal if usage is not yet loaded', () => {
+    it("does not open cloud usage modal if usage is not yet loaded", () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.usage.messages = {
             history: 0,
             historyLoaded: false,
         };
         const store = configureStore(state);
-        jest.spyOn(useGetUsageHook, 'default').mockImplementation(() => state.entities.usage);
+        jest.spyOn(useGetUsageHook, "default").mockImplementation(
+            () => state.entities.usage,
+        );
         renderWithIntl(
             <Provider store={store}>
-                <div id='root-portal'/>
-                <ModalController/>
-                <TestComponent/>
+                <div id="root-portal" />
+                <ModalController />
+                <TestComponent />
             </Provider>,
         );
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();

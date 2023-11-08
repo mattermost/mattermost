@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, { memo } from "react";
 
-import type {Post} from '@mattermost/types/posts';
+import type { Post } from "@mattermost/types/posts";
 
-import PostComponent from 'components/post';
-import type {Props as TimestampProps} from 'components/timestamp/timestamp';
+import PostComponent from "components/post";
+import type { Props as TimestampProps } from "components/timestamp/timestamp";
 
-import {Locations} from 'utils/constants';
+import { Locations } from "utils/constants";
 
 type Props = {
     a11yIndex: number;
@@ -18,8 +18,8 @@ type Props = {
     post: Post;
     previousPostId: string;
     timestampProps?: Partial<TimestampProps>;
-    id?: Post['id'];
-}
+    id?: Post["id"];
+};
 
 function Reply({
     a11yIndex,

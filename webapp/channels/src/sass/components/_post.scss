@@ -605,7 +605,9 @@
     overflow: hidden;
     max-width: 100%;
     padding: 8px 0.5em 0 1.5em; // If this needs to be changed then .post-row__padding needs to be adjusted accordingly
-    transition: height 200ms, background-color 200ms;
+    transition:
+        height 200ms,
+        background-color 200ms;
     word-wrap: break-word;
 
     &:not(.post--editing):not(.post--editing):hover {
@@ -1899,7 +1901,8 @@
             overflow: hidden;
         }
 
-        .post-message--collapsed.post-message-preview--overflow .post-message__text {
+        .post-message--collapsed.post-message-preview--overflow
+            .post-message__text {
             display: -webkit-box;
             overflow: hidden;
             -webkit-box-orient: vertical;
@@ -2063,8 +2066,14 @@
 
     &.post-message--overflow {
         .post-message__text-container {
-            -webkit-mask-image: linear-gradient(black calc(100% - 126px), transparent calc(100% - 36px));
-            mask-image: linear-gradient(black calc(100% - 126px), transparent calc(100% - 36px));
+            -webkit-mask-image: linear-gradient(
+                black calc(100% - 126px),
+                transparent calc(100% - 36px)
+            );
+            mask-image: linear-gradient(
+                black calc(100% - 126px),
+                transparent calc(100% - 36px)
+            );
         }
     }
 

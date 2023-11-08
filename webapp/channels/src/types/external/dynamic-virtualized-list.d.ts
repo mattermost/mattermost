@@ -1,25 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-declare module 'dynamic-virtualized-list' {
+declare module "dynamic-virtualized-list" {
     export type OnScrollArgs = {
-        scrollDirection: 'backward' | 'forward';
+        scrollDirection: "backward" | "forward";
         scrollOffset: number;
         scrollUpdateWasRequested: boolean;
         clientHeight: number;
         scrollHeight: number;
-    }
+    };
 
     export type OnItemsRenderedArgs = {
         overscanStartIndex: number;
         overscanStopIndex: number;
         visibleStartIndex: number;
         visibleStopIndex: number;
-    }
+    };
 
     interface DynamicSizeListProps {
-        canLoadMorePosts: (id: 'BEFORE_ID' | 'AFTER_ID' | undefined) => Promise<void>;
-        children: ({data: any, itemId: any, style: any}) => JSX.Element;
+        canLoadMorePosts: (
+            id: "BEFORE_ID" | "AFTER_ID" | undefined,
+        ) => Promise<void>;
+        children: ({ data: any, itemId: any, style: any }) => JSX.Element;
         height: number;
         initRangeToRender: number[];
         initScrollToIndex: () => any;
@@ -42,7 +44,11 @@ declare module 'dynamic-virtualized-list' {
     }
 
     export class DynamicSizeList extends React.PureComponent<DynamicSizeListProps> {
-        scrollTo(scrollOffset: number, scrollByValue?: number, useAnimationFrame?: boolean): void;
+        scrollTo(
+            scrollOffset: number,
+            scrollByValue?: number,
+            useAnimationFrame?: boolean,
+        ): void;
         scrollToItem(index: number, align: string, offset?: number): void;
         _getRangeToRender(): number[];
     }

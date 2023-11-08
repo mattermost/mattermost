@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {Channel} from '@mattermost/types/channels';
+import type { Channel } from "@mattermost/types/channels";
 
-import Menu from 'components/widgets/menu/menu';
+import Menu from "components/widgets/menu/menu";
 
 type Action = {
     showChannelMembers: (channelId: string, editMembers: boolean) => void;
@@ -17,7 +17,7 @@ type OwnProps = {
     id: string;
     editMembers?: boolean;
     text: string;
-}
+};
 
 type Props = {
     rhsOpen: boolean;

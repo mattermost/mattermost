@@ -6,7 +6,7 @@ const MIN_WEBSOCKET_RETRY_TIME = 3000; // 3 sec
 const MAX_WEBSOCKET_RETRY_TIME = 300000; // 5 mins
 const JITTER_RANGE = 2000; // 2 sec
 
-const WEBSOCKET_HELLO = 'hello';
+const WEBSOCKET_HELLO = "hello";
 
 export type MessageListener = (msg: WebSocketMessage) => void;
 export type FirstConnectListener = () => void;
@@ -28,7 +28,7 @@ export default class WebSocketClient {
     // server-sent event stream.
     private serverSequence: number;
     private connectFailCount: number;
-    private responseCallbacks: {[x: number]: ((msg: any) => void)};
+    private responseCallbacks: { [x: number]: (msg: any) => void };
 
     /**
      * @deprecated Use messageListeners instead
@@ -76,7 +76,7 @@ export default class WebSocketClient {
         this.serverSequence = 0;
         this.connectFailCount = 0;
         this.responseCallbacks = {};
-        this.connectionId = '';
+        this.connectionId = "";
     }
 
     // on connect, only send auth cookie and blank state.
@@ -88,31 +88,36 @@ export default class WebSocketClient {
         }
 
         if (connectionUrl == null) {
-            console.log('websocket must have connection url'); //eslint-disable-line no-console
+            console.log("websocket must have connection url"); //eslint-disable-line no-console
             return;
         }
 
         if (this.connectFailCount === 0) {
-            console.log('websocket connecting to ' + connectionUrl); //eslint-disable-line no-console
+            console.log("websocket connecting to " + connectionUrl); //eslint-disable-line no-console
         }
 
         // Add connection id, and last_sequence_number to the query param.
         // We cannot use a cookie because it will bleed across tabs.
         // We cannot also send it as part of the auth_challenge, because the session cookie is already sent with the request.
-        this.conn = new WebSocket(`${connectionUrl}?connection_id=${this.connectionId}&sequence_number=${this.serverSequence}`);
+        this.conn = new WebSocket(
+            `${connectionUrl}?connection_id=${this.connectionId}&sequence_number=${this.serverSequence}`,
+        );
         this.connectionUrl = connectionUrl;
 
         this.conn.onopen = () => {
             if (token) {
-                this.sendMessage('authentication_challenge', {token});
+                this.sendMessage("authentication_challenge", { token });
             }
 
             if (this.connectFailCount > 0) {
-                console.log('websocket re-established connection'); //eslint-disable-line no-console
+                console.log("websocket re-established connection"); //eslint-disable-line no-console
 
                 this.reconnectCallback?.();
                 this.reconnectListeners.forEach((listener) => listener());
-            } else if (this.firstConnectCallback || this.firstConnectListeners.size > 0) {
+            } else if (
+                this.firstConnectCallback ||
+                this.firstConnectListeners.size > 0
+            ) {
                 this.firstConnectCallback?.();
                 this.firstConnectListeners.forEach((listener) => listener());
             }
@@ -125,19 +130,24 @@ export default class WebSocketClient {
             this.responseSequence = 1;
 
             if (this.connectFailCount === 0) {
-                console.log('websocket closed'); //eslint-disable-line no-console
+                console.log("websocket closed"); //eslint-disable-line no-console
             }
 
             this.connectFailCount++;
 
             this.closeCallback?.(this.connectFailCount);
-            this.closeListeners.forEach((listener) => listener(this.connectFailCount));
+            this.closeListeners.forEach((listener) =>
+                listener(this.connectFailCount),
+            );
 
             let retryTime = MIN_WEBSOCKET_RETRY_TIME;
 
             // If we've failed a bunch of connections then start backing off
             if (this.connectFailCount > MAX_WEBSOCKET_FAILS) {
-                retryTime = MIN_WEBSOCKET_RETRY_TIME * this.connectFailCount * this.connectFailCount;
+                retryTime =
+                    MIN_WEBSOCKET_RETRY_TIME *
+                    this.connectFailCount *
+                    this.connectFailCount;
                 if (retryTime > MAX_WEBSOCKET_RETRY_TIME) {
                     retryTime = MAX_WEBSOCKET_RETRY_TIME;
                 }
@@ -146,17 +156,14 @@ export default class WebSocketClient {
             // Applying jitter to avoid thundering herd problems.
             retryTime += Math.random() * JITTER_RANGE;
 
-            setTimeout(
-                () => {
-                    this.initialize(connectionUrl, token);
-                },
-                retryTime,
-            );
+            setTimeout(() => {
+                this.initialize(connectionUrl, token);
+            }, retryTime);
         };
 
         this.conn.onerror = (evt) => {
             if (this.connectFailCount <= 1) {
-                console.log('websocket error'); //eslint-disable-line no-console
+                console.log("websocket error"); //eslint-disable-line no-console
                 console.log(evt); //eslint-disable-line no-console
             }
 
@@ -176,29 +183,43 @@ export default class WebSocketClient {
 
                 if (this.responseCallbacks[msg.seq_reply]) {
                     this.responseCallbacks[msg.seq_reply](msg);
-                    Reflect.deleteProperty(this.responseCallbacks, msg.seq_reply);
+                    Reflect.deleteProperty(
+                        this.responseCallbacks,
+                        msg.seq_reply,
+                    );
                 }
             } else if (this.eventCallback || this.messageListeners.size > 0) {
                 // We check the hello packet, which is always the first packet in a stream.
-                if (msg.event === WEBSOCKET_HELLO && (this.missedEventCallback || this.missedMessageListeners.size > 0)) {
-                    console.log('got connection id ', msg.data.connection_id); //eslint-disable-line no-console
+                if (
+                    msg.event === WEBSOCKET_HELLO &&
+                    (this.missedEventCallback ||
+                        this.missedMessageListeners.size > 0)
+                ) {
+                    console.log("got connection id ", msg.data.connection_id); //eslint-disable-line no-console
                     // If we already have a connectionId present, and server sends a different one,
                     // that means it's either a long timeout, or server restart, or sequence number is not found.
                     // Then we do the sync calls, and reset sequence number to 0.
-                    if (this.connectionId !== '' && this.connectionId !== msg.data.connection_id) {
-                        console.log('long timeout, or server restart, or sequence number is not found.'); //eslint-disable-line no-console
+                    if (
+                        this.connectionId !== "" &&
+                        this.connectionId !== msg.data.connection_id
+                    ) {
+                        console.log(
+                            "long timeout, or server restart, or sequence number is not found.",
+                        ); //eslint-disable-line no-console
 
                         this.missedEventCallback?.();
-			
-			for (const listener of this.missedMessageListeners) {
+
+                        for (const listener of this.missedMessageListeners) {
                             try {
                                 listener();
                             } catch (e) {
-                                console.log(`missed message listener "${listener.name}" failed: ${e}`); // eslint-disable-line no-console
+                                console.log(
+                                    `missed message listener "${listener.name}" failed: ${e}`,
+                                ); // eslint-disable-line no-console
                             }
                         }
-                        
-			this.serverSequence = 0;
+
+                        this.serverSequence = 0;
                     }
 
                     // If it's a fresh connection, we have to set the connectionId regardless.
@@ -209,7 +230,12 @@ export default class WebSocketClient {
                 // Now we check for sequence number, and if it does not match,
                 // we just disconnect and reconnect.
                 if (msg.seq !== this.serverSequence) {
-                    console.log('missed websocket event, act_seq=' + msg.seq + ' exp_seq=' + this.serverSequence); //eslint-disable-line no-console
+                    console.log(
+                        "missed websocket event, act_seq=" +
+                            msg.seq +
+                            " exp_seq=" +
+                            this.serverSequence,
+                    ); //eslint-disable-line no-console
                     // We are not calling this.close() because we need to auto-restart.
                     this.connectFailCount = 0;
                     this.responseSequence = 1;
@@ -236,7 +262,9 @@ export default class WebSocketClient {
 
         if (this.messageListeners.size > 5) {
             // eslint-disable-next-line no-console
-            console.warn(`WebSocketClient has ${this.messageListeners.size} message listeners registered`);
+            console.warn(
+                `WebSocketClient has ${this.messageListeners.size} message listeners registered`,
+            );
         }
     }
 
@@ -256,7 +284,9 @@ export default class WebSocketClient {
 
         if (this.firstConnectListeners.size > 5) {
             // eslint-disable-next-line no-console
-            console.warn(`WebSocketClient has ${this.firstConnectListeners.size} first connect listeners registered`);
+            console.warn(
+                `WebSocketClient has ${this.firstConnectListeners.size} first connect listeners registered`,
+            );
         }
     }
 
@@ -276,7 +306,9 @@ export default class WebSocketClient {
 
         if (this.reconnectListeners.size > 5) {
             // eslint-disable-next-line no-console
-            console.warn(`WebSocketClient has ${this.reconnectListeners.size} reconnect listeners registered`);
+            console.warn(
+                `WebSocketClient has ${this.reconnectListeners.size} reconnect listeners registered`,
+            );
         }
     }
 
@@ -296,7 +328,9 @@ export default class WebSocketClient {
 
         if (this.missedMessageListeners.size > 5) {
             // eslint-disable-next-line no-console
-            console.warn(`WebSocketClient has ${this.missedMessageListeners.size} missed message listeners registered`);
+            console.warn(
+                `WebSocketClient has ${this.missedMessageListeners.size} missed message listeners registered`,
+            );
         }
     }
 
@@ -316,7 +350,9 @@ export default class WebSocketClient {
 
         if (this.errorListeners.size > 5) {
             // eslint-disable-next-line no-console
-            console.warn(`WebSocketClient has ${this.errorListeners.size} error listeners registered`);
+            console.warn(
+                `WebSocketClient has ${this.errorListeners.size} error listeners registered`,
+            );
         }
     }
 
@@ -336,7 +372,9 @@ export default class WebSocketClient {
 
         if (this.closeListeners.size > 5) {
             // eslint-disable-next-line no-console
-            console.warn(`WebSocketClient has ${this.closeListeners.size} close listeners registered`);
+            console.warn(
+                `WebSocketClient has ${this.closeListeners.size} close listeners registered`,
+            );
         }
     }
 
@@ -351,7 +389,7 @@ export default class WebSocketClient {
             this.conn.onclose = () => {};
             this.conn.close();
             this.conn = null;
-            console.log('websocket closed'); //eslint-disable-line no-console
+            console.log("websocket closed"); //eslint-disable-line no-console
         }
     }
 
@@ -379,26 +417,30 @@ export default class WebSocketClient {
             channel_id: channelId,
             parent_id: parentId,
         };
-        this.sendMessage('user_typing', data, callback);
+        this.sendMessage("user_typing", data, callback);
     }
 
-    userUpdateActiveStatus(userIsActive: boolean, manual: boolean, callback?: () => void) {
+    userUpdateActiveStatus(
+        userIsActive: boolean,
+        manual: boolean,
+        callback?: () => void,
+    ) {
         const data = {
             user_is_active: userIsActive,
             manual,
         };
-        this.sendMessage('user_update_active_status', data, callback);
+        this.sendMessage("user_update_active_status", data, callback);
     }
 
     getStatuses(callback?: () => void) {
-        this.sendMessage('get_statuses', null, callback);
+        this.sendMessage("get_statuses", null, callback);
     }
 
     getStatusesByIds(userIds: string[], callback?: () => void) {
         const data = {
             user_ids: userIds,
         };
-        this.sendMessage('get_statuses_by_ids', data, callback);
+        this.sendMessage("get_statuses_by_ids", data, callback);
     }
 }
 
@@ -407,11 +449,11 @@ export type WebSocketBroadcast = {
     user_id: string;
     channel_id: string;
     team_id: string;
-}
+};
 
 export type WebSocketMessage<T = any> = {
     event: string;
     data: T;
     broadcast: WebSocketBroadcast;
     seq: number;
-}
+};

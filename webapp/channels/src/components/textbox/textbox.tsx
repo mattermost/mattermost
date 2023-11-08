@@ -1,33 +1,39 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import type {ChangeEvent, ElementType, FocusEvent, KeyboardEvent, MouseEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import classNames from "classnames";
+import React from "react";
+import type {
+    ChangeEvent,
+    ElementType,
+    FocusEvent,
+    KeyboardEvent,
+    MouseEvent,
+} from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Channel } from "@mattermost/types/channels";
+import type { UserProfile } from "@mattermost/types/users";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import AutosizeTextarea from 'components/autosize_textarea';
-import PostMarkdown from 'components/post_markdown';
-import AtMentionProvider from 'components/suggestion/at_mention_provider';
-import ChannelMentionProvider from 'components/suggestion/channel_mention_provider';
-import AppCommandProvider from 'components/suggestion/command_provider/app_provider';
-import CommandProvider from 'components/suggestion/command_provider/command_provider';
-import EmoticonProvider from 'components/suggestion/emoticon_provider';
-import type Provider from 'components/suggestion/provider';
-import SuggestionBox from 'components/suggestion/suggestion_box';
-import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
-import SuggestionList from 'components/suggestion/suggestion_list';
+import AutosizeTextarea from "components/autosize_textarea";
+import PostMarkdown from "components/post_markdown";
+import AtMentionProvider from "components/suggestion/at_mention_provider";
+import ChannelMentionProvider from "components/suggestion/channel_mention_provider";
+import AppCommandProvider from "components/suggestion/command_provider/app_provider";
+import CommandProvider from "components/suggestion/command_provider/command_provider";
+import EmoticonProvider from "components/suggestion/emoticon_provider";
+import type Provider from "components/suggestion/provider";
+import SuggestionBox from "components/suggestion/suggestion_box";
+import type SuggestionBoxComponent from "components/suggestion/suggestion_box/suggestion_box";
+import SuggestionList from "components/suggestion/suggestion_list";
 
-import * as Utils from 'utils/utils';
+import * as Utils from "utils/utils";
 
-import type {TextboxElement} from './index';
+import type { TextboxElement } from "./index";
 
-const ALL = ['all'];
+const ALL = ["all"];
 
 export type Props = {
     id: string;
@@ -49,8 +55,12 @@ export type Props = {
     supportsCommands?: boolean;
     handlePostError?: (message: JSX.Element | null) => void;
     onPaste?: (e: ClipboardEvent) => void;
-    suggestionList?: React.ComponentProps<typeof SuggestionBox>['listComponent'];
-    suggestionListPosition?: React.ComponentProps<typeof SuggestionList>['position'];
+    suggestionList?: React.ComponentProps<
+        typeof SuggestionBox
+    >["listComponent"];
+    suggestionListPosition?: React.ComponentProps<
+        typeof SuggestionList
+    >["position"];
     alignWithTextbox?: boolean;
     emojiEnabled?: boolean;
     characterLimit: number;
@@ -62,9 +72,20 @@ export type Props = {
     autocompleteGroups: Array<{ id: string }> | null;
     delayChannelAutocomplete: boolean;
     actions: {
-        autocompleteUsersInChannel: (prefix: string, channelId: string) => Promise<ActionResult>;
-        autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>;
-        searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
+        autocompleteUsersInChannel: (
+            prefix: string,
+            channelId: string,
+        ) => Promise<ActionResult>;
+        autocompleteChannels: (
+            term: string,
+            success: (channels: Channel[]) => void,
+            error: () => void,
+        ) => Promise<ActionResult>;
+        searchAssociatedGroupsForReference: (
+            prefix: string,
+            teamId: string,
+            channelId: string | undefined,
+        ) => Promise<{ data: any }>;
     };
     useChannelMentions: boolean;
     inputComponent?: ElementType;
@@ -73,8 +94,8 @@ export type Props = {
     hasLabels?: boolean;
 };
 
-const VISIBLE = {visibility: 'visible'};
-const HIDDEN = {visibility: 'hidden'};
+const VISIBLE = { visibility: "visible" };
+const HIDDEN = { visibility: "hidden" };
 
 export default class Textbox extends React.PureComponent<Props> {
     private readonly suggestionProviders: Provider[];
@@ -94,33 +115,49 @@ export default class Textbox extends React.PureComponent<Props> {
         this.suggestionProviders = [];
 
         if (props.supportsCommands) {
-            this.suggestionProviders.push(new AppCommandProvider({
-                teamId: this.props.currentTeamId,
-                channelId: this.props.channelId,
-                rootId: this.props.rootId,
-            }));
+            this.suggestionProviders.push(
+                new AppCommandProvider({
+                    teamId: this.props.currentTeamId,
+                    channelId: this.props.channelId,
+                    rootId: this.props.rootId,
+                }),
+            );
         }
 
         this.suggestionProviders.push(
             new AtMentionProvider({
                 currentUserId: this.props.currentUserId,
                 channelId: this.props.channelId,
-                autocompleteUsersInChannel: (prefix: string) => this.props.actions.autocompleteUsersInChannel(prefix, this.props.channelId),
+                autocompleteUsersInChannel: (prefix: string) =>
+                    this.props.actions.autocompleteUsersInChannel(
+                        prefix,
+                        this.props.channelId,
+                    ),
                 useChannelMentions: this.props.useChannelMentions,
                 autocompleteGroups: this.props.autocompleteGroups,
-                searchAssociatedGroupsForReference: (prefix: string) => this.props.actions.searchAssociatedGroupsForReference(prefix, this.props.currentTeamId, this.props.channelId),
+                searchAssociatedGroupsForReference: (prefix: string) =>
+                    this.props.actions.searchAssociatedGroupsForReference(
+                        prefix,
+                        this.props.currentTeamId,
+                        this.props.channelId,
+                    ),
                 priorityProfiles: this.props.priorityProfiles,
             }),
-            new ChannelMentionProvider(props.actions.autocompleteChannels, props.delayChannelAutocomplete),
+            new ChannelMentionProvider(
+                props.actions.autocompleteChannels,
+                props.delayChannelAutocomplete,
+            ),
             new EmoticonProvider(),
         );
 
         if (props.supportsCommands) {
-            this.suggestionProviders.push(new CommandProvider({
-                teamId: this.props.currentTeamId,
-                channelId: this.props.channelId,
-                rootId: this.props.rootId,
-            }));
+            this.suggestionProviders.push(
+                new CommandProvider({
+                    teamId: this.props.currentTeamId,
+                    channelId: this.props.channelId,
+                    rootId: this.props.rootId,
+                }),
+            );
         }
 
         this.checkMessageLength(props.value);
@@ -134,31 +171,44 @@ export default class Textbox extends React.PureComponent<Props> {
     };
 
     updateSuggestions(prevProps: Props) {
-        if (this.props.channelId !== prevProps.channelId ||
+        if (
+            this.props.channelId !== prevProps.channelId ||
             this.props.currentUserId !== prevProps.currentUserId ||
             this.props.autocompleteGroups !== prevProps.autocompleteGroups ||
             this.props.useChannelMentions !== prevProps.useChannelMentions ||
             this.props.currentTeamId !== prevProps.currentTeamId ||
-            this.props.priorityProfiles !== prevProps.priorityProfiles) {
+            this.props.priorityProfiles !== prevProps.priorityProfiles
+        ) {
             // Update channel id for AtMentionProvider.
             for (const provider of this.suggestionProviders) {
                 if (provider instanceof AtMentionProvider) {
                     provider.setProps({
                         currentUserId: this.props.currentUserId,
                         channelId: this.props.channelId,
-                        autocompleteUsersInChannel: (prefix: string) => this.props.actions.autocompleteUsersInChannel(prefix, this.props.channelId),
+                        autocompleteUsersInChannel: (prefix: string) =>
+                            this.props.actions.autocompleteUsersInChannel(
+                                prefix,
+                                this.props.channelId,
+                            ),
                         useChannelMentions: this.props.useChannelMentions,
                         autocompleteGroups: this.props.autocompleteGroups,
-                        searchAssociatedGroupsForReference: (prefix: string) => this.props.actions.searchAssociatedGroupsForReference(prefix, this.props.currentTeamId, this.props.channelId),
+                        searchAssociatedGroupsForReference: (prefix: string) =>
+                            this.props.actions.searchAssociatedGroupsForReference(
+                                prefix,
+                                this.props.currentTeamId,
+                                this.props.channelId,
+                            ),
                         priorityProfiles: this.props.priorityProfiles,
                     });
                 }
             }
         }
 
-        if (this.props.channelId !== prevProps.channelId ||
+        if (
+            this.props.channelId !== prevProps.channelId ||
             this.props.currentTeamId !== prevProps.currentTeamId ||
-            this.props.rootId !== prevProps.rootId) {
+            this.props.rootId !== prevProps.rootId
+        ) {
             // Update channel id for CommandProvider and AppCommandProvider.
             for (const provider of this.suggestionProviders) {
                 if (provider instanceof CommandProvider) {
@@ -178,11 +228,15 @@ export default class Textbox extends React.PureComponent<Props> {
             }
         }
 
-        if (this.props.delayChannelAutocomplete !== prevProps.delayChannelAutocomplete) {
+        if (
+            this.props.delayChannelAutocomplete !==
+            prevProps.delayChannelAutocomplete
+        ) {
             for (const provider of this.suggestionProviders) {
                 if (provider instanceof ChannelMentionProvider) {
                     provider.setProps({
-                        delayChannelAutocomplete: this.props.delayChannelAutocomplete,
+                        delayChannelAutocomplete:
+                            this.props.delayChannelAutocomplete,
                     });
                 }
             }
@@ -206,13 +260,14 @@ export default class Textbox extends React.PureComponent<Props> {
             if (message.length > this.props.characterLimit) {
                 const errorMessage = (
                     <FormattedMessage
-                        id='create_post.error_message'
-                        defaultMessage='Your message is too long. Character count: {length}/{limit}'
+                        id="create_post.error_message"
+                        defaultMessage="Your message is too long. Character count: {length}/{limit}"
                         values={{
                             length: message.length,
                             limit: this.props.characterLimit,
                         }}
-                    />);
+                    />
+                );
                 this.props.handlePostError(errorMessage);
             } else {
                 this.props.handlePostError(null);
@@ -226,7 +281,8 @@ export default class Textbox extends React.PureComponent<Props> {
         this.props.onKeyDown?.(e as KeyboardEvent<TextboxElement>);
     };
 
-    handleMouseUp = (e: MouseEvent<TextboxElement>) => this.props.onMouseUp?.(e);
+    handleMouseUp = (e: MouseEvent<TextboxElement>) =>
+        this.props.onMouseUp?.(e);
 
     handleKeyUp = (e: KeyboardEvent<TextboxElement>) => this.props.onKeyUp?.(e);
 
@@ -263,26 +319,31 @@ export default class Textbox extends React.PureComponent<Props> {
     };
 
     render() {
-        let textboxClassName = 'form-control custom-textarea textbox-edit-area';
+        let textboxClassName = "form-control custom-textarea textbox-edit-area";
         if (this.props.emojiEnabled) {
-            textboxClassName += ' custom-textarea--emoji-picker';
+            textboxClassName += " custom-textarea--emoji-picker";
         }
         if (this.props.badConnection) {
-            textboxClassName += ' bad-connection';
+            textboxClassName += " bad-connection";
         }
         if (this.props.hasLabels) {
-            textboxClassName += ' textarea--has-labels';
+            textboxClassName += " textarea--has-labels";
         }
 
         return (
             <div
                 ref={this.wrapper}
-                className={classNames('textarea-wrapper', {'textarea-wrapper-preview': this.props.preview})}
+                className={classNames("textarea-wrapper", {
+                    "textarea-wrapper-preview": this.props.preview,
+                })}
             >
                 <div
                     tabIndex={this.props.tabIndex || 0}
                     ref={this.preview}
-                    className={classNames('form-control custom-textarea textbox-preview-area', {'textarea--has-labels': this.props.hasLabels})}
+                    className={classNames(
+                        "form-control custom-textarea textbox-preview-area",
+                        { "textarea--has-labels": this.props.hasLabels },
+                    )}
                     onKeyPress={this.props.onKeyPress}
                     onKeyDown={this.handleKeyDown}
                     onBlur={this.handleBlur}
@@ -291,7 +352,7 @@ export default class Textbox extends React.PureComponent<Props> {
                         message={this.props.value}
                         mentionKeys={[]}
                         channelId={this.props.channelId}
-                        imageProps={{hideUtilities: true}}
+                        imageProps={{ hideUtilities: true }}
                     />
                 </div>
                 <SuggestionBox
@@ -300,7 +361,7 @@ export default class Textbox extends React.PureComponent<Props> {
                     ref={this.message}
                     id={this.props.id}
                     className={textboxClassName}
-                    spellCheck='true'
+                    spellCheck="true"
                     placeholder={this.props.createMessage}
                     onChange={this.handleChange}
                     onKeyPress={this.props.onKeyPress}

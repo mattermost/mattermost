@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { Modal } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
 
-import type {Team} from '@mattermost/types/teams';
+import type { Team } from "@mattermost/types/teams";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import ConfirmModal from 'components/confirm_modal';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import MultiSelect from 'components/multiselect/multiselect';
-import type {Value} from 'components/multiselect/multiselect';
-import TeamIcon from 'components/widgets/team_icon/team_icon';
+import ConfirmModal from "components/confirm_modal";
+import FormattedMarkdownMessage from "components/formatted_markdown_message";
+import MultiSelect from "components/multiselect/multiselect";
+import type { Value } from "components/multiselect/multiselect";
+import TeamIcon from "components/widgets/team_icon/team_icon";
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
-import {localizeMessage, imageURLForTeam} from 'utils/utils';
+import Constants, { ModalIdentifiers } from "utils/constants";
+import { localizeMessage, imageURLForTeam } from "utils/utils";
 
 const TEAMS_PER_PAGE = 50;
 
-type TeamValue = (Team & Value);
+type TeamValue = Team & Value;
 
 export type Props = {
     currentSchemeId?: string;
@@ -32,7 +32,12 @@ export type Props = {
     onTeamsSelected?: (a: Team[]) => void;
     modalID?: string;
     actions: {
-        loadTeams: (page?: number, perPage?: number, includeTotalCount?: boolean, excludePolicyConstrained?: boolean) => Promise<ActionResult>;
+        loadTeams: (
+            page?: number,
+            perPage?: number,
+            includeTotalCount?: boolean,
+            excludePolicyConstrained?: boolean,
+        ) => Promise<ActionResult>;
         setModalSearchTerm: (searchTerm: string) => void;
         searchTeams: (searchTerm: string) => void;
     };
@@ -49,7 +54,10 @@ type State = {
     confirmAddTeam: any;
 };
 
-export default class TeamSelectorModal extends React.PureComponent<Props, State> {
+export default class TeamSelectorModal extends React.PureComponent<
+    Props,
+    State
+> {
     private searchTimeoutId?: number;
     private selectedItemRef?: React.RefObject<HTMLDivElement> | undefined;
     private currentSchemeId?: string;
@@ -72,9 +80,16 @@ export default class TeamSelectorModal extends React.PureComponent<Props, State>
     }
 
     componentDidMount() {
-        this.props.actions.loadTeams(0, TEAMS_PER_PAGE + 1, false, this.props.excludePolicyConstrained).then(() => {
-            this.setTeamsLoadingState(false);
-        });
+        this.props.actions
+            .loadTeams(
+                0,
+                TEAMS_PER_PAGE + 1,
+                false,
+                this.props.excludePolicyConstrained,
+            )
+            .then(() => {
+                this.setTeamsLoadingState(false);
+            });
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -82,24 +97,21 @@ export default class TeamSelectorModal extends React.PureComponent<Props, State>
             clearTimeout(this.searchTimeoutId);
 
             const searchTerm = this.props.searchTerm;
-            if (searchTerm === '') {
+            if (searchTerm === "") {
                 return;
             }
 
-            this.searchTimeoutId = window.setTimeout(
-                async () => {
-                    this.setTeamsLoadingState(true);
-                    await this.props.actions.searchTeams(searchTerm);
-                    this.setTeamsLoadingState(false);
-                },
-                Constants.SEARCH_TIMEOUT_MILLISECONDS,
-            );
+            this.searchTimeoutId = window.setTimeout(async () => {
+                this.setTeamsLoadingState(true);
+                await this.props.actions.searchTeams(searchTerm);
+                this.setTeamsLoadingState(false);
+            }, Constants.SEARCH_TIMEOUT_MILLISECONDS);
         }
     }
 
     handleHide = () => {
-        this.props.actions.setModalSearchTerm('');
-        this.setState({show: false});
+        this.props.actions.setModalSearchTerm("");
+        this.setState({ show: false });
     };
 
     handleExit = () => {
@@ -122,8 +134,13 @@ export default class TeamSelectorModal extends React.PureComponent<Props, State>
     };
 
     addValue = (value: TeamValue, confirmed = false) => {
-        if (this.props.modalID === ModalIdentifiers.ADD_TEAMS_TO_SCHEME && value.scheme_id !== null && value.scheme_id !== '' && !confirmed) {
-            this.setState({confirmAddModal: true, confirmAddTeam: value});
+        if (
+            this.props.modalID === ModalIdentifiers.ADD_TEAMS_TO_SCHEME &&
+            value.scheme_id !== null &&
+            value.scheme_id !== "" &&
+            !confirmed
+        ) {
+            this.setState({ confirmAddModal: true, confirmAddTeam: value });
             return;
         }
         const values = Object.assign([], this.state.values);
@@ -132,7 +149,7 @@ export default class TeamSelectorModal extends React.PureComponent<Props, State>
             values.push(value);
         }
 
-        this.setState({values, confirmAddModal: false, confirmAddTeam: null});
+        this.setState({ values, confirmAddModal: false, confirmAddTeam: null });
     };
 
     setTeamsLoadingState = (loadingState: boolean) => {
@@ -144,53 +161,69 @@ export default class TeamSelectorModal extends React.PureComponent<Props, State>
     handlePageChange = (page: number, prevPage: number) => {
         if (page > prevPage) {
             this.setTeamsLoadingState(true);
-            this.props.actions.loadTeams(page, TEAMS_PER_PAGE + 1, false, this.props.excludePolicyConstrained).then(() => {
-                this.setTeamsLoadingState(false);
-            });
+            this.props.actions
+                .loadTeams(
+                    page,
+                    TEAMS_PER_PAGE + 1,
+                    false,
+                    this.props.excludePolicyConstrained,
+                )
+                .then(() => {
+                    this.setTeamsLoadingState(false);
+                });
         }
     };
 
     handleDelete = (values: TeamValue[]) => {
-        this.setState({values});
+        this.setState({ values });
     };
 
-    search = (term: string, multiselectComponent: { state: { page: number }; setState: (arg0: { page: number }) => void }) => {
+    search = (
+        term: string,
+        multiselectComponent: {
+            state: { page: number };
+            setState: (arg0: { page: number }) => void;
+        },
+    ) => {
         if (multiselectComponent.state.page !== 0) {
-            multiselectComponent.setState({page: 0});
+            multiselectComponent.setState({ page: 0 });
         }
         this.props.actions.setModalSearchTerm(term);
     };
 
-    renderOption = (option: TeamValue, isSelected: boolean, onAdd: (value: TeamValue) => void, onMouseMove: (value: TeamValue) => void) => {
-        let rowSelected = '';
+    renderOption = (
+        option: TeamValue,
+        isSelected: boolean,
+        onAdd: (value: TeamValue) => void,
+        onMouseMove: (value: TeamValue) => void,
+    ) => {
+        let rowSelected = "";
         if (isSelected) {
-            rowSelected = 'more-modal__row--selected';
+            rowSelected = "more-modal__row--selected";
         }
 
         return (
             <div
                 key={option.id}
                 ref={isSelected ? this.selectedItemRef : option.id}
-                className={'more-modal__row clickable ' + rowSelected}
+                className={"more-modal__row clickable " + rowSelected}
                 onClick={() => onAdd(option)}
                 onMouseMove={() => onMouseMove(option)}
             >
-                <div
-                    className='more-modal__details'
-                >
-                    <div className='team-info-block'>
+                <div className="more-modal__details">
+                    <div className="team-info-block">
                         <TeamIcon
                             content={option.display_name}
                             url={imageURLForTeam(option)}
                         />
-                        <div className='team-data'>
-                            <div className='title'>{option.display_name}</div>
+                        <div className="team-data">
+                            <div className="title">{option.display_name}</div>
                         </div>
                     </div>
                 </div>
-                <div className='more-modal__actions'>
-                    <div className='more-modal__actions--round'>
-                        <i className='fa fa-plus'/>
+                <div className="more-modal__actions">
+                    <div className="more-modal__actions--round">
+                        <i className="fa fa-plus" />
                     </div>
                 </div>
             </div>
@@ -204,20 +237,20 @@ export default class TeamSelectorModal extends React.PureComponent<Props, State>
     renderConfirmModal(show: boolean, team: TeamValue) {
         const title = (
             <FormattedMessage
-                id='add_teams_to_scheme.confirmation.title'
-                defaultMessage='Team Override Scheme Change?'
+                id="add_teams_to_scheme.confirmation.title"
+                defaultMessage="Team Override Scheme Change?"
             />
         );
         const message = (
             <FormattedMessage
-                id='add_teams_to_scheme.confirmation.message'
-                defaultMessage='This team is already selected in another team scheme, are you sure you want to move it to this team scheme?'
+                id="add_teams_to_scheme.confirmation.message"
+                defaultMessage="This team is already selected in another team scheme, are you sure you want to move it to this team scheme?"
             />
         );
         const confirmButtonText = (
             <FormattedMessage
-                id='add_teams_to_scheme.confirmation.accept'
-                defaultMessage='Yes, Move Team'
+                id="add_teams_to_scheme.confirmation.accept"
+                defaultMessage="Yes, Move Team"
             />
         );
         return (
@@ -226,30 +259,45 @@ export default class TeamSelectorModal extends React.PureComponent<Props, State>
                 title={title}
                 message={message}
                 confirmButtonText={confirmButtonText}
-                onCancel={() => this.setState({confirmAddModal: false, confirmAddTeam: null})}
+                onCancel={() =>
+                    this.setState({
+                        confirmAddModal: false,
+                        confirmAddTeam: null,
+                    })
+                }
                 onConfirm={() => this.addValue(team, true)}
             />
         );
     }
 
     render() {
-        const confirmModal = this.renderConfirmModal(this.state.confirmAddModal, this.state.confirmAddTeam);
+        const confirmModal = this.renderConfirmModal(
+            this.state.confirmAddModal,
+            this.state.confirmAddTeam,
+        );
         const numRemainingText = (
             <FormattedMessage
-                id='multiselect.selectTeams'
-                defaultMessage='Use ↑↓ to browse, ↵ to select.'
+                id="multiselect.selectTeams"
+                defaultMessage="Use ↑↓ to browse, ↵ to select."
             />
         );
 
-        const buttonSubmitText = localizeMessage('multiselect.add', 'Add');
+        const buttonSubmitText = localizeMessage("multiselect.add", "Add");
 
         let teams = [] as Team[];
         if (this.props.teams) {
             teams = this.props.teams.filter((team) => team.delete_at === 0);
-            teams = teams.filter((team) => team.scheme_id !== this.currentSchemeId);
-            teams = this.props.excludeGroupConstrained ? teams.filter((team) => !team.group_constrained) : teams;
+            teams = teams.filter(
+                (team) => team.scheme_id !== this.currentSchemeId,
+            );
+            teams = this.props.excludeGroupConstrained
+                ? teams.filter((team) => !team.group_constrained)
+                : teams;
             if (this.props.alreadySelected) {
-                teams = teams.filter((team) => this.props.alreadySelected?.indexOf(team.id) === -1);
+                teams = teams.filter(
+                    (team) =>
+                        this.props.alreadySelected?.indexOf(team.id) === -1,
+                );
             }
             if (this.props.excludePolicyConstrained) {
                 teams = teams.filter((team) => team.policy_id === null);
@@ -268,33 +316,33 @@ export default class TeamSelectorModal extends React.PureComponent<Props, State>
         }
 
         const teamsValues = teams.map((team) => {
-            return {label: team.name, value: team.id, ...team};
+            return { label: team.name, value: team.id, ...team };
         });
 
         return (
             <Modal
-                dialogClassName='a11y__modal more-modal more-direct-channels team-selector-modal'
+                dialogClassName="a11y__modal more-modal more-direct-channels team-selector-modal"
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}
-                role='dialog'
-                aria-labelledby='teamSelectorModalLabel'
+                role="dialog"
+                aria-labelledby="teamSelectorModalLabel"
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title
-                        componentClass='h1'
-                        id='teamSelectorModalLabel'
+                        componentClass="h1"
+                        id="teamSelectorModalLabel"
                     >
                         <FormattedMarkdownMessage
-                            id='add_teams_to_scheme.title'
-                            defaultMessage='Add Teams to **Team Selection** List'
+                            id="add_teams_to_scheme.title"
+                            defaultMessage="Add Teams to **Team Selection** List"
                         />
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     {confirmModal}
                     <MultiSelect<TeamValue>
-                        key='addTeamsToSchemeKey'
+                        key="addTeamsToSchemeKey"
                         options={teamsValues}
                         optionRenderer={this.renderOption}
                         selectedItemRef={this.selectedItemRef}
@@ -310,7 +358,10 @@ export default class TeamSelectorModal extends React.PureComponent<Props, State>
                         buttonSubmitText={buttonSubmitText}
                         saving={false}
                         loading={this.state.loadingTeams}
-                        placeholderText={localizeMessage('multiselect.addTeamsPlaceholder', 'Search and add teams')}
+                        placeholderText={localizeMessage(
+                            "multiselect.addTeamsPlaceholder",
+                            "Search and add teams",
+                        )}
                     />
                 </Modal.Body>
             </Modal>

@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ReactNode, RefObject} from 'react';
+import React from "react";
+import type { ReactNode, RefObject } from "react";
 
-import SettingItemMin from 'components/setting_item_min';
-import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+import SettingItemMin from "components/setting_item_min";
+import type SettingItemMinComponent from "components/setting_item_min/setting_item_min";
 
 type Props = {
-
     /**
      * Whether this setting item is currently open
      */
@@ -34,15 +33,15 @@ type Props = {
     title?: ReactNode;
     disableOpen?: boolean;
     describe?: ReactNode;
-}
+};
 export default class SettingItem extends React.PureComponent<Props> {
     minRef: RefObject<SettingItemMinComponent>;
 
     static defaultProps = {
-        infoPosition: 'bottom',
+        infoPosition: "bottom",
         saving: false,
-        section: '',
-        containerStyle: '',
+        section: "",
+        containerStyle: "",
     };
 
     constructor(props: Props) {
@@ -55,7 +54,11 @@ export default class SettingItem extends React.PureComponent<Props> {
     }
 
     componentDidUpdate(prevProps: Props) {
-        if (prevProps.active && !this.props.active && this.props.areAllSectionsInactive) {
+        if (
+            prevProps.active &&
+            !this.props.active &&
+            this.props.areAllSectionsInactive
+        ) {
             this.focusEditButton();
         }
     }

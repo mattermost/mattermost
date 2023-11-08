@@ -1,4 +1,4 @@
-@import 'utils/mixins';
+@import "utils/mixins";
 
 .gatherIntent {
     margin-bottom: 24px;
@@ -155,7 +155,8 @@
                 height: 16px;
                 flex-grow: 0;
                 align-items: center;
-                filter: invert(54%) sepia(68%) saturate(314%) hue-rotate(309deg) brightness(83%) contrast(117%);
+                filter: invert(54%) sepia(68%) saturate(314%) hue-rotate(309deg)
+                    brightness(83%) contrast(117%);
             }
         }
 

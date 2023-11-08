@@ -1,27 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
+import { AppCallResponseTypes } from "mattermost-redux/constants/apps";
 
-import EmojiMap from 'utils/emoji_map';
+import EmojiMap from "utils/emoji_map";
 
-import {RawAppsFormContainer} from './apps_form_container';
+import { RawAppsFormContainer } from "./apps_form_container";
 
-describe('components/apps_form/AppsFormContainer', () => {
+describe("components/apps_form/AppsFormContainer", () => {
     const emojiMap = new EmojiMap(new Map());
 
     const context = {
-        app_id: 'app',
-        channel_id: 'channel',
-        team_id: 'team',
-        post_id: 'post',
+        app_id: "app",
+        channel_id: "channel",
+        team_id: "team",
+        post_id: "post",
     };
 
     const intl = {
-        formatMessage: (message: {id: string; defaultMessage: string}) => {
+        formatMessage: (message: { id: string; defaultMessage: string }) => {
             return message.defaultMessage;
         },
     } as any;
@@ -29,26 +29,26 @@ describe('components/apps_form/AppsFormContainer', () => {
     const baseProps = {
         emojiMap,
         form: {
-            title: 'Form Title',
-            header: 'Form Header',
+            title: "Form Title",
+            header: "Form Header",
             fields: [
                 {
-                    type: 'text',
-                    name: 'field1',
-                    value: 'initial_value_1',
+                    type: "text",
+                    name: "field1",
+                    value: "initial_value_1",
                 },
                 {
-                    type: 'dynamic_select',
-                    name: 'field2',
-                    value: 'initial_value_2',
+                    type: "dynamic_select",
+                    name: "field2",
+                    value: "initial_value_2",
                     refresh: true,
                     lookup: {
-                        path: '/form_lookup',
+                        path: "/form_lookup",
                     },
                 },
             ],
             submit: {
-                path: '/form_url',
+                path: "/form_url",
             },
         },
         context,
@@ -62,15 +62,15 @@ describe('components/apps_form/AppsFormContainer', () => {
         intl,
     };
 
-    test('should match snapshot', () => {
+    test("should match snapshot", () => {
         const props = baseProps;
 
-        const wrapper = shallow(<RawAppsFormContainer {...props}/>);
+        const wrapper = shallow(<RawAppsFormContainer {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    describe('submitForm', () => {
-        test('should handle form submission result', async () => {
+    describe("submitForm", () => {
+        test("should handle form submission result", async () => {
             const response = {
                 data: {
                     type: AppCallResponseTypes.OK,
@@ -85,31 +85,36 @@ describe('components/apps_form/AppsFormContainer', () => {
                 },
             };
 
-            const wrapper = shallow<RawAppsFormContainer>(<RawAppsFormContainer {...props}/>);
+            const wrapper = shallow<RawAppsFormContainer>(
+                <RawAppsFormContainer {...props} />,
+            );
             const result = await wrapper.instance().submitForm({
                 values: {
-                    field1: 'value1',
-                    field2: {label: 'label2', value: 'value2'},
+                    field1: "value1",
+                    field2: { label: "label2", value: "value2" },
                 },
             });
 
-            expect(props.actions.doAppSubmit).toHaveBeenCalledWith({
-                context: {
-                    app_id: 'app',
-                    channel_id: 'channel',
-                    post_id: 'post',
-                    team_id: 'team',
-                },
-                path: '/form_url',
-                expand: {},
-                values: {
-                    field1: 'value1',
-                    field2: {
-                        label: 'label2',
-                        value: 'value2',
+            expect(props.actions.doAppSubmit).toHaveBeenCalledWith(
+                {
+                    context: {
+                        app_id: "app",
+                        channel_id: "channel",
+                        post_id: "post",
+                        team_id: "team",
+                    },
+                    path: "/form_url",
+                    expand: {},
+                    values: {
+                        field1: "value1",
+                        field2: {
+                            label: "label2",
+                            value: "value2",
+                        },
                     },
                 },
-            }, expect.any(Object));
+                expect.any(Object),
+            );
 
             expect(result).toEqual({
                 data: {
@@ -119,16 +124,18 @@ describe('components/apps_form/AppsFormContainer', () => {
         });
     });
 
-    describe('performLookupCall', () => {
-        test('should handle form user input', async () => {
+    describe("performLookupCall", () => {
+        test("should handle form user input", async () => {
             const response = {
                 data: {
                     type: AppCallResponseTypes.OK,
                     data: {
-                        items: [{
-                            label: 'Fetched Label',
-                            value: 'fetched_value',
-                        }],
+                        items: [
+                            {
+                                label: "Fetched Label",
+                                value: "fetched_value",
+                            },
+                        ],
                     },
                 },
             };
@@ -143,36 +150,41 @@ describe('components/apps_form/AppsFormContainer', () => {
 
             const form = props.form;
 
-            const wrapper = shallow<RawAppsFormContainer>(<RawAppsFormContainer {...props}/>);
+            const wrapper = shallow<RawAppsFormContainer>(
+                <RawAppsFormContainer {...props} />,
+            );
             const result = await wrapper.instance().performLookupCall(
                 form.fields[1],
                 {
-                    field1: 'value1',
-                    field2: {label: 'label2', value: 'value2'},
+                    field1: "value1",
+                    field2: { label: "label2", value: "value2" },
                 },
-                'My search',
+                "My search",
             );
 
-            expect(props.actions.doAppLookup).toHaveBeenCalledWith({
-                context: {
-                    app_id: 'app',
-                    channel_id: 'channel',
-                    post_id: 'post',
-                    team_id: 'team',
-                },
-                path: '/form_lookup',
-                expand: {},
-                query: 'My search',
-                raw_command: undefined,
-                selected_field: 'field2',
-                values: {
-                    field1: 'value1',
-                    field2: {
-                        label: 'label2',
-                        value: 'value2',
+            expect(props.actions.doAppLookup).toHaveBeenCalledWith(
+                {
+                    context: {
+                        app_id: "app",
+                        channel_id: "channel",
+                        post_id: "post",
+                        team_id: "team",
+                    },
+                    path: "/form_lookup",
+                    expand: {},
+                    query: "My search",
+                    raw_command: undefined,
+                    selected_field: "field2",
+                    values: {
+                        field1: "value1",
+                        field2: {
+                            label: "label2",
+                            value: "value2",
+                        },
                     },
                 },
-            }, expect.any(Object));
+                expect.any(Object),
+            );
 
             expect(result).toEqual(response);
         });

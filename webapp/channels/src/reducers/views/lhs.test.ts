@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {TeamTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import { TeamTypes } from "mattermost-redux/action_types";
+import type { GenericAction } from "mattermost-redux/types/actions";
 
-import lhsReducer from 'reducers/views/lhs';
+import lhsReducer from "reducers/views/lhs";
 
-import {ActionTypes} from 'utils/constants';
+import { ActionTypes } from "utils/constants";
 
-describe('Reducers.LHS', () => {
+describe("Reducers.LHS", () => {
     const initialState = {
         isOpen: false,
-        currentStaticPageId: '',
-        size: 'medium',
+        currentStaticPageId: "",
+        size: "medium",
     };
 
-    test('initial state', () => {
+    test("initial state", () => {
         const nextState = lhsReducer(
             {
                 isOpen: false,
-                currentStaticPageId: '',
-                size: 'medium',
+                currentStaticPageId: "",
+                size: "medium",
             },
             {} as GenericAction,
         );
@@ -32,8 +32,8 @@ describe('Reducers.LHS', () => {
         const nextState = lhsReducer(
             {
                 isOpen: true,
-                currentStaticPageId: '',
-                size: 'medium',
+                currentStaticPageId: "",
+                size: "medium",
             },
             {
                 type: ActionTypes.TOGGLE_LHS,
@@ -50,8 +50,8 @@ describe('Reducers.LHS', () => {
         const nextState = lhsReducer(
             {
                 isOpen: false,
-                currentStaticPageId: '',
-                size: 'medium',
+                currentStaticPageId: "",
+                size: "medium",
             },
             {
                 type: ActionTypes.TOGGLE_LHS,
@@ -68,8 +68,8 @@ describe('Reducers.LHS', () => {
         const nextState = lhsReducer(
             {
                 isOpen: false,
-                currentStaticPageId: '',
-                size: 'medium',
+                currentStaticPageId: "",
+                size: "medium",
             },
             {
                 type: ActionTypes.OPEN_LHS,
@@ -86,8 +86,8 @@ describe('Reducers.LHS', () => {
         const nextState = lhsReducer(
             {
                 isOpen: true,
-                currentStaticPageId: '',
-                size: 'medium',
+                currentStaticPageId: "",
+                size: "medium",
             },
             {
                 type: ActionTypes.CLOSE_LHS,
@@ -100,7 +100,7 @@ describe('Reducers.LHS', () => {
         });
     });
 
-    describe('should close', () => {
+    describe("should close", () => {
         [
             ActionTypes.TOGGLE_RHS_MENU,
             ActionTypes.OPEN_RHS_MENU,
@@ -110,8 +110,8 @@ describe('Reducers.LHS', () => {
                 const nextState = lhsReducer(
                     {
                         isOpen: true,
-                        currentStaticPageId: '',
-                        size: 'medium',
+                        currentStaticPageId: "",
+                        size: "medium",
                     },
                     {
                         type: action,

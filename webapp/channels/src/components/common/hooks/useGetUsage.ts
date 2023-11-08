@@ -1,21 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-import type {CloudUsage} from '@mattermost/types/cloud';
+import type { CloudUsage } from "@mattermost/types/cloud";
 
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
-import {getUsage} from 'mattermost-redux/selectors/entities/usage';
+import { isCurrentLicenseCloud } from "mattermost-redux/selectors/entities/cloud";
+import { getUsage } from "mattermost-redux/selectors/entities/usage";
 
-import {
-    getMessagesUsage,
-    getFilesUsage,
-    getTeamsUsage,
-} from 'actions/cloud';
+import { getMessagesUsage, getFilesUsage, getTeamsUsage } from "actions/cloud";
 
-import {useIsLoggedIn} from 'components/global_header/hooks';
+import { useIsLoggedIn } from "components/global_header/hooks";
 
 export default function useGetUsage(): CloudUsage {
     const usage = useSelector(getUsage);
@@ -26,7 +22,12 @@ export default function useGetUsage(): CloudUsage {
 
     const [requestedMessages, setRequestedMessages] = useState(false);
     useEffect(() => {
-        if (isLoggedIn && isCloud && !requestedMessages && !usage.messages.historyLoaded) {
+        if (
+            isLoggedIn &&
+            isCloud &&
+            !requestedMessages &&
+            !usage.messages.historyLoaded
+        ) {
             dispatch(getMessagesUsage());
             setRequestedMessages(true);
         }
@@ -34,7 +35,12 @@ export default function useGetUsage(): CloudUsage {
 
     const [requestedStorage, setRequestedStorage] = useState(false);
     useEffect(() => {
-        if (isLoggedIn && isCloud && !requestedStorage && !usage.files.totalStorageLoaded) {
+        if (
+            isLoggedIn &&
+            isCloud &&
+            !requestedStorage &&
+            !usage.files.totalStorageLoaded
+        ) {
             dispatch(getFilesUsage());
             setRequestedStorage(true);
         }
@@ -42,7 +48,12 @@ export default function useGetUsage(): CloudUsage {
 
     const [requestedTeamsUsage, setRequestedTeamsUsage] = useState(false);
     useEffect(() => {
-        if (isLoggedIn && isCloud && !requestedTeamsUsage && !usage.teams.teamsLoaded) {
+        if (
+            isLoggedIn &&
+            isCloud &&
+            !requestedTeamsUsage &&
+            !usage.teams.teamsLoaded
+        ) {
             dispatch(getTeamsUsage());
             setRequestedTeamsUsage(true);
         }

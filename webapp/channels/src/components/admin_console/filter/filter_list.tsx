@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {FilterOption, FilterValues} from './filter';
-import FilterCheckbox from './filter_checkbox';
+import type { FilterOption, FilterValues } from "./filter";
+import FilterCheckbox from "./filter_checkbox";
 
-import './filter.scss';
+import "./filter.scss";
 
 type Props = {
     option: FilterOption;
     optionKey: string;
     updateValues: (values: FilterValues, optionKey: string) => void;
-}
+};
 
 class FilterList extends React.PureComponent<Props> {
     updateOption = async (value: boolean, key: string) => {
@@ -27,33 +27,30 @@ class FilterList extends React.PureComponent<Props> {
     };
 
     render() {
-        const {option} = this.props;
-        const valuesToRender = option.keys.map((optionKey: string, index: number) => {
-            const currentValue = option.values[optionKey];
-            const {value, name} = currentValue;
-            const FilterItem = option.type || FilterCheckbox;
+        const { option } = this.props;
+        const valuesToRender = option.keys.map(
+            (optionKey: string, index: number) => {
+                const currentValue = option.values[optionKey];
+                const { value, name } = currentValue;
+                const FilterItem = option.type || FilterCheckbox;
 
-            return (
-                <div
-                    key={index}
-                    className='FilterList_item'
-                >
-                    <FilterItem
-                        key={index}
-                        name={optionKey}
-                        checked={value}
-                        label={name}
-                        updateOption={this.updateOption}
-                    />
-                </div>
-            );
-        });
+                return (
+                    <div key={index} className="FilterList_item">
+                        <FilterItem
+                            key={index}
+                            name={optionKey}
+                            checked={value}
+                            label={name}
+                            updateOption={this.updateOption}
+                        />
+                    </div>
+                );
+            },
+        );
 
         return (
-            <div className='FilterList'>
-                <div className='FilterList_name'>
-                    {option.name}
-                </div>
+            <div className="FilterList">
+                <div className="FilterList_name">{option.name}</div>
 
                 {valuesToRender}
             </div>

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
 type Props = {
     id?: string;
@@ -15,18 +15,18 @@ type Props = {
 
 export default class SettingsGroup extends React.PureComponent<Props> {
     render(): React.ReactNode {
-        const {show = true, container = true} = this.props;
+        const { show = true, container = true } = this.props;
 
-        let wrapperClass = '';
-        let contentClass = '';
+        let wrapperClass = "";
+        let contentClass = "";
 
         if (!show) {
             return null;
         }
 
         if (container) {
-            wrapperClass = 'admin-console__wrapper';
-            contentClass = 'admin-console__content';
+            wrapperClass = "admin-console__wrapper";
+            contentClass = "admin-console__content";
         }
 
         let header = null;
@@ -36,20 +36,20 @@ export default class SettingsGroup extends React.PureComponent<Props> {
 
         let title = null;
         if (!this.props.header && this.props.title) {
-            title = <div className={'section-title'}>{this.props.title}</div>;
+            title = <div className={"section-title"}>{this.props.title}</div>;
         }
 
         let subtitle = null;
         if (!this.props.header && this.props.subtitle) {
             subtitle = (
-                <div className={'section-subtitle'}>{this.props.subtitle}</div>
+                <div className={"section-subtitle"}>{this.props.subtitle}</div>
             );
         }
 
         let sectionHeader = null;
         if (title || subtitle) {
             sectionHeader = (
-                <div className={'section-header'}>
+                <div className={"section-header"}>
                     {title}
                     {subtitle}
                 </div>

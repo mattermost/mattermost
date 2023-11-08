@@ -1,22 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import React from "react";
+import { Modal } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
+import { useDispatch, useSelector } from "react-redux";
 
-import {closeModal} from 'actions/views/modals';
-import {isModalOpen} from 'selectors/views/modals';
+import { closeModal } from "actions/views/modals";
+import { isModalOpen } from "selectors/views/modals";
 
-import ExternalLink from 'components/external_link';
-import PDFPreview from 'components/pdf_preview';
+import ExternalLink from "components/external_link";
+import PDFPreview from "components/pdf_preview";
 
-import {ModalIdentifiers} from 'utils/constants';
+import { ModalIdentifiers } from "utils/constants";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import './cloud_invoice_preview.scss';
+import "./cloud_invoice_preview.scss";
 
 type Props = {
     onHide?: () => void;
@@ -32,7 +32,7 @@ function CloudInvoicePreview(props: Props) {
 
     const onHide = () => {
         dispatch(closeModal(ModalIdentifiers.CLOUD_INVOICE_PREVIEW));
-        if (typeof props.onHide === 'function') {
+        if (typeof props.onHide === "function") {
             props.onHide();
         }
     };
@@ -42,34 +42,35 @@ function CloudInvoicePreview(props: Props) {
             show={isPreviewModalOpen}
             onExited={onHide}
             onHide={onHide}
-            id='cloud-invoice-preview'
-            className='CloudInvoicePreview'
-            dialogClassName='a11y__modal'
+            id="cloud-invoice-preview"
+            className="CloudInvoicePreview"
+            dialogClassName="a11y__modal"
         >
             <Modal.Header closeButton={true}>
-                <Modal.Title>{'Invoice'}</Modal.Title>
-                <div className={'subtitle'}>
+                <Modal.Title>{"Invoice"}</Modal.Title>
+                <div className={"subtitle"}>
                     <FormattedMessage
-                        id='cloud.invoice_pdf_preview.download'
+                        id="cloud.invoice_pdf_preview.download"
                         values={{
                             downloadLink: (msg: string) => (
                                 <ExternalLink
-                                    href={props.url || ''}
-                                    location='cloud_invoice_preview'
+                                    href={props.url || ""}
+                                    location="cloud_invoice_preview"
                                 >
                                     {msg}
-                                </ExternalLink>),
+                                </ExternalLink>
+                            ),
                         }}
                     />
                 </div>
             </Modal.Header>
             <Modal.Body>
-                <div className='cloud_invoice_preview_modal'>
+                <div className="cloud_invoice_preview_modal">
                     <PDFPreview
                         fileInfo={{
-                            extension: 'pdf',
+                            extension: "pdf",
                             size: 0,
-                            name: '',
+                            name: "",
                         }}
                         fileUrl={props.url}
                         scale={1.4}

@@ -1,160 +1,166 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router-dom';
+import classNames from "classnames";
+import React from "react";
+import { FormattedMessage } from "react-intl";
+import { Link } from "react-router-dom";
 
-import type {AdminConfig} from '@mattermost/types/config';
-import type {DeepPartial} from '@mattermost/types/utilities';
+import type { AdminConfig } from "@mattermost/types/config";
+import type { DeepPartial } from "@mattermost/types/utilities";
 
-import PluginState from 'mattermost-redux/constants/plugins';
+import PluginState from "mattermost-redux/constants/plugins";
 
-import ConfirmModal from 'components/confirm_modal';
-import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import LoadingScreen from 'components/loading_screen';
+import ConfirmModal from "components/confirm_modal";
+import ExternalLink from "components/external_link";
+import FormattedMarkdownMessage from "components/formatted_markdown_message";
+import LoadingScreen from "components/loading_screen";
 
-import {appsPluginID} from 'utils/apps';
-import {DeveloperLinks} from 'utils/constants';
-import * as Utils from 'utils/utils';
+import { appsPluginID } from "utils/apps";
+import { DeveloperLinks } from "utils/constants";
+import * as Utils from "utils/utils";
 
-import AdminSettings from '../admin_settings';
-import type {BaseProps, BaseState} from '../admin_settings';
-import BooleanSetting from '../boolean_setting';
-import SettingsGroup from '../settings_group';
-import TextSetting from '../text_setting';
+import AdminSettings from "../admin_settings";
+import type { BaseProps, BaseState } from "../admin_settings";
+import BooleanSetting from "../boolean_setting";
+import SettingsGroup from "../settings_group";
+import TextSetting from "../text_setting";
 
-const PluginItemState = ({state}: {state: number}) => {
+const PluginItemState = ({ state }: { state: number }) => {
     switch (state) {
-    case PluginState.PLUGIN_STATE_NOT_RUNNING:
-        return (
-            <FormattedMessage
-                id='admin.plugin.state.not_running'
-                defaultMessage='Not running'
-            />
-        );
-    case PluginState.PLUGIN_STATE_STARTING:
-        return (
-            <FormattedMessage
-                id='admin.plugin.state.starting'
-                defaultMessage='Starting'
-            />
-        );
-    case PluginState.PLUGIN_STATE_RUNNING:
-        return (
-            <FormattedMessage
-                id='admin.plugin.state.running'
-                defaultMessage='Running'
-            />
-        );
-    case PluginState.PLUGIN_STATE_FAILED_TO_START:
-        return (
-            <FormattedMessage
-                id='admin.plugin.state.failed_to_start'
-                defaultMessage='Failed to start'
-            />
-        );
-    case PluginState.PLUGIN_STATE_FAILED_TO_STAY_RUNNING:
-        return (
-            <FormattedMessage
-                id='admin.plugin.state.failed_to_stay_running'
-                defaultMessage='Crashing'
-            />
-        );
-    case PluginState.PLUGIN_STATE_STOPPING:
-        return (
-            <FormattedMessage
-                id='admin.plugin.state.stopping'
-                defaultMessage='Stopping'
-            />
-        );
-    default:
-        return (
-            <FormattedMessage
-                id='admin.plugin.state.unknown'
-                defaultMessage='Unknown'
-            />
-        );
+        case PluginState.PLUGIN_STATE_NOT_RUNNING:
+            return (
+                <FormattedMessage
+                    id="admin.plugin.state.not_running"
+                    defaultMessage="Not running"
+                />
+            );
+        case PluginState.PLUGIN_STATE_STARTING:
+            return (
+                <FormattedMessage
+                    id="admin.plugin.state.starting"
+                    defaultMessage="Starting"
+                />
+            );
+        case PluginState.PLUGIN_STATE_RUNNING:
+            return (
+                <FormattedMessage
+                    id="admin.plugin.state.running"
+                    defaultMessage="Running"
+                />
+            );
+        case PluginState.PLUGIN_STATE_FAILED_TO_START:
+            return (
+                <FormattedMessage
+                    id="admin.plugin.state.failed_to_start"
+                    defaultMessage="Failed to start"
+                />
+            );
+        case PluginState.PLUGIN_STATE_FAILED_TO_STAY_RUNNING:
+            return (
+                <FormattedMessage
+                    id="admin.plugin.state.failed_to_stay_running"
+                    defaultMessage="Crashing"
+                />
+            );
+        case PluginState.PLUGIN_STATE_STOPPING:
+            return (
+                <FormattedMessage
+                    id="admin.plugin.state.stopping"
+                    defaultMessage="Stopping"
+                />
+            );
+        default:
+            return (
+                <FormattedMessage
+                    id="admin.plugin.state.unknown"
+                    defaultMessage="Unknown"
+                />
+            );
     }
 };
 
-const PluginItemStateDescription = ({state, error}: {state: number; error?: string}) => {
+const PluginItemStateDescription = ({
+    state,
+    error,
+}: {
+    state: number;
+    error?: string;
+}) => {
     switch (state) {
-    case PluginState.PLUGIN_STATE_NOT_RUNNING:
-        return (
-            <div className='alert alert-info'>
-                <i className='fa fa-ban'/>
+        case PluginState.PLUGIN_STATE_NOT_RUNNING:
+            return (
+                <div className="alert alert-info">
+                    <i className="fa fa-ban" />
+                    <FormattedMessage
+                        id="admin.plugin.state.not_running.description"
+                        defaultMessage="This plugin is not enabled."
+                    />
+                </div>
+            );
+        case PluginState.PLUGIN_STATE_STARTING:
+            return (
+                <div className="alert alert-success">
+                    <i className="fa fa-info" />
+                    <FormattedMessage
+                        id="admin.plugin.state.starting.description"
+                        defaultMessage="This plugin is starting."
+                    />
+                </div>
+            );
+        case PluginState.PLUGIN_STATE_RUNNING:
+            return (
+                <div className="alert alert-success">
+                    <i className="fa fa-check" />
+                    <FormattedMessage
+                        id="admin.plugin.state.running.description"
+                        defaultMessage="This plugin is running."
+                    />
+                </div>
+            );
+        case PluginState.PLUGIN_STATE_FAILED_TO_START: {
+            const errorMessage = error || (
                 <FormattedMessage
-                    id='admin.plugin.state.not_running.description'
-                    defaultMessage='This plugin is not enabled.'
+                    id="admin.plugin.state.failed_to_start.check_logs"
+                    defaultMessage="Check your system logs for errors."
                 />
-            </div>
-        );
-    case PluginState.PLUGIN_STATE_STARTING:
-        return (
-            <div className='alert alert-success'>
-                <i className='fa fa-info'/>
-                <FormattedMessage
-                    id='admin.plugin.state.starting.description'
-                    defaultMessage='This plugin is starting.'
-                />
-            </div>
-        );
-    case PluginState.PLUGIN_STATE_RUNNING:
-        return (
-            <div className='alert alert-success'>
-                <i className='fa fa-check'/>
-                <FormattedMessage
-                    id='admin.plugin.state.running.description'
-                    defaultMessage='This plugin is running.'
-                />
-            </div>
-        );
-    case PluginState.PLUGIN_STATE_FAILED_TO_START: {
-        const errorMessage = error || (
-            <FormattedMessage
-                id='admin.plugin.state.failed_to_start.check_logs'
-                defaultMessage='Check your system logs for errors.'
-            />
-        );
+            );
 
-        return (
-            <div className='alert alert-warning'>
-                <i className='fa fa-warning'/>
-                <FormattedMessage
-                    id='admin.plugin.state.failed_to_start.description'
-                    defaultMessage='This plugin failed to start. {error}'
-                    values={{
-                        error: errorMessage,
-                    }}
-                />
-            </div>
-        );
-    }
-    case PluginState.PLUGIN_STATE_FAILED_TO_STAY_RUNNING:
-        return (
-            <div className='alert alert-warning'>
-                <i className='fa fa-warning'/>
-                <FormattedMessage
-                    id='admin.plugin.state.failed_to_stay_running.description'
-                    defaultMessage='This plugin crashed multiple times and is no longer running. Check your system logs for errors.'
-                />
-            </div>
-        );
-    case PluginState.PLUGIN_STATE_STOPPING:
-        return (
-            <div className='alert alert-info'>
-                <i className='fa fa-info'/>
-                <FormattedMessage
-                    id='admin.plugin.state.stopping.description'
-                    defaultMessage='This plugin is stopping.'
-                />
-            </div>
-        );
-    default:
-        return null;
+            return (
+                <div className="alert alert-warning">
+                    <i className="fa fa-warning" />
+                    <FormattedMessage
+                        id="admin.plugin.state.failed_to_start.description"
+                        defaultMessage="This plugin failed to start. {error}"
+                        values={{
+                            error: errorMessage,
+                        }}
+                    />
+                </div>
+            );
+        }
+        case PluginState.PLUGIN_STATE_FAILED_TO_STAY_RUNNING:
+            return (
+                <div className="alert alert-warning">
+                    <i className="fa fa-warning" />
+                    <FormattedMessage
+                        id="admin.plugin.state.failed_to_stay_running.description"
+                        defaultMessage="This plugin crashed multiple times and is no longer running. Check your system logs for errors."
+                    />
+                </div>
+            );
+        case PluginState.PLUGIN_STATE_STOPPING:
+            return (
+                <div className="alert alert-info">
+                    <i className="fa fa-info" />
+                    <FormattedMessage
+                        id="admin.plugin.state.stopping.description"
+                        defaultMessage="This plugin is stopping."
+                    />
+                </div>
+            );
+        default:
+            return null;
     }
 };
 
@@ -172,7 +178,7 @@ type PluginStatus = {
         footer: string;
         settings?: unknown[];
     };
-}
+};
 
 type PluginItemProps = {
     pluginStatus: PluginStatus;
@@ -199,24 +205,25 @@ const PluginItem = ({
 }: PluginItemProps) => {
     let activateButton: React.ReactNode;
     const activating = pluginStatus.state === PluginState.PLUGIN_STATE_STARTING;
-    const deactivating = pluginStatus.state === PluginState.PLUGIN_STATE_STOPPING;
+    const deactivating =
+        pluginStatus.state === PluginState.PLUGIN_STATE_STOPPING;
 
     if (pluginStatus.active) {
         activateButton = (
             <a
                 data-plugin-id={pluginStatus.id}
-                className={deactivating || isDisabled ? 'disabled' : ''}
+                className={deactivating || isDisabled ? "disabled" : ""}
                 onClick={handleDisable}
             >
                 {deactivating ? (
                     <FormattedMessage
-                        id='admin.plugin.disabling'
-                        defaultMessage='Disabling...'
+                        id="admin.plugin.disabling"
+                        defaultMessage="Disabling..."
                     />
                 ) : (
                     <FormattedMessage
-                        id='admin.plugin.disable'
-                        defaultMessage='Disable'
+                        id="admin.plugin.disable"
+                        defaultMessage="Disable"
                     />
                 )}
             </a>
@@ -225,18 +232,18 @@ const PluginItem = ({
         activateButton = (
             <a
                 data-plugin-id={pluginStatus.id}
-                className={activating || isDisabled ? 'disabled' : ''}
+                className={activating || isDisabled ? "disabled" : ""}
                 onClick={handleEnable}
             >
                 {activating ? (
                     <FormattedMessage
-                        id='admin.plugin.enabling'
-                        defaultMessage='Enabling...'
+                        id="admin.plugin.enabling"
+                        defaultMessage="Enabling..."
                     />
                 ) : (
                     <FormattedMessage
-                        id='admin.plugin.enable'
-                        defaultMessage='Enable'
+                        id="admin.plugin.enable"
+                        defaultMessage="Enable"
                     />
                 )}
             </a>
@@ -247,13 +254,11 @@ const PluginItem = ({
     if (hasSettings) {
         settingsButton = (
             <span>
-                {' - '}
-                <Link
-                    to={'/admin_console/plugins/plugin_' + pluginStatus.id}
-                >
+                {" - "}
+                <Link to={"/admin_console/plugins/plugin_" + pluginStatus.id}>
                     <FormattedMessage
-                        id='admin.plugin.settingsButton'
-                        defaultMessage='Settings'
+                        id="admin.plugin.settingsButton"
+                        defaultMessage="Settings"
                     />
                 </Link>
             </span>
@@ -264,24 +269,24 @@ const PluginItem = ({
     if (removing) {
         removeButtonText = (
             <FormattedMessage
-                id='admin.plugin.removing'
-                defaultMessage='Removing...'
+                id="admin.plugin.removing"
+                defaultMessage="Removing..."
             />
         );
     } else {
         removeButtonText = (
             <FormattedMessage
-                id='admin.plugin.remove'
-                defaultMessage='Remove'
+                id="admin.plugin.remove"
+                defaultMessage="Remove"
             />
         );
     }
     let removeButton: React.ReactNode = (
         <span>
-            {' - '}
+            {" - "}
             <a
                 data-plugin-id={pluginStatus.id}
-                className={removing || isDisabled ? 'disabled' : ''}
+                className={removing || isDisabled ? "disabled" : ""}
                 onClick={handleRemove}
             >
                 {removeButtonText}
@@ -291,24 +296,21 @@ const PluginItem = ({
 
     let description;
     if (pluginStatus.description) {
-        description = (
-            <div className='pt-2'>
-                {pluginStatus.description}
-            </div>
-        );
+        description = <div className="pt-2">{pluginStatus.description}</div>;
     }
 
     const notices = [];
-    if (pluginStatus.instances.some((instance) => instance.version !== pluginStatus.version)) {
+    if (
+        pluginStatus.instances.some(
+            (instance) => instance.version !== pluginStatus.version,
+        )
+    ) {
         notices.push(
-            <div
-                key='multiple-versions'
-                className='alert alert-warning'
-            >
-                <i className='fa fa-warning'/>
+            <div key="multiple-versions" className="alert alert-warning">
+                <i className="fa fa-warning" />
                 <FormattedMessage
-                    id='admin.plugin.multiple_versions_warning'
-                    defaultMessage='There are multiple versions of this plugin installed across your cluster. Re-install this plugin to ensure it works consistently.'
+                    id="admin.plugin.multiple_versions_warning"
+                    defaultMessage="There are multiple versions of this plugin installed across your cluster. Re-install this plugin to ensure it works consistently."
                 />
             </div>,
         );
@@ -316,7 +318,7 @@ const PluginItem = ({
 
     notices.push(
         <PluginItemStateDescription
-            key='state-description'
+            key="state-description"
             state={pluginStatus.state}
             error={pluginStatus.error}
         />,
@@ -336,46 +338,39 @@ const PluginItem = ({
     let clusterSummary;
     if (showInstances) {
         clusterSummary = (
-            <div className='pt-3 pb-3'>
-                <div className='row'>
-                    <div className='col-md-6'>
+            <div className="pt-3 pb-3">
+                <div className="row">
+                    <div className="col-md-6">
                         <strong>
                             <FormattedMessage
-                                id='admin.plugin.cluster_instance'
-                                defaultMessage='Cluster Instance'
+                                id="admin.plugin.cluster_instance"
+                                defaultMessage="Cluster Instance"
                             />
                         </strong>
                     </div>
-                    <div className='col-md-3'>
+                    <div className="col-md-3">
                         <strong>
                             <FormattedMessage
-                                id='admin.plugin.version_title'
-                                defaultMessage='Version'
+                                id="admin.plugin.version_title"
+                                defaultMessage="Version"
                             />
                         </strong>
                     </div>
-                    <div className='col-md-3'>
+                    <div className="col-md-3">
                         <strong>
                             <FormattedMessage
-                                id='admin.plugin.state'
-                                defaultMessage='State'
+                                id="admin.plugin.state"
+                                defaultMessage="State"
                             />
                         </strong>
                     </div>
                 </div>
                 {instances.map((instance) => (
-                    <div
-                        key={instance.cluster_id}
-                        className='row'
-                    >
-                        <div className='col-md-6'>
-                            {instance.cluster_id}
-                        </div>
-                        <div className='col-md-3'>
-                            {instance.version}
-                        </div>
-                        <div className='col-md-3'>
-                            <PluginItemState state={instance.state}/>
+                    <div key={instance.cluster_id} className="row">
+                        <div className="col-md-6">{instance.cluster_id}</div>
+                        <div className="col-md-3">{instance.version}</div>
+                        <div className="col-md-3">
+                            <PluginItemState state={instance.state} />
                         </div>
                     </div>
                 ))}
@@ -384,7 +379,7 @@ const PluginItem = ({
     }
 
     if (pluginStatus.id === appsPluginID && !appsFeatureFlagEnabled) {
-        activateButton = (<>{'Plugin disabled by feature flag'}</>);
+        activateButton = <>{"Plugin disabled by feature flag"}</>;
         removeButton = null;
     }
 
@@ -392,25 +387,21 @@ const PluginItem = ({
         <div data-testid={pluginStatus.id}>
             <div>
                 <strong>{pluginStatus.name}</strong>
-                {' ('}
+                {" ("}
                 {pluginStatus.id}
-                {' - '}
+                {" - "}
                 {pluginStatus.version}
-                {')'}
+                {")"}
             </div>
             {description}
-            <div className='pt-2'>
+            <div className="pt-2">
                 {activateButton}
                 {removeButton}
                 {settingsButton}
             </div>
-            <div>
-                {notices}
-            </div>
-            <div>
-                {clusterSummary}
-            </div>
-            <hr/>
+            <div>{notices}</div>
+            <div>{clusterSummary}</div>
+            <hr />
         </div>
     );
 };
@@ -437,7 +428,7 @@ type State = BaseState & {
     fileSelected: boolean;
     file: File | null;
     pluginDownloadUrl: string;
-    serverError: JSX.Element | string | null ;
+    serverError: JSX.Element | string | null;
     lastMessage: string | null;
     uploading: boolean;
     installing: boolean;
@@ -446,7 +437,7 @@ type State = BaseState & {
     overwritingInstall?: boolean;
     confirmOverwriteInstallModal: boolean;
     showRemoveModal: boolean;
-    resolveRemoveModal: string| null;
+    resolveRemoveModal: string | null;
     enable: boolean;
     enableUploads: boolean;
     allowInsecureDownloadUrl: boolean;
@@ -456,7 +447,7 @@ type State = BaseState & {
     marketplaceUrl: string;
     requirePluginSignature: boolean;
     removing: string | null;
-}
+};
 export default class PluginManagement extends AdminSettings<Props, State> {
     private fileInput: React.RefObject<HTMLInputElement>;
     constructor(props: Props) {
@@ -466,7 +457,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
             loading: true,
             fileSelected: false,
             file: null,
-            pluginDownloadUrl: '',
+            pluginDownloadUrl: "",
             serverError: null,
             lastMessage: null,
             uploading: false,
@@ -480,31 +471,40 @@ export default class PluginManagement extends AdminSettings<Props, State> {
         });
         this.fileInput = React.createRef();
     }
-    getConfigFromState = (config: Props['config']) => {
+    getConfigFromState = (config: Props["config"]) => {
         if (config && config.PluginSettings) {
             config.PluginSettings.Enable = this.state.enable;
             config.PluginSettings.EnableUploads = this.state.enableUploads;
-            config.PluginSettings.AllowInsecureDownloadURL = this.state.allowInsecureDownloadUrl;
-            config.PluginSettings.EnableMarketplace = this.state.enableMarketplace;
-            config.PluginSettings.EnableRemoteMarketplace = this.state.enableRemoteMarketplace;
-            config.PluginSettings.AutomaticPrepackagedPlugins = this.state.automaticPrepackagedPlugins;
+            config.PluginSettings.AllowInsecureDownloadURL =
+                this.state.allowInsecureDownloadUrl;
+            config.PluginSettings.EnableMarketplace =
+                this.state.enableMarketplace;
+            config.PluginSettings.EnableRemoteMarketplace =
+                this.state.enableRemoteMarketplace;
+            config.PluginSettings.AutomaticPrepackagedPlugins =
+                this.state.automaticPrepackagedPlugins;
             config.PluginSettings.MarketplaceURL = this.state.marketplaceUrl;
-            config.PluginSettings.RequirePluginSignature = this.state.requirePluginSignature;
+            config.PluginSettings.RequirePluginSignature =
+                this.state.requirePluginSignature;
         }
 
         return config;
     };
 
-    getStateFromConfig(config: Props['config']) {
+    getStateFromConfig(config: Props["config"]) {
         const state = {
             enable: config?.PluginSettings?.Enable,
             enableUploads: config?.PluginSettings?.EnableUploads,
-            allowInsecureDownloadUrl: config?.PluginSettings?.AllowInsecureDownloadURL,
+            allowInsecureDownloadUrl:
+                config?.PluginSettings?.AllowInsecureDownloadURL,
             enableMarketplace: config?.PluginSettings?.EnableMarketplace,
-            enableRemoteMarketplace: config?.PluginSettings?.EnableRemoteMarketplace,
-            automaticPrepackagedPlugins: config?.PluginSettings?.AutomaticPrepackagedPlugins,
+            enableRemoteMarketplace:
+                config?.PluginSettings?.EnableRemoteMarketplace,
+            automaticPrepackagedPlugins:
+                config?.PluginSettings?.AutomaticPrepackagedPlugins,
             marketplaceUrl: config?.PluginSettings?.MarketplaceURL,
-            requirePluginSignature: config?.PluginSettings?.RequirePluginSignature,
+            requirePluginSignature:
+                config?.PluginSettings?.RequirePluginSignature,
         };
 
         return state;
@@ -512,27 +512,33 @@ export default class PluginManagement extends AdminSettings<Props, State> {
 
     componentDidMount() {
         if (this.state.enable) {
-            this.props.actions.getPluginStatuses().then(
-                () => this.setState({loading: false}),
-            );
+            this.props.actions
+                .getPluginStatuses()
+                .then(() => this.setState({ loading: false }));
         }
     }
 
     handleUpload = () => {
-        this.setState({lastMessage: null, serverError: null});
+        this.setState({ lastMessage: null, serverError: null });
         const element = this.fileInput.current as HTMLInputElement;
         if (element.files && element.files.length > 0) {
-            this.setState({fileSelected: true, file: element.files[0]});
+            this.setState({ fileSelected: true, file: element.files[0] });
         }
     };
 
     helpSubmitUpload = async (file: File, force: boolean) => {
-        this.setState({uploading: true});
-        const {error} = await this.props.actions.uploadPlugin(file, force);
+        this.setState({ uploading: true });
+        const { error } = await this.props.actions.uploadPlugin(file, force);
 
         if (error) {
-            if (error.server_error_id === 'app.plugin.install_id.app_error' && !force) {
-                this.setState({confirmOverwriteUploadModal: true, overwritingUpload: true});
+            if (
+                error.server_error_id === "app.plugin.install_id.app_error" &&
+                !force
+            ) {
+                this.setState({
+                    confirmOverwriteUploadModal: true,
+                    overwritingUpload: true,
+                });
                 return;
             }
             this.setState({
@@ -540,18 +546,30 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                 fileSelected: false,
                 uploading: false,
             });
-            if (error.server_error_id === 'app.plugin.activate.app_error') {
-                this.setState({serverError: Utils.localizeMessage('admin.plugin.error.activate', 'Unable to upload the plugin. It may conflict with another plugin on your server.')});
-            } else if (error.server_error_id === 'app.plugin.extract.app_error') {
-                this.setState({serverError: Utils.localizeMessage('admin.plugin.error.extract', 'Encountered an error when extracting the plugin. Review your plugin file content and try again.')});
+            if (error.server_error_id === "app.plugin.activate.app_error") {
+                this.setState({
+                    serverError: Utils.localizeMessage(
+                        "admin.plugin.error.activate",
+                        "Unable to upload the plugin. It may conflict with another plugin on your server.",
+                    ),
+                });
+            } else if (
+                error.server_error_id === "app.plugin.extract.app_error"
+            ) {
+                this.setState({
+                    serverError: Utils.localizeMessage(
+                        "admin.plugin.error.extract",
+                        "Encountered an error when extracting the plugin. Review your plugin file content and try again.",
+                    ),
+                });
             } else {
-                this.setState({serverError: error.message});
+                this.setState({ serverError: error.message });
             }
-            this.setState({file: null, fileSelected: false});
+            this.setState({ file: null, fileSelected: false });
             return;
         }
 
-        this.setState({loading: true});
+        this.setState({ loading: true });
         await this.props.actions.getPlugins();
 
         let msg = `Successfully uploaded plugin from ${file?.name}`;
@@ -596,7 +614,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
     };
 
     handleOverwriteUploadPlugin = () => {
-        this.setState({confirmOverwriteUploadModal: false});
+        this.setState({ confirmOverwriteUploadModal: false });
         if (this.state.file) {
             this.helpSubmitUpload(this.state.file, true);
         }
@@ -609,18 +627,27 @@ export default class PluginManagement extends AdminSettings<Props, State> {
     };
 
     installFromUrl = async (force: boolean) => {
-        const {pluginDownloadUrl} = this.state;
+        const { pluginDownloadUrl } = this.state;
 
         this.setState({
             installing: true,
             serverError: null,
             lastMessage: null,
         });
-        const {error} = await this.props.actions.installPluginFromUrl(pluginDownloadUrl, force);
+        const { error } = await this.props.actions.installPluginFromUrl(
+            pluginDownloadUrl,
+            force,
+        );
 
         if (error) {
-            if (error.server_error_id === 'app.plugin.install_id.app_error' && !force) {
-                this.setState({confirmOverwriteInstallModal: true, overwritingInstall: true});
+            if (
+                error.server_error_id === "app.plugin.install_id.app_error" &&
+                !force
+            ) {
+                this.setState({
+                    confirmOverwriteInstallModal: true,
+                    overwritingInstall: true,
+                });
                 return;
             }
 
@@ -628,15 +655,20 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                 installing: false,
             });
 
-            if (error.server_error_id === 'app.plugin.extract.app_error') {
-                this.setState({serverError: Utils.localizeMessage('admin.plugin.error.extract', 'Encountered an error when extracting the plugin. Review your plugin file content and try again.')});
+            if (error.server_error_id === "app.plugin.extract.app_error") {
+                this.setState({
+                    serverError: Utils.localizeMessage(
+                        "admin.plugin.error.extract",
+                        "Encountered an error when extracting the plugin. Review your plugin file content and try again.",
+                    ),
+                });
             } else {
-                this.setState({serverError: error.message});
+                this.setState({ serverError: error.message });
             }
             return;
         }
 
-        this.setState({loading: true});
+        this.setState({ loading: true });
         await this.props.actions.getPlugins();
 
         let msg = `Successfully installed plugin from ${pluginDownloadUrl}`;
@@ -656,46 +688,43 @@ export default class PluginManagement extends AdminSettings<Props, State> {
     getMarketplaceURLHelpText = (url: string, enableUploads: boolean) => {
         return (
             <div>
-                {
-                    url === '' && enableUploads &&
-                    <div className='alert-warning'>
-                        <i className='fa fa-warning'/>
+                {url === "" && enableUploads && (
+                    <div className="alert-warning">
+                        <i className="fa fa-warning" />
                         <FormattedMarkdownMessage
-                            id='admin.plugins.settings.marketplaceUrlDesc.empty'
-                            defaultMessage=' Marketplace URL is a required field.'
+                            id="admin.plugins.settings.marketplaceUrlDesc.empty"
+                            defaultMessage=" Marketplace URL is a required field."
                         />
                     </div>
-                }
-                {
-                    url !== '' && enableUploads &&
+                )}
+                {url !== "" && enableUploads && (
                     <FormattedMarkdownMessage
-                        id='admin.plugins.settings.marketplaceUrlDesc'
-                        defaultMessage='URL of the marketplace server.'
+                        id="admin.plugins.settings.marketplaceUrlDesc"
+                        defaultMessage="URL of the marketplace server."
                     />
-                }
-                {
-                    !enableUploads &&
+                )}
+                {!enableUploads && (
                     <FormattedMessage
-                        id='admin.plugin.uploadDisabledDesc'
-                        defaultMessage='Enable plugin uploads in config.json. See <link>documentation</link> to learn more.'
+                        id="admin.plugin.uploadDisabledDesc"
+                        defaultMessage="Enable plugin uploads in config.json. See <link>documentation</link> to learn more."
                         values={{
                             link: (msg: React.ReactNode) => (
                                 <ExternalLink
                                     href={DeveloperLinks.PLUGINS}
-                                    location='plugin_management'
+                                    location="plugin_management"
                                 >
                                     {msg}
                                 </ExternalLink>
                             ),
                         }}
                     />
-                }
+                )}
             </div>
         );
     };
 
     canSave = () => {
-        return this.state.marketplaceUrl !== '';
+        return this.state.marketplaceUrl !== "";
     };
 
     handleSubmitInstall = (e: React.SyntheticEvent) => {
@@ -713,7 +742,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
     };
 
     handleOverwriteInstallPlugin = () => {
-        this.setState({confirmOverwriteInstallModal: false});
+        this.setState({ confirmOverwriteInstallModal: false });
         return this.installFromUrl(true);
     };
 
@@ -722,27 +751,29 @@ export default class PluginManagement extends AdminSettings<Props, State> {
             return;
         }
         e.preventDefault();
-        const pluginId = e.currentTarget.getAttribute('data-plugin-id');
-        this.setState({showRemoveModal: true, removing: pluginId});
+        const pluginId = e.currentTarget.getAttribute("data-plugin-id");
+        this.setState({ showRemoveModal: true, removing: pluginId });
     };
 
     handleRemovePluginCancel = () => {
-        this.setState({showRemoveModal: false, removing: null});
+        this.setState({ showRemoveModal: false, removing: null });
     };
 
     handleRemovePlugin = () => {
-        this.setState({showRemoveModal: false});
+        this.setState({ showRemoveModal: false });
         this.handleRemove();
     };
 
     handleRemove = async () => {
-        this.setState({lastMessage: null, serverError: null});
+        this.setState({ lastMessage: null, serverError: null });
         if (this.state.removing !== null) {
-            const {error} = await this.props.actions.removePlugin(this.state.removing);
-            this.setState({removing: null});
+            const { error } = await this.props.actions.removePlugin(
+                this.state.removing,
+            );
+            this.setState({ removing: null });
 
             if (error) {
-                this.setState({serverError: error.message});
+                this.setState({ serverError: error.message });
             }
         }
     };
@@ -752,31 +783,31 @@ export default class PluginManagement extends AdminSettings<Props, State> {
         if (this.props.isDisabled) {
             return;
         }
-        this.setState({lastMessage: null, serverError: null});
-        const pluginId = e.currentTarget.getAttribute('data-plugin-id');
+        this.setState({ lastMessage: null, serverError: null });
+        const pluginId = e.currentTarget.getAttribute("data-plugin-id");
 
         if (pluginId) {
-            const {error} = await this.props.actions.enablePlugin(pluginId);
+            const { error } = await this.props.actions.enablePlugin(pluginId);
 
             if (error) {
-                this.setState({serverError: error.message});
+                this.setState({ serverError: error.message });
             }
         }
     };
 
     handleDisable = async (e: React.KeyboardEvent) => {
-        this.setState({lastMessage: null, serverError: null});
+        this.setState({ lastMessage: null, serverError: null });
         e.preventDefault();
         if (this.props.isDisabled) {
             return;
         }
-        this.setState({lastMessage: null, serverError: null});
-        const pluginId = e.currentTarget.getAttribute('data-plugin-id');
+        this.setState({ lastMessage: null, serverError: null });
+        const pluginId = e.currentTarget.getAttribute("data-plugin-id");
         if (pluginId) {
-            const {error} = await this.props.actions.disablePlugin(pluginId);
+            const { error } = await this.props.actions.disablePlugin(pluginId);
 
             if (error) {
-                this.setState({serverError: error.message});
+                this.setState({ serverError: error.message });
             }
         }
     };
@@ -784,33 +815,39 @@ export default class PluginManagement extends AdminSettings<Props, State> {
     renderTitle() {
         return (
             <FormattedMessage
-                id='admin.plugin.management.title'
-                defaultMessage='Management'
+                id="admin.plugin.management.title"
+                defaultMessage="Management"
             />
         );
     }
 
-    renderOverwritePluginModal = (
-        {show, onConfirm, onCancel}:
-        {show: boolean; onConfirm: (checked: boolean) => void; onCancel: (checked: boolean) => void }) => {
+    renderOverwritePluginModal = ({
+        show,
+        onConfirm,
+        onCancel,
+    }: {
+        show: boolean;
+        onConfirm: (checked: boolean) => void;
+        onCancel: (checked: boolean) => void;
+    }) => {
         const title = (
             <FormattedMessage
-                id='admin.plugin.upload.overwrite_modal.title'
-                defaultMessage='Overwrite existing plugin?'
+                id="admin.plugin.upload.overwrite_modal.title"
+                defaultMessage="Overwrite existing plugin?"
             />
         );
 
         const message = (
             <FormattedMessage
-                id='admin.plugin.upload.overwrite_modal.desc'
-                defaultMessage='A plugin with this ID already exists. Would you like to overwrite it?'
+                id="admin.plugin.upload.overwrite_modal.desc"
+                defaultMessage="A plugin with this ID already exists. Would you like to overwrite it?"
             />
         );
 
         const overwriteButton = (
             <FormattedMessage
-                id='admin.plugin.upload.overwrite_modal.overwrite'
-                defaultMessage='Overwrite'
+                id="admin.plugin.upload.overwrite_modal.overwrite"
+                defaultMessage="Overwrite"
             />
         );
 
@@ -819,7 +856,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                 show={show}
                 title={title}
                 message={message}
-                confirmButtonClass='btn btn-danger'
+                confirmButtonClass="btn btn-danger"
                 confirmButtonText={overwriteButton}
                 onConfirm={onConfirm}
                 onCancel={onCancel}
@@ -828,25 +865,28 @@ export default class PluginManagement extends AdminSettings<Props, State> {
     };
 
     renderRemovePluginModal = (
-        show: boolean, onConfirm: (checked: boolean) => void, onCancel: (checked: boolean) => void) => {
+        show: boolean,
+        onConfirm: (checked: boolean) => void,
+        onCancel: (checked: boolean) => void,
+    ) => {
         const title = (
             <FormattedMessage
-                id='admin.plugin.remove_modal.title'
-                defaultMessage='Remove plugin?'
+                id="admin.plugin.remove_modal.title"
+                defaultMessage="Remove plugin?"
             />
         );
 
         const message = (
             <FormattedMessage
-                id='admin.plugin.remove_modal.desc'
-                defaultMessage='Are you sure you would like to remove the plugin?'
+                id="admin.plugin.remove_modal.desc"
+                defaultMessage="Are you sure you would like to remove the plugin?"
             />
         );
 
         const removeButton = (
             <FormattedMessage
-                id='admin.plugin.remove_modal.overwrite'
-                defaultMessage='Remove'
+                id="admin.plugin.remove_modal.overwrite"
+                defaultMessage="Remove"
             />
         );
 
@@ -855,7 +895,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                 show={show}
                 title={title}
                 message={message}
-                confirmButtonClass='btn btn-danger'
+                confirmButtonClass="btn btn-danger"
                 confirmButtonText={removeButton}
                 onConfirm={onConfirm}
                 onCancel={onCancel}
@@ -864,26 +904,28 @@ export default class PluginManagement extends AdminSettings<Props, State> {
     };
 
     renderEnablePluginsSetting = () => {
-        const hideEnablePlugins = this.props.config.ExperimentalSettings && this.props.config.ExperimentalSettings.RestrictSystemAdmin;
+        const hideEnablePlugins =
+            this.props.config.ExperimentalSettings &&
+            this.props.config.ExperimentalSettings.RestrictSystemAdmin;
         if (!hideEnablePlugins) {
             return (
                 <BooleanSetting
-                    id='enable'
+                    id="enable"
                     label={
                         <FormattedMessage
-                            id='admin.plugins.settings.enable'
-                            defaultMessage='Enable Plugins: '
+                            id="admin.plugins.settings.enable"
+                            defaultMessage="Enable Plugins: "
                         />
                     }
                     helpText={
                         <FormattedMessage
-                            id='admin.plugins.settings.enableDesc'
-                            defaultMessage='When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more.'
+                            id="admin.plugins.settings.enableDesc"
+                            defaultMessage="When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more."
                             values={{
                                 link: (msg: React.ReactNode) => (
                                     <ExternalLink
                                         href={DeveloperLinks.PLUGINS}
-                                        location='plugin_management'
+                                        location="plugin_management"
                                     >
                                         {msg}
                                     </ExternalLink>
@@ -893,7 +935,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                     }
                     value={this.state.enable}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('PluginSettings.Enable')}
+                    setByEnv={this.isSetByEnv("PluginSettings.Enable")}
                     disabled={this.props.isDisabled}
                 />
             );
@@ -902,24 +944,44 @@ export default class PluginManagement extends AdminSettings<Props, State> {
     };
 
     renderSettings = () => {
-        const {enableUploads} = this.state;
+        const { enableUploads } = this.state;
         const enable = this.props.config?.PluginSettings?.Enable;
-        let serverError = <React.Fragment/>;
-        let lastMessage = <React.Fragment/>;
+        let serverError = <React.Fragment />;
+        let lastMessage = <React.Fragment />;
 
         // Using props values to make sure these are set on the server and not just locally
-        const enableUploadButton = enableUploads && enable && !(this.props.config.PluginSettings && this.props.config.PluginSettings.RequirePluginSignature);
+        const enableUploadButton =
+            enableUploads &&
+            enable &&
+            !(
+                this.props.config.PluginSettings &&
+                this.props.config.PluginSettings.RequirePluginSignature
+            );
 
         if (this.state.serverError) {
-            serverError = <div className='col-sm-12'><div className='form-group has-error half'><label className='control-label'>{this.state.serverError}</label></div></div>;
+            serverError = (
+                <div className="col-sm-12">
+                    <div className="form-group has-error half">
+                        <label className="control-label">
+                            {this.state.serverError}
+                        </label>
+                    </div>
+                </div>
+            );
         }
         if (this.state.lastMessage) {
-            lastMessage = <div className='col-sm-12'><div className='form-group half'>{this.state.lastMessage}</div></div>;
+            lastMessage = (
+                <div className="col-sm-12">
+                    <div className="form-group half">
+                        {this.state.lastMessage}
+                    </div>
+                </div>
+            );
         }
 
-        let btnClass = 'btn btn-primary';
+        let btnClass = "btn btn-primary";
         if (this.state.fileSelected) {
-            btnClass = 'btn btn-primary';
+            btnClass = "btn btn-primary";
         }
 
         let fileName;
@@ -931,15 +993,15 @@ export default class PluginManagement extends AdminSettings<Props, State> {
         if (this.state.uploading) {
             uploadButtonText = (
                 <FormattedMessage
-                    id='admin.plugin.uploading'
-                    defaultMessage='Uploading...'
+                    id="admin.plugin.uploading"
+                    defaultMessage="Uploading..."
                 />
             );
         } else {
             uploadButtonText = (
                 <FormattedMessage
-                    id='admin.plugin.upload'
-                    defaultMessage='Upload'
+                    id="admin.plugin.upload"
+                    defaultMessage="Upload"
                 />
             );
         }
@@ -949,16 +1011,18 @@ export default class PluginManagement extends AdminSettings<Props, State> {
         let pluginsListContainer;
         const plugins = Object.values(this.props.pluginStatuses);
         if (this.state.loading) {
-            pluginsList = <LoadingScreen/>;
+            pluginsList = <LoadingScreen />;
         } else if (plugins.length === 0) {
             pluginsListContainer = (
                 <FormattedMessage
-                    id='admin.plugin.no_plugins'
-                    defaultMessage='No installed plugins.'
+                    id="admin.plugin.no_plugins"
+                    defaultMessage="No installed plugins."
                 />
             );
         } else {
-            const showInstances = plugins.some((pluginStatus) => pluginStatus.instances.length > 1);
+            const showInstances = plugins.some(
+                (pluginStatus) => pluginStatus.instances.length > 1,
+            );
             plugins.sort((a, b) => {
                 const nameCompare = a.name.localeCompare(b.name);
                 if (nameCompare !== 0) {
@@ -969,7 +1033,14 @@ export default class PluginManagement extends AdminSettings<Props, State> {
             });
             pluginsList = plugins.map((pluginStatus: PluginStatus) => {
                 const p = this.props.plugins[pluginStatus.id];
-                const hasSettings = Boolean(p && p.settings_schema && (p.settings_schema.header || p.settings_schema.footer || (p.settings_schema.settings && p.settings_schema.settings.length > 0)));
+                const hasSettings = Boolean(
+                    p &&
+                        p.settings_schema &&
+                        (p.settings_schema.header ||
+                            p.settings_schema.footer ||
+                            (p.settings_schema.settings &&
+                                p.settings_schema.settings.length > 0)),
+                );
                 return (
                     <PluginItem
                         key={pluginStatus.id}
@@ -980,38 +1051,36 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                         handleRemove={this.showRemovePluginModal}
                         showInstances={showInstances}
                         hasSettings={hasSettings}
-                        appsFeatureFlagEnabled={this.props.appsFeatureFlagEnabled}
+                        appsFeatureFlagEnabled={
+                            this.props.appsFeatureFlagEnabled
+                        }
                         isDisabled={this.props.isDisabled}
                     />
                 );
             });
 
             pluginsListContainer = (
-                <div className='alert alert-transparent'>
-                    {pluginsList}
-                </div>
+                <div className="alert alert-transparent">{pluginsList}</div>
             );
         }
 
         if (enable) {
             pluginsContainer = (
-                <div className='form-group'>
-                    <label
-                        className='control-label col-sm-4'
-                    >
+                <div className="form-group">
+                    <label className="control-label col-sm-4">
                         <FormattedMessage
-                            id='admin.plugin.installedTitle'
-                            defaultMessage='Installed Plugins: '
+                            id="admin.plugin.installedTitle"
+                            defaultMessage="Installed Plugins: "
                         />
                     </label>
-                    <div className='col-sm-8'>
-                        <p className='help-text'>
+                    <div className="col-sm-8">
+                        <p className="help-text">
                             <FormattedMessage
-                                id='admin.plugin.installedDesc'
-                                defaultMessage='Installed plugins on your Mattermost server.'
+                                id="admin.plugin.installedDesc"
+                                defaultMessage="Installed plugins on your Mattermost server."
                             />
                         </p>
-                        <br/>
+                        <br />
                         {pluginsListContainer}
                     </div>
                 </div>
@@ -1023,13 +1092,13 @@ export default class PluginManagement extends AdminSettings<Props, State> {
         if (enableUploads && enable) {
             uploadHelpText = (
                 <FormattedMessage
-                    id='admin.plugin.uploadDesc'
-                    defaultMessage='Upload a plugin for your Mattermost server. See <link>documentation</link> to learn more.'
+                    id="admin.plugin.uploadDesc"
+                    defaultMessage="Upload a plugin for your Mattermost server. See <link>documentation</link> to learn more."
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
                                 href={DeveloperLinks.PLUGINS}
-                                location='plugin_management'
+                                location="plugin_management"
                             >
                                 {msg}
                             </ExternalLink>
@@ -1040,13 +1109,13 @@ export default class PluginManagement extends AdminSettings<Props, State> {
         } else if (enable && !enableUploads) {
             uploadHelpText = (
                 <FormattedMessage
-                    id='admin.plugin.uploadDisabledDesc'
-                    defaultMessage='Enable plugin uploads in config.json. See <link>documentation</link> to learn more.'
+                    id="admin.plugin.uploadDisabledDesc"
+                    defaultMessage="Enable plugin uploads in config.json. See <link>documentation</link> to learn more."
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
                                 href={DeveloperLinks.PLUGINS}
-                                location='plugin_management'
+                                location="plugin_management"
                             >
                                 {msg}
                             </ExternalLink>
@@ -1057,13 +1126,13 @@ export default class PluginManagement extends AdminSettings<Props, State> {
         } else {
             uploadHelpText = (
                 <FormattedMessage
-                    id='admin.plugin.uploadAndPluginDisabledDesc'
-                    defaultMessage='To enable plugins, set **Enable Plugins** to true. See <link>documentation</link> to learn more.'
+                    id="admin.plugin.uploadAndPluginDisabledDesc"
+                    defaultMessage="To enable plugins, set **Enable Plugins** to true. See <link>documentation</link> to learn more."
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
                                 href={DeveloperLinks.PLUGINS}
-                                location='plugin_management'
+                                location="plugin_management"
                             >
                                 {msg}
                             </ExternalLink>
@@ -1073,46 +1142,52 @@ export default class PluginManagement extends AdminSettings<Props, State> {
             );
         }
 
-        const overwriteUploadPluginModal = this.state.confirmOverwriteUploadModal && this.renderOverwritePluginModal({
-            show: this.state.confirmOverwriteUploadModal,
-            onConfirm: this.handleOverwriteUploadPlugin,
-            onCancel: this.handleOverwriteUploadPluginCancel,
-        });
+        const overwriteUploadPluginModal =
+            this.state.confirmOverwriteUploadModal &&
+            this.renderOverwritePluginModal({
+                show: this.state.confirmOverwriteUploadModal,
+                onConfirm: this.handleOverwriteUploadPlugin,
+                onCancel: this.handleOverwriteUploadPluginCancel,
+            });
 
-        const removePluginModal = this.state.showRemoveModal && this.renderRemovePluginModal(
-            this.state.showRemoveModal,
-            this.handleRemovePlugin,
-            this.handleRemovePluginCancel,
-        );
+        const removePluginModal =
+            this.state.showRemoveModal &&
+            this.renderRemovePluginModal(
+                this.state.showRemoveModal,
+                this.handleRemovePlugin,
+                this.handleRemovePluginCancel,
+            );
 
         return (
-            <div className='admin-console__wrapper'>
-                <div className='admin-console__content'>
-                    <SettingsGroup
-                        id={'PluginSettings'}
-                        container={false}
-                    >
+            <div className="admin-console__wrapper">
+                <div className="admin-console__content">
+                    <SettingsGroup id={"PluginSettings"} container={false}>
                         {this.renderEnablePluginsSetting()}
 
-                        { !this.props.config.ExperimentalSettings?.RestrictSystemAdmin && (
+                        {!this.props.config.ExperimentalSettings
+                            ?.RestrictSystemAdmin && (
                             <>
                                 <BooleanSetting
-                                    id='requirePluginSignature'
+                                    id="requirePluginSignature"
                                     label={
                                         <FormattedMessage
-                                            id='admin.plugins.settings.requirePluginSignature'
-                                            defaultMessage='Require Plugin Signature:'
+                                            id="admin.plugins.settings.requirePluginSignature"
+                                            defaultMessage="Require Plugin Signature:"
                                         />
                                     }
                                     helpText={
                                         <FormattedMessage
-                                            id='admin.plugins.settings.requirePluginSignatureDesc'
-                                            defaultMessage='When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more.'
+                                            id="admin.plugins.settings.requirePluginSignatureDesc"
+                                            defaultMessage="When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more."
                                             values={{
-                                                link: (msg: React.ReactNode) => (
+                                                link: (
+                                                    msg: React.ReactNode,
+                                                ) => (
                                                     <ExternalLink
-                                                        href={DeveloperLinks.PLUGIN_SIGNING}
-                                                        location='plugin_management'
+                                                        href={
+                                                            DeveloperLinks.PLUGIN_SIGNING
+                                                        }
+                                                        location="plugin_management"
                                                     >
                                                         {msg}
                                                     </ExternalLink>
@@ -1121,93 +1196,117 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                                         />
                                     }
                                     value={this.state.requirePluginSignature}
-                                    disabled={this.props.isDisabled || !this.state.enable}
+                                    disabled={
+                                        this.props.isDisabled ||
+                                        !this.state.enable
+                                    }
                                     onChange={this.handleChange}
-                                    setByEnv={this.isSetByEnv('PluginSettings.RequirePluginSignature')}
+                                    setByEnv={this.isSetByEnv(
+                                        "PluginSettings.RequirePluginSignature",
+                                    )}
                                 />
                                 <BooleanSetting
-                                    id='automaticPrepackagedPlugins'
+                                    id="automaticPrepackagedPlugins"
                                     label={
                                         <FormattedMessage
-                                            id='admin.plugins.settings.automaticPrepackagedPlugins'
-                                            defaultMessage='Enable Automatic Prepackaged Plugins:'
+                                            id="admin.plugins.settings.automaticPrepackagedPlugins"
+                                            defaultMessage="Enable Automatic Prepackaged Plugins:"
                                         />
                                     }
                                     helpText={
                                         <FormattedMarkdownMessage
-                                            id='admin.plugins.settings.automaticPrepackagedPluginsDesc'
-                                            defaultMessage='When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.'
+                                            id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
+                                            defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                                         />
                                     }
-                                    value={this.state.automaticPrepackagedPlugins}
-                                    disabled={this.props.isDisabled || !this.state.enable}
+                                    value={
+                                        this.state.automaticPrepackagedPlugins
+                                    }
+                                    disabled={
+                                        this.props.isDisabled ||
+                                        !this.state.enable
+                                    }
                                     onChange={this.handleChange}
-                                    setByEnv={this.isSetByEnv('PluginSettings.AutomaticPrepackagedPlugins')}
+                                    setByEnv={this.isSetByEnv(
+                                        "PluginSettings.AutomaticPrepackagedPlugins",
+                                    )}
                                 />
-                                <div className='form-group'>
-                                    <label
-                                        className='control-label col-sm-4'
-                                    >
+                                <div className="form-group">
+                                    <label className="control-label col-sm-4">
                                         <FormattedMessage
-                                            id='admin.plugin.uploadTitle'
-                                            defaultMessage='Upload Plugin: '
+                                            id="admin.plugin.uploadTitle"
+                                            defaultMessage="Upload Plugin: "
                                         />
                                     </label>
-                                    <div className='col-sm-8'>
-                                        <div className='file__upload'>
+                                    <div className="col-sm-8">
+                                        <div className="file__upload">
                                             <button
-                                                type='button'
-                                                className={classNames(['btn', {'btn-tertiary': enableUploads}])}
-                                                disabled={!enableUploadButton || this.props.isDisabled}
+                                                type="button"
+                                                className={classNames([
+                                                    "btn",
+                                                    {
+                                                        "btn-tertiary":
+                                                            enableUploads,
+                                                    },
+                                                ])}
+                                                disabled={
+                                                    !enableUploadButton ||
+                                                    this.props.isDisabled
+                                                }
                                             >
                                                 <FormattedMessage
-                                                    id='admin.plugin.choose'
-                                                    defaultMessage='Choose File'
+                                                    id="admin.plugin.choose"
+                                                    defaultMessage="Choose File"
                                                 />
                                             </button>
                                             <input
                                                 ref={this.fileInput}
-                                                type='file'
-                                                accept='.gz'
+                                                type="file"
+                                                accept=".gz"
                                                 onChange={this.handleUpload}
-                                                disabled={!enableUploadButton || this.props.isDisabled}
+                                                disabled={
+                                                    !enableUploadButton ||
+                                                    this.props.isDisabled
+                                                }
                                             />
                                         </div>
                                         <button
                                             className={btnClass}
-                                            id='uploadPlugin'
+                                            id="uploadPlugin"
                                             disabled={!this.state.fileSelected}
                                             onClick={this.handleSubmitUpload}
                                         >
                                             {uploadButtonText}
                                         </button>
-                                        <div className='help-text m-0'>
+                                        <div className="help-text m-0">
                                             {fileName}
                                         </div>
                                         {serverError}
                                         {lastMessage}
-                                        <p className='help-text'>
+                                        <p className="help-text">
                                             {uploadHelpText}
                                         </p>
                                     </div>
                                 </div>
                                 <BooleanSetting
-                                    id='enableMarketplace'
+                                    id="enableMarketplace"
                                     label={
                                         <FormattedMessage
-                                            id='admin.plugins.settings.enableMarketplace'
-                                            defaultMessage='Enable Marketplace:'
+                                            id="admin.plugins.settings.enableMarketplace"
+                                            defaultMessage="Enable Marketplace:"
                                         />
                                     }
                                     helpText={
                                         <FormattedMessage
-                                            id='admin.plugins.settings.enableMarketplaceDesc'
-                                            defaultMessage='When true, enables System Administrators to install plugins from the <link>marketplace</link>.'
+                                            id="admin.plugins.settings.enableMarketplaceDesc"
+                                            defaultMessage="When true, enables System Administrators to install plugins from the <link>marketplace</link>."
                                             values={{
-                                                link: (msg: React.ReactNode) => (
+                                                link: (
+                                                    msg: React.ReactNode,
+                                                ) => (
                                                     <ExternalLink
-                                                        href='https://mattermost.com/pl/default-mattermost-marketplace.html'
-                                                        location='plugin_management'
+                                                        href="https://mattermost.com/pl/default-mattermost-marketplace.html"
+                                                        location="plugin_management"
                                                     >
                                                         {msg}
                                                     </ExternalLink>
@@ -1216,44 +1315,72 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                                         />
                                     }
                                     value={this.state.enableMarketplace}
-                                    disabled={this.props.isDisabled || !this.state.enable}
+                                    disabled={
+                                        this.props.isDisabled ||
+                                        !this.state.enable
+                                    }
                                     onChange={this.handleChange}
-                                    setByEnv={this.isSetByEnv('PluginSettings.EnableMarketplace')}
+                                    setByEnv={this.isSetByEnv(
+                                        "PluginSettings.EnableMarketplace",
+                                    )}
                                 />
-                                {!this.props.streamlinedMarketplaceFlagEnabled && (
+                                {!this.props
+                                    .streamlinedMarketplaceFlagEnabled && (
                                     <>
                                         <BooleanSetting
-                                            id='enableRemoteMarketplace'
+                                            id="enableRemoteMarketplace"
                                             label={
                                                 <FormattedMessage
-                                                    id='admin.plugins.settings.enableRemoteMarketplace'
-                                                    defaultMessage='Enable Remote Marketplace:'
+                                                    id="admin.plugins.settings.enableRemoteMarketplace"
+                                                    defaultMessage="Enable Remote Marketplace:"
                                                 />
                                             }
                                             helpText={
                                                 <FormattedMarkdownMessage
-                                                    id='admin.plugins.settings.enableRemoteMarketplaceDesc'
-                                                    defaultMessage='When true, marketplace fetches latest plugins from the configured Marketplace URL.'
+                                                    id="admin.plugins.settings.enableRemoteMarketplaceDesc"
+                                                    defaultMessage="When true, marketplace fetches latest plugins from the configured Marketplace URL."
                                                 />
                                             }
-                                            value={this.state.enableRemoteMarketplace}
-                                            disabled={this.props.isDisabled || !this.state.enable || !this.state.enableUploads || !this.state.enableMarketplace}
+                                            value={
+                                                this.state
+                                                    .enableRemoteMarketplace
+                                            }
+                                            disabled={
+                                                this.props.isDisabled ||
+                                                !this.state.enable ||
+                                                !this.state.enableUploads ||
+                                                !this.state.enableMarketplace
+                                            }
                                             onChange={this.handleChange}
-                                            setByEnv={this.isSetByEnv('PluginSettings.EnableRemoteMarketplace')}
+                                            setByEnv={this.isSetByEnv(
+                                                "PluginSettings.EnableRemoteMarketplace",
+                                            )}
                                         />
                                         <TextSetting
-                                            id={'marketplaceUrl'}
+                                            id={"marketplaceUrl"}
                                             label={
                                                 <FormattedMessage
-                                                    id='admin.plugins.settings.marketplaceUrl'
-                                                    defaultMessage='Marketplace URL:'
+                                                    id="admin.plugins.settings.marketplaceUrl"
+                                                    defaultMessage="Marketplace URL:"
                                                 />
                                             }
-                                            helpText={this.getMarketplaceURLHelpText(this.state.marketplaceUrl, this.state.enableUploads)}
+                                            helpText={this.getMarketplaceURLHelpText(
+                                                this.state.marketplaceUrl,
+                                                this.state.enableUploads,
+                                            )}
                                             value={this.state.marketplaceUrl}
-                                            disabled={this.props.isDisabled || !this.state.enable || !this.state.enableUploads || !this.state.enableMarketplace || !this.state.enableRemoteMarketplace}
+                                            disabled={
+                                                this.props.isDisabled ||
+                                                !this.state.enable ||
+                                                !this.state.enableUploads ||
+                                                !this.state.enableMarketplace ||
+                                                !this.state
+                                                    .enableRemoteMarketplace
+                                            }
                                             onChange={this.handleChange}
-                                            setByEnv={this.isSetByEnv('PluginSettings.MarketplaceURL')}
+                                            setByEnv={this.isSetByEnv(
+                                                "PluginSettings.MarketplaceURL",
+                                            )}
                                         />
                                     </>
                                 )}

@@ -3,40 +3,40 @@
 
 /* eslint-disable max-lines */
 
-import React from 'react';
-import type {ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import type { ReactNode } from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {UserProfile} from '@mattermost/types/users';
+import type { PreferenceType } from "@mattermost/types/preferences";
+import type { UserProfile } from "@mattermost/types/users";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import {emitUserLoggedOutEvent} from 'actions/global_actions';
+import { emitUserLoggedOutEvent } from "actions/global_actions";
 
-import ConfirmModal from 'components/confirm_modal';
-import SettingItem from 'components/setting_item';
-import SettingItemMax from 'components/setting_item_max';
-import BackIcon from 'components/widgets/icons/fa_back_icon';
+import ConfirmModal from "components/confirm_modal";
+import SettingItem from "components/setting_item";
+import SettingItemMax from "components/setting_item_max";
+import BackIcon from "components/widgets/icons/fa_back_icon";
 
-import Constants, {AdvancedSections, Preferences} from 'utils/constants';
-import {t} from 'utils/i18n';
-import {isMac} from 'utils/user_agent';
-import {a11yFocus, localizeMessage} from 'utils/utils';
+import Constants, { AdvancedSections, Preferences } from "utils/constants";
+import { t } from "utils/i18n";
+import { isMac } from "utils/user_agent";
+import { a11yFocus, localizeMessage } from "utils/utils";
 
-import JoinLeaveSection from './join_leave_section';
-import PerformanceDebuggingSection from './performance_debugging_section';
+import JoinLeaveSection from "./join_leave_section";
+import PerformanceDebuggingSection from "./performance_debugging_section";
 
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
 type Settings = {
     [key: string]: string | undefined;
-    send_on_ctrl_enter: Props['sendOnCtrlEnter'];
-    code_block_ctrl_enter: Props['codeBlockOnCtrlEnter'];
-    formatting: Props['formatting'];
-    join_leave: Props['joinLeave'];
-    sync_drafts: Props['syncDrafts'];
-    data_prefetch: Props['dataPrefetchEnabled'];
+    send_on_ctrl_enter: Props["sendOnCtrlEnter"];
+    code_block_ctrl_enter: Props["codeBlockOnCtrlEnter"];
+    formatting: Props["formatting"];
+    join_leave: Props["joinLeave"];
+    sync_drafts: Props["syncDrafts"];
+    data_prefetch: Props["dataPrefetchEnabled"];
 };
 
 export type Props = {
@@ -58,8 +58,14 @@ export type Props = {
     disableWebappPrefetchAllowed: boolean;
     dataPrefetchEnabled: string;
     actions: {
-        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
-        updateUserActive: (userId: string, active: boolean) => Promise<ActionResult>;
+        savePreferences: (
+            userId: string,
+            preferences: PreferenceType[],
+        ) => Promise<ActionResult>;
+        updateUserActive: (
+            userId: string,
+            active: boolean,
+        ) => Promise<ActionResult>;
         revokeAllSessionsForUser: (userId: string) => Promise<ActionResult>;
     };
 };
@@ -73,9 +79,12 @@ type State = {
     showDeactivateAccountModal: boolean;
     serverError: string;
     preReleaseFeaturesKeys: string[];
-}
+};
 
-export default class AdvancedSettingsDisplay extends React.PureComponent<Props, State> {
+export default class AdvancedSettingsDisplay extends React.PureComponent<
+    Props,
+    State
+> {
     constructor(props: Props) {
         super(props);
 
@@ -91,10 +100,13 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             join_leave: this.props.joinLeave,
             sync_drafts: this.props.syncDrafts,
             data_prefetch: this.props.dataPrefetchEnabled,
-            [Preferences.UNREAD_SCROLL_POSITION]: this.props.unreadScrollPosition,
+            [Preferences.UNREAD_SCROLL_POSITION]:
+                this.props.unreadScrollPosition,
         };
 
-        const PreReleaseFeaturesLocal = JSON.parse(JSON.stringify(PreReleaseFeatures));
+        const PreReleaseFeaturesLocal = JSON.parse(
+            JSON.stringify(PreReleaseFeatures),
+        );
         delete PreReleaseFeaturesLocal.MARKDOWN_PREVIEW;
         const preReleaseFeaturesKeys = Object.keys(PreReleaseFeaturesLocal);
 
@@ -106,7 +118,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                 if (as.name === Constants.FeatureTogglePrefix + feature.label) {
                     settings[as.name] = as.value;
 
-                    if (as.value === 'true') {
+                    if (as.value === "true") {
                         enabledFeatures += 1;
                     }
                 }
@@ -126,30 +138,37 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             isSaving,
             previewFeaturesEnabled,
             showDeactivateAccountModal,
-            serverError: '',
+            serverError: "",
         };
     };
 
-    updateSetting = (setting: string, value: string, e?: React.ChangeEvent): void => {
+    updateSetting = (
+        setting: string,
+        value: string,
+        e?: React.ChangeEvent,
+    ): void => {
         const settings = this.state.settings;
         settings[setting] = value;
 
-        this.setState((prevState) => ({...prevState, ...settings}));
+        this.setState((prevState) => ({ ...prevState, ...settings }));
         a11yFocus(e?.currentTarget as HTMLElement);
     };
 
     toggleFeature = (feature: string, checked: boolean): void => {
-        const {settings} = this.state;
+        const { settings } = this.state;
         settings[Constants.FeatureTogglePrefix + feature] = String(checked);
 
         let enabledFeatures = 0;
         Object.keys(this.state.settings).forEach((setting) => {
-            if (setting.lastIndexOf(Constants.FeatureTogglePrefix) === 0 && this.state.settings[setting] === 'true') {
+            if (
+                setting.lastIndexOf(Constants.FeatureTogglePrefix) === 0 &&
+                this.state.settings[setting] === "true"
+            ) {
                 enabledFeatures++;
             }
         });
 
-        this.setState({settings, enabledFeatures});
+        this.setState({ settings, enabledFeatures });
     };
 
     saveEnabledFeatures = (): void => {
@@ -165,7 +184,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
 
     handleSubmit = async (settings: string[]): Promise<void> => {
         const preferences: PreferenceType[] = [];
-        const {actions, currentUser} = this.props;
+        const { actions, currentUser } = this.props;
         const userId = currentUser.id;
 
         // this should be refactored so we can actually be certain about what type everything is
@@ -178,29 +197,29 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             });
         });
 
-        this.setState({isSaving: true});
+        this.setState({ isSaving: true });
         await actions.savePreferences(userId, preferences);
 
-        this.handleUpdateSection('');
+        this.handleUpdateSection("");
     };
 
     handleDeactivateAccountSubmit = async (): Promise<void> => {
         const userId = this.props.currentUser.id;
 
-        this.setState({isSaving: true});
+        this.setState({ isSaving: true });
 
-        this.props.actions.updateUserActive(userId, false).
-            then(({error}) => {
-                if (error) {
-                    this.setState({serverError: error.message});
-                }
-            });
+        this.props.actions.updateUserActive(userId, false).then(({ error }) => {
+            if (error) {
+                this.setState({ serverError: error.message });
+            }
+        });
 
-        const {data, error} = await this.props.actions.revokeAllSessionsForUser(userId);
+        const { data, error } =
+            await this.props.actions.revokeAllSessionsForUser(userId);
         if (data) {
             emitUserLoggedOutEvent();
         } else if (error) {
-            this.setState({serverError: error.message});
+            this.setState({ serverError: error.message });
         }
     };
 
@@ -220,7 +239,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         if (!section) {
             this.setState(this.getStateFromProps());
         }
-        this.setState({isSaving: false});
+        this.setState({ isSaving: false });
         this.props.updateSection(section);
     };
 
@@ -228,22 +247,24 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     getCtrlSendText = () => {
         const description = {
             default: {
-                id: t('user.settings.advance.sendDesc'),
-                defaultMessage: 'When enabled, CTRL + ENTER will send the message and ENTER inserts a new line.',
+                id: t("user.settings.advance.sendDesc"),
+                defaultMessage:
+                    "When enabled, CTRL + ENTER will send the message and ENTER inserts a new line.",
             },
             mac: {
-                id: t('user.settings.advance.sendDesc.mac'),
-                defaultMessage: 'When enabled, ⌘ + ENTER will send the message and ENTER inserts a new line.',
+                id: t("user.settings.advance.sendDesc.mac"),
+                defaultMessage:
+                    "When enabled, ⌘ + ENTER will send the message and ENTER inserts a new line.",
             },
         };
         const title = {
             default: {
-                id: t('user.settings.advance.sendTitle'),
-                defaultMessage: 'Send Messages on CTRL+ENTER',
+                id: t("user.settings.advance.sendTitle"),
+                defaultMessage: "Send Messages on CTRL+ENTER",
             },
             mac: {
-                id: t('user.settings.advance.sendTitle.mac'),
-                defaultMessage: 'Send Messages on ⌘+ENTER',
+                id: t("user.settings.advance.sendTitle.mac"),
+                defaultMessage: "Send Messages on ⌘+ENTER",
             },
         };
         if (isMac()) {
@@ -259,19 +280,19 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     };
 
     renderOnOffLabel(enabled: string): JSX.Element {
-        if (enabled === 'false') {
+        if (enabled === "false") {
             return (
                 <FormattedMessage
-                    id='user.settings.advance.off'
-                    defaultMessage='Off'
+                    id="user.settings.advance.off"
+                    defaultMessage="Off"
                 />
             );
         }
 
         return (
             <FormattedMessage
-                id='user.settings.advance.on'
-                defaultMessage='On'
+                id="user.settings.advance.on"
+                defaultMessage="On"
             />
         );
     }
@@ -280,16 +301,16 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         if (option === Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT) {
             return (
                 <FormattedMessage
-                    id='user.settings.advance.startFromLeftOff'
-                    defaultMessage='Start me where I left off'
+                    id="user.settings.advance.startFromLeftOff"
+                    defaultMessage="Start me where I left off"
                 />
             );
         }
 
         return (
             <FormattedMessage
-                id='user.settings.advance.startFromNewest'
-                defaultMessage='Start me at the newest message'
+                id="user.settings.advance.startFromNewest"
+                defaultMessage="Start me at the newest message"
             />
         );
     }
@@ -297,90 +318,104 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     renderCtrlEnterLabel(): JSX.Element {
         const ctrlEnter = this.state.settings.send_on_ctrl_enter;
         const codeBlockCtrlEnter = this.state.settings.code_block_ctrl_enter;
-        if (ctrlEnter === 'false' && codeBlockCtrlEnter === 'false') {
+        if (ctrlEnter === "false" && codeBlockCtrlEnter === "false") {
             return (
                 <FormattedMessage
-                    id='user.settings.advance.off'
-                    defaultMessage='Off'
+                    id="user.settings.advance.off"
+                    defaultMessage="Off"
                 />
             );
-        } else if (ctrlEnter === 'true' && codeBlockCtrlEnter === 'true') {
+        } else if (ctrlEnter === "true" && codeBlockCtrlEnter === "true") {
             return (
                 <FormattedMessage
-                    id='user.settings.advance.onForAllMessages'
-                    defaultMessage='On for all messages'
+                    id="user.settings.advance.onForAllMessages"
+                    defaultMessage="On for all messages"
                 />
             );
         }
         return (
             <FormattedMessage
-                id='user.settings.advance.onForCode'
-                defaultMessage='On only for code blocks starting with ```'
+                id="user.settings.advance.onForCode"
+                defaultMessage="On only for code blocks starting with ```"
             />
         );
     }
 
     renderFormattingSection = () => {
-        const active = this.props.activeSection === 'formatting';
+        const active = this.props.activeSection === "formatting";
         let max = null;
         if (active) {
             max = (
                 <SettingItemMax
                     title={
                         <FormattedMessage
-                            id='user.settings.advance.formattingTitle'
-                            defaultMessage='Enable Post Formatting'
+                            id="user.settings.advance.formattingTitle"
+                            defaultMessage="Enable Post Formatting"
                         />
                     }
                     inputs={[
-                        <fieldset key='formattingSetting'>
-                            <legend className='form-legend hidden-label'>
+                        <fieldset key="formattingSetting">
+                            <legend className="form-legend hidden-label">
                                 <FormattedMessage
-                                    id='user.settings.advance.formattingTitle'
-                                    defaultMessage='Enable Post Formatting'
+                                    id="user.settings.advance.formattingTitle"
+                                    defaultMessage="Enable Post Formatting"
                                 />
                             </legend>
-                            <div className='radio'>
+                            <div className="radio">
                                 <label>
                                     <input
-                                        id='postFormattingOn'
-                                        type='radio'
-                                        name='formatting'
-                                        checked={this.state.settings.formatting !== 'false'}
-                                        onChange={this.updateSetting.bind(this, 'formatting', 'true')}
+                                        id="postFormattingOn"
+                                        type="radio"
+                                        name="formatting"
+                                        checked={
+                                            this.state.settings.formatting !==
+                                            "false"
+                                        }
+                                        onChange={this.updateSetting.bind(
+                                            this,
+                                            "formatting",
+                                            "true",
+                                        )}
                                     />
                                     <FormattedMessage
-                                        id='user.settings.advance.on'
-                                        defaultMessage='On'
+                                        id="user.settings.advance.on"
+                                        defaultMessage="On"
                                     />
                                 </label>
-                                <br/>
+                                <br />
                             </div>
-                            <div className='radio'>
+                            <div className="radio">
                                 <label>
                                     <input
-                                        id='postFormattingOff'
-                                        type='radio'
-                                        name='formatting'
-                                        checked={this.state.settings.formatting === 'false'}
-                                        onChange={this.updateSetting.bind(this, 'formatting', 'false')}
+                                        id="postFormattingOff"
+                                        type="radio"
+                                        name="formatting"
+                                        checked={
+                                            this.state.settings.formatting ===
+                                            "false"
+                                        }
+                                        onChange={this.updateSetting.bind(
+                                            this,
+                                            "formatting",
+                                            "false",
+                                        )}
                                     />
                                     <FormattedMessage
-                                        id='user.settings.advance.off'
-                                        defaultMessage='Off'
+                                        id="user.settings.advance.off"
+                                        defaultMessage="Off"
                                     />
                                 </label>
-                                <br/>
+                                <br />
                             </div>
-                            <div className='mt-5'>
+                            <div className="mt-5">
                                 <FormattedMessage
-                                    id='user.settings.advance.formattingDesc'
-                                    defaultMessage='If enabled, posts will be formatted to create links, show emoji, style the text, and add line breaks. By default, this setting is enabled.'
+                                    id="user.settings.advance.formattingDesc"
+                                    defaultMessage="If enabled, posts will be formatted to create links, show emoji, style the text, and add line breaks. By default, this setting is enabled."
                                 />
                             </div>
                         </fieldset>,
                     ]}
-                    submit={this.handleSubmit.bind(this, ['formatting'])}
+                    submit={this.handleSubmit.bind(this, ["formatting"])}
                     saving={this.state.isSaving}
                     serverError={this.state.serverError}
                     updateSection={this.handleUpdateSection}
@@ -391,15 +426,15 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         return (
             <SettingItem
                 active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
+                areAllSectionsInactive={this.props.activeSection === ""}
                 title={
                     <FormattedMessage
-                        id='user.settings.advance.formattingTitle'
-                        defaultMessage='Enable Post Formatting'
+                        id="user.settings.advance.formattingTitle"
+                        defaultMessage="Enable Post Formatting"
                     />
                 }
                 describe={this.renderOnOffLabel(this.state.settings.formatting)}
-                section={'formatting'}
+                section={"formatting"}
                 updateSection={this.handleUpdateSection}
                 max={max}
             />
@@ -407,66 +442,85 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     };
 
     renderUnreadScrollPositionSection = () => {
-        const active = this.props.activeSection === Preferences.UNREAD_SCROLL_POSITION;
+        const active =
+            this.props.activeSection === Preferences.UNREAD_SCROLL_POSITION;
         let max = null;
         if (active) {
             max = (
                 <SettingItemMax
                     title={
                         <FormattedMessage
-                            id='user.settings.advance.unreadScrollPositionTitle'
-                            defaultMessage='Scroll position when viewing an unread channel'
+                            id="user.settings.advance.unreadScrollPositionTitle"
+                            defaultMessage="Scroll position when viewing an unread channel"
                         />
                     }
                     inputs={[
-                        <fieldset key='unreadScrollPositionSetting'>
-                            <legend className='form-legend hidden-label'>
+                        <fieldset key="unreadScrollPositionSetting">
+                            <legend className="form-legend hidden-label">
                                 <FormattedMessage
-                                    id='user.settings.advance.unreadScrollPositionTitle'
-                                    defaultMessage='Scroll position when viewing an unread channel'
+                                    id="user.settings.advance.unreadScrollPositionTitle"
+                                    defaultMessage="Scroll position when viewing an unread channel"
                                 />
                             </legend>
-                            <div className='radio'>
+                            <div className="radio">
                                 <label>
                                     <input
-                                        id='unreadPositionStartFromLeftOff'
-                                        type='radio'
-                                        name='unreadScrollPosition'
-                                        checked={this.state.settings.unread_scroll_position === Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT}
-                                        onChange={this.updateSetting.bind(this, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT)}
+                                        id="unreadPositionStartFromLeftOff"
+                                        type="radio"
+                                        name="unreadScrollPosition"
+                                        checked={
+                                            this.state.settings
+                                                .unread_scroll_position ===
+                                            Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT
+                                        }
+                                        onChange={this.updateSetting.bind(
+                                            this,
+                                            Preferences.UNREAD_SCROLL_POSITION,
+                                            Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT,
+                                        )}
                                     />
                                     <FormattedMessage
-                                        id='user.settings.advance.startFromLeftOff'
-                                        defaultMessage='Start me where I left off'
+                                        id="user.settings.advance.startFromLeftOff"
+                                        defaultMessage="Start me where I left off"
                                     />
                                 </label>
-                                <br/>
+                                <br />
                             </div>
-                            <div className='radio'>
+                            <div className="radio">
                                 <label>
                                     <input
-                                        id='unreadPositionStartFromNewest'
-                                        type='radio'
-                                        name='unreadScrollPosition'
-                                        checked={this.state.settings.unread_scroll_position === Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST}
-                                        onChange={this.updateSetting.bind(this, Preferences.UNREAD_SCROLL_POSITION, Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST)}
+                                        id="unreadPositionStartFromNewest"
+                                        type="radio"
+                                        name="unreadScrollPosition"
+                                        checked={
+                                            this.state.settings
+                                                .unread_scroll_position ===
+                                            Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST
+                                        }
+                                        onChange={this.updateSetting.bind(
+                                            this,
+                                            Preferences.UNREAD_SCROLL_POSITION,
+                                            Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST,
+                                        )}
                                     />
                                     <FormattedMessage
-                                        id='user.settings.advance.startFromNewest'
-                                        defaultMessage='Start me at the newest message'
+                                        id="user.settings.advance.startFromNewest"
+                                        defaultMessage="Start me at the newest message"
                                     />
                                 </label>
-                                <br/>
+                                <br />
                             </div>
-                            <div className='mt-5'>
+                            <div className="mt-5">
                                 <FormattedMessage
-                                    id='user.settings.advance.unreadScrollPositionDesc'
-                                    defaultMessage='Choose your scroll position when you view an unread channel. Channels will always be marked as read when viewed.'
+                                    id="user.settings.advance.unreadScrollPositionDesc"
+                                    defaultMessage="Choose your scroll position when you view an unread channel. Channels will always be marked as read when viewed."
                                 />
                             </div>
                         </fieldset>,
                     ]}
-                    submit={this.handleSubmit.bind(this, [Preferences.UNREAD_SCROLL_POSITION])}
+                    submit={this.handleSubmit.bind(this, [
+                        Preferences.UNREAD_SCROLL_POSITION,
+                    ])}
                     saving={this.state.isSaving}
                     serverError={this.state.serverError}
                     updateSection={this.handleUpdateSection}
@@ -477,14 +531,16 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         return (
             <SettingItem
                 active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
+                areAllSectionsInactive={this.props.activeSection === ""}
                 title={
                     <FormattedMessage
-                        id='user.settings.advance.unreadScrollPositionTitle'
-                        defaultMessage='Scroll position when viewing an unread channel'
+                        id="user.settings.advance.unreadScrollPositionTitle"
+                        defaultMessage="Scroll position when viewing an unread channel"
                     />
                 }
-                describe={this.renderUnreadScrollPositionLabel(this.state.settings[Preferences.UNREAD_SCROLL_POSITION])}
+                describe={this.renderUnreadScrollPositionLabel(
+                    this.state.settings[Preferences.UNREAD_SCROLL_POSITION],
+                )}
                 section={Preferences.UNREAD_SCROLL_POSITION}
                 updateSection={this.handleUpdateSection}
                 max={max}
@@ -493,67 +549,82 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     };
 
     renderSyncDraftsSection = () => {
-        const active = this.props.activeSection === AdvancedSections.SYNC_DRAFTS;
+        const active =
+            this.props.activeSection === AdvancedSections.SYNC_DRAFTS;
         let max = null;
         if (active) {
             max = (
                 <SettingItemMax
                     title={
                         <FormattedMessage
-                            id='user.settings.advance.syncDrafts.Title'
-                            defaultMessage='Allow message drafts to sync with the server'
+                            id="user.settings.advance.syncDrafts.Title"
+                            defaultMessage="Allow message drafts to sync with the server"
                         />
                     }
                     inputs={[
-                        <fieldset key='syncDraftsSetting'>
-                            <legend className='form-legend hidden-label'>
+                        <fieldset key="syncDraftsSetting">
+                            <legend className="form-legend hidden-label">
                                 <FormattedMessage
-                                    id='user.settings.advance.syncDrafts.Title'
-                                    defaultMessage='Allow message drafts to sync with the server'
+                                    id="user.settings.advance.syncDrafts.Title"
+                                    defaultMessage="Allow message drafts to sync with the server"
                                 />
                             </legend>
-                            <div className='radio'>
+                            <div className="radio">
                                 <label>
                                     <input
-                                        id='syncDraftsOn'
-                                        type='radio'
-                                        name='syncDrafts'
-                                        checked={this.state.settings.sync_drafts !== 'false'}
-                                        onChange={this.updateSetting.bind(this, 'sync_drafts', 'true')}
+                                        id="syncDraftsOn"
+                                        type="radio"
+                                        name="syncDrafts"
+                                        checked={
+                                            this.state.settings.sync_drafts !==
+                                            "false"
+                                        }
+                                        onChange={this.updateSetting.bind(
+                                            this,
+                                            "sync_drafts",
+                                            "true",
+                                        )}
                                     />
                                     <FormattedMessage
-                                        id='user.settings.advance.on'
-                                        defaultMessage='On'
+                                        id="user.settings.advance.on"
+                                        defaultMessage="On"
                                     />
                                 </label>
-                                <br/>
+                                <br />
                             </div>
-                            <div className='radio'>
+                            <div className="radio">
                                 <label>
                                     <input
-                                        id='syncDraftsOff'
-                                        type='radio'
-                                        name='syncDrafts'
-                                        checked={this.state.settings.sync_drafts === 'false'}
-                                        onChange={this.updateSetting.bind(this, 'sync_drafts', 'false')}
+                                        id="syncDraftsOff"
+                                        type="radio"
+                                        name="syncDrafts"
+                                        checked={
+                                            this.state.settings.sync_drafts ===
+                                            "false"
+                                        }
+                                        onChange={this.updateSetting.bind(
+                                            this,
+                                            "sync_drafts",
+                                            "false",
+                                        )}
                                     />
                                     <FormattedMessage
-                                        id='user.settings.advance.off'
-                                        defaultMessage='Off'
+                                        id="user.settings.advance.off"
+                                        defaultMessage="Off"
                                     />
                                 </label>
-                                <br/>
+                                <br />
                             </div>
-                            <div className='mt-5'>
+                            <div className="mt-5">
                                 <FormattedMessage
-                                    id='user.settings.advance.syncDrafts.Desc'
-                                    defaultMessage='When enabled, message drafts are synced with the server so they can be accessed from any device. When disabled, message drafts are only saved locally on the device where they are composed.'
+                                    id="user.settings.advance.syncDrafts.Desc"
+                                    defaultMessage="When enabled, message drafts are synced with the server so they can be accessed from any device. When disabled, message drafts are only saved locally on the device where they are composed."
                                 />
                             </div>
                         </fieldset>,
                     ]}
                     setting={AdvancedSections.SYNC_DRAFTS}
-                    submit={this.handleSubmit.bind(this, ['sync_drafts'])}
+                    submit={this.handleSubmit.bind(this, ["sync_drafts"])}
                     saving={this.state.isSaving}
                     serverError={this.state.serverError}
                     updateSection={this.handleUpdateSection}
@@ -564,14 +635,16 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         return (
             <SettingItem
                 active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
+                areAllSectionsInactive={this.props.activeSection === ""}
                 title={
                     <FormattedMessage
-                        id='user.settings.advance.syncDrafts.Title'
-                        defaultMessage='Allow message drafts to sync with the server'
+                        id="user.settings.advance.syncDrafts.Title"
+                        defaultMessage="Allow message drafts to sync with the server"
                     />
                 }
-                describe={this.renderOnOffLabel(this.state.settings.sync_drafts)}
+                describe={this.renderOnOffLabel(
+                    this.state.settings.sync_drafts,
+                )}
                 section={AdvancedSections.SYNC_DRAFTS}
                 updateSection={this.handleUpdateSection}
                 max={max}
@@ -580,67 +653,82 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
     };
 
     renderDataPrefetchSection = () => {
-        const active = this.props.activeSection === AdvancedSections.DATA_PREFETCH;
+        const active =
+            this.props.activeSection === AdvancedSections.DATA_PREFETCH;
         let max = null;
         if (active) {
             max = (
                 <SettingItemMax
                     title={
                         <FormattedMessage
-                            id='user.settings.advance.dataPrefetch.Title'
-                            defaultMessage='Allow Mattermost to prefetch channel posts'
+                            id="user.settings.advance.dataPrefetch.Title"
+                            defaultMessage="Allow Mattermost to prefetch channel posts"
                         />
                     }
                     inputs={[
-                        <fieldset key='syncDraftsSetting'>
-                            <legend className='form-legend hidden-label'>
+                        <fieldset key="syncDraftsSetting">
+                            <legend className="form-legend hidden-label">
                                 <FormattedMessage
-                                    id='user.settings.advance.dataPrefetch.Title'
-                                    defaultMessage='Allow Mattermost to prefetch channel posts'
+                                    id="user.settings.advance.dataPrefetch.Title"
+                                    defaultMessage="Allow Mattermost to prefetch channel posts"
                                 />
                             </legend>
-                            <div className='radio'>
+                            <div className="radio">
                                 <label>
                                     <input
-                                        id='dataPrefetchOn'
-                                        type='radio'
-                                        name='dataPrefetch'
-                                        checked={this.state.settings.data_prefetch !== 'false'}
-                                        onChange={this.updateSetting.bind(this, 'data_prefetch', 'true')}
+                                        id="dataPrefetchOn"
+                                        type="radio"
+                                        name="dataPrefetch"
+                                        checked={
+                                            this.state.settings
+                                                .data_prefetch !== "false"
+                                        }
+                                        onChange={this.updateSetting.bind(
+                                            this,
+                                            "data_prefetch",
+                                            "true",
+                                        )}
                                     />
                                     <FormattedMessage
-                                        id='user.settings.advance.on'
-                                        defaultMessage='On'
+                                        id="user.settings.advance.on"
+                                        defaultMessage="On"
                                     />
                                 </label>
-                                <br/>
+                                <br />
                             </div>
-                            <div className='radio'>
+                            <div className="radio">
                                 <label>
                                     <input
-                                        id='dataPrefetchOff'
-                                        type='radio'
-                                        name='dataPrefetch'
-                                        checked={this.state.settings.data_prefetch === 'false'}
-                                        onChange={this.updateSetting.bind(this, 'data_prefetch', 'false')}
+                                        id="dataPrefetchOff"
+                                        type="radio"
+                                        name="dataPrefetch"
+                                        checked={
+                                            this.state.settings
+                                                .data_prefetch === "false"
+                                        }
+                                        onChange={this.updateSetting.bind(
+                                            this,
+                                            "data_prefetch",
+                                            "false",
+                                        )}
                                     />
                                     <FormattedMessage
-                                        id='user.settings.advance.off'
-                                        defaultMessage='Off'
+                                        id="user.settings.advance.off"
+                                        defaultMessage="Off"
                                     />
                                 </label>
-                                <br/>
+                                <br />
                             </div>
-                            <div className='mt-5'>
+                            <div className="mt-5">
                                 <FormattedMessage
-                                    id='user.settings.advance.dataPrefetch.Desc'
-                                    defaultMessage='When disabled, messages and user information will be fetched on each channel load instead of being pre-fetched on startup. Disabling prefetch is recommended for users with a high unread channel count in order to improve application performance.'
+                                    id="user.settings.advance.dataPrefetch.Desc"
+                                    defaultMessage="When disabled, messages and user information will be fetched on each channel load instead of being pre-fetched on startup. Disabling prefetch is recommended for users with a high unread channel count in order to improve application performance."
                                 />
                             </div>
                         </fieldset>,
                     ]}
                     setting={AdvancedSections.DATA_PREFETCH}
-                    submit={this.handleSubmit.bind(this, ['data_prefetch'])}
+                    submit={this.handleSubmit.bind(this, ["data_prefetch"])}
                     saving={this.state.isSaving}
                     serverError={this.state.serverError}
                     updateSection={this.handleUpdateSection}
@@ -651,14 +739,16 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         return (
             <SettingItem
                 active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
+                areAllSectionsInactive={this.props.activeSection === ""}
                 title={
                     <FormattedMessage
-                        id='user.settings.advance.dataPrefetch.Title'
-                        defaultMessage='Allow Mattermost to prefetch channel posts'
+                        id="user.settings.advance.dataPrefetch.Title"
+                        defaultMessage="Allow Mattermost to prefetch channel posts"
                     />
                 }
-                describe={this.renderOnOffLabel(this.state.settings.data_prefetch)}
+                describe={this.renderOnOffLabel(
+                    this.state.settings.data_prefetch,
+                )}
                 section={AdvancedSections.DATA_PREFETCH}
                 updateSection={this.handleUpdateSection}
                 max={max}
@@ -668,108 +758,129 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
 
     renderFeatureLabel(feature: string): ReactNode {
         switch (feature) {
-        case 'MARKDOWN_PREVIEW':
-            return (
-                <FormattedMessage
-                    id='user.settings.advance.markdown_preview'
-                    defaultMessage='Show markdown preview option in message input box'
-                />
-            );
-        default:
-            return null;
+            case "MARKDOWN_PREVIEW":
+                return (
+                    <FormattedMessage
+                        id="user.settings.advance.markdown_preview"
+                        defaultMessage="Show markdown preview option in message input box"
+                    />
+                );
+            default:
+                return null;
         }
     }
 
     renderCtrlSendSection = () => {
-        const active = this.props.activeSection === 'advancedCtrlSend';
+        const active = this.props.activeSection === "advancedCtrlSend";
         const serverError = this.state.serverError || null;
-        const {ctrlSendTitle, ctrlSendDesc} = this.getCtrlSendText();
+        const { ctrlSendTitle, ctrlSendDesc } = this.getCtrlSendText();
         let max = null;
         if (active) {
             const ctrlSendActive = [
-                this.state.settings.send_on_ctrl_enter === 'true',
-                this.state.settings.send_on_ctrl_enter === 'false' && this.state.settings.code_block_ctrl_enter === 'true',
-                this.state.settings.send_on_ctrl_enter === 'false' && this.state.settings.code_block_ctrl_enter === 'false',
+                this.state.settings.send_on_ctrl_enter === "true",
+                this.state.settings.send_on_ctrl_enter === "false" &&
+                    this.state.settings.code_block_ctrl_enter === "true",
+                this.state.settings.send_on_ctrl_enter === "false" &&
+                    this.state.settings.code_block_ctrl_enter === "false",
             ];
 
             const inputs = [
-                <fieldset key='ctrlSendSetting'>
-                    <legend className='form-legend hidden-label'>
-                        <FormattedMessage {...ctrlSendTitle}/>
+                <fieldset key="ctrlSendSetting">
+                    <legend className="form-legend hidden-label">
+                        <FormattedMessage {...ctrlSendTitle} />
                     </legend>
-                    <div className='radio'>
+                    <div className="radio">
                         <label>
                             <input
-                                id='ctrlSendOn'
-                                type='radio'
-                                name='sendOnCtrlEnter'
+                                id="ctrlSendOn"
+                                type="radio"
+                                name="sendOnCtrlEnter"
                                 checked={ctrlSendActive[0]}
                                 onChange={(e) => {
-                                    this.updateSetting('send_on_ctrl_enter', 'true');
-                                    this.updateSetting('code_block_ctrl_enter', 'true');
+                                    this.updateSetting(
+                                        "send_on_ctrl_enter",
+                                        "true",
+                                    );
+                                    this.updateSetting(
+                                        "code_block_ctrl_enter",
+                                        "true",
+                                    );
                                     a11yFocus(e.currentTarget);
                                 }}
                             />
                             <FormattedMessage
-                                id='user.settings.advance.onForAllMessages'
-                                defaultMessage='On for all messages'
+                                id="user.settings.advance.onForAllMessages"
+                                defaultMessage="On for all messages"
                             />
                         </label>
-                        <br/>
+                        <br />
                     </div>
-                    <div className='radio'>
+                    <div className="radio">
                         <label>
                             <input
-                                id='ctrlSendOnForCode'
-                                type='radio'
-                                name='sendOnCtrlEnter'
+                                id="ctrlSendOnForCode"
+                                type="radio"
+                                name="sendOnCtrlEnter"
                                 checked={ctrlSendActive[1]}
                                 onChange={(e) => {
-                                    this.updateSetting('send_on_ctrl_enter', 'false');
-                                    this.updateSetting('code_block_ctrl_enter', 'true');
+                                    this.updateSetting(
+                                        "send_on_ctrl_enter",
+                                        "false",
+                                    );
+                                    this.updateSetting(
+                                        "code_block_ctrl_enter",
+                                        "true",
+                                    );
                                     a11yFocus(e.currentTarget);
                                 }}
                             />
                             <FormattedMessage
-                                id='user.settings.advance.onForCode'
-                                defaultMessage='On only for code blocks starting with ```'
+                                id="user.settings.advance.onForCode"
+                                defaultMessage="On only for code blocks starting with ```"
                             />
                         </label>
-                        <br/>
+                        <br />
                     </div>
-                    <div className='radio'>
+                    <div className="radio">
                         <label>
                             <input
-                                id='ctrlSendOff'
-                                type='radio'
-                                name='sendOnCtrlEnter'
+                                id="ctrlSendOff"
+                                type="radio"
+                                name="sendOnCtrlEnter"
                                 checked={ctrlSendActive[2]}
                                 onChange={(e) => {
-                                    this.updateSetting('send_on_ctrl_enter', 'false');
-                                    this.updateSetting('code_block_ctrl_enter', 'false');
+                                    this.updateSetting(
+                                        "send_on_ctrl_enter",
+                                        "false",
+                                    );
+                                    this.updateSetting(
+                                        "code_block_ctrl_enter",
+                                        "false",
+                                    );
                                     a11yFocus(e.currentTarget);
                                 }}
                             />
                             <FormattedMessage
-                                id='user.settings.advance.off'
-                                defaultMessage='Off'
+                                id="user.settings.advance.off"
+                                defaultMessage="Off"
                             />
                         </label>
-                        <br/>
+                        <br />
                     </div>
                     <div>
-                        <br/>
-                        <FormattedMessage {...ctrlSendDesc}/>
+                        <br />
+                        <FormattedMessage {...ctrlSendDesc} />
                     </div>
                 </fieldset>,
             ];
             max = (
                 <SettingItemMax
-                    title={
-                        <FormattedMessage {...ctrlSendTitle}/>
-                    }
+                    title={<FormattedMessage {...ctrlSendTitle} />}
                     inputs={inputs}
-                    submit={this.handleSubmit.bind(this, ['send_on_ctrl_enter', 'code_block_ctrl_enter'])}
+                    submit={this.handleSubmit.bind(this, [
+                        "send_on_ctrl_enter",
+                        "code_block_ctrl_enter",
+                    ])}
                     saving={this.state.isSaving}
                     serverError={serverError}
                     updateSection={this.handleUpdateSection}
@@ -779,12 +890,10 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         return (
             <SettingItem
                 active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
-                title={
-                    <FormattedMessage {...ctrlSendTitle}/>
-                }
+                areAllSectionsInactive={this.props.activeSection === ""}
+                title={<FormattedMessage {...ctrlSendTitle} />}
                 describe={this.renderCtrlEnterLabel()}
-                section={'advancedCtrlSend'}
+                section={"advancedCtrlSend"}
                 updateSection={this.handleUpdateSection}
                 max={max}
             />
@@ -793,23 +902,37 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
 
     renderPreviewFeaturesSection = () => {
         const serverError = this.state.serverError || null;
-        const active = this.props.activeSection === 'advancedPreviewFeatures';
+        const active = this.props.activeSection === "advancedPreviewFeatures";
         let max = null;
         if (active) {
             const inputs = [];
 
             this.state.preReleaseFeaturesKeys.forEach((key) => {
-                const feature = this.state.preReleaseFeatures[key as keyof typeof PreReleaseFeatures];
+                const feature =
+                    this.state.preReleaseFeatures[
+                        key as keyof typeof PreReleaseFeatures
+                    ];
                 inputs.push(
-                    <div key={'advancedPreviewFeatures_' + feature.label}>
-                        <div className='checkbox'>
+                    <div key={"advancedPreviewFeatures_" + feature.label}>
+                        <div className="checkbox">
                             <label>
                                 <input
-                                    id={'advancedPreviewFeatures' + feature.label}
-                                    type='checkbox'
-                                    checked={this.state.settings[Constants.FeatureTogglePrefix + feature.label] === 'true'}
+                                    id={
+                                        "advancedPreviewFeatures" +
+                                        feature.label
+                                    }
+                                    type="checkbox"
+                                    checked={
+                                        this.state.settings[
+                                            Constants.FeatureTogglePrefix +
+                                                feature.label
+                                        ] === "true"
+                                    }
                                     onChange={(e) => {
-                                        this.toggleFeature(feature.label, e.target.checked);
+                                        this.toggleFeature(
+                                            feature.label,
+                                            e.target.checked,
+                                        );
                                     }}
                                 />
                                 {this.renderFeatureLabel(key)}
@@ -820,10 +943,10 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             });
 
             inputs.push(
-                <div key='advancedPreviewFeatures_helptext'>
-                    <br/>
+                <div key="advancedPreviewFeatures_helptext">
+                    <br />
                     <FormattedMessage
-                        id='user.settings.advance.preReleaseDesc'
+                        id="user.settings.advance.preReleaseDesc"
                         defaultMessage="Check any pre-released features you'd like to preview. You may also need to refresh the page before the setting will take effect."
                     />
                 </div>,
@@ -833,8 +956,8 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                 <SettingItemMax
                     title={
                         <FormattedMessage
-                            id='user.settings.advance.preReleaseTitle'
-                            defaultMessage='Preview Pre-release Features'
+                            id="user.settings.advance.preReleaseTitle"
+                            defaultMessage="Preview Pre-release Features"
                         />
                     }
                     inputs={inputs}
@@ -848,16 +971,19 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         return (
             <SettingItem
                 active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
-                title={localizeMessage('user.settings.advance.preReleaseTitle', 'Preview Pre-release Features')}
+                areAllSectionsInactive={this.props.activeSection === ""}
+                title={localizeMessage(
+                    "user.settings.advance.preReleaseTitle",
+                    "Preview Pre-release Features",
+                )}
                 describe={
                     <FormattedMessage
-                        id='user.settings.advance.enabledFeatures'
-                        defaultMessage='{count, number} {count, plural, one {feature} other {features}} enabled'
-                        values={{count: this.state.enabledFeatures}}
+                        id="user.settings.advance.enabledFeatures"
+                        defaultMessage="{count, number} {count, plural, one {feature} other {features}} enabled"
+                        values={{ count: this.state.enabledFeatures }}
                     />
                 }
-                section={'advancedPreviewFeatures'}
+                section={"advancedPreviewFeatures"}
                 updateSection={this.handleUpdateSection}
                 max={max}
             />
@@ -870,47 +996,51 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         const formattingSection = this.renderFormattingSection();
         let formattingSectionDivider = null;
         if (formattingSection) {
-            formattingSectionDivider = <div className='divider-light'/>;
+            formattingSectionDivider = <div className="divider-light" />;
         }
 
         let previewFeaturesSection;
         let previewFeaturesSectionDivider;
-        if (this.state.previewFeaturesEnabled && this.state.preReleaseFeaturesKeys.length > 0) {
-            previewFeaturesSectionDivider = (
-                <div className='divider-light'/>
-            );
+        if (
+            this.state.previewFeaturesEnabled &&
+            this.state.preReleaseFeaturesKeys.length > 0
+        ) {
+            previewFeaturesSectionDivider = <div className="divider-light" />;
             previewFeaturesSection = this.renderPreviewFeaturesSection();
         }
 
-        let deactivateAccountSection: ReactNode = '';
-        let makeConfirmationModal: ReactNode = '';
+        let deactivateAccountSection: ReactNode = "";
+        let makeConfirmationModal: ReactNode = "";
         const currentUser = this.props.currentUser;
 
-        if (currentUser.auth_service === '' && this.props.enableUserDeactivation) {
-            const active = this.props.activeSection === 'deactivateAccount';
+        if (
+            currentUser.auth_service === "" &&
+            this.props.enableUserDeactivation
+        ) {
+            const active = this.props.activeSection === "deactivateAccount";
             let max = null;
             if (active) {
                 max = (
                     <SettingItemMax
                         title={
                             <FormattedMessage
-                                id='user.settings.advance.deactivateAccountTitle'
-                                defaultMessage='Deactivate Account'
+                                id="user.settings.advance.deactivateAccountTitle"
+                                defaultMessage="Deactivate Account"
                             />
                         }
                         inputs={[
-                            <div key='formattingSetting'>
+                            <div key="formattingSetting">
                                 <div>
-                                    <br/>
+                                    <br />
                                     <FormattedMessage
-                                        id='user.settings.advance.deactivateDesc'
-                                        defaultMessage='Deactivating your account removes your ability to log in to this server and disables all email and mobile notifications. To reactivate your account, contact your System Administrator.'
+                                        id="user.settings.advance.deactivateDesc"
+                                        defaultMessage="Deactivating your account removes your ability to log in to this server and disables all email and mobile notifications. To reactivate your account, contact your System Administrator."
                                     />
                                 </div>
                             </div>,
                         ]}
-                        saveButtonText={'Deactivate'}
-                        setting={'deactivateAccount'}
+                        saveButtonText={"Deactivate"}
+                        setting={"deactivateAccount"}
                         submit={this.handleShowDeactivateAccountModal}
                         saving={this.state.isSaving}
                         serverError={this.state.serverError}
@@ -921,30 +1051,30 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             deactivateAccountSection = (
                 <SettingItem
                     active={active}
-                    areAllSectionsInactive={this.props.activeSection === ''}
+                    areAllSectionsInactive={this.props.activeSection === ""}
                     title={
                         <FormattedMessage
-                            id='user.settings.advance.deactivateAccountTitle'
-                            defaultMessage='Deactivate Account'
+                            id="user.settings.advance.deactivateAccountTitle"
+                            defaultMessage="Deactivate Account"
                         />
                     }
                     describe={
                         <FormattedMessage
-                            id='user.settings.advance.deactivateDescShort'
+                            id="user.settings.advance.deactivateDescShort"
                             defaultMessage="Click 'Edit' to deactivate your account"
                         />
                     }
-                    section={'deactivateAccount'}
+                    section={"deactivateAccount"}
                     updateSection={this.handleUpdateSection}
                     max={max}
                 />
             );
 
-            const confirmButtonClass = 'btn btn-danger';
+            const confirmButtonClass = "btn btn-danger";
             const deactivateMemberButton = (
                 <FormattedMessage
-                    id='user.settings.advance.deactivate_member_modal.deactivateButton'
-                    defaultMessage='Yes, deactivate my account'
+                    id="user.settings.advance.deactivate_member_modal.deactivateButton"
+                    defaultMessage="Yes, deactivate my account"
                 />
             );
 
@@ -953,14 +1083,14 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     show={this.state.showDeactivateAccountModal}
                     title={
                         <FormattedMessage
-                            id='user.settings.advance.confirmDeactivateAccountTitle'
-                            defaultMessage='Confirm Deactivation'
+                            id="user.settings.advance.confirmDeactivateAccountTitle"
+                            defaultMessage="Confirm Deactivation"
                         />
                     }
                     message={
                         <FormattedMessage
-                            id='user.settings.advance.confirmDeactivateDesc'
-                            defaultMessage='Are you sure you want to deactivate your account? This can only be reversed by your System Administrator.'
+                            id="user.settings.advance.confirmDeactivateDesc"
+                            defaultMessage="Are you sure you want to deactivate your account? This can only be reversed by your System Administrator."
                         />
                     }
                     confirmButtonClass={confirmButtonClass}
@@ -971,10 +1101,13 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             );
         }
 
-        const unreadScrollPositionSection = this.renderUnreadScrollPositionSection();
+        const unreadScrollPositionSection =
+            this.renderUnreadScrollPositionSection();
         let unreadScrollPositionSectionDivider = null;
         if (unreadScrollPositionSection) {
-            unreadScrollPositionSectionDivider = <div className='divider-light'/>;
+            unreadScrollPositionSectionDivider = (
+                <div className="divider-light" />
+            );
         }
 
         let syncDraftsSection = null;
@@ -982,7 +1115,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         if (this.props.syncedDraftsAreAllowed) {
             syncDraftsSection = this.renderSyncDraftsSection();
             if (syncDraftsSection) {
-                syncDraftsSectionDivider = <div className='divider-light'/>;
+                syncDraftsSectionDivider = <div className="divider-light" />;
             }
         }
 
@@ -991,52 +1124,53 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
         if (this.props.disableWebappPrefetchAllowed) {
             dataPrefetchSection = this.renderDataPrefetchSection();
             if (syncDraftsSection) {
-                dataPrefetchSectionDivider = <div className='divider-light'/>;
+                dataPrefetchSectionDivider = <div className="divider-light" />;
             }
         }
 
         return (
             <div>
-                <div className='modal-header'>
+                <div className="modal-header">
                     <button
-                        id='closeButton'
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label='Close'
+                        id="closeButton"
+                        type="button"
+                        className="close"
+                        data-dismiss="modal"
+                        aria-label="Close"
                         onClick={this.props.closeModal}
                     >
-                        <span aria-hidden='true'>{'×'}</span>
+                        <span aria-hidden="true">{"×"}</span>
                     </button>
-                    <h4
-                        className='modal-title'
-                    >
-                        <div className='modal-back'>
+                    <h4 className="modal-title">
+                        <div className="modal-back">
                             <span onClick={this.props.collapseModal}>
-                                <BackIcon/>
+                                <BackIcon />
                             </span>
                         </div>
                         <FormattedMessage
-                            id='user.settings.advance.title'
-                            defaultMessage='Advanced Settings'
+                            id="user.settings.advance.title"
+                            defaultMessage="Advanced Settings"
                         />
                     </h4>
                 </div>
-                <div className='user-settings'>
-                    <h3 className='tab-header'>
+                <div className="user-settings">
+                    <h3 className="tab-header">
                         <FormattedMessage
-                            id='user.settings.advance.title'
-                            defaultMessage='Advanced Settings'
+                            id="user.settings.advance.title"
+                            defaultMessage="Advanced Settings"
                         />
                     </h3>
-                    <div className='divider-dark first'/>
+                    <div className="divider-dark first" />
                     {ctrlSendSection}
                     {formattingSectionDivider}
                     {formattingSection}
-                    <div className='divider-light'/>
+                    <div className="divider-light" />
                     <JoinLeaveSection
-                        active={this.props.activeSection === AdvancedSections.JOIN_LEAVE}
-                        areAllSectionsInactive={this.props.activeSection === ''}
+                        active={
+                            this.props.activeSection ===
+                            AdvancedSections.JOIN_LEAVE
+                        }
+                        areAllSectionsInactive={this.props.activeSection === ""}
                         onUpdateSection={this.handleUpdateSection}
                         renderOnOffLabel={this.renderOnOffLabel}
                     />
@@ -1044,9 +1178,12 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     {previewFeaturesSection}
                     {formattingSectionDivider}
                     <PerformanceDebuggingSection
-                        active={this.props.activeSection === AdvancedSections.PERFORMANCE_DEBUGGING}
+                        active={
+                            this.props.activeSection ===
+                            AdvancedSections.PERFORMANCE_DEBUGGING
+                        }
                         onUpdateSection={this.handleUpdateSection}
-                        areAllSectionsInactive={this.props.activeSection === ''}
+                        areAllSectionsInactive={this.props.activeSection === ""}
                     />
                     {deactivateAccountSection}
                     {unreadScrollPositionSectionDivider}
@@ -1055,7 +1192,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     {syncDraftsSection}
                     {dataPrefetchSectionDivider}
                     {dataPrefetchSection}
-                    <div className='divider-dark'/>
+                    <div className="divider-dark" />
                     {makeConfirmationModal}
                 </div>
             </div>

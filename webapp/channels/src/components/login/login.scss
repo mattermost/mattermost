@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@import 'utils/mixins';
+@import "utils/mixins";
 
 .login-body {
     display: flex;
@@ -113,7 +113,7 @@
 
                 .login-body-card-title {
                     color: var(--center-channel-color);
-                    font-family: 'Metropolis';
+                    font-family: "Metropolis";
                     font-size: 22px;
                     font-style: normal;
                     font-weight: 600;

@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import FileThumbnail from './file_thumbnail';
+import FileThumbnail from "./file_thumbnail";
 
-describe('FileThumbnail', () => {
+describe("FileThumbnail", () => {
     const fileInfo = {
-        id: 'thumbnail_id',
-        extension: 'jpg',
+        id: "thumbnail_id",
+        extension: "jpg",
         width: 100,
         height: 80,
         has_preview_image: true,
-        user_id: '',
+        user_id: "",
         create_at: 0,
         update_at: 0,
         delete_at: 0,
-        name: '',
+        name: "",
         size: 100,
-        mime_type: '',
-        clientId: '',
+        mime_type: "",
+        clientId: "",
         archived: false,
     };
     const baseProps = {
@@ -28,15 +28,13 @@ describe('FileThumbnail', () => {
         enableSVGs: false,
     };
 
-    test('should render a small image', () => {
-        const wrapper = shallow(
-            <FileThumbnail {...baseProps}/>,
-        );
+    test("should render a small image", () => {
+        const wrapper = shallow(<FileThumbnail {...baseProps} />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should render a normal-sized image', () => {
+    test("should render a normal-sized image", () => {
         const props = {
             ...baseProps,
             fileInfo: {
@@ -46,63 +44,55 @@ describe('FileThumbnail', () => {
             },
         };
 
-        const wrapper = shallow(
-            <FileThumbnail {...props}/>,
-        );
+        const wrapper = shallow(<FileThumbnail {...props} />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should render an svg when svg previews are enabled', () => {
+    test("should render an svg when svg previews are enabled", () => {
         const props = {
             ...baseProps,
             fileInfo: {
                 ...fileInfo,
-                extension: 'svg',
+                extension: "svg",
             },
             enableSVGs: true,
         };
 
-        const wrapper = shallow(
-            <FileThumbnail {...props}/>,
-        );
+        const wrapper = shallow(<FileThumbnail {...props} />);
 
         expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('img').exists()).toBe(true);
+        expect(wrapper.find("img").exists()).toBe(true);
     });
 
-    test('should render an icon for an SVG when SVG previews are disabled', () => {
+    test("should render an icon for an SVG when SVG previews are disabled", () => {
         const props = {
             ...baseProps,
             fileInfo: {
                 ...fileInfo,
-                extension: 'svg',
+                extension: "svg",
             },
             enableSVGs: false,
         };
 
-        const wrapper = shallow(
-            <FileThumbnail {...props}/>,
-        );
+        const wrapper = shallow(<FileThumbnail {...props} />);
 
         expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('div.file-icon').exists()).toBe(true);
+        expect(wrapper.find("div.file-icon").exists()).toBe(true);
     });
 
-    test('should render an icon for a PDF', () => {
+    test("should render an icon for a PDF", () => {
         const props = {
             ...baseProps,
             fileInfo: {
                 ...fileInfo,
-                extension: 'pdf',
+                extension: "pdf",
             },
         };
 
-        const wrapper = shallow(
-            <FileThumbnail {...props}/>,
-        );
+        const wrapper = shallow(<FileThumbnail {...props} />);
 
         expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('div.file-icon').exists()).toBe(true);
+        expect(wrapper.find("div.file-icon").exists()).toBe(true);
     });
 });

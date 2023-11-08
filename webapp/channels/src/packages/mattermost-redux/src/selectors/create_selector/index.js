@@ -6,16 +6,16 @@
 // Generates a RFC-4122 version 4 compliant globally unique identifier.
 export function generateId() {
     // implementation taken from http://stackoverflow.com/a/2117523
-    let id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
+    let id = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
     id = id.replace(/[xy]/g, (c) => {
         const r = Math.floor(Math.random() * 16);
         let v;
 
-        if (c === 'x') {
+        if (c === "x") {
             v = r;
         } else {
             // eslint-disable-next-line no-mixed-operators
-            v = r & 0x3 | 0x8;
+            v = (r & 0x3) | 0x8;
         }
 
         return v.toString(16);
@@ -43,34 +43,38 @@ function areArgumentsShallowlyEqual(equalityCheck, prev, next) {
     return true;
 }
 
-export function defaultMemoize(func, measure, equalityCheck = defaultEqualityCheck) {
-    let lastArgs = null
-    let lastResult = null
+export function defaultMemoize(
+    func,
+    measure,
+    equalityCheck = defaultEqualityCheck,
+) {
+    let lastArgs = null;
+    let lastResult = null;
     // we reference arguments instead of spreading them for performance reasons
     return function () {
         if (!areArgumentsShallowlyEqual(equalityCheck, lastArgs, arguments)) {
             // apply arguments instead of spreading for performance.
-            lastResult = func.apply(null, arguments)
+            lastResult = func.apply(null, arguments);
         }
 
         if (measure) {
             measure();
         }
-        lastArgs = arguments
-        return lastResult
-    }
+        lastArgs = arguments;
+        return lastResult;
+    };
 }
 
 function getDependencies(funcs) {
     const dependencies = Array.isArray(funcs[0]) ? funcs[0] : funcs;
 
-    if (!dependencies.every((dep) => typeof dep === 'function')) {
-        const dependencyTypes = dependencies.map(
-            (dep) => typeof dep,
-        ).join(', ');
+    if (!dependencies.every((dep) => typeof dep === "function")) {
+        const dependencyTypes = dependencies
+            .map((dep) => typeof dep)
+            .join(", ");
         throw new Error(
-            'Selector creators expect all input-selectors to be functions, ' +
-        `instead received the following types: [${dependencyTypes}]`,
+            "Selector creators expect all input-selectors to be functions, " +
+                `instead received the following types: [${dependencyTypes}]`,
         );
     }
 
@@ -88,7 +92,7 @@ export function createSelectorCreator(memoize, ...memoizeOptions) {
         const dependencies = getDependencies(funcs);
 
         const memoizedResultFunc = memoize(
-            function() {
+            function () {
                 recomputations++;
                 trackedSelectors[id].recomputations++;
 
@@ -100,27 +104,29 @@ export function createSelectorCreator(memoize, ...memoizeOptions) {
         );
 
         // If a selector is called with the exact same arguments we don't need to traverse our dependencies again.
-        const selector = memoize(function() {
-            const params = [];
-            const length = dependencies.length;
+        const selector = memoize(
+            function () {
+                const params = [];
+                const length = dependencies.length;
 
-            for (let i = 0; i < length; i++) {
-                // apply arguments instead of spreading and mutate a local list of params for performance.
-                params.push(dependencies[i].apply(null, arguments));
-            }
+                for (let i = 0; i < length; i++) {
+                    // apply arguments instead of spreading and mutate a local list of params for performance.
+                    params.push(dependencies[i].apply(null, arguments));
+                }
 
-            // apply arguments instead of spreading for performance.
-            return memoizedResultFunc.apply(null, params);
-        },
-        () => {
-            calls++;
-            trackedSelectors[id].calls++;
-        });
+                // apply arguments instead of spreading for performance.
+                return memoizedResultFunc.apply(null, params);
+            },
+            () => {
+                calls++;
+                trackedSelectors[id].calls++;
+            },
+        );
 
         selector.resultFunc = resultFunc;
         selector.dependencies = dependencies;
         selector.recomputations = () => recomputations;
-        selector.resetRecomputations = () => recomputations = 0;
+        selector.resetRecomputations = () => (recomputations = 0);
 
         trackedSelectors[id] = {
             id,
@@ -133,13 +139,17 @@ export function createSelectorCreator(memoize, ...memoizeOptions) {
     };
 }
 
-export const createSelector = /* #__PURE__ */ createSelectorCreator(defaultMemoize);
+export const createSelector =
+    /* #__PURE__ */ createSelectorCreator(defaultMemoize);
 
-export function createStructuredSelector(selectors, selectorCreator = createSelector) {
-    if (typeof selectors !== 'object') {
+export function createStructuredSelector(
+    selectors,
+    selectorCreator = createSelector,
+) {
+    if (typeof selectors !== "object") {
         throw new Error(
-            'createStructuredSelector expects first argument to be an object ' +
-        `where each property is a selector, instead received a ${typeof selectors}`,
+            "createStructuredSelector expects first argument to be an object " +
+                `where each property is a selector, instead received a ${typeof selectors}`,
         );
     }
     const objectKeys = Object.keys(selectors);
@@ -166,8 +176,13 @@ function resetTrackedSelectors() {
 export function getSortedTrackedSelectors() {
     let selectors = Object.values(trackedSelectors);
     // Filter out any selector not called
-    selectors = selectors.filter(selector => selector.calls > 0);
-    const selectorsData = selectors.map((selector) => ({name: selector.name, effectiveness: effectiveness(selector), recomputations: selector.recomputations, calls: selector.calls}));
+    selectors = selectors.filter((selector) => selector.calls > 0);
+    const selectorsData = selectors.map((selector) => ({
+        name: selector.name,
+        effectiveness: effectiveness(selector),
+        recomputations: selector.recomputations,
+        calls: selector.calls,
+    }));
     selectorsData.sort((a, b) => {
         // Sort effectiveness ascending
         if (a.effectiveness !== b.effectiveness) {
@@ -189,7 +204,7 @@ export function getSortedTrackedSelectors() {
 }
 
 function effectiveness(selector) {
-    return 100 - ((selector.recomputations / selector.calls) * 100);
+    return 100 - (selector.recomputations / selector.calls) * 100;
 }
 
 // dumpTrackedSelectorsStatistics prints to console a table containing the measurement data on all tracked selectors.
@@ -200,5 +215,4 @@ function dumpTrackedSelectorsStatistics() {
 
 window.dumpTrackedSelectorsStatistics = dumpTrackedSelectorsStatistics;
 window.resetTrackedSelectors = resetTrackedSelectors;
-window.getSortedTrackedSelectors = getSortedTrackedSelectors
-
+window.getSortedTrackedSelectors = getSortedTrackedSelectors;

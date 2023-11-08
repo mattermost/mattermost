@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import moment from 'moment-timezone';
+import moment from "moment-timezone";
 
 const shouldTruncate = new Map<Intl.RelativeTimeFormatUnit, boolean>([
-    ['year', true],
-    ['quarter', true],
-    ['month', true],
-    ['week', true],
-    ['day', true],
-    ['hour', false],
-    ['minute', false],
-    ['second', true],
+    ["year", true],
+    ["quarter", true],
+    ["month", true],
+    ["week", true],
+    ["day", true],
+    ["hour", false],
+    ["minute", false],
+    ["second", true],
 ]);
 
 export function isWithin(
@@ -23,7 +23,9 @@ export function isWithin(
     truncateEndpoints = shouldTruncate.get(unit) || false,
 ): boolean {
     const diff = getDiff(a, b, timeZone, unit, truncateEndpoints);
-    return threshold >= 0 ? diff <= threshold && diff >= 0 : diff >= threshold && diff <= 0;
+    return threshold >= 0
+        ? diff <= threshold && diff >= 0
+        : diff >= threshold && diff <= 0;
 }
 
 export function isEqual(
@@ -52,7 +54,9 @@ export function getDiff(
         momentB.tz(timeZone);
     }
 
-    return truncateEndpoints ? momentA.startOf(unit).diff(momentB.startOf(unit), unit) : momentA.diff(b, unit, true);
+    return truncateEndpoints
+        ? momentA.startOf(unit).diff(momentB.startOf(unit), unit)
+        : momentA.diff(b, unit, true);
 }
 
 export function isSameDay(a: Date, b: Date = new Date()): boolean {
@@ -60,9 +64,7 @@ export function isSameDay(a: Date, b: Date = new Date()): boolean {
 }
 
 export function isWithinLastWeek(a: Date): boolean {
-    return moment(a).isAfter(
-        moment().subtract(6, 'days').startOf('day'),
-    );
+    return moment(a).isAfter(moment().subtract(6, "days").startOf("day"));
 }
 
 export function isSameMonth(a: Date, b: Date = new Date()): boolean {
@@ -87,4 +89,3 @@ export function isYesterday(date: Date): boolean {
 export function toUTCUnix(date: Date): number {
     return Math.round(new Date(date.toISOString()).getTime() / 1000);
 }
-

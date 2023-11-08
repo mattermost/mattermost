@@ -1,21 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getCurrentTimezoneFull} from 'mattermost-redux/selectors/entities/timezone';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import { getCurrentTimezoneFull } from "mattermost-redux/selectors/entities/timezone";
+import { getCurrentUser } from "mattermost-redux/selectors/entities/users";
+import type {
+    DispatchFunc,
+    GetStateFunc,
+} from "mattermost-redux/types/actions";
 
-import {updateMe} from './users';
+import { updateMe } from "./users";
 
 export function autoUpdateTimezone(deviceTimezone: string) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const currentUser = getCurrentUser(getState());
         const currentTimezone = getCurrentTimezoneFull(getState());
-        const newTimezoneExists = currentTimezone.automaticTimezone !== deviceTimezone;
+        const newTimezoneExists =
+            currentTimezone.automaticTimezone !== deviceTimezone;
 
         if (currentTimezone.useAutomaticTimezone && newTimezoneExists) {
             const timezone = {
-                useAutomaticTimezone: 'true',
+                useAutomaticTimezone: "true",
                 automaticTimezone: deviceTimezone,
                 manualTimezone: currentTimezone.manualTimezone,
             };
@@ -28,6 +32,6 @@ export function autoUpdateTimezone(deviceTimezone: string) {
             updateMe(updatedUser)(dispatch, getState);
         }
 
-        return {data: true};
+        return { data: true };
     };
 }

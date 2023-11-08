@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useMemo} from 'react';
-import type {ReactNode, ComponentProps, CSSProperties} from 'react';
+import React, { useState, useMemo } from "react";
+import type { ReactNode, ComponentProps, CSSProperties } from "react";
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
 
 type Props = {
     id?: string;
@@ -14,18 +14,18 @@ type Props = {
     className?: string;
     arrowOffsetTop?: number | string;
     style?: CSSProperties;
-}
+};
 
 const SimpleTooltip = ({
     id,
     content,
     children,
-    placement = 'top',
-    className = 'hidden-xs',
+    placement = "top",
+    className = "hidden-xs",
     delayShow = 500,
     style,
     ...props
-}: Props & Omit<ComponentProps<typeof OverlayTrigger>, 'overlay'>) => {
+}: Props & Omit<ComponentProps<typeof OverlayTrigger>, "overlay">) => {
     return (
         <OverlayTrigger
             {...props}
@@ -49,15 +49,21 @@ const SimpleTooltip = ({
 
 export default SimpleTooltip;
 
-export function useSynchronizedImmediate(): [Partial<ComponentProps<typeof SimpleTooltip>>, (isImmediate: boolean) => void] {
+export function useSynchronizedImmediate(): [
+    Partial<ComponentProps<typeof SimpleTooltip>>,
+    (isImmediate: boolean) => void,
+] {
     const [isImmediate, setImmediate] = useState(false);
 
     return [
-        useMemo((): Partial<ComponentProps<typeof SimpleTooltip>> => ({
-            onEntered: () => setImmediate(true),
-            animation: !isImmediate,
-            delayShow: isImmediate ? 0 : undefined,
-        }), [isImmediate, setImmediate]),
+        useMemo(
+            (): Partial<ComponentProps<typeof SimpleTooltip>> => ({
+                onEntered: () => setImmediate(true),
+                animation: !isImmediate,
+                delayShow: isImmediate ? 0 : undefined,
+            }),
+            [isImmediate, setImmediate],
+        ),
         setImmediate,
     ];
 }

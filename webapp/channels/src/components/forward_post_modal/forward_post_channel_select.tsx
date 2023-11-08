@@ -1,55 +1,65 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useRef} from 'react';
-import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
-import {components} from 'react-select';
-import type {IndicatorProps, OptionProps, SingleValueProps, ValueType} from 'react-select';
-import AsyncSelect from 'react-select/async';
+import React, { useEffect, useRef } from "react";
+import { useIntl } from "react-intl";
+import { useSelector } from "react-redux";
+import { components } from "react-select";
+import type {
+    IndicatorProps,
+    OptionProps,
+    SingleValueProps,
+    ValueType,
+} from "react-select";
+import AsyncSelect from "react-select/async";
 
 import {
-    ArchiveOutlineIcon, ChevronDownIcon,
+    ArchiveOutlineIcon,
+    ChevronDownIcon,
     GlobeIcon,
     LockOutlineIcon,
     MessageTextOutlineIcon,
-} from '@mattermost/compass-icons/components';
-import type {Channel} from '@mattermost/types/channels';
+} from "@mattermost/compass-icons/components";
+import type { Channel } from "@mattermost/types/channels";
 
-import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
-import {getMyTeams, getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUserId, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
+import { getDirectTeammate } from "mattermost-redux/selectors/entities/channels";
+import { getMyTeams, getTeam } from "mattermost-redux/selectors/entities/teams";
+import {
+    getCurrentUserId,
+    getStatusForUserId,
+    getUser,
+} from "mattermost-redux/selectors/entities/users";
+import { isGuest } from "mattermost-redux/utils/user_utils";
 
-import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-import ProfilePicture from 'components/profile_picture';
-import SharedChannelIndicator from 'components/shared_channel_indicator';
-import type {ProviderResult} from 'components/suggestion/provider';
-import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
-import BotTag from 'components/widgets/tag/bot_tag';
-import GuestTag from 'components/widgets/tag/guest_tag';
+import CustomStatusEmoji from "components/custom_status/custom_status_emoji";
+import ProfilePicture from "components/profile_picture";
+import SharedChannelIndicator from "components/shared_channel_indicator";
+import type { ProviderResult } from "components/suggestion/provider";
+import SwitchChannelProvider from "components/suggestion/switch_channel_provider";
+import BotTag from "components/widgets/tag/bot_tag";
+import GuestTag from "components/widgets/tag/guest_tag";
 
-import Constants from 'utils/constants';
-import * as Utils from 'utils/utils';
+import Constants from "utils/constants";
+import * as Utils from "utils/utils";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import {getBaseStyles} from './forward_post_channel_select_styles';
+import { getBaseStyles } from "./forward_post_channel_select_styles";
 
 type ChannelTypeFromProvider = Channel & {
     userId?: string;
-}
+};
 
 export type ChannelOption = {
     label: string;
     value: string;
     details: ChannelTypeFromProvider;
-}
+};
 
 type GroupedOption = {
     label: React.ReactNode;
     options: ChannelOption[];
-}
+};
 
 export const makeSelectedChannelOption = (channel: Channel): ChannelOption => ({
     label: channel.display_name || channel.name,
@@ -57,43 +67,58 @@ export const makeSelectedChannelOption = (channel: Channel): ChannelOption => ({
     details: channel,
 });
 
-const FormattedOption = (props: ChannelOption & {className: string; isSingleValue?: boolean}) => {
-    const {details} = props;
+const FormattedOption = (
+    props: ChannelOption & { className: string; isSingleValue?: boolean },
+) => {
+    const { details } = props;
 
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
 
-    const currentUserId = useSelector((state: GlobalState) => getCurrentUserId(state));
-    const user = useSelector((state: GlobalState) => getUser(state, details.userId || ''));
-    const status = useSelector((state: GlobalState) => getStatusForUserId(state, details.userId || ''));
-    const teammate = useSelector((state: GlobalState) => getDirectTeammate(state, details.id));
-    const team = useSelector((state: GlobalState) => getTeam(state, details.team_id));
-    const userImageUrl = user?.id && Utils.imageURLForUser(user.id, user.last_picture_update);
-    const isPartOfOnlyOneTeam = useSelector((state: GlobalState) => getMyTeams(state).length === 1);
+    const currentUserId = useSelector((state: GlobalState) =>
+        getCurrentUserId(state),
+    );
+    const user = useSelector((state: GlobalState) =>
+        getUser(state, details.userId || ""),
+    );
+    const status = useSelector((state: GlobalState) =>
+        getStatusForUserId(state, details.userId || ""),
+    );
+    const teammate = useSelector((state: GlobalState) =>
+        getDirectTeammate(state, details.id),
+    );
+    const team = useSelector((state: GlobalState) =>
+        getTeam(state, details.team_id),
+    );
+    const userImageUrl =
+        user?.id && Utils.imageURLForUser(user.id, user.last_picture_update);
+    const isPartOfOnlyOneTeam = useSelector(
+        (state: GlobalState) => getMyTeams(state).length === 1,
+    );
 
     const channelIsArchived = details.delete_at > 0;
 
     let icon;
     const iconProps = {
         size: 16,
-        color: 'rgba(var(--center-channel-color-rgb), 0.56)',
+        color: "rgba(var(--center-channel-color-rgb), 0.56)",
     };
 
     if (channelIsArchived) {
-        icon = <ArchiveOutlineIcon {...iconProps}/>;
+        icon = <ArchiveOutlineIcon {...iconProps} />;
     } else if (details.type === Constants.OPEN_CHANNEL) {
-        icon = <GlobeIcon {...iconProps}/>;
+        icon = <GlobeIcon {...iconProps} />;
     } else if (details.type === Constants.PRIVATE_CHANNEL) {
-        icon = <LockOutlineIcon {...iconProps}/>;
+        icon = <LockOutlineIcon {...iconProps} />;
     } else if (details.type === Constants.THREADS) {
-        icon = <MessageTextOutlineIcon {...iconProps}/>;
+        icon = <MessageTextOutlineIcon {...iconProps} />;
     } else if (details.type === Constants.GM_CHANNEL) {
-        icon = <div className='status status--group'>{'G'}</div>;
+        icon = <div className="status status--group">{"G"}</div>;
     } else {
         icon = (
             <ProfilePicture
                 src={userImageUrl}
                 status={teammate && teammate.is_bot ? undefined : status}
-                size='sm'
+                size="sm"
             />
         );
     }
@@ -106,9 +131,9 @@ const FormattedOption = (props: ChannelOption & {className: string; isSingleValu
     let tag = null;
     if (details.type === Constants.DM_CHANNEL) {
         if (teammate?.is_bot) {
-            tag = <BotTag/>;
-        } else if (isGuest(teammate?.roles ?? '')) {
-            tag = <GuestTag/>;
+            tag = <BotTag />;
+        } else if (isGuest(teammate?.roles ?? "")) {
+            tag = <GuestTag />;
         }
 
         const emojiStyle = {
@@ -124,35 +149,44 @@ const FormattedOption = (props: ChannelOption & {className: string; isSingleValu
             />
         );
 
-        const deactivated = user.delete_at ? ` - ${formatMessage({id: 'channel_switch_modal.deactivated', defaultMessage: 'Deactivated'})}` : '';
+        const deactivated = user.delete_at
+            ? ` - ${formatMessage({
+                  id: "channel_switch_modal.deactivated",
+                  defaultMessage: "Deactivated",
+              })}`
+            : "";
 
         if (details.display_name && !teammate?.is_bot) {
             description = `@${user.username}${deactivated}`;
         } else {
             name = user.username;
             if (user.id === currentUserId) {
-                name += ` ${formatMessage({id: 'suggestion.user.isCurrent', defaultMessage: '(you)'})}`;
+                name += ` ${formatMessage({
+                    id: "suggestion.user.isCurrent",
+                    defaultMessage: "(you)",
+                })}`;
             }
             description = deactivated;
         }
     } else if (details.type === Constants.GM_CHANNEL) {
         // remove the slug from the option
         name = details.display_name;
-        description = '';
+        description = "";
     }
 
     const sharedIcon = details.shared ? (
         <SharedChannelIndicator
-            className='shared-channel-icon'
+            className="shared-channel-icon"
             channelType={details.type}
         />
     ) : null;
 
-    const teamName = details.team_id && team ? (
-        <span className='option__team-name'>{team.display_name}</span>
-    ) : null;
+    const teamName =
+        details.team_id && team ? (
+            <span className="option__team-name">{team.display_name}</span>
+        ) : null;
 
-    const componentType = props.isSingleValue ? 'singleValue' : 'option';
+    const componentType = props.isSingleValue ? "singleValue" : "option";
 
     const componentId = `post-forward_channel-select_${componentType}_${details.id}`;
 
@@ -164,11 +198,15 @@ const FormattedOption = (props: ChannelOption & {className: string; isSingleValu
             aria-label={name}
         >
             {icon}
-            <span className='option__content'>
-                <span className='option__content--text'>{name}</span>
-                {(isPartOfOnlyOneTeam || details.type === Constants.DM_CHANNEL) && description && (
-                    <span className='option__content--description'>{description}</span>
-                )}
+            <span className="option__content">
+                <span className="option__content--text">{name}</span>
+                {(isPartOfOnlyOneTeam ||
+                    details.type === Constants.DM_CHANNEL) &&
+                    description && (
+                        <span className="option__content--description">
+                            {description}
+                        </span>
+                    )}
                 {customStatus}
                 {sharedIcon}
                 {tag}
@@ -179,9 +217,11 @@ const FormattedOption = (props: ChannelOption & {className: string; isSingleValu
 };
 
 const Option = (props: OptionProps<ChannelOption>) => {
-    const {data} = props;
+    const { data } = props;
 
-    const teammate = useSelector((state: GlobalState) => getDirectTeammate(state, data.details.id));
+    const teammate = useSelector((state: GlobalState) =>
+        getDirectTeammate(state, data.details.id),
+    );
 
     if (teammate?.is_bot) {
         return null;
@@ -189,23 +229,20 @@ const Option = (props: OptionProps<ChannelOption>) => {
 
     return (
         <components.Option {...props}>
-            <FormattedOption
-                {...data}
-                className='option'
-            />
+            <FormattedOption {...data} className="option" />
         </components.Option>
     );
 };
 
 const SingleValue = (props: SingleValueProps<ChannelOption>) => {
-    const {data} = props;
+    const { data } = props;
 
     return (
         <components.SingleValue {...props}>
             <FormattedOption
                 {...data}
                 isSingleValue={true}
-                className='singleValue'
+                className="singleValue"
             />
         </components.SingleValue>
     );
@@ -216,23 +253,29 @@ const DropdownIndicator = (props: IndicatorProps<ChannelOption>) => {
         <components.DropdownIndicator {...props}>
             <ChevronDownIcon
                 size={16}
-                color={'rgba(var(--center-channel-color-rgb), 0.64)'}
+                color={"rgba(var(--center-channel-color-rgb), 0.64)"}
             />
         </components.DropdownIndicator>
     );
 };
 
-const validChannelTypes = ['O', 'P', 'D', 'G'];
+const validChannelTypes = ["O", "P", "D", "G"];
 
 type Props<O> = {
     onSelect: (channel: ValueType<O>) => void;
     currentBodyHeight: number;
     value?: O;
-}
+};
 
-function ForwardPostChannelSelect({onSelect, value, currentBodyHeight}: Props<ChannelOption>) {
-    const {formatMessage} = useIntl();
-    const {current: provider} = useRef<SwitchChannelProvider>(new SwitchChannelProvider());
+function ForwardPostChannelSelect({
+    onSelect,
+    value,
+    currentBodyHeight,
+}: Props<ChannelOption>) {
+    const { formatMessage } = useIntl();
+    const { current: provider } = useRef<SwitchChannelProvider>(
+        new SwitchChannelProvider(),
+    );
 
     useEffect(() => {
         provider.forceDispatch = true;
@@ -240,7 +283,8 @@ function ForwardPostChannelSelect({onSelect, value, currentBodyHeight}: Props<Ch
 
     const baseStyles = getBaseStyles(currentBodyHeight);
 
-    const isValidChannelType = (channel: Channel) => validChannelTypes.includes(channel.type) && !channel.delete_at;
+    const isValidChannelType = (channel: Channel) =>
+        validChannelTypes.includes(channel.type) && !channel.delete_at;
 
     const getDefaultResults = () => {
         let options: GroupedOption[] = [];
@@ -248,11 +292,21 @@ function ForwardPostChannelSelect({onSelect, value, currentBodyHeight}: Props<Ch
         const handleDefaultResults = (res: ProviderResult<any>) => {
             options = [
                 {
-                    label: formatMessage({id: 'suggestion.mention.recent.channels', defaultMessage: 'Recent'}),
-                    options: res.items.filter((item) => item?.channel && isValidChannelType(item.channel) && !item.deactivated).map((item) => {
-                        const {channel} = item;
-                        return makeSelectedChannelOption(channel);
+                    label: formatMessage({
+                        id: "suggestion.mention.recent.channels",
+                        defaultMessage: "Recent",
                     }),
+                    options: res.items
+                        .filter(
+                            (item) =>
+                                item?.channel &&
+                                isValidChannelType(item.channel) &&
+                                !item.deactivated,
+                        )
+                        .map((item) => {
+                            const { channel } = item;
+                            return makeSelectedChannelOption(channel);
+                        }),
                 },
             ];
         };
@@ -276,13 +330,24 @@ function ForwardPostChannelSelect({onSelect, value, currentBodyHeight}: Props<Ch
              */
             const handleResults = async (res: ProviderResult<any>) => {
                 callCount++;
-                await res.items.filter((item) => item?.channel && isValidChannelType(item.channel) && !item.deactivated).forEach((item) => {
-                    const {channel} = item;
+                await res.items
+                    .filter(
+                        (item) =>
+                            item?.channel &&
+                            isValidChannelType(item.channel) &&
+                            !item.deactivated,
+                    )
+                    .forEach((item) => {
+                        const { channel } = item;
 
-                    if (options.findIndex((option) => option.value === channel.id) === -1) {
-                        options.push(makeSelectedChannelOption(channel));
-                    }
-                });
+                        if (
+                            options.findIndex(
+                                (option) => option.value === channel.id,
+                            ) === -1
+                        ) {
+                            options.push(makeSelectedChannelOption(channel));
+                        }
+                    });
 
                 if (callCount === 2) {
                     resolve(options);
@@ -299,12 +364,12 @@ function ForwardPostChannelSelect({onSelect, value, currentBodyHeight}: Props<Ch
             onChange={onSelect}
             loadOptions={handleInputChange}
             defaultOptions={defaultOptions.current}
-            components={{DropdownIndicator, Option, SingleValue}}
+            components={{ DropdownIndicator, Option, SingleValue }}
             styles={baseStyles}
-            legend='Forward to'
-            placeholder='Select channel or people'
-            className='forward-post__select'
-            data-testid='forward-post-select'
+            legend="Forward to"
+            placeholder="Select channel or people"
+            className="forward-post__select"
+            data-testid="forward-post-select"
         />
     );
 }

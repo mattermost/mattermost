@@ -1,100 +1,111 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ChangeEvent, FormEvent} from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import type { ChangeEvent, FormEvent } from "react";
+import { Modal } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
 
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
+import type { Channel, ChannelMembership } from "@mattermost/types/channels";
+import type { UserProfile } from "@mattermost/types/users";
+import type { RelationOneToOne } from "@mattermost/types/utilities";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import {getFullName} from 'mattermost-redux/utils/user_utils';
+import type { ActionResult } from "mattermost-redux/types/actions";
+import { getFullName } from "mattermost-redux/utils/user_utils";
 
-import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
-import SearchChannelWithPermissionsProvider from 'components/suggestion/search_channel_with_permissions_provider';
-import SuggestionBox from 'components/suggestion/suggestion_box';
-import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
+import ModalSuggestionList from "components/suggestion/modal_suggestion_list";
+import SearchChannelWithPermissionsProvider from "components/suggestion/search_channel_with_permissions_provider";
+import SuggestionBox from "components/suggestion/suggestion_box";
+import type SuggestionBoxComponent from "components/suggestion/suggestion_box/suggestion_box";
 
-import {placeCaretAtEnd} from 'utils/utils';
+import { placeCaretAtEnd } from "utils/utils";
 
 export type Props = {
-
     /**
-    * Function that's called after modal is closed
-    */
+     * Function that's called after modal is closed
+     */
     onExited: () => void;
 
     /**
-    * The user that is being added to a channel
-    */
+     * The user that is being added to a channel
+     */
     user: UserProfile;
 
     /**
-    * Object used to determine if the user
-    * is a member of a given channel
-    */
-    channelMembers: RelationOneToOne<Channel, Record<string, ChannelMembership>>;
+     * Object used to determine if the user
+     * is a member of a given channel
+     */
+    channelMembers: RelationOneToOne<
+        Channel,
+        Record<string, ChannelMembership>
+    >;
 
     actions: {
+        /**
+         * Function to add the user to a channel
+         */
+        addChannelMember: (
+            channelId: string,
+            userId: string,
+        ) => Promise<ActionResult>;
 
         /**
-        * Function to add the user to a channel
-        */
-        addChannelMember: (channelId: string, userId: string) => Promise<ActionResult>;
+         * Function to fetch the user's channel membership
+         */
+        getChannelMember: (
+            channelId: string,
+            userId: string,
+        ) => Promise<ActionResult>;
 
         /**
-        * Function to fetch the user's channel membership
-        */
-        getChannelMember: (channelId: string, userId: string) => Promise<ActionResult>;
-
-        /**
-        * Function passed on to the constructor of the
-        * SearchChannelWithPermissionsProvider class to fetch channels
-        * based on a search term
-        */
-        autocompleteChannelsForSearch: (teamId: string, term: string) => Promise<ActionResult<Channel[]>>;
+         * Function passed on to the constructor of the
+         * SearchChannelWithPermissionsProvider class to fetch channels
+         * based on a search term
+         */
+        autocompleteChannelsForSearch: (
+            teamId: string,
+            term: string,
+        ) => Promise<ActionResult<Channel[]>>;
     };
-
-}
+};
 
 type State = {
-
     /**
-    * Whether or not the modal is visible
-    */
+     * Whether or not the modal is visible
+     */
     show: boolean;
 
     /**
-    * Whether or not a request to add the user is in progress
-    */
+     * Whether or not a request to add the user is in progress
+     */
     saving: boolean;
 
     /**
-    * Whether or not a request to check for the user's channel membership
-    * is in progress
-    */
+     * Whether or not a request to check for the user's channel membership
+     * is in progress
+     */
     checkingForMembership: boolean;
 
     /**
-    * The user input in the channel search box
-    */
+     * The user input in the channel search box
+     */
     text: string;
 
     /**
-    * The id for the channel that is selected
-    */
+     * The id for the channel that is selected
+     */
     selectedChannelId: string | null;
 
     /**
-    * An error to display when the add request fails
-    */
+     * An error to display when the add request fails
+     */
     submitError: string;
-}
+};
 
-export default class AddUserToChannelModal extends React.PureComponent<Props, State> {
+export default class AddUserToChannelModal extends React.PureComponent<
+    Props,
+    State
+> {
     private suggestionProviders: SearchChannelWithPermissionsProvider[];
     private channelSearchBox?: SuggestionBoxComponent;
 
@@ -105,11 +116,15 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
             show: true,
             saving: false,
             checkingForMembership: false,
-            text: '',
+            text: "",
             selectedChannelId: null,
-            submitError: '',
+            submitError: "",
         };
-        this.suggestionProviders = [new SearchChannelWithPermissionsProvider(props.actions.autocompleteChannelsForSearch)];
+        this.suggestionProviders = [
+            new SearchChannelWithPermissionsProvider(
+                props.actions.autocompleteChannelsForSearch,
+            ),
+        ];
         this.enableChannelProvider();
     }
 
@@ -130,11 +145,11 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
     };
 
     onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-        this.setState({text: e.target.value, selectedChannelId: null});
+        this.setState({ text: e.target.value, selectedChannelId: null });
     };
 
     onHide = () => {
-        this.setState({show: false});
+        this.setState({ show: false });
     };
 
     onExited = () => {
@@ -146,13 +161,13 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
         this.focusTextbox();
     };
 
-    handleSubmitError = (error: {message: string}) => {
+    handleSubmitError = (error: { message: string }) => {
         if (error) {
-            this.setState({submitError: error.message, saving: false});
+            this.setState({ submitError: error.message, saving: false });
         }
     };
 
-    didSelectChannel = (selection: {channel: Channel}) => {
+    didSelectChannel = (selection: { channel: Channel }) => {
         const channel = selection.channel;
         const userId = this.props.user.id;
 
@@ -160,11 +175,11 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
             text: channel.display_name,
             selectedChannelId: channel.id,
             checkingForMembership: true,
-            submitError: '',
+            submitError: "",
         });
 
         this.props.actions.getChannelMember(channel.id, userId).then(() => {
-            this.setState({checkingForMembership: false});
+            this.setState({ checkingForMembership: false });
         });
     };
 
@@ -184,15 +199,17 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
             return;
         }
 
-        this.setState({saving: true});
+        this.setState({ saving: true });
 
-        this.props.actions.addChannelMember(channelId, user.id).then(({error}) => {
-            if (error) {
-                this.handleSubmitError(error);
-            } else {
-                this.onHide();
-            }
-        });
+        this.props.actions
+            .addChannelMember(channelId, user.id)
+            .then(({ error }) => {
+                if (error) {
+                    this.handleSubmitError(error);
+                } else {
+                    this.onHide();
+                }
+            });
     };
 
     isUserMemberOfChannel = (channelId: string | null) => {
@@ -213,7 +230,8 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
     render() {
         const user = this.props.user;
         const channelId = this.state.selectedChannelId;
-        const targetUserIsMemberOfSelectedChannel = this.isUserMemberOfChannel(channelId);
+        const targetUserIsMemberOfSelectedChannel =
+            this.isUserMemberOfChannel(channelId);
 
         let name = getFullName(user);
         if (!name) {
@@ -225,8 +243,8 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
             if (this.state.submitError) {
                 errorMsg = (
                     <label
-                        id='add-user-to-channel-modal__invite-error'
-                        className='modal__error has-error control-label'
+                        id="add-user-to-channel-modal__invite-error"
+                        className="modal__error has-error control-label"
                     >
                         {this.state.submitError}
                     </label>
@@ -234,12 +252,12 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
             } else if (targetUserIsMemberOfSelectedChannel) {
                 errorMsg = (
                     <label
-                        id='add-user-to-channel-modal__user-is-member'
-                        className='modal__error has-error control-label'
+                        id="add-user-to-channel-modal__user-is-member"
+                        className="modal__error has-error control-label"
                     >
                         <FormattedMessage
-                            id='add_user_to_channel_modal.membershipExistsError'
-                            defaultMessage='{name} is already a member of that channel'
+                            id="add_user_to_channel_modal.membershipExistsError"
+                            defaultMessage="{name} is already a member of that channel"
                             values={{
                                 name,
                             }}
@@ -251,8 +269,8 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
 
         const help = (
             <FormattedMessage
-                id='add_user_to_channel_modal.help'
-                defaultMessage='Type to find a channel. Use ↑↓ to browse, ↵ to select, ESC to dismiss.'
+                id="add_user_to_channel_modal.help"
+                defaultMessage="Type to find a channel. Use ↑↓ to browse, ↵ to select, ESC to dismiss."
             />
         );
 
@@ -261,86 +279,77 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
                 ref={this.setSearchBoxRef}
-                className='form-control focused'
+                className="form-control focused"
                 onChange={this.onInputChange}
                 value={this.state.text}
                 onItemSelected={this.didSelectChannel}
                 listComponent={ModalSuggestionList}
-                maxLength='64'
+                maxLength="64"
                 providers={this.suggestionProviders}
-                listPosition='bottom'
+                listPosition="bottom"
                 completeOnTab={false}
                 delayInputUpdate={true}
                 openWhenEmpty={false}
             />
         );
 
-        const shouldDisableAddButton = targetUserIsMemberOfSelectedChannel ||
+        const shouldDisableAddButton =
+            targetUserIsMemberOfSelectedChannel ||
             this.state.checkingForMembership ||
             Boolean(!this.state.selectedChannelId) ||
             this.state.saving;
 
         return (
             <Modal
-                dialogClassName='a11y__modal modal--overflow'
+                dialogClassName="a11y__modal modal--overflow"
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={this.onExited}
                 enforceFocus={true}
-                role='dialog'
-                aria-labelledby='addChannelModalLabel'
+                role="dialog"
+                aria-labelledby="addChannelModalLabel"
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title
-                        componentClass='h1'
-                        id='addChannelModalLabel'
-                    >
+                    <Modal.Title componentClass="h1" id="addChannelModalLabel">
                         <FormattedMessage
-                            id='add_user_to_channel_modal.title'
-                            defaultMessage='Add {name} to a Channel'
+                            id="add_user_to_channel_modal.title"
+                            defaultMessage="Add {name} to a Channel"
                             values={{
                                 name,
                             }}
                         />
                     </Modal.Title>
                 </Modal.Header>
-                <form
-                    role='form'
-                    onSubmit={this.handleSubmit}
-                >
+                <form role="form" onSubmit={this.handleSubmit}>
                     <Modal.Body>
-                        <div className='modal__hint'>
-                            {help}
-                        </div>
-                        <div className='pos-relative'>
-                            {content}
-                        </div>
+                        <div className="modal__hint">{help}</div>
+                        <div className="pos-relative">{content}</div>
                         <div>
                             {errorMsg}
-                            <br/>
+                            <br />
                         </div>
                     </Modal.Body>
                     <Modal.Footer>
                         <button
-                            type='button'
-                            className='btn btn-tertiary'
+                            type="button"
+                            className="btn btn-tertiary"
                             onClick={this.onHide}
                         >
                             <FormattedMessage
-                                id='add_user_to_channel_modal.cancel'
-                                defaultMessage='Cancel'
+                                id="add_user_to_channel_modal.cancel"
+                                defaultMessage="Cancel"
                             />
                         </button>
                         <button
-                            type='button'
-                            id='add-user-to-channel-modal__add-button'
-                            className='btn btn-primary'
+                            type="button"
+                            id="add-user-to-channel-modal__add-button"
+                            className="btn btn-primary"
                             onClick={this.handleSubmit}
                             disabled={shouldDisableAddButton}
                         >
                             <FormattedMessage
-                                id='add_user_to_channel_modal.add'
-                                defaultMessage='Add'
+                                id="add_user_to_channel_modal.add"
+                                defaultMessage="Add"
                             />
                         </button>
                     </Modal.Footer>

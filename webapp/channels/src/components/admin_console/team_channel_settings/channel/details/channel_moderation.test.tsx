@@ -1,37 +1,41 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import type {ChannelModeration as ChannelPermissions} from '@mattermost/types/channels';
+import type { ChannelModeration as ChannelPermissions } from "@mattermost/types/channels";
 
-import ChannelModeration, {ChannelModerationTableRow} from './channel_moderation';
+import ChannelModeration, {
+    ChannelModerationTableRow,
+} from "./channel_moderation";
 
-describe('admin_console/team_channel_settings/channel/ChannelModeration', () => {
-    const channelPermissions: ChannelPermissions[] = [{
-        name: 'create_post',
-        roles: {
-            guests: {
-                value: true,
-                enabled: true,
-            },
-            members: {
-                value: true,
-                enabled: true,
-            },
-            admins: {
-                value: true,
-                enabled: true,
+describe("admin_console/team_channel_settings/channel/ChannelModeration", () => {
+    const channelPermissions: ChannelPermissions[] = [
+        {
+            name: "create_post",
+            roles: {
+                guests: {
+                    value: true,
+                    enabled: true,
+                },
+                members: {
+                    value: true,
+                    enabled: true,
+                },
+                admins: {
+                    value: true,
+                    enabled: true,
+                },
             },
         },
-    }];
+    ];
     const onChannelPermissionsChanged = () => {
         jest.fn();
     };
-    const teamSchemeID = 'id';
-    const teamSchemeDisplayName = 'dp';
-    test('Should match first Snapshot', () => {
+    const teamSchemeID = "id";
+    const teamSchemeDisplayName = "dp";
+    test("Should match first Snapshot", () => {
         const wrapper = shallow(
             <ChannelModeration
                 channelPermissions={channelPermissions}
@@ -46,7 +50,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('Should match second Snapshot', () => {
+    test("Should match second Snapshot", () => {
         const wrapper = shallow(
             <ChannelModerationTableRow
                 key={channelPermissions[0].name}
@@ -63,10 +67,10 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('Should match third Snapshot', () => {
+    test("Should match third Snapshot", () => {
         const channelPermissionsCustom: ChannelPermissions[] = [
             {
-                name: 'create_post',
+                name: "create_post",
                 roles: {
                     guests: {
                         value: true,
@@ -83,7 +87,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 },
             },
             {
-                name: 'use_channel_mentions',
+                name: "use_channel_mentions",
                 roles: {
                     guests: {
                         value: false,
@@ -114,10 +118,10 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('Should match fourth Snapshot', () => {
+    test("Should match fourth Snapshot", () => {
         const channelPermissionsCustom: ChannelPermissions[] = [
             {
-                name: 'create_post',
+                name: "create_post",
                 roles: {
                     guests: {
                         value: false,
@@ -134,7 +138,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 },
             },
             {
-                name: 'use_channel_mentions',
+                name: "use_channel_mentions",
                 roles: {
                     guests: {
                         value: false,
@@ -165,10 +169,10 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('Should match fifth Snapshot', () => {
+    test("Should match fifth Snapshot", () => {
         const channelPermissionsCustom: ChannelPermissions[] = [
             {
-                name: 'create_post',
+                name: "create_post",
                 roles: {
                     guests: {
                         value: true,
@@ -185,7 +189,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 },
             },
             {
-                name: 'use_channel_mentions',
+                name: "use_channel_mentions",
                 roles: {
                     guests: {
                         value: false,
@@ -216,10 +220,10 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('Should match sixth Snapshot', () => {
+    test("Should match sixth Snapshot", () => {
         const channelPermissionsCustom: ChannelPermissions[] = [
             {
-                name: 'create_post',
+                name: "create_post",
                 roles: {
                     guests: {
                         value: false,
@@ -236,7 +240,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 },
             },
             {
-                name: 'use_channel_mentions',
+                name: "use_channel_mentions",
                 roles: {
                     guests: {
                         value: false,
@@ -267,7 +271,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('Should match sixth Snapshot', () => {
+    test("Should match sixth Snapshot", () => {
         const wrapper = shallow(
             <ChannelModeration
                 channelPermissions={channelPermissions}
@@ -282,7 +286,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('Should match seventh Snapshot', () => {
+    test("Should match seventh Snapshot", () => {
         const wrapper = shallow(
             <ChannelModerationTableRow
                 key={channelPermissions[0].name}
@@ -299,8 +303,8 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
         expect(wrapper).toMatchSnapshot();
     });
 
-    describe('errorMessages function', () => {
-        test('Should not return any error messages', () => {
+    describe("errorMessages function", () => {
+        test("Should not return any error messages", () => {
             const wrapper = shallow(
                 <ChannelModeration
                     channelPermissions={channelPermissions}
@@ -320,7 +324,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             expect(result).toEqual(output);
         });
 
-        test('Should return error message when create_post guests disabled', () => {
+        test("Should return error message when create_post guests disabled", () => {
             const wrapper = shallow(
                 <ChannelModeration
                     channelPermissions={channelPermissions}
@@ -334,7 +338,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             );
             const instance: any = wrapper.instance();
             const input: ChannelPermissions = {
-                name: 'create_post',
+                name: "create_post",
                 roles: {
                     guests: {
                         value: true,
@@ -354,7 +358,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             expect(result.length).toEqual(1);
         });
 
-        test('Should return error message when create_post members disabled', () => {
+        test("Should return error message when create_post members disabled", () => {
             const wrapper = shallow(
                 <ChannelModeration
                     channelPermissions={channelPermissions}
@@ -368,7 +372,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             );
             const instance: any = wrapper.instance();
             const input: ChannelPermissions = {
-                name: 'create_post',
+                name: "create_post",
                 roles: {
                     guests: {
                         value: true,
@@ -388,7 +392,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             expect(result.length).toEqual(1);
         });
 
-        test('Should return 1 error message when create_post members and guests disabled', () => {
+        test("Should return 1 error message when create_post members and guests disabled", () => {
             const wrapper = shallow(
                 <ChannelModeration
                     channelPermissions={channelPermissions}
@@ -402,7 +406,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             );
             const instance: any = wrapper.instance();
             const input: ChannelPermissions = {
-                name: 'create_post',
+                name: "create_post",
                 roles: {
                     guests: {
                         value: true,
@@ -422,10 +426,10 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             expect(result.length).toEqual(1);
         });
 
-        test('Should return not error messages for use_channel_mentions', () => {
+        test("Should return not error messages for use_channel_mentions", () => {
             const channelPermissionsCustom: ChannelPermissions[] = [
                 {
-                    name: 'create_post',
+                    name: "create_post",
                     roles: {
                         guests: {
                             value: true,
@@ -442,7 +446,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                     },
                 },
                 {
-                    name: 'use_channel_mentions',
+                    name: "use_channel_mentions",
                     roles: {
                         guests: {
                             value: true,
@@ -476,10 +480,10 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             expect(result.length).toEqual(0);
         });
 
-        test('Should return 2 error messages for use_channel_mentions', () => {
+        test("Should return 2 error messages for use_channel_mentions", () => {
             const channelPermissionsCustom: ChannelPermissions[] = [
                 {
-                    name: 'create_post',
+                    name: "create_post",
                     roles: {
                         guests: {
                             value: false,
@@ -496,7 +500,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                     },
                 },
                 {
-                    name: 'use_channel_mentions',
+                    name: "use_channel_mentions",
                     roles: {
                         guests: {
                             value: false,
@@ -530,10 +534,10 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             expect(result.length).toEqual(2);
         });
 
-        test('Should return 1 error messages for use_channel_mentions', () => {
+        test("Should return 1 error messages for use_channel_mentions", () => {
             const channelPermissionsCustom: ChannelPermissions[] = [
                 {
-                    name: 'create_post',
+                    name: "create_post",
                     roles: {
                         guests: {
                             value: false,
@@ -550,7 +554,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                     },
                 },
                 {
-                    name: 'use_channel_mentions',
+                    name: "use_channel_mentions",
                     roles: {
                         guests: {
                             value: false,
@@ -584,10 +588,10 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             expect(result.length).toEqual(1);
         });
 
-        test('Should return 2 error messages for use_channel_mentions', () => {
+        test("Should return 2 error messages for use_channel_mentions", () => {
             const channelPermissionsCustom: ChannelPermissions[] = [
                 {
-                    name: 'create_post',
+                    name: "create_post",
                     roles: {
                         guests: {
                             value: true,
@@ -604,7 +608,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                     },
                 },
                 {
-                    name: 'use_channel_mentions',
+                    name: "use_channel_mentions",
                     roles: {
                         guests: {
                             value: false,
@@ -638,10 +642,10 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             expect(result.length).toEqual(2);
         });
 
-        test('Should return 1 error messages for use_channel_mention when create_posts is checked and use_channel_mentions is disabled', () => {
+        test("Should return 1 error messages for use_channel_mention when create_posts is checked and use_channel_mentions is disabled", () => {
             const channelPermissionsCustom: ChannelPermissions[] = [
                 {
-                    name: 'create_post',
+                    name: "create_post",
                     roles: {
                         guests: {
                             value: true,
@@ -658,7 +662,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                     },
                 },
                 {
-                    name: 'use_channel_mentions',
+                    name: "use_channel_mentions",
                     roles: {
                         guests: {
                             value: false,

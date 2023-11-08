@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import UpdateUserGroupModal from './update_user_group_modal';
+import UpdateUserGroupModal from "./update_user_group_modal";
 
-describe('component/update_user_group_modal', () => {
+describe("component/update_user_group_modal", () => {
     const baseProps = {
         onExited: jest.fn(),
-        groupId: 'groupid123',
+        groupId: "groupid123",
         group: {
-            id: 'groupid123',
-            name: 'group',
-            display_name: 'Group Name',
-            description: 'Group description',
-            source: 'custom',
+            id: "groupid123",
+            name: "group",
+            display_name: "Group Name",
+            description: "Group description",
+            source: "custom",
             remote_id: null,
             create_at: 1637349374137,
             update_at: 1637349374137,
@@ -32,12 +32,8 @@ describe('component/update_user_group_modal', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <UpdateUserGroupModal
-                {...baseProps}
-            />,
-        );
+    test("should match snapshot", () => {
+        const wrapper = shallow(<UpdateUserGroupModal {...baseProps} />);
         expect(wrapper).toMatchSnapshot();
     });
 });

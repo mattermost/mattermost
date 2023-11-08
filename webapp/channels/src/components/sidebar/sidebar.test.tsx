@@ -1,24 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import type {DeepPartial} from '@mattermost/types/utilities';
+import type { DeepPartial } from "@mattermost/types/utilities";
 
-import {Preferences} from 'mattermost-redux/constants';
+import { Preferences } from "mattermost-redux/constants";
 
-import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
-import Constants, {ModalIdentifiers} from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
+import mergeObjects from "packages/mattermost-redux/test/merge_objects";
+import { renderWithFullContext, screen } from "tests/react_testing_utils";
+import Constants, { ModalIdentifiers } from "utils/constants";
+import { TestHelper } from "utils/test_helper";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import Sidebar from './sidebar';
+import Sidebar from "./sidebar";
 
-describe('components/sidebar', () => {
-    const currentTeamId = 'fake_team_id';
+describe("components/sidebar", () => {
+    const currentTeamId = "fake_team_id";
 
     const baseProps = {
         canCreatePublicChannel: true,
@@ -43,65 +43,89 @@ describe('components/sidebar', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <Sidebar {...baseProps}/>,
-        );
+    test("should match snapshot", () => {
+        const wrapper = shallow(<Sidebar {...baseProps} />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when direct channels modal is open', () => {
-        const wrapper = shallow(
-            <Sidebar {...baseProps}/>,
-        );
+    test("should match snapshot when direct channels modal is open", () => {
+        const wrapper = shallow(<Sidebar {...baseProps} />);
 
-        wrapper.instance().setState({showDirectChannelsModal: true});
+        wrapper.instance().setState({ showDirectChannelsModal: true });
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when more channels modal is open', () => {
-        const wrapper = shallow(
-            <Sidebar {...baseProps}/>,
-        );
+    test("should match snapshot when more channels modal is open", () => {
+        const wrapper = shallow(<Sidebar {...baseProps} />);
 
-        wrapper.instance().setState({showMoreChannelsModal: true});
+        wrapper.instance().setState({ showMoreChannelsModal: true });
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('Should call Shortcut modal on FORWARD_SLASH+ctrl/meta', () => {
-        const wrapper = shallow<Sidebar>(
-            <Sidebar {...baseProps}/>,
-        );
+    test("Should call Shortcut modal on FORWARD_SLASH+ctrl/meta", () => {
+        const wrapper = shallow<Sidebar>(<Sidebar {...baseProps} />);
         const instance = wrapper.instance();
 
         let key = Constants.KeyCodes.BACK_SLASH[0] as string;
         let keyCode = Constants.KeyCodes.BACK_SLASH[1] as number;
-        instance.handleKeyDownEvent({ctrlKey: true, preventDefault: jest.fn(), key, keyCode} as any);
-        expect(wrapper.instance().props.actions.openModal).not.toHaveBeenCalled();
+        instance.handleKeyDownEvent({
+            ctrlKey: true,
+            preventDefault: jest.fn(),
+            key,
+            keyCode,
+        } as any);
+        expect(
+            wrapper.instance().props.actions.openModal,
+        ).not.toHaveBeenCalled();
 
-        key = 'ù';
+        key = "ù";
         keyCode = Constants.KeyCodes.FORWARD_SLASH[1] as number;
-        instance.handleKeyDownEvent({ctrlKey: true, preventDefault: jest.fn(), key, keyCode} as any);
-        expect(wrapper.instance().props.actions.openModal).toHaveBeenCalledWith(expect.objectContaining({modalId: ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL}));
+        instance.handleKeyDownEvent({
+            ctrlKey: true,
+            preventDefault: jest.fn(),
+            key,
+            keyCode,
+        } as any);
+        expect(wrapper.instance().props.actions.openModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL,
+            }),
+        );
 
-        key = '/';
+        key = "/";
         keyCode = Constants.KeyCodes.SEVEN[1] as number;
-        instance.handleKeyDownEvent({ctrlKey: true, preventDefault: jest.fn(), key, keyCode} as any);
-        expect(wrapper.instance().props.actions.openModal).toHaveBeenCalledWith(expect.objectContaining({modalId: ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL}));
+        instance.handleKeyDownEvent({
+            ctrlKey: true,
+            preventDefault: jest.fn(),
+            key,
+            keyCode,
+        } as any);
+        expect(wrapper.instance().props.actions.openModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL,
+            }),
+        );
 
         key = Constants.KeyCodes.FORWARD_SLASH[0] as string;
         keyCode = Constants.KeyCodes.FORWARD_SLASH[1] as number;
-        instance.handleKeyDownEvent({ctrlKey: true, preventDefault: jest.fn(), key, keyCode} as any);
-        expect(wrapper.instance().props.actions.openModal).toHaveBeenCalledWith(expect.objectContaining({modalId: ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL}));
+        instance.handleKeyDownEvent({
+            ctrlKey: true,
+            preventDefault: jest.fn(),
+            key,
+            keyCode,
+        } as any);
+        expect(wrapper.instance().props.actions.openModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: ModalIdentifiers.KEYBOARD_SHORTCUTS_MODAL,
+            }),
+        );
     });
 
-    test('should toggle direct messages modal correctly', () => {
-        const wrapper = shallow<Sidebar>(
-            <Sidebar {...baseProps}/>,
-        );
+    test("should toggle direct messages modal correctly", () => {
+        const wrapper = shallow<Sidebar>(<Sidebar {...baseProps} />);
         const instance = wrapper.instance();
-        const mockEvent: Partial<Event> = {preventDefault: jest.fn()};
+        const mockEvent: Partial<Event> = { preventDefault: jest.fn() };
 
         instance.hideMoreDirectChannelsModal = jest.fn();
         instance.showMoreDirectChannelsModal = jest.fn();
@@ -109,28 +133,32 @@ describe('components/sidebar', () => {
         instance.handleOpenMoreDirectChannelsModal(mockEvent as any);
         expect(instance.showMoreDirectChannelsModal).toHaveBeenCalled();
 
-        instance.setState({showDirectChannelsModal: true});
+        instance.setState({ showDirectChannelsModal: true });
         instance.handleOpenMoreDirectChannelsModal(mockEvent as any);
         expect(instance.hideMoreDirectChannelsModal).toHaveBeenCalled();
     });
 
-    test('should match empty div snapshot when teamId is missing', () => {
+    test("should match empty div snapshot when teamId is missing", () => {
         const props = {
             ...baseProps,
-            teamId: '',
+            teamId: "",
         };
-        const wrapper = shallow(
-            <Sidebar {...props}/>,
-        );
+        const wrapper = shallow(<Sidebar {...props} />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    describe('unreads category', () => {
-        const currentUserId = 'current_user_id';
+    describe("unreads category", () => {
+        const currentUserId = "current_user_id";
 
-        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: currentTeamId});
-        const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: currentTeamId});
+        const channel1 = TestHelper.getChannelMock({
+            id: "channel1",
+            team_id: currentTeamId,
+        });
+        const channel2 = TestHelper.getChannelMock({
+            id: "channel2",
+            team_id: currentTeamId,
+        });
 
         const baseState: DeepPartial<GlobalState> = {
             entities: {
@@ -144,18 +172,28 @@ describe('components/sidebar', () => {
                         [currentTeamId]: [channel1.id, channel2.id],
                     },
                     messageCounts: {
-                        channel1: {total: 10},
-                        channel2: {total: 10},
+                        channel1: { total: 10 },
+                        channel2: { total: 10 },
                     },
                     myMembers: {
-                        channel1: TestHelper.getChannelMembershipMock({channel_id: channel1.id, user_id: currentUserId, msg_count: 10}),
-                        channel2: TestHelper.getChannelMembershipMock({channel_id: channel2.id, user_id: currentUserId, msg_count: 10}),
+                        channel1: TestHelper.getChannelMembershipMock({
+                            channel_id: channel1.id,
+                            user_id: currentUserId,
+                            msg_count: 10,
+                        }),
+                        channel2: TestHelper.getChannelMembershipMock({
+                            channel_id: channel2.id,
+                            user_id: currentUserId,
+                            msg_count: 10,
+                        }),
                     },
                 },
                 teams: {
                     currentTeamId,
                     teams: {
-                        [currentTeamId]: TestHelper.getTeamMock({id: currentTeamId}),
+                        [currentTeamId]: TestHelper.getTeamMock({
+                            id: currentTeamId,
+                        }),
                     },
                 },
                 users: {
@@ -164,95 +202,111 @@ describe('components/sidebar', () => {
             },
         };
 
-        test('should not render unreads category when disabled by user preference', () => {
+        test("should not render unreads category when disabled by user preference", () => {
             const testState = mergeObjects(baseState, {
                 entities: {
                     channels: {
                         messageCounts: {
-                            [channel2.id]: {total: 15},
+                            [channel2.id]: { total: 15 },
                         },
                     },
                     preferences: {
                         myPreferences: TestHelper.getPreferencesMock([
-                            {category: Preferences.CATEGORY_SIDEBAR_SETTINGS, name: Preferences.SHOW_UNREAD_SECTION, value: 'false'},
+                            {
+                                category: Preferences.CATEGORY_SIDEBAR_SETTINGS,
+                                name: Preferences.SHOW_UNREAD_SECTION,
+                                value: "false",
+                            },
                         ]),
                     },
                 },
             });
 
             renderWithFullContext(
-                <Sidebar {...baseProps}/>,
+                <Sidebar {...baseProps} />,
                 mergeObjects(baseState, testState),
             );
 
-            expect(screen.queryByText('UNREADS')).not.toBeInTheDocument();
+            expect(screen.queryByText("UNREADS")).not.toBeInTheDocument();
         });
 
-        test('should render unreads category when there are unread channels', () => {
+        test("should render unreads category when there are unread channels", () => {
             const testState: DeepPartial<GlobalState> = {
                 entities: {
                     channels: {
                         messageCounts: {
-                            [channel2.id]: {total: 15},
+                            [channel2.id]: { total: 15 },
                         },
                     },
                     preferences: {
                         myPreferences: TestHelper.getPreferencesMock([
-                            {category: Preferences.CATEGORY_SIDEBAR_SETTINGS, name: Preferences.SHOW_UNREAD_SECTION, value: 'true'},
+                            {
+                                category: Preferences.CATEGORY_SIDEBAR_SETTINGS,
+                                name: Preferences.SHOW_UNREAD_SECTION,
+                                value: "true",
+                            },
                         ]),
                     },
                 },
             };
 
             renderWithFullContext(
-                <Sidebar {...baseProps}/>,
+                <Sidebar {...baseProps} />,
                 mergeObjects(baseState, testState),
             );
 
-            expect(screen.queryByText('UNREADS')).toBeInTheDocument();
+            expect(screen.queryByText("UNREADS")).toBeInTheDocument();
         });
 
-        test('should not render unreads category when there are no unread channels', () => {
+        test("should not render unreads category when there are no unread channels", () => {
             const testState: DeepPartial<GlobalState> = {
                 entities: {
                     preferences: {
                         myPreferences: TestHelper.getPreferencesMock([
-                            {category: Preferences.CATEGORY_SIDEBAR_SETTINGS, name: Preferences.SHOW_UNREAD_SECTION, value: 'true'},
+                            {
+                                category: Preferences.CATEGORY_SIDEBAR_SETTINGS,
+                                name: Preferences.SHOW_UNREAD_SECTION,
+                                value: "true",
+                            },
                         ]),
                     },
                 },
             };
 
             renderWithFullContext(
-                <Sidebar {...baseProps}/>,
+                <Sidebar {...baseProps} />,
                 mergeObjects(baseState, testState),
             );
 
-            expect(screen.queryByText('UNREADS')).not.toBeInTheDocument();
+            expect(screen.queryByText("UNREADS")).not.toBeInTheDocument();
         });
 
-        test('should render unreads category when there are no unread channels but the current channel was previously unread', () => {
+        test("should render unreads category when there are no unread channels but the current channel was previously unread", () => {
             const testState: DeepPartial<GlobalState> = {
                 entities: {
                     preferences: {
                         myPreferences: TestHelper.getPreferencesMock([
-                            {category: Preferences.CATEGORY_SIDEBAR_SETTINGS, name: Preferences.SHOW_UNREAD_SECTION, value: 'true'},
+                            {
+                                category: Preferences.CATEGORY_SIDEBAR_SETTINGS,
+                                name: Preferences.SHOW_UNREAD_SECTION,
+                                value: "true",
+                            },
                         ]),
                     },
                 },
                 views: {
                     channel: {
-                        lastUnreadChannel: {id: channel1.id},
+                        lastUnreadChannel: { id: channel1.id },
                     },
                 },
             };
 
             renderWithFullContext(
-                <Sidebar {...baseProps}/>,
+                <Sidebar {...baseProps} />,
                 mergeObjects(baseState, testState),
             );
 
-            expect(screen.queryByText('UNREADS')).toBeInTheDocument();
+            expect(screen.queryByText("UNREADS")).toBeInTheDocument();
         });
     });
 });

@@ -1,33 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
-import {Modal} from 'react-bootstrap';
+import { shallow } from "enzyme";
+import React from "react";
+import { Modal } from "react-bootstrap";
 
-import type {PostType, PostMetadata} from '@mattermost/types/posts';
+import type { PostType, PostMetadata } from "@mattermost/types/posts";
 
-import DeletePostModal from 'components/delete_post_modal/delete_post_modal';
+import DeletePostModal from "components/delete_post_modal/delete_post_modal";
 
-import {getHistory} from 'utils/browser_history';
+import { getHistory } from "utils/browser_history";
 
-describe('components/delete_post_modal', () => {
+describe("components/delete_post_modal", () => {
     const post = {
-        id: '123',
-        message: 'test',
-        channel_id: '5',
-        type: '' as PostType,
-        root_id: '',
+        id: "123",
+        message: "test",
+        channel_id: "5",
+        type: "" as PostType,
+        root_id: "",
         create_at: 0,
         update_at: 0,
         edit_at: 0,
         delete_at: 0,
         is_pinned: false,
-        user_id: '',
-        original_id: '',
+        user_id: "",
+        original_id: "",
         props: {} as Record<string, any>,
-        hashtags: '',
-        pending_post_id: '',
+        hashtags: "",
+        pending_post_id: "",
         reply_count: 0,
         metadata: {} as PostMetadata,
     };
@@ -40,34 +40,30 @@ describe('components/delete_post_modal', () => {
             deleteAndRemovePost: jest.fn(),
         },
         onExited: jest.fn(),
-        channelName: 'channel_name',
-        teamName: 'team_name',
+        channelName: "channel_name",
+        teamName: "team_name",
         location: {
-            pathname: '',
+            pathname: "",
         },
     };
 
-    test('should match snapshot for delete_post_modal with 0 comments', () => {
-        const wrapper = shallow(
-            <DeletePostModal {...baseProps}/>,
-        );
+    test("should match snapshot for delete_post_modal with 0 comments", () => {
+        const wrapper = shallow(<DeletePostModal {...baseProps} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot for delete_post_modal with 1 comment', () => {
+    test("should match snapshot for delete_post_modal with 1 comment", () => {
         const commentCount = 1;
-        const props = {...baseProps, commentCount};
-        const wrapper = shallow(
-            <DeletePostModal {...props}/>,
-        );
+        const props = { ...baseProps, commentCount };
+        const wrapper = shallow(<DeletePostModal {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot for post with 1 commentCount and is not rootPost', () => {
+    test("should match snapshot for post with 1 commentCount and is not rootPost", () => {
         const commentCount = 1;
         const postObj = {
             ...post,
-            root_id: '1234',
+            root_id: "1234",
         };
 
         const props = {
@@ -76,15 +72,13 @@ describe('components/delete_post_modal', () => {
             post: postObj,
         };
 
-        const wrapper = shallow(
-            <DeletePostModal {...props}/>,
-        );
+        const wrapper = shallow(<DeletePostModal {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should focus delete button on enter', () => {
+    test("should focus delete button on enter", () => {
         const wrapper = shallow<DeletePostModal>(
-            <DeletePostModal {...baseProps}/>,
+            <DeletePostModal {...baseProps} />,
         );
 
         const deletePostBtn = {
@@ -98,103 +92,109 @@ describe('components/delete_post_modal', () => {
         expect(deletePostBtn.current.focus).toHaveBeenCalled();
     });
 
-    test('should match state when onHide is called', () => {
+    test("should match state when onHide is called", () => {
         const wrapper = shallow<DeletePostModal>(
-            <DeletePostModal {...baseProps}/>,
+            <DeletePostModal {...baseProps} />,
         );
 
-        wrapper.setState({show: true});
+        wrapper.setState({ show: true });
         wrapper.instance().onHide();
-        expect(wrapper.state('show')).toEqual(false);
+        expect(wrapper.state("show")).toEqual(false);
     });
 
-    test('should match state when the cancel button is clicked', () => {
-        const wrapper = shallow(
-            <DeletePostModal {...baseProps}/>,
-        );
+    test("should match state when the cancel button is clicked", () => {
+        const wrapper = shallow(<DeletePostModal {...baseProps} />);
 
-        wrapper.setState({show: true});
-        wrapper.find('button').at(0).simulate('click');
-        expect(wrapper.state('show')).toEqual(false);
+        wrapper.setState({ show: true });
+        wrapper.find("button").at(0).simulate("click");
+        expect(wrapper.state("show")).toEqual(false);
     });
 
-    test('should have called actions.deleteAndRemovePost when handleDelete is called', async () => {
-        const deleteAndRemovePost = jest.fn().mockReturnValueOnce({data: true});
+    test("should have called actions.deleteAndRemovePost when handleDelete is called", async () => {
+        const deleteAndRemovePost = jest
+            .fn()
+            .mockReturnValueOnce({ data: true });
         const props = {
             ...baseProps,
             actions: {
                 deleteAndRemovePost,
             },
             location: {
-                pathname: '/teamname/messages/@username',
+                pathname: "/teamname/messages/@username",
             },
         };
         const wrapper = shallow<DeletePostModal>(
-            <DeletePostModal {...props}/>,
+            <DeletePostModal {...props} />,
         );
 
-        wrapper.setState({show: true});
+        wrapper.setState({ show: true });
         wrapper.instance().handleDelete();
 
         await expect(deleteAndRemovePost).toHaveBeenCalledTimes(1);
         expect(deleteAndRemovePost).toHaveBeenCalledWith(props.post);
-        expect(wrapper.state('show')).toEqual(false);
+        expect(wrapper.state("show")).toEqual(false);
     });
 
-    test('should have called browserHistory.replace when permalink post is deleted for DM/GM', async () => {
-        const deleteAndRemovePost = jest.fn().mockReturnValueOnce({data: true});
+    test("should have called browserHistory.replace when permalink post is deleted for DM/GM", async () => {
+        const deleteAndRemovePost = jest
+            .fn()
+            .mockReturnValueOnce({ data: true });
         const props = {
             ...baseProps,
             actions: {
                 deleteAndRemovePost,
             },
             location: {
-                pathname: '/teamname/messages/@username/123',
+                pathname: "/teamname/messages/@username/123",
             },
         };
 
         const wrapper = shallow<DeletePostModal>(
-            <DeletePostModal {...props}/>,
+            <DeletePostModal {...props} />,
         );
 
-        wrapper.setState({show: true});
+        wrapper.setState({ show: true });
         wrapper.instance().handleDelete();
 
         await expect(deleteAndRemovePost).toHaveBeenCalledTimes(1);
-        expect(getHistory().replace).toHaveBeenCalledWith('/teamname/messages/@username');
+        expect(getHistory().replace).toHaveBeenCalledWith(
+            "/teamname/messages/@username",
+        );
     });
 
-    test('should have called browserHistory.replace when permalink post is deleted for a channel', async () => {
-        const deleteAndRemovePost = jest.fn().mockReturnValueOnce({data: true});
+    test("should have called browserHistory.replace when permalink post is deleted for a channel", async () => {
+        const deleteAndRemovePost = jest
+            .fn()
+            .mockReturnValueOnce({ data: true });
         const props = {
             ...baseProps,
             actions: {
                 deleteAndRemovePost,
             },
             location: {
-                pathname: '/teamname/channels/channelName/123',
+                pathname: "/teamname/channels/channelName/123",
             },
         };
 
         const wrapper = shallow<DeletePostModal>(
-            <DeletePostModal {...props}/>,
+            <DeletePostModal {...props} />,
         );
 
-        wrapper.setState({show: true});
+        wrapper.setState({ show: true });
         wrapper.instance().handleDelete();
 
         await expect(deleteAndRemovePost).toHaveBeenCalledTimes(1);
-        expect(getHistory().replace).toHaveBeenCalledWith('/teamname/channels/channelName');
+        expect(getHistory().replace).toHaveBeenCalledWith(
+            "/teamname/channels/channelName",
+        );
     });
 
-    test('should have called props.onExiteed when Modal.onExited is called', () => {
-        const wrapper = shallow(
-            <DeletePostModal {...baseProps}/>,
-        );
+    test("should have called props.onExiteed when Modal.onExited is called", () => {
+        const wrapper = shallow(<DeletePostModal {...baseProps} />);
 
         const modalProps = wrapper.find(Modal).first().props();
         if (modalProps.onExited) {
-            modalProps.onExited(document.createElement('div'));
+            modalProps.onExited(document.createElement("div"));
         }
         expect(baseProps.onExited).toHaveBeenCalledTimes(1);
     });

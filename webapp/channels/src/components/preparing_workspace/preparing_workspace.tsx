@@ -1,38 +1,53 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback, useEffect, useRef, useMemo} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
-import type {RouterProps} from 'react-router-dom';
+import React, {
+    useState,
+    useCallback,
+    useEffect,
+    useRef,
+    useMemo,
+} from "react";
+import { FormattedMessage, useIntl } from "react-intl";
+import { useDispatch, useSelector } from "react-redux";
+import type { RouterProps } from "react-router-dom";
 
-import type {Team} from '@mattermost/types/teams';
+import type { Team } from "@mattermost/types/teams";
 
-import {GeneralTypes} from 'mattermost-redux/action_types';
-import {getFirstAdminSetupComplete as getFirstAdminSetupCompleteAction} from 'mattermost-redux/actions/general';
-import {sendEmailInvitesToTeamGracefully} from 'mattermost-redux/actions/teams';
-import {Client4} from 'mattermost-redux/client';
-import {General} from 'mattermost-redux/constants';
-import {getFirstAdminSetupComplete, getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
-import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import { GeneralTypes } from "mattermost-redux/action_types";
+import { getFirstAdminSetupComplete as getFirstAdminSetupCompleteAction } from "mattermost-redux/actions/general";
+import { sendEmailInvitesToTeamGracefully } from "mattermost-redux/actions/teams";
+import { Client4 } from "mattermost-redux/client";
+import { General } from "mattermost-redux/constants";
+import {
+    getFirstAdminSetupComplete,
+    getConfig,
+    getLicense,
+} from "mattermost-redux/selectors/entities/general";
+import { getIsOnboardingFlowEnabled } from "mattermost-redux/selectors/entities/preferences";
+import {
+    getCurrentTeam,
+    getMyTeams,
+} from "mattermost-redux/selectors/entities/teams";
+import { isFirstAdmin } from "mattermost-redux/selectors/entities/users";
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import {pageVisited, trackEvent} from 'actions/telemetry_actions';
+import { pageVisited, trackEvent } from "actions/telemetry_actions";
 
-import LogoSvg from 'components/common/svg_images_components/logo_dark_blue_svg';
+import LogoSvg from "components/common/svg_images_components/logo_dark_blue_svg";
 
-import Constants from 'utils/constants';
-import {makeNewTeam} from 'utils/team_utils';
-import {getSiteURL, teamNameToUrl} from 'utils/url';
+import Constants from "utils/constants";
+import { makeNewTeam } from "utils/team_utils";
+import { getSiteURL, teamNameToUrl } from "utils/url";
 
-import InviteMembers from './invite_members';
-import InviteMembersIllustration from './invite_members_illustration';
-import LaunchingWorkspace, {START_TRANSITIONING_OUT} from './launching_workspace';
-import Organization from './organization';
-import Plugins from './plugins';
-import Progress from './progress';
+import InviteMembers from "./invite_members";
+import InviteMembersIllustration from "./invite_members_illustration";
+import LaunchingWorkspace, {
+    START_TRANSITIONING_OUT,
+} from "./launching_workspace";
+import Organization from "./organization";
+import Plugins from "./plugins";
+import Progress from "./progress";
 import {
     WizardSteps,
     Animations,
@@ -43,22 +58,19 @@ import {
     mapStepToSubmitFail,
     PLUGIN_NAME_TO_ID_MAP,
     mapStepToPrevious,
-} from './steps';
-import type {
-    WizardStep,
-    AnimationReason,
-    Form} from './steps';
+} from "./steps";
+import type { WizardStep, AnimationReason, Form } from "./steps";
 
-import './preparing_workspace.scss';
+import "./preparing_workspace.scss";
 
 const SubmissionStates = {
-    Presubmit: 'Presubmit',
-    UserRequested: 'UserRequested',
-    Submitting: 'Submitting',
-    SubmitFail: 'SubmitFail',
+    Presubmit: "Presubmit",
+    UserRequested: "UserRequested",
+    Submitting: "Submitting",
+    SubmitFail: "SubmitFail",
 } as const;
 
-type SubmissionState = typeof SubmissionStates[keyof typeof SubmissionStates];
+type SubmissionState = (typeof SubmissionStates)[keyof typeof SubmissionStates];
 
 // We want an apparent total wait of at least two seconds
 // START_TRANSITIONING_OUT is how long the other side of the transitioning screen
@@ -68,24 +80,28 @@ export type Actions = {
     createTeam: (team: Team) => ActionResult;
     updateTeam: (team: Team) => ActionResult;
     checkIfTeamExists: (teamName: string) => ActionResult;
-    getProfiles: (page: number, perPage: number, options: Record<string, any>) => ActionResult;
-}
+    getProfiles: (
+        page: number,
+        perPage: number,
+        options: Record<string, any>,
+    ) => ActionResult;
+};
 
 type Props = RouterProps & {
     handleForm(form: Form): void;
     background?: JSX.Element | string;
     actions: Actions;
-}
+};
 
 function makeOnPageView(step: WizardStep) {
     return function onPageViewInner() {
-        pageVisited('first_admin_setup', mapStepToPageView(step));
+        pageVisited("first_admin_setup", mapStepToPageView(step));
     };
 }
 
 function makeSubmitFail(step: WizardStep) {
     return function onPageViewInner() {
-        trackEvent('first_admin_setup', mapStepToSubmitFail(step));
+        trackEvent("first_admin_setup", mapStepToSubmitFail(step));
     };
 }
 
@@ -93,22 +109,26 @@ const trackSubmitFail = {
     [WizardSteps.Organization]: makeSubmitFail(WizardSteps.Organization),
     [WizardSteps.Plugins]: makeSubmitFail(WizardSteps.Plugins),
     [WizardSteps.InviteMembers]: makeSubmitFail(WizardSteps.InviteMembers),
-    [WizardSteps.LaunchingWorkspace]: makeSubmitFail(WizardSteps.LaunchingWorkspace),
+    [WizardSteps.LaunchingWorkspace]: makeSubmitFail(
+        WizardSteps.LaunchingWorkspace,
+    ),
 };
 
 const onPageViews = {
     [WizardSteps.Organization]: makeOnPageView(WizardSteps.Organization),
     [WizardSteps.Plugins]: makeOnPageView(WizardSteps.Plugins),
     [WizardSteps.InviteMembers]: makeOnPageView(WizardSteps.InviteMembers),
-    [WizardSteps.LaunchingWorkspace]: makeOnPageView(WizardSteps.LaunchingWorkspace),
+    [WizardSteps.LaunchingWorkspace]: makeOnPageView(
+        WizardSteps.LaunchingWorkspace,
+    ),
 };
 
 const PreparingWorkspace = (props: Props) => {
     const dispatch = useDispatch();
     const intl = useIntl();
     const genericSubmitError = intl.formatMessage({
-        id: 'onboarding_wizard.submit_error.generic',
-        defaultMessage: 'Something went wrong. Please try again.',
+        id: "onboarding_wizard.submit_error.generic",
+        defaultMessage: "Something went wrong. Please try again.",
     });
     const isUserFirstAdmin = useSelector(isFirstAdmin);
     const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
@@ -121,11 +141,13 @@ const PreparingWorkspace = (props: Props) => {
     const team = currentTeam || myTeams?.[0];
 
     const config = useSelector(getConfig);
-    const pluginsEnabled = config.PluginsEnabled === 'true';
+    const pluginsEnabled = config.PluginsEnabled === "true";
     const showOnMountTimeout = useRef<NodeJS.Timeout>();
     const configSiteUrl = config.SiteURL;
-    const isConfigSiteUrlDefault = Boolean(config.SiteURL && config.SiteURL === Constants.DEFAULT_SITE_URL);
-    const isSelfHosted = useSelector(getLicense).Cloud !== 'true';
+    const isConfigSiteUrlDefault = Boolean(
+        config.SiteURL && config.SiteURL === Constants.DEFAULT_SITE_URL,
+    );
+    const isSelfHosted = useSelector(getLicense).Cloud !== "true";
 
     const stepOrder = [
         isSelfHosted && WizardSteps.Organization,
@@ -139,8 +161,12 @@ const PreparingWorkspace = (props: Props) => {
 
     const firstAdminSetupComplete = useSelector(getFirstAdminSetupComplete);
 
-    const [[mostRecentStep, currentStep], setStepHistory] = useState<[WizardStep, WizardStep]>([stepOrder[0], stepOrder[0]]);
-    const [submissionState, setSubmissionState] = useState<SubmissionState>(SubmissionStates.Presubmit);
+    const [[mostRecentStep, currentStep], setStepHistory] = useState<
+        [WizardStep, WizardStep]
+    >([stepOrder[0], stepOrder[0]]);
+    const [submissionState, setSubmissionState] = useState<SubmissionState>(
+        SubmissionStates.Presubmit,
+    );
     const browserSiteUrl = useMemo(getSiteURL, []);
     const [form, setForm] = useState({
         ...emptyForm,
@@ -158,7 +184,10 @@ const PreparingWorkspace = (props: Props) => {
             }
             if (currentStep === WizardSteps.Plugins) {
                 const mostRecentStepIndex = stepOrder.indexOf(mostRecentStep);
-                setStepHistory([mostRecentStep, stepOrder[Math.max(mostRecentStepIndex - 1, 0)]]);
+                setStepHistory([
+                    mostRecentStep,
+                    stepOrder[Math.max(mostRecentStepIndex - 1, 0)],
+                ]);
             }
         }
     }, [pluginsEnabled, currentStep, mostRecentStep]);
@@ -167,12 +196,17 @@ const PreparingWorkspace = (props: Props) => {
     const [submitError, setSubmitError] = useState<string | null>(null);
 
     useEffect(() => {
-        showOnMountTimeout.current = setTimeout(() => setShowFirstPage(true), 40);
-        props.actions.getProfiles(0, General.PROFILE_CHUNK_SIZE, {roles: General.SYSTEM_ADMIN_ROLE});
+        showOnMountTimeout.current = setTimeout(
+            () => setShowFirstPage(true),
+            40,
+        );
+        props.actions.getProfiles(0, General.PROFILE_CHUNK_SIZE, {
+            roles: General.SYSTEM_ADMIN_ROLE,
+        });
         dispatch(getFirstAdminSetupCompleteAction());
-        document.body.classList.add('admin-onboarding');
+        document.body.classList.add("admin-onboarding");
         return () => {
-            document.body.classList.remove('admin-onboarding');
+            document.body.classList.remove("admin-onboarding");
             if (showOnMountTimeout.current) {
                 clearTimeout(showOnMountTimeout.current);
             }
@@ -189,67 +223,108 @@ const PreparingWorkspace = (props: Props) => {
         }
         return true;
     };
-    const makeNext = useCallback((currentStep: WizardStep, skip?: boolean) => {
-        return function innerMakeNext(trackingProps?: Record<string, any>) {
-            const stepIndex = stepOrder.indexOf(currentStep);
-            if (stepIndex === -1 || stepIndex >= stepOrder.length) {
-                return;
-            }
-            setStepHistory([currentStep, stepOrder[stepIndex + 1]]);
-            setSubmitError(null);
+    const makeNext = useCallback(
+        (currentStep: WizardStep, skip?: boolean) => {
+            return function innerMakeNext(trackingProps?: Record<string, any>) {
+                const stepIndex = stepOrder.indexOf(currentStep);
+                if (stepIndex === -1 || stepIndex >= stepOrder.length) {
+                    return;
+                }
+                setStepHistory([currentStep, stepOrder[stepIndex + 1]]);
+                setSubmitError(null);
 
-            const progressName = (skip ? mapStepToSkipName : mapStepToNextName)(currentStep);
-            trackEvent('first_admin_setup', progressName, trackingProps);
-        };
-    }, [stepOrder]);
+                const progressName = (
+                    skip ? mapStepToSkipName : mapStepToNextName
+                )(currentStep);
+                trackEvent("first_admin_setup", progressName, trackingProps);
+            };
+        },
+        [stepOrder],
+    );
 
-    const redirectWithError = useCallback((redirectTo: WizardStep, error: string) => {
-        setStepHistory([WizardSteps.LaunchingWorkspace, redirectTo]);
-        setSubmissionState(SubmissionStates.SubmitFail);
-        setSubmitError(error);
-        trackSubmitFail[redirectTo]();
-    }, []);
+    const redirectWithError = useCallback(
+        (redirectTo: WizardStep, error: string) => {
+            setStepHistory([WizardSteps.LaunchingWorkspace, redirectTo]);
+            setSubmissionState(SubmissionStates.SubmitFail);
+            setSubmitError(error);
+            trackSubmitFail[redirectTo]();
+        },
+        [],
+    );
 
-    const createTeam = async (OrganizationName: string): Promise<{error: string | null; newTeam: Team | null}> => {
-        const data = await props.actions.createTeam(makeNewTeam(OrganizationName, teamNameToUrl(OrganizationName || '').url));
+    const createTeam = async (
+        OrganizationName: string,
+    ): Promise<{ error: string | null; newTeam: Team | null }> => {
+        const data = await props.actions.createTeam(
+            makeNewTeam(
+                OrganizationName,
+                teamNameToUrl(OrganizationName || "").url,
+            ),
+        );
         if (data.error) {
-            return {error: genericSubmitError, newTeam: null};
+            return { error: genericSubmitError, newTeam: null };
         }
-        return {error: null, newTeam: data.data};
+        return { error: null, newTeam: data.data };
     };
 
-    const updateTeam = async (teamToUpdate: Team): Promise<{error: string | null; updatedTeam: Team | null}> => {
+    const updateTeam = async (
+        teamToUpdate: Team,
+    ): Promise<{ error: string | null; updatedTeam: Team | null }> => {
         const data = await props.actions.updateTeam(teamToUpdate);
         if (data.error) {
-            return {error: genericSubmitError, updatedTeam: null};
+            return { error: genericSubmitError, updatedTeam: null };
         }
-        return {error: null, updatedTeam: data.data};
+        return { error: null, updatedTeam: data.data };
     };
 
     const sendForm = async () => {
         const sendFormStart = Date.now();
         setSubmissionState(SubmissionStates.Submitting);
 
-        if (!form.teamMembers.skipped && !isConfigSiteUrlDefault && !isSelfHosted) {
+        if (
+            !form.teamMembers.skipped &&
+            !isConfigSiteUrlDefault &&
+            !isSelfHosted
+        ) {
             try {
-                const inviteResult = await dispatch(sendEmailInvitesToTeamGracefully(team.id, form.teamMembers.invites));
+                const inviteResult = await dispatch(
+                    sendEmailInvitesToTeamGracefully(
+                        team.id,
+                        form.teamMembers.invites,
+                    ),
+                );
                 if ((inviteResult as ActionResult).error) {
-                    redirectWithError(WizardSteps.InviteMembers, genericSubmitError);
+                    redirectWithError(
+                        WizardSteps.InviteMembers,
+                        genericSubmitError,
+                    );
                     return;
                 }
             } catch (e) {
-                redirectWithError(WizardSteps.InviteMembers, genericSubmitError);
+                redirectWithError(
+                    WizardSteps.InviteMembers,
+                    genericSubmitError,
+                );
                 return;
             }
         }
 
         // send plugins
-        const {skipped: skippedPlugins, ...pluginChoices} = form.plugins;
+        const { skipped: skippedPlugins, ...pluginChoices } = form.plugins;
         let pluginsToSetup: string[] = [];
 
         if (!skippedPlugins) {
             pluginsToSetup = Object.entries(pluginChoices).reduce(
-                (acc: string[], [k, v]): string[] => (v ? [...acc, PLUGIN_NAME_TO_ID_MAP[k as keyof Omit<Form['plugins'], 'skipped'>]] : acc), [],
+                (acc: string[], [k, v]): string[] =>
+                    v
+                        ? [
+                              ...acc,
+                              PLUGIN_NAME_TO_ID_MAP[
+                                  k as keyof Omit<Form["plugins"], "skipped">
+                              ],
+                          ]
+                        : acc,
+                [],
             );
         }
 
@@ -262,20 +337,29 @@ const PreparingWorkspace = (props: Props) => {
 
         try {
             await Client4.completeSetup(completeSetupRequest);
-            dispatch({type: GeneralTypes.FIRST_ADMIN_COMPLETE_SETUP_RECEIVED, data: true});
+            dispatch({
+                type: GeneralTypes.FIRST_ADMIN_COMPLETE_SETUP_RECEIVED,
+                data: true,
+            });
         } catch (e) {
             redirectWithError(WizardSteps.Plugins, genericSubmitError);
             return;
         }
 
         const goToChannels = () => {
-            dispatch({type: GeneralTypes.SHOW_LAUNCHING_WORKSPACE, open: true});
-            props.history.push(`/${team.name}/channels/${Constants.DEFAULT_CHANNEL}`);
-            trackEvent('first_admin_setup', 'admin_setup_complete');
+            dispatch({
+                type: GeneralTypes.SHOW_LAUNCHING_WORKSPACE,
+                open: true,
+            });
+            props.history.push(
+                `/${team.name}/channels/${Constants.DEFAULT_CHANNEL}`,
+            );
+            trackEvent("first_admin_setup", "admin_setup_complete");
         };
 
         const sendFormEnd = Date.now();
-        const timeToWait = WAIT_FOR_REDIRECT_TIME - (sendFormEnd - sendFormStart);
+        const timeToWait =
+            WAIT_FOR_REDIRECT_TIME - (sendFormEnd - sendFormStart);
 
         if (timeToWait > 0) {
             setTimeout(goToChannels, timeToWait);
@@ -291,12 +375,15 @@ const PreparingWorkspace = (props: Props) => {
         sendForm();
     }, [submissionState]);
 
-    const adminRevisitedPage = firstAdminSetupComplete && submissionState === SubmissionStates.Presubmit;
-    const shouldRedirect = !isUserFirstAdmin || adminRevisitedPage || !onboardingFlowEnabled;
+    const adminRevisitedPage =
+        firstAdminSetupComplete &&
+        submissionState === SubmissionStates.Presubmit;
+    const shouldRedirect =
+        !isUserFirstAdmin || adminRevisitedPage || !onboardingFlowEnabled;
 
     useEffect(() => {
         if (shouldRedirect) {
-            props.history.push('/');
+            props.history.push("/");
         }
     }, [shouldRedirect]);
 
@@ -304,66 +391,89 @@ const PreparingWorkspace = (props: Props) => {
         const stepIndex = stepOrder.indexOf(step);
         const currentStepIndex = stepOrder.indexOf(currentStep);
         const mostRecentStepIndex = stepOrder.indexOf(mostRecentStep);
-        if (stepIndex === -1 || currentStepIndex === -1 || mostRecentStepIndex === -1) {
+        if (
+            stepIndex === -1 ||
+            currentStepIndex === -1 ||
+            mostRecentStepIndex === -1
+        ) {
             return Animations.Reasons.EnterFromBefore;
         }
         if (currentStep === step) {
-            return currentStepIndex >= mostRecentStepIndex ? Animations.Reasons.EnterFromBefore : Animations.Reasons.EnterFromAfter;
+            return currentStepIndex >= mostRecentStepIndex
+                ? Animations.Reasons.EnterFromBefore
+                : Animations.Reasons.EnterFromAfter;
         }
-        return stepIndex > currentStepIndex ? Animations.Reasons.ExitToBefore : Animations.Reasons.ExitToAfter;
+        return stepIndex > currentStepIndex
+            ? Animations.Reasons.ExitToBefore
+            : Animations.Reasons.ExitToAfter;
     };
 
-    const goPrevious = useCallback((e?: React.KeyboardEvent | React.MouseEvent) => {
-        if (e && (e as React.KeyboardEvent).key) {
-            const key = (e as React.KeyboardEvent).key;
-            if (key !== Constants.KeyCodes.ENTER[0] && key !== Constants.KeyCodes.SPACE[0]) {
+    const goPrevious = useCallback(
+        (e?: React.KeyboardEvent | React.MouseEvent) => {
+            if (e && (e as React.KeyboardEvent).key) {
+                const key = (e as React.KeyboardEvent).key;
+                if (
+                    key !== Constants.KeyCodes.ENTER[0] &&
+                    key !== Constants.KeyCodes.SPACE[0]
+                ) {
+                    return;
+                }
+            }
+            if (
+                submissionState !== SubmissionStates.Presubmit &&
+                submissionState !== SubmissionStates.SubmitFail
+            ) {
                 return;
             }
-        }
-        if (submissionState !== SubmissionStates.Presubmit && submissionState !== SubmissionStates.SubmitFail) {
-            return;
-        }
-        const stepIndex = stepOrder.indexOf(currentStep);
-        if (stepIndex <= 0) {
-            return;
-        }
-        trackEvent('first_admin_setup', mapStepToPrevious(currentStep));
-        setStepHistory([currentStep, stepOrder[stepIndex - 1]]);
-    }, [currentStep]);
+            const stepIndex = stepOrder.indexOf(currentStep);
+            if (stepIndex <= 0) {
+                return;
+            }
+            trackEvent("first_admin_setup", mapStepToPrevious(currentStep));
+            setStepHistory([currentStep, stepOrder[stepIndex - 1]]);
+        },
+        [currentStep],
+    );
 
-    const skipPlugins = useCallback((skipped: boolean) => {
-        if (skipped === form.plugins.skipped) {
-            return;
-        }
-        setForm({
-            ...form,
-            plugins: {
-                ...form.plugins,
-                skipped,
-            },
-        });
-    }, [form]);
+    const skipPlugins = useCallback(
+        (skipped: boolean) => {
+            if (skipped === form.plugins.skipped) {
+                return;
+            }
+            setForm({
+                ...form,
+                plugins: {
+                    ...form.plugins,
+                    skipped,
+                },
+            });
+        },
+        [form],
+    );
 
-    const skipTeamMembers = useCallback((skipped: boolean) => {
-        if (skipped === form.teamMembers.skipped) {
-            return;
-        }
-        setForm({
-            ...form,
-            teamMembers: {
-                ...form.teamMembers,
-                skipped,
-            },
-        });
-    }, [form]);
+    const skipTeamMembers = useCallback(
+        (skipped: boolean) => {
+            if (skipped === form.teamMembers.skipped) {
+                return;
+            }
+            setForm({
+                ...form,
+                teamMembers: {
+                    ...form.teamMembers,
+                    skipped,
+                },
+            });
+        },
+        [form],
+    );
 
     const getInviteMembersAnimationClass = useCallback(() => {
         if (currentStep === WizardSteps.InviteMembers) {
-            return 'enter';
+            return "enter";
         } else if (mostRecentStep === WizardSteps.InviteMembers) {
-            return 'exit';
+            return "exit";
         }
-        return '';
+        return "";
     }, [currentStep]);
 
     let previous: React.ReactNode = (
@@ -371,12 +481,12 @@ const PreparingWorkspace = (props: Props) => {
             onClick={goPrevious}
             onKeyUp={goPrevious}
             tabIndex={0}
-            className='PreparingWorkspace__previous'
+            className="PreparingWorkspace__previous"
         >
-            <i className='icon-chevron-up'/>
+            <i className="icon-chevron-up" />
             <FormattedMessage
-                id={'onboarding_wizard.previous'}
-                defaultMessage='Previous'
+                id={"onboarding_wizard.previous"}
+                defaultMessage="Previous"
             />
         </div>
     );
@@ -385,34 +495,38 @@ const PreparingWorkspace = (props: Props) => {
     }
 
     return (
-        <div className='PreparingWorkspace PreparingWorkspaceContainer'>
+        <div className="PreparingWorkspace PreparingWorkspaceContainer">
             {submissionState === SubmissionStates.SubmitFail && submitError && (
-                <div className='PreparingWorkspace__submit-error'>
-                    <i className='icon icon-alert-outline'/>
-                    <span className='PreparingWorkspace__submit-error-message'>{submitError}</span>
+                <div className="PreparingWorkspace__submit-error">
+                    <i className="icon icon-alert-outline" />
+                    <span className="PreparingWorkspace__submit-error-message">
+                        {submitError}
+                    </span>
                     <i
-                        className='icon icon-close'
+                        className="icon icon-close"
                         onClick={() => setSubmitError(null)}
                     />
                 </div>
             )}
             {props.background}
-            <div className='PreparingWorkspace__logo'>
-                <LogoSvg/>
+            <div className="PreparingWorkspace__logo">
+                <LogoSvg />
             </div>
             <Progress
                 step={currentStep}
                 stepOrder={stepOrder}
                 transitionSpeed={Animations.PAGE_SLIDE}
             />
-            <div className='PreparingWorkspacePageContainer'>
+            <div className="PreparingWorkspacePageContainer">
                 <Organization
                     onPageView={onPageViews[WizardSteps.Organization]}
                     show={shouldShowPage(WizardSteps.Organization)}
                     next={makeNext(WizardSteps.Organization)}
-                    transitionDirection={getTransitionDirection(WizardSteps.Organization)}
-                    organization={form.organization || ''}
-                    setOrganization={(organization: Form['organization']) => {
+                    transitionDirection={getTransitionDirection(
+                        WizardSteps.Organization,
+                    )}
+                    organization={form.organization || ""}
+                    setOrganization={(organization: Form["organization"]) => {
                         setForm({
                             ...form,
                             organization,
@@ -427,7 +541,7 @@ const PreparingWorkspace = (props: Props) => {
                             },
                         });
                     }}
-                    className='child-page'
+                    className="child-page"
                     createTeam={createTeam}
                     updateTeam={updateTeam}
                 />
@@ -437,7 +551,7 @@ const PreparingWorkspace = (props: Props) => {
                     onPageView={onPageViews[WizardSteps.Plugins]}
                     previous={previous}
                     next={() => {
-                        const pluginChoices = {...form.plugins};
+                        const pluginChoices = { ...form.plugins };
                         delete pluginChoices.skipped;
                         makeNext(WizardSteps.Plugins)(pluginChoices);
                         skipPlugins(false);
@@ -447,7 +561,7 @@ const PreparingWorkspace = (props: Props) => {
                         skipPlugins(true);
                     }}
                     options={form.plugins}
-                    setOption={(option: keyof Form['plugins']) => {
+                    setOption={(option: keyof Form["plugins"]) => {
                         setForm({
                             ...form,
                             plugins: {
@@ -457,10 +571,15 @@ const PreparingWorkspace = (props: Props) => {
                         });
                     }}
                     show={shouldShowPage(WizardSteps.Plugins)}
-                    transitionDirection={getTransitionDirection(WizardSteps.Plugins)}
-                    className='child-page'
+                    transitionDirection={getTransitionDirection(
+                        WizardSteps.Plugins,
+                    )}
+                    className="child-page"
                     handleVisitMarketPlaceClick={() => {
-                        trackEvent('first_admin_setup', 'click_visit_marketplace_link');
+                        trackEvent(
+                            "first_admin_setup",
+                            "click_visit_marketplace_link",
+                        );
                     }}
                 />
                 <InviteMembers
@@ -471,7 +590,9 @@ const PreparingWorkspace = (props: Props) => {
                             inviteCount: form.teamMembers.invites.length,
                         };
                         setSubmissionState(SubmissionStates.UserRequested);
-                        makeNext(WizardSteps.InviteMembers)(inviteMembersTracking);
+                        makeNext(WizardSteps.InviteMembers)(
+                            inviteMembersTracking,
+                        );
                     }}
                     skip={() => {
                         skipTeamMembers(true);
@@ -480,9 +601,14 @@ const PreparingWorkspace = (props: Props) => {
                     }}
                     previous={previous}
                     show={shouldShowPage(WizardSteps.InviteMembers)}
-                    transitionDirection={getTransitionDirection(WizardSteps.InviteMembers)}
-                    disableEdits={submissionState !== SubmissionStates.Presubmit && submissionState !== SubmissionStates.SubmitFail}
-                    className='child-page'
+                    transitionDirection={getTransitionDirection(
+                        WizardSteps.InviteMembers,
+                    )}
+                    disableEdits={
+                        submissionState !== SubmissionStates.Presubmit &&
+                        submissionState !== SubmissionStates.SubmitFail
+                    }
+                    className="child-page"
                     teamInviteId={team?.invite_id || form.teamMembers.inviteId}
                     configSiteUrl={configSiteUrl}
                     formUrl={form.url}
@@ -503,11 +629,15 @@ const PreparingWorkspace = (props: Props) => {
                 <LaunchingWorkspace
                     onPageView={onPageViews[WizardSteps.LaunchingWorkspace]}
                     show={currentStep === WizardSteps.LaunchingWorkspace}
-                    transitionDirection={getTransitionDirection(WizardSteps.LaunchingWorkspace)}
+                    transitionDirection={getTransitionDirection(
+                        WizardSteps.LaunchingWorkspace,
+                    )}
                 />
             </div>
-            <div className={`PreparingWorkspace__invite-members-illustration ${getInviteMembersAnimationClass()}`}>
-                <InviteMembersIllustration/>
+            <div
+                className={`PreparingWorkspace__invite-members-illustration ${getInviteMembersAnimationClass()}`}
+            >
+                <InviteMembersIllustration />
             </div>
         </div>
     );

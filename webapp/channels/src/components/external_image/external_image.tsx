@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, { memo } from "react";
 
-import type {PostImage} from '@mattermost/types/posts';
+import type { PostImage } from "@mattermost/types/posts";
 
-import {getImageSrc} from 'utils/post_utils';
+import { getImageSrc } from "utils/post_utils";
 
-import {isSVGImage} from './is_svg_image';
+import { isSVGImage } from "./is_svg_image";
 
 type Props = {
     children: (src: string) => React.ReactNode;
@@ -15,15 +15,16 @@ type Props = {
     hasImageProxy: boolean;
     imageMetadata?: PostImage;
     src: string;
-}
+};
 
 const ExternalImage = (props: Props) => {
-    const shouldRenderImage = props.enableSVGs || !isSVGImage(props.imageMetadata, props.src);
+    const shouldRenderImage =
+        props.enableSVGs || !isSVGImage(props.imageMetadata, props.src);
     let src = getImageSrc(props.src, props.hasImageProxy);
     if (!shouldRenderImage) {
-        src = '';
+        src = "";
     }
-    return (<>{props.children(src)}</>);
+    return <>{props.children(src)}</>;
 };
 
 export default memo(ExternalImage);

@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {FileSizes} from 'utils/file_utils';
-import {limitThresholds, LimitTypes} from 'utils/limits';
+import { FileSizes } from "utils/file_utils";
+import { limitThresholds, LimitTypes } from "utils/limits";
 
-import useGetMultiplesExceededCloudLimit from './useGetMultiplesExceededCloudLimit';
-import type {LimitSummary} from './useGetMultiplesExceededCloudLimit';
+import useGetMultiplesExceededCloudLimit from "./useGetMultiplesExceededCloudLimit";
+import type { LimitSummary } from "./useGetMultiplesExceededCloudLimit";
 
-jest.mock('react', () => ({
+jest.mock("react", () => ({
     useMemo: (fn: () => LimitSummary) => fn(),
 }));
 
@@ -35,20 +35,21 @@ const zeroUsage = {
     },
 };
 
-describe('useGetHighestThresholdCloudLimit', () => {
+describe("useGetHighestThresholdCloudLimit", () => {
     const messageHistoryLimit = 10000;
     const filesLimit = FileSizes.Gigabyte;
-    const exceededMessageUsage = Math.ceil((limitThresholds.exceeded / 100) * messageHistoryLimit) + 1;
+    const exceededMessageUsage =
+        Math.ceil((limitThresholds.exceeded / 100) * messageHistoryLimit) + 1;
 
     const tests = [
         {
-            label: 'reports no limits surpassed',
+            label: "reports no limits surpassed",
             limits: {},
             usage: zeroUsage,
             expected: [],
         },
         {
-            label: 'reports messages limit surpasded',
+            label: "reports messages limit surpasded",
             limits: {
                 messages: {
                     history: messageHistoryLimit,
@@ -64,7 +65,7 @@ describe('useGetHighestThresholdCloudLimit', () => {
             expected: [LimitTypes.messageHistory],
         },
         {
-            label: 'reports files limit surpassed',
+            label: "reports files limit surpassed",
             limits: {
                 files: {
                     total_storage: filesLimit,
@@ -80,7 +81,7 @@ describe('useGetHighestThresholdCloudLimit', () => {
             expected: [LimitTypes.fileStorage],
         },
         {
-            label: 'reports messages and files limit surpasded',
+            label: "reports messages and files limit surpasded",
             limits: {
                 messages: {
                     history: messageHistoryLimit,
@@ -104,7 +105,7 @@ describe('useGetHighestThresholdCloudLimit', () => {
         },
     ];
 
-    tests.forEach((t: typeof tests[0]) => {
+    tests.forEach((t: (typeof tests)[0]) => {
         test(t.label, () => {
             const actual = useGetMultiplesExceededCloudLimit(t.usage, t.limits);
             expect(t.expected).toEqual(actual);

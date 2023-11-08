@@ -1,43 +1,49 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Overlay} from 'react-bootstrap';
+import React from "react";
+import { Overlay } from "react-bootstrap";
 
-import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
-import type {DeepPartial} from '@mattermost/types/utilities';
+import type { AdminConfig, EnvironmentConfig } from "@mattermost/types/config";
+import type { DeepPartial } from "@mattermost/types/utilities";
 
-import FormError from 'components/form_error';
-import SaveButton from 'components/save_button';
-import Tooltip from 'components/tooltip';
-import AdminHeader from 'components/widgets/admin_console/admin_header';
+import FormError from "components/form_error";
+import SaveButton from "components/save_button";
+import Tooltip from "components/tooltip";
+import AdminHeader from "components/widgets/admin_console/admin_header";
 
-import {localizeMessage} from 'utils/utils';
+import { localizeMessage } from "utils/utils";
 
 export type BaseProps = {
     config?: DeepPartial<AdminConfig>;
     environmentConfig?: EnvironmentConfig;
     setNavigationBlocked?: (blocked: boolean) => void;
     isDisabled?: boolean;
-    updateConfig?: (config: AdminConfig) => {data: AdminConfig; error: ClientErrorPlaceholder};
-}
+    updateConfig?: (config: AdminConfig) => {
+        data: AdminConfig;
+        error: ClientErrorPlaceholder;
+    };
+};
 
 export type BaseState = {
     saveNeeded: boolean;
     saving: boolean;
-    serverError: string|null;
+    serverError: string | null;
     serverErrorId?: string;
     errorTooltip: boolean;
-}
+};
 
 // Placeholder type until ClientError is exported from redux.
 // TODO: remove ClientErrorPlaceholder and change the return type of updateConfig
 type ClientErrorPlaceholder = {
     message: string;
     server_error_id: string;
-}
+};
 
-export default abstract class AdminSettings <Props extends BaseProps, State extends BaseState> extends React.Component<Props, State> {
+export default abstract class AdminSettings<
+    Props extends BaseProps,
+    State extends BaseState,
+> extends React.Component<Props, State> {
     private errorMessageRef: React.RefObject<HTMLDivElement>;
     public constructor(props: Props) {
         super(props);
@@ -48,34 +54,42 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
             errorTooltip: false,
         };
         if (props.config) {
-            this.state = Object.assign(this.getStateFromConfig(props.config), stateInit) as Readonly<State>;
+            this.state = Object.assign(
+                this.getStateFromConfig(props.config),
+                stateInit,
+            ) as Readonly<State>;
         } else {
             this.state = stateInit as Readonly<State>;
         }
         this.errorMessageRef = React.createRef();
     }
 
-    protected abstract getStateFromConfig(config: DeepPartial<AdminConfig>): Partial<State>;
+    protected abstract getStateFromConfig(
+        config: DeepPartial<AdminConfig>,
+    ): Partial<State>;
 
-    protected abstract getConfigFromState(config: DeepPartial<AdminConfig>): unknown;
+    protected abstract getConfigFromState(
+        config: DeepPartial<AdminConfig>,
+    ): unknown;
 
     protected abstract renderTitle(): React.ReactElement;
 
     protected abstract renderSettings(): React.ReactElement;
 
-    protected handleSaved?: ((config: AdminConfig) => React.ReactElement | void);
+    protected handleSaved?: (config: AdminConfig) => React.ReactElement | void;
 
     protected canSave?: () => boolean;
 
     private closeTooltip = () => {
-        this.setState({errorTooltip: false});
+        this.setState({ errorTooltip: false });
     };
 
     private openTooltip = (e: React.MouseEvent) => {
-        const elm: HTMLElement|null = e.currentTarget.querySelector('.control-label');
+        const elm: HTMLElement | null =
+            e.currentTarget.querySelector(".control-label");
         if (elm) {
             const isElipsis = elm.offsetWidth < elm.scrollWidth;
-            this.setState({errorTooltip: isElipsis});
+            this.setState({ errorTooltip: isElipsis });
         }
     };
 
@@ -108,7 +122,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
         config = this.getConfigFromState(config);
 
         if (this.props.updateConfig) {
-            const {data, error} = await this.props.updateConfig(config);
+            const { data, error } = await this.props.updateConfig(config);
 
             if (data) {
                 this.setState(this.getStateFromConfig(data) as State);
@@ -160,8 +174,11 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
         return n;
     };
 
-    protected parseIntNonNegative = (str: string | number, defaultValue?: number) => {
-        const n = typeof str === 'string' ? parseInt(str, 10) : str;
+    protected parseIntNonNegative = (
+        str: string | number,
+        defaultValue?: number,
+    ) => {
+        const n = typeof str === "string" ? parseInt(str, 10) : str;
 
         if (isNaN(n) || n < 0) {
             if (defaultValue) {
@@ -174,7 +191,7 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
     };
 
     protected parseIntZeroOrMin = (str: string | number, minimumValue = 1) => {
-        const n = typeof str === 'string' ? parseInt(str, 10) : str;
+        const n = typeof str === "string" ? parseInt(str, 10) : str;
 
         if (isNaN(n) || n < 0) {
             return 0;
@@ -186,8 +203,12 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
         return n;
     };
 
-    protected parseIntNonZero = (str: string | number, defaultValue?: number, minimumValue = 1) => {
-        const n = typeof str === 'string' ? parseInt(str, 10) : str;
+    protected parseIntNonZero = (
+        str: string | number,
+        defaultValue?: number,
+        minimumValue = 1,
+    ) => {
+        const n = typeof str === "string" ? parseInt(str, 10) : str;
 
         if (isNaN(n) || n < minimumValue) {
             if (defaultValue) {
@@ -199,14 +220,17 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
         return n;
     };
 
-    private getConfigValue(config: AdminConfig | EnvironmentConfig, path: string) {
-        const pathParts = path.split('.');
+    private getConfigValue(
+        config: AdminConfig | EnvironmentConfig,
+        path: string,
+    ) {
+        const pathParts = path.split(".");
 
         return pathParts.reduce((obj: object | null, pathPart) => {
             if (!obj) {
                 return null;
             }
-            return obj[(pathPart as keyof object)];
+            return obj[pathPart as keyof object];
         }, config);
     }
 
@@ -215,56 +239,64 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
             const part = pathParts[0] as keyof object;
 
             if (pathParts.length === 1) {
-                Object.assign(obj, {[part]: value});
+                Object.assign(obj, { [part]: value });
             } else {
                 if (obj[part] == null) {
-                    Object.assign(obj, {[part]: {}});
+                    Object.assign(obj, { [part]: {} });
                 }
 
                 setValue(obj[part], pathParts.slice(1));
             }
         }
 
-        setValue(config, path.split('.'));
+        setValue(config, path.split("."));
     }
 
     protected isSetByEnv = (path: string) => {
-        return Boolean(this.props.environmentConfig && this.getConfigValue(this.props.environmentConfig!, path));
+        return Boolean(
+            this.props.environmentConfig &&
+                this.getConfigValue(this.props.environmentConfig!, path),
+        );
     };
 
     public render() {
         return (
             <form
-                className='form-horizontal'
-                role='form'
+                className="form-horizontal"
+                role="form"
                 onSubmit={this.handleSubmit}
             >
-                <div className='wrapper--fixed'>
-                    <AdminHeader>
-                        {this.renderTitle()}
-                    </AdminHeader>
+                <div className="wrapper--fixed">
+                    <AdminHeader>{this.renderTitle()}</AdminHeader>
                     {this.renderSettings()}
-                    <div className='admin-console-save'>
+                    <div className="admin-console-save">
                         <SaveButton
                             saving={this.state.saving}
-                            disabled={this.props.isDisabled || !this.state.saveNeeded || (this.canSave && !this.canSave())}
+                            disabled={
+                                this.props.isDisabled ||
+                                !this.state.saveNeeded ||
+                                (this.canSave && !this.canSave())
+                            }
                             onClick={this.handleSubmit}
-                            savingMessage={localizeMessage('admin.saving', 'Saving Config...')}
+                            savingMessage={localizeMessage(
+                                "admin.saving",
+                                "Saving Config...",
+                            )}
                         />
                         <div
-                            className='error-message'
+                            className="error-message"
                             ref={this.errorMessageRef}
                             onMouseOver={this.openTooltip}
                             onMouseOut={this.closeTooltip}
                         >
-                            <FormError error={this.state.serverError}/>
+                            <FormError error={this.state.serverError} />
                         </div>
                         <Overlay
                             show={this.state.errorTooltip}
-                            placement='top'
+                            placement="top"
                             target={this.errorMessageRef.current as HTMLElement}
                         >
-                            <Tooltip id='error-tooltip' >
+                            <Tooltip id="error-tooltip">
                                 {this.state.serverError}
                             </Tooltip>
                         </Overlay>
@@ -274,4 +306,3 @@ export default abstract class AdminSettings <Props extends BaseProps, State exte
         );
     }
 }
-

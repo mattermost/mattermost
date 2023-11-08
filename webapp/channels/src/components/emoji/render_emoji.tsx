@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {useSelector} from 'react-redux';
+import React from "react";
+import { useSelector } from "react-redux";
 
-import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
+import { getEmojiImageUrl } from "mattermost-redux/utils/emoji_utils";
 
-import {getEmojiMap} from 'selectors/emojis';
+import { getEmojiMap } from "selectors/emojis";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
 interface ComponentProps {
     emojiName: string;
@@ -17,7 +17,12 @@ interface ComponentProps {
     onClick?: () => void;
 }
 
-const RenderEmoji = ({emojiName, emojiStyle, size, onClick}: ComponentProps) => {
+const RenderEmoji = ({
+    emojiName,
+    emojiStyle,
+    size,
+    onClick,
+}: ComponentProps) => {
     const emojiMap = useSelector((state: GlobalState) => getEmojiMap(state));
 
     if (!emojiName) {
@@ -33,19 +38,19 @@ const RenderEmoji = ({emojiName, emojiStyle, size, onClick}: ComponentProps) => 
     return (
         <span
             onClick={onClick}
-            className='emoticon'
+            className="emoticon"
             alt={`:${emojiName}:`}
             data-emoticon={emojiName}
             style={{
                 backgroundImage: `url(${emojiImageUrl})`,
-                backgroundSize: 'contain',
+                backgroundSize: "contain",
                 height: size,
                 width: size,
                 maxHeight: size,
                 maxWidth: size,
                 minHeight: size,
                 minWidth: size,
-                overflow: 'hidden',
+                overflow: "hidden",
                 ...emojiStyle,
             }}
         />
@@ -53,7 +58,7 @@ const RenderEmoji = ({emojiName, emojiStyle, size, onClick}: ComponentProps) => 
 };
 
 RenderEmoji.defaultProps = {
-    emoji: '',
+    emoji: "",
     emojiStyle: {},
     size: 16,
 };

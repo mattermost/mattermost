@@ -1,23 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import {PermissionTeamSchemeSettings} from 'components/admin_console/permission_schemes_settings/permission_team_scheme_settings/permission_team_scheme_settings';
+import { PermissionTeamSchemeSettings } from "components/admin_console/permission_schemes_settings/permission_team_scheme_settings/permission_team_scheme_settings";
 
-describe('components/admin_console/permission_schemes_settings/permission_team_scheme_settings/permission_team_scheme_settings', () => {
+describe("components/admin_console/permission_schemes_settings/permission_team_scheme_settings/permission_team_scheme_settings", () => {
     const defaultProps = {
         config: {
-            EnableGuestAccounts: 'true',
+            EnableGuestAccounts: "true",
         },
         license: {
-            IsLicensed: 'true',
-            CustomPermissionsSchemes: 'true',
-            GuestAccountsPermissions: 'true',
+            IsLicensed: "true",
+            CustomPermissionsSchemes: "true",
+            GuestAccountsPermissions: "true",
         },
         location: {},
-        schemeId: '',
+        schemeId: "",
         scheme: null,
         isDisabled: false,
         roles: {
@@ -88,15 +88,16 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
                 permissions: [],
             },
         },
-        teams: [
-        ],
+        teams: [],
         intl: {
             formatMessage: jest.fn(),
         },
         actions: {
             loadRolesIfNeeded: jest.fn().mockReturnValue(Promise.resolve()),
             loadRole: jest.fn(),
-            loadScheme: jest.fn().mockReturnValue(Promise.resolve({data: true})),
+            loadScheme: jest
+                .fn()
+                .mockReturnValue(Promise.resolve({ data: true })),
             loadSchemeTeams: jest.fn(),
             editRole: jest.fn(),
             patchScheme: jest.fn(),
@@ -109,9 +110,9 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         },
     } as any;
 
-    test('should match snapshot on new with default roles without permissions', (done) => {
+    test("should match snapshot on new with default roles without permissions", (done) => {
         const wrapper = shallow<PermissionTeamSchemeSettings>(
-            <PermissionTeamSchemeSettings {...defaultProps}/>,
+            <PermissionTeamSchemeSettings {...defaultProps} />,
         );
         defaultProps.actions.loadRolesIfNeeded().then(() => {
             expect(wrapper.instance().getStateRoles()).toMatchSnapshot();
@@ -119,41 +120,38 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         });
     });
 
-    test('should match snapshot on new with default roles with permissions', (done) => {
+    test("should match snapshot on new with default roles with permissions", (done) => {
         const roles = {
             system_guest: {
-                permissions: ['create_post'],
+                permissions: ["create_post"],
             },
             team_guest: {
-                permissions: ['invite_user'],
+                permissions: ["invite_user"],
             },
             channel_guest: {
-                permissions: ['add_reaction'],
+                permissions: ["add_reaction"],
             },
             system_user: {
-                permissions: ['create_post'],
+                permissions: ["create_post"],
             },
             team_user: {
-                permissions: ['invite_user'],
+                permissions: ["invite_user"],
             },
             channel_user: {
-                permissions: ['add_reaction'],
+                permissions: ["add_reaction"],
             },
             system_admin: {
-                permissions: ['manage_system'],
+                permissions: ["manage_system"],
             },
             team_admin: {
-                permissions: ['add_user_to_team'],
+                permissions: ["add_user_to_team"],
             },
             channel_admin: {
-                permissions: ['delete_post'],
+                permissions: ["delete_post"],
             },
         };
         const wrapper = shallow(
-            <PermissionTeamSchemeSettings
-                {...defaultProps}
-                roles={roles}
-            />,
+            <PermissionTeamSchemeSettings {...defaultProps} roles={roles} />,
         );
 
         expect(wrapper).toMatchSnapshot();
@@ -163,28 +161,39 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         });
     });
 
-    test('should save each role on handleSubmit except system_admin role', async () => {
-        const editRole = jest.fn().mockImplementation(() => Promise.resolve({data: {}}));
-        const createScheme = jest.fn().mockImplementation(() => Promise.resolve({
-            data: {
-                id: '123',
-                default_team_user_role: 'aaa',
-                default_team_admin_role: 'bbb',
-                default_channel_user_role: 'ccc',
-                default_channel_admin_role: 'ddd',
-                default_team_guest_role: 'eee',
-                default_channel_guest_role: 'fff',
-                default_playbook_admin_role: 'ggg',
-                default_playbook_member_role: 'hhh',
-                default_run_admin_role: 'iii',
-                default_run_member_role: 'jjj',
-            },
-        }));
-        const updateTeamScheme = jest.fn().mockImplementation(() => Promise.resolve({}));
+    test("should save each role on handleSubmit except system_admin role", async () => {
+        const editRole = jest
+            .fn()
+            .mockImplementation(() => Promise.resolve({ data: {} }));
+        const createScheme = jest.fn().mockImplementation(() =>
+            Promise.resolve({
+                data: {
+                    id: "123",
+                    default_team_user_role: "aaa",
+                    default_team_admin_role: "bbb",
+                    default_channel_user_role: "ccc",
+                    default_channel_admin_role: "ddd",
+                    default_team_guest_role: "eee",
+                    default_channel_guest_role: "fff",
+                    default_playbook_admin_role: "ggg",
+                    default_playbook_member_role: "hhh",
+                    default_run_admin_role: "iii",
+                    default_run_member_role: "jjj",
+                },
+            }),
+        );
+        const updateTeamScheme = jest
+            .fn()
+            .mockImplementation(() => Promise.resolve({}));
         const wrapper = shallow<PermissionTeamSchemeSettings>(
             <PermissionTeamSchemeSettings
                 {...defaultProps}
-                actions={{...defaultProps.actions, editRole, createScheme, updateTeamScheme}}
+                actions={{
+                    ...defaultProps.actions,
+                    editRole,
+                    createScheme,
+                    updateTeamScheme,
+                }}
             />,
         );
 
@@ -193,104 +202,130 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         expect(editRole).toHaveBeenCalledTimes(9);
     });
 
-    test('should show error if createScheme fails', async () => {
-        const editRole = jest.fn().mockImplementation(() => Promise.resolve({}));
-        const createScheme = jest.fn().mockImplementation(() => Promise.resolve({error: {message: 'test error'}}));
-        const updateTeamScheme = jest.fn().mockImplementation(() => Promise.resolve({}));
+    test("should show error if createScheme fails", async () => {
+        const editRole = jest
+            .fn()
+            .mockImplementation(() => Promise.resolve({}));
+        const createScheme = jest
+            .fn()
+            .mockImplementation(() =>
+                Promise.resolve({ error: { message: "test error" } }),
+            );
+        const updateTeamScheme = jest
+            .fn()
+            .mockImplementation(() => Promise.resolve({}));
         const wrapper = shallow<PermissionTeamSchemeSettings>(
             <PermissionTeamSchemeSettings
                 {...defaultProps}
-                actions={{...defaultProps.actions, editRole, createScheme, updateTeamScheme}}
+                actions={{
+                    ...defaultProps.actions,
+                    editRole,
+                    createScheme,
+                    updateTeamScheme,
+                }}
             />,
         );
 
         await wrapper.instance().handleSubmit();
-        expect(wrapper.state().serverError).toBe('test error');
+        expect(wrapper.state().serverError).toBe("test error");
     });
 
-    test('should show error if editRole fails', async () => {
-        const editRole = jest.fn().mockImplementation(() => Promise.resolve({error: {message: 'test error'}}));
-        const createScheme = jest.fn().mockImplementation(() => Promise.resolve({
-            data: {
-                id: '123',
-                default_team_user_role: 'aaa',
-                default_team_admin_role: 'bbb',
-                default_channel_user_role: 'ccc',
-                default_channel_admin_role: 'ddd',
-                default_team_guest_role: 'eee',
-                default_channel_guest_role: 'fff',
-                default_playbook_admin_role: 'ggg',
-                default_playbook_member_role: 'hhh',
-                default_run_admin_role: 'iii',
-                default_run_member_role: 'jjj',
-            },
-        }));
-        const updateTeamScheme = jest.fn().mockImplementation(() => Promise.resolve({}));
+    test("should show error if editRole fails", async () => {
+        const editRole = jest
+            .fn()
+            .mockImplementation(() =>
+                Promise.resolve({ error: { message: "test error" } }),
+            );
+        const createScheme = jest.fn().mockImplementation(() =>
+            Promise.resolve({
+                data: {
+                    id: "123",
+                    default_team_user_role: "aaa",
+                    default_team_admin_role: "bbb",
+                    default_channel_user_role: "ccc",
+                    default_channel_admin_role: "ddd",
+                    default_team_guest_role: "eee",
+                    default_channel_guest_role: "fff",
+                    default_playbook_admin_role: "ggg",
+                    default_playbook_member_role: "hhh",
+                    default_run_admin_role: "iii",
+                    default_run_member_role: "jjj",
+                },
+            }),
+        );
+        const updateTeamScheme = jest
+            .fn()
+            .mockImplementation(() => Promise.resolve({}));
         const wrapper = shallow<PermissionTeamSchemeSettings>(
             <PermissionTeamSchemeSettings
                 {...defaultProps}
-                actions={{...defaultProps.actions, editRole, createScheme, updateTeamScheme}}
+                actions={{
+                    ...defaultProps.actions,
+                    editRole,
+                    createScheme,
+                    updateTeamScheme,
+                }}
             />,
         );
 
         await wrapper.instance().handleSubmit();
-        expect(wrapper.state().serverError).toBe('test error');
+        expect(wrapper.state().serverError).toBe("test error");
     });
 
-    test('should open and close correctly roles blocks', () => {
+    test("should open and close correctly roles blocks", () => {
         const wrapper = shallow<PermissionTeamSchemeSettings>(
-            <PermissionTeamSchemeSettings {...defaultProps}/>,
+            <PermissionTeamSchemeSettings {...defaultProps} />,
         );
         const instance = wrapper.instance();
         expect(wrapper.state().openRoles.guests).toBe(true);
-        instance.toggleRole('guests');
+        instance.toggleRole("guests");
         expect(wrapper.state().openRoles.guests).toBe(false);
-        instance.toggleRole('guests');
+        instance.toggleRole("guests");
         expect(wrapper.state().openRoles.guests).toBe(true);
 
         expect(wrapper.state().openRoles.all_users).toBe(true);
-        instance.toggleRole('all_users');
+        instance.toggleRole("all_users");
         expect(wrapper.state().openRoles.all_users).toBe(false);
-        instance.toggleRole('all_users');
+        instance.toggleRole("all_users");
         expect(wrapper.state().openRoles.all_users).toBe(true);
 
         expect(wrapper.state().openRoles.channel_admin).toBe(true);
-        instance.toggleRole('channel_admin');
+        instance.toggleRole("channel_admin");
         expect(wrapper.state().openRoles.channel_admin).toBe(false);
-        instance.toggleRole('channel_admin');
+        instance.toggleRole("channel_admin");
         expect(wrapper.state().openRoles.channel_admin).toBe(true);
 
         expect(wrapper.state().openRoles.team_admin).toBe(true);
-        instance.toggleRole('team_admin');
+        instance.toggleRole("team_admin");
         expect(wrapper.state().openRoles.team_admin).toBe(false);
-        instance.toggleRole('team_admin');
+        instance.toggleRole("team_admin");
         expect(wrapper.state().openRoles.team_admin).toBe(true);
     });
 
-    test('should match snapshot on edit without permissions', (done) => {
+    test("should match snapshot on edit without permissions", (done) => {
         const props = {
             ...defaultProps,
-            schemeId: 'xyz',
+            schemeId: "xyz",
             scheme: {
-                id: 'xxx',
-                name: 'yyy',
-                display_name: 'Test scheme',
-                description: 'Test scheme description',
-                default_team_user_role: 'aaa',
-                default_team_admin_role: 'bbb',
-                default_channel_user_role: 'ccc',
-                default_channel_admin_role: 'ddd',
-                default_team_guest_role: 'eee',
-                default_channel_guest_role: 'fff',
-                default_playbook_admin_role: 'ggg',
-                default_playbook_member_role: 'hhh',
-                default_run_admin_role: 'iii',
-                default_run_member_role: 'jjj',
+                id: "xxx",
+                name: "yyy",
+                display_name: "Test scheme",
+                description: "Test scheme description",
+                default_team_user_role: "aaa",
+                default_team_admin_role: "bbb",
+                default_channel_user_role: "ccc",
+                default_channel_admin_role: "ddd",
+                default_team_guest_role: "eee",
+                default_channel_guest_role: "fff",
+                default_playbook_admin_role: "ggg",
+                default_playbook_member_role: "hhh",
+                default_run_admin_role: "iii",
+                default_run_member_role: "jjj",
             },
         };
 
         const wrapper = shallow<PermissionTeamSchemeSettings>(
-            <PermissionTeamSchemeSettings {...props}/>,
+            <PermissionTeamSchemeSettings {...props} />,
         );
         expect(wrapper).toMatchSnapshot();
         defaultProps.actions.loadRolesIfNeeded().then(() => {
@@ -299,53 +334,53 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         });
     });
 
-    test('should match snapshot on edit with permissions', (done) => {
+    test("should match snapshot on edit with permissions", (done) => {
         const props = {
             ...defaultProps,
             config: {
-                EnableGuestAccounts: 'false',
+                EnableGuestAccounts: "false",
             },
-            schemeId: 'xyz',
+            schemeId: "xyz",
             scheme: {
-                id: 'xxx',
-                name: 'yyy',
-                display_name: 'Test scheme',
-                description: 'Test scheme description',
-                default_team_user_role: 'aaa',
-                default_team_admin_role: 'bbb',
-                default_channel_user_role: 'ccc',
-                default_channel_admin_role: 'ddd',
-                default_team_guest_role: 'eee',
-                default_channel_guest_role: 'fff',
-                default_playbook_admin_role: 'ggg',
-                default_playbook_member_role: 'hhh',
-                default_run_admin_role: 'iii',
-                default_run_member_role: 'jjj',
+                id: "xxx",
+                name: "yyy",
+                display_name: "Test scheme",
+                description: "Test scheme description",
+                default_team_user_role: "aaa",
+                default_team_admin_role: "bbb",
+                default_channel_user_role: "ccc",
+                default_channel_admin_role: "ddd",
+                default_team_guest_role: "eee",
+                default_channel_guest_role: "fff",
+                default_playbook_admin_role: "ggg",
+                default_playbook_member_role: "hhh",
+                default_run_admin_role: "iii",
+                default_run_member_role: "jjj",
             },
             roles: {
                 aaa: {
-                    permissions: ['invite_user'],
+                    permissions: ["invite_user"],
                 },
                 bbb: {
-                    permissions: ['add_user_to_team'],
+                    permissions: ["add_user_to_team"],
                 },
                 ccc: {
-                    permissions: ['add_reaction'],
+                    permissions: ["add_reaction"],
                 },
                 ddd: {
-                    permissions: ['delete_post'],
+                    permissions: ["delete_post"],
                 },
                 eee: {
-                    permissions: ['edit_post'],
+                    permissions: ["edit_post"],
                 },
                 fff: {
-                    permissions: ['delete_post'],
+                    permissions: ["delete_post"],
                 },
             },
         };
 
         const wrapper = shallow<PermissionTeamSchemeSettings>(
-            <PermissionTeamSchemeSettings {...props}/>,
+            <PermissionTeamSchemeSettings {...props} />,
         );
         expect(wrapper).toMatchSnapshot();
         defaultProps.actions.loadRolesIfNeeded().then(() => {
@@ -354,33 +389,33 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         });
     });
 
-    test('should match snapshot on edit without guest permissions', (done) => {
+    test("should match snapshot on edit without guest permissions", (done) => {
         const props = {
             ...defaultProps,
             config: {
-                EnableGuestAccounts: 'false',
+                EnableGuestAccounts: "false",
             },
-            schemeId: 'xyz',
+            schemeId: "xyz",
             scheme: {
-                id: 'xxx',
-                name: 'yyy',
-                display_name: 'Test scheme',
-                description: 'Test scheme description',
-                default_team_user_role: 'aaa',
-                default_team_admin_role: 'bbb',
-                default_channel_user_role: 'ccc',
-                default_channel_admin_role: 'ddd',
-                default_team_guest_role: 'eee',
-                default_channel_guest_role: 'fff',
-                default_playbook_admin_role: 'ggg',
-                default_playbook_member_role: 'hhh',
-                default_run_admin_role: 'iii',
-                default_run_member_role: 'jjj',
+                id: "xxx",
+                name: "yyy",
+                display_name: "Test scheme",
+                description: "Test scheme description",
+                default_team_user_role: "aaa",
+                default_team_admin_role: "bbb",
+                default_channel_user_role: "ccc",
+                default_channel_admin_role: "ddd",
+                default_team_guest_role: "eee",
+                default_channel_guest_role: "fff",
+                default_playbook_admin_role: "ggg",
+                default_playbook_member_role: "hhh",
+                default_run_admin_role: "iii",
+                default_run_member_role: "jjj",
             },
         };
 
         const wrapper = shallow<PermissionTeamSchemeSettings>(
-            <PermissionTeamSchemeSettings {...props}/>,
+            <PermissionTeamSchemeSettings {...props} />,
         );
         expect(wrapper).toMatchSnapshot();
         defaultProps.actions.loadRolesIfNeeded().then(() => {
@@ -389,33 +424,33 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         });
     });
 
-    test('should match snapshot on edit without license', (done) => {
+    test("should match snapshot on edit without license", (done) => {
         const props = {
             ...defaultProps,
             license: {
-                IsLicensed: 'false',
+                IsLicensed: "false",
             },
-            schemeId: 'xyz',
+            schemeId: "xyz",
             scheme: {
-                id: 'xxx',
-                name: 'yyy',
-                display_name: 'Test scheme',
-                description: 'Test scheme description',
-                default_team_user_role: 'aaa',
-                default_team_admin_role: 'bbb',
-                default_channel_user_role: 'ccc',
-                default_channel_admin_role: 'ddd',
-                default_team_guest_role: 'eee',
-                default_channel_guest_role: 'fff',
-                default_playbook_admin_role: 'ggg',
-                default_playbook_member_role: 'hhh',
-                default_run_admin_role: 'iii',
-                default_run_member_role: 'jjj',
+                id: "xxx",
+                name: "yyy",
+                display_name: "Test scheme",
+                description: "Test scheme description",
+                default_team_user_role: "aaa",
+                default_team_admin_role: "bbb",
+                default_channel_user_role: "ccc",
+                default_channel_admin_role: "ddd",
+                default_team_guest_role: "eee",
+                default_channel_guest_role: "fff",
+                default_playbook_admin_role: "ggg",
+                default_playbook_member_role: "hhh",
+                default_run_admin_role: "iii",
+                default_run_member_role: "jjj",
             },
         };
 
         const wrapper = shallow<PermissionTeamSchemeSettings>(
-            <PermissionTeamSchemeSettings {...props}/>,
+            <PermissionTeamSchemeSettings {...props} />,
         );
         expect(wrapper).toMatchSnapshot();
         defaultProps.actions.loadRolesIfNeeded().then(() => {

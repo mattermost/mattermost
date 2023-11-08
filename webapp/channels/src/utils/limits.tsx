@@ -1,14 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {FormatNumberOptions} from 'react-intl';
+import type { FormatNumberOptions } from "react-intl";
 
-import type {CloudUsage, Limits} from '@mattermost/types/cloud';
+import type { CloudUsage, Limits } from "@mattermost/types/cloud";
 
-import {FileSizes} from './file_utils';
+import { FileSizes } from "./file_utils";
 
-export function asGBString(bits: number, formatNumber: (b: number, options: FormatNumberOptions) => string): string {
-    return `${formatNumber(bits / FileSizes.Gigabyte, {maximumFractionDigits: 1})}GB`;
+export function asGBString(
+    bits: number,
+    formatNumber: (b: number, options: FormatNumberOptions) => string,
+): string {
+    return `${formatNumber(bits / FileSizes.Gigabyte, {
+        maximumFractionDigits: 1,
+    })}GB`;
 }
 
 export function inK(num: number): string {
@@ -42,7 +47,7 @@ export function anyUsageDeltaExceededLimit(deltas: CloudUsage) {
     // JSON.parse recursively moves through the object tree, passing the key and value post transformation
     // We can use the `reviver` argument to see if any of those arguments are numbers, and negative.
     JSON.parse(JSON.stringify(deltas), (key, value) => {
-        if (typeof value === 'number' && value > 0) {
+        if (typeof value === "number" && value > 0) {
             foundAPositive = true;
         }
     });
@@ -62,6 +67,6 @@ export const limitThresholds = Object.freeze({
 });
 
 export const LimitTypes = {
-    messageHistory: 'messageHistory',
-    fileStorage: 'fileStorage',
+    messageHistory: "messageHistory",
+    fileStorage: "fileStorage",
 } as const;

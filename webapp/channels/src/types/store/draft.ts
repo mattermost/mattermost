@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {FileInfo} from '@mattermost/types/files';
-import type {PostPriority} from '@mattermost/types/posts';
+import type { FileInfo } from "@mattermost/types/files";
+import type { PostPriority } from "@mattermost/types/posts";
 
 export type DraftInfo = {
     id: string;
-    type: 'channel' | 'thread';
-}
+    type: "channel" | "thread";
+};
 
 export type PostDraft = {
     message: string;
@@ -22,7 +22,7 @@ export type PostDraft = {
     show?: boolean;
     metadata?: {
         priority?: {
-            priority: PostPriority|'';
+            priority: PostPriority | "";
             requested_ack?: boolean;
             persistent_notifications?: boolean;
         };

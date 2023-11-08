@@ -1,58 +1,58 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import * as cloudActions from 'mattermost-redux/actions/cloud';
+import * as cloudActions from "mattermost-redux/actions/cloud";
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-import {CloudProducts} from 'utils/constants';
+import { renderWithIntlAndStore, screen } from "tests/react_testing_utils";
+import { CloudProducts } from "utils/constants";
 
-import PaymentAnnouncementBar from './';
+import PaymentAnnouncementBar from "./";
 
-jest.mock('mattermost-redux/actions/cloud', () => {
-    const original = jest.requireActual('mattermost-redux/actions/cloud');
+jest.mock("mattermost-redux/actions/cloud", () => {
+    const original = jest.requireActual("mattermost-redux/actions/cloud");
     return {
         ...original,
         __esModule: true,
 
         // just testing that it fired, not that the result updated or anything like that
-        getCloudCustomer: jest.fn(() => ({type: 'bogus'})),
+        getCloudCustomer: jest.fn(() => ({ type: "bogus" })),
     };
 });
 
-describe('PaymentAnnouncementBar', () => {
+describe("PaymentAnnouncementBar", () => {
     const happyPathStore = {
         entities: {
             users: {
-                currentUserId: 'me',
+                currentUserId: "me",
                 profiles: {
                     me: {
-                        roles: 'system_admin',
+                        roles: "system_admin",
                     },
                 },
             },
             general: {
                 license: {
-                    Cloud: 'true',
+                    Cloud: "true",
                 },
             },
             cloud: {
                 subscription: {
-                    product_id: 'prod_something',
+                    product_id: "prod_something",
                     last_invoice: {
-                        status: 'failed',
+                        status: "failed",
                     },
                 },
                 customer: {
                     payment_method: {
                         exp_month: 12,
-                        exp_year: (new Date()).getFullYear() + 1,
+                        exp_year: new Date().getFullYear() + 1,
                     },
                 },
                 products: {
                     prod_something: {
-                        id: 'prod_something',
+                        id: "prod_something",
                         sku: CloudProducts.PROFESSIONAL,
                     },
                 },
@@ -67,31 +67,32 @@ describe('PaymentAnnouncementBar', () => {
         },
     };
 
-    it('when most recent payment failed, shows that', () => {
-        renderWithIntlAndStore(<PaymentAnnouncementBar/>, happyPathStore);
-        screen.getByText('Your most recent payment failed');
+    it("when most recent payment failed, shows that", () => {
+        renderWithIntlAndStore(<PaymentAnnouncementBar />, happyPathStore);
+        screen.getByText("Your most recent payment failed");
     });
 
-    it('when card is expired, shows that', () => {
+    it("when card is expired, shows that", () => {
         const store = JSON.parse(JSON.stringify(happyPathStore));
-        store.entities.cloud.customer.payment_method.exp_year = (new Date()).getFullYear() - 1;
-        store.entities.cloud.subscription.last_invoice.status = 'success';
-        renderWithIntlAndStore(<PaymentAnnouncementBar/>, store);
-        screen.getByText('Your credit card has expired', {exact: false});
+        store.entities.cloud.customer.payment_method.exp_year =
+            new Date().getFullYear() - 1;
+        store.entities.cloud.subscription.last_invoice.status = "success";
+        renderWithIntlAndStore(<PaymentAnnouncementBar />, store);
+        screen.getByText("Your credit card has expired", { exact: false });
     });
 
-    it('when needed, fetches, customer', () => {
+    it("when needed, fetches, customer", () => {
         const store = JSON.parse(JSON.stringify(happyPathStore));
         store.entities.cloud.customer = null;
-        store.entities.cloud.subscription.last_invoice.status = 'success';
-        renderWithIntlAndStore(<PaymentAnnouncementBar/>, store);
+        store.entities.cloud.subscription.last_invoice.status = "success";
+        renderWithIntlAndStore(<PaymentAnnouncementBar />, store);
         expect(cloudActions.getCloudCustomer).toHaveBeenCalled();
     });
 
-    it('when not an admin, does not fetch customer', () => {
+    it("when not an admin, does not fetch customer", () => {
         const store = JSON.parse(JSON.stringify(happyPathStore));
-        store.entities.users.profiles.me.roles = '';
-        renderWithIntlAndStore(<PaymentAnnouncementBar/>, store);
+        store.entities.users.profiles.me.roles = "";
+        renderWithIntlAndStore(<PaymentAnnouncementBar />, store);
         expect(cloudActions.getCloudCustomer).not.toHaveBeenCalled();
     });
 });

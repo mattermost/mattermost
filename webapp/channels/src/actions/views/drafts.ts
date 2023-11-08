@@ -1,36 +1,43 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {batchActions} from 'redux-batched-actions';
+import { batchActions } from "redux-batched-actions";
 
-import type {Draft as ServerDraft} from '@mattermost/types/drafts';
-import type {FileInfo} from '@mattermost/types/files';
-import type {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Draft as ServerDraft } from "@mattermost/types/drafts";
+import type { FileInfo } from "@mattermost/types/files";
+import type {
+    PostMetadata,
+    PostPriorityMetadata,
+} from "@mattermost/types/posts";
+import type { PreferenceType } from "@mattermost/types/preferences";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {Client4} from 'mattermost-redux/client';
-import Preferences from 'mattermost-redux/constants/preferences';
-import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import { savePreferences } from "mattermost-redux/actions/preferences";
+import { Client4 } from "mattermost-redux/client";
+import Preferences from "mattermost-redux/constants/preferences";
+import { syncedDraftsAreAllowedAndEnabled } from "mattermost-redux/selectors/entities/preferences";
+import { getCurrentUserId } from "mattermost-redux/selectors/entities/users";
+import type {
+    ActionFunc,
+    DispatchFunc,
+    GetStateFunc,
+} from "mattermost-redux/types/actions";
 
-import {setGlobalItem} from 'actions/storage';
-import {makeGetDrafts} from 'selectors/drafts';
-import {getConnectionId} from 'selectors/general';
-import {getGlobalItem} from 'selectors/storage';
+import { setGlobalItem } from "actions/storage";
+import { makeGetDrafts } from "selectors/drafts";
+import { getConnectionId } from "selectors/general";
+import { getGlobalItem } from "selectors/storage";
 
-import {ActionTypes, StoragePrefixes} from 'utils/constants';
+import { ActionTypes, StoragePrefixes } from "utils/constants";
 
-import type {GlobalState} from 'types/store';
-import type {PostDraft} from 'types/store/draft';
+import type { GlobalState } from "types/store";
+import type { PostDraft } from "types/store/draft";
 
 type Draft = {
-    key: keyof GlobalState['storage']['storage'];
+    key: keyof GlobalState["storage"]["storage"];
     value: PostDraft;
     timestamp: Date;
-}
+};
 
 /**
  * Gets drafts stored on the server and reconciles them with any locally stored drafts.
@@ -44,9 +51,11 @@ export function getDrafts(teamId: string) {
 
         let serverDrafts: Draft[] = [];
         try {
-            serverDrafts = (await Client4.getUserDrafts(teamId)).map((draft) => transformServerDraft(draft));
+            serverDrafts = (await Client4.getUserDrafts(teamId)).map((draft) =>
+                transformServerDraft(draft),
+            );
         } catch (error) {
-            return {data: false, error};
+            return { data: false, error };
         }
 
         const localDrafts = getLocalDrafts(state);
@@ -66,15 +75,21 @@ export function getDrafts(teamId: string) {
         });
 
         dispatch(batchActions(actions));
-        return {data: true};
+        return { data: true };
     };
 }
 
-export function removeDraft(key: string, channelId: string, rootId = '') {
+export function removeDraft(key: string, channelId: string, rootId = "") {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
 
-        dispatch(setGlobalItem(key, {message: '', fileInfos: [], uploadsInProgress: []}));
+        dispatch(
+            setGlobalItem(key, {
+                message: "",
+                fileInfos: [],
+                uploadsInProgress: [],
+            }),
+        );
 
         if (syncedDraftsAreAllowedAndEnabled(state)) {
             const connectionId = getConnectionId(getState() as GlobalState);
@@ -88,14 +103,19 @@ export function removeDraft(key: string, channelId: string, rootId = '') {
                 };
             }
         }
-        return {data: true};
+        return { data: true };
     };
 }
 
-export function updateDraft(key: string, value: PostDraft|null, rootId = '', save = false) {
+export function updateDraft(
+    key: string,
+    value: PostDraft | null,
+    rootId = "",
+    save = false,
+) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
-        let updatedValue: PostDraft|null = null;
+        let updatedValue: PostDraft | null = null;
         if (value) {
             const timestamp = new Date().getTime();
             const data = getGlobalItem(state, key, {});
@@ -114,14 +134,19 @@ export function updateDraft(key: string, value: PostDraft|null, rootId = '', sav
             try {
                 await upsertDraft(updatedValue, userId, rootId, connectionId);
             } catch (error) {
-                return {data: false, error};
+                return { data: false, error };
             }
         }
-        return {data: true};
+        return { data: true };
     };
 }
 
-function upsertDraft(draft: PostDraft, userId: UserProfile['id'], rootId = '', connectionId: string) {
+function upsertDraft(
+    draft: PostDraft,
+    userId: UserProfile["id"],
+    rootId = "",
+    connectionId: string,
+) {
     const fileIds = draft.fileInfos.map((file) => file.id);
     const newDraft = {
         create_at: draft.createAt || 0,
@@ -139,7 +164,9 @@ function upsertDraft(draft: PostDraft, userId: UserProfile['id'], rootId = '', c
     return Client4.upsertDraft(newDraft, connectionId);
 }
 
-export function setDraftsTourTipPreference(initializationState: Record<string, boolean>): ActionFunc {
+export function setDraftsTourTipPreference(
+    initializationState: Record<string, boolean>,
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -150,15 +177,19 @@ export function setDraftsTourTipPreference(initializationState: Record<string, b
             value: JSON.stringify(initializationState),
         };
         await dispatch(savePreferences(currentUserId, [preference]));
-        return {data: true};
+        return { data: true };
     };
 }
 
-export function setGlobalDraft(key: string, value: PostDraft|null, isRemote: boolean) {
+export function setGlobalDraft(
+    key: string,
+    value: PostDraft | null,
+    isRemote: boolean,
+) {
     return (dispatch: DispatchFunc) => {
         dispatch(setGlobalItem(key, value));
         dispatch(setGlobalDraftSource(key, isRemote));
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -173,9 +204,9 @@ export function setGlobalDraftSource(key: string, isRemote: boolean) {
 }
 
 export function transformServerDraft(draft: ServerDraft): Draft {
-    let key: Draft['key'] = `${StoragePrefixes.DRAFT}${draft.channel_id}`;
+    let key: Draft["key"] = `${StoragePrefixes.DRAFT}${draft.channel_id}`;
 
-    if (draft.root_id !== '') {
+    if (draft.root_id !== "") {
         key = `${StoragePrefixes.COMMENT_DRAFT}${draft.root_id}`;
     }
 

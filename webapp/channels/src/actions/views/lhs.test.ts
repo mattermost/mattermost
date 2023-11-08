@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {MockStoreEnhanced} from 'redux-mock-store';
+import type { MockStoreEnhanced } from "redux-mock-store";
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import type { DispatchFunc } from "mattermost-redux/types/actions";
 
-import {close, open, toggle} from 'actions/views/lhs';
-import configureStore from 'store';
+import { close, open, toggle } from "actions/views/lhs";
+import configureStore from "store";
 
-import mockStore from 'tests/test_store';
-import {ActionTypes} from 'utils/constants';
+import mockStore from "tests/test_store";
+import { ActionTypes } from "utils/constants";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import * as Actions from './lhs';
+import * as Actions from "./lhs";
 
-describe('lhs view actions', () => {
+describe("lhs view actions", () => {
     const initialState = {
         views: {
             lhs: {
@@ -30,7 +30,7 @@ describe('lhs view actions', () => {
         store = mockStore(initialState);
     });
 
-    it('toggle dispatches the right action', () => {
+    it("toggle dispatches the right action", () => {
         store.dispatch(toggle());
 
         const compareStore = mockStore(initialState);
@@ -41,7 +41,7 @@ describe('lhs view actions', () => {
         expect(store.getActions()).toEqual(compareStore.getActions());
     });
 
-    it('open dispatches the right action', () => {
+    it("open dispatches the right action", () => {
         store.dispatch(open());
 
         const compareStore = mockStore(initialState);
@@ -52,7 +52,7 @@ describe('lhs view actions', () => {
         expect(store.getActions()).toEqual(compareStore.getActions());
     });
 
-    it('close dispatches the right action', () => {
+    it("close dispatches the right action", () => {
         store.dispatch(close());
 
         const compareStore = mockStore(initialState);
@@ -63,9 +63,11 @@ describe('lhs view actions', () => {
         expect(store.getActions()).toEqual(compareStore.getActions());
     });
 
-    test('selectStaticPage', async () => {
-        const testStore = configureStore({...initialState});
-        await testStore.dispatch(Actions.selectStaticPage('test'));
-        expect(testStore.getState().views.lhs.currentStaticPageId).toEqual('test');
+    test("selectStaticPage", async () => {
+        const testStore = configureStore({ ...initialState });
+        await testStore.dispatch(Actions.selectStaticPage("test"));
+        expect(testStore.getState().views.lhs.currentStaticPageId).toEqual(
+            "test",
+        );
     });
 });

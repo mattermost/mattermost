@@ -19,13 +19,13 @@ export type PluginManifest = {
     props?: Record<string, any>;
 };
 
-export type PluginRedux = PluginManifest & {active: boolean};
+export type PluginRedux = PluginManifest & { active: boolean };
 
 export type PluginManifestServer = {
     executables?: {
-        'linux-amd64'?: string;
-        'darwin-amd64'?: string;
-        'windows-amd64'?: string;
+        "linux-amd64"?: string;
+        "darwin-amd64"?: string;
+        "windows-amd64"?: string;
     };
     executable: string;
 };
@@ -49,7 +49,7 @@ export type PluginSetting = {
     placeholder: string;
     default: any;
     options?: PluginSettingOption[];
-    hosting?: 'on-prem' | 'cloud';
+    hosting?: "on-prem" | "cloud";
 };
 
 export type PluginSettingOption = {
@@ -76,7 +76,7 @@ type PluginInstance = {
     cluster_id: string;
     version: string;
     state: number;
-}
+};
 
 export type PluginStatusRedux = {
     id: string;
@@ -87,7 +87,7 @@ export type PluginStatusRedux = {
     state: number;
     error?: string;
     instances: PluginInstance[];
-}
+};
 
 export type ClientPluginManifest = {
     id: string;
@@ -96,33 +96,35 @@ export type ClientPluginManifest = {
     webapp: {
         bundle_path: string;
     };
-}
+};
 
-export type MarketplaceLabel = { // TODO remove this in favour of the definition in types/marketplace after the mattermost-redux migration
+export type MarketplaceLabel = {
+    // TODO remove this in favour of the definition in types/marketplace after the mattermost-redux migration
     name: string;
     description?: string;
     url?: string;
     color?: string;
-}
+};
 
 export enum HostingType { // TODO remove this in favour of the definition in types/marketplace after the mattermost-redux migration
-    OnPrem = 'on-prem',
-    Cloud = 'cloud',
+    OnPrem = "on-prem",
+    Cloud = "cloud",
 }
 
 export enum AuthorType { // TODO remove this in favour of the definition in types/marketplace after the mattermost-redux migration
-    Mattermost = 'mattermost',
-    Partner = 'partner',
-    Community = 'community',
+    Mattermost = "mattermost",
+    Partner = "partner",
+    Community = "community",
 }
 
 export enum ReleaseStage { // TODO remove this in favour of the definition in types/marketplace after the mattermost-redux migration
-    Production = 'production',
-    Beta = 'beta',
-    Experimental = 'experimental',
+    Production = "production",
+    Beta = "beta",
+    Experimental = "experimental",
 }
 
-export type MarketplacePlugin = { // TODO remove this in favour of the definition in types/marketplace after the mattermost-redux migration
+export type MarketplacePlugin = {
+    // TODO remove this in favour of the definition in types/marketplace after the mattermost-redux migration
     homepage_url?: string;
     icon_data?: string;
     download_url?: string;
@@ -134,4 +136,4 @@ export type MarketplacePlugin = { // TODO remove this in favour of the definitio
     enterprise: boolean;
     manifest: PluginManifest;
     installed_version?: string;
-}
+};

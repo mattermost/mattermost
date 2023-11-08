@@ -1,22 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
-import {loadMe} from 'mattermost-redux/actions/users';
-import {Client4} from 'mattermost-redux/client';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import {
+    getClientConfig,
+    getLicenseConfig,
+} from "mattermost-redux/actions/general";
+import { loadMe } from "mattermost-redux/actions/users";
+import { Client4 } from "mattermost-redux/client";
+import type {
+    DispatchFunc,
+    GetStateFunc,
+} from "mattermost-redux/types/actions";
 
-import {getCurrentLocale, getTranslations} from 'selectors/i18n';
+import { getCurrentLocale, getTranslations } from "selectors/i18n";
 
-import en from 'i18n/en.json';
-import {ActionTypes} from 'utils/constants';
+import en from "i18n/en.json";
+import { ActionTypes } from "utils/constants";
 
-import type {GlobalState} from 'types/store';
-import type {Translations} from 'types/store/i18n';
+import type { GlobalState } from "types/store";
+import type { Translations } from "types/store/i18n";
 
 const pluginTranslationSources: Record<string, TranslationPluginFunction> = {};
 
-export type TranslationPluginFunction = (locale: string) => Translations
+export type TranslationPluginFunction = (locale: string) => Translations;
 
 export function loadConfigAndMe() {
     return async (dispatch: DispatchFunc) => {
@@ -26,16 +32,19 @@ export function loadConfigAndMe() {
         ]);
 
         let isMeLoaded = false;
-        if (document.cookie.includes('MMUSERID=')) {
+        if (document.cookie.includes("MMUSERID=")) {
             const dataFromLoadMe = await dispatch(loadMe());
             isMeLoaded = dataFromLoadMe?.data ?? false;
         }
 
-        return {data: isMeLoaded};
+        return { data: isMeLoaded };
     };
 }
 
-export function registerPluginTranslationsSource(pluginId: string, sourceFunction: TranslationPluginFunction) {
+export function registerPluginTranslationsSource(
+    pluginId: string,
+    sourceFunction: TranslationPluginFunction,
+) {
     pluginTranslationSources[pluginId] = sourceFunction;
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
@@ -62,13 +71,13 @@ export function unregisterPluginTranslationsSource(pluginId: string) {
 
 export function loadTranslations(locale: string, url: string) {
     return async (dispatch: DispatchFunc) => {
-        const translations = {...en};
+        const translations = { ...en };
         Object.values(pluginTranslationSources).forEach((pluginFunc) => {
             Object.assign(translations, pluginFunc(locale));
         });
 
         // Need to go to the server for languages other than English
-        if (locale !== 'en') {
+        if (locale !== "en") {
             try {
                 const serverTranslations = await Client4.getTranslations(url);
                 Object.assign(translations, serverTranslations);
@@ -83,11 +92,15 @@ export function loadTranslations(locale: string, url: string) {
                 translations,
             },
         });
-        return {data: true};
+        return { data: true };
     };
 }
 
-export function registerCustomPostRenderer(type: string, component: any, id: string) {
+export function registerCustomPostRenderer(
+    type: string,
+    component: any,
+    id: string,
+) {
     return async (dispatch: DispatchFunc) => {
         // piggyback on plugins state to register a custom post renderer
         dispatch({
@@ -99,6 +112,6 @@ export function registerCustomPostRenderer(type: string, component: any, id: str
                 component,
             },
         });
-        return {data: true};
+        return { data: true };
     };
 }

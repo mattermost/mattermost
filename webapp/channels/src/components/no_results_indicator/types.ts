@@ -2,15 +2,15 @@
 // See LICENSE.txt for license information.
 
 export enum NoResultsVariant {
-    ChannelSearch = 'ChannelSearch',
-    Mentions = 'Mentions',
-    FlaggedPosts = 'FlaggedPosts',
-    PinnedPosts = 'PinnedPosts',
-    ChannelFiles = 'ChannelFiles',
-    ChannelFilesFiltered = 'ChannelFilesFiltered',
-    UserGroups = 'UserGroups',
-    UserGroupsArchived = 'UserGroupsArchived',
-    UserGroupMembers = 'UserGroupMembers',
+    ChannelSearch = "ChannelSearch",
+    Mentions = "Mentions",
+    FlaggedPosts = "FlaggedPosts",
+    PinnedPosts = "PinnedPosts",
+    ChannelFiles = "ChannelFiles",
+    ChannelFilesFiltered = "ChannelFilesFiltered",
+    UserGroups = "UserGroups",
+    UserGroupsArchived = "UserGroupsArchived",
+    UserGroupMembers = "UserGroupMembers",
 }
 
 export enum NoResultsLayout {

@@ -1,76 +1,67 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
-import React from 'react';
+import { mount, shallow } from "enzyme";
+import React from "react";
 
-import SpinnerButton from 'components/spinner_button';
+import SpinnerButton from "components/spinner_button";
 
-describe('components/SpinnerButton', () => {
-    test('should match snapshot with required props', () => {
+describe("components/SpinnerButton", () => {
+    test("should match snapshot with required props", () => {
         const wrapper = shallow(
-            <SpinnerButton
-                spinning={false}
-                spinningText='Test'
-            />,
+            <SpinnerButton spinning={false} spinningText="Test" />,
         );
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with spinning', () => {
+    test("should match snapshot with spinning", () => {
         const wrapper = shallow(
-            <SpinnerButton
-                spinning={true}
-                spinningText='Test'
-            />,
+            <SpinnerButton spinning={true} spinningText="Test" />,
         );
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with children', () => {
+    test("should match snapshot with children", () => {
         const wrapper = shallow(
-            <SpinnerButton
-                spinning={false}
-                spinningText='Test'
-            >
-                <span id='child1'/>
-                <span id='child2'/>
+            <SpinnerButton spinning={false} spinningText="Test">
+                <span id="child1" />
+                <span id="child2" />
             </SpinnerButton>,
         );
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should handle onClick', () => {
+    test("should handle onClick", () => {
         const onClick = jest.fn();
 
         const wrapper = mount(
             <SpinnerButton
                 spinning={false}
                 onClick={onClick}
-                spinningText='Test'
+                spinningText="Test"
             />,
         );
 
-        wrapper.find('button').simulate('click');
+        wrapper.find("button").simulate("click");
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 
-    test('should add properties to underlying button', () => {
+    test("should add properties to underlying button", () => {
         const wrapper = mount(
             <SpinnerButton
-                id='my-button-id'
-                className='btn btn-success'
-                spinningText='Test'
+                id="my-button-id"
+                className="btn btn-success"
+                spinningText="Test"
                 spinning={false}
             />,
         );
 
-        const button = wrapper.find('button');
+        const button = wrapper.find("button");
 
         expect(button).not.toBeUndefined();
-        expect(button.type()).toEqual('button');
-        expect(button.props().id).toEqual('my-button-id');
-        expect(button.hasClass('btn')).toBeTruthy();
-        expect(button.hasClass('btn-success')).toBeTruthy();
+        expect(button.type()).toEqual("button");
+        expect(button.props().id).toEqual("my-button-id");
+        expect(button.hasClass("btn")).toBeTruthy();
+        expect(button.hasClass("btn-success")).toBeTruthy();
     });
 });

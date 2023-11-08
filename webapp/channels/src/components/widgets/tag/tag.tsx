@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React, {memo, useMemo} from 'react';
-import type {MouseEventHandler} from 'react';
-import styled, {css} from 'styled-components';
+import classNames from "classnames";
+import React, { memo, useMemo } from "react";
+import type { MouseEventHandler } from "react";
+import styled, { css } from "styled-components";
 
-import glyphMap from '@mattermost/compass-icons/components';
-import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
+import glyphMap from "@mattermost/compass-icons/components";
+import type { IconGlyphTypes } from "@mattermost/compass-icons/IconGlyphs";
 
-export type TagVariant = 'info' | 'success' | 'warning' | 'danger';
+export type TagVariant = "info" | "success" | "warning" | "danger";
 
-export type TagSize = 'xs' | 'sm' | 'md' | 'lg'
+export type TagSize = "xs" | "sm" | "md" | "lg";
 
 type Props = {
     text: React.ReactNode;
@@ -23,7 +23,7 @@ type Props = {
     className?: string;
 };
 
-type TagWrapperProps = Required<Pick<Props, 'uppercase'>>;
+type TagWrapperProps = Required<Pick<Props, "uppercase">>;
 
 const TagWrapper = styled.div<TagWrapperProps>`
     --tag-bg: var(--semantic-color-general);
@@ -44,17 +44,18 @@ const TagWrapper = styled.div<TagWrapperProps>`
     border: none;
     border-radius: 4px;
 
-    font-family: 'Open Sans', sans-serif;
+    font-family: "Open Sans", sans-serif;
     font-weight: 600;
     line-height: 16px;
-    ${({uppercase}) => (
-        uppercase ? css`
-            letter-spacing: 0.02em;
-            text-transform: uppercase;
-        ` : css`
-            text-transform: none;
-        `
-    )}
+    ${({ uppercase }) =>
+        uppercase
+            ? css`
+                  letter-spacing: 0.02em;
+                  text-transform: uppercase;
+              `
+            : css`
+                  text-transform: none;
+              `}
 
     &.Tag--xs {
         height: 16px;
@@ -111,16 +112,15 @@ const TagWrapper = styled.div<TagWrapperProps>`
     background: rgba(var(--tag-bg), var(--tag-bg-opacity));
     color: rgb(var(--tag-color));
 
-    ${({onClick}) => typeof onClick === 'function' && (
+    ${({ onClick }) =>
+        typeof onClick === "function" &&
         css`
             &:hover,
             &:focus {
                 background: rgba(var(--tag-bg), 0.08);
                 cursor: pointer;
             }
-        `
-    )}
-
+        `}
 `;
 
 const TagText = styled.span`
@@ -136,24 +136,24 @@ const Tag = ({
     className,
     text,
     icon: iconName,
-    size = 'xs',
+    size = "xs",
     uppercase = false,
     ...rest
 }: Props) => {
     const Icon = iconName ? glyphMap[iconName] : null;
-    const element = onClick ? 'button' : 'div';
+    const element = onClick ? "button" : "div";
 
     const iconSize = useMemo(() => {
         switch (size) {
-        case 'lg':
-            return 16;
-        case 'md':
-            return 14;
-        case 'sm':
-            return 12;
-        case 'xs':
-        default:
-            return 10;
+            case "lg":
+                return 16;
+            case "md":
+                return 14;
+            case "sm":
+                return 12;
+            case "xs":
+            default:
+                return 10;
         }
     }, [size]);
 
@@ -163,9 +163,13 @@ const Tag = ({
             as={element}
             uppercase={uppercase}
             onClick={onClick}
-            className={classNames('Tag', {[`Tag--${variant}`]: variant, [`Tag--${size}`]: size}, className)}
+            className={classNames(
+                "Tag",
+                { [`Tag--${variant}`]: variant, [`Tag--${size}`]: size },
+                className,
+            )}
         >
-            {Icon && <Icon size={iconSize}/>}
+            {Icon && <Icon size={iconSize} />}
             <TagText>{text}</TagText>
         </TagWrapper>
     );

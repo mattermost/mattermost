@@ -1,21 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage, type WrappedComponentProps, injectIntl} from 'react-intl';
-import styled from 'styled-components';
+import React from "react";
+import {
+    FormattedMessage,
+    type WrappedComponentProps,
+    injectIntl,
+} from "react-intl";
+import styled from "styled-components";
 
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
-} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import LocalizedIcon from 'components/localized_icon';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+} from "components/keyboard_shortcuts/keyboard_shortcuts_sequence";
+import LocalizedIcon from "components/localized_icon";
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
 
-import Constants, {RHSStates} from 'utils/constants';
-import {t} from 'utils/i18n';
+import Constants, { RHSStates } from "utils/constants";
+import { t } from "utils/i18n";
 
-import type {RhsState} from 'types/store/rhs';
+import type { RhsState } from "types/store/rhs";
 
 const BackButton = styled.button`
     border: 0px;
@@ -44,19 +48,19 @@ interface Props extends WrappedComponentProps {
 class SearchResultsHeader extends React.PureComponent<Props> {
     render(): React.ReactNode {
         const closeSidebarTooltip = (
-            <Tooltip id='closeSidebarTooltip'>
+            <Tooltip id="closeSidebarTooltip">
                 <FormattedMessage
-                    id='rhs_header.closeSidebarTooltip'
-                    defaultMessage='Close'
+                    id="rhs_header.closeSidebarTooltip"
+                    defaultMessage="Close"
                 />
             </Tooltip>
         );
 
         const expandSidebarTooltip = (
-            <Tooltip id='expandSidebarTooltip'>
+            <Tooltip id="expandSidebarTooltip">
                 <FormattedMessage
-                    id='rhs_header.expandSidebarTooltip'
-                    defaultMessage='Expand the right sidebar'
+                    id="rhs_header.expandSidebarTooltip"
+                    defaultMessage="Expand the right sidebar"
                 />
                 <KeyboardShortcutSequence
                     shortcut={KEYBOARD_SHORTCUTS.navExpandSidebar}
@@ -67,10 +71,10 @@ class SearchResultsHeader extends React.PureComponent<Props> {
         );
 
         const shrinkSidebarTooltip = (
-            <Tooltip id='shrinkSidebarTooltip'>
+            <Tooltip id="shrinkSidebarTooltip">
                 <FormattedMessage
-                    id='rhs_header.collapseSidebarTooltip'
-                    defaultMessage='Collapse the right sidebar'
+                    id="rhs_header.collapseSidebarTooltip"
+                    defaultMessage="Collapse the right sidebar"
                 />
                 <KeyboardShortcutSequence
                     shortcut={KEYBOARD_SHORTCUTS.navExpandSidebar}
@@ -80,63 +84,80 @@ class SearchResultsHeader extends React.PureComponent<Props> {
             </Tooltip>
         );
 
-        const showExpand = this.props.previousRhsState !== RHSStates.CHANNEL_INFO;
+        const showExpand =
+            this.props.previousRhsState !== RHSStates.CHANNEL_INFO;
 
         return (
-            <div className='sidebar--right__header'>
-                <span className='sidebar--right__title'>
+            <div className="sidebar--right__header">
+                <span className="sidebar--right__title">
                     {this.props.canGoBack && (
                         <BackButton
-                            className='sidebar--right__back'
+                            className="sidebar--right__back"
                             onClick={() => this.props.actions.goBack()}
                         >
                             <BackButtonIcon
-                                className='icon-arrow-back-ios'
-                                ariaLabel={{id: t('rhs_header.back.icon'), defaultMessage: 'Back Icon'}}
+                                className="icon-arrow-back-ios"
+                                ariaLabel={{
+                                    id: t("rhs_header.back.icon"),
+                                    defaultMessage: "Back Icon",
+                                }}
                             />
                         </BackButton>
                     )}
                     {this.props.children}
                 </span>
 
-                <div className='pull-right'>
+                <div className="pull-right">
                     {showExpand && (
                         <OverlayTrigger
                             delayShow={Constants.OVERLAY_TIME_DELAY}
-                            placement='bottom'
-                            overlay={this.props.isExpanded ? shrinkSidebarTooltip : expandSidebarTooltip}
+                            placement="bottom"
+                            overlay={
+                                this.props.isExpanded
+                                    ? shrinkSidebarTooltip
+                                    : expandSidebarTooltip
+                            }
                         >
                             <button
-                                type='button'
-                                className='sidebar--right__expand btn btn-icon btn-sm'
+                                type="button"
+                                className="sidebar--right__expand btn btn-icon btn-sm"
                                 onClick={this.props.actions.toggleRhsExpanded}
                             >
                                 <i
-                                    className='icon icon-arrow-expand'
-                                    aria-label={this.props.intl.formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'})}
+                                    className="icon icon-arrow-expand"
+                                    aria-label={this.props.intl.formatMessage({
+                                        id: "rhs_header.expandSidebarTooltip.icon",
+                                        defaultMessage: "Expand Sidebar Icon",
+                                    })}
                                 />
                                 <i
-                                    className='icon icon-arrow-collapse'
-                                    aria-label={this.props.intl.formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
+                                    className="icon icon-arrow-collapse"
+                                    aria-label={this.props.intl.formatMessage({
+                                        id: "rhs_header.collapseSidebarTooltip.icon",
+                                        defaultMessage: "Collapse Sidebar Icon",
+                                    })}
                                 />
                             </button>
                         </OverlayTrigger>
                     )}
                     <OverlayTrigger
                         delayShow={Constants.OVERLAY_TIME_DELAY}
-                        placement='top'
+                        placement="top"
                         overlay={closeSidebarTooltip}
                     >
                         <button
-                            id='searchResultsCloseButton'
-                            type='button'
-                            className='sidebar--right__close btn btn-icon btn-sm'
-                            aria-label='Close'
+                            id="searchResultsCloseButton"
+                            type="button"
+                            className="sidebar--right__close btn btn-icon btn-sm"
+                            aria-label="Close"
                             onClick={this.props.actions.closeRightHandSide}
                         >
                             <i
-                                className='icon icon-close'
-                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
+                                className="icon icon-close"
+                                aria-label={this.props.intl.formatMessage({
+                                    id: "rhs_header.closeTooltip.icon",
+                                    defaultMessage: "Close Sidebar Icon",
+                                })}
                             />
                         </button>
                     </OverlayTrigger>

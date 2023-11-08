@@ -1,9 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getHistory} from 'utils/browser_history';
-import {ErrorPageTypes, StoragePrefixes, LandingPreferenceTypes} from 'utils/constants';
-import * as Utils from 'utils/utils';
+import { getHistory } from "utils/browser_history";
+import {
+    ErrorPageTypes,
+    StoragePrefixes,
+    LandingPreferenceTypes,
+} from "utils/constants";
+import * as Utils from "utils/utils";
 
 class BrowserStoreClass {
     private hasCheckedLocalStorage?: boolean;
@@ -50,21 +54,21 @@ class BrowserStoreClass {
         this.localStorageSupported = false;
 
         try {
-            localStorage.setItem('__testLocal__', '1');
-            if (localStorage.getItem('__testLocal__') === '1') {
+            localStorage.setItem("__testLocal__", "1");
+            if (localStorage.getItem("__testLocal__") === "1") {
                 this.localStorageSupported = true;
             }
-            localStorage.removeItem('__testLocal__');
+            localStorage.removeItem("__testLocal__");
         } catch (e) {
             this.localStorageSupported = false;
         }
 
         try {
-            sessionStorage.setItem('__testSession__', '1');
-            sessionStorage.removeItem('__testSession__');
+            sessionStorage.setItem("__testSession__", "1");
+            sessionStorage.removeItem("__testSession__");
         } catch (e) {
             // Session storage not usable, website is unusable
-            getHistory().push('/error?type=' + ErrorPageTypes.LOCAL_STORAGE);
+            getHistory().push("/error?type=" + ErrorPageTypes.LOCAL_STORAGE);
         }
 
         this.hasCheckedLocalStorage = true;
@@ -77,23 +81,36 @@ class BrowserStoreClass {
     }
 
     setLandingPageSeen(landingPageSeen: boolean) {
-        localStorage.setItem(StoragePrefixes.LANDING_PAGE_SEEN, String(landingPageSeen));
+        localStorage.setItem(
+            StoragePrefixes.LANDING_PAGE_SEEN,
+            String(landingPageSeen),
+        );
     }
 
     getLandingPreference(siteUrl?: string) {
-        return localStorage.getItem(StoragePrefixes.LANDING_PREFERENCE + String(siteUrl));
+        return localStorage.getItem(
+            StoragePrefixes.LANDING_PREFERENCE + String(siteUrl),
+        );
     }
 
     setLandingPreferenceToMattermostApp(siteUrl?: string) {
-        localStorage.setItem(StoragePrefixes.LANDING_PREFERENCE + String(siteUrl), LandingPreferenceTypes.MATTERMOSTAPP);
+        localStorage.setItem(
+            StoragePrefixes.LANDING_PREFERENCE + String(siteUrl),
+            LandingPreferenceTypes.MATTERMOSTAPP,
+        );
     }
 
     setLandingPreferenceToBrowser(siteUrl?: string) {
-        localStorage.setItem(StoragePrefixes.LANDING_PREFERENCE + String(siteUrl), LandingPreferenceTypes.BROWSER);
+        localStorage.setItem(
+            StoragePrefixes.LANDING_PREFERENCE + String(siteUrl),
+            LandingPreferenceTypes.BROWSER,
+        );
     }
 
     clearLandingPreference(siteUrl?: string) {
-        localStorage.removeItem(StoragePrefixes.LANDING_PREFERENCE + String(siteUrl));
+        localStorage.removeItem(
+            StoragePrefixes.LANDING_PREFERENCE + String(siteUrl),
+        );
     }
 }
 

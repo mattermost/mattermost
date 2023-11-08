@@ -1,23 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import crypto from 'crypto';
-import React, {useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
-import {useHistory, useLocation} from 'react-router-dom';
+import classNames from "classnames";
+import crypto from "crypto";
+import React, { useEffect, useState } from "react";
+import { FormattedMessage } from "react-intl";
+import { useDispatch } from "react-redux";
+import { useHistory, useLocation } from "react-router-dom";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import type { DispatchFunc } from "mattermost-redux/types/actions";
 
-import {loginWithDesktopToken} from 'actions/views/login';
+import { loginWithDesktopToken } from "actions/views/login";
 
-import './desktop_auth_token.scss';
+import "./desktop_auth_token.scss";
 
 const BOTTOM_MESSAGE_TIMEOUT = 10000;
-const DESKTOP_AUTH_PREFIX = 'desktop_auth_client_token';
+const DESKTOP_AUTH_PREFIX = "desktop_auth_client_token";
 
 declare global {
     interface Window {
@@ -38,18 +38,20 @@ enum DesktopAuthStatus {
 type Props = {
     href: string;
     onLogin: (userProfile: UserProfile) => void;
-}
+};
 
-const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
+const DesktopAuthToken: React.FC<Props> = ({ href, onLogin }: Props) => {
     const dispatch = useDispatch<DispatchFunc>();
     const history = useHistory();
-    const {search} = useLocation();
+    const { search } = useLocation();
     const query = new URLSearchParams(search);
 
-    const serverToken = query.get('server_token');
-    const receivedClientToken = query.get('client_token');
+    const serverToken = query.get("server_token");
+    const receivedClientToken = query.get("client_token");
     const storedClientToken = sessionStorage.getItem(DESKTOP_AUTH_PREFIX);
-    const [status, setStatus] = useState(serverToken ? DesktopAuthStatus.LoggedIn : DesktopAuthStatus.None);
+    const [status, setStatus] = useState(
+        serverToken ? DesktopAuthStatus.LoggedIn : DesktopAuthStatus.None,
+    );
     const [showBottomMessage, setShowBottomMessage] = useState<boolean>();
 
     const tryDesktopLogin = async () => {
@@ -59,9 +61,15 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
         }
 
         sessionStorage.removeItem(DESKTOP_AUTH_PREFIX);
-        const {data: userProfile, error: loginError} = await dispatch(loginWithDesktopToken(serverToken));
+        const { data: userProfile, error: loginError } = await dispatch(
+            loginWithDesktopToken(serverToken),
+        );
 
-        if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
+        if (
+            loginError &&
+            loginError.server_error_id &&
+            loginError.server_error_id.length !== 0
+        ) {
             setStatus(DesktopAuthStatus.Error);
             return;
         }
@@ -72,25 +80,31 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
 
     const openExternalLoginURL = async () => {
         const isDev = await window.desktopAPI?.isDev?.();
-        const desktopToken = `${isDev ? 'dev-' : ''}${crypto.randomBytes(32).toString('hex')}`.slice(0, 64);
+        const desktopToken = `${isDev ? "dev-" : ""}${crypto
+            .randomBytes(32)
+            .toString("hex")}`.slice(0, 64);
         sessionStorage.setItem(DESKTOP_AUTH_PREFIX, desktopToken);
         const parsedURL = new URL(href);
 
         const params = new URLSearchParams(parsedURL.searchParams);
-        params.set('desktop_token', desktopToken);
+        params.set("desktop_token", desktopToken);
 
-        window.open(`${parsedURL.origin}${parsedURL.pathname}?${params.toString()}`);
+        window.open(
+            `${parsedURL.origin}${parsedURL.pathname}?${params.toString()}`,
+        );
         setStatus(DesktopAuthStatus.WaitingForBrowser);
     };
 
     const forwardToDesktopApp = () => {
         const url = new URL(window.location.href);
-        let protocol = 'mattermost';
-        if (url.searchParams.get('isDesktopDev')) {
-            protocol = 'mattermost-dev';
+        let protocol = "mattermost";
+        if (url.searchParams.get("isDesktopDev")) {
+            protocol = "mattermost-dev";
         }
 
-        window.location.href = url.toString().replace(url.protocol, `${protocol}:`);
+        window.location.href = url
+            .toString()
+            .replace(url.protocol, `${protocol}:`);
     };
 
     useEffect(() => {
@@ -125,14 +139,14 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
     if (status === DesktopAuthStatus.WaitingForBrowser) {
         mainMessage = (
             <FormattedMessage
-                id='desktop_auth_token.polling.redirectingToBrowser'
-                defaultMessage='Redirecting to browser...'
+                id="desktop_auth_token.polling.redirectingToBrowser"
+                defaultMessage="Redirecting to browser..."
             />
         );
         subMessage = (
             <FormattedMessage
-                id='desktop_auth_token.polling.awaitingToken'
-                defaultMessage='Authenticating in the browser, awaiting valid token.'
+                id="desktop_auth_token.polling.awaitingToken"
+                defaultMessage="Authenticating in the browser, awaiting valid token."
             />
         );
 
@@ -142,37 +156,31 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
     if (status === DesktopAuthStatus.LoggedIn) {
         mainMessage = (
             <FormattedMessage
-                id='desktop_auth_token.complete.youAreNowLoggedIn'
-                defaultMessage='You are now logged in'
+                id="desktop_auth_token.complete.youAreNowLoggedIn"
+                defaultMessage="You are now logged in"
             />
         );
         subMessage = (
             <FormattedMessage
-                id='desktop_auth_token.complete.openMattermost'
-                defaultMessage='Click on <b>Open Mattermost</b> in the browser prompt to <a>launch the desktop app</a>'
+                id="desktop_auth_token.complete.openMattermost"
+                defaultMessage="Click on <b>Open Mattermost</b> in the browser prompt to <a>launch the desktop app</a>"
                 values={{
                     a: (chunks: React.ReactNode) => {
-                        return (
-                            <a onClick={forwardToDesktopApp}>
-                                {chunks}
-                            </a>
-                        );
+                        return <a onClick={forwardToDesktopApp}>{chunks}</a>;
                     },
-                    b: (chunks: React.ReactNode) => (<b>{chunks}</b>),
+                    b: (chunks: React.ReactNode) => <b>{chunks}</b>,
                 }}
             />
         );
 
         bottomMessage = (
             <FormattedMessage
-                id='desktop_auth_token.complete.havingTrouble'
-                defaultMessage='Having trouble logging in? <a>Open Mattermost in your browser</a>'
+                id="desktop_auth_token.complete.havingTrouble"
+                defaultMessage="Having trouble logging in? <a>Open Mattermost in your browser</a>"
                 values={{
                     a: (chunks: React.ReactNode) => {
                         return (
-                            <a onClick={() => history.push('/')}>
-                                {chunks}
-                            </a>
+                            <a onClick={() => history.push("/")}>{chunks}</a>
                         );
                     },
                 }}
@@ -183,20 +191,18 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
     if (status === DesktopAuthStatus.Error) {
         mainMessage = (
             <FormattedMessage
-                id='desktop_auth_token.error.somethingWentWrong'
-                defaultMessage='Something went wrong'
+                id="desktop_auth_token.error.somethingWentWrong"
+                defaultMessage="Something went wrong"
             />
         );
         subMessage = (
             <FormattedMessage
-                id='desktop_auth_token.error.restartFlow'
-                defaultMessage={'Click <a>here</a> to try again.'}
+                id="desktop_auth_token.error.restartFlow"
+                defaultMessage={"Click <a>here</a> to try again."}
                 values={{
                     a: (chunks: React.ReactNode) => {
                         return (
-                            <a onClick={() => history.push('/')}>
-                                {chunks}
-                            </a>
+                            <a onClick={() => history.push("/")}>{chunks}</a>
                         );
                     },
                 }}
@@ -206,14 +212,16 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
     }
 
     return (
-        <div className='DesktopAuthToken'>
-            <h1 className='DesktopAuthToken__main'>
-                {mainMessage}
-            </h1>
-            <p className={classNames('DesktopAuthToken__sub', {complete: status === DesktopAuthStatus.LoggedIn})}>
+        <div className="DesktopAuthToken">
+            <h1 className="DesktopAuthToken__main">{mainMessage}</h1>
+            <p
+                className={classNames("DesktopAuthToken__sub", {
+                    complete: status === DesktopAuthStatus.LoggedIn,
+                })}
+            >
                 {subMessage}
             </p>
-            <div className='DesktopAuthToken__bottom'>
+            <div className="DesktopAuthToken__bottom">
                 {showBottomMessage ? bottomMessage : null}
             </div>
         </div>

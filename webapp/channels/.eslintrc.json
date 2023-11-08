@@ -23,6 +23,7 @@
     }
   },
   "rules": {
+    "extends": ["plugin:prettier/recommended"],
     "@mattermost/use-external-link": 2,
     "header/header": [
       2,
@@ -89,26 +90,23 @@
     "react/prop-types": [
       2,
       {
-        "ignore": [
-          "location",
-          "history",
-          "component"
-        ]
+        "ignore": ["location", "history", "component"]
       }
     ],
     "react/no-unknown-property": [
       2,
       {
-        "ignore": [
-          "mask-type"
-        ]
+        "ignore": ["mask-type"]
       }
     ],
     "react/no-string-refs": 2,
-    "no-only-tests/no-only-tests": ["error", {"focus": ["only", "skip"]}],
-    "react/style-prop-object": [2, {
-      "allow": ["Timestamp"]
-    }],
+    "no-only-tests/no-only-tests": ["error", { "focus": ["only", "skip"] }],
+    "react/style-prop-object": [
+      2,
+      {
+        "allow": ["Timestamp"]
+      }
+    ],
     "no-restricted-imports": [
       "error",
       {
@@ -125,9 +123,15 @@
         ]
       }
     ],
-    "max-lines": ["warn", {"max": 800, "skipBlankLines": true, "skipComments": true}],
+    "max-lines": [
+      "warn",
+      { "max": 800, "skipBlankLines": true, "skipComments": true }
+    ],
     "formatjs/no-multiple-whitespaces": 2,
-    "@typescript-eslint/consistent-type-imports": ["error", {"disallowTypeAnnotations": false}]
+    "@typescript-eslint/consistent-type-imports": [
+      "error",
+      { "disallowTypeAnnotations": false }
+    ]
   },
   "overrides": [
     {

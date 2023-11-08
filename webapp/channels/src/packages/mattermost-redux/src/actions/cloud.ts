@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Address, CloudCustomerPatch} from '@mattermost/types/cloud';
+import type { Address, CloudCustomerPatch } from "@mattermost/types/cloud";
 
-import {CloudTypes} from 'mattermost-redux/action_types';
-import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import { CloudTypes } from "mattermost-redux/action_types";
+import { Client4 } from "mattermost-redux/client";
+import type { ActionFunc } from "mattermost-redux/types/actions";
 
-import {bindClientFunc} from './helpers';
+import { bindClientFunc } from "./helpers";
 
 export function getCloudSubscription(): ActionFunc {
     return bindClientFunc({
@@ -55,7 +55,9 @@ export function getInvoices(): ActionFunc {
     });
 }
 
-export function updateCloudCustomer(customerPatch: CloudCustomerPatch): ActionFunc {
+export function updateCloudCustomer(
+    customerPatch: CloudCustomerPatch,
+): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.updateCloudCustomer,
         onSuccess: [CloudTypes.RECEIVED_CLOUD_CUSTOMER],

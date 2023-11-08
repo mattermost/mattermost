@@ -1,14 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {ChannelNotifyProps} from '@mattermost/types/channels';
+import type { ChannelNotifyProps } from "@mattermost/types/channels";
 
-import {NotificationLevels} from 'utils/constants';
+import { NotificationLevels } from "utils/constants";
 
 type Actions = {
-    updateChannelNotifyProps: (userId: string, channelId: string, props: Pick<ChannelNotifyProps, 'mark_unread'>) => void;
+    updateChannelNotifyProps: (
+        userId: string,
+        channelId: string,
+        props: Pick<ChannelNotifyProps, "mark_unread">,
+    ) => void;
 };
 
 type Props = {
@@ -17,18 +21,20 @@ type Props = {
     actions: Actions;
 };
 
-const UnmuteChannelButton = ({user, channel, actions}: Props) => {
+const UnmuteChannelButton = ({ user, channel, actions }: Props) => {
     const handleClick = () => {
-        actions.updateChannelNotifyProps(user.id, channel.id, {mark_unread: NotificationLevels.ALL});
+        actions.updateChannelNotifyProps(user.id, channel.id, {
+            mark_unread: NotificationLevels.ALL,
+        });
     };
 
     return (
         <button
-            type='button'
-            className='navbar-toggle icon icon__mute'
+            type="button"
+            className="navbar-toggle icon icon__mute"
             onClick={handleClick}
         >
-            <span className='fa fa-bell-slash-o icon'/>
+            <span className="fa fa-bell-slash-o icon" />
         </button>
     );
 };

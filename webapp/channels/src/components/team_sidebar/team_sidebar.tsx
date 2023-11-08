@@ -1,64 +1,49 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import {DragDropContext, Droppable} from 'react-beautiful-dnd';
-import type {DroppableProvided, DropResult} from 'react-beautiful-dnd';
-import Scrollbars from 'react-custom-scrollbars';
-import {FormattedMessage} from 'react-intl';
-import type {RouteComponentProps} from 'react-router-dom';
+import classNames from "classnames";
+import React from "react";
+import { DragDropContext, Droppable } from "react-beautiful-dnd";
+import type { DroppableProvided, DropResult } from "react-beautiful-dnd";
+import Scrollbars from "react-custom-scrollbars";
+import { FormattedMessage } from "react-intl";
+import type { RouteComponentProps } from "react-router-dom";
 
-import type {Team} from '@mattermost/types/teams';
+import type { Team } from "@mattermost/types/teams";
 
-import Permissions from 'mattermost-redux/constants/permissions';
+import Permissions from "mattermost-redux/constants/permissions";
 
-import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
-import TeamButton from 'components/team_sidebar/components/team_button';
+import SystemPermissionGate from "components/permissions_gates/system_permission_gate";
+import TeamButton from "components/team_sidebar/components/team_button";
 
-import Pluggable from 'plugins/pluggable';
-import {Constants} from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
-import {getCurrentProduct} from 'utils/products';
-import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
-import * as Utils from 'utils/utils';
+import Pluggable from "plugins/pluggable";
+import { Constants } from "utils/constants";
+import * as Keyboard from "utils/keyboard";
+import { getCurrentProduct } from "utils/products";
+import { filterAndSortTeamsByDisplayName } from "utils/team_utils";
+import * as Utils from "utils/utils";
 
-import type {PropsFromRedux} from './index';
+import type { PropsFromRedux } from "./index";
 
 export interface Props extends PropsFromRedux {
-    location: RouteComponentProps['location'];
+    location: RouteComponentProps["location"];
 }
 
 type State = {
     showOrder: boolean;
     teamsOrder: Team[];
-}
+};
 
 export function renderView(props: Props) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--view'
-        />
-    );
+    return <div {...props} className="scrollbar--view" />;
 }
 
 export function renderThumbHorizontal(props: Props) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--horizontal'
-        />
-    );
+    return <div {...props} className="scrollbar--horizontal" />;
 }
 
 export function renderThumbVertical(props: Props) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--vertical'
-        />
-    );
+    return <div {...props} className="scrollbar--vertical" />;
 }
 
 export default class TeamSidebar extends React.PureComponent<Props, State> {
@@ -71,11 +56,22 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
         };
     }
 
-    switchToPrevOrNextTeam = (e: KeyboardEvent, currentTeamId: string, teams: Team[]) => {
-        if (Keyboard.isKeyPressed(e, Constants.KeyCodes.UP) || Keyboard.isKeyPressed(e, Constants.KeyCodes.DOWN)) {
+    switchToPrevOrNextTeam = (
+        e: KeyboardEvent,
+        currentTeamId: string,
+        teams: Team[],
+    ) => {
+        if (
+            Keyboard.isKeyPressed(e, Constants.KeyCodes.UP) ||
+            Keyboard.isKeyPressed(e, Constants.KeyCodes.DOWN)
+        ) {
             e.preventDefault();
-            const delta = Keyboard.isKeyPressed(e, Constants.KeyCodes.DOWN) ? 1 : -1;
-            const pos = teams.findIndex((team: Team) => team.id === currentTeamId);
+            const delta = Keyboard.isKeyPressed(e, Constants.KeyCodes.DOWN)
+                ? 1
+                : -1;
+            const pos = teams.findIndex(
+                (team: Team) => team.id === currentTeamId,
+            );
             const newPos = pos + delta;
 
             let team;
@@ -93,7 +89,11 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
         return false;
     };
 
-    switchToTeamByNumber = (e: KeyboardEvent, currentTeamId: string, teams: Team[]) => {
+    switchToTeamByNumber = (
+        e: KeyboardEvent,
+        currentTeamId: string,
+        teams: Team[],
+    ) => {
         const digits = [
             Constants.KeyCodes.ONE,
             Constants.KeyCodes.TWO,
@@ -108,7 +108,10 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
         ];
 
         for (const idx in digits) {
-            if (Keyboard.isKeyPressed(e, digits[idx]) && parseInt(idx, 10) < teams.length) {
+            if (
+                Keyboard.isKeyPressed(e, digits[idx]) &&
+                parseInt(idx, 10) < teams.length
+            ) {
                 e.preventDefault();
 
                 // prevents reloading the current team, while still capturing the keyboard shortcut
@@ -125,8 +128,12 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
 
     handleKeyDown = (e: KeyboardEvent) => {
         if ((e.ctrlKey || e.metaKey) && e.altKey) {
-            const {currentTeamId} = this.props;
-            const teams = filterAndSortTeamsByDisplayName(this.props.myTeams, this.props.locale, this.props.userTeamsOrderPreference);
+            const { currentTeamId } = this.props;
+            const teams = filterAndSortTeamsByDisplayName(
+                this.props.myTeams,
+                this.props.locale,
+                this.props.userTeamsOrderPreference,
+            );
 
             if (this.switchToPrevOrNextTeam(e, currentTeamId, teams)) {
                 return;
@@ -136,37 +143,39 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
                 return;
             }
 
-            this.setState({showOrder: true});
+            this.setState({ showOrder: true });
         }
     };
 
     handleKeyUp = (e: KeyboardEvent) => {
         if (!((e.ctrlKey || e.metaKey) && e.altKey)) {
-            this.setState({showOrder: false});
+            this.setState({ showOrder: false });
         }
     };
 
     componentDidMount() {
         this.props.actions.getTeams(0, 200);
-        document.addEventListener('keydown', this.handleKeyDown);
-        document.addEventListener('keyup', this.handleKeyUp);
+        document.addEventListener("keydown", this.handleKeyDown);
+        document.addEventListener("keyup", this.handleKeyUp);
     }
 
     componentWillUnmount() {
-        document.removeEventListener('keydown', this.handleKeyDown);
-        document.removeEventListener('keyup', this.handleKeyUp);
+        document.removeEventListener("keydown", this.handleKeyDown);
+        document.removeEventListener("keyup", this.handleKeyUp);
     }
 
     onDragEnd = (result: DropResult) => {
-        const {
-            updateTeamsOrderForUser,
-        } = this.props.actions;
+        const { updateTeamsOrderForUser } = this.props.actions;
 
         if (!result.destination) {
             return;
         }
 
-        const teams = filterAndSortTeamsByDisplayName(this.props.myTeams, this.props.locale, this.props.userTeamsOrderPreference);
+        const teams = filterAndSortTeamsByDisplayName(
+            this.props.myTeams,
+            this.props.locale,
+            this.props.userTeamsOrderPreference,
+        );
 
         const sourceIndex = result.source.index;
         const destinationIndex = result.destination.index;
@@ -176,7 +185,11 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
             return [...list.slice(0, idx), ...list.slice(idx + 1, list.length)];
         };
 
-        const pushElement = (list: Team[], idx: number, itemId: string): Team[] => {
+        const pushElement = (
+            list: Team[],
+            idx: number,
+            itemId: string,
+        ): Team[] => {
             return [
                 ...list.slice(0, idx),
                 teams.find((team) => team.id === itemId)!,
@@ -190,21 +203,28 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
             result.draggableId,
         );
         updateTeamsOrderForUser(newTeamsOrder.map((o: Team) => o.id));
-        this.setState({teamsOrder: newTeamsOrder});
+        this.setState({ teamsOrder: newTeamsOrder });
     };
 
     render() {
-        const root: Element | null = document.querySelector('#root');
+        const root: Element | null = document.querySelector("#root");
         if (this.props.myTeams.length <= 1) {
-            root!.classList.remove('multi-teams');
+            root!.classList.remove("multi-teams");
             return null;
         }
-        root!.classList.add('multi-teams');
+        root!.classList.add("multi-teams");
 
         const plugins = [];
-        const sortedTeams = filterAndSortTeamsByDisplayName(this.props.myTeams, this.props.locale, this.props.userTeamsOrderPreference);
+        const sortedTeams = filterAndSortTeamsByDisplayName(
+            this.props.myTeams,
+            this.props.locale,
+            this.props.userTeamsOrderPreference,
+        );
 
-        const currentProduct = getCurrentProduct(this.props.products, this.props.location.pathname);
+        const currentProduct = getCurrentProduct(
+            this.props.products,
+            this.props.location.pathname,
+        );
         if (currentProduct && !currentProduct.showTeamSidebar) {
             return null;
         }
@@ -212,7 +232,7 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
         const teams = sortedTeams.map((team: Team, index: number) => {
             return (
                 <TeamButton
-                    key={'switch_team_' + team.name}
+                    key={"switch_team_" + team.name}
                     url={`/${team.name}`}
                     tip={team.display_name}
                     active={team.id === this.props.currentTeamId}
@@ -220,10 +240,23 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
                     order={index + 1}
                     showOrder={this.state.showOrder}
                     unread={this.props.unreadTeamsSet.has(team.id)}
-                    mentions={this.props.mentionsInTeamMap.has(team.id) ? this.props.mentionsInTeamMap.get(team.id) : 0}
-                    hasUrgent={this.props.teamHasUrgentMap.has(team.id) ? this.props.teamHasUrgentMap.get(team.id) : false}
+                    mentions={
+                        this.props.mentionsInTeamMap.has(team.id)
+                            ? this.props.mentionsInTeamMap.get(team.id)
+                            : 0
+                    }
+                    hasUrgent={
+                        this.props.teamHasUrgentMap.has(team.id)
+                            ? this.props.teamHasUrgentMap.get(team.id)
+                            : false
+                    }
                     teamIconUrl={Utils.imageURLForTeam(team)}
-                    switchTeam={(url: string) => this.props.actions.switchTeam(url, currentProduct ? team : undefined)}
+                    switchTeam={(url: string) =>
+                        this.props.actions.switchTeam(
+                            url,
+                            currentProduct ? team : undefined,
+                        )
+                    }
                     isDraggable={true}
                     teamId={team.id}
                     teamIndex={index}
@@ -236,22 +269,25 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
 
         const plusIcon = (
             <i
-                className='icon icon-plus'
-                role={'img'}
-                aria-label={Utils.localizeMessage('sidebar.team_menu.button.plusIcon', 'Plus Icon')}
+                className="icon icon-plus"
+                role={"img"}
+                aria-label={Utils.localizeMessage(
+                    "sidebar.team_menu.button.plusIcon",
+                    "Plus Icon",
+                )}
             />
         );
 
         if (this.props.moreTeamsToJoin && !this.props.experimentalPrimaryTeam) {
             joinableTeams.push(
                 <TeamButton
-                    btnClass='team-btn__add'
-                    key='more_teams'
-                    url='/select_team'
+                    btnClass="team-btn__add"
+                    key="more_teams"
+                    url="/select_team"
                     tip={
                         <FormattedMessage
-                            id='team_sidebar.join'
-                            defaultMessage='Other teams you can join'
+                            id="team_sidebar.join"
+                            defaultMessage="Other teams you can join"
                         />
                     }
                     content={plusIcon}
@@ -262,15 +298,15 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
             joinableTeams.push(
                 <SystemPermissionGate
                     permissions={[Permissions.CREATE_TEAM]}
-                    key='more_teams'
+                    key="more_teams"
                 >
                     <TeamButton
-                        btnClass='team-btn__add'
-                        url='/create_team'
+                        btnClass="team-btn__add"
+                        url="/create_team"
                         tip={
                             <FormattedMessage
-                                id='navbar_dropdown.create'
-                                defaultMessage='Create a Team'
+                                id="navbar_dropdown.create"
+                                defaultMessage="Create a Team"
                             />
                         }
                         content={plusIcon}
@@ -285,24 +321,23 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
         if (isNonChannelsProduct) {
             plugins.push(
                 <div
-                    key='team-sidebar-bottom-plugin'
-                    className='team-sidebar-bottom-plugin is-empty'
+                    key="team-sidebar-bottom-plugin"
+                    className="team-sidebar-bottom-plugin is-empty"
                 >
-                    <Pluggable pluggableName='BottomTeamSidebar'/>
+                    <Pluggable pluggableName="BottomTeamSidebar" />
                 </div>,
             );
         }
 
         return (
             <div
-                className={classNames('team-sidebar', {'move--right': this.props.isOpen})}
-                role='navigation'
-                aria-labelledby='teamSidebarWrapper'
+                className={classNames("team-sidebar", {
+                    "move--right": this.props.isOpen,
+                })}
+                role="navigation"
+                aria-labelledby="teamSidebarWrapper"
             >
-                <div
-                    className='team-wrapper'
-                    id='teamSidebarWrapper'
-                >
+                <div className="team-wrapper" id="teamSidebarWrapper">
                     <Scrollbars
                         autoHide={true}
                         autoHideTimeout={500}
@@ -311,12 +346,10 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
                         renderThumbVertical={renderThumbVertical}
                         renderView={renderView}
                     >
-                        <DragDropContext
-                            onDragEnd={this.onDragEnd}
-                        >
+                        <DragDropContext onDragEnd={this.onDragEnd}>
                             <Droppable
-                                droppableId='my_teams'
-                                type='TEAM_BUTTON'
+                                droppableId="my_teams"
+                                type="TEAM_BUTTON"
                             >
                                 {(provided: DroppableProvided) => {
                                     return (

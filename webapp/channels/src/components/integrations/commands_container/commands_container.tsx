@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Route, Switch, Redirect} from 'react-router-dom';
+import React from "react";
+import { Route, Switch, Redirect } from "react-router-dom";
 
-import type {Command} from '@mattermost/types/integrations';
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
+import type { Command } from "@mattermost/types/integrations";
+import type { Team } from "@mattermost/types/teams";
+import type { UserProfile } from "@mattermost/types/users";
+import type { RelationOneToOne } from "@mattermost/types/utilities";
 
-import AddCommand from 'components/integrations/add_command';
-import ConfirmIntegration from 'components/integrations/confirm_integration';
-import EditCommand from 'components/integrations/edit_command';
-import InstalledCommands from 'components/integrations/installed_commands';
+import AddCommand from "components/integrations/add_command";
+import ConfirmIntegration from "components/integrations/confirm_integration";
+import EditCommand from "components/integrations/edit_command";
+import InstalledCommands from "components/integrations/installed_commands";
 
 interface IProps {
     component: any;
@@ -26,20 +26,18 @@ interface IProps {
     path: string;
 }
 
-const CommandRoute = ({component: Component, extraProps, ...rest}: IProps) => (
+const CommandRoute = ({
+    component: Component,
+    extraProps,
+    ...rest
+}: IProps) => (
     <Route
         {...rest}
-        render={(props) => (
-            <Component
-                {...extraProps}
-                {...props}
-            />
-        )}
+        render={(props) => <Component {...extraProps} {...props} />}
     />
 );
 
 type Props = {
-
     /**
      * The team data needed to pass into child components
      */
@@ -68,7 +66,6 @@ type Props = {
     };
 
     actions: {
-
         /**
          * The function to call to fetch team commands
          */
@@ -85,7 +82,10 @@ type State = {
     loading: boolean;
 };
 
-export default class CommandsContainer extends React.PureComponent<Props, State> {
+export default class CommandsContainer extends React.PureComponent<
+    Props,
+    State
+> {
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -95,9 +95,9 @@ export default class CommandsContainer extends React.PureComponent<Props, State>
 
     componentDidMount() {
         if (this.props.enableCommands) {
-            this.props.actions.loadCommandsAndProfilesForTeam(this.props.team?.id || '').then(
-                () => this.setState({loading: false}),
-            );
+            this.props.actions
+                .loadCommandsAndProfilesForTeam(this.props.team?.id || "")
+                .then(() => this.setState({ loading: false }));
         }
     }
 
@@ -115,7 +115,11 @@ export default class CommandsContainer extends React.PureComponent<Props, State>
                     <Route
                         exact={true}
                         path={`${this.props.match.url}/`}
-                        render={() => (<Redirect to={`${this.props.match.url}/installed`}/>)}
+                        render={() => (
+                            <Redirect
+                                to={`${this.props.match.url}/installed`}
+                            />
+                        )}
                     />
                     <CommandRoute
                         extraProps={extraProps}

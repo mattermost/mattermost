@@ -1,23 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type React from 'react';
+import type React from "react";
 
-import type {WebSocketClient} from '@mattermost/client';
-import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
-import type {PluginAnalyticsRow} from '@mattermost/types/admin';
-import type {Channel} from '@mattermost/types/channels';
-import type {FileInfo} from '@mattermost/types/files';
-import type {ClientPluginManifest} from '@mattermost/types/plugins';
-import type {Post, PostEmbed} from '@mattermost/types/posts';
-import type {ProductScope} from '@mattermost/types/products';
-import type {IDMappedObjects} from '@mattermost/types/utilities';
+import type { WebSocketClient } from "@mattermost/client";
+import type { IconGlyphTypes } from "@mattermost/compass-icons/IconGlyphs";
+import type { PluginAnalyticsRow } from "@mattermost/types/admin";
+import type { Channel } from "@mattermost/types/channels";
+import type { FileInfo } from "@mattermost/types/files";
+import type { ClientPluginManifest } from "@mattermost/types/plugins";
+import type { Post, PostEmbed } from "@mattermost/types/posts";
+import type { ProductScope } from "@mattermost/types/products";
+import type { IDMappedObjects } from "@mattermost/types/utilities";
 
-import type {NewPostMessageProps} from 'actions/new_post';
+import type { NewPostMessageProps } from "actions/new_post";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-export type PluginSiteStatsHandler = () => Promise<Record<string, PluginAnalyticsRow>>;
+export type PluginSiteStatsHandler = () => Promise<
+    Record<string, PluginAnalyticsRow>
+>;
 
 export type PluginsState = {
     plugins: IDMappedObjects<ClientPluginManifest>;
@@ -74,9 +76,9 @@ export type Menu = {
     filter?: (id?: string) => boolean;
     action?: (...args: any) => void;
     icon?: React.ReactElement;
-    direction?: 'left' | 'right';
+    direction?: "left" | "right";
     isHeader?: boolean;
-}
+};
 
 export type PluginComponent = {
     id: string;
@@ -102,22 +104,29 @@ export type PluginComponent = {
 
 export type AppBarComponent = PluginComponent & {
     rhsComponentId?: string;
-}
+};
 
 export type NeedsTeamComponent = PluginComponent & {
     route: string;
-}
+};
 
 export type FilesWillUploadHook = {
-    hook: (files: File[], uploadFiles: (files: File[]) => void) => { message?: string; files?: File[] };
-}
+    hook: (
+        files: File[],
+        uploadFiles: (files: File[]) => void,
+    ) => { message?: string; files?: File[] };
+};
 
 export type FilePreviewComponent = {
     id: string;
     pluginId: string;
     override: (fileInfo: FileInfo, post?: Post) => boolean;
-    component: React.ComponentType<{ fileInfo: FileInfo; post?: Post; onModalDismissed: () => void }>;
-}
+    component: React.ComponentType<{
+        fileInfo: FileInfo;
+        post?: Post;
+        onModalDismissed: () => void;
+    }>;
+};
 
 export type FileDropdownPluginComponent = {
     id: string;
@@ -146,13 +155,15 @@ export type AdminConsolePluginComponent = {
 export type PostWillRenderEmbedPluginComponent = {
     id: string;
     pluginId: string;
-    component: React.ComponentType<{ embed: PostEmbed; webSocketClient?: WebSocketClient }>;
+    component: React.ComponentType<{
+        embed: PostEmbed;
+        webSocketClient?: WebSocketClient;
+    }>;
     match: (arg: PostEmbed) => boolean;
     toggleable: boolean;
-}
+};
 
 export type ProductComponent = {
-
     /**
      * The main uuid of the product.
      */
@@ -234,8 +245,14 @@ export type DesktopNotificationArgs = {
 };
 
 export type DesktopNotificationHook = PluginComponent & {
-    hook: (post: Post, msgProps: NewPostMessageProps, channel: Channel, teamId: string, args: DesktopNotificationArgs) => Promise<{
+    hook: (
+        post: Post,
+        msgProps: NewPostMessageProps,
+        channel: Channel,
+        teamId: string,
+        args: DesktopNotificationArgs,
+    ) => Promise<{
         error?: string;
         args?: DesktopNotificationArgs;
     }>;
-}
+};

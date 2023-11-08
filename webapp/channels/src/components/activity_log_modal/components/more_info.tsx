@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
+import React from "react";
+import { FormattedDate, FormattedMessage, FormattedTime } from "react-intl";
 
-import type {Session} from '@mattermost/types/sessions';
+import type { Session } from "@mattermost/types/sessions";
 
-import {getMonthLong} from 'utils/i18n';
+import { getMonthLong } from "utils/i18n";
 
 type Props = {
     locale: string;
@@ -16,7 +16,7 @@ type Props = {
 };
 
 export default function MoreInfo(props: Props) {
-    const {locale, currentSession, handleMoreInfo, moreInfo} = props;
+    const { locale, currentSession, handleMoreInfo, moreInfo } = props;
 
     if (moreInfo) {
         const firstAccessTime = new Date(currentSession.create_at);
@@ -25,22 +25,22 @@ export default function MoreInfo(props: Props) {
             <div>
                 <div>
                     <FormattedMessage
-                        id='activity_log.firstTime'
-                        defaultMessage='First time active: {date}, {time}'
+                        id="activity_log.firstTime"
+                        defaultMessage="First time active: {date}, {time}"
                         values={{
                             date: (
                                 <FormattedDate
                                     value={firstAccessTime}
-                                    day='2-digit'
+                                    day="2-digit"
                                     month={getMonthLong(locale)}
-                                    year='numeric'
+                                    year="numeric"
                                 />
                             ),
                             time: (
                                 <FormattedTime
                                     value={firstAccessTime}
-                                    hour='2-digit'
-                                    minute='2-digit'
+                                    hour="2-digit"
+                                    minute="2-digit"
                                 />
                             ),
                         }}
@@ -48,8 +48,8 @@ export default function MoreInfo(props: Props) {
                 </div>
                 <div>
                     <FormattedMessage
-                        id='activity_log.os'
-                        defaultMessage='OS: {os}'
+                        id="activity_log.os"
+                        defaultMessage="OS: {os}"
                         values={{
                             os: currentSession.props.os,
                         }}
@@ -57,8 +57,8 @@ export default function MoreInfo(props: Props) {
                 </div>
                 <div>
                     <FormattedMessage
-                        id='activity_log.browser'
-                        defaultMessage='Browser: {browser}'
+                        id="activity_log.browser"
+                        defaultMessage="Browser: {browser}"
                         values={{
                             browser: currentSession.props.browser,
                         }}
@@ -66,8 +66,8 @@ export default function MoreInfo(props: Props) {
                 </div>
                 <div>
                     <FormattedMessage
-                        id='activity_log.sessionId'
-                        defaultMessage='Session ID: {id}'
+                        id="activity_log.sessionId"
+                        defaultMessage="Session ID: {id}"
                         values={{
                             id: currentSession.id,
                         }}
@@ -78,14 +78,10 @@ export default function MoreInfo(props: Props) {
     }
 
     return (
-        <a
-            className='theme'
-            href='#'
-            onClick={handleMoreInfo}
-        >
+        <a className="theme" href="#" onClick={handleMoreInfo}>
             <FormattedMessage
-                id='activity_log.moreInfo'
-                defaultMessage='More info'
+                id="activity_log.moreInfo"
+                defaultMessage="More info"
             />
         </a>
     );

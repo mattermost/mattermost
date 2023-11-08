@@ -1,17 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from '@mattermost/types/channels';
-import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
-import type {Team} from '@mattermost/types/teams';
-import type {UserThread} from '@mattermost/types/threads';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
+import type { Channel } from "@mattermost/types/channels";
+import type {
+    MarketplaceApp,
+    MarketplacePlugin,
+} from "@mattermost/types/marketplace";
+import type { Team } from "@mattermost/types/teams";
+import type { UserThread } from "@mattermost/types/threads";
+import type { RelationOneToOne } from "@mattermost/types/utilities";
 
-import type {I18nState} from './i18n';
-import type {LhsViewState} from './lhs';
-import type {RhsViewState} from './rhs';
+import type { I18nState } from "./i18n";
+import type { LhsViewState } from "./lhs";
+import type { RhsViewState } from "./rhs";
 
-import type {DraggingState} from '.';
+import type { DraggingState } from ".";
 
 export type ModalFilters = {
     roles?: string[];
@@ -52,7 +55,7 @@ export type ViewsState = {
         };
         focusedPostId: string;
         mobileView: boolean;
-        lastUnreadChannel: (Channel & {hadMentions: boolean}) | null; // Actually only an object with {id: string, hadMentions: boolean}
+        lastUnreadChannel: (Channel & { hadMentions: boolean }) | null; // Actually only an object with {id: string, hadMentions: boolean}
         lastGetPosts: {
             [channelId: string]: number;
         };
@@ -160,8 +163,8 @@ export type ViewsState = {
     marketplace: {
         plugins: MarketplacePlugin[];
         apps: MarketplaceApp[];
-        installing: {[id: string]: boolean};
-        errors: {[id: string]: string};
+        installing: { [id: string]: boolean };
+        errors: { [id: string]: string };
         filter: string;
     };
 
@@ -197,9 +200,9 @@ export type ViewsState = {
     };
 
     threads: {
-        selectedThreadIdInTeam: RelationOneToOne<Team, UserThread['id'] | null>;
-        lastViewedAt: {[id: string]: number};
-        manuallyUnread: {[id: string]: boolean};
+        selectedThreadIdInTeam: RelationOneToOne<Team, UserThread["id"] | null>;
+        lastViewedAt: { [id: string]: number };
+        manuallyUnread: { [id: string]: boolean };
         toastStatus: boolean;
     };
 

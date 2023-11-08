@@ -52,19 +52,29 @@ iOS App:
 const userAgent = () => window.navigator.userAgent;
 
 export function isChrome(): boolean {
-    return userAgent().indexOf('Chrome') > -1 && userAgent().indexOf('Edge') === -1;
+    return (
+        userAgent().indexOf("Chrome") > -1 && userAgent().indexOf("Edge") === -1
+    );
 }
 
 export function isSafari(): boolean {
-    return userAgent().indexOf('Safari') !== -1 && userAgent().indexOf('Chrome') === -1;
+    return (
+        userAgent().indexOf("Safari") !== -1 &&
+        userAgent().indexOf("Chrome") === -1
+    );
 }
 
 export function isIosSafari(): boolean {
-    return (userAgent().indexOf('iPhone') !== -1 || userAgent().indexOf('iPad') !== -1) && userAgent().indexOf('Safari') !== -1 && userAgent().indexOf('CriOS') === -1;
+    return (
+        (userAgent().indexOf("iPhone") !== -1 ||
+            userAgent().indexOf("iPad") !== -1) &&
+        userAgent().indexOf("Safari") !== -1 &&
+        userAgent().indexOf("CriOS") === -1
+    );
 }
 
 export function isIosChrome(): boolean {
-    return userAgent().indexOf('CriOS') !== -1;
+    return userAgent().indexOf("CriOS") !== -1;
 }
 
 export function isIosWeb(): boolean {
@@ -72,19 +82,29 @@ export function isIosWeb(): boolean {
 }
 
 export function isIos(): boolean {
-    return userAgent().indexOf('iPhone') !== -1 || userAgent().indexOf('iPad') !== -1;
+    return (
+        userAgent().indexOf("iPhone") !== -1 ||
+        userAgent().indexOf("iPad") !== -1
+    );
 }
 
 export function isAndroid(): boolean {
-    return userAgent().indexOf('Android') !== -1;
+    return userAgent().indexOf("Android") !== -1;
 }
 
 export function isAndroidChrome(): boolean {
-    return userAgent().indexOf('Android') !== -1 && userAgent().indexOf('Chrome') !== -1 && userAgent().indexOf('Version') === -1;
+    return (
+        userAgent().indexOf("Android") !== -1 &&
+        userAgent().indexOf("Chrome") !== -1 &&
+        userAgent().indexOf("Version") === -1
+    );
 }
 
 export function isAndroidFirefox(): boolean {
-    return userAgent().indexOf('Android') !== -1 && userAgent().indexOf('Firefox') !== -1;
+    return (
+        userAgent().indexOf("Android") !== -1 &&
+        userAgent().indexOf("Firefox") !== -1
+    );
 }
 
 export function isAndroidWeb(): boolean {
@@ -107,23 +127,26 @@ export function isMobile(): boolean {
 }
 
 export function isFirefox(): boolean {
-    return userAgent().indexOf('Firefox') !== -1;
+    return userAgent().indexOf("Firefox") !== -1;
 }
 
 export function isChromebook(): boolean {
-    return userAgent().indexOf('CrOS') !== -1;
+    return userAgent().indexOf("CrOS") !== -1;
 }
 
 export function isInternetExplorer(): boolean {
-    return userAgent().indexOf('Trident') !== -1;
+    return userAgent().indexOf("Trident") !== -1;
 }
 
 export function isEdge(): boolean {
-    return userAgent().indexOf('Edge') !== -1;
+    return userAgent().indexOf("Edge") !== -1;
 }
 
 export function isDesktopApp(): boolean {
-    return userAgent().indexOf('Mattermost') !== -1 && userAgent().indexOf('Electron') !== -1;
+    return (
+        userAgent().indexOf("Mattermost") !== -1 &&
+        userAgent().indexOf("Electron") !== -1
+    );
 }
 
 export function isWindowsApp(): boolean {
@@ -135,15 +158,15 @@ export function isMacApp(): boolean {
 }
 
 export function isWindows(): boolean {
-    return userAgent().indexOf('Windows') !== -1;
+    return userAgent().indexOf("Windows") !== -1;
 }
 
 export function isMac(): boolean {
-    return userAgent().indexOf('Macintosh') !== -1;
+    return userAgent().indexOf("Macintosh") !== -1;
 }
 
 export function isLinux(): boolean {
-    return navigator.platform.toUpperCase().indexOf('LINUX') >= 0;
+    return navigator.platform.toUpperCase().indexOf("LINUX") >= 0;
 }
 
 export function isWindows7(): boolean {
@@ -153,12 +176,12 @@ export function isWindows7(): boolean {
         return false;
     }
 
-    return (/\bWindows NT 6\.1\b/).test(appVersion);
+    return /\bWindows NT 6\.1\b/.test(appVersion);
 }
 
 export function getDesktopVersion(): string {
     // use if the value window.desktop.version is not set yet
     const regex = /Mattermost\/(\d+\.\d+\.\d+)/gm;
-    const match = regex.exec(window.navigator.appVersion)?.[1] || '';
+    const match = regex.exec(window.navigator.appVersion)?.[1] || "";
     return match;
 }

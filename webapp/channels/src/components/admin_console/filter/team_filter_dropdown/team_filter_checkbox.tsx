@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, { useCallback } from "react";
 
 type Props = {
     id: string;
@@ -23,10 +23,10 @@ const TeamFilterCheckbox = ({
     }, [checked, id, updateOption]);
 
     return (
-        <div className='TeamFilterDropdown_checkbox'>
+        <div className="TeamFilterDropdown_checkbox">
             <label>
                 <input
-                    type='checkbox'
+                    type="checkbox"
                     id={id}
                     name={name}
                     checked={checked}

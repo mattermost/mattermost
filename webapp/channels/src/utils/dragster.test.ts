@@ -1,20 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import dragster from './dragster';
+import dragster from "./dragster";
 
-describe('utils.dragster', () => {
+describe("utils.dragster", () => {
     let div: HTMLElement;
     let unbind: () => void;
     let enterEvent: CustomEvent | null;
     let leaveEvent: CustomEvent | null;
     let overEvent: CustomEvent | null;
     let dropEvent: CustomEvent | null;
-    const id = 'utils_dragster_test';
-    const dragenter = new CustomEvent('dragenter', {detail: 'dragenter_detail'});
-    const dragleave = new CustomEvent('dragleave', {detail: 'dragleave_detail'});
-    const dragover = new CustomEvent('dragover', {detail: 'dragover_detail'});
-    const drop = new CustomEvent('drop', {detail: 'drop_detail'});
+    const id = "utils_dragster_test";
+    const dragenter = new CustomEvent("dragenter", {
+        detail: "dragenter_detail",
+    });
+    const dragleave = new CustomEvent("dragleave", {
+        detail: "dragleave_detail",
+    });
+    const dragover = new CustomEvent("dragover", { detail: "dragover_detail" });
+    const drop = new CustomEvent("drop", { detail: "drop_detail" });
     const options = {
         enter: (event: CustomEvent) => {
             enterEvent = event;
@@ -31,9 +35,9 @@ describe('utils.dragster', () => {
     };
 
     beforeAll(() => {
-        div = document.createElement('div');
+        div = document.createElement("div");
         document.body.appendChild(div);
-        div.setAttribute('id', id);
+        div.setAttribute("id", id);
         unbind = dragster(`#${id}`, options);
     });
 
@@ -49,37 +53,37 @@ describe('utils.dragster', () => {
         dropEvent = null;
     });
 
-    it('should dispatch dragenter event', () => {
+    it("should dispatch dragenter event", () => {
         div.dispatchEvent(dragenter);
 
-        expect(enterEvent!.detail.detail).toEqual('dragenter_detail');
+        expect(enterEvent!.detail.detail).toEqual("dragenter_detail");
     });
 
-    it('should dispatch dragleave event', () => {
+    it("should dispatch dragleave event", () => {
         div.dispatchEvent(dragleave);
 
-        expect(leaveEvent!.detail.detail).toEqual('dragleave_detail');
+        expect(leaveEvent!.detail.detail).toEqual("dragleave_detail");
     });
 
-    it('should dispatch dragover event', () => {
+    it("should dispatch dragover event", () => {
         div.dispatchEvent(dragover);
 
-        expect(overEvent!.detail.detail).toEqual('dragover_detail');
+        expect(overEvent!.detail.detail).toEqual("dragover_detail");
     });
 
-    it('should dispatch drop event', () => {
+    it("should dispatch drop event", () => {
         div.dispatchEvent(drop);
 
-        expect(dropEvent!.detail.detail).toEqual('drop_detail');
+        expect(dropEvent!.detail.detail).toEqual("drop_detail");
     });
 
-    it('should dispatch dragenter event again', () => {
+    it("should dispatch dragenter event again", () => {
         div.dispatchEvent(dragenter);
 
-        expect(enterEvent!.detail.detail).toEqual('dragenter_detail');
+        expect(enterEvent!.detail.detail).toEqual("dragenter_detail");
     });
 
-    it('should dispatch dragenter event once if dispatched 2 times', () => {
+    it("should dispatch dragenter event once if dispatched 2 times", () => {
         div.dispatchEvent(dragenter);
 
         expect(enterEvent).toBeNull();

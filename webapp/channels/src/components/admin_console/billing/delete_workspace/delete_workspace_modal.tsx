@@ -1,44 +1,47 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import React from "react";
+import { FormattedMessage } from "react-intl";
+import { useDispatch, useSelector } from "react-redux";
 
-import {GenericModal} from '@mattermost/components';
-import type {Feedback} from '@mattermost/types/cloud';
+import { GenericModal } from "@mattermost/components";
+import type { Feedback } from "@mattermost/types/cloud";
 
-import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import { getSubscriptionProduct } from "mattermost-redux/selectors/entities/cloud";
+import { getLicense } from "mattermost-redux/selectors/entities/general";
+import type { DispatchFunc } from "mattermost-redux/types/actions";
 
-import {subscribeCloudSubscription, deleteWorkspace as deleteWorkspaceRequest} from 'actions/cloud';
-import {closeModal, openModal} from 'actions/views/modals';
+import {
+    subscribeCloudSubscription,
+    deleteWorkspace as deleteWorkspaceRequest,
+} from "actions/cloud";
+import { closeModal, openModal } from "actions/views/modals";
 
-import DeleteFeedbackModal from 'components/admin_console/billing/delete_workspace/delete_feedback';
-import DeleteWorkspaceProgressModal from 'components/admin_console/billing/delete_workspace/progress_modal';
-import ErrorModal from 'components/cloud_subscribe_result_modal/error';
-import SuccessModal from 'components/cloud_subscribe_result_modal/success';
-import useGetSubscription from 'components/common/hooks/useGetSubscription';
-import useGetUsage from 'components/common/hooks/useGetUsage';
-import useOpenDowngradeModal from 'components/common/hooks/useOpenDowngradeModal';
-import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
-import DowngradeFeedbackModal from 'components/feedback_modal/downgrade_feedback';
+import DeleteFeedbackModal from "components/admin_console/billing/delete_workspace/delete_feedback";
+import DeleteWorkspaceProgressModal from "components/admin_console/billing/delete_workspace/progress_modal";
+import ErrorModal from "components/cloud_subscribe_result_modal/error";
+import SuccessModal from "components/cloud_subscribe_result_modal/success";
+import useGetSubscription from "components/common/hooks/useGetSubscription";
+import useGetUsage from "components/common/hooks/useGetUsage";
+import useOpenDowngradeModal from "components/common/hooks/useOpenDowngradeModal";
+import LaptopAlertSVG from "components/common/svg_images_components/laptop_alert_svg";
+import DowngradeFeedbackModal from "components/feedback_modal/downgrade_feedback";
 
-import {CloudProducts, ModalIdentifiers, StatTypes} from 'utils/constants';
-import {isCloudLicense} from 'utils/license_utils';
-import {fileSizeToString} from 'utils/utils';
+import { CloudProducts, ModalIdentifiers, StatTypes } from "utils/constants";
+import { isCloudLicense } from "utils/license_utils";
+import { fileSizeToString } from "utils/utils";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import DeleteWorkspaceFailureModal from './failure_modal';
-import DeleteWorkspaceSuccessModal from './success_modal';
+import DeleteWorkspaceFailureModal from "./failure_modal";
+import DeleteWorkspaceSuccessModal from "./success_modal";
 
-import './delete_workspace_modal.scss';
+import "./delete_workspace_modal.scss";
 
 type Props = {
     callerCTA: string;
-}
+};
 
 export default function DeleteWorkspaceModal(props: Props) {
     const dispatch = useDispatch<DispatchFunc>();
@@ -54,9 +57,11 @@ export default function DeleteWorkspaceModal(props: Props) {
 
     // Starter product for downgrade purposes.
     const starterProduct = useSelector((state: GlobalState) => {
-        return Object.values(state.entities.cloud.products || {}).find((product) => {
-            return product.sku === CloudProducts.STARTER;
-        });
+        return Object.values(state.entities.cloud.products || {}).find(
+            (product) => {
+                return product.sku === CloudProducts.STARTER;
+            },
+        );
     });
 
     // Get usage information in an attempt to defer customer from deleting.
@@ -74,13 +79,15 @@ export default function DeleteWorkspaceModal(props: Props) {
         // Close the delete workspace modal and ope na feedback modal, with a workspace
         // deletion upon completion of the feedback.
         dispatch(closeModal(ModalIdentifiers.DELETE_WORKSPACE));
-        dispatch(openModal({
-            modalId: ModalIdentifiers.FEEDBACK,
-            dialogType: DeleteFeedbackModal,
-            dialogProps: {
-                onSubmit: deleteWorkspace,
-            },
-        }));
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.FEEDBACK,
+                dialogType: DeleteFeedbackModal,
+                dialogProps: {
+                    onSubmit: deleteWorkspace,
+                },
+            }),
+        );
     };
 
     // Handles the downgrade button clicks.
@@ -88,13 +95,15 @@ export default function DeleteWorkspaceModal(props: Props) {
         // Close the delete workspace modal and ope na feedback modal, with a workspace
         // downgrade upon completion of the feedback.
         dispatch(closeModal(ModalIdentifiers.DELETE_WORKSPACE));
-        dispatch(openModal({
-            modalId: ModalIdentifiers.FEEDBACK,
-            dialogType: DowngradeFeedbackModal,
-            dialogProps: {
-                onSubmit: downgradeWorkspace,
-            },
-        }));
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.FEEDBACK,
+                dialogType: DowngradeFeedbackModal,
+                dialogProps: {
+                    onSubmit: downgradeWorkspace,
+                },
+            }),
+        );
     };
 
     // Handles the cancel button clicks.
@@ -105,29 +114,41 @@ export default function DeleteWorkspaceModal(props: Props) {
 
     // Processes the workspace deletion, opening and closing the appropriate modals (progress, success/failure).
     const deleteWorkspace = async (deleteFeedback: Feedback) => {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.DELETE_WORKSPACE_PROGRESS,
-            dialogType: DeleteWorkspaceProgressModal,
-        }));
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.DELETE_WORKSPACE_PROGRESS,
+                dialogType: DeleteWorkspaceProgressModal,
+            }),
+        );
         dispatch(closeModal(ModalIdentifiers.DOWNGRADE_MODAL));
 
         if (subscription === undefined) {
             return;
         }
 
-        const result = await dispatch(deleteWorkspaceRequest({subscription_id: subscription?.id, delete_feedback: deleteFeedback}));
+        const result = await dispatch(
+            deleteWorkspaceRequest({
+                subscription_id: subscription?.id,
+                delete_feedback: deleteFeedback,
+            }),
+        );
 
-        if (typeof result === 'boolean' && result) {
+        if (typeof result === "boolean" && result) {
             dispatch(closeModal(ModalIdentifiers.DELETE_WORKSPACE_PROGRESS));
-            dispatch(openModal({
-                modalId: ModalIdentifiers.DELETE_WORKSPACE_RESULT,
-                dialogType: DeleteWorkspaceSuccessModal,
-            }));
-        } else { // Failure
-            dispatch(openModal({
-                modalId: ModalIdentifiers.DELETE_WORKSPACE_RESULT,
-                dialogType: DeleteWorkspaceFailureModal,
-            }));
+            dispatch(
+                openModal({
+                    modalId: ModalIdentifiers.DELETE_WORKSPACE_RESULT,
+                    dialogType: DeleteWorkspaceSuccessModal,
+                }),
+            );
+        } else {
+            // Failure
+            dispatch(
+                openModal({
+                    modalId: ModalIdentifiers.DELETE_WORKSPACE_RESULT,
+                    dialogType: DeleteWorkspaceFailureModal,
+                }),
+            );
             dispatch(closeModal(ModalIdentifiers.DELETE_WORKSPACE_PROGRESS));
         }
     };
@@ -138,10 +159,17 @@ export default function DeleteWorkspaceModal(props: Props) {
             return;
         }
 
-        const telemetryInfo = props.callerCTA + ' > delete_workspace_modal';
-        openDowngradeModal({trackingLocation: telemetryInfo});
+        const telemetryInfo = props.callerCTA + " > delete_workspace_modal";
+        openDowngradeModal({ trackingLocation: telemetryInfo });
 
-        const result = await dispatch(subscribeCloudSubscription(starterProduct.id, undefined, 0, downgradeFeedback));
+        const result = await dispatch(
+            subscribeCloudSubscription(
+                starterProduct.id,
+                undefined,
+                0,
+                downgradeFeedback,
+            ),
+        );
 
         // Success
         if (result.data) {
@@ -155,7 +183,8 @@ export default function DeleteWorkspaceModal(props: Props) {
                     },
                 }),
             );
-        } else { // Failure
+        } else {
+            // Failure
             dispatch(closeModal(ModalIdentifiers.DOWNGRADE_MODAL));
             dispatch(
                 openModal({
@@ -163,13 +192,15 @@ export default function DeleteWorkspaceModal(props: Props) {
                     dialogType: ErrorModal,
                     dialogProps: {
                         backButtonAction: () => {
-                            dispatch(openModal({
-                                modalId: ModalIdentifiers.DELETE_WORKSPACE,
-                                dialogType: DeleteWorkspaceModal,
-                                dialogProps: {
-                                    callerCTA: props.callerCTA,
-                                },
-                            }));
+                            dispatch(
+                                openModal({
+                                    modalId: ModalIdentifiers.DELETE_WORKSPACE,
+                                    dialogType: DeleteWorkspaceModal,
+                                    dialogProps: {
+                                        callerCTA: props.callerCTA,
+                                    },
+                                }),
+                            );
                         },
                     },
                 }),
@@ -183,30 +214,30 @@ export default function DeleteWorkspaceModal(props: Props) {
 
     return (
         <GenericModal
-            className='DeleteWorkspaceModal'
+            className="DeleteWorkspaceModal"
             onExited={handleClickCancel}
         >
-            <div className='DeleteWorkspaceModal__Icon'>
-                <LaptopAlertSVG height={156}/>
+            <div className="DeleteWorkspaceModal__Icon">
+                <LaptopAlertSVG height={156} />
             </div>
-            <div className='DeleteWorkspaceModal__Title'>
+            <div className="DeleteWorkspaceModal__Title">
                 <FormattedMessage
-                    id='admin.billing.subscription.deleteWorkspaceModal.title'
-                    defaultMessage='Are you sure you want to delete?'
+                    id="admin.billing.subscription.deleteWorkspaceModal.title"
+                    defaultMessage="Are you sure you want to delete?"
                 />
             </div>
-            <div className='DeleteWorkspaceModal__Usage'>
+            <div className="DeleteWorkspaceModal__Usage">
                 <FormattedMessage
-                    id='admin.billing.subscription.deleteWorkspaceModal.usage'
-                    defaultMessage='As part of your subscription to Mattermost {sku} you have created '
+                    id="admin.billing.subscription.deleteWorkspaceModal.usage"
+                    defaultMessage="As part of your subscription to Mattermost {sku} you have created "
                     values={{
                         sku: product?.name,
                     }}
                 />
-                <span className='DeleteWorkspaceModal__Usage-Highlighted'>
+                <span className="DeleteWorkspaceModal__Usage-Highlighted">
                     <FormattedMessage
-                        id='admin.billing.subscription.deleteWorkspaceModal.usageDetails'
-                        defaultMessage='{messageCount} messages and {fileSize} of files'
+                        id="admin.billing.subscription.deleteWorkspaceModal.usageDetails"
+                        defaultMessage="{messageCount} messages and {fileSize} of files"
                         values={{
                             messageCount: totalMessages,
                             fileSize: totalFileSize,
@@ -214,40 +245,40 @@ export default function DeleteWorkspaceModal(props: Props) {
                     />
                 </span>
             </div>
-            <div className='DeleteWorkspaceModal__Warning'>
+            <div className="DeleteWorkspaceModal__Warning">
                 <FormattedMessage
-                    id='admin.billing.subscription.deleteWorkspaceModal.warning'
+                    id="admin.billing.subscription.deleteWorkspaceModal.warning"
                     defaultMessage="Deleting your workspace is final. Upon deleting, you'll lose all of the above with no ability to recover. If you downgrade to Free, you will not lose this information."
                 />
             </div>
-            <div className='DeleteWorkspaceModal__Buttons'>
+            <div className="DeleteWorkspaceModal__Buttons">
                 <button
-                    className='btn DeleteWorkspaceModal__Buttons-Delete'
+                    className="btn DeleteWorkspaceModal__Buttons-Delete"
                     onClick={handleClickDeleteWorkspace}
                 >
                     <FormattedMessage
-                        id='admin.billing.subscription.deleteWorkspaceModal.deleteButton'
-                        defaultMessage='Delete Workspace'
+                        id="admin.billing.subscription.deleteWorkspaceModal.deleteButton"
+                        defaultMessage="Delete Workspace"
                     />
                 </button>
-                {!isStarter && !isEnterprise &&
+                {!isStarter && !isEnterprise && (
                     <button
-                        className='btn DeleteWorkspaceModal__Buttons-Downgrade'
+                        className="btn DeleteWorkspaceModal__Buttons-Downgrade"
                         onClick={handleClickDowngradeWorkspace}
                     >
                         <FormattedMessage
-                            id='admin.billing.subscription.deleteWorkspaceModal.downgradeButton'
-                            defaultMessage='Downgrade To Free'
+                            id="admin.billing.subscription.deleteWorkspaceModal.downgradeButton"
+                            defaultMessage="Downgrade To Free"
                         />
                     </button>
-                }
+                )}
                 <button
-                    className='btn btn-primary DeleteWorkspaceModal__Buttons-Cancel'
+                    className="btn btn-primary DeleteWorkspaceModal__Buttons-Cancel"
                     onClick={handleClickCancel}
                 >
                     <FormattedMessage
-                        id='admin.billing.subscription.deleteWorkspaceModal.cancelButton'
-                        defaultMessage='Keep Subscription'
+                        id="admin.billing.subscription.deleteWorkspaceModal.cancelButton"
+                        defaultMessage="Keep Subscription"
                     />
                 </button>
             </div>

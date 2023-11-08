@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Provider} from 'react-redux';
+import React from "react";
+import { Provider } from "react-redux";
 
-import type {GlobalState} from '@mattermost/types/store';
-import type {DeepPartial} from '@mattermost/types/utilities';
+import type { GlobalState } from "@mattermost/types/store";
+import type { DeepPartial } from "@mattermost/types/utilities";
 
-import * as useShowAdminLimitReachedHook from 'components/common/hooks/useShowAdminLimitReached';
+import * as useShowAdminLimitReachedHook from "components/common/hooks/useShowAdminLimitReached";
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
-import {TestHelper} from 'utils/test_helper';
+import { mountWithIntl } from "tests/helpers/intl-test-helper";
+import mockStore from "tests/test_store";
+import { TestHelper } from "utils/test_helper";
 
-import CloudEffectsWrapper from './';
+import CloudEffectsWrapper from "./";
 
 function nonCloudLicense(state: DeepPartial<GlobalState>): GlobalState {
     const newState = JSON.parse(JSON.stringify(state));
@@ -28,13 +28,15 @@ function nonCloudLicense(state: DeepPartial<GlobalState>): GlobalState {
     if (!newState.entities.general.license) {
         newState.entities.general.license = TestHelper.getLicenseMock();
     }
-    newState.entities.general.license.Cloud = 'false';
+    newState.entities.general.license.Cloud = "false";
     return newState;
 }
 
-function cloudLicense(state: DeepPartial<GlobalState>): DeepPartial<GlobalState> {
+function cloudLicense(
+    state: DeepPartial<GlobalState>,
+): DeepPartial<GlobalState> {
     const newState = nonCloudLicense(state);
-    newState.entities.general.license.Cloud = 'true';
+    newState.entities.general.license.Cloud = "true";
     return newState;
 }
 
@@ -48,7 +50,7 @@ function stubUsers(state: DeepPartial<GlobalState>): GlobalState {
         newState.entities.users = {};
     }
 
-    newState.entities.users.currentUserId = '';
+    newState.entities.users.currentUserId = "";
     if (!newState.entities.users.profiles) {
         newState.entities.users.profiles = {};
     }
@@ -57,11 +59,11 @@ function stubUsers(state: DeepPartial<GlobalState>): GlobalState {
 
 function adminUser(state: DeepPartial<GlobalState>): GlobalState {
     const newState = stubUsers(state);
-    const userId = 'admin';
+    const userId = "admin";
     newState.entities.users.currentUserId = userId;
     newState.entities.users.profiles[userId] = TestHelper.getUserMock({
         id: userId,
-        roles: 'system_admin',
+        roles: "system_admin",
     });
 
     return newState;
@@ -69,56 +71,60 @@ function adminUser(state: DeepPartial<GlobalState>): GlobalState {
 
 function nonAdminUser(state: DeepPartial<GlobalState>) {
     const newState = adminUser(state);
-    const userId = 'user';
+    const userId = "user";
     newState.entities.users.currentUserId = userId;
-    newState.entities.users.profiles[userId] = TestHelper.getUserMock({id: userId});
+    newState.entities.users.profiles[userId] = TestHelper.getUserMock({
+        id: userId,
+    });
     return newState;
 }
 
-describe('CloudEffectsWrapper', () => {
-    it('short circuits if not cloud', () => {
+describe("CloudEffectsWrapper", () => {
+    it("short circuits if not cloud", () => {
         const initialState = adminUser(nonCloudLicense({}));
         const store = mockStore(initialState);
         mountWithIntl(
             <Provider store={store}>
-                <CloudEffectsWrapper/>
+                <CloudEffectsWrapper />
             </Provider>,
         );
-        const spy = jest.spyOn(useShowAdminLimitReachedHook, 'default');
+        const spy = jest.spyOn(useShowAdminLimitReachedHook, "default");
         expect(spy).not.toHaveBeenCalled();
     });
 
-    it('short circuits if user not logged in', () => {
+    it("short circuits if user not logged in", () => {
         const initialState = stubUsers(cloudLicense({}));
         const store = mockStore(initialState);
         mountWithIntl(
             <Provider store={store}>
-                <CloudEffectsWrapper/>
+                <CloudEffectsWrapper />
             </Provider>,
         );
-        const spy = jest.spyOn(useShowAdminLimitReachedHook, 'default');
+        const spy = jest.spyOn(useShowAdminLimitReachedHook, "default");
         expect(spy).not.toHaveBeenCalled();
     });
 
-    it('short circuits if user is not admin', () => {
+    it("short circuits if user is not admin", () => {
         const initialState = nonAdminUser(cloudLicense({}));
         const store = mockStore(initialState);
         mountWithIntl(
             <Provider store={store}>
-                <CloudEffectsWrapper/>
+                <CloudEffectsWrapper />
             </Provider>,
         );
-        const spy = jest.spyOn(useShowAdminLimitReachedHook, 'default');
+        const spy = jest.spyOn(useShowAdminLimitReachedHook, "default");
         expect(spy).not.toHaveBeenCalled();
     });
 
-    it('calls effects if user is admin of a cloud instance', () => {
+    it("calls effects if user is admin of a cloud instance", () => {
         const initialState = adminUser(cloudLicense({}));
         const store = mockStore(initialState);
-        const spy = jest.spyOn(useShowAdminLimitReachedHook, 'default').mockImplementation(jest.fn());
+        const spy = jest
+            .spyOn(useShowAdminLimitReachedHook, "default")
+            .mockImplementation(jest.fn());
         mountWithIntl(
             <Provider store={store}>
-                <CloudEffectsWrapper/>
+                <CloudEffectsWrapper />
             </Provider>,
         );
         expect(spy).toHaveBeenCalledTimes(1);

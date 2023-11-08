@@ -1,22 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import * as redux from 'react-redux';
-import {Provider} from 'react-redux';
+import React from "react";
+import * as redux from "react-redux";
+import { Provider } from "react-redux";
 
-import type {Subscription, Product} from '@mattermost/types/cloud';
-import type {GlobalState} from '@mattermost/types/store';
-import type {UserProfile, UsersState} from '@mattermost/types/users';
+import type { Subscription, Product } from "@mattermost/types/cloud";
+import type { GlobalState } from "@mattermost/types/store";
+import type { UserProfile, UsersState } from "@mattermost/types/users";
 
-import * as cloudActions from 'actions/cloud';
+import * as cloudActions from "actions/cloud";
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
-import {Constants, CloudProducts} from 'utils/constants';
-import {FileSizes} from 'utils/file_utils';
+import { renderWithIntl, screen } from "tests/react_testing_utils";
+import mockStore from "tests/test_store";
+import { Constants, CloudProducts } from "utils/constants";
+import { FileSizes } from "utils/file_utils";
 
-import Limits from './limits';
+import Limits from "./limits";
 
 const freeLimits = {
     messages: {
@@ -46,17 +46,19 @@ function setupStore(setupOptions: SetupOptions) {
                     limits: setupOptions.isEnterprise ? {} : freeLimits,
                 },
                 subscription: {
-                    product_id: setupOptions.isEnterprise ? 'prod_enterprise' : 'prod_free',
+                    product_id: setupOptions.isEnterprise
+                        ? "prod_enterprise"
+                        : "prod_free",
                 } as Subscription,
                 products: {
                     prod_free: {
-                        id: 'prod_free',
-                        name: 'Cloud Free',
+                        id: "prod_free",
+                        name: "Cloud Free",
                         sku: CloudProducts.STARTER,
                     } as Product,
                     prod_enterprise: {
-                        id: 'prod_enterprise',
-                        name: 'Cloud Enterprise',
+                        id: "prod_enterprise",
+                        name: "Cloud Enterprise",
                         sku: CloudProducts.ENTERPRISE,
                     } as Product,
                 } as Record<string, Product>,
@@ -79,10 +81,10 @@ function setupStore(setupOptions: SetupOptions) {
             admin: {
                 analytics: {
                     [Constants.StatTypes.TOTAL_POSTS]: 1234,
-                } as GlobalState['entities']['admin']['analytics'],
+                } as GlobalState["entities"]["admin"]["analytics"],
             },
             users: {
-                currentUserId: 'userid',
+                currentUserId: "userid",
                 profiles: {
                     userid: {} as UserProfile,
                 },
@@ -94,48 +96,74 @@ function setupStore(setupOptions: SetupOptions) {
         },
     } as GlobalState;
     if (setupOptions.isEnterprise) {
-        state.entities.cloud.subscription!.is_free_trial = 'true';
+        state.entities.cloud.subscription!.is_free_trial = "true";
     }
     const store = mockStore(state);
 
     return store;
 }
 
-describe('Limits', () => {
+describe("Limits", () => {
     const defaultOptions = {};
-    test('message limit rendered in K', () => {
+    test("message limit rendered in K", () => {
         const store = setupStore(defaultOptions);
 
-        renderWithIntl(<Provider store={store}><Limits/></Provider>);
-        screen.getByText('Message History');
+        renderWithIntl(
+            <Provider store={store}>
+                <Limits />
+            </Provider>,
+        );
+        screen.getByText("Message History");
         screen.getByText(/of 10K/);
     });
 
-    test('storage limit rendered in GB', () => {
+    test("storage limit rendered in GB", () => {
         const store = setupStore(defaultOptions);
 
-        renderWithIntl(<Provider store={store}><Limits/></Provider>);
-        screen.getByText('File Storage');
+        renderWithIntl(
+            <Provider store={store}>
+                <Limits />
+            </Provider>,
+        );
+        screen.getByText("File Storage");
         screen.getByText(/of 1GB/);
     });
 
-    test('renders nothing if on enterprise', () => {
+    test("renders nothing if on enterprise", () => {
         const mockGetLimits = jest.fn();
-        jest.spyOn(cloudActions, 'getCloudLimits').mockImplementation(mockGetLimits);
-        jest.spyOn(redux, 'useDispatch').mockImplementation(jest.fn(() => jest.fn()));
-        const store = setupStore({isEnterprise: true});
+        jest.spyOn(cloudActions, "getCloudLimits").mockImplementation(
+            mockGetLimits,
+        );
+        jest.spyOn(redux, "useDispatch").mockImplementation(
+            jest.fn(() => jest.fn()),
+        );
+        const store = setupStore({ isEnterprise: true });
 
-        renderWithIntl(<Provider store={store}><Limits/></Provider>);
-        expect(screen.queryByTestId('limits-panel-title')).not.toBeInTheDocument();
+        renderWithIntl(
+            <Provider store={store}>
+                <Limits />
+            </Provider>,
+        );
+        expect(
+            screen.queryByTestId("limits-panel-title"),
+        ).not.toBeInTheDocument();
     });
 
-    test('renders elements if not on enterprise', () => {
+    test("renders elements if not on enterprise", () => {
         const mockGetLimits = jest.fn();
-        jest.spyOn(cloudActions, 'getCloudLimits').mockImplementation(mockGetLimits);
-        jest.spyOn(redux, 'useDispatch').mockImplementation(jest.fn(() => jest.fn()));
+        jest.spyOn(cloudActions, "getCloudLimits").mockImplementation(
+            mockGetLimits,
+        );
+        jest.spyOn(redux, "useDispatch").mockImplementation(
+            jest.fn(() => jest.fn()),
+        );
         const store = setupStore(defaultOptions);
 
-        renderWithIntl(<Provider store={store}><Limits/></Provider>);
-        screen.getByTestId('limits-panel-title');
+        renderWithIntl(
+            <Provider store={store}>
+                <Limits />
+            </Provider>,
+        );
+        screen.getByTestId("limits-panel-title");
     });
 });

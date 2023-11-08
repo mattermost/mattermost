@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import classNames from "classnames";
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import AdminPanel from './admin_panel';
+import AdminPanel from "./admin_panel";
 
 type Props = {
     children?: React.ReactNode;
@@ -19,16 +19,25 @@ type Props = {
     disabled?: boolean;
     buttonTextId?: string;
     buttonTextDefault?: string;
-}
+};
 
 const AdminPanelWithButton: React.FC<Props> = (props: Props) => {
     let button;
     if (props.onButtonClick && props.buttonTextId) {
-        const buttonId = (props.buttonTextDefault || '').split(' ').join('-').toLowerCase();
+        const buttonId = (props.buttonTextDefault || "")
+            .split(" ")
+            .join("-")
+            .toLowerCase();
         button = (
             <a
-                className={classNames('btn', 'btn-primary', {disabled: props.disabled})}
-                onClick={props.disabled ? (e) => e.preventDefault() : props.onButtonClick}
+                className={classNames("btn", "btn-primary", {
+                    disabled: props.disabled,
+                })}
+                onClick={
+                    props.disabled
+                        ? (e) => e.preventDefault()
+                        : props.onButtonClick
+                }
                 data-testid={buttonId}
             >
                 <FormattedMessage
@@ -41,7 +50,7 @@ const AdminPanelWithButton: React.FC<Props> = (props: Props) => {
 
     return (
         <AdminPanel
-            className={'AdminPanelWithButton ' + props.className}
+            className={"AdminPanelWithButton " + props.className}
             id={props.id}
             titleId={props.titleId}
             titleDefault={props.titleDefault}
@@ -55,7 +64,7 @@ const AdminPanelWithButton: React.FC<Props> = (props: Props) => {
 };
 
 AdminPanelWithButton.defaultProps = {
-    className: '',
+    className: "",
 };
 
 export default AdminPanelWithButton;

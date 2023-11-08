@@ -1,33 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {Post} from '@mattermost/types/posts';
-import type {Reaction as ReactionType} from '@mattermost/types/reactions';
+import type { Post } from "@mattermost/types/posts";
+import type { Reaction as ReactionType } from "@mattermost/types/reactions";
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
 
-import * as Utils from 'utils/utils';
+import * as Utils from "utils/utils";
 
-import ReactionTooltip from './reaction_tooltip';
+import ReactionTooltip from "./reaction_tooltip";
 
-import './reaction.scss';
+import "./reaction.scss";
 
 type State = {
     displayNumber: number;
-    reactedClass: 'Reaction--reacted' | 'Reaction--reacting' | 'Reaction--unreacted' | 'Reaction--unreacting';
+    reactedClass:
+        | "Reaction--reacted"
+        | "Reaction--reacting"
+        | "Reaction--unreacted"
+        | "Reaction--unreacting";
 };
 
-declare module 'react-bootstrap/lib/OverlayTrigger' {
+declare module "react-bootstrap/lib/OverlayTrigger" {
     interface OverlayTriggerProps {
         shouldUpdatePosition?: boolean;
     }
 }
 
 type Props = {
-
     /*
      * The post to render the reaction for
      */
@@ -74,7 +77,6 @@ type Props = {
     currentUserReacted: boolean;
 
     actions: {
-
         /*
          * Function to add a reaction to a post
          */
@@ -90,7 +92,7 @@ type Props = {
          */
         removeReaction: (postId: string, emojiName: string) => void;
     };
-}
+};
 
 export default class Reaction extends React.PureComponent<Props, State> {
     private reactionButtonRef = React.createRef<HTMLButtonElement>();
@@ -100,16 +102,16 @@ export default class Reaction extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
-        const {currentUserReacted, reactionCount} = this.props;
+        const { currentUserReacted, reactionCount } = this.props;
 
         if (currentUserReacted) {
             this.state = {
-                reactedClass: 'Reaction--reacted',
+                reactedClass: "Reaction--reacted",
                 displayNumber: reactionCount,
             };
         } else {
             this.state = {
-                reactedClass: 'Reaction--unreacted',
+                reactedClass: "Reaction--unreacted",
                 displayNumber: reactionCount,
             };
         }
@@ -117,8 +119,10 @@ export default class Reaction extends React.PureComponent<Props, State> {
 
     componentDidUpdate(prevProps: Props): void {
         if (prevProps.reactionCount !== this.props.reactionCount) {
-            const {currentUserReacted} = this.props;
-            const reactedClass = currentUserReacted ? 'Reaction--reacted' : 'Reaction--unreacted';
+            const { currentUserReacted } = this.props;
+            const reactedClass = currentUserReacted
+                ? "Reaction--reacted"
+                : "Reaction--unreacted";
 
             this.animating = false;
             this.setState({
@@ -132,41 +136,42 @@ export default class Reaction extends React.PureComponent<Props, State> {
         // only proceed if user has permission to react
         // and we are not animating
         if (
-            !(this.props.canAddReactions && this.props.canRemoveReactions) || this.animating
+            !(this.props.canAddReactions && this.props.canRemoveReactions) ||
+            this.animating
         ) {
             return;
         }
 
-        const {currentUserReacted} = this.props;
+        const { currentUserReacted } = this.props;
 
         this.animating = true;
         this.setState((state) => {
             if (currentUserReacted) {
                 return {
                     displayNumber: state.displayNumber - 1,
-                    reactedClass: 'Reaction--unreacting',
+                    reactedClass: "Reaction--unreacting",
                 };
             }
 
             return {
                 displayNumber: state.displayNumber + 1,
-                reactedClass: 'Reaction--reacting',
+                reactedClass: "Reaction--reacting",
             };
         });
     };
 
     handleAnimationEnded = (): void => {
-        const {actions, currentUserReacted, post, emojiName} = this.props;
+        const { actions, currentUserReacted, post, emojiName } = this.props;
 
         this.animating = false;
-        this.setState<'reactedClass'>((state) => {
-            if (state.reactedClass === 'Reaction--reacting') {
+        this.setState<"reactedClass">((state) => {
+            if (state.reactedClass === "Reaction--reacting") {
                 return {
-                    reactedClass: 'Reaction--reacted',
+                    reactedClass: "Reaction--reacted",
                 };
-            } else if (state.reactedClass === 'Reaction--unreacting') {
+            } else if (state.reactedClass === "Reaction--unreacting") {
                 return {
-                    reactedClass: 'Reaction--unreacted',
+                    reactedClass: "Reaction--unreacted",
                 };
             }
             return state;
@@ -196,27 +201,40 @@ export default class Reaction extends React.PureComponent<Props, State> {
             reactionCount,
             reactions,
         } = this.props;
-        const {displayNumber} = this.state;
-        const reactedNumber = currentUserReacted ? reactionCount : reactionCount + 1;
-        const unreactedNumber = currentUserReacted ? reactionCount - 1 : reactionCount;
-        const unreacted = (unreactedNumber > 0) ? unreactedNumber : '';
-        const reacted = (reactedNumber > 0) ? reactedNumber : '';
-        const display = (displayNumber > 0) ? displayNumber : '';
-        const readOnlyClass = (canAddReactions && canRemoveReactions) ? '' : 'Reaction--read-only';
+        const { displayNumber } = this.state;
+        const reactedNumber = currentUserReacted
+            ? reactionCount
+            : reactionCount + 1;
+        const unreactedNumber = currentUserReacted
+            ? reactionCount - 1
+            : reactionCount;
+        const unreacted = unreactedNumber > 0 ? unreactedNumber : "";
+        const reacted = reactedNumber > 0 ? reactedNumber : "";
+        const display = displayNumber > 0 ? displayNumber : "";
+        const readOnlyClass =
+            canAddReactions && canRemoveReactions ? "" : "Reaction--read-only";
 
-        const emojiNameWithSpaces = this.props.emojiName.replace(/_/g, ' ');
-        let ariaLabelEmoji = `${Utils.localizeMessage('reaction.reactWidth.ariaLabel', 'react with')} ${emojiNameWithSpaces}`;
+        const emojiNameWithSpaces = this.props.emojiName.replace(/_/g, " ");
+        let ariaLabelEmoji = `${Utils.localizeMessage(
+            "reaction.reactWidth.ariaLabel",
+            "react with",
+        )} ${emojiNameWithSpaces}`;
         if (currentUserReacted && canRemoveReactions) {
-            ariaLabelEmoji = `${Utils.localizeMessage('reaction.removeReact.ariaLabel', 'remove reaction')} ${emojiNameWithSpaces}`;
+            ariaLabelEmoji = `${Utils.localizeMessage(
+                "reaction.removeReact.ariaLabel",
+                "remove reaction",
+            )} ${emojiNameWithSpaces}`;
         }
 
         return (
             <OverlayTrigger
                 delayShow={500}
-                placement='top'
+                placement="top"
                 shouldUpdatePosition={true}
                 overlay={
-                    <Tooltip id={`${this.props.post.id}-${this.props.emojiName}-reaction`}>
+                    <Tooltip
+                        id={`${this.props.post.id}-${this.props.emojiName}-reaction`}
+                    >
                         <ReactionTooltip
                             canAddReactions={canAddReactions}
                             canRemoveReactions={canRemoveReactions}
@@ -235,24 +253,28 @@ export default class Reaction extends React.PureComponent<Props, State> {
                     onClick={this.handleClick}
                     ref={this.reactionButtonRef}
                 >
-                    <span className='d-flex align-items-center'>
+                    <span className="d-flex align-items-center">
                         <img
-                            className='Reaction__emoji emoticon'
+                            className="Reaction__emoji emoticon"
                             src={this.props.emojiImageUrl}
                         />
                         <span
                             ref={this.reactionCountRef}
-                            className='Reaction__count'
+                            className="Reaction__count"
                         >
-                            <span className='Reaction__number'>
-                                <span className='Reaction__number--display'>{display}</span>
+                            <span className="Reaction__number">
+                                <span className="Reaction__number--display">
+                                    {display}
+                                </span>
                                 <span
-                                    className='Reaction__number--unreacted'
+                                    className="Reaction__number--unreacted"
                                     onAnimationEnd={this.handleAnimationEnded}
                                 >
                                     {unreacted}
                                 </span>
-                                <span className='Reaction__number--reacted'>{reacted}</span>
+                                <span className="Reaction__number--reacted">
+                                    {reacted}
+                                </span>
                             </span>
                         </span>
                     </span>

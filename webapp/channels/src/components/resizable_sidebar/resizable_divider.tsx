@@ -1,20 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import type {MouseEventHandler, RefObject} from 'react';
-import React, {useEffect, useRef, useState} from 'react';
-import {useSelector} from 'react-redux';
-import styled, {createGlobalStyle, css} from 'styled-components';
+import classNames from "classnames";
+import type { MouseEventHandler, RefObject } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import styled, { createGlobalStyle, css } from "styled-components";
 
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import { getCurrentUserId } from "mattermost-redux/selectors/entities/users";
 
-import {getIsMobileView} from 'selectors/views/browser';
-import {useGlobalState} from 'stores/hooks';
+import { getIsMobileView } from "selectors/views/browser";
+import { useGlobalState } from "stores/hooks";
 
-import type {CssVarKeyForResizable} from './constants';
-import {ResizeDirection} from './constants';
-import {isSizeLessThanSnapSize, isSnapableSpeed, shouldSnapWhenSizeGrown, shouldSnapWhenSizeShrunk} from './utils';
+import type { CssVarKeyForResizable } from "./constants";
+import { ResizeDirection } from "./constants";
+import {
+    isSizeLessThanSnapSize,
+    isSnapableSpeed,
+    shouldSnapWhenSizeGrown,
+    shouldSnapWhenSizeShrunk,
+} from "./utils";
 
 type Props = {
     id?: string;
@@ -26,12 +31,20 @@ type Props = {
     dir: ResizeDirection;
     containerRef: RefObject<HTMLElement>;
     onResizeStart?: (startWidth: number) => void;
-    onResize?: (width: number, cssVarProperty: string, cssVarValue: string) => void;
-    onResizeEnd?: (finalWidth: number, cssVarProperty: string, cssVarValue: string) => void;
+    onResize?: (
+        width: number,
+        cssVarProperty: string,
+        cssVarValue: string,
+    ) => void;
+    onResizeEnd?: (
+        finalWidth: number,
+        cssVarProperty: string,
+        cssVarValue: string,
+    ) => void;
     onDividerDoubleClick?: (prevWidth: number, cssVarProperty: string) => void;
-}
+};
 
-const Divider = styled.div<{isActive: boolean}>`
+const Divider = styled.div<{ isActive: boolean }>`
     position: absolute;
     z-index: 50;
     top: 0;
@@ -46,8 +59,9 @@ const Divider = styled.div<{isActive: boolean}>`
         position: absolute;
         width: 4px;
         height: 100%;
-        background-color: ${({isActive}) => (isActive ? 'var(--sidebar-text-active-border)' : 'transparent')};
-        content: '';
+        background-color: ${({ isActive }) =>
+            isActive ? "var(--sidebar-text-active-border)" : "transparent"};
+        content: "";
     }
     &:hover {
         &::after {
@@ -62,14 +76,22 @@ const Divider = styled.div<{isActive: boolean}>`
     }
 `;
 
-const ResizableDividerGlobalStyle = createGlobalStyle<{active: boolean; varName: CssVarKeyForResizable; width: number | null}>`
-    ${({active}) => active && css`
-        body {
-            cursor: col-resize;
-            user-select: none;
-        }
-    `}
-    ${({varName, width}) => width && css`
+const ResizableDividerGlobalStyle = createGlobalStyle<{
+    active: boolean;
+    varName: CssVarKeyForResizable;
+    width: number | null;
+}>`
+    ${({ active }) =>
+        active &&
+        css`
+            body {
+                cursor: col-resize;
+                user-select: none;
+            }
+        `}
+    ${({ varName, width }) =>
+        width &&
+        css`
         :root {
             --${varName}: ${width}px;
         }
@@ -103,14 +125,26 @@ function ResizableDivider({
     const isMobileView = useSelector(getIsMobileView);
 
     const [isActive, setIsActive] = useState(false);
-    const [width, setWidth] = useGlobalState<number | null>(null, `resizable_${name}:`, currentUserID);
+    const [width, setWidth] = useGlobalState<number | null>(
+        null,
+        `resizable_${name}:`,
+        currentUserID,
+    );
 
-    const defaultOnResizeChange = (width: number, cssVarProp: string, cssVarValue: string) => {
+    const defaultOnResizeChange = (
+        width: number,
+        cssVarProp: string,
+        cssVarValue: string,
+    ) => {
         containerRef.current?.style.setProperty(cssVarProp, cssVarValue);
         lastWidth.current = width;
     };
 
-    const handleOnResize = (width: number, cssVarProp: string, cssVarValue: string) => {
+    const handleOnResize = (
+        width: number,
+        cssVarProp: string,
+        cssVarValue: string,
+    ) => {
         if (onResize) {
             onResize(width, cssVarProp, cssVarValue);
         }
@@ -137,9 +171,13 @@ function ResizableDivider({
             onResizeStart(startWidth.current);
         }
 
-        handleOnResize(startWidth.current, cssVarKey, `${startWidth.current}px`);
+        handleOnResize(
+            startWidth.current,
+            cssVarKey,
+            `${startWidth.current}px`,
+        );
 
-        document.body.classList.add('layout-changing');
+        document.body.classList.add("layout-changing");
     };
 
     useEffect(() => {
@@ -164,17 +202,17 @@ function ResizableDivider({
             let widthDiff = 0;
 
             switch (dir) {
-            case ResizeDirection.LEFT:
-                widthDiff = e.clientX - previousClientX.current;
-                break;
-            case ResizeDirection.RIGHT:
-                widthDiff = previousClientX.current - e.clientX;
-                break;
+                case ResizeDirection.LEFT:
+                    widthDiff = e.clientX - previousClientX.current;
+                    break;
+                case ResizeDirection.RIGHT:
+                    widthDiff = previousClientX.current - e.clientX;
+                    break;
             }
 
             const newWidth = previousWidth + widthDiff;
 
-            if (resizeLine.classList.contains('snapped')) {
+            if (resizeLine.classList.contains("snapped")) {
                 const diff = newWidth - defaultWidth;
 
                 if (isSizeLessThanSnapSize(diff)) {
@@ -183,7 +221,7 @@ function ResizableDivider({
 
                 handleOnResize(newWidth, cssVarKey, `${newWidth}px`);
 
-                resizeLine.classList.remove('snapped');
+                resizeLine.classList.remove("snapped");
                 previousClientX.current = e.clientX;
 
                 return;
@@ -191,21 +229,27 @@ function ResizableDivider({
 
             previousClientX.current = e.clientX;
 
-            const shouldSnap = shouldSnapWhenSizeGrown(newWidth, previousWidth, defaultWidth) || shouldSnapWhenSizeShrunk(newWidth, previousWidth, defaultWidth);
+            const shouldSnap =
+                shouldSnapWhenSizeGrown(
+                    newWidth,
+                    previousWidth,
+                    defaultWidth,
+                ) ||
+                shouldSnapWhenSizeShrunk(newWidth, previousWidth, defaultWidth);
 
             if (isSnapableSpeed(newWidth - previousWidth) && shouldSnap) {
                 switch (dir) {
-                case ResizeDirection.LEFT:
-                    previousClientX.current += defaultWidth - newWidth;
-                    break;
-                case ResizeDirection.RIGHT:
-                    previousClientX.current += newWidth - defaultWidth;
-                    break;
+                    case ResizeDirection.LEFT:
+                        previousClientX.current += defaultWidth - newWidth;
+                        break;
+                    case ResizeDirection.RIGHT:
+                        previousClientX.current += newWidth - defaultWidth;
+                        break;
                 }
 
                 handleOnResize(defaultWidth, cssVarKey, `${defaultWidth}px`);
 
-                resizeLine.classList.add('snapped');
+                resizeLine.classList.add("snapped");
                 return;
             }
 
@@ -213,24 +257,25 @@ function ResizableDivider({
         };
 
         const onMouseUp = () => {
-            const finalWidth = containerRef.current?.getBoundingClientRect().width;
+            const finalWidth =
+                containerRef.current?.getBoundingClientRect().width;
             if (isActive && finalWidth) {
                 setWidth(finalWidth);
                 onResizeEnd?.(finalWidth, cssVarKey, `${finalWidth}px`);
             }
 
             containerRef.current?.style.removeProperty(cssVarKey);
-            document.body.classList.remove('layout-changing');
+            document.body.classList.remove("layout-changing");
             reset();
             setIsActive(false);
         };
 
-        window.addEventListener('mousemove', onMouseMove);
-        window.addEventListener('mouseup', onMouseUp);
+        window.addEventListener("mousemove", onMouseMove);
+        window.addEventListener("mouseup", onMouseUp);
 
         return () => {
-            window.removeEventListener('mousemove', onMouseMove);
-            window.removeEventListener('mouseup', onMouseUp);
+            window.removeEventListener("mousemove", onMouseMove);
+            window.removeEventListener("mouseup", onMouseUp);
         };
     }, [isActive, disabled]);
 
@@ -263,7 +308,6 @@ function ResizableDivider({
                 active={isActive}
             />
         </>
-
     );
 }
 

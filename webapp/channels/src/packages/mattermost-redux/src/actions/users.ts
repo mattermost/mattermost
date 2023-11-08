@@ -1,37 +1,66 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
-import {batchActions} from 'redux-batched-actions';
+import type { AnyAction } from "redux";
+import { batchActions } from "redux-batched-actions";
 
-import type {ServerError} from '@mattermost/types/errors';
-import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus} from '@mattermost/types/users';
+import type { ServerError } from "@mattermost/types/errors";
+import type {
+    UserProfile,
+    UserStatus,
+    GetFilteredUsersStatsOpts,
+    UsersStats,
+    UserCustomStatus,
+} from "@mattermost/types/users";
 
-import {UserTypes, AdminTypes} from 'mattermost-redux/action_types';
-import {logError} from 'mattermost-redux/actions/errors';
-import {setServerVersion, getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
-import {bindClientFunc, forceLogoutIfNecessary, debounce} from 'mattermost-redux/actions/helpers';
-import {getMyPreferences} from 'mattermost-redux/actions/preferences';
-import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
-import {getMyTeams, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/actions/teams';
-import {Client4} from 'mattermost-redux/client';
-import {General} from 'mattermost-redux/constants';
-import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUserId, getUsers} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
+import { UserTypes, AdminTypes } from "mattermost-redux/action_types";
+import { logError } from "mattermost-redux/actions/errors";
+import {
+    setServerVersion,
+    getClientConfig,
+    getLicenseConfig,
+} from "mattermost-redux/actions/general";
+import {
+    bindClientFunc,
+    forceLogoutIfNecessary,
+    debounce,
+} from "mattermost-redux/actions/helpers";
+import { getMyPreferences } from "mattermost-redux/actions/preferences";
+import { loadRolesIfNeeded } from "mattermost-redux/actions/roles";
+import {
+    getMyTeams,
+    getMyTeamMembers,
+    getMyTeamUnreads,
+} from "mattermost-redux/actions/teams";
+import { Client4 } from "mattermost-redux/client";
+import { General } from "mattermost-redux/constants";
+import { getServerVersion } from "mattermost-redux/selectors/entities/general";
+import { isCollapsedThreadsEnabled } from "mattermost-redux/selectors/entities/preferences";
+import {
+    getCurrentUserId,
+    getUsers,
+} from "mattermost-redux/selectors/entities/users";
+import type {
+    ActionFunc,
+    ActionResult,
+    DispatchFunc,
+    GetStateFunc,
+} from "mattermost-redux/types/actions";
+import { isMinimumServerVersion } from "mattermost-redux/utils/helpers";
 
 export function generateMfaSecret(userId: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.generateMfaSecret,
-        params: [
-            userId,
-        ],
+        params: [userId],
     });
 }
 
-export function createUser(user: UserProfile, token: string, inviteId: string, redirect: string): ActionFunc {
+export function createUser(
+    user: UserProfile,
+    token: string,
+    inviteId: string,
+    redirect: string,
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let created;
 
@@ -40,7 +69,7 @@ export function createUser(user: UserProfile, token: string, inviteId: string, r
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         const profiles: {
@@ -48,16 +77,18 @@ export function createUser(user: UserProfile, token: string, inviteId: string, r
         } = {
             [created.id]: created,
         };
-        dispatch({type: UserTypes.RECEIVED_PROFILES, data: profiles});
+        dispatch({ type: UserTypes.RECEIVED_PROFILES, data: profiles });
 
-        return {data: created};
+        return { data: created };
     };
 }
 
 export function loadMe(): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         // Sometimes the server version is set in one or the other
-        const serverVersion = getState().entities.general.serverVersion || Client4.getServerVersion();
+        const serverVersion =
+            getState().entities.general.serverVersion ||
+            Client4.getServerVersion();
         dispatch(setServerVersion(serverVersion));
 
         try {
@@ -74,16 +105,16 @@ export function loadMe(): ActionFunc {
             await dispatch(getMyTeamUnreads(isCollapsedThreads));
         } catch (error) {
             dispatch(logError(error as ServerError));
-            return {error: error as ServerError};
+            return { error: error as ServerError };
         }
 
-        return {data: true};
+        return { data: true };
     };
 }
 
 export function logout(): ActionFunc {
     return async (dispatch: DispatchFunc) => {
-        dispatch({type: UserTypes.LOGOUT_REQUEST, data: null});
+        dispatch({ type: UserTypes.LOGOUT_REQUEST, data: null });
 
         try {
             await Client4.logout();
@@ -91,9 +122,9 @@ export function logout(): ActionFunc {
             // nothing to do here
         }
 
-        dispatch({type: UserTypes.LOGOUT_SUCCESS, data: null});
+        dispatch({ type: UserTypes.LOGOUT_SUCCESS, data: null });
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -104,7 +135,10 @@ export function getTotalUsersStats(): ActionFunc {
     });
 }
 
-export function getFilteredUsersStats(options: GetFilteredUsersStatsOpts = {}, updateGlobalState = true): ActionFunc {
+export function getFilteredUsersStats(
+    options: GetFilteredUsersStatsOpts = {},
+    updateGlobalState = true,
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let stats: UsersStats;
         try {
@@ -112,7 +146,7 @@ export function getFilteredUsersStats(options: GetFilteredUsersStatsOpts = {}, u
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         if (updateGlobalState) {
@@ -122,11 +156,15 @@ export function getFilteredUsersStats(options: GetFilteredUsersStatsOpts = {}, u
             });
         }
 
-        return {data: stats};
+        return { data: stats };
     };
 }
 
-export function getProfiles(page = 0, perPage: number = General.PROFILE_CHUNK_SIZE, options: any = {}): ActionFunc {
+export function getProfiles(
+    page = 0,
+    perPage: number = General.PROFILE_CHUNK_SIZE,
+    options: any = {},
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let profiles: UserProfile[];
 
@@ -135,7 +173,7 @@ export function getProfiles(page = 0, perPage: number = General.PROFILE_CHUNK_SI
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         dispatch({
@@ -143,13 +181,13 @@ export function getProfiles(page = 0, perPage: number = General.PROFILE_CHUNK_SI
             data: profiles,
         });
 
-        return {data: profiles};
+        return { data: profiles };
     };
 }
 
 export function getMissingProfilesByIds(userIds: string[]): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {profiles} = getState().entities.users;
+        const { profiles } = getState().entities.users;
         const missingIds: string[] = [];
         userIds.forEach((id) => {
             if (!profiles[id]) {
@@ -162,18 +200,21 @@ export function getMissingProfilesByIds(userIds: string[]): ActionFunc {
             return getProfilesByIds(missingIds)(dispatch, getState);
         }
 
-        return {data: []};
+        return { data: [] };
     };
 }
 
 export function getMissingProfilesByUsernames(usernames: string[]): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {profiles} = getState().entities.users;
+        const { profiles } = getState().entities.users;
 
-        const usernameProfiles = Object.values(profiles).reduce((acc, profile: any) => {
-            acc[profile.username] = profile;
-            return acc;
-        }, {} as Record<string, UserProfile>);
+        const usernameProfiles = Object.values(profiles).reduce(
+            (acc, profile: any) => {
+                acc[profile.username] = profile;
+                return acc;
+            },
+            {} as Record<string, UserProfile>,
+        );
         const missingUsernames: string[] = [];
         usernames.forEach((username) => {
             if (!usernameProfiles[username]) {
@@ -185,7 +226,7 @@ export function getMissingProfilesByUsernames(usernames: string[]): ActionFunc {
             return getProfilesByUsernames(missingUsernames)(dispatch, getState);
         }
 
-        return {data: []};
+        return { data: [] };
     };
 }
 
@@ -198,7 +239,7 @@ export function getProfilesByIds(userIds: string[], options?: any): ActionFunc {
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         dispatch({
@@ -206,11 +247,13 @@ export function getProfilesByIds(userIds: string[], options?: any): ActionFunc {
             data: profiles,
         });
 
-        return {data: profiles};
+        return { data: profiles };
     };
 }
 
-export function getProfilesByUsernames(usernames: string[]): ActionFunc<UserProfile[]> {
+export function getProfilesByUsernames(
+    usernames: string[],
+): ActionFunc<UserProfile[]> {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let profiles;
 
@@ -219,7 +262,7 @@ export function getProfilesByUsernames(usernames: string[]): ActionFunc<UserProf
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         dispatch({
@@ -227,123 +270,175 @@ export function getProfilesByUsernames(usernames: string[]): ActionFunc<UserProf
             data: profiles,
         });
 
-        return {data: profiles};
+        return { data: profiles };
     };
 }
 
-export function getProfilesInTeam(teamId: string, page: number, perPage: number = General.PROFILE_CHUNK_SIZE, sort = '', options: any = {}): ActionFunc {
+export function getProfilesInTeam(
+    teamId: string,
+    page: number,
+    perPage: number = General.PROFILE_CHUNK_SIZE,
+    sort = "",
+    options: any = {},
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let profiles;
 
         try {
-            profiles = await Client4.getProfilesInTeam(teamId, page, perPage, sort, options);
+            profiles = await Client4.getProfilesInTeam(
+                teamId,
+                page,
+                perPage,
+                sort,
+                options,
+            );
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        dispatch(batchActions([
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST_IN_TEAM,
-                data: profiles,
-                id: teamId,
-            },
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: profiles,
-            },
-        ]));
+        dispatch(
+            batchActions([
+                {
+                    type: UserTypes.RECEIVED_PROFILES_LIST_IN_TEAM,
+                    data: profiles,
+                    id: teamId,
+                },
+                {
+                    type: UserTypes.RECEIVED_PROFILES_LIST,
+                    data: profiles,
+                },
+            ]),
+        );
 
-        return {data: profiles};
+        return { data: profiles };
     };
 }
 
-export function getProfilesNotInTeam(teamId: string, groupConstrained: boolean, page: number, perPage: number = General.PROFILE_CHUNK_SIZE): ActionFunc {
+export function getProfilesNotInTeam(
+    teamId: string,
+    groupConstrained: boolean,
+    page: number,
+    perPage: number = General.PROFILE_CHUNK_SIZE,
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let profiles;
         try {
-            profiles = await Client4.getProfilesNotInTeam(teamId, groupConstrained, page, perPage);
+            profiles = await Client4.getProfilesNotInTeam(
+                teamId,
+                groupConstrained,
+                page,
+                perPage,
+            );
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        const receivedProfilesListActionType = groupConstrained ? UserTypes.RECEIVED_PROFILES_LIST_NOT_IN_TEAM_AND_REPLACE : UserTypes.RECEIVED_PROFILES_LIST_NOT_IN_TEAM;
+        const receivedProfilesListActionType = groupConstrained
+            ? UserTypes.RECEIVED_PROFILES_LIST_NOT_IN_TEAM_AND_REPLACE
+            : UserTypes.RECEIVED_PROFILES_LIST_NOT_IN_TEAM;
 
-        dispatch(batchActions([
-            {
-                type: receivedProfilesListActionType,
-                data: profiles,
-                id: teamId,
-            },
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: profiles,
-            },
-        ]));
+        dispatch(
+            batchActions([
+                {
+                    type: receivedProfilesListActionType,
+                    data: profiles,
+                    id: teamId,
+                },
+                {
+                    type: UserTypes.RECEIVED_PROFILES_LIST,
+                    data: profiles,
+                },
+            ]),
+        );
 
-        return {data: profiles};
+        return { data: profiles };
     };
 }
 
-export function getProfilesWithoutTeam(page: number, perPage: number = General.PROFILE_CHUNK_SIZE, options: any = {}): ActionFunc {
+export function getProfilesWithoutTeam(
+    page: number,
+    perPage: number = General.PROFILE_CHUNK_SIZE,
+    options: any = {},
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let profiles = null;
         try {
-            profiles = await Client4.getProfilesWithoutTeam(page, perPage, options);
+            profiles = await Client4.getProfilesWithoutTeam(
+                page,
+                perPage,
+                options,
+            );
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        dispatch(batchActions([
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST_WITHOUT_TEAM,
-                data: profiles,
-            },
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: profiles,
-            },
-        ]));
+        dispatch(
+            batchActions([
+                {
+                    type: UserTypes.RECEIVED_PROFILES_LIST_WITHOUT_TEAM,
+                    data: profiles,
+                },
+                {
+                    type: UserTypes.RECEIVED_PROFILES_LIST,
+                    data: profiles,
+                },
+            ]),
+        );
 
-        return {data: profiles};
+        return { data: profiles };
     };
 }
 
 export enum ProfilesInChannelSortBy {
-    None = '',
-    Admin = 'admin',
+    None = "",
+    Admin = "admin",
 }
 
-export function getProfilesInChannel(channelId: string, page: number, perPage: number = General.PROFILE_CHUNK_SIZE, sort = '', options: {active?: boolean} = {}): ActionFunc {
+export function getProfilesInChannel(
+    channelId: string,
+    page: number,
+    perPage: number = General.PROFILE_CHUNK_SIZE,
+    sort = "",
+    options: { active?: boolean } = {},
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let profiles;
 
         try {
-            profiles = await Client4.getProfilesInChannel(channelId, page, perPage, sort, options);
+            profiles = await Client4.getProfilesInChannel(
+                channelId,
+                page,
+                perPage,
+                sort,
+                options,
+            );
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        dispatch(batchActions([
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST_IN_CHANNEL,
-                data: profiles,
-                id: channelId,
-            },
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: profiles,
-            },
-        ]));
+        dispatch(
+            batchActions([
+                {
+                    type: UserTypes.RECEIVED_PROFILES_LIST_IN_CHANNEL,
+                    data: profiles,
+                    id: channelId,
+                },
+                {
+                    type: UserTypes.RECEIVED_PROFILES_LIST,
+                    data: profiles,
+                },
+            ]),
+        );
 
-        return {data: profiles};
+        return { data: profiles };
     };
 }
 
@@ -352,11 +447,13 @@ export function getProfilesInGroupChannels(channelsIds: string[]): ActionFunc {
         let channelProfiles;
 
         try {
-            channelProfiles = await Client4.getProfilesInGroupChannels(channelsIds.slice(0, General.MAX_GROUP_CHANNELS_FOR_PROFILES));
+            channelProfiles = await Client4.getProfilesInGroupChannels(
+                channelsIds.slice(0, General.MAX_GROUP_CHANNELS_FOR_PROFILES),
+            );
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         const actions: AnyAction[] = [];
@@ -380,37 +477,53 @@ export function getProfilesInGroupChannels(channelsIds: string[]): ActionFunc {
 
         dispatch(batchActions(actions));
 
-        return {data: channelProfiles};
+        return { data: channelProfiles };
     };
 }
 
-export function getProfilesNotInChannel(teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage: number = General.PROFILE_CHUNK_SIZE): ActionFunc {
+export function getProfilesNotInChannel(
+    teamId: string,
+    channelId: string,
+    groupConstrained: boolean,
+    page: number,
+    perPage: number = General.PROFILE_CHUNK_SIZE,
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let profiles;
 
         try {
-            profiles = await Client4.getProfilesNotInChannel(teamId, channelId, groupConstrained, page, perPage);
+            profiles = await Client4.getProfilesNotInChannel(
+                teamId,
+                channelId,
+                groupConstrained,
+                page,
+                perPage,
+            );
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        const receivedProfilesListActionType = groupConstrained ? UserTypes.RECEIVED_PROFILES_LIST_NOT_IN_CHANNEL_AND_REPLACE : UserTypes.RECEIVED_PROFILES_LIST_NOT_IN_CHANNEL;
+        const receivedProfilesListActionType = groupConstrained
+            ? UserTypes.RECEIVED_PROFILES_LIST_NOT_IN_CHANNEL_AND_REPLACE
+            : UserTypes.RECEIVED_PROFILES_LIST_NOT_IN_CHANNEL;
 
-        dispatch(batchActions([
-            {
-                type: receivedProfilesListActionType,
-                data: profiles,
-                id: channelId,
-            },
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: profiles,
-            },
-        ]));
+        dispatch(
+            batchActions([
+                {
+                    type: receivedProfilesListActionType,
+                    data: profiles,
+                    id: channelId,
+                },
+                {
+                    type: UserTypes.RECEIVED_PROFILES_LIST,
+                    data: profiles,
+                },
+            ]),
+        );
 
-        return {data: profiles};
+        return { data: profiles };
     };
 }
 
@@ -422,27 +535,29 @@ export function getMe(): ActionFunc {
         });
         const me = await getMeFunc(dispatch, getState);
 
-        if ('error' in me) {
+        if ("error" in me) {
             return me;
         }
-        if ('data' in me) {
-            dispatch(loadRolesIfNeeded(me.data.roles.split(' ')));
+        if ("data" in me) {
+            dispatch(loadRolesIfNeeded(me.data.roles.split(" ")));
         }
         return me;
     };
 }
 
-export function updateMyTermsOfServiceStatus(termsOfServiceId: string, accepted: boolean): ActionFunc {
+export function updateMyTermsOfServiceStatus(
+    termsOfServiceId: string,
+    accepted: boolean,
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const response: ActionResult = await dispatch(bindClientFunc({
-            clientFunc: Client4.updateMyTermsOfServiceStatus,
-            params: [
-                termsOfServiceId,
-                accepted,
-            ],
-        }));
+        const response: ActionResult = await dispatch(
+            bindClientFunc({
+                clientFunc: Client4.updateMyTermsOfServiceStatus,
+                params: [termsOfServiceId, accepted],
+            }),
+        );
 
-        if ('data' in response) {
+        if ("data" in response) {
             if (accepted) {
                 dispatch({
                     type: UserTypes.RECEIVED_TERMS_OF_SERVICE_STATUS,
@@ -465,59 +580,81 @@ export function updateMyTermsOfServiceStatus(termsOfServiceId: string, accepted:
     };
 }
 
-export function getProfilesInGroup(groupId: string, page = 0, perPage: number = General.PROFILE_CHUNK_SIZE, sort = ''): ActionFunc {
+export function getProfilesInGroup(
+    groupId: string,
+    page = 0,
+    perPage: number = General.PROFILE_CHUNK_SIZE,
+    sort = "",
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let profiles;
 
         try {
-            profiles = await Client4.getProfilesInGroup(groupId, page, perPage, sort);
+            profiles = await Client4.getProfilesInGroup(
+                groupId,
+                page,
+                perPage,
+                sort,
+            );
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        dispatch(batchActions([
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST_IN_GROUP,
-                data: profiles,
-                id: groupId,
-            },
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: profiles,
-            },
-        ]));
+        dispatch(
+            batchActions([
+                {
+                    type: UserTypes.RECEIVED_PROFILES_LIST_IN_GROUP,
+                    data: profiles,
+                    id: groupId,
+                },
+                {
+                    type: UserTypes.RECEIVED_PROFILES_LIST,
+                    data: profiles,
+                },
+            ]),
+        );
 
-        return {data: profiles};
+        return { data: profiles };
     };
 }
 
-export function getProfilesNotInGroup(groupId: string, page = 0, perPage: number = General.PROFILE_CHUNK_SIZE): ActionFunc {
+export function getProfilesNotInGroup(
+    groupId: string,
+    page = 0,
+    perPage: number = General.PROFILE_CHUNK_SIZE,
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let profiles;
 
         try {
-            profiles = await Client4.getProfilesNotInGroup(groupId, page, perPage);
+            profiles = await Client4.getProfilesNotInGroup(
+                groupId,
+                page,
+                perPage,
+            );
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        dispatch(batchActions([
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST_NOT_IN_GROUP,
-                data: profiles,
-                id: groupId,
-            },
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: profiles,
-            },
-        ]));
+        dispatch(
+            batchActions([
+                {
+                    type: UserTypes.RECEIVED_PROFILES_LIST_NOT_IN_GROUP,
+                    data: profiles,
+                    id: groupId,
+                },
+                {
+                    type: UserTypes.RECEIVED_PROFILES_LIST,
+                    data: profiles,
+                },
+            ]),
+        );
 
-        return {data: profiles};
+        return { data: profiles };
     };
 }
 
@@ -544,9 +681,7 @@ export function demoteUserToGuest(userId: string): ActionFunc {
 export function createTermsOfService(text: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.createTermsOfService,
-        params: [
-            text,
-        ],
+        params: [text],
     });
 }
 
@@ -554,9 +689,7 @@ export function getUser(id: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getUser,
         onSuccess: UserTypes.RECEIVED_PROFILE,
-        params: [
-            id,
-        ],
+        params: [id],
     });
 }
 
@@ -564,9 +697,7 @@ export function getUserByUsername(username: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getUserByUsername,
         onSuccess: UserTypes.RECEIVED_PROFILE,
-        params: [
-            username,
-        ],
+        params: [username],
     });
 }
 
@@ -574,9 +705,7 @@ export function getUserByEmail(email: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getUserByEmail,
         onSuccess: UserTypes.RECEIVED_PROFILE,
-        params: [
-            email,
-        ],
+        params: [email],
     });
 }
 
@@ -587,11 +716,16 @@ export function getUserByEmail(email: string): ActionFunc {
 // statuses, we are only making one call for 75 ids.
 // We could maybe clean it up somewhat by storing the array of ids in redux state possbily?
 let ids: string[] = [];
-const debouncedGetStatusesByIds = debounce(async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-    getStatusesByIds([...new Set(ids)])(dispatch, getState);
-}, 20, false, () => {
-    ids = [];
-});
+const debouncedGetStatusesByIds = debounce(
+    async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        getStatusesByIds([...new Set(ids)])(dispatch, getState);
+    },
+    20,
+    false,
+    () => {
+        ids = [];
+    },
+);
 export function getStatusesByIdsBatchedDebounced(id: string) {
     ids = [...ids, id];
     return debouncedGetStatusesByIds;
@@ -601,9 +735,7 @@ export function getStatusesByIds(userIds: string[]): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getStatusesByIds,
         onSuccess: UserTypes.RECEIVED_STATUSES,
-        params: [
-            userIds,
-        ],
+        params: [userIds],
     });
 }
 
@@ -611,9 +743,7 @@ export function getStatus(userId: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getStatus,
         onSuccess: UserTypes.RECEIVED_STATUS,
-        params: [
-            userId,
-        ],
+        params: [userId],
     });
 }
 
@@ -624,7 +754,7 @@ export function setStatus(status: UserStatus): ActionFunc {
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         dispatch({
@@ -632,16 +762,14 @@ export function setStatus(status: UserStatus): ActionFunc {
             data: status,
         });
 
-        return {data: status};
+        return { data: status };
     };
 }
 
 export function setCustomStatus(customStatus: UserCustomStatus): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.updateCustomStatus,
-        params: [
-            customStatus,
-        ],
+        params: [customStatus],
     });
 }
 
@@ -651,12 +779,12 @@ export function unsetCustomStatus(): ActionFunc {
     });
 }
 
-export function removeRecentCustomStatus(customStatus: UserCustomStatus): ActionFunc {
+export function removeRecentCustomStatus(
+    customStatus: UserCustomStatus,
+): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.removeRecentCustomStatus,
-        params: [
-            customStatus,
-        ],
+        params: [customStatus],
     });
 }
 
@@ -664,9 +792,7 @@ export function getSessions(userId: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getSessions,
         onSuccess: UserTypes.RECEIVED_SESSIONS,
-        params: [
-            userId,
-        ],
+        params: [userId],
     });
 }
 
@@ -677,7 +803,7 @@ export function revokeSession(userId: string, sessionId: string): ActionFunc {
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         dispatch({
@@ -686,7 +812,7 @@ export function revokeSession(userId: string, sessionId: string): ActionFunc {
             data: null,
         });
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -697,17 +823,19 @@ export function revokeAllSessionsForUser(userId: string): ActionFunc {
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
-        const data = {isCurrentUser: userId === getCurrentUserId(getState())};
-        dispatch(batchActions([
-            {
-                type: UserTypes.REVOKE_ALL_USER_SESSIONS_SUCCESS,
-                data,
-            },
-        ]));
+        const data = { isCurrentUser: userId === getCurrentUserId(getState()) };
+        dispatch(
+            batchActions([
+                {
+                    type: UserTypes.REVOKE_ALL_USER_SESSIONS_SUCCESS,
+                    data,
+                },
+            ]),
+        );
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -718,84 +846,91 @@ export function revokeSessionsForAllUsers(): ActionFunc {
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
         dispatch({
             type: UserTypes.REVOKE_SESSIONS_FOR_ALL_USERS_SUCCESS,
             data: null,
         });
-        return {data: true};
+        return { data: true };
     };
 }
 
-export function getUserAudits(userId: string, page = 0, perPage: number = General.AUDITS_CHUNK_SIZE): ActionFunc {
+export function getUserAudits(
+    userId: string,
+    page = 0,
+    perPage: number = General.AUDITS_CHUNK_SIZE,
+): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getUserAudits,
         onSuccess: UserTypes.RECEIVED_AUDITS,
-        params: [
-            userId,
-            page,
-            perPage,
-        ],
+        params: [userId, page, perPage],
     });
 }
 
-export function autocompleteUsers(term: string, teamId = '', channelId = '', options?: {
-    limit: number;
-}): ActionFunc {
+export function autocompleteUsers(
+    term: string,
+    teamId = "",
+    channelId = "",
+    options?: {
+        limit: number;
+    },
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        dispatch({type: UserTypes.AUTOCOMPLETE_USERS_REQUEST, data: null});
+        dispatch({ type: UserTypes.AUTOCOMPLETE_USERS_REQUEST, data: null });
         let data;
         try {
-            data = await Client4.autocompleteUsers(term, teamId, channelId, options);
+            data = await Client4.autocompleteUsers(
+                term,
+                teamId,
+                channelId,
+                options,
+            );
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch({type: UserTypes.AUTOCOMPLETE_USERS_FAILURE, error});
+            dispatch({ type: UserTypes.AUTOCOMPLETE_USERS_FAILURE, error });
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         let users = [...data.users];
         if (data.out_of_channel) {
             users = [...users, ...data.out_of_channel];
         }
-        const actions: AnyAction[] = [{
-            type: UserTypes.RECEIVED_PROFILES_LIST,
-            data: users,
-        }, {
-            type: UserTypes.AUTOCOMPLETE_USERS_SUCCESS,
-        }];
+        const actions: AnyAction[] = [
+            {
+                type: UserTypes.RECEIVED_PROFILES_LIST,
+                data: users,
+            },
+            {
+                type: UserTypes.AUTOCOMPLETE_USERS_SUCCESS,
+            },
+        ];
 
         if (channelId) {
-            actions.push(
-                {
-                    type: UserTypes.RECEIVED_PROFILES_LIST_IN_CHANNEL,
-                    data: data.users,
-                    id: channelId,
-                },
-            );
-            actions.push(
-                {
-                    type: UserTypes.RECEIVED_PROFILES_LIST_NOT_IN_CHANNEL,
-                    data: data.out_of_channel || [],
-                    id: channelId,
-                },
-            );
+            actions.push({
+                type: UserTypes.RECEIVED_PROFILES_LIST_IN_CHANNEL,
+                data: data.users,
+                id: channelId,
+            });
+            actions.push({
+                type: UserTypes.RECEIVED_PROFILES_LIST_NOT_IN_CHANNEL,
+                data: data.out_of_channel || [],
+                id: channelId,
+            });
         }
 
         if (teamId) {
-            actions.push(
-                {
-                    type: UserTypes.RECEIVED_PROFILES_LIST_IN_TEAM,
-                    data: users,
-                    id: teamId,
-                },
-            );
+            actions.push({
+                type: UserTypes.RECEIVED_PROFILES_LIST_IN_TEAM,
+                data: users,
+                id: teamId,
+            });
         }
 
         dispatch(batchActions(actions));
 
-        return {data};
+        return { data };
     };
 }
 
@@ -807,10 +942,12 @@ export function searchProfiles(term: string, options: any = {}): ActionFunc {
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        const actions: AnyAction[] = [{type: UserTypes.RECEIVED_PROFILES_LIST, data: profiles}];
+        const actions: AnyAction[] = [
+            { type: UserTypes.RECEIVED_PROFILES_LIST, data: profiles },
+        ];
 
         if (options.in_channel_id) {
             actions.push({
@@ -862,36 +999,33 @@ export function searchProfiles(term: string, options: any = {}): ActionFunc {
 
         dispatch(batchActions(actions));
 
-        return {data: profiles};
+        return { data: profiles };
     };
 }
 
-let statusIntervalId: NodeJS.Timeout|null;
+let statusIntervalId: NodeJS.Timeout | null;
 export function startPeriodicStatusUpdates(): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         if (statusIntervalId) {
             clearInterval(statusIntervalId);
         }
 
-        statusIntervalId = setInterval(
-            () => {
-                const {statuses} = getState().entities.users;
+        statusIntervalId = setInterval(() => {
+            const { statuses } = getState().entities.users;
 
-                if (!statuses) {
-                    return;
-                }
+            if (!statuses) {
+                return;
+            }
 
-                const userIds = Object.keys(statuses);
-                if (!userIds.length) {
-                    return;
-                }
+            const userIds = Object.keys(statuses);
+            if (!userIds.length) {
+                return;
+            }
 
-                getStatusesByIds(userIds)(dispatch, getState);
-            },
-            General.STATUS_INTERVAL,
-        );
+            getStatusesByIds(userIds)(dispatch, getState);
+        }, General.STATUS_INTERVAL);
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -901,30 +1035,34 @@ export function stopPeriodicStatusUpdates(): ActionFunc {
             clearInterval(statusIntervalId);
         }
 
-        return {data: true};
+        return { data: true };
     };
 }
 
-export function updateMe(user: Partial<UserProfile>): ActionFunc<Partial<UserProfile>, ServerError> {
+export function updateMe(
+    user: Partial<UserProfile>,
+): ActionFunc<Partial<UserProfile>, ServerError> {
     return async (dispatch: DispatchFunc) => {
-        dispatch({type: UserTypes.UPDATE_ME_REQUEST, data: null});
+        dispatch({ type: UserTypes.UPDATE_ME_REQUEST, data: null });
 
         let data;
         try {
             data = await Client4.patchMe(user);
         } catch (error) {
-            dispatch({type: UserTypes.UPDATE_ME_FAILURE, error});
+            dispatch({ type: UserTypes.UPDATE_ME_FAILURE, error });
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        dispatch(batchActions([
-            {type: UserTypes.RECEIVED_ME, data},
-            {type: UserTypes.UPDATE_ME_SUCCESS},
-        ]));
-        dispatch(loadRolesIfNeeded(data.roles.split(' ')));
+        dispatch(
+            batchActions([
+                { type: UserTypes.RECEIVED_ME, data },
+                { type: UserTypes.UPDATE_ME_SUCCESS },
+            ]),
+        );
+        dispatch(loadRolesIfNeeded(data.roles.split(" ")));
 
-        return {data};
+        return { data };
     };
 }
 
@@ -935,12 +1073,12 @@ export function patchUser(user: UserProfile): ActionFunc {
             data = await Client4.patchUser(user);
         } catch (error) {
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        dispatch({type: UserTypes.RECEIVED_PROFILE, data});
+        dispatch({ type: UserTypes.RECEIVED_PROFILE, data });
 
-        return {data};
+        return { data };
     };
 }
 
@@ -949,51 +1087,75 @@ export function updateUserRoles(userId: string, roles: string): ActionFunc {
         try {
             await Client4.updateUserRoles(userId, roles);
         } catch (error) {
-            return {error};
+            return { error };
         }
 
         const profile = getState().entities.users.profiles[userId];
         if (profile) {
-            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, roles}});
+            dispatch({
+                type: UserTypes.RECEIVED_PROFILE,
+                data: { ...profile, roles },
+            });
         }
 
-        return {data: true};
+        return { data: true };
     };
 }
 
-export function updateUserMfa(userId: string, activate: boolean, code = ''): ActionFunc {
+export function updateUserMfa(
+    userId: string,
+    activate: boolean,
+    code = "",
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         try {
             await Client4.updateUserMfa(userId, activate, code);
         } catch (error) {
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         const profile = getState().entities.users.profiles[userId];
         if (profile) {
-            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, mfa_active: activate}});
+            dispatch({
+                type: UserTypes.RECEIVED_PROFILE,
+                data: { ...profile, mfa_active: activate },
+            });
         }
 
-        return {data: true};
+        return { data: true };
     };
 }
 
-export function updateUserPassword(userId: string, currentPassword: string, newPassword: string): ActionFunc {
+export function updateUserPassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         try {
-            await Client4.updateUserPassword(userId, currentPassword, newPassword);
+            await Client4.updateUserPassword(
+                userId,
+                currentPassword,
+                newPassword,
+            );
         } catch (error) {
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         const profile = getState().entities.users.profiles[userId];
         if (profile) {
-            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, last_password_update_at: new Date().getTime()}});
+            dispatch({
+                type: UserTypes.RECEIVED_PROFILE,
+                data: {
+                    ...profile,
+                    last_password_update_at: new Date().getTime(),
+                },
+            });
         }
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -1003,53 +1165,50 @@ export function updateUserActive(userId: string, active: boolean): ActionFunc {
             await Client4.updateUserActive(userId, active);
         } catch (error) {
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         const profile = getState().entities.users.profiles[userId];
         if (profile) {
             const deleteAt = active ? 0 : new Date().getTime();
-            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, delete_at: deleteAt}});
+            dispatch({
+                type: UserTypes.RECEIVED_PROFILE,
+                data: { ...profile, delete_at: deleteAt },
+            });
         }
 
-        return {data: true};
+        return { data: true };
     };
 }
 
 export function verifyUserEmail(token: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.verifyUserEmail,
-        params: [
-            token,
-        ],
+        params: [token],
     });
 }
 
 export function sendVerificationEmail(email: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.sendVerificationEmail,
-        params: [
-            email,
-        ],
+        params: [email],
     });
 }
 
-export function resetUserPassword(token: string, newPassword: string): ActionFunc {
+export function resetUserPassword(
+    token: string,
+    newPassword: string,
+): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.resetUserPassword,
-        params: [
-            token,
-            newPassword,
-        ],
+        params: [token, newPassword],
     });
 }
 
 export function sendPasswordResetEmail(email: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.sendPasswordResetEmail,
-        params: [
-            email,
-        ],
+        params: [email],
     });
 }
 
@@ -1059,15 +1218,18 @@ export function setDefaultProfileImage(userId: string): ActionFunc {
             await Client4.setDefaultProfileImage(userId);
         } catch (error) {
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         const profile = getState().entities.users.profiles[userId];
         if (profile) {
-            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, last_picture_update: 0}});
+            dispatch({
+                type: UserTypes.RECEIVED_PROFILE,
+                data: { ...profile, last_picture_update: 0 },
+            });
         }
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -1076,67 +1238,73 @@ export function uploadProfileImage(userId: string, imageData: any): ActionFunc {
         try {
             await Client4.uploadProfileImage(userId, imageData);
         } catch (error) {
-            return {error};
+            return { error };
         }
 
         const profile = getState().entities.users.profiles[userId];
         if (profile) {
-            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, last_picture_update: new Date().getTime()}});
+            dispatch({
+                type: UserTypes.RECEIVED_PROFILE,
+                data: { ...profile, last_picture_update: new Date().getTime() },
+            });
         }
 
-        return {data: true};
+        return { data: true };
     };
 }
 
-export function switchEmailToOAuth(service: string, email: string, password: string, mfaCode = ''): ActionFunc {
+export function switchEmailToOAuth(
+    service: string,
+    email: string,
+    password: string,
+    mfaCode = "",
+): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.switchEmailToOAuth,
-        params: [
-            service,
-            email,
-            password,
-            mfaCode,
-        ],
+        params: [service, email, password, mfaCode],
     });
 }
 
-export function switchOAuthToEmail(currentService: string, email: string, password: string): ActionFunc {
+export function switchOAuthToEmail(
+    currentService: string,
+    email: string,
+    password: string,
+): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.switchOAuthToEmail,
-        params: [
-            currentService,
-            email,
-            password,
-        ],
+        params: [currentService, email, password],
     });
 }
 
-export function switchEmailToLdap(email: string, emailPassword: string, ldapId: string, ldapPassword: string, mfaCode = ''): ActionFunc {
+export function switchEmailToLdap(
+    email: string,
+    emailPassword: string,
+    ldapId: string,
+    ldapPassword: string,
+    mfaCode = "",
+): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.switchEmailToLdap,
-        params: [
-            email,
-            emailPassword,
-            ldapId,
-            ldapPassword,
-            mfaCode,
-        ],
+        params: [email, emailPassword, ldapId, ldapPassword, mfaCode],
     });
 }
 
-export function switchLdapToEmail(ldapPassword: string, email: string, emailPassword: string, mfaCode = ''): ActionFunc {
+export function switchLdapToEmail(
+    ldapPassword: string,
+    email: string,
+    emailPassword: string,
+    mfaCode = "",
+): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.switchLdapToEmail,
-        params: [
-            ldapPassword,
-            email,
-            emailPassword,
-            mfaCode,
-        ],
+        params: [ldapPassword, email, emailPassword, mfaCode],
     });
 }
 
-export function createUserAccessToken(userId: string, description: string): ActionFunc {
+export function createUserAccessToken(
+    userId: string,
+    description: string,
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let data;
 
@@ -1145,29 +1313,27 @@ export function createUserAccessToken(userId: string, description: string): Acti
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        const actions: AnyAction[] = [{
-            type: AdminTypes.RECEIVED_USER_ACCESS_TOKEN,
-            data: {...data,
-                token: '',
+        const actions: AnyAction[] = [
+            {
+                type: AdminTypes.RECEIVED_USER_ACCESS_TOKEN,
+                data: { ...data, token: "" },
             },
-        }];
+        ];
 
-        const {currentUserId} = getState().entities.users;
+        const { currentUserId } = getState().entities.users;
         if (userId === currentUserId) {
-            actions.push(
-                {
-                    type: UserTypes.RECEIVED_MY_USER_ACCESS_TOKEN,
-                    data: {...data, token: ''},
-                },
-            );
+            actions.push({
+                type: UserTypes.RECEIVED_MY_USER_ACCESS_TOKEN,
+                data: { ...data, token: "" },
+            });
         }
 
         dispatch(batchActions(actions));
 
-        return {data};
+        return { data };
     };
 }
 
@@ -1179,31 +1345,34 @@ export function getUserAccessToken(tokenId: string): ActionFunc {
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        const actions: AnyAction[] = [{
-            type: AdminTypes.RECEIVED_USER_ACCESS_TOKEN,
-            data,
-        }];
+        const actions: AnyAction[] = [
+            {
+                type: AdminTypes.RECEIVED_USER_ACCESS_TOKEN,
+                data,
+            },
+        ];
 
-        const {currentUserId} = getState().entities.users;
+        const { currentUserId } = getState().entities.users;
         if (data.user_id === currentUserId) {
-            actions.push(
-                {
-                    type: UserTypes.RECEIVED_MY_USER_ACCESS_TOKEN,
-                    data,
-                },
-            );
+            actions.push({
+                type: UserTypes.RECEIVED_MY_USER_ACCESS_TOKEN,
+                data,
+            });
         }
 
         dispatch(batchActions(actions));
 
-        return {data};
+        return { data };
     };
 }
 
-export function getUserAccessTokens(page = 0, perPage: number = General.PROFILE_CHUNK_SIZE): ActionFunc {
+export function getUserAccessTokens(
+    page = 0,
+    perPage: number = General.PROFILE_CHUNK_SIZE,
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let data;
 
@@ -1212,7 +1381,7 @@ export function getUserAccessTokens(page = 0, perPage: number = General.PROFILE_
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         dispatch({
@@ -1220,40 +1389,48 @@ export function getUserAccessTokens(page = 0, perPage: number = General.PROFILE_
             data,
         });
 
-        return {data};
+        return { data };
     };
 }
 
-export function getUserAccessTokensForUser(userId: string, page = 0, perPage: number = General.PROFILE_CHUNK_SIZE): ActionFunc {
+export function getUserAccessTokensForUser(
+    userId: string,
+    page = 0,
+    perPage: number = General.PROFILE_CHUNK_SIZE,
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let data;
         try {
-            data = await Client4.getUserAccessTokensForUser(userId, page, perPage);
+            data = await Client4.getUserAccessTokensForUser(
+                userId,
+                page,
+                perPage,
+            );
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        const actions: AnyAction[] = [{
-            type: AdminTypes.RECEIVED_USER_ACCESS_TOKENS_FOR_USER,
-            data,
-            userId,
-        }];
+        const actions: AnyAction[] = [
+            {
+                type: AdminTypes.RECEIVED_USER_ACCESS_TOKENS_FOR_USER,
+                data,
+                userId,
+            },
+        ];
 
-        const {currentUserId} = getState().entities.users;
+        const { currentUserId } = getState().entities.users;
         if (userId === currentUserId) {
-            actions.push(
-                {
-                    type: UserTypes.RECEIVED_MY_USER_ACCESS_TOKENS,
-                    data,
-                },
-            );
+            actions.push({
+                type: UserTypes.RECEIVED_MY_USER_ACCESS_TOKENS,
+                data,
+            });
         }
 
         dispatch(batchActions(actions));
 
-        return {data};
+        return { data };
     };
 }
 
@@ -1264,7 +1441,7 @@ export function revokeUserAccessToken(tokenId: string): ActionFunc {
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         dispatch({
@@ -1272,7 +1449,7 @@ export function revokeUserAccessToken(tokenId: string): ActionFunc {
             data: tokenId,
         });
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -1283,7 +1460,7 @@ export function disableUserAccessToken(tokenId: string): ActionFunc {
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         dispatch({
@@ -1291,7 +1468,7 @@ export function disableUserAccessToken(tokenId: string): ActionFunc {
             data: tokenId,
         });
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -1302,7 +1479,7 @@ export function enableUserAccessToken(tokenId: string): ActionFunc {
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
         dispatch({
@@ -1310,7 +1487,7 @@ export function enableUserAccessToken(tokenId: string): ActionFunc {
             data: tokenId,
         });
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -1322,8 +1499,8 @@ export function getKnownUsers(): ActionFunc {
 
 export function clearUserAccessTokens(): ActionFunc {
     return async (dispatch) => {
-        dispatch({type: UserTypes.CLEAR_MY_USER_ACCESS_TOKENS, data: null});
-        return {data: true};
+        dispatch({ type: UserTypes.CLEAR_MY_USER_ACCESS_TOKENS, data: null });
+        return { data: true };
     };
 }
 
@@ -1335,11 +1512,13 @@ export function checkForModifiedUsers() {
         const serverVersion = getServerVersion(state);
 
         if (!isMinimumServerVersion(serverVersion, 5, 14)) {
-            return {data: true};
+            return { data: true };
         }
 
-        await dispatch(getProfilesByIds(Object.keys(users), {since: lastDisconnectAt}));
-        return {data: true};
+        await dispatch(
+            getProfilesByIds(Object.keys(users), { since: lastDisconnectAt }),
+        );
+        return { data: true };
     };
 }
 

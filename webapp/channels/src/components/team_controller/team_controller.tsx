@@ -1,31 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import iNoBounce from 'inobounce';
-import React, {lazy, memo, useEffect, useRef, useState} from 'react';
-import {Route, Switch, useHistory, useParams} from 'react-router-dom';
+import iNoBounce from "inobounce";
+import React, { lazy, memo, useEffect, useRef, useState } from "react";
+import { Route, Switch, useHistory, useParams } from "react-router-dom";
 
-import type {ServerError} from '@mattermost/types/errors';
-import type {Team} from '@mattermost/types/teams';
+import type { ServerError } from "@mattermost/types/errors";
+import type { Team } from "@mattermost/types/teams";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import {reconnect} from 'actions/websocket_actions.jsx';
-import LocalStorageStore from 'stores/local_storage_store';
+import { reconnect } from "actions/websocket_actions.jsx";
+import LocalStorageStore from "stores/local_storage_store";
 
-import {makeAsyncComponent} from 'components/async_load';
-import ChannelController from 'components/channel_layout/channel_controller';
-import useTelemetryIdentitySync from 'components/common/hooks/useTelemetryIdentifySync';
+import { makeAsyncComponent } from "components/async_load";
+import ChannelController from "components/channel_layout/channel_controller";
+import useTelemetryIdentitySync from "components/common/hooks/useTelemetryIdentifySync";
 
-import Constants from 'utils/constants';
-import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
-import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
-import {isIosSafari} from 'utils/user_agent';
+import Constants from "utils/constants";
+import { cmdOrCtrlPressed, isKeyPressed } from "utils/keyboard";
+import { TEAM_NAME_PATH_PATTERN } from "utils/path";
+import { isIosSafari } from "utils/user_agent";
 
-import type {OwnProps, PropsFromRedux} from './index';
+import type { OwnProps, PropsFromRedux } from "./index";
 
-const BackstageController = makeAsyncComponent('BackstageController', lazy(() => import('components/backstage')));
-const Pluggable = makeAsyncComponent('Pluggable', lazy(() => import('plugins/pluggable')));
+const BackstageController = makeAsyncComponent(
+    "BackstageController",
+    lazy(() => import("components/backstage")),
+);
+const Pluggable = makeAsyncComponent(
+    "Pluggable",
+    lazy(() => import("plugins/pluggable")),
+);
 
 const WAKEUP_CHECK_INTERVAL = 30000; // 30 seconds
 const WAKEUP_THRESHOLD = 60000; // 60 seconds
@@ -41,11 +47,13 @@ type Props = PropsFromRedux & OwnProps;
 
 function TeamController(props: Props) {
     const history = useHistory();
-    const {team: teamNameParam} = useParams<Props['match']['params']>();
+    const { team: teamNameParam } = useParams<Props["match"]["params"]>();
 
     const [initialChannelsLoaded, setInitialChannelsLoaded] = useState(false);
 
-    const [team, setTeam] = useState<Team | null>(getTeamFromTeamList(props.teamsList, teamNameParam));
+    const [team, setTeam] = useState<Team | null>(
+        getTeamFromTeamList(props.teamsList, teamNameParam),
+    );
 
     const blurTime = useRef(Date.now());
     const lastTime = useRef(Date.now());
@@ -65,8 +73,8 @@ function TeamController(props: Props) {
     useEffect(() => {
         const wakeUpIntervalId = setInterval(() => {
             const currentTime = Date.now();
-            if ((currentTime - lastTime.current) > WAKEUP_THRESHOLD) {
-                console.log('computer woke up - reconnecting'); //eslint-disable-line no-console
+            if (currentTime - lastTime.current > WAKEUP_THRESHOLD) {
+                console.log("computer woke up - reconnecting"); //eslint-disable-line no-console
                 reconnect();
             }
             lastTime.current = currentTime;
@@ -91,7 +99,11 @@ function TeamController(props: Props) {
             // Temporary flag to disable refetching of channel members on browser focus
             if (!props.disableRefetchingOnBrowserFocus) {
                 const currentTime = Date.now();
-                if ((currentTime - blurTime.current) > UNREAD_CHECK_TIME_MILLISECONDS && props.currentTeamId) {
+                if (
+                    currentTime - blurTime.current >
+                        UNREAD_CHECK_TIME_MILLISECONDS &&
+                    props.currentTeamId
+                ) {
                     props.fetchChannelsAndMembers(props.currentTeamId);
                 }
             }
@@ -103,12 +115,18 @@ function TeamController(props: Props) {
         }
 
         function handleKeydown(event: KeyboardEvent) {
-            if (event.shiftKey && cmdOrCtrlPressed(event) && isKeyPressed(event, Constants.KeyCodes.L)) {
-                const replyTextbox = document.querySelector<HTMLElement>('#sidebar-right.is-open.expanded #reply_textbox');
+            if (
+                event.shiftKey &&
+                cmdOrCtrlPressed(event) &&
+                isKeyPressed(event, Constants.KeyCodes.L)
+            ) {
+                const replyTextbox = document.querySelector<HTMLElement>(
+                    "#sidebar-right.is-open.expanded #reply_textbox",
+                );
                 if (replyTextbox) {
                     replyTextbox.focus();
                 } else {
-                    const postTextbox = document.getElementById('post_textbox');
+                    const postTextbox = document.getElementById("post_textbox");
                     if (postTextbox) {
                         postTextbox.focus();
                     }
@@ -116,14 +134,14 @@ function TeamController(props: Props) {
             }
         }
 
-        window.addEventListener('focus', handleFocus);
-        window.addEventListener('blur', handleBlur);
-        window.addEventListener('keydown', handleKeydown);
+        window.addEventListener("focus", handleFocus);
+        window.addEventListener("blur", handleBlur);
+        window.addEventListener("keydown", handleKeydown);
 
         return () => {
-            window.removeEventListener('focus', handleFocus);
-            window.removeEventListener('blur', handleBlur);
-            window.removeEventListener('keydown', handleKeydown);
+            window.removeEventListener("focus", handleFocus);
+            window.removeEventListener("blur", handleBlur);
+            window.removeEventListener("keydown", handleKeydown);
         };
     }, [props.selectedThreadId, props.currentChannelId, props.currentTeamId]);
 
@@ -154,26 +172,35 @@ function TeamController(props: Props) {
             await props.initializeTeam(team);
             setTeam(team);
         } catch (error) {
-            history.push('/error?type=team_not_found');
+            history.push("/error?type=team_not_found");
         }
     }
 
-    async function joinTeamOrRedirect(teamNameParam: string, joinedOnFirstLoad: boolean) {
+    async function joinTeamOrRedirect(
+        teamNameParam: string,
+        joinedOnFirstLoad: boolean,
+    ) {
         setTeam(null);
 
         try {
-            const {data: joinedTeam} = await props.joinTeam(teamNameParam, joinedOnFirstLoad) as ActionResult<Team, ServerError>; // Fix in MM-46907;
+            const { data: joinedTeam } = (await props.joinTeam(
+                teamNameParam,
+                joinedOnFirstLoad,
+            )) as ActionResult<Team, ServerError>; // Fix in MM-46907;
             if (joinedTeam) {
                 setTeam(joinedTeam);
             } else {
-                throw new Error('Unable to join team');
+                throw new Error("Unable to join team");
             }
         } catch (error) {
-            history.push('/error?type=team_not_found');
+            history.push("/error?type=team_not_found");
         }
     }
 
-    const teamsListDependency = props.teamsList.map((team) => team.id).sort().join('+');
+    const teamsListDependency = props.teamsList
+        .map((team) => team.id)
+        .sort()
+        .join("+");
 
     // Effect to run when url for team or teamsList changes
     useEffect(() => {
@@ -183,7 +210,10 @@ function TeamController(props: Props) {
                 return;
             }
 
-            const teamFromTeamNameParam = getTeamFromTeamList(props.teamsList, teamNameParam);
+            const teamFromTeamNameParam = getTeamFromTeamList(
+                props.teamsList,
+                teamNameParam,
+            );
             if (teamFromTeamNameParam) {
                 // If the team is already in the teams list, initialize it when we switch teams
                 initTeamOrRedirect(teamFromTeamNameParam);
@@ -198,7 +228,7 @@ function TeamController(props: Props) {
     }, [teamNameParam, teamsListDependency]);
 
     if (props.mfaRequired) {
-        history.push('/mfa/setup');
+        history.push("/mfa/setup");
         return null;
     }
 
@@ -219,27 +249,33 @@ function TeamController(props: Props) {
             {props.plugins?.map((plugin) => (
                 <Route
                     key={plugin.id}
-                    path={`/:team(${TEAM_NAME_PATH_PATTERN})/` + (plugin as any).route}
+                    path={
+                        `/:team(${TEAM_NAME_PATH_PATTERN})/` +
+                        (plugin as any).route
+                    }
                     render={() => (
                         <Pluggable
-                            pluggableName={'NeedsTeamComponent'}
+                            pluggableName={"NeedsTeamComponent"}
                             pluggableId={plugin.id}
-                            css={{gridArea: 'center'}}
+                            css={{ gridArea: "center" }}
                         />
                     )}
                 />
             ))}
-            <ChannelController shouldRenderCenterChannel={initialChannelsLoaded}/>
+            <ChannelController
+                shouldRenderCenterChannel={initialChannelsLoaded}
+            />
         </Switch>
     );
 }
 
-function getTeamFromTeamList(teamsList: Props['teamsList'], teamName?: string) {
+function getTeamFromTeamList(teamsList: Props["teamsList"], teamName?: string) {
     if (!teamName) {
         return null;
     }
 
-    const team = teamsList.find((teamInList) => teamInList.name === teamName) ?? null;
+    const team =
+        teamsList.find((teamInList) => teamInList.name === teamName) ?? null;
     if (!team) {
         return null;
     }

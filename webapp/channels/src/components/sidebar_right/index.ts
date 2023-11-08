@@ -1,17 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {withRouter} from 'react-router-dom';
-import type {RouteComponentProps} from 'react-router-dom';
-import {bindActionCreators} from 'redux';
-import type {Dispatch} from 'redux';
+import { connect } from "react-redux";
+import { withRouter } from "react-router-dom";
+import type { RouteComponentProps } from "react-router-dom";
+import { bindActionCreators } from "redux";
+import type { Dispatch } from "redux";
 
-import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import { getCurrentChannel } from "mattermost-redux/selectors/entities/channels";
+import { getCurrentTeam } from "mattermost-redux/selectors/entities/teams";
 
-import {setRhsExpanded, showChannelInfo, showPinnedPosts, showChannelFiles, openRHSSearch, closeRightHandSide, openAtPrevious, updateSearchTerms} from 'actions/views/rhs';
-import {selectCurrentProductId} from 'selectors/products';
+import {
+    setRhsExpanded,
+    showChannelInfo,
+    showPinnedPosts,
+    showChannelFiles,
+    openRHSSearch,
+    closeRightHandSide,
+    openAtPrevious,
+    updateSearchTerms,
+} from "actions/views/rhs";
+import { selectCurrentProductId } from "selectors/products";
 import {
     getIsRhsExpanded,
     getIsRhsOpen,
@@ -20,19 +29,19 @@ import {
     getSelectedPostId,
     getSelectedPostCardId,
     getPreviousRhsState,
-} from 'selectors/rhs';
+} from "selectors/rhs";
 
-import {RHSStates} from 'utils/constants';
+import { RHSStates } from "utils/constants";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import SidebarRight from './sidebar_right';
+import SidebarRight from "./sidebar_right";
 
 function mapStateToProps(state: GlobalState, props: RouteComponentProps) {
     const rhsState = getRhsState(state);
     const channel = getCurrentChannel(state);
     const team = getCurrentTeam(state);
-    const teamId = team?.id ?? '';
+    const teamId = team?.id ?? "";
     const productId = selectCurrentProductId(state, props.location.pathname);
 
     const selectedPostId = getSelectedPostId(state);
@@ -42,7 +51,8 @@ function mapStateToProps(state: GlobalState, props: RouteComponentProps) {
         isExpanded: getIsRhsExpanded(state),
         isOpen: getIsRhsOpen(state),
         channel,
-        postRightVisible: Boolean(selectedPostId) && rhsState !== RHSStates.EDIT_HISTORY,
+        postRightVisible:
+            Boolean(selectedPostId) && rhsState !== RHSStates.EDIT_HISTORY,
         postCardVisible: Boolean(selectedPostCardId),
         searchVisible: Boolean(rhsState) && rhsState !== RHSStates.PLUGIN,
         previousRhsState: getPreviousRhsState(state),
@@ -63,17 +73,22 @@ function mapStateToProps(state: GlobalState, props: RouteComponentProps) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators({
-            setRhsExpanded,
-            showPinnedPosts,
-            openRHSSearch,
-            closeRightHandSide,
-            openAtPrevious,
-            updateSearchTerms,
-            showChannelFiles,
-            showChannelInfo,
-        }, dispatch),
+        actions: bindActionCreators(
+            {
+                setRhsExpanded,
+                showPinnedPosts,
+                openRHSSearch,
+                closeRightHandSide,
+                openAtPrevious,
+                updateSearchTerms,
+                showChannelFiles,
+                showChannelInfo,
+            },
+            dispatch,
+        ),
     };
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(SidebarRight));
+export default withRouter(
+    connect(mapStateToProps, mapDispatchToProps)(SidebarRight),
+);

@@ -1,23 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import classNames from "classnames";
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {Job, JobType} from '@mattermost/types/jobs';
+import type { Job, JobType } from "@mattermost/types/jobs";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import {JobTypes} from 'utils/constants';
+import { JobTypes } from "utils/constants";
 
-import JobCancelButton from './job_cancel_button';
-import JobDownloadLink from './job_download_link';
-import JobFinishAt from './job_finish_at';
-import JobRunLength from './job_run_length';
-import JobStatus from './job_status';
+import JobCancelButton from "./job_cancel_button";
+import JobDownloadLink from "./job_download_link";
+import JobFinishAt from "./job_finish_at";
+import JobRunLength from "./job_run_length";
+import JobStatus from "./job_status";
 
-import './table.scss';
+import "./table.scss";
 
 export type Props = {
     jobs: Job[];
@@ -32,12 +32,12 @@ export type Props = {
     actions: {
         getJobsByType: (jobType: JobType) => void;
         cancelJob: (jobId: string) => Promise<ActionResult>;
-        createJob: (job: {type: JobType}) => Promise<ActionResult>;
+        createJob: (job: { type: JobType }) => Promise<ActionResult>;
     };
-}
+};
 
 class JobTable extends React.PureComponent<Props> {
-    interval: ReturnType<typeof setInterval>|null = null;
+    interval: ReturnType<typeof setInterval> | null = null;
 
     componentDidMount() {
         this.props.actions.getJobsByType(this.props.jobType);
@@ -59,7 +59,7 @@ class JobTable extends React.PureComponent<Props> {
             return this.props.getExtraInfoText(job);
         }
 
-        return <span/>;
+        return <span />;
     };
 
     reload = () => {
@@ -82,100 +82,106 @@ class JobTable extends React.PureComponent<Props> {
     };
 
     render() {
-        const showFilesColumn = this.props.jobType === JobTypes.MESSAGE_EXPORT && this.props.downloadExportResults;
+        const showFilesColumn =
+            this.props.jobType === JobTypes.MESSAGE_EXPORT &&
+            this.props.downloadExportResults;
         const items = this.props.jobs.map((job) => {
             return (
-                <tr
-                    key={job.id}
-                >
-                    <td className='cancel-button-field whitespace--nowrap text-center'>
+                <tr key={job.id}>
+                    <td className="cancel-button-field whitespace--nowrap text-center">
                         <JobCancelButton
                             job={job}
                             onClick={this.handleCancelJob}
                             disabled={this.props.disabled}
                         />
                     </td>
-                    <td className='whitespace--nowrap'><JobStatus job={job}/></td>
-                    {showFilesColumn &&
-                        <td className='whitespace--nowrap'><JobDownloadLink job={job}/></td>
-                    }
-                    <td className='whitespace--nowrap'>
+                    <td className="whitespace--nowrap">
+                        <JobStatus job={job} />
+                    </td>
+                    {showFilesColumn && (
+                        <td className="whitespace--nowrap">
+                            <JobDownloadLink job={job} />
+                        </td>
+                    )}
+                    <td className="whitespace--nowrap">
                         <JobFinishAt
                             status={job.status}
                             millis={job.last_activity_at}
                         />
                     </td>
-                    <td className='whitespace--nowrap'><JobRunLength job={job}/></td>
+                    <td className="whitespace--nowrap">
+                        <JobRunLength job={job} />
+                    </td>
                     <td>{this.getExtraInfoText(job)}</td>
                 </tr>
             );
         });
 
         return (
-            <div className={classNames('JobTable', 'job-table__panel', this.props.className)}>
-                <div className='job-table__create-button'>
-                    {
-                        !this.props.hideJobCreateButton &&
+            <div
+                className={classNames(
+                    "JobTable",
+                    "job-table__panel",
+                    this.props.className,
+                )}
+            >
+                <div className="job-table__create-button">
+                    {!this.props.hideJobCreateButton && (
                         <div>
                             <button
-                                type='button'
-                                className='btn btn-tertiary'
+                                type="button"
+                                className="btn btn-tertiary"
                                 onClick={this.handleCreateJob}
                                 disabled={this.props.disabled}
                             >
                                 {this.props.createJobButtonText}
                             </button>
                         </div>
-                    }
-                    <div className='help-text'>
+                    )}
+                    <div className="help-text">
                         {this.props.createJobHelpText}
                     </div>
                 </div>
-                <div className='job-table__table'>
-                    <table
-                        className='table'
-                        data-testid='jobTable'
-                    >
+                <div className="job-table__table">
+                    <table className="table" data-testid="jobTable">
                         <thead>
                             <tr>
-                                <th className='cancel-button-field'/>
+                                <th className="cancel-button-field" />
                                 <th>
                                     <FormattedMessage
-                                        id='admin.jobTable.headerStatus'
-                                        defaultMessage='Status'
+                                        id="admin.jobTable.headerStatus"
+                                        defaultMessage="Status"
                                     />
                                 </th>
-                                {showFilesColumn &&
+                                {showFilesColumn && (
                                     <th>
                                         <FormattedMessage
-                                            id='admin.jobTable.headerFiles'
-                                            defaultMessage='Files'
+                                            id="admin.jobTable.headerFiles"
+                                            defaultMessage="Files"
                                         />
                                     </th>
-                                }
+                                )}
                                 <th>
                                     <FormattedMessage
-                                        id='admin.jobTable.headerFinishAt'
-                                        defaultMessage='Finish Time'
+                                        id="admin.jobTable.headerFinishAt"
+                                        defaultMessage="Finish Time"
                                     />
                                 </th>
                                 <th>
                                     <FormattedMessage
-                                        id='admin.jobTable.headerRunTime'
-                                        defaultMessage='Run Time'
+                                        id="admin.jobTable.headerRunTime"
+                                        defaultMessage="Run Time"
                                     />
                                 </th>
                                 <th colSpan={3}>
                                     <FormattedMessage
-                                        id='admin.jobTable.headerExtraInfo'
-                                        defaultMessage='Details'
+                                        id="admin.jobTable.headerExtraInfo"
+                                        defaultMessage="Details"
                                     />
                                 </th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {items}
-                        </tbody>
+                        <tbody>{items}</tbody>
                     </table>
                 </div>
             </div>

@@ -1,17 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {batchActions} from 'redux-batched-actions';
+import { batchActions } from "redux-batched-actions";
 
-import {LogLevel} from '@mattermost/types/client4';
+import { LogLevel } from "@mattermost/types/client4";
 
-import {GeneralTypes} from 'mattermost-redux/action_types';
-import {Client4} from 'mattermost-redux/client';
-import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
+import { GeneralTypes } from "mattermost-redux/action_types";
+import { Client4 } from "mattermost-redux/client";
+import type {
+    GetStateFunc,
+    DispatchFunc,
+    ActionFunc,
+} from "mattermost-redux/types/actions";
 
-import {logError} from './errors';
-import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
-import {loadRolesIfNeeded} from './roles';
+import { logError } from "./errors";
+import { bindClientFunc, forceLogoutIfNecessary } from "./helpers";
+import { loadRolesIfNeeded } from "./roles";
 
 export function getClientConfig(): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
@@ -20,15 +24,15 @@ export function getClientConfig(): ActionFunc {
             data = await Client4.getClientConfigOld();
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
-            return {error};
+            return { error };
         }
 
-        Client4.setEnableLogging(data.EnableDeveloper === 'true');
+        Client4.setEnableLogging(data.EnableDeveloper === "true");
         Client4.setDiagnosticId(data.DiagnosticId);
 
-        dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data});
+        dispatch({ type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data });
 
-        return {data};
+        return { data };
     };
 }
 
@@ -44,14 +48,16 @@ export function getDataRetentionPolicy(): ActionFunc {
                 error,
             });
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        dispatch(batchActions([
-            {type: GeneralTypes.RECEIVED_DATA_RETENTION_POLICY, data},
-        ]));
+        dispatch(
+            batchActions([
+                { type: GeneralTypes.RECEIVED_DATA_RETENTION_POLICY, data },
+            ]),
+        );
 
-        return {data};
+        return { data };
     };
 }
 
@@ -68,19 +74,19 @@ export function logClientError(message: string, level = LogLevel.Error) {
         onRequest: GeneralTypes.LOG_CLIENT_ERROR_REQUEST,
         onSuccess: GeneralTypes.LOG_CLIENT_ERROR_SUCCESS,
         onFailure: GeneralTypes.LOG_CLIENT_ERROR_FAILURE,
-        params: [
-            message,
-            level,
-        ],
+        params: [message, level],
     });
 }
 
 export function setServerVersion(serverVersion: string): ActionFunc {
     return async (dispatch) => {
-        dispatch({type: GeneralTypes.RECEIVED_SERVER_VERSION, data: serverVersion});
+        dispatch({
+            type: GeneralTypes.RECEIVED_SERVER_VERSION,
+            data: serverVersion,
+        });
         dispatch(loadRolesIfNeeded([]));
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -96,11 +102,11 @@ export function getWarnMetricsStatus(): ActionFunc {
             data = await Client4.getWarnMetricsStatus();
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
-            return {error};
+            return { error };
         }
-        dispatch({type: GeneralTypes.WARN_METRICS_STATUS_RECEIVED, data});
+        dispatch({ type: GeneralTypes.WARN_METRICS_STATUS_RECEIVED, data });
 
-        return {data};
+        return { data };
     };
 }
 
@@ -110,10 +116,13 @@ export function setFirstAdminVisitMarketplaceStatus(): ActionFunc {
             await Client4.setFirstAdminVisitMarketplaceStatus();
         } catch (e) {
             dispatch(logError(e));
-            return {error: e.message};
+            return { error: e.message };
         }
-        dispatch({type: GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED, data: true});
-        return {data: true};
+        dispatch({
+            type: GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED,
+            data: true,
+        });
+        return { data: true };
     };
 }
 
@@ -124,12 +133,15 @@ export function getFirstAdminVisitMarketplaceStatus(): ActionFunc {
             data = await Client4.getFirstAdminVisitMarketplaceStatus();
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
-            return {error};
+            return { error };
         }
 
         data = JSON.parse(data.value);
-        dispatch({type: GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED, data});
-        return {data};
+        dispatch({
+            type: GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED,
+            data,
+        });
+        return { data };
     };
 }
 
@@ -141,12 +153,15 @@ export function getFirstAdminSetupComplete(): ActionFunc {
             data = await Client4.getFirstAdminSetupComplete();
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
-            return {error};
+            return { error };
         }
 
         data = JSON.parse(data.value);
-        dispatch({type: GeneralTypes.FIRST_ADMIN_COMPLETE_SETUP_RECEIVED, data});
-        return {data};
+        dispatch({
+            type: GeneralTypes.FIRST_ADMIN_COMPLETE_SETUP_RECEIVED,
+            data,
+        });
+        return { data };
     };
 }
 

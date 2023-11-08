@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import nock from 'nock';
+import nock from "nock";
 
-import type {SearchParameter} from '@mattermost/types/search';
+import type { SearchParameter } from "@mattermost/types/search";
 
-import * as Actions from 'mattermost-redux/actions/search';
-import {Client4} from 'mattermost-redux/client';
+import * as Actions from "mattermost-redux/actions/search";
+import { Client4 } from "mattermost-redux/client";
 
-import TestHelper from '../../test/test_helper';
-import configureStore from '../../test/test_store';
+import TestHelper from "../../test/test_helper";
+import configureStore from "../../test/test_store";
 
-describe('Actions.Search', () => {
+describe("Actions.Search", () => {
     let store = configureStore();
     beforeAll(() => {
         TestHelper.initBasic(Client4);
@@ -25,47 +25,57 @@ describe('Actions.Search', () => {
         TestHelper.tearDown();
     });
 
-    it('Perform Search', async () => {
-        const {dispatch, getState} = store;
+    it("Perform Search", async () => {
+        const { dispatch, getState } = store;
 
         let post1 = {
             ...TestHelper.fakePost(TestHelper.basicChannel!.id),
-            message: 'try searching for this using the first and last word',
+            message: "try searching for this using the first and last word",
         };
 
         let post2 = {
             ...TestHelper.fakePost(TestHelper.basicChannel!.id),
-            message: 'return this message in second attempt',
+            message: "return this message in second attempt",
         };
 
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, {...post1, id: TestHelper.generateId()});
+        nock(Client4.getBaseRoute())
+            .post("/posts")
+            .reply(201, { ...post1, id: TestHelper.generateId() });
         post1 = await Client4.createPost(post1);
 
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, {...post2, id: TestHelper.generateId()});
+        nock(Client4.getBaseRoute())
+            .post("/posts")
+            .reply(201, { ...post2, id: TestHelper.generateId() });
         post2 = await Client4.createPost(post2);
 
         // Test for a couple of words
-        const search1 = 'try word';
+        const search1 = "try word";
 
-        nock(Client4.getTeamsRoute()).
-            post(`/${TestHelper.basicTeam!.id}/posts/search`).
-            reply(200, {order: [post1.id], posts: {[post1.id]: post1}});
-        nock(Client4.getChannelsRoute()).
-            get(`/${TestHelper.basicChannel!.id}/members/me`).
-            reply(201, {user_id: TestHelper.basicUser!.id, channel_id: TestHelper.basicChannel!.id});
+        nock(Client4.getTeamsRoute())
+            .post(`/${TestHelper.basicTeam!.id}/posts/search`)
+            .reply(200, { order: [post1.id], posts: { [post1.id]: post1 } });
+        nock(Client4.getChannelsRoute())
+            .get(`/${TestHelper.basicChannel!.id}/members/me`)
+            .reply(201, {
+                user_id: TestHelper.basicUser!.id,
+                channel_id: TestHelper.basicChannel!.id,
+            });
 
-        await Actions.searchPosts(TestHelper.basicTeam!.id, search1, false, false)(dispatch, getState);
+        await Actions.searchPosts(
+            TestHelper.basicTeam!.id,
+            search1,
+            false,
+            false,
+        )(dispatch, getState);
 
         let state = getState();
-        let {recent, results} = state.entities.search;
-        const {posts} = state.entities.posts;
+        let { recent, results } = state.entities.search;
+        const { posts } = state.entities.posts;
         let current = state.entities.search.current[TestHelper.basicTeam!.id];
         expect(recent[TestHelper.basicTeam!.id]).toBeTruthy();
-        let searchIsPresent = recent[TestHelper.basicTeam!.id].findIndex((r: {terms: string}) => r.terms === search1);
+        let searchIsPresent = recent[TestHelper.basicTeam!.id].findIndex(
+            (r: { terms: string }) => r.terms === search1,
+        );
         expect(searchIsPresent !== -1).toBeTruthy();
         expect(Object.keys(recent[TestHelper.basicTeam!.id]).length).toEqual(1);
         expect(results.length).toEqual(1);
@@ -73,17 +83,22 @@ describe('Actions.Search', () => {
         expect(!current.isEnd).toBeTruthy();
 
         // Search the next page and check the end of the search
-        nock(Client4.getTeamsRoute()).
-            post(`/${TestHelper.basicTeam!.id}/posts/search`).
-            reply(200, {order: [], posts: {}});
+        nock(Client4.getTeamsRoute())
+            .post(`/${TestHelper.basicTeam!.id}/posts/search`)
+            .reply(200, { order: [], posts: {} });
 
-        await Actions.searchPostsWithParams(TestHelper.basicTeam!.id, {terms: search1, page: 1} as SearchParameter)(dispatch, getState);
+        await Actions.searchPostsWithParams(TestHelper.basicTeam!.id, {
+            terms: search1,
+            page: 1,
+        } as SearchParameter)(dispatch, getState);
         state = getState();
         current = state.entities.search.current[TestHelper.basicTeam!.id];
         recent = state.entities.search.recent;
         results = state.entities.search.results;
         expect(recent[TestHelper.basicTeam!.id]).toBeTruthy();
-        searchIsPresent = recent[TestHelper.basicTeam!.id].findIndex((r: {terms: string}) => r.terms === search1);
+        searchIsPresent = recent[TestHelper.basicTeam!.id].findIndex(
+            (r: { terms: string }) => r.terms === search1,
+        );
         expect(searchIsPresent !== -1).toBeTruthy();
         expect(Object.keys(recent[TestHelper.basicTeam!.id]).length).toEqual(1);
         expect(results.length).toEqual(1);
@@ -136,31 +151,44 @@ describe('Actions.Search', () => {
         //expect(results.length).toEqual(0);
     });
 
-    it('Perform Files Search', async () => {
-        const {dispatch, getState} = store;
+    it("Perform Files Search", async () => {
+        const { dispatch, getState } = store;
 
         const files = TestHelper.fakeFiles(2);
         (files[0] as any).channel_id = TestHelper.basicChannel!.id;
         (files[1] as any).channel_id = TestHelper.basicChannel!.id;
 
         // Test for a couple of words
-        const search1 = 'try word';
+        const search1 = "try word";
 
-        nock(Client4.getTeamsRoute()).
-            post(`/${TestHelper.basicTeam!.id}/files/search`).
-            reply(200, {order: [files[0].id], file_infos: {[files[0].id]: files[0]}});
-        nock(Client4.getChannelsRoute()).
-            get(`/${TestHelper.basicChannel!.id}/members/me`).
-            reply(201, {user_id: TestHelper.basicUser!.id, channel_id: TestHelper.basicChannel!.id});
+        nock(Client4.getTeamsRoute())
+            .post(`/${TestHelper.basicTeam!.id}/files/search`)
+            .reply(200, {
+                order: [files[0].id],
+                file_infos: { [files[0].id]: files[0] },
+            });
+        nock(Client4.getChannelsRoute())
+            .get(`/${TestHelper.basicChannel!.id}/members/me`)
+            .reply(201, {
+                user_id: TestHelper.basicUser!.id,
+                channel_id: TestHelper.basicChannel!.id,
+            });
 
-        await Actions.searchFiles(TestHelper.basicTeam!.id, search1, false, false)(dispatch, getState);
+        await Actions.searchFiles(
+            TestHelper.basicTeam!.id,
+            search1,
+            false,
+            false,
+        )(dispatch, getState);
 
         let state = getState();
-        let {recent, fileResults} = state.entities.search;
-        const {filesFromSearch} = state.entities.files;
+        let { recent, fileResults } = state.entities.search;
+        const { filesFromSearch } = state.entities.files;
         let current = state.entities.search.current[TestHelper.basicTeam!.id];
         expect(recent[TestHelper.basicTeam!.id]).toBeTruthy();
-        let searchIsPresent = recent[TestHelper.basicTeam!.id].findIndex((r: {terms: string}) => r.terms === search1);
+        let searchIsPresent = recent[TestHelper.basicTeam!.id].findIndex(
+            (r: { terms: string }) => r.terms === search1,
+        );
         expect(searchIsPresent !== -1).toBeTruthy();
         expect(Object.keys(recent[TestHelper.basicTeam!.id]).length).toEqual(1);
         expect(fileResults.length).toEqual(1);
@@ -168,17 +196,22 @@ describe('Actions.Search', () => {
         expect(!current.isFilesEnd).toBeTruthy();
 
         // Search the next page and check the end of the search
-        nock(Client4.getTeamsRoute()).
-            post(`/${TestHelper.basicTeam!.id}/files/search`).
-            reply(200, {order: [], file_infos: {}});
+        nock(Client4.getTeamsRoute())
+            .post(`/${TestHelper.basicTeam!.id}/files/search`)
+            .reply(200, { order: [], file_infos: {} });
 
-        await Actions.searchFilesWithParams(TestHelper.basicTeam!.id, {terms: search1, page: 1} as SearchParameter)(dispatch, getState);
+        await Actions.searchFilesWithParams(TestHelper.basicTeam!.id, {
+            terms: search1,
+            page: 1,
+        } as SearchParameter)(dispatch, getState);
         state = getState();
         current = state.entities.search.current[TestHelper.basicTeam!.id];
         recent = state.entities.search.recent;
         fileResults = state.entities.search.fileResults;
         expect(recent[TestHelper.basicTeam!.id]).toBeTruthy();
-        searchIsPresent = recent[TestHelper.basicTeam!.id].findIndex((r: {terms: string}) => r.terms === search1);
+        searchIsPresent = recent[TestHelper.basicTeam!.id].findIndex(
+            (r: { terms: string }) => r.terms === search1,
+        );
         expect(searchIsPresent !== -1).toBeTruthy();
         expect(Object.keys(recent[TestHelper.basicTeam!.id]).length).toEqual(1);
         expect(fileResults.length).toEqual(1);

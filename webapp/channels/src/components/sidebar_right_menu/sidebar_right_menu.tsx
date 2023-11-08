@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import {Link} from 'react-router-dom';
-import {CSSTransition} from 'react-transition-group';
+import classNames from "classnames";
+import React from "react";
+import { Link } from "react-router-dom";
+import { CSSTransition } from "react-transition-group";
 
-import * as GlobalActions from 'actions/global_actions';
+import * as GlobalActions from "actions/global_actions";
 
-import MainMenu from 'components/main_menu';
+import MainMenu from "components/main_menu";
 
-import {Constants} from 'utils/constants';
+import { Constants } from "utils/constants";
 
 type Action = {
     openRhsMenu: () => void;
-}
+};
 
 type Props = {
     isMobileView: boolean;
@@ -32,7 +32,7 @@ export default class SidebarRightMenu extends React.PureComponent<Props> {
     };
 
     render() {
-        let siteName = '';
+        let siteName = "";
         if (this.props.siteName != null) {
             siteName = this.props.siteName;
         }
@@ -43,22 +43,24 @@ export default class SidebarRightMenu extends React.PureComponent<Props> {
 
         return (
             <div
-                className={classNames('sidebar--menu', {'move--left': this.props.isOpen && this.props.isMobileView})}
-                id='sidebar-menu'
+                className={classNames("sidebar--menu", {
+                    "move--left": this.props.isOpen && this.props.isMobileView,
+                })}
+                id="sidebar-menu"
             >
-                <div className='team__header theme'>
+                <div className="team__header theme">
                     <Link
-                        className='team__name'
+                        className="team__name"
                         to={`/channels/${Constants.DEFAULT_CHANNEL}`}
                     >
                         {teamDisplayName}
                     </Link>
                 </div>
 
-                <div className='nav-pills__container mobile-main-menu'>
+                <div className="nav-pills__container mobile-main-menu">
                     <CSSTransition
                         in={this.props.isOpen && this.props.isMobileView}
-                        classNames='MobileRightSidebarMenu'
+                        classNames="MobileRightSidebarMenu"
                         enter={true}
                         exit={true}
                         mountOnEnter={true}
@@ -68,7 +70,7 @@ export default class SidebarRightMenu extends React.PureComponent<Props> {
                             exit: ANIMATION_DURATION,
                         }}
                     >
-                        <MainMenu mobile={true}/>
+                        <MainMenu mobile={true} />
                     </CSSTransition>
                 </div>
             </div>

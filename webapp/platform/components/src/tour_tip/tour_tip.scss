@@ -31,19 +31,19 @@
             }
 
             // fix for https://mattermost.atlassian.net/browse/MM-41711. This covers the current placements we use for the channels and other tools tour
-            &[data-placement^=right] > .tippy-arrow {
+            &[data-placement^="right"] > .tippy-arrow {
                 transform: translate3d(0, 14px, 0) !important;
             }
 
-            &[data-placement^=top] > .tippy-arrow {
+            &[data-placement^="top"] > .tippy-arrow {
                 transform: translate3d(14px, 0, 0) !important;
             }
 
-            &[data-placement^=bottom] > .tippy-arrow {
+            &[data-placement^="bottom"] > .tippy-arrow {
                 transform: translate3d(14px, 0, 0) !important;
             }
 
-            &[data-placement=bottom-end] > .tippy-arrow {
+            &[data-placement="bottom-end"] > .tippy-arrow {
                 transform: translate3d(317px, 0, 0) !important;
             }
         }
@@ -57,73 +57,73 @@
         cursor: pointer;
     }
 
-    &__pulsating-dot-ctr[data-pulsating-dot-placement=top] {
+    &__pulsating-dot-ctr[data-pulsating-dot-placement="top"] {
         top: 0;
         left: calc(50% - 6px);
         transform: translate(0, 6px);
     }
 
-    &__pulsating-dot-ctr[data-pulsating-dot-placement=top-start] {
+    &__pulsating-dot-ctr[data-pulsating-dot-placement="top-start"] {
         top: 0;
         left: 0;
         transform: translate(6px, 6px);
     }
 
-    &__pulsating-dot-ctr[data-pulsating-dot-placement=top-end] {
+    &__pulsating-dot-ctr[data-pulsating-dot-placement="top-end"] {
         top: 0;
         right: 0;
         transform: translate(-6px, 6px);
     }
 
-    &__pulsating-dot-ctr[data-pulsating-dot-placement=bottom] {
+    &__pulsating-dot-ctr[data-pulsating-dot-placement="bottom"] {
         bottom: 0;
         left: calc(50% - 6px);
         transform: translate(0, -6px);
     }
 
-    &__pulsating-dot-ctr[data-pulsating-dot-placement=bottom-start] {
+    &__pulsating-dot-ctr[data-pulsating-dot-placement="bottom-start"] {
         bottom: 0;
         left: 0;
         transform: translate(6px, -6px);
     }
 
-    &__pulsating-dot-ctr[data-pulsating-dot-placement=bottom-end] {
+    &__pulsating-dot-ctr[data-pulsating-dot-placement="bottom-end"] {
         right: 0;
         bottom: 0;
         transform: translate(-6px, -6px);
     }
 
-    &__pulsating-dot-ctr[data-pulsating-dot-placement=left] {
+    &__pulsating-dot-ctr[data-pulsating-dot-placement="left"] {
         top: calc(50% - 6px);
         left: 0;
         transform: translate(6px, 0);
     }
 
-    &__pulsating-dot-ctr[data-pulsating-dot-placement=left-start] {
+    &__pulsating-dot-ctr[data-pulsating-dot-placement="left-start"] {
         top: 0;
         left: 0;
         transform: translate(6px, 6px);
     }
 
-    &__pulsating-dot-ctr[data-pulsating-dot-placement=left-end] {
+    &__pulsating-dot-ctr[data-pulsating-dot-placement="left-end"] {
         bottom: 0;
         left: 0;
         transform: translate(6px, -6px);
     }
 
-    &__pulsating-dot-ctr[data-pulsating-dot-placement=right] {
+    &__pulsating-dot-ctr[data-pulsating-dot-placement="right"] {
         top: calc(50% - 6px);
         right: 0;
         transform: translate(-6px, 0);
     }
 
-    &__pulsating-dot-ctr[data-pulsating-dot-placement=right-start] {
+    &__pulsating-dot-ctr[data-pulsating-dot-placement="right-start"] {
         top: 0;
         right: 0;
         transform: translate(-6px, 6px);
     }
 
-    &__pulsating-dot-ctr[data-pulsating-dot-placement=right-end] {
+    &__pulsating-dot-ctr[data-pulsating-dot-placement="right-end"] {
         right: 0;
         bottom: 0;
         transform: translate(-6px, -6px);
@@ -247,8 +247,7 @@
         color: var(--button-color);
 
         &:hover:not(.disabled) {
-            background:
-                linear-gradient(
+            background: linear-gradient(
                     0deg,
                     rgba(var(--center-channel-color-rgb), 0.16),
                     rgba(var(--center-channel-color-rgb), 0.16)
@@ -257,8 +256,7 @@
         }
 
         &:active {
-            background:
-                linear-gradient(
+            background: linear-gradient(
                     0deg,
                     rgba(var(--center-channel-color-rgb), 0.32),
                     rgba(var(--center-channel-color-rgb), 0.32)
@@ -377,25 +375,25 @@
 }
 
 // adding important as temporary fix, will be removing tippy very soon (WIP)
-.tippy-box[data-placement^=right] > .tippy-arrow::before {
+.tippy-box[data-placement^="right"] > .tippy-arrow::before {
     top: -1px !important;
     border-width: 1px 0 0 1px !important;
     transform: rotate(-45deg) !important;
 }
 
-.tippy-box[data-placement^=left] > .tippy-arrow::before {
+.tippy-box[data-placement^="left"] > .tippy-arrow::before {
     top: -1px !important;
     border-width: 1px 1px 0 0 !important;
     transform: rotate(45deg) !important;
 }
 
-.tippy-box[data-placement^=bottom] > .tippy-arrow::before {
+.tippy-box[data-placement^="bottom"] > .tippy-arrow::before {
     left: 1px !important;
     border-width: 1px 0 0 1px !important;
     transform: rotate(45deg) !important;
 }
 
-.tippy-box[data-placement^=top] > .tippy-arrow::before {
+.tippy-box[data-placement^="top"] > .tippy-arrow::before {
     left: 1px !important;
     border-width: 0 0 1px 1px !important;
     transform: rotate(-45deg) !important;

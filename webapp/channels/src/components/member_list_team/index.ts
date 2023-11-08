@@ -1,51 +1,89 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import type { Dispatch, ActionCreatorsMapObject } from "redux";
 
-import type {GetTeamMembersOpts, TeamStats, TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
+import type {
+    GetTeamMembersOpts,
+    TeamStats,
+    TeamMembership,
+} from "@mattermost/types/teams";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {getTeamStats, getTeamMembers} from 'mattermost-redux/actions/teams';
-import {searchProfiles} from 'mattermost-redux/actions/users';
-import {Permissions} from 'mattermost-redux/constants';
-import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getMembersInCurrentTeam, getCurrentTeamStats} from 'mattermost-redux/selectors/entities/teams';
-import {getProfilesInCurrentTeam, searchProfilesInCurrentTeam} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, GenericAction, ActionResult} from 'mattermost-redux/types/actions';
+import { getTeamStats, getTeamMembers } from "mattermost-redux/actions/teams";
+import { searchProfiles } from "mattermost-redux/actions/users";
+import { Permissions } from "mattermost-redux/constants";
+import { haveITeamPermission } from "mattermost-redux/selectors/entities/roles";
+import {
+    getMembersInCurrentTeam,
+    getCurrentTeamStats,
+} from "mattermost-redux/selectors/entities/teams";
+import {
+    getProfilesInCurrentTeam,
+    searchProfilesInCurrentTeam,
+} from "mattermost-redux/selectors/entities/users";
+import type {
+    ActionFunc,
+    GenericAction,
+    ActionResult,
+} from "mattermost-redux/types/actions";
 
-import {loadStatusesForProfilesList} from 'actions/status_actions';
-import {loadProfilesAndTeamMembers, loadTeamMembersForProfilesList} from 'actions/user_actions';
-import {setModalSearchTerm} from 'actions/views/search';
+import { loadStatusesForProfilesList } from "actions/status_actions";
+import {
+    loadProfilesAndTeamMembers,
+    loadTeamMembersForProfilesList,
+} from "actions/user_actions";
+import { setModalSearchTerm } from "actions/views/search";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import MemberListTeam from './member_list_team';
+import MemberListTeam from "./member_list_team";
 
 type Props = {
     teamId: string;
-}
+};
 
 type Actions = {
-    getTeamMembers: (teamId: string, page?: number, perPage?: number, options?: GetTeamMembersOpts) => Promise<{data: TeamMembership}>;
-    searchProfiles: (term: string, options?: {[key: string]: any}) => Promise<{data: UserProfile[]}>;
-    getTeamStats: (teamId: string) => Promise<{data: TeamStats}>;
-    loadProfilesAndTeamMembers: (page: number, perPage: number, teamId?: string, options?: {[key: string]: any}) => Promise<{
+    getTeamMembers: (
+        teamId: string,
+        page?: number,
+        perPage?: number,
+        options?: GetTeamMembersOpts,
+    ) => Promise<{ data: TeamMembership }>;
+    searchProfiles: (
+        term: string,
+        options?: { [key: string]: any },
+    ) => Promise<{ data: UserProfile[] }>;
+    getTeamStats: (teamId: string) => Promise<{ data: TeamStats }>;
+    loadProfilesAndTeamMembers: (
+        page: number,
+        perPage: number,
+        teamId?: string,
+        options?: { [key: string]: any },
+    ) => Promise<{
         data: boolean;
     }>;
     loadStatusesForProfilesList: (users: UserProfile[]) => Promise<{
         data: boolean;
     }>;
-    loadTeamMembersForProfilesList: (profiles: any, teamId: string, reloadAllMembers: boolean) => Promise<{
+    loadTeamMembersForProfilesList: (
+        profiles: any,
+        teamId: string,
+        reloadAllMembers: boolean,
+    ) => Promise<{
         data: boolean;
     }>;
     setModalSearchTerm: (term: string) => ActionResult;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {
-    const canManageTeamMembers = haveITeamPermission(state, ownProps.teamId, Permissions.MANAGE_TEAM_ROLES);
+    const canManageTeamMembers = haveITeamPermission(
+        state,
+        ownProps.teamId,
+        Permissions.MANAGE_TEAM_ROLES,
+    );
 
     const searchTerm = state.views.search.modalSearch;
 
@@ -56,7 +94,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
         users = getProfilesInCurrentTeam(state);
     }
 
-    const stats = getCurrentTeamStats(state) || {active_member_count: 0};
+    const stats = getCurrentTeamStats(state) || { active_member_count: 0 };
 
     return {
         searchTerm,
@@ -70,15 +108,21 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
-            searchProfiles,
-            getTeamStats,
-            getTeamMembers,
-            loadProfilesAndTeamMembers,
-            loadStatusesForProfilesList,
-            loadTeamMembersForProfilesList,
-            setModalSearchTerm,
-        }, dispatch),
+        actions: bindActionCreators<
+            ActionCreatorsMapObject<ActionFunc | GenericAction>,
+            Actions
+        >(
+            {
+                searchProfiles,
+                getTeamStats,
+                getTeamMembers,
+                loadProfilesAndTeamMembers,
+                loadStatusesForProfilesList,
+                loadTeamMembersForProfilesList,
+                setModalSearchTerm,
+            },
+            dispatch,
+        ),
     };
 }
 

@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled from "styled-components";
 
-import {CompletedAnimation} from './onboarding_tasklist_animations';
+import { CompletedAnimation } from "./onboarding_tasklist_animations";
 
 export interface TaskProps {
     label: React.ReactElement;
@@ -55,15 +55,18 @@ const StyledTask = styled.div`
         background-color: rgba(var(--button-bg-rgb), 0.08);
     }
     :focus {
-        box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.32),
+        box-shadow:
+            inset 0 0 0 2px rgba(255, 255, 255, 0.32),
             inset 0 0 0 2px blue;
     }
-    transition: background 250ms ease-in-out, color 250ms ease-in-out,
+    transition:
+        background 250ms ease-in-out,
+        color 250ms ease-in-out,
         box-shadow 250ms ease-in-out;
 `;
 
 export const Task = (props: TaskProps): JSX.Element => {
-    const {label, completedStatus, onClick} = props;
+    const { label, completedStatus, onClick } = props;
 
     const handleOnClick = () => {
         if (onClick) {
@@ -73,10 +76,12 @@ export const Task = (props: TaskProps): JSX.Element => {
 
     return (
         <StyledTask
-            className={completedStatus ? 'completed' : ''}
+            className={completedStatus ? "completed" : ""}
             onClick={handleOnClick}
         >
-            {completedStatus && <CompletedAnimation completed={completedStatus}/>}
+            {completedStatus && (
+                <CompletedAnimation completed={completedStatus} />
+            )}
             <span>{label}</span>
         </StyledTask>
     );

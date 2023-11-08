@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import AdvancedTab from './advanced';
-import DisplayTab from './display';
-import GeneralTab from './general';
-import NotificationsTab from './notifications';
-import SecurityTab from './security';
-import SidebarTab from './sidebar';
+import AdvancedTab from "./advanced";
+import DisplayTab from "./display";
+import GeneralTab from "./general";
+import NotificationsTab from "./notifications";
+import SecurityTab from "./security";
+import SidebarTab from "./sidebar";
 
 export type Props = {
     user: UserProfile;
@@ -26,7 +26,7 @@ export type Props = {
 
 export default class UserSettings extends React.PureComponent<Props> {
     render() {
-        if (this.props.activeTab === 'profile') {
+        if (this.props.activeTab === "profile") {
             return (
                 <div>
                     <GeneralTab
@@ -39,7 +39,7 @@ export default class UserSettings extends React.PureComponent<Props> {
                     />
                 </div>
             );
-        } else if (this.props.activeTab === 'security') {
+        } else if (this.props.activeTab === "security") {
             return (
                 <div>
                     <SecurityTab
@@ -52,7 +52,7 @@ export default class UserSettings extends React.PureComponent<Props> {
                     />
                 </div>
             );
-        } else if (this.props.activeTab === 'notifications') {
+        } else if (this.props.activeTab === "notifications") {
             return (
                 <div>
                     <NotificationsTab
@@ -64,7 +64,7 @@ export default class UserSettings extends React.PureComponent<Props> {
                     />
                 </div>
             );
-        } else if (this.props.activeTab === 'display') {
+        } else if (this.props.activeTab === "display") {
             return (
                 <div>
                     <DisplayTab
@@ -78,7 +78,7 @@ export default class UserSettings extends React.PureComponent<Props> {
                     />
                 </div>
             );
-        } else if (this.props.activeTab === 'sidebar') {
+        } else if (this.props.activeTab === "sidebar") {
             return (
                 <div>
                     <SidebarTab
@@ -89,7 +89,7 @@ export default class UserSettings extends React.PureComponent<Props> {
                     />
                 </div>
             );
-        } else if (this.props.activeTab === 'advanced') {
+        } else if (this.props.activeTab === "advanced") {
             return (
                 <div>
                     <AdvancedTab
@@ -102,6 +102,6 @@ export default class UserSettings extends React.PureComponent<Props> {
             );
         }
 
-        return <div/>;
+        return <div />;
     }
 }

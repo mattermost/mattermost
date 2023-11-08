@@ -4,8 +4,8 @@
 export const FINISHED = 999;
 export const SKIPPED = 999;
 
-export const ChannelsTourTelemetryPrefix = 'channels-tour';
-const AutoStatusSuffix = '_auto_tour_status';
+export const ChannelsTourTelemetryPrefix = "channels-tour";
+const AutoStatusSuffix = "_auto_tour_status";
 
 export const AutoTourStatus = {
     ENABLED: 1,
@@ -13,17 +13,17 @@ export const AutoTourStatus = {
 };
 
 // this should be used as for the tours related to channels
-export const ChannelsTour = 'channels_tour';
+export const ChannelsTour = "channels_tour";
 
-export const OtherToolsTour = 'other_tools_tour';
+export const OtherToolsTour = "other_tools_tour";
 
 export const TutorialTourName = {
-    ONBOARDING_TUTORIAL_STEP: 'tutorial_step',
-    ONBOARDING_TUTORIAL_STEP_FOR_GUESTS: 'tutorial_step_for_guest',
-    CRT_TUTORIAL_STEP: 'crt_tutorial_step',
-    CRT_THREAD_PANE_STEP: 'crt_thread_pane_step',
-    AUTO_TOUR_STATUS: 'auto_tour_status',
-    EXPLORE_OTHER_TOOLS: 'explore_tools',
+    ONBOARDING_TUTORIAL_STEP: "tutorial_step",
+    ONBOARDING_TUTORIAL_STEP_FOR_GUESTS: "tutorial_step_for_guest",
+    CRT_TUTORIAL_STEP: "crt_tutorial_step",
+    CRT_THREAD_PANE_STEP: "crt_thread_pane_step",
+    AUTO_TOUR_STATUS: "auto_tour_status",
+    EXPLORE_OTHER_TOOLS: "explore_tools",
 };
 
 export const OnboardingTourSteps = {
@@ -60,15 +60,19 @@ export const CrtTutorialTriggerSteps = {
 };
 
 export const TTNameMapToATStatusKey = {
-    [TutorialTourName.ONBOARDING_TUTORIAL_STEP]: TutorialTourName.ONBOARDING_TUTORIAL_STEP + AutoStatusSuffix,
-    [TutorialTourName.CRT_TUTORIAL_STEP]: 'crt_tutorial_auto_tour_status',
-    [TutorialTourName.CRT_THREAD_PANE_STEP]: TutorialTourName.CRT_THREAD_PANE_STEP + AutoStatusSuffix,
-    [TutorialTourName.EXPLORE_OTHER_TOOLS]: TutorialTourName.EXPLORE_OTHER_TOOLS + AutoStatusSuffix,
+    [TutorialTourName.ONBOARDING_TUTORIAL_STEP]:
+        TutorialTourName.ONBOARDING_TUTORIAL_STEP + AutoStatusSuffix,
+    [TutorialTourName.CRT_TUTORIAL_STEP]: "crt_tutorial_auto_tour_status",
+    [TutorialTourName.CRT_THREAD_PANE_STEP]:
+        TutorialTourName.CRT_THREAD_PANE_STEP + AutoStatusSuffix,
+    [TutorialTourName.EXPLORE_OTHER_TOOLS]:
+        TutorialTourName.EXPLORE_OTHER_TOOLS + AutoStatusSuffix,
 };
 
 export const TTNameMapToTourSteps = {
     [TutorialTourName.ONBOARDING_TUTORIAL_STEP]: OnboardingTourSteps,
-    [TutorialTourName.ONBOARDING_TUTORIAL_STEP_FOR_GUESTS]: OnboardingTourStepsForGuestUsers,
+    [TutorialTourName.ONBOARDING_TUTORIAL_STEP_FOR_GUESTS]:
+        OnboardingTourStepsForGuestUsers,
     [TutorialTourName.CRT_TUTORIAL_STEP]: CrtTutorialSteps,
     [TutorialTourName.EXPLORE_OTHER_TOOLS]: ExploreOtherToolsTourSteps,
 };

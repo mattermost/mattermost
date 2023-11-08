@@ -1,25 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import ManageTeamsDropdown from 'components/admin_console/manage_teams_modal/manage_teams_dropdown';
+import ManageTeamsDropdown from "components/admin_console/manage_teams_modal/manage_teams_dropdown";
 
-import {TestHelper} from 'utils/test_helper';
+import { TestHelper } from "utils/test_helper";
 
-describe('ManageTeamsDropdown', () => {
+describe("ManageTeamsDropdown", () => {
     const baseProps = {
         team: TestHelper.getTeamMock(),
         user: TestHelper.getUserMock({
-            id: 'currentUserId',
+            id: "currentUserId",
             last_picture_update: 1234,
-            email: 'currentUser@test.com',
-            roles: 'system_user',
-            username: 'currentUsername',
+            email: "currentUser@test.com",
+            roles: "system_user",
+            username: "currentUsername",
         }),
         teamMember: TestHelper.getTeamMembershipMock({
-            team_id: 'teamid',
+            team_id: "teamid",
             scheme_user: true,
             scheme_guest: false,
             scheme_admin: false,
@@ -30,18 +30,16 @@ describe('ManageTeamsDropdown', () => {
         handleRemoveUserFromTeam: jest.fn(),
     };
 
-    test('should match snapshot for team member', () => {
-        const wrapper = shallow(
-            <ManageTeamsDropdown {...baseProps}/>,
-        );
+    test("should match snapshot for team member", () => {
+        const wrapper = shallow(<ManageTeamsDropdown {...baseProps} />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot for system admin', () => {
+    test("should match snapshot for system admin", () => {
         const user = {
             ...baseProps.user,
-            roles: 'system_admin',
+            roles: "system_admin",
         };
 
         const props = {
@@ -49,17 +47,15 @@ describe('ManageTeamsDropdown', () => {
             user,
         };
 
-        const wrapper = shallow(
-            <ManageTeamsDropdown {...props}/>,
-        );
+        const wrapper = shallow(<ManageTeamsDropdown {...props} />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot for team admin', () => {
+    test("should match snapshot for team admin", () => {
         const user = {
             ...baseProps.user,
-            roles: 'system_user',
+            roles: "system_user",
         };
 
         const teamMember = {
@@ -73,17 +69,15 @@ describe('ManageTeamsDropdown', () => {
             teamMember,
         };
 
-        const wrapper = shallow(
-            <ManageTeamsDropdown {...props}/>,
-        );
+        const wrapper = shallow(<ManageTeamsDropdown {...props} />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot for guest', () => {
+    test("should match snapshot for guest", () => {
         const user = {
             ...baseProps.user,
-            roles: 'system_guest',
+            roles: "system_guest",
         };
 
         const teamMember = {
@@ -96,9 +90,7 @@ describe('ManageTeamsDropdown', () => {
             teamMember,
         };
 
-        const wrapper = shallow(
-            <ManageTeamsDropdown {...props}/>,
-        );
+        const wrapper = shallow(<ManageTeamsDropdown {...props} />);
 
         expect(wrapper).toMatchSnapshot();
     });

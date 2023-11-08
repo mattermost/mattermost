@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {CustomEmoji} from '@mattermost/types/emojis';
+import type { CustomEmoji } from "@mattermost/types/emojis";
 
-import {Client4} from 'mattermost-redux/client';
-import Permissions from 'mattermost-redux/constants/permissions';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import { Client4 } from "mattermost-redux/client";
+import Permissions from "mattermost-redux/constants/permissions";
+import type { ActionFunc } from "mattermost-redux/types/actions";
 
-import AnyTeamPermissionGate from 'components/permissions_gates/any_team_permission_gate';
+import AnyTeamPermissionGate from "components/permissions_gates/any_team_permission_gate";
 
-import DeleteEmojiButton from './delete_emoji_button';
+import DeleteEmojiButton from "./delete_emoji_button";
 
 export type Props = {
     emoji?: CustomEmoji;
@@ -23,13 +23,13 @@ export type Props = {
     actions: {
         deleteCustomEmoji: (emojiId: string) => ActionFunc;
     };
-}
+};
 
 export default class EmojiListItem extends React.PureComponent<Props> {
     static defaultProps = {
         emoji: {} as CustomEmoji,
-        currentUserId: '',
-        creatorDisplayName: '',
+        currentUserId: "",
+        creatorDisplayName: "",
     };
 
     handleDelete = (): void => {
@@ -50,21 +50,27 @@ export default class EmojiListItem extends React.PureComponent<Props> {
         let creatorDisplayName = this.props.creatorDisplayName;
 
         if (creatorUsername && creatorUsername !== creatorDisplayName) {
-            creatorDisplayName += ' (@' + creatorUsername + ')';
+            creatorDisplayName += " (@" + creatorUsername + ")";
         }
 
-        let deleteButton = <DeleteEmojiButton onDelete={this.handleDelete}/>;
+        let deleteButton = <DeleteEmojiButton onDelete={this.handleDelete} />;
 
         if (emoji.creator_id === this.props.currentUserId) {
             deleteButton = (
-                <AnyTeamPermissionGate permissions={[Permissions.DELETE_EMOJIS]}>
+                <AnyTeamPermissionGate
+                    permissions={[Permissions.DELETE_EMOJIS]}
+                >
                     {deleteButton}
                 </AnyTeamPermissionGate>
             );
         } else {
             deleteButton = (
-                <AnyTeamPermissionGate permissions={[Permissions.DELETE_EMOJIS]}>
-                    <AnyTeamPermissionGate permissions={[Permissions.DELETE_OTHERS_EMOJIS]}>
+                <AnyTeamPermissionGate
+                    permissions={[Permissions.DELETE_EMOJIS]}
+                >
+                    <AnyTeamPermissionGate
+                        permissions={[Permissions.DELETE_OTHERS_EMOJIS]}
+                    >
                         {deleteButton}
                     </AnyTeamPermissionGate>
                 </AnyTeamPermissionGate>
@@ -72,22 +78,21 @@ export default class EmojiListItem extends React.PureComponent<Props> {
         }
 
         return (
-            <tr className='backstage-list__item'>
-                <td className='emoji-list__name'>
-                    {':' + emoji.name + ':'}
-                </td>
-                <td className='emoji-list__image'>
+            <tr className="backstage-list__item">
+                <td className="emoji-list__name">{":" + emoji.name + ":"}</td>
+                <td className="emoji-list__image">
                     <span
-                        className='emoticon'
-                        style={{backgroundImage: 'url(' + Client4.getCustomEmojiImageUrl(emoji.id) + ')'}}
+                        className="emoticon"
+                        style={{
+                            backgroundImage:
+                                "url(" +
+                                Client4.getCustomEmojiImageUrl(emoji.id) +
+                                ")",
+                        }}
                     />
                 </td>
-                <td className='emoji-list__creator'>
-                    {creatorDisplayName}
-                </td>
-                <td className='emoji-list-item_actions'>
-                    {deleteButton}
-                </td>
+                <td className="emoji-list__creator">{creatorDisplayName}</td>
+                <td className="emoji-list-item_actions">{deleteButton}</td>
             </tr>
         );
     }

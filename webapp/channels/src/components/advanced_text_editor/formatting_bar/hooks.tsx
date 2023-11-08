@@ -1,13 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Instance} from '@popperjs/core';
-import {debounce} from 'lodash';
-import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
+import type { Instance } from "@popperjs/core";
+import { debounce } from "lodash";
+import React, {
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useState,
+} from "react";
 
-import type {MarkdownMode} from 'utils/markdown/apply_markdown';
+import type { MarkdownMode } from "utils/markdown/apply_markdown";
 
-type WideMode = 'wide' | 'normal' | 'narrow' | 'min';
+type WideMode = "wide" | "normal" | "narrow" | "min";
 
 export function useGetLatest<T>(val: T) {
     const ref = React.useRef<T>(val);
@@ -15,33 +20,43 @@ export function useGetLatest<T>(val: T) {
     return React.useCallback(() => ref.current, []);
 }
 
-const useResponsiveFormattingBar = (ref: React.RefObject<HTMLDivElement>): WideMode => {
-    const [wideMode, setWideMode] = useState<WideMode>('wide');
-    const handleResize = useCallback(debounce(() => {
-        if (ref.current?.clientWidth === undefined) {
-            return;
-        }
-        if (ref.current.clientWidth > 640) {
-            setWideMode('wide');
-        }
-        if (ref.current.clientWidth >= 424 && ref.current.clientWidth <= 640) {
-            setWideMode('normal');
-        }
-        if (ref.current.clientWidth < 424) {
-            setWideMode('narrow');
-        }
+const useResponsiveFormattingBar = (
+    ref: React.RefObject<HTMLDivElement>,
+): WideMode => {
+    const [wideMode, setWideMode] = useState<WideMode>("wide");
+    const handleResize = useCallback(
+        debounce(() => {
+            if (ref.current?.clientWidth === undefined) {
+                return;
+            }
+            if (ref.current.clientWidth > 640) {
+                setWideMode("wide");
+            }
+            if (
+                ref.current.clientWidth >= 424 &&
+                ref.current.clientWidth <= 640
+            ) {
+                setWideMode("normal");
+            }
+            if (ref.current.clientWidth < 424) {
+                setWideMode("narrow");
+            }
 
-        if (ref.current.clientWidth < 310) {
-            setWideMode('min');
-        }
-    }, 10), []);
+            if (ref.current.clientWidth < 310) {
+                setWideMode("min");
+            }
+        }, 10),
+        [],
+    );
 
     useLayoutEffect(() => {
         if (!ref.current) {
             return () => {};
         }
 
-        let sizeObserver: ResizeObserver | null = new ResizeObserver(handleResize);
+        let sizeObserver: ResizeObserver | null = new ResizeObserver(
+            handleResize,
+        );
 
         sizeObserver.observe(ref.current);
 
@@ -54,7 +69,7 @@ const useResponsiveFormattingBar = (ref: React.RefObject<HTMLDivElement>): WideM
     return wideMode;
 };
 
-const MAP_WIDE_MODE_TO_CONTROLS_QUANTITY: {[key in WideMode]: number} = {
+const MAP_WIDE_MODE_TO_CONTROLS_QUANTITY: { [key in WideMode]: number } = {
     wide: 9,
     normal: 5,
     narrow: 3,
@@ -70,7 +85,17 @@ export const useFormattingBarControls = (
 } => {
     const wideMode = useResponsiveFormattingBar(formattingBarRef);
 
-    const allControls: MarkdownMode[] = ['bold', 'italic', 'strike', 'heading', 'link', 'code', 'quote', 'ul', 'ol'];
+    const allControls: MarkdownMode[] = [
+        "bold",
+        "italic",
+        "strike",
+        "heading",
+        "link",
+        "code",
+        "quote",
+        "ul",
+        "ol",
+    ];
 
     const controlsLength = MAP_WIDE_MODE_TO_CONTROLS_QUANTITY[wideMode];
 
@@ -84,7 +109,10 @@ export const useFormattingBarControls = (
     };
 };
 
-export const useUpdateOnVisibilityChange = (update: Instance['update'] | null, isVisible: boolean) => {
+export const useUpdateOnVisibilityChange = (
+    update: Instance["update"] | null,
+    isVisible: boolean,
+) => {
     const updateComponent = async () => {
         if (!update) {
             return;

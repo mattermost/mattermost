@@ -116,7 +116,7 @@
                     font-size: 16px;
 
                     &::before {
-                        content: '.';
+                        content: ".";
                     }
                 }
             }
@@ -164,7 +164,7 @@
                     justify-content: center;
                     padding: 14px;
                     border-radius: 13px 13px 0 0;
-                    font-family: 'Open Sans';
+                    font-family: "Open Sans";
                     font-size: 12px;
                     font-style: normal;
                     font-weight: 600;
@@ -185,7 +185,8 @@
                     padding-right: 24px;
                     padding-bottom: 24px;
                     padding-left: 24px;
-                    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                    border: 1px solid
+                        rgba(var(--center-channel-color-rgb), 0.16);
                     background-color: var(--center-channel-bg);
                     border-radius: 0 0 4px 4px;
 
@@ -206,7 +207,10 @@
                         line-height: 14px;
 
                         &.grayed {
-                            background: rgba(var(--center-channel-color-rgb), 0.08);
+                            background: rgba(
+                                var(--center-channel-color-rgb),
+                                0.08
+                            );
                             color: rgba(var(--center-channel-color-rgb), 0.32);
                         }
 
@@ -222,7 +226,7 @@
 
                     .button-description {
                         margin-top: 8px;
-                        font-family: 'Open Sans';
+                        font-family: "Open Sans";
                         font-size: 14px;
                         font-style: normal;
                         font-weight: 400;
@@ -240,9 +244,12 @@
                         text-align: center;
 
                         .summary-section {
-                            background-color: rgba(var(--denim-button-bg-rgb), 0.08);
+                            background-color: rgba(
+                                var(--denim-button-bg-rgb),
+                                0.08
+                            );
                             border-radius: 4px;
-                            font-family: 'Metropolis';
+                            font-family: "Metropolis";
 
                             .summary-title {
                                 padding-top: 12px;
@@ -266,7 +273,7 @@
                                 padding-top: 12px;
                                 padding-bottom: 12px;
                                 color: var(--denim-button-bg);
-                                font-family: 'Metropolis';
+                                font-family: "Metropolis";
                                 font-size: 14px;
                                 font-style: normal;
                                 font-weight: 400;
@@ -276,7 +283,7 @@
 
                         h1 {
                             color: var(--center-channel-color);
-                            font-family: 'Metropolis';
+                            font-family: "Metropolis";
                             font-size: 52px;
                             font-style: normal;
                             font-weight: 700;
@@ -289,7 +296,7 @@
 
                         p {
                             color: rgba(var(--center-channel-color-rgb), 0.72);
-                            font-family: 'Metropolis';
+                            font-family: "Metropolis";
                             font-size: 18px;
                             font-style: normal;
                             line-height: 20px;
@@ -299,14 +306,15 @@
                     .plan_price_rate_section {
                         width: 100%;
                         height: 150px;
-                        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                        border-bottom: 1px solid
+                            rgba(var(--center-channel-color-rgb), 0.16);
                         font-weight: 400;
                         letter-spacing: -0.02em;
                         text-align: center;
 
                         h4 {
                             color: rgba(var(--center-channel-color-rgb), 0.72);
-                            font-family: 'Metropolis';
+                            font-family: "Metropolis";
                             font-size: 20px;
                             font-style: normal;
                             line-height: 30px;
@@ -320,7 +328,7 @@
                         h1 {
                             margin: 0;
                             color: var(--center-channel-color);
-                            font-family: 'Metropolis';
+                            font-family: "Metropolis";
                             font-size: 52px;
                             font-style: normal;
                             font-weight: 700;
@@ -333,7 +341,7 @@
 
                         p {
                             color: rgba(var(--center-channel-color-rgb), 0.72);
-                            font-family: 'Metropolis';
+                            font-family: "Metropolis";
                             font-size: 18px;
                             font-style: normal;
                             line-height: 20px;
@@ -376,7 +384,7 @@
                             padding-top: 12px;
                             padding-bottom: 12px;
                             color: var(--denim-status-online);
-                            font-family: 'Open Sans';
+                            font-family: "Open Sans";
                             font-size: 14px;
                             font-style: normal;
                             font-weight: 700;
@@ -385,7 +393,7 @@
 
                         .total_price {
                             color: var(--sys-denim-center-channel-text);
-                            font-family: 'Open Sans';
+                            font-family: "Open Sans";
                             font-size: 14px;
                             font-style: normal;
                             font-weight: 700;
@@ -394,7 +402,7 @@
 
                         .monthly_price {
                             color: var(--sys-denim-center-channel-text);
-                            font-family: 'Open Sans';
+                            font-family: "Open Sans";
                             font-size: 14px;
                             font-style: normal;
                             font-weight: 400;
@@ -432,7 +440,10 @@
 
                             .icon-information-outline {
                                 margin: 0;
-                                color: rgba(var(--sys-denim-center-channel-text-rgb), 0.72);
+                                color: rgba(
+                                    var(--sys-denim-center-channel-text-rgb),
+                                    0.72
+                                );
                             }
                         }
 
@@ -501,7 +512,7 @@
         width: 100%;
         height: 100%;
 
-        >div {
+        > div {
             position: absolute;
             top: 0;
             left: 0;
@@ -515,7 +526,7 @@
             justify-content: flex-start;
         }
 
-        input[type=checkbox] {
+        input[type="checkbox"] {
             width: 17px;
             height: 17px;
             flex-shrink: 0;

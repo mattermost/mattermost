@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
+import { connect } from "react-redux";
 
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {get, getBool} from 'mattermost-redux/selectors/entities/preferences';
+import { getPost } from "mattermost-redux/selectors/entities/posts";
+import { get, getBool } from "mattermost-redux/selectors/entities/preferences";
 
-import {Preferences} from 'utils/constants';
+import { Preferences } from "utils/constants";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import Reply from './reply';
+import Reply from "./reply";
 
 type OwnProps = {
     id: string;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const previewCollapsed = get(
@@ -27,7 +27,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         state,
         Preferences.CATEGORY_DISPLAY_SETTINGS,
         Preferences.LINK_PREVIEW_DISPLAY,
-        Preferences.LINK_PREVIEW_DISPLAY_DEFAULT === 'true',
+        Preferences.LINK_PREVIEW_DISPLAY_DEFAULT === "true",
     );
 
     return {

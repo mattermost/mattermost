@@ -1,44 +1,47 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback} from 'react';
-import {useDispatch} from 'react-redux';
-import {useHistory} from 'react-router-dom';
+import React, { memo, useCallback } from "react";
+import { useDispatch } from "react-redux";
+import { useHistory } from "react-router-dom";
 
-import type {Channel} from '@mattermost/types/channels';
-import type {Post, PostMetadata} from '@mattermost/types/posts';
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
+import type { Channel } from "@mattermost/types/channels";
+import type { Post, PostMetadata } from "@mattermost/types/posts";
+import type { UserProfile, UserStatus } from "@mattermost/types/users";
 
-import {createPost} from 'actions/post_actions';
-import {removeDraft} from 'actions/views/drafts';
-import {openModal} from 'actions/views/modals';
+import { createPost } from "actions/post_actions";
+import { removeDraft } from "actions/views/drafts";
+import { openModal } from "actions/views/modals";
 
-import PersistNotificationConfirmModal from 'components/persist_notification_confirm_modal';
+import PersistNotificationConfirmModal from "components/persist_notification_confirm_modal";
 
-import {ModalIdentifiers} from 'utils/constants';
-import {hasRequestedPersistentNotifications, specialMentionsInText} from 'utils/post_utils';
+import { ModalIdentifiers } from "utils/constants";
+import {
+    hasRequestedPersistentNotifications,
+    specialMentionsInText,
+} from "utils/post_utils";
 
-import type {PostDraft} from 'types/store/draft';
+import type { PostDraft } from "types/store/draft";
 
-import DraftActions from '../draft_actions';
-import DraftTitle from '../draft_title';
-import Panel from '../panel/panel';
-import PanelBody from '../panel/panel_body';
-import Header from '../panel/panel_header';
+import DraftActions from "../draft_actions";
+import DraftTitle from "../draft_title";
+import Panel from "../panel/panel";
+import PanelBody from "../panel/panel_body";
+import Header from "../panel/panel_header";
 
 type Props = {
     channel: Channel;
     channelUrl: string;
     displayName: string;
     draftId: string;
-    id: Channel['id'];
+    id: Channel["id"];
     postPriorityEnabled: boolean;
-    status: UserStatus['status'];
-    type: 'channel' | 'thread';
+    status: UserStatus["status"];
+    type: "channel" | "thread";
     user: UserProfile;
     value: PostDraft;
     isRemote?: boolean;
-}
+};
 
 function ChannelDraft({
     channel,
@@ -59,48 +62,75 @@ function ChannelDraft({
         history.push(channelUrl);
     }, [history, channelUrl]);
 
-    const handleOnDelete = useCallback((id: string) => {
-        dispatch(removeDraft(id, channel.id));
-    }, [dispatch, channel.id]);
+    const handleOnDelete = useCallback(
+        (id: string) => {
+            dispatch(removeDraft(id, channel.id));
+        },
+        [dispatch, channel.id],
+    );
 
-    const doSubmit = useCallback((id: string, post: Post) => {
-        dispatch(createPost(post, value.fileInfos));
-        dispatch(removeDraft(id, channel.id));
-        history.push(channelUrl);
-    }, [dispatch, history, value.fileInfos, channel.id, channelUrl]);
+    const doSubmit = useCallback(
+        (id: string, post: Post) => {
+            dispatch(createPost(post, value.fileInfos));
+            dispatch(removeDraft(id, channel.id));
+            history.push(channelUrl);
+        },
+        [dispatch, history, value.fileInfos, channel.id, channelUrl],
+    );
 
-    const showPersistNotificationModal = useCallback((id: string, post: Post) => {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.PERSIST_NOTIFICATION_CONFIRM_MODAL,
-            dialogType: PersistNotificationConfirmModal,
-            dialogProps: {
-                message: post.message,
-                channelType: channel.type,
-                specialMentions: specialMentionsInText(post.message),
-                onConfirm: () => doSubmit(id, post),
-            },
-        }));
-    }, [channel.type, dispatch, doSubmit]);
+    const showPersistNotificationModal = useCallback(
+        (id: string, post: Post) => {
+            dispatch(
+                openModal({
+                    modalId:
+                        ModalIdentifiers.PERSIST_NOTIFICATION_CONFIRM_MODAL,
+                    dialogType: PersistNotificationConfirmModal,
+                    dialogProps: {
+                        message: post.message,
+                        channelType: channel.type,
+                        specialMentions: specialMentionsInText(post.message),
+                        onConfirm: () => doSubmit(id, post),
+                    },
+                }),
+            );
+        },
+        [channel.type, dispatch, doSubmit],
+    );
 
-    const handleOnSend = useCallback(async (id: string) => {
-        const post = {} as Post;
-        post.file_ids = [];
-        post.message = value.message;
-        post.props = value.props || {};
-        post.user_id = user.id;
-        post.channel_id = value.channelId;
-        post.metadata = (value.metadata || {}) as PostMetadata;
+    const handleOnSend = useCallback(
+        async (id: string) => {
+            const post = {} as Post;
+            post.file_ids = [];
+            post.message = value.message;
+            post.props = value.props || {};
+            post.user_id = user.id;
+            post.channel_id = value.channelId;
+            post.metadata = (value.metadata || {}) as PostMetadata;
 
-        if (post.message.trim().length === 0 && value.fileInfos.length === 0) {
-            return;
-        }
+            if (
+                post.message.trim().length === 0 &&
+                value.fileInfos.length === 0
+            ) {
+                return;
+            }
 
-        if (postPriorityEnabled && hasRequestedPersistentNotifications(value?.metadata?.priority)) {
-            showPersistNotificationModal(id, post);
-            return;
-        }
-        doSubmit(id, post);
-    }, [doSubmit, postPriorityEnabled, value, user.id, showPersistNotificationModal]);
+            if (
+                postPriorityEnabled &&
+                hasRequestedPersistentNotifications(value?.metadata?.priority)
+            ) {
+                showPersistNotificationModal(id, post);
+                return;
+            }
+            doSubmit(id, post);
+        },
+        [
+            doSubmit,
+            postPriorityEnabled,
+            value,
+            user.id,
+            showPersistNotificationModal,
+        ],
+    );
 
     if (!channel) {
         return null;
@@ -108,11 +138,11 @@ function ChannelDraft({
 
     return (
         <Panel onClick={handleOnEdit}>
-            {({hover}) => (
+            {({ hover }) => (
                 <>
                     <Header
                         hover={hover}
-                        actions={(
+                        actions={
                             <DraftActions
                                 channelDisplayName={channel.display_name}
                                 channelType={channel.type}
@@ -123,14 +153,14 @@ function ChannelDraft({
                                 onEdit={handleOnEdit}
                                 onSend={handleOnSend}
                             />
-                        )}
-                        title={(
+                        }
+                        title={
                             <DraftTitle
                                 channel={channel}
                                 type={type}
                                 userId={user.id}
                             />
-                        )}
+                        }
                         timestamp={value.updateAt}
                         remote={isRemote || false}
                     />

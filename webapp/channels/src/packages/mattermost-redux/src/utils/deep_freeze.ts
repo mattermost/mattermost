@@ -31,14 +31,22 @@
 export default function deepFreezeAndThrowOnMutation(object: any): any {
     // Some objects in IE11 don't have a hasOwnProperty method so don't even bother trying to freeze them
 
-    if (typeof object !== 'object' || object === null || Object.isFrozen(object) || Object.isSealed(object)) {
+    if (
+        typeof object !== "object" ||
+        object === null ||
+        Object.isFrozen(object) ||
+        Object.isSealed(object)
+    ) {
         return object;
     }
 
     for (const key in object) {
         if (object.hasOwnProperty(key)) {
             object.__defineGetter__(key, identity.bind(null, object[key])); // eslint-disable-line no-underscore-dangle
-            object.__defineSetter__(key, throwOnImmutableMutation.bind(null, key)); // eslint-disable-line no-underscore-dangle
+            object.__defineSetter__(
+                key,
+                throwOnImmutableMutation.bind(null, key),
+            ); // eslint-disable-line no-underscore-dangle
         }
     }
 
@@ -56,9 +64,12 @@ export default function deepFreezeAndThrowOnMutation(object: any): any {
 
 function throwOnImmutableMutation(key: string, value: any) {
     throw Error(
-        'You attempted to set the key `' + key + '` with the value `' +
-        JSON.stringify(value) + '` on an object that is meant to be immutable ' +
-        'and has been frozen.',
+        "You attempted to set the key `" +
+            key +
+            "` with the value `" +
+            JSON.stringify(value) +
+            "` on an object that is meant to be immutable " +
+            "and has been frozen.",
     );
 }
 

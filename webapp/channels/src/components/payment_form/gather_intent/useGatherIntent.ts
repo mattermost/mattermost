@@ -1,23 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useState, useEffect} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-import type {MetadataGatherWireTransferKeys} from '@mattermost/types/cloud';
-import {TypePurchases} from '@mattermost/types/cloud';
+import type { MetadataGatherWireTransferKeys } from "@mattermost/types/cloud";
+import { TypePurchases } from "@mattermost/types/cloud";
 
-import {updateCloudCustomer} from 'mattermost-redux/actions/cloud';
+import { updateCloudCustomer } from "mattermost-redux/actions/cloud";
 
-import {trackEvent} from 'actions/telemetry_actions';
+import { trackEvent } from "actions/telemetry_actions";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
 interface UseGatherIntentArgs {
     typeGatherIntent: keyof typeof TypePurchases;
 }
 
-export type FormDataState = FormDateStateWithoutOtherPayment | FormDateStateWithOtherPayment;
+export type FormDataState =
+    | FormDateStateWithoutOtherPayment
+    | FormDateStateWithOtherPayment;
 
 interface FormDateStateWithOtherPayment {
     wire: boolean;
@@ -33,22 +35,26 @@ interface FormDateStateWithoutOtherPayment {
     otherPaymentOption?: never;
 }
 
-export const useGatherIntent = ({typeGatherIntent}: UseGatherIntentArgs) => {
+export const useGatherIntent = ({ typeGatherIntent }: UseGatherIntentArgs) => {
     const dispatch = useDispatch<any>();
     const [feedbackSaved, setFeedbackSave] = useState(false);
     const [showError, setShowError] = useState(false);
     const [submittingFeedback, setSubmittingFeedback] = useState(false);
     const [showModal, setShowModal] = useState(false);
-    const customer = useSelector((state: GlobalState) => state.entities.cloud.customer);
+    const customer = useSelector(
+        (state: GlobalState) => state.entities.cloud.customer,
+    );
 
     const handleSaveFeedback = async (formData: FormDataState) => {
         setSubmittingFeedback(() => true);
 
         const gatherIntentKey: MetadataGatherWireTransferKeys = `${TypePurchases[typeGatherIntent]}_alt_payment_method`;
 
-        const {error} = await dispatch(updateCloudCustomer({
-            [gatherIntentKey]: JSON.stringify(formData),
-        }));
+        const { error } = await dispatch(
+            updateCloudCustomer({
+                [gatherIntentKey]: JSON.stringify(formData),
+            }),
+        );
 
         if (error == null) {
             setFeedbackSave(() => true);
@@ -62,7 +68,7 @@ export const useGatherIntent = ({typeGatherIntent}: UseGatherIntentArgs) => {
     };
 
     const handleOpenModal = () => {
-        trackEvent('click_open_payment_feedback_form_modal', {
+        trackEvent("click_open_payment_feedback_form_modal", {
             location: `${TypePurchases[typeGatherIntent]}_form`,
         });
         setShowModal(() => true);
@@ -79,5 +85,13 @@ export const useGatherIntent = ({typeGatherIntent}: UseGatherIntentArgs) => {
         }
     }, [customer, typeGatherIntent]);
 
-    return {feedbackSaved, handleSaveFeedback, handleOpenModal, showModal, handleCloseModal, submittingFeedback, showError};
+    return {
+        feedbackSaved,
+        handleSaveFeedback,
+        handleOpenModal,
+        showModal,
+        handleCloseModal,
+        submittingFeedback,
+        showError,
+    };
 };

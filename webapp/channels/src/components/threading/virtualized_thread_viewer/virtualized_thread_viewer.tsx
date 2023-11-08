@@ -1,38 +1,49 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {DynamicSizeList} from 'dynamic-virtualized-list';
-import type {OnScrollArgs, OnItemsRenderedArgs} from 'dynamic-virtualized-list';
-import React, {PureComponent} from 'react';
-import type {RefObject} from 'react';
-import AutoSizer from 'react-virtualized-auto-sizer';
+import { DynamicSizeList } from "dynamic-virtualized-list";
+import type {
+    OnScrollArgs,
+    OnItemsRenderedArgs,
+} from "dynamic-virtualized-list";
+import React, { PureComponent } from "react";
+import type { RefObject } from "react";
+import AutoSizer from "react-virtualized-auto-sizer";
 
-import type {Channel} from '@mattermost/types/channels';
-import type {Post} from '@mattermost/types/posts';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Channel } from "@mattermost/types/channels";
+import type { Post } from "@mattermost/types/posts";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {isDateLine, isStartOfNewMessages, isCreateComment} from 'mattermost-redux/utils/post_list';
+import {
+    isDateLine,
+    isStartOfNewMessages,
+    isCreateComment,
+} from "mattermost-redux/utils/post_list";
 
-import NewRepliesBanner from 'components/new_replies_banner';
-import FloatingTimestamp from 'components/post_view/floating_timestamp';
-import {THREADING_TIME as BASE_THREADING_TIME} from 'components/threading/common/options';
+import NewRepliesBanner from "components/new_replies_banner";
+import FloatingTimestamp from "components/post_view/floating_timestamp";
+import { THREADING_TIME as BASE_THREADING_TIME } from "components/threading/common/options";
 
-import Constants from 'utils/constants';
-import DelayedAction from 'utils/delayed_action';
-import {getNewMessageIndex, getPreviousPostId, getLatestPostId} from 'utils/post_utils';
-import * as Utils from 'utils/utils';
+import Constants from "utils/constants";
+import DelayedAction from "utils/delayed_action";
+import {
+    getNewMessageIndex,
+    getPreviousPostId,
+    getLatestPostId,
+} from "utils/post_utils";
+import * as Utils from "utils/utils";
 
-import type {PluginComponent} from 'types/store/plugins';
-import type {FakePost} from 'types/store/rhs';
+import type { PluginComponent } from "types/store/plugins";
+import type { FakePost } from "types/store/rhs";
 
-import CreateComment from './create_comment';
-import Row from './thread_viewer_row';
+import CreateComment from "./create_comment";
+import Row from "./thread_viewer_row";
 
 type Props = {
     channel: Channel;
     currentUserId: string;
     directTeammate: UserProfile | undefined;
-    highlightedPostId?: Post['id'];
+    highlightedPostId?: Post["id"];
     selectedPostFocusedAt?: number;
     lastPost: Post;
     onCardClick: (post: Post) => void;
@@ -44,7 +55,7 @@ type Props = {
     lastViewedAt: number;
     newMessagesSeparatorActions: PluginComponent[];
     inputPlaceholder?: string;
-}
+};
 
 type State = {
     createCommentHeight: number;
@@ -57,30 +68,22 @@ type State = {
     visibleStopIndex?: number;
     overscanStartIndex?: number;
     overscanStopIndex?: number;
-}
+};
 
 const virtListStyles = {
-    position: 'absolute',
-    top: '0',
-    height: '100%',
-    willChange: 'auto',
+    position: "absolute",
+    top: "0",
+    height: "100%",
+    willChange: "auto",
 };
 
 const innerStyles = {
-    paddingTop: '28px',
+    paddingTop: "28px",
 };
 
 const THREADING_TIME: typeof BASE_THREADING_TIME = {
     ...BASE_THREADING_TIME,
-    units: [
-        'now',
-        'minute',
-        'hour',
-        'day',
-        'week',
-        'month',
-        'year',
-    ],
+    units: ["now", "minute", "hour", "day", "week", "month", "year"],
 };
 
 const OFFSET_TO_SHOW_TOAST = -50;
@@ -103,7 +106,10 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
 
         this.initRangeToRender = [
             Math.max(postIndex - 30, 0),
-            Math.max(postIndex + 30, Math.min(props.replyListIds.length - 1, 50)),
+            Math.max(
+                postIndex + 30,
+                Math.min(props.replyListIds.length - 1, 50),
+            ),
         ];
 
         this.listRef = React.createRef();
@@ -134,19 +140,29 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
     }
 
     componentDidUpdate(prevProps: Props) {
-        const {highlightedPostId, selectedPostFocusedAt, lastPost, currentUserId, directTeammate} = this.props;
+        const {
+            highlightedPostId,
+            selectedPostFocusedAt,
+            lastPost,
+            currentUserId,
+            directTeammate,
+        } = this.props;
 
         // In case the user is being deactivated, we need to trigger a re-render
         if (directTeammate?.delete_at !== prevProps.directTeammate?.delete_at) {
             this.scrollToBottom();
         }
 
-        if ((highlightedPostId && prevProps.highlightedPostId !== highlightedPostId) ||
-            prevProps.selectedPostFocusedAt !== selectedPostFocusedAt) {
+        if (
+            (highlightedPostId &&
+                prevProps.highlightedPostId !== highlightedPostId) ||
+            prevProps.selectedPostFocusedAt !== selectedPostFocusedAt
+        ) {
             this.scrollToHighlightedPost();
         } else if (
             prevProps.lastPost.id !== lastPost.id &&
-            (lastPost.user_id === currentUserId || this.state.userScrolledToBottom)
+            (lastPost.user_id === currentUserId ||
+                this.state.userScrolledToBottom)
         ) {
             this.scrollToBottom();
         }
@@ -156,14 +172,18 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         return Promise.resolve();
     }
 
-    initScrollToIndex = (): {index: number; position: string; offset?: number} => {
-        const {highlightedPostId, replyListIds} = this.props;
+    initScrollToIndex = (): {
+        index: number;
+        position: string;
+        offset?: number;
+    } => {
+        const { highlightedPostId, replyListIds } = this.props;
 
         if (highlightedPostId) {
             const index = replyListIds.indexOf(highlightedPostId);
             return {
                 index,
-                position: 'center',
+                position: "center",
             };
         }
 
@@ -171,26 +191,32 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         if (newMessagesSeparatorIndex > 0) {
             return {
                 index: newMessagesSeparatorIndex,
-                position: 'start',
+                position: "start",
                 offset: OFFSET_TO_SHOW_TOAST,
             };
         }
 
         return {
             index: 0,
-            position: 'end',
+            position: "end",
         };
     };
 
-    handleScroll = ({scrollHeight, scrollUpdateWasRequested, scrollOffset, clientHeight}: OnScrollArgs) => {
+    handleScroll = ({
+        scrollHeight,
+        scrollUpdateWasRequested,
+        scrollOffset,
+        clientHeight,
+    }: OnScrollArgs) => {
         if (scrollHeight <= 0) {
             return;
         }
-        const {createCommentHeight} = this.state;
+        const { createCommentHeight } = this.state;
 
         const updatedState: Partial<State> = {};
 
-        const userScrolledToBottom = scrollHeight - scrollOffset - createCommentHeight <= clientHeight;
+        const userScrolledToBottom =
+            scrollHeight - scrollOffset - createCommentHeight <= clientHeight;
 
         if (!scrollUpdateWasRequested) {
             this.scrollShortCircuit = 0;
@@ -222,7 +248,9 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         }
 
         this.setState({
-            topRhsPostId: getLatestPostId(this.props.replyListIds.slice(visibleTopItem)),
+            topRhsPostId: getLatestPostId(
+                this.props.replyListIds.slice(visibleTopItem),
+            ),
         });
     };
 
@@ -247,7 +275,9 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         let postIndex = 0;
 
         if (this.props.highlightedPostId) {
-            postIndex = this.props.replyListIds.findIndex((postId) => postId === this.props.highlightedPostId);
+            postIndex = this.props.replyListIds.findIndex(
+                (postId) => postId === this.props.highlightedPostId,
+            );
         } else {
             postIndex = getNewMessageIndex(this.props.replyListIds);
         }
@@ -259,14 +289,23 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         if (index < 0 || index >= this.props.replyListIds.length) {
             return;
         }
-        const {overscanStopIndex, overscanStartIndex} = this.state;
+        const { overscanStopIndex, overscanStartIndex } = this.state;
 
         if (overscanStartIndex != null && index < overscanStartIndex) {
-            this.scrollToItemCorrection(index, Math.max(overscanStartIndex + 1, 0));
+            this.scrollToItemCorrection(
+                index,
+                Math.max(overscanStartIndex + 1, 0),
+            );
         }
 
         if (overscanStopIndex != null && index > overscanStopIndex) {
-            this.scrollToItemCorrection(index, Math.min(overscanStopIndex - 1, this.props.replyListIds.length - 1));
+            this.scrollToItemCorrection(
+                index,
+                Math.min(
+                    overscanStopIndex - 1,
+                    this.props.replyListIds.length - 1,
+                ),
+            );
         }
     };
 
@@ -280,10 +319,10 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
 
         // this should not trigger a failure to scroll
         // it should always be an index in between rendered items (overscanStartIndex < nearIndex < overscanStopIndex)
-        this.scrollToItem(nearIndex, 'start');
+        this.scrollToItem(nearIndex, "start");
 
         window.requestAnimationFrame(() => {
-            this.scrollToItem(index, 'start');
+            this.scrollToItem(index, "start");
         });
     };
 
@@ -294,62 +333,83 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
     };
 
     scrollToBottom = () => {
-        this.scrollToItem(0, 'end');
+        this.scrollToItem(0, "end");
     };
 
     handleToastDismiss = () => {
-        this.setState({lastViewedBottom: Date.now()});
+        this.setState({ lastViewedBottom: Date.now() });
     };
 
     handleToastClick = () => {
         const index = getNewMessageIndex(this.props.replyListIds);
         if (index >= 0) {
-            this.scrollToItem(index, 'start', OFFSET_TO_SHOW_TOAST);
+            this.scrollToItem(index, "start", OFFSET_TO_SHOW_TOAST);
         } else {
             this.scrollToBottom();
         }
     };
 
     scrollToHighlightedPost = () => {
-        const {highlightedPostId, replyListIds} = this.props;
+        const { highlightedPostId, replyListIds } = this.props;
 
         if (highlightedPostId) {
-            this.setState({userScrolledToBottom: false}, () => {
-                this.scrollToItem(replyListIds.indexOf(highlightedPostId), 'center');
+            this.setState({ userScrolledToBottom: false }, () => {
+                this.scrollToItem(
+                    replyListIds.indexOf(highlightedPostId),
+                    "center",
+                );
             });
         }
     };
 
     handleScrollStop = () => {
         if (this.mounted) {
-            this.setState({isScrolling: false});
+            this.setState({ isScrolling: false });
         }
     };
 
-    renderRow = ({data, itemId, style}: {data: any; itemId: any; style: any}) => {
+    renderRow = ({
+        data,
+        itemId,
+        style,
+    }: {
+        data: any;
+        itemId: any;
+        style: any;
+    }) => {
         const index = data.indexOf(itemId);
-        let className = '';
+        let className = "";
         let a11yIndex = 0;
-        const basePaddingClass = 'post-row__padding';
-        const previousItemId = (index !== -1 && index < data.length - 1) ? data[index + 1] : '';
-        const nextItemId = (index > 0 && index < data.length) ? data[index - 1] : '';
+        const basePaddingClass = "post-row__padding";
+        const previousItemId =
+            index !== -1 && index < data.length - 1 ? data[index + 1] : "";
+        const nextItemId =
+            index > 0 && index < data.length ? data[index - 1] : "";
 
         if (isDateLine(nextItemId) || isStartOfNewMessages(nextItemId)) {
-            className += basePaddingClass + ' bottom';
+            className += basePaddingClass + " bottom";
         }
 
-        if (isDateLine(previousItemId) || isStartOfNewMessages(previousItemId)) {
+        if (
+            isDateLine(previousItemId) ||
+            isStartOfNewMessages(previousItemId)
+        ) {
             if (className.includes(basePaddingClass)) {
-                className += ' top';
+                className += " top";
             } else {
-                className += basePaddingClass + ' top';
+                className += basePaddingClass + " top";
             }
         }
 
         const isLastPost = itemId === this.props.lastPost.id;
         const isRootPost = itemId === this.props.selected.id;
 
-        if (!isDateLine(itemId) && !isStartOfNewMessages(itemId) && !isCreateComment(itemId) && !isRootPost) {
+        if (
+            !isDateLine(itemId) &&
+            !isStartOfNewMessages(itemId) &&
+            !isCreateComment(itemId) &&
+            !isRootPost
+        ) {
             a11yIndex++;
         }
 
@@ -357,7 +417,12 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
             return (
                 <CreateComment
                     placeholder={this.props.inputPlaceholder}
-                    focusOnMount={!this.props.isThreadView && (this.state.userScrolledToBottom || (!this.state.userScrolled && this.getInitialPostIndex() === 0))}
+                    focusOnMount={
+                        !this.props.isThreadView &&
+                        (this.state.userScrolledToBottom ||
+                            (!this.state.userScrolled &&
+                                this.getInitialPostIndex() === 0))
+                    }
                     isThreadView={this.props.isThreadView}
                     latestPostId={this.props.lastPost.id}
                     ref={this.postCreateContainerRef}
@@ -368,10 +433,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         }
 
         return (
-            <div
-                style={style}
-                className={className}
-            >
+            <div style={style} className={className}>
                 <Row
                     a11yIndex={a11yIndex}
                     currentUserId={this.props.currentUserId}
@@ -380,16 +442,22 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     listId={itemId}
                     onCardClick={this.props.onCardClick}
                     previousPostId={getPreviousPostId(data, index)}
-                    timestampProps={this.props.useRelativeTimestamp ? THREADING_TIME : undefined}
+                    timestampProps={
+                        this.props.useRelativeTimestamp
+                            ? THREADING_TIME
+                            : undefined
+                    }
                     lastViewedAt={this.props.lastViewedAt}
                     threadId={this.props.selected.id}
-                    newMessagesSeparatorActions={this.props.newMessagesSeparatorActions}
+                    newMessagesSeparatorActions={
+                        this.props.newMessagesSeparatorActions
+                    }
                 />
             </div>
         );
     };
 
-    getInnerStyles = (): React.CSSProperties|undefined => {
+    getInnerStyles = (): React.CSSProperties | undefined => {
         if (!this.props.useRelativeTimestamp) {
             return innerStyles;
         }
@@ -398,8 +466,10 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
     };
 
     isNewMessagesVisible = (): boolean => {
-        const {visibleStopIndex} = this.state;
-        const newMessagesSeparatorIndex = getNewMessageIndex(this.props.replyListIds);
+        const { visibleStopIndex } = this.state;
+        const newMessagesSeparatorIndex = getNewMessageIndex(
+            this.props.replyListIds,
+        );
         if (visibleStopIndex != null) {
             return visibleStopIndex < newMessagesSeparatorIndex;
         }
@@ -407,7 +477,8 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
     };
 
     renderToast = (width: number) => {
-        const {visibleStopIndex, lastViewedBottom, userScrolledToBottom} = this.state;
+        const { visibleStopIndex, lastViewedBottom, userScrolledToBottom } =
+            this.state;
         const canShow =
             visibleStopIndex !== 0 &&
             !this.isNewMessagesVisible() &&
@@ -426,28 +497,33 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
     };
 
     render() {
-        const {topRhsPostId} = this.state;
+        const { topRhsPostId } = this.state;
 
         return (
             <>
-                {this.props.isMobileView && topRhsPostId && !this.props.useRelativeTimestamp && (
-                    <FloatingTimestamp
-                        isRhsPost={true}
-                        isScrolling={this.state.isScrolling}
-                        postId={topRhsPostId}
-                    />
-                )}
+                {this.props.isMobileView &&
+                    topRhsPostId &&
+                    !this.props.useRelativeTimestamp && (
+                        <FloatingTimestamp
+                            isRhsPost={true}
+                            isScrolling={this.state.isScrolling}
+                            postId={topRhsPostId}
+                        />
+                    )}
                 <div
-                    role='application'
-                    aria-label={Utils.localizeMessage('accessibility.sections.rhsContent', 'message details complimentary region')}
-                    className='post-right__content a11y__region'
-                    style={{height: '100%'}}
-                    data-a11y-sort-order='3'
+                    role="application"
+                    aria-label={Utils.localizeMessage(
+                        "accessibility.sections.rhsContent",
+                        "message details complimentary region",
+                    )}
+                    className="post-right__content a11y__region"
+                    style={{ height: "100%" }}
+                    data-a11y-sort-order="3"
                     data-a11y-focus-child={true}
                     data-a11y-order-reversed={true}
                 >
                     <AutoSizer>
-                        {({width, height}) => (
+                        {({ width, height }) => (
                             <>
                                 <DynamicSizeList
                                     canLoadMorePosts={this.canLoadMorePosts}
@@ -460,12 +536,16 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                                     scrollToFailed={this.handleScrollToFailed}
                                     onItemsRendered={this.onItemsRendered}
                                     onScroll={this.handleScroll}
-                                    overscanCountBackward={OVERSCAN_COUNT_BACKWARD}
-                                    overscanCountForward={OVERSCAN_COUNT_FORWARD}
+                                    overscanCountBackward={
+                                        OVERSCAN_COUNT_BACKWARD
+                                    }
+                                    overscanCountForward={
+                                        OVERSCAN_COUNT_FORWARD
+                                    }
                                     ref={this.listRef}
                                     style={virtListStyles}
                                     width={width}
-                                    className={'post-list__dynamic--RHS'}
+                                    className={"post-list__dynamic--RHS"}
                                 >
                                     {this.renderRow}
                                 </DynamicSizeList>

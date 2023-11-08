@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import type { ReactNode } from "react";
+import { FormattedMessage } from "react-intl";
 
-import EditIcon from 'components/widgets/icons/fa_edit_icon';
+import EditIcon from "components/widgets/icons/fa_edit_icon";
 
-import {a11yFocus} from 'utils/utils';
+import { a11yFocus } from "utils/utils";
 
 interface Props {
-
     /**
      * Settings title
      */
@@ -61,40 +60,52 @@ export default class SettingItemMin extends React.PureComponent<Props> {
 
         if (!this.props.disableOpen && this.props.isMobileView) {
             editButton = (
-                <div className='section-min__edit'>
+                <div className="section-min__edit">
                     <button
-                        id={this.props.section + 'Edit'}
-                        className='color--link cursor--pointer style--none'
+                        id={this.props.section + "Edit"}
+                        className="color--link cursor--pointer style--none"
                         onClick={this.handleUpdateSection}
                         ref={this.getEdit}
-                        aria-labelledby={this.props.section + 'Title ' + this.props.section + 'Edit'}
+                        aria-labelledby={
+                            this.props.section +
+                            "Title " +
+                            this.props.section +
+                            "Edit"
+                        }
                         aria-expanded={false}
                     >
-                        {this.props.describe ? this.props.describe : (
+                        {this.props.describe ? (
+                            this.props.describe
+                        ) : (
                             <FormattedMessage
-                                id='setting_item_min.edit'
-                                defaultMessage='Edit'
+                                id="setting_item_min.edit"
+                                defaultMessage="Edit"
                             />
                         )}
-                        <i className='icon icon-chevron-down'/>
+                        <i className="icon icon-chevron-down" />
                     </button>
                 </div>
             );
         } else if (!this.props.disableOpen) {
             editButton = (
-                <div className='section-min__edit'>
+                <div className="section-min__edit">
                     <button
-                        id={this.props.section + 'Edit'}
-                        className='color--link cursor--pointer style--none text-left'
+                        id={this.props.section + "Edit"}
+                        className="color--link cursor--pointer style--none text-left"
                         onClick={this.handleUpdateSection}
                         ref={this.getEdit}
-                        aria-labelledby={this.props.section + 'Title ' + this.props.section + 'Edit'}
+                        aria-labelledby={
+                            this.props.section +
+                            "Title " +
+                            this.props.section +
+                            "Edit"
+                        }
                         aria-expanded={false}
                     >
-                        <EditIcon/>
+                        <EditIcon />
                         <FormattedMessage
-                            id='setting_item_min.edit'
-                            defaultMessage='Edit'
+                            id="setting_item_min.edit"
+                            defaultMessage="Edit"
                         />
                     </button>
                 </div>
@@ -102,8 +113,8 @@ export default class SettingItemMin extends React.PureComponent<Props> {
 
             describeSection = (
                 <div
-                    id={this.props.section + 'Desc'}
-                    className='section-min__describe'
+                    id={this.props.section + "Desc"}
+                    className="section-min__describe"
                 >
                     {this.props.describe}
                 </div>
@@ -111,14 +122,11 @@ export default class SettingItemMin extends React.PureComponent<Props> {
         }
 
         return (
-            <div
-                className='section-min'
-                onClick={this.handleUpdateSection}
-            >
-                <div className='d-flex'>
+            <div className="section-min" onClick={this.handleUpdateSection}>
+                <div className="d-flex">
                     <h4
-                        id={this.props.section + 'Title'}
-                        className='section-min__title'
+                        id={this.props.section + "Title"}
+                        className="section-min__title"
                     >
                         {this.props.title}
                     </h4>

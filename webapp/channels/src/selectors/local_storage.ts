@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {GlobalState} from '@mattermost/types/store';
+import type { GlobalState } from "@mattermost/types/store";
 
-import {getCurrentTeamId, getTeamByName} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {
+    getCurrentTeamId,
+    getTeamByName,
+} from "mattermost-redux/selectors/entities/teams";
+import { getCurrentUserId } from "mattermost-redux/selectors/entities/users";
 
-import localStorageStore from 'stores/local_storage_store';
+import localStorageStore from "stores/local_storage_store";
 
 // getLastViewedChannelName combines data from the Redux store and localStorage to return the
 // previously selected channel name, returning the default channel if none exists.
@@ -31,20 +34,26 @@ export const getPenultimateViewedChannelName = (state: GlobalState) => {
 // exists.
 //
 // See LocalStorageStore for context.
-export const getLastViewedChannelNameByTeamName = (state: GlobalState, teamName: string) => {
+export const getLastViewedChannelNameByTeamName = (
+    state: GlobalState,
+    teamName: string,
+) => {
     const userId = getCurrentUserId(state);
     const team = getTeamByName(state, teamName);
     const teamId = team && team.id;
 
-    return localStorageStore.getPreviousChannelName(userId, teamId || '');
+    return localStorageStore.getPreviousChannelName(userId, teamId || "");
 };
 
-export const getLastViewedTypeByTeamName = (state: GlobalState, teamName: string) => {
+export const getLastViewedTypeByTeamName = (
+    state: GlobalState,
+    teamName: string,
+) => {
     const userId = getCurrentUserId(state);
     const team = getTeamByName(state, teamName);
     const teamId = team && team.id;
 
-    return localStorageStore.getPreviousViewedType(userId, teamId || '');
+    return localStorageStore.getPreviousViewedType(userId, teamId || "");
 };
 
 export const getPreviousTeamId = (state: GlobalState) => {
@@ -57,5 +66,9 @@ export const getPreviousTeamLastViewedType = (state: GlobalState) => {
     const previousTeamID = getPreviousTeamId(state);
     const userId = getCurrentUserId(state);
 
-    return localStorageStore.getPreviousViewedType(userId, previousTeamID || '', state);
+    return localStorageStore.getPreviousViewedType(
+        userId,
+        previousTeamID || "",
+        state,
+    );
 };

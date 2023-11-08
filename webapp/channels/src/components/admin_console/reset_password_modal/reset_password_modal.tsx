@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { Modal } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import * as Utils from 'utils/utils';
+import * as Utils from "utils/utils";
 
 interface PasswordConfig {
     minimumLength: number;
@@ -22,7 +22,7 @@ interface PasswordConfig {
 type State = {
     serverErrorNewPass: React.ReactNode;
     serverErrorCurrentPass: React.ReactNode;
-}
+};
 
 type Props = {
     user?: UserProfile;
@@ -32,11 +32,18 @@ type Props = {
     onModalDismissed: () => void;
     passwordConfig: PasswordConfig;
     actions: {
-        updateUserPassword: (userId: string, currentPassword: string, password: string) => ActionResult;
+        updateUserPassword: (
+            userId: string,
+            currentPassword: string,
+            password: string,
+        ) => ActionResult;
     };
-}
+};
 
-export default class ResetPasswordModal extends React.PureComponent<Props, State> {
+export default class ResetPasswordModal extends React.PureComponent<
+    Props,
+    State
+> {
     private currentPasswordRef: React.RefObject<HTMLInputElement>;
     private passwordRef: React.RefObject<HTMLInputElement>;
     public static defaultProps: Partial<Props> = {
@@ -62,40 +69,51 @@ export default class ResetPasswordModal extends React.PureComponent<Props, State
         });
     }
 
-    private doSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    private doSubmit = async (
+        e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    ) => {
         e.preventDefault();
         if (!this.props.user) {
             return;
         }
 
-        let currentPassword = '';
+        let currentPassword = "";
         if (this.currentPasswordRef.current) {
-            currentPassword = (this.currentPasswordRef.current as HTMLInputElement).value;
-            if (currentPassword === '') {
+            currentPassword = (
+                this.currentPasswordRef.current as HTMLInputElement
+            ).value;
+            if (currentPassword === "") {
                 const errorMsg = (
                     <FormattedMessage
-                        id='admin.reset_password.missing_current'
-                        defaultMessage='Please enter your current password.'
+                        id="admin.reset_password.missing_current"
+                        defaultMessage="Please enter your current password."
                     />
                 );
-                this.setState({serverErrorCurrentPass: errorMsg});
+                this.setState({ serverErrorCurrentPass: errorMsg });
                 return;
             }
         }
 
         const password = (this.passwordRef.current as HTMLInputElement).value;
 
-        const {valid, error} = Utils.isValidPassword(password, this.props.passwordConfig);
+        const { valid, error } = Utils.isValidPassword(
+            password,
+            this.props.passwordConfig,
+        );
         if (!valid && error) {
-            this.setState({serverErrorNewPass: error});
+            this.setState({ serverErrorNewPass: error });
             return;
         }
 
-        this.setState({serverErrorNewPass: null});
+        this.setState({ serverErrorNewPass: null });
 
-        const result = await this.props.actions.updateUserPassword(this.props.user.id, currentPassword, password);
-        if ('error' in result) {
-            this.setState({serverErrorCurrentPass: result.error.message});
+        const result = await this.props.actions.updateUserPassword(
+            this.props.user.id,
+            currentPassword,
+            password,
+        );
+        if ("error" in result) {
+            this.setState({ serverErrorCurrentPass: result.error.message });
             return;
         }
         this.props.onModalSubmit(this.props.user);
@@ -112,30 +130,36 @@ export default class ResetPasswordModal extends React.PureComponent<Props, State
     public render(): JSX.Element {
         const user = this.props.user;
         if (user == null) {
-            return <div/>;
+            return <div />;
         }
 
-        let urlClass = 'input-group input-group--limit';
+        let urlClass = "input-group input-group--limit";
         let serverErrorNewPass = null;
 
         if (this.state.serverErrorNewPass) {
-            urlClass += ' has-error';
-            serverErrorNewPass = <div className='has-error'><p className='input__help error'>{this.state.serverErrorNewPass}</p></div>;
+            urlClass += " has-error";
+            serverErrorNewPass = (
+                <div className="has-error">
+                    <p className="input__help error">
+                        {this.state.serverErrorNewPass}
+                    </p>
+                </div>
+            );
         }
 
         let title;
         if (user.auth_service) {
             title = (
                 <FormattedMessage
-                    id='admin.reset_password.titleSwitch'
-                    defaultMessage='Switch Account to Email/Password'
+                    id="admin.reset_password.titleSwitch"
+                    defaultMessage="Switch Account to Email/Password"
                 />
             );
         } else {
             title = (
                 <FormattedMessage
-                    id='admin.reset_password.titleReset'
-                    defaultMessage='Reset Password'
+                    id="admin.reset_password.titleReset"
+                    defaultMessage="Reset Password"
                 />
             );
         }
@@ -145,28 +169,34 @@ export default class ResetPasswordModal extends React.PureComponent<Props, State
         let newPasswordFocus = true;
         if (this.props.currentUserId === user.id) {
             newPasswordFocus = false;
-            let urlClassCurrentPass = 'input-group input-group--limit';
+            let urlClassCurrentPass = "input-group input-group--limit";
             if (this.state.serverErrorCurrentPass) {
-                urlClassCurrentPass += ' has-error';
-                serverErrorCurrentPass = <div className='has-error'><p className='input__help error'>{this.state.serverErrorCurrentPass}</p></div>;
+                urlClassCurrentPass += " has-error";
+                serverErrorCurrentPass = (
+                    <div className="has-error">
+                        <p className="input__help error">
+                            {this.state.serverErrorCurrentPass}
+                        </p>
+                    </div>
+                );
             }
             currentPassword = (
-                <div className='col-sm-10 password__group-addon-space'>
+                <div className="col-sm-10 password__group-addon-space">
                     <div className={urlClassCurrentPass}>
                         <span
-                            data-toggle='tooltip'
-                            title='Current Password'
-                            className='input-group-addon password__group-addon'
+                            data-toggle="tooltip"
+                            title="Current Password"
+                            className="input-group-addon password__group-addon"
                         >
                             <FormattedMessage
-                                id='admin.reset_password.curentPassword'
-                                defaultMessage='Current Password'
+                                id="admin.reset_password.curentPassword"
+                                defaultMessage="Current Password"
                             />
                         </span>
                         <input
-                            type='password'
+                            type="password"
                             ref={this.currentPasswordRef}
-                            className='form-control'
+                            className="form-control"
                             autoFocus={true}
                         />
                     </div>
@@ -176,43 +206,40 @@ export default class ResetPasswordModal extends React.PureComponent<Props, State
 
         return (
             <Modal
-                dialogClassName='a11y__modal'
+                dialogClassName="a11y__modal"
                 show={this.props.show}
                 onHide={this.doCancel}
-                role='dialog'
-                aria-labelledby='resetPasswordModalLabel'
+                role="dialog"
+                aria-labelledby="resetPasswordModalLabel"
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title
-                        componentClass='h1'
-                        id='resetPasswordModalLabel'
+                        componentClass="h1"
+                        id="resetPasswordModalLabel"
                     >
                         {title}
                     </Modal.Title>
                 </Modal.Header>
-                <form
-                    role='form'
-                    className='form-horizontal'
-                >
+                <form role="form" className="form-horizontal">
                     <Modal.Body>
-                        <div className='form-group'>
+                        <div className="form-group">
                             {currentPassword}
-                            <div className='col-sm-10'>
+                            <div className="col-sm-10">
                                 <div className={urlClass}>
                                     <span
-                                        data-toggle='tooltip'
-                                        title='New Password'
-                                        className='input-group-addon password__group-addon'
+                                        data-toggle="tooltip"
+                                        title="New Password"
+                                        className="input-group-addon password__group-addon"
                                     >
                                         <FormattedMessage
-                                            id='admin.reset_password.newPassword'
-                                            defaultMessage='New Password'
+                                            id="admin.reset_password.newPassword"
+                                            defaultMessage="New Password"
                                         />
                                     </span>
                                     <input
-                                        type='password'
+                                        type="password"
                                         ref={this.passwordRef}
-                                        className='form-control'
+                                        className="form-control"
                                         autoFocus={newPasswordFocus}
                                     />
                                 </div>
@@ -223,23 +250,23 @@ export default class ResetPasswordModal extends React.PureComponent<Props, State
                     </Modal.Body>
                     <Modal.Footer>
                         <button
-                            type='button'
-                            className='btn btn-tertiary'
+                            type="button"
+                            className="btn btn-tertiary"
                             onClick={this.doCancel}
                         >
                             <FormattedMessage
-                                id='admin.reset_password.cancel'
-                                defaultMessage='Cancel'
+                                id="admin.reset_password.cancel"
+                                defaultMessage="Cancel"
                             />
                         </button>
                         <button
                             onClick={this.doSubmit}
-                            type='submit'
-                            className='btn btn-primary'
+                            type="submit"
+                            className="btn btn-primary"
                         >
                             <FormattedMessage
-                                id='admin.reset_password.reset'
-                                defaultMessage='Reset'
+                                id="admin.reset_password.reset"
+                                defaultMessage="Reset"
                             />
                         </button>
                     </Modal.Footer>

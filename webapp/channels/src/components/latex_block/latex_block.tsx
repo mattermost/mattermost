@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {KatexOptions} from 'katex';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type { KatexOptions } from "katex";
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-type Katex = typeof import('katex');
+type Katex = typeof import("katex");
 
 type Props = {
     content: string;
@@ -14,7 +14,7 @@ type Props = {
 
 type State = {
     katex?: Katex;
-}
+};
 
 export default class LatexBlock extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -26,19 +26,15 @@ export default class LatexBlock extends React.PureComponent<Props, State> {
     }
 
     componentDidMount(): void {
-        import('katex').then((katex) => {
-            this.setState({katex: katex.default});
+        import("katex").then((katex) => {
+            this.setState({ katex: katex.default });
         });
     }
 
     render(): React.ReactNode {
         if (!this.props.enableLatex || this.state.katex === undefined) {
             return (
-                <div
-                    className='post-body--code tex'
-                >
-                    {this.props.content}
-                </div>
+                <div className="post-body--code tex">{this.props.content}</div>
             );
         }
 
@@ -51,21 +47,22 @@ export default class LatexBlock extends React.PureComponent<Props, State> {
                 fleqn: true,
             };
 
-            const html = this.state.katex.renderToString(this.props.content, katexOptions);
+            const html = this.state.katex.renderToString(
+                this.props.content,
+                katexOptions,
+            );
 
             return (
                 <div
-                    className='post-body--code tex'
-                    dangerouslySetInnerHTML={{__html: html}}
+                    className="post-body--code tex"
+                    dangerouslySetInnerHTML={{ __html: html }}
                 />
             );
         } catch (e) {
             return (
-                <div
-                    className='post-body--code tex'
-                >
+                <div className="post-body--code tex">
                     <FormattedMessage
-                        id='katex.error'
+                        id="katex.error"
                         defaultMessage="Couldn't compile your Latex code. Please review the syntax and try again."
                     />
                 </div>

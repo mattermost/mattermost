@@ -1,25 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Modal} from 'react-bootstrap';
+import React from "react";
+import { Modal } from "react-bootstrap";
 
-import * as Utils from 'utils/utils';
+import * as Utils from "utils/utils";
 
-import Menu from '../../menu';
-import type SubMenuItem from '../../menu_items/submenu_item';
-import MenuWrapper from '../../menu_wrapper';
+import Menu from "../../menu";
+import type SubMenuItem from "../../menu_items/submenu_item";
+import MenuWrapper from "../../menu_wrapper";
 
-import './submenu_modal.scss';
+import "./submenu_modal.scss";
 
 type Props = {
     elements?: Array<React.ComponentProps<typeof SubMenuItem>>;
     onExited: () => void;
-}
+};
 
 type State = {
     show: boolean;
-}
+};
 
 export default class SubMenuModal extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
@@ -29,8 +29,9 @@ export default class SubMenuModal extends React.PureComponent<Props, State> {
         };
     }
 
-    public onHide = () => { //public because it is used on tests
-        this.setState({show: false});
+    public onHide = () => {
+        //public because it is used on tests
+        this.setState({ show: false });
     };
 
     public render() {
@@ -52,25 +53,26 @@ export default class SubMenuModal extends React.PureComponent<Props, State> {
         }
         return (
             <Modal
-                dialogClassName={'SubMenuModal a11y__modal mobile-sub-menu'}
+                dialogClassName={"SubMenuModal a11y__modal mobile-sub-menu"}
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={this.props.onExited}
                 enforceFocus={false}
-                id='submenuModal'
-                role='dialog'
+                id="submenuModal"
+                role="dialog"
             >
-                <Modal.Body
-                    onClick={this.onHide}
-                >
+                <Modal.Body onClick={this.onHide}>
                     <MenuWrapper>
                         <Menu
                             openLeft={true}
-                            ariaLabel={Utils.localizeMessage('post_info.submenu.mobile', 'mobile submenu').toLowerCase()}
+                            ariaLabel={Utils.localizeMessage(
+                                "post_info.submenu.mobile",
+                                "mobile submenu",
+                            ).toLowerCase()}
                         >
                             {SubMenuItems}
                         </Menu>
-                        <div/>
+                        <div />
                     </MenuWrapper>
                 </Modal.Body>
             </Modal>

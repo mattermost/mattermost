@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {StripeCardElement} from '@stripe/stripe-js';
+import type { StripeCardElement } from "@stripe/stripe-js";
 
 export type StripeSetupIntent = {
     id: string;
@@ -22,7 +22,7 @@ export type BillingDetails = {
 };
 
 export const areBillingDetailsValid = (
-    billingDetails: Omit<BillingDetails, 'card'> | null | undefined,
+    billingDetails: Omit<BillingDetails, "card"> | null | undefined,
 ): boolean => {
     if (billingDetails == null) {
         return false;
@@ -30,10 +30,10 @@ export const areBillingDetailsValid = (
 
     return Boolean(
         billingDetails.address &&
-      billingDetails.city &&
-      billingDetails.state &&
-      billingDetails.country &&
-      billingDetails.postalCode &&
-      billingDetails.name,
+            billingDetails.city &&
+            billingDetails.state &&
+            billingDetails.country &&
+            billingDetails.postalCode &&
+            billingDetails.name,
     );
 };

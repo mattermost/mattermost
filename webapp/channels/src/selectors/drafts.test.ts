@@ -1,17 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {StoragePrefixes} from 'utils/constants';
+import mergeObjects from "packages/mattermost-redux/test/merge_objects";
+import { StoragePrefixes } from "utils/constants";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import {makeGetDrafts, makeGetDraftsByPrefix, makeGetDraftsCount} from './drafts';
+import {
+    makeGetDrafts,
+    makeGetDraftsByPrefix,
+    makeGetDraftsCount,
+} from "./drafts";
 
-const currentUserId = 'currentUserId';
-const currentChannelId = 'channelId';
-const rootId = 'rootId';
-const currentTeamId = 'teamId';
+const currentUserId = "currentUserId";
+const currentChannelId = "channelId";
+const rootId = "rootId";
+const currentTeamId = "teamId";
 const initialState = {
     entities: {
         users: {
@@ -19,14 +23,17 @@ const initialState = {
             profiles: {
                 currentUserId: {
                     id: currentUserId,
-                    roles: 'system_role',
+                    roles: "system_role",
                 },
             },
         },
         channels: {
             currentChannelId,
             channels: {
-                currentChannelId: {id: currentChannelId, team_id: currentTeamId},
+                currentChannelId: {
+                    id: currentChannelId,
+                    team_id: currentTeamId,
+                },
             },
             channelsInTeam: {
                 currentTeamId: [currentChannelId],
@@ -35,7 +42,7 @@ const initialState = {
                 currentChannelId: {
                     channel_id: currentChannelId,
                     user_id: currentUserId,
-                    roles: 'channel_role',
+                    roles: "channel_role",
                     mention_count: 1,
                     msg_count: 9,
                 },
@@ -46,12 +53,12 @@ const initialState = {
             teams: {
                 currentTeamId: {
                     id: currentTeamId,
-                    name: 'team-1',
-                    displayName: 'Team 1',
+                    name: "team-1",
+                    displayName: "Team 1",
                 },
             },
             myMembers: {
-                currentTeamId: {roles: 'team_role'},
+                currentTeamId: { roles: "team_role" },
             },
         },
         general: {
@@ -65,7 +72,7 @@ const initialState = {
 
 const commentDrafts = [
     {
-        message: 'comment_draft',
+        message: "comment_draft",
         fileInfos: [],
         uploadsInProgress: [],
         channelId: currentChannelId,
@@ -76,7 +83,7 @@ const commentDrafts = [
 
 const channelDrafts = [
     {
-        message: 'channel_draft',
+        message: "channel_draft",
         fileInfos: [],
         uploadsInProgress: [],
         channelId: currentChannelId,
@@ -89,11 +96,11 @@ const state = mergeObjects(initialState, {
         storage: {
             [`${StoragePrefixes.COMMENT_DRAFT}${rootId}`]: {
                 value: commentDrafts[0],
-                timestamp: new Date('2022-11-20T23:21:53.552Z'),
+                timestamp: new Date("2022-11-20T23:21:53.552Z"),
             },
             [`${StoragePrefixes.DRAFT}${currentChannelId}`]: {
                 value: channelDrafts[0],
-                timestamp: new Date('2022-11-20T23:21:53.552Z'),
+                timestamp: new Date("2022-11-20T23:21:53.552Z"),
             },
         },
     },
@@ -103,8 +110,8 @@ const expectedCommentDrafts = [
     {
         id: rootId,
         key: `${StoragePrefixes.COMMENT_DRAFT}${rootId}`,
-        type: 'thread',
-        timestamp: new Date('2022-11-20T23:21:53.552Z'),
+        type: "thread",
+        timestamp: new Date("2022-11-20T23:21:53.552Z"),
         value: commentDrafts[0],
     },
 ];
@@ -113,25 +120,27 @@ const expectedChannelDrafts = [
     {
         id: currentChannelId,
         key: `${StoragePrefixes.DRAFT}${currentChannelId}`,
-        type: 'channel',
-        timestamp: new Date('2022-11-20T23:21:53.552Z'),
+        type: "channel",
+        timestamp: new Date("2022-11-20T23:21:53.552Z"),
         value: channelDrafts[0],
     },
 ];
 
-jest.mock('mattermost-redux/selectors/entities/channels', () => ({
+jest.mock("mattermost-redux/selectors/entities/channels", () => ({
     getMyActiveChannelIds: () => currentChannelId,
 }));
 
-describe('makeGetDraftsByPrefix', () => {
-    it('should return comment drafts when given the comment_draft prefix', () => {
-        const getDraftsByPrefix = makeGetDraftsByPrefix(StoragePrefixes.COMMENT_DRAFT);
+describe("makeGetDraftsByPrefix", () => {
+    it("should return comment drafts when given the comment_draft prefix", () => {
+        const getDraftsByPrefix = makeGetDraftsByPrefix(
+            StoragePrefixes.COMMENT_DRAFT,
+        );
         const drafts = getDraftsByPrefix(state);
 
         expect(drafts).toEqual(expectedCommentDrafts);
     });
 
-    it('should return channel drafts when given the comment_draft prefix', () => {
+    it("should return channel drafts when given the comment_draft prefix", () => {
         const getDraftsByPrefix = makeGetDraftsByPrefix(StoragePrefixes.DRAFT);
         const drafts = getDraftsByPrefix(state);
 
@@ -139,20 +148,25 @@ describe('makeGetDraftsByPrefix', () => {
     });
 });
 
-describe('makeGetDrafts', () => {
-    it('should return all drafts', () => {
+describe("makeGetDrafts", () => {
+    it("should return all drafts", () => {
         const getDrafts = makeGetDrafts();
         const drafts = getDrafts(state);
 
-        expect(drafts).toEqual([...expectedChannelDrafts, ...expectedCommentDrafts]);
+        expect(drafts).toEqual([
+            ...expectedChannelDrafts,
+            ...expectedCommentDrafts,
+        ]);
     });
 });
 
-describe('makeGetDraftsCount', () => {
-    it('should return drafts count', () => {
+describe("makeGetDraftsCount", () => {
+    it("should return drafts count", () => {
         const getDraftsCount = makeGetDraftsCount();
         const draftCount = getDraftsCount(state);
 
-        expect(draftCount).toEqual([...expectedChannelDrafts, ...expectedCommentDrafts].length);
+        expect(draftCount).toEqual(
+            [...expectedChannelDrafts, ...expectedCommentDrafts].length,
+        );
     });
 });

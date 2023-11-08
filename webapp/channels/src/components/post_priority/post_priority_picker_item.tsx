@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled from "styled-components";
 
-import {CheckIcon} from '@mattermost/compass-icons/components';
+import { CheckIcon } from "@mattermost/compass-icons/components";
 
-import Toggle from 'components/toggle';
-import MenuGroup from 'components/widgets/menu/menu_group';
-import menuItem from 'components/widgets/menu/menu_items/menu_item';
+import Toggle from "components/toggle";
+import MenuGroup from "components/widgets/menu/menu_group";
+import menuItem from "components/widgets/menu/menu_items/menu_item";
 
 type ItemProps = {
     ariaLabel: string;
     isSelected: boolean;
     onClick: () => void;
     text: React.ReactNode;
-}
+};
 
 type ToggleProps = {
     ariaLabel?: string;
@@ -25,7 +25,7 @@ type ToggleProps = {
     onClick: () => void;
     text: React.ReactNode;
     toggled: boolean;
-}
+};
 
 const ItemButton = styled.button`
     display: flex !important;
@@ -33,7 +33,7 @@ const ItemButton = styled.button`
 `;
 
 const Wrapper = styled.div`
-    cursor: ${(props) => (props.disabled ? 'default' : 'pointer')};
+    cursor: ${(props) => (props.disabled ? "default" : "pointer")};
 
     &:hover {
         background-color: rgba(var(--center-channel-color-rgb), 0.1);
@@ -82,22 +82,15 @@ const Menu = styled.ul`
     }
 `;
 
-function Item({
-    onClick,
-    ariaLabel,
-    text,
-    isSelected,
-}: ItemProps) {
+function Item({ onClick, ariaLabel, text, isSelected }: ItemProps) {
     return (
         <ItemButton
             aria-label={ariaLabel}
-            className='style--none'
+            className="style--none"
             onClick={onClick}
         >
-            {text && <span className='MenuItem__primary-text'>{text}</span>}
-            {isSelected && (
-                <StyledCheckIcon size={18}/>
-            )}
+            {text && <span className="MenuItem__primary-text">{text}</span>}
+            {isSelected && <StyledCheckIcon size={18} />}
         </ItemButton>
     );
 }
@@ -115,33 +108,29 @@ function ToggleItem({
         <Wrapper
             onClick={disabled ? undefined : onClick}
             disabled={disabled}
-            role='button'
+            role="button"
         >
             <ToggleMain>
                 {icon}
-                <Text>
-                    {text}
-                </Text>
+                <Text>{text}</Text>
                 <ToggleWrapper>
                     <Toggle
                         aria-label={ariaLabel}
-                        size='btn-sm'
+                        size="btn-sm"
                         disabled={disabled}
                         onToggle={onClick}
                         toggled={toggled}
-                        toggleClassName='btn-toggle-primary'
+                        toggleClassName="btn-toggle-primary"
                     />
                 </ToggleWrapper>
             </ToggleMain>
-            <Description>
-                {description}
-            </Description>
+            <Description>{description}</Description>
         </Wrapper>
     );
 }
 
 const MenuItem = menuItem(Item);
 
-export {MenuItem, ToggleItem, MenuGroup};
+export { MenuItem, ToggleItem, MenuGroup };
 
 export default Menu;

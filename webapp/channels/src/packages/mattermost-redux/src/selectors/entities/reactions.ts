@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {GlobalState} from '@mattermost/types/store';
+import type { GlobalState } from "@mattermost/types/store";
 
-import {Permissions} from 'mattermost-redux/constants';
+import { Permissions } from "mattermost-redux/constants";
 
-import {getChannel} from './channels';
-import {haveIChannelPermission} from './roles';
+import { getChannel } from "./channels";
+import { haveIChannelPermission } from "./roles";
 
 export function canAddReactions(state: GlobalState, channelId: string) {
     const channel = getChannel(state, channelId);
@@ -15,7 +15,12 @@ export function canAddReactions(state: GlobalState, channelId: string) {
         return false;
     }
 
-    return haveIChannelPermission(state, channel.team_id, channelId, Permissions.ADD_REACTION);
+    return haveIChannelPermission(
+        state,
+        channel.team_id,
+        channelId,
+        Permissions.ADD_REACTION,
+    );
 }
 
 export function canRemoveReactions(state: GlobalState, channelId: string) {
@@ -25,5 +30,10 @@ export function canRemoveReactions(state: GlobalState, channelId: string) {
         return false;
     }
 
-    return haveIChannelPermission(state, channel.team_id, channelId, Permissions.REMOVE_REACTION);
+    return haveIChannelPermission(
+        state,
+        channel.team_id,
+        channelId,
+        Permissions.REMOVE_REACTION,
+    );
 }

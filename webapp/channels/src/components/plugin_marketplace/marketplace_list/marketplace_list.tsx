@@ -1,17 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo} from 'react';
-import {useIntl} from 'react-intl';
+import React, { useCallback, useMemo } from "react";
+import { useIntl } from "react-intl";
 
-import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+import type {
+    MarketplaceApp,
+    MarketplacePlugin,
+} from "@mattermost/types/marketplace";
 
-import {isPlugin, getName} from 'mattermost-redux/utils/marketplace';
+import { isPlugin, getName } from "mattermost-redux/utils/marketplace";
 
-import PluginIcon from 'components/widgets/icons/plugin_icon';
+import PluginIcon from "components/widgets/icons/plugin_icon";
 
-import MarketplaceItemApp from '../marketplace_item/marketplace_item_app';
-import MarketplaceItemPlugin from '../marketplace_item/marketplace_item_plugin';
+import MarketplaceItemApp from "../marketplace_item/marketplace_item_app";
+import MarketplaceItemPlugin from "../marketplace_item/marketplace_item_plugin";
 
 export const ITEMS_PER_PAGE = 15;
 
@@ -35,7 +38,7 @@ const MarketplaceList = ({
     filter,
     listRef,
 }: MarketplaceListProps) => {
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
 
     const pageItems = useMemo(() => {
         if (listing.length === 0) {
@@ -45,10 +48,10 @@ const MarketplaceList = ({
         const pageStart = page * ITEMS_PER_PAGE;
         const pageEnd = pageStart + ITEMS_PER_PAGE;
 
-        return [...listing].
-            sort((a, b) => getName(a).localeCompare(getName(b))).
-            slice(pageStart, pageEnd).
-            map((i) => (
+        return [...listing]
+            .sort((a, b) => getName(a).localeCompare(getName(b)))
+            .slice(pageStart, pageEnd)
+            .map((i) =>
                 isPlugin(i) ? (
                     <MarketplaceItemPlugin
                         key={i.manifest.id}
@@ -73,45 +76,43 @@ const MarketplaceList = ({
                         installed={i.installed}
                         labels={i.labels}
                     />
-                )
-            ));
+                ),
+            );
     }, [listing, page]);
 
-    const getNoResultsMessage = useCallback(() => (
-        filter ? (
-            formatMessage(
-                {id: 'marketplace_modal_list.no_plugins_filter', defaultMessage: 'No results for "{filter}"'},
-                {filter},
-            )
-        ) : (
-            noResultsMessage
-        )
-    ), [filter, noResultsMessage]);
+    const getNoResultsMessage = useCallback(
+        () =>
+            filter
+                ? formatMessage(
+                      {
+                          id: "marketplace_modal_list.no_plugins_filter",
+                          defaultMessage: 'No results for "{filter}"',
+                      },
+                      { filter },
+                  )
+                : noResultsMessage,
+        [filter, noResultsMessage],
+    );
 
-    return (listing.length === 0 ? (
-        <div className='no_plugins'>
-            <PluginIcon className='icon__plugin'/>
-            <div className='no_plugins__message'>
-                {getNoResultsMessage()}
-            </div>
+    return listing.length === 0 ? (
+        <div className="no_plugins">
+            <PluginIcon className="icon__plugin" />
+            <div className="no_plugins__message">{getNoResultsMessage()}</div>
             {noResultsAction && (
                 <button
-                    className='no_plugins__action'
+                    className="no_plugins__action"
                     onClick={noResultsAction.onClick}
-                    data-testid='Install-Plugins-button'
+                    data-testid="Install-Plugins-button"
                 >
                     {noResultsAction.label}
                 </button>
             )}
         </div>
     ) : (
-        <div
-            ref={listRef}
-            className='more-modal__list'
-        >
+        <div ref={listRef} className="more-modal__list">
             {pageItems}
         </div>
-    ));
+    );
 };
 
 export default MarketplaceList;

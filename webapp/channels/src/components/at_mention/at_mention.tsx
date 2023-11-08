@@ -1,25 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef, useState, useMemo} from 'react';
-import {Overlay} from 'react-bootstrap';
+import React, { useRef, useState, useMemo } from "react";
+import { Overlay } from "react-bootstrap";
 
-import type {Group} from '@mattermost/types/groups';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Group } from "@mattermost/types/groups";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {Client4} from 'mattermost-redux/client';
-import {displayUsername} from 'mattermost-redux/utils/user_utils';
+import { Client4 } from "mattermost-redux/client";
+import { displayUsername } from "mattermost-redux/utils/user_utils";
 
-import ProfilePopover from 'components/profile_popover';
-import UserGroupPopover from 'components/user_group_popover';
-import {MAX_LIST_HEIGHT, getListHeight, VIEWPORT_SCALE_FACTOR} from 'components/user_group_popover/group_member_list/group_member_list';
+import ProfilePopover from "components/profile_popover";
+import UserGroupPopover from "components/user_group_popover";
+import {
+    MAX_LIST_HEIGHT,
+    getListHeight,
+    VIEWPORT_SCALE_FACTOR,
+} from "components/user_group_popover/group_member_list/group_member_list";
 
-import type {A11yFocusEventDetail} from 'utils/constants';
-import Constants, {A11yCustomEventTypes} from 'utils/constants';
-import {isKeyPressed} from 'utils/keyboard';
-import {popOverOverlayPosition, approxGroupPopOverHeight} from 'utils/position_utils';
-import {getUserOrGroupFromMentionName} from 'utils/post_utils';
-import {getViewportSize} from 'utils/utils';
+import type { A11yFocusEventDetail } from "utils/constants";
+import Constants, { A11yCustomEventTypes } from "utils/constants";
+import { isKeyPressed } from "utils/keyboard";
+import {
+    popOverOverlayPosition,
+    approxGroupPopOverHeight,
+} from "utils/position_utils";
+import { getUserOrGroupFromMentionName } from "utils/post_utils";
+import { getViewportSize } from "utils/utils";
 
 const HEADER_HEIGHT_ESTIMATE = 130;
 
@@ -34,7 +41,7 @@ type Props = {
     hasMention?: boolean;
     disableHighlight?: boolean;
     disableGroupHighlight?: boolean;
-}
+};
 
 export const AtMention = (props: Props) => {
     const ref = useRef<HTMLAnchorElement>(null);
@@ -42,11 +49,22 @@ export const AtMention = (props: Props) => {
     const [show, setShow] = useState(false);
     const [groupUser, setGroupUser] = useState<UserProfile | undefined>();
     const [target, setTarget] = useState<HTMLAnchorElement | undefined>();
-    const [placement, setPlacement] = useState('right');
+    const [placement, setPlacement] = useState("right");
 
     const [user, group] = useMemo(
-        () => getUserOrGroupFromMentionName(props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight),
-        [props.mentionName, props.usersByUsername, props.groupsByName, props.disableGroupHighlight],
+        () =>
+            getUserOrGroupFromMentionName(
+                props.mentionName,
+                props.usersByUsername,
+                props.groupsByName,
+                props.disableGroupHighlight,
+            ),
+        [
+            props.mentionName,
+            props.usersByUsername,
+            props.groupsByName,
+            props.disableGroupHighlight,
+        ],
     );
 
     const showOverlay = (target?: HTMLAnchorElement) => {
@@ -67,7 +85,11 @@ export const AtMention = (props: Props) => {
                 popOverHeight = getViewportSize().h - 240;
             }
 
-            const placement = popOverOverlayPosition(targetBounds, getViewportSize().h, popOverHeight);
+            const placement = popOverOverlayPosition(
+                targetBounds,
+                getViewportSize().h,
+                popOverHeight,
+            );
 
             setTarget(target);
             setShow(!show);
@@ -82,7 +104,10 @@ export const AtMention = (props: Props) => {
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
-        if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
+        if (
+            isKeyPressed(e, Constants.KeyCodes.ENTER) ||
+            isKeyPressed(e, Constants.KeyCodes.SPACE)
+        ) {
             e.preventDefault();
 
             // Prevent propagation so that the message textbox isn't focused
@@ -105,23 +130,26 @@ export const AtMention = (props: Props) => {
     };
 
     const returnFocus = () => {
-        document.dispatchEvent(new CustomEvent<A11yFocusEventDetail>(
-            A11yCustomEventTypes.FOCUS, {
+        document.dispatchEvent(
+            new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
                 detail: {
                     target: ref.current,
                     keyboardOnly: true,
                 },
-            },
-        ));
+            }),
+        );
     };
 
     const getPopOver = (user?: UserProfile, group?: Group) => {
         if (user) {
             return (
                 <ProfilePopover
-                    className='user-profile-popover'
+                    className="user-profile-popover"
                     userId={user.id}
-                    src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
+                    src={Client4.getProfilePictureUrl(
+                        user.id,
+                        user.last_picture_update,
+                    )}
                     hasMention={props.hasMention}
                     hide={hideOverlay}
                     channelId={props.channelId}
@@ -147,15 +175,17 @@ export const AtMention = (props: Props) => {
         return <>{props.children}</>;
     }
 
-    let suffix = '';
-    let displayName = '';
+    let suffix = "";
+    let displayName = "";
     let highlightMention = false; // only for user
 
     if (user) {
         suffix = props.mentionName.substring(user.username.length);
         displayName = displayUsername(user, props.teammateNameDisplay);
-        highlightMention = !props.disableHighlight && user.id === props.currentUserId;
-    } else if (group) { // if statement needed for union
+        highlightMention =
+            !props.disableHighlight && user.id === props.currentUserId;
+    } else if (group) {
+        // if statement needed for union
         suffix = props.mentionName.substring(group.name.length);
         displayName = group.name;
     }
@@ -163,7 +193,7 @@ export const AtMention = (props: Props) => {
     return (
         <>
             <span
-                className={highlightMention ? 'mention--highlight' : undefined}
+                className={highlightMention ? "mention--highlight" : undefined}
             >
                 <Overlay
                     placement={placement}
@@ -181,29 +211,35 @@ export const AtMention = (props: Props) => {
                     onHide={hideGroupUserOverlay}
                     rootClose={true}
                 >
-                    {groupUser ? (
-                        <ProfilePopover
-                            className='user-profile-popover'
-                            userId={groupUser.id}
-                            src={Client4.getProfilePictureUrl(groupUser.id, groupUser.last_picture_update)}
-                            channelId={props.channelId}
-                            hasMention={props.hasMention}
-                            hide={hideGroupUserOverlay}
-                            returnFocus={returnFocus}
-                        />
-                    ) : <span/> // prevents blank-screen crash when closing groupUser ProfilePopover
+                    {
+                        groupUser ? (
+                            <ProfilePopover
+                                className="user-profile-popover"
+                                userId={groupUser.id}
+                                src={Client4.getProfilePictureUrl(
+                                    groupUser.id,
+                                    groupUser.last_picture_update,
+                                )}
+                                channelId={props.channelId}
+                                hasMention={props.hasMention}
+                                hide={hideGroupUserOverlay}
+                                returnFocus={returnFocus}
+                            />
+                        ) : (
+                            <span />
+                        ) // prevents blank-screen crash when closing groupUser ProfilePopover
                     }
                 </Overlay>
                 <a
                     onClick={handleClick}
                     onKeyDown={handleKeyDown}
-                    className={group ? 'group-mention-link' : 'mention-link'}
+                    className={group ? "group-mention-link" : "mention-link"}
                     ref={ref}
-                    aria-haspopup='dialog'
-                    role='button'
+                    aria-haspopup="dialog"
+                    role="button"
                     tabIndex={0}
                 >
-                    {'@' + displayName}
+                    {"@" + displayName}
                 </a>
             </span>
             {suffix}

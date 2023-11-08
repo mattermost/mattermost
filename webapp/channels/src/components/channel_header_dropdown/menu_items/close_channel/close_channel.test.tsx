@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import Menu from 'components/widgets/menu/menu';
+import Menu from "components/widgets/menu/menu";
 
-import CloseChannel from './close_channel';
+import CloseChannel from "./close_channel";
 
-describe('components/ChannelHeaderDropdown/MenuItem.CloseChannel', () => {
+describe("components/ChannelHeaderDropdown/MenuItem.CloseChannel", () => {
     const baseProps = {
         isArchived: true,
         actions: {
@@ -16,21 +16,21 @@ describe('components/ChannelHeaderDropdown/MenuItem.CloseChannel', () => {
         },
     };
 
-    it('should match snapshot', () => {
-        const wrapper = shallow(<CloseChannel {...baseProps}/>);
+    it("should match snapshot", () => {
+        const wrapper = shallow(<CloseChannel {...baseProps} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('shoud be hidden if the channel is not archived', () => {
+    it("shoud be hidden if the channel is not archived", () => {
         const props = {
             ...baseProps,
             isArchived: false,
         };
-        const wrapper = shallow(<CloseChannel {...props}/>);
+        const wrapper = shallow(<CloseChannel {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should runs goToLastViewedChannel function on click', () => {
+    it("should runs goToLastViewedChannel function on click", () => {
         const props = {
             ...baseProps,
             actions: {
@@ -38,8 +38,8 @@ describe('components/ChannelHeaderDropdown/MenuItem.CloseChannel', () => {
                 goToLastViewedChannel: jest.fn(),
             },
         };
-        const wrapper = shallow(<CloseChannel {...props}/>);
-        wrapper.find(Menu.ItemAction).simulate('click');
+        const wrapper = shallow(<CloseChannel {...props} />);
+        wrapper.find(Menu.ItemAction).simulate("click");
         expect(props.actions.goToLastViewedChannel).toHaveBeenCalled();
     });
 });

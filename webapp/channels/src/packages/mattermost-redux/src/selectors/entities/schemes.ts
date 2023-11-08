@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from '@mattermost/types/channels';
-import type {Scheme} from '@mattermost/types/schemes';
-import type {GlobalState} from '@mattermost/types/store';
-import type {Team} from '@mattermost/types/teams';
+import type { Channel } from "@mattermost/types/channels";
+import type { Scheme } from "@mattermost/types/schemes";
+import type { GlobalState } from "@mattermost/types/store";
+import type { Team } from "@mattermost/types/teams";
 
-import {ScopeTypes} from 'mattermost-redux/constants/schemes';
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
-import {getTeams} from 'mattermost-redux/selectors/entities/teams';
+import { ScopeTypes } from "mattermost-redux/constants/schemes";
+import { createSelector } from "mattermost-redux/selectors/create_selector";
+import { getAllChannels } from "mattermost-redux/selectors/entities/channels";
+import { getTeams } from "mattermost-redux/selectors/entities/teams";
 
 export function getSchemes(state: GlobalState): {
     [x: string]: Scheme;
@@ -23,10 +23,11 @@ export function getScheme(state: GlobalState, id: string): Scheme {
 }
 
 export function makeGetSchemeChannels() {
-    return (createSelector(
-        'makeGetSchemeChannels',
+    return createSelector(
+        "makeGetSchemeChannels",
         getAllChannels,
-        (state: GlobalState, props: {schemeId: string}) => getScheme(state, props.schemeId),
+        (state: GlobalState, props: { schemeId: string }) =>
+            getScheme(state, props.schemeId),
         (allChannels, scheme) => {
             if (!scheme) {
                 return [];
@@ -48,16 +49,21 @@ export function makeGetSchemeChannels() {
             });
 
             return schemeChannels;
-        }) as (b: GlobalState, a: {
-        schemeId: string;
-    }) => Channel[]);
+        },
+    ) as (
+        b: GlobalState,
+        a: {
+            schemeId: string;
+        },
+    ) => Channel[];
 }
 
 export function makeGetSchemeTeams() {
-    return (createSelector(
-        'makeGetSchemeTeams',
+    return createSelector(
+        "makeGetSchemeTeams",
         getTeams,
-        (state: GlobalState, props: {schemeId: string}) => getScheme(state, props.schemeId),
+        (state: GlobalState, props: { schemeId: string }) =>
+            getScheme(state, props.schemeId),
         (allTeams, scheme) => {
             if (!scheme) {
                 return [];
@@ -79,7 +85,11 @@ export function makeGetSchemeTeams() {
             });
 
             return schemeTeams;
-        }) as (b: GlobalState, a: {
-        schemeId: string;
-    }) => Team[]);
+        },
+    ) as (
+        b: GlobalState,
+        a: {
+            schemeId: string;
+        },
+    ) => Team[];
 }

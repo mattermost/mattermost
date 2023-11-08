@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback, memo, useRef} from 'react';
-import type {match} from 'react-router-dom';
+import React, { useState, useEffect, useCallback, memo, useRef } from "react";
+import type { match } from "react-router-dom";
 
 type Props = {
     channelId: string;
@@ -10,14 +10,18 @@ type Props = {
     /*
      * Object from react-router
      */
-    match: match<{postid: string}>;
+    match: match<{ postid: string }>;
     returnTo: string;
     teamName?: string;
     actions: {
-        focusPost: (postId: string, returnTo: string, currentUserId: string) => void;
+        focusPost: (
+            postId: string,
+            returnTo: string,
+            currentUserId: string,
+        ) => void;
     };
     currentUserId: string;
-}
+};
 
 const PermalinkView = (props: Props) => {
     const mounted = useRef(false);
@@ -32,14 +36,23 @@ const PermalinkView = (props: Props) => {
 
     const doPermalinkAction = useCallback(async () => {
         const postId = props.match.params.postid;
-        await props.actions.focusPost(postId, props.returnTo, props.currentUserId);
+        await props.actions.focusPost(
+            postId,
+            props.returnTo,
+            props.currentUserId,
+        );
         if (mounted.current) {
             setValid(true);
         }
-    }, [props.match.params.postid, props.returnTo, props.currentUserId, props.actions]);
+    }, [
+        props.match.params.postid,
+        props.returnTo,
+        props.currentUserId,
+        props.actions,
+    ]);
 
     useEffect(() => {
-        document.body.classList.add('app__body');
+        document.body.classList.add("app__body");
         doPermalinkAction();
     }, [doPermalinkAction]);
 
@@ -48,12 +61,7 @@ const PermalinkView = (props: Props) => {
         return null;
     }
 
-    return (
-        <div
-            id='app-content'
-            className='app__content'
-        />
-    );
+    return <div id="app-content" className="app__content" />;
 };
 
 export default memo(PermalinkView);

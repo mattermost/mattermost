@@ -3,32 +3,32 @@
 
 /* eslint-disable max-lines */
 
-import deepEqual from 'fast-deep-equal';
-import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import type {Timezone} from 'timezones.json';
+import deepEqual from "fast-deep-equal";
+import type { PrimitiveType, FormatXMLElementFn } from "intl-messageformat";
+import React from "react";
+import { FormattedMessage } from "react-intl";
+import type { Timezone } from "timezones.json";
 
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {UserProfile, UserTimezone} from '@mattermost/types/users';
+import type { PreferenceType } from "@mattermost/types/preferences";
+import type { UserProfile, UserTimezone } from "@mattermost/types/users";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import {trackEvent} from 'actions/telemetry_actions';
+import { trackEvent } from "actions/telemetry_actions";
 
-import SettingItem from 'components/setting_item';
-import SettingItemMax from 'components/setting_item_max';
-import ThemeSetting from 'components/user_settings/display/user_settings_theme';
-import BackIcon from 'components/widgets/icons/fa_back_icon';
+import SettingItem from "components/setting_item";
+import SettingItemMax from "components/setting_item_max";
+import ThemeSetting from "components/user_settings/display/user_settings_theme";
+import BackIcon from "components/widgets/icons/fa_back_icon";
 
-import * as I18n from 'i18n/i18n.jsx';
-import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
-import {getBrowserTimezone} from 'utils/timezone';
-import {a11yFocus} from 'utils/utils';
+import * as I18n from "i18n/i18n.jsx";
+import Constants from "utils/constants";
+import { t } from "utils/i18n";
+import { getBrowserTimezone } from "utils/timezone";
+import { a11yFocus } from "utils/utils";
 
-import ManageLanguages from './manage_languages';
-import ManageTimezones from './manage_timezones';
+import ManageLanguages from "./manage_languages";
+import ManageTimezones from "./manage_timezones";
 
 const Preferences = Constants.Preferences;
 
@@ -67,9 +67,9 @@ type Option = {
         moreMessage?: string;
     };
     childOption?: ChildOption;
-}
+};
 
-type SectionProps ={
+type SectionProps = {
     section: string;
     display: string;
     defaultDisplay: string;
@@ -84,11 +84,16 @@ type SectionProps ={
     description: {
         id: string;
         message: string;
-        values?: Record<string, React.ReactNode | PrimitiveType | FormatXMLElementFn<React.ReactNode, React.ReactNode>>;
+        values?: Record<
+            string,
+            | React.ReactNode
+            | PrimitiveType
+            | FormatXMLElementFn<React.ReactNode, React.ReactNode>
+        >;
     };
     disabled?: boolean;
     onSubmit?: () => void;
-}
+};
 
 type Props = {
     user: UserProfile;
@@ -125,11 +130,14 @@ type Props = {
     lastActiveDisplay: boolean;
     lastActiveTimeEnabled: boolean;
     actions: {
-        savePreferences: (userId: string, preferences: PreferenceType[]) => void;
+        savePreferences: (
+            userId: string,
+            preferences: PreferenceType[],
+        ) => void;
         autoUpdateTimezone: (deviceTimezone: string) => void;
         updateMe: (user: UserProfile) => Promise<ActionResult>;
     };
-}
+};
 
 type State = {
     [key: string]: any;
@@ -148,9 +156,12 @@ type State = {
     clickToReply: string;
     handleSubmit?: () => void;
     serverError?: string;
-}
+};
 
-export default class UserSettingsDisplay extends React.PureComponent<Props, State> {
+export default class UserSettingsDisplay extends React.PureComponent<
+    Props,
+    State
+> {
     public prevSections: {
         theme: string;
 
@@ -170,17 +181,17 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         };
 
         this.prevSections = {
-            theme: 'dummySectionName', // dummy value that should never match any section name
-            clock: 'theme',
-            linkpreview: 'clock',
-            message_display: 'linkpreview',
-            channel_display_mode: 'message_display',
-            languages: 'channel_display_mode',
+            theme: "dummySectionName", // dummy value that should never match any section name
+            clock: "theme",
+            linkpreview: "clock",
+            message_display: "linkpreview",
+            channel_display_mode: "message_display",
+            languages: "channel_display_mode",
         };
     }
 
     componentDidMount() {
-        const {actions, shouldAutoUpdateTimezone} = this.props;
+        const { actions, shouldAutoUpdateTimezone } = this.props;
 
         if (shouldAutoUpdateTimezone) {
             actions.autoUpdateTimezone(getBrowserTimezone());
@@ -195,18 +206,18 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
     trackChangeIfNecessary(preference: PreferenceType, oldValue: any): void {
         const props = {
-            field: 'display.' + preference.name,
+            field: "display." + preference.name,
             value: preference.value,
         };
 
         if (preference.value !== oldValue) {
-            trackEvent('settings', 'user_settings_update', props);
+            trackEvent("settings", "user_settings_update", props);
         }
     }
 
     submitLastActive = () => {
-        const {user, actions} = this.props;
-        const {lastActiveDisplay} = this.state;
+        const { user, actions } = this.props;
+        const { lastActiveDisplay } = this.state;
 
         const updatedUser = {
             ...user,
@@ -216,21 +227,20 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             },
         };
 
-        actions.updateMe(updatedUser).
-            then((res) => {
-                if ('data' in res) {
-                    this.props.updateSection('');
-                } else if ('error' in res) {
-                    const {error} = res;
-                    let serverError;
-                    if (error instanceof Error) {
-                        serverError = error.message;
-                    } else {
-                        serverError = error as string;
-                    }
-                    this.setState({serverError, isSaving: false});
+        actions.updateMe(updatedUser).then((res) => {
+            if ("data" in res) {
+                this.props.updateSection("");
+            } else if ("error" in res) {
+                const { error } = res;
+                let serverError;
+                if (error instanceof Error) {
+                    serverError = error.message;
+                } else {
+                    serverError = error as string;
                 }
-            });
+                this.setState({ serverError, isSaving: false });
+            }
+        });
     };
 
     handleSubmit = async () => {
@@ -303,7 +313,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             value: this.state.clickToReply,
         };
 
-        this.setState({isSaving: true});
+        this.setState({ isSaving: true });
 
         const preferences = [
             timePreference,
@@ -319,59 +329,62 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             colorizeUsernamesPreference,
         ];
 
-        this.trackChangeIfNecessary(collapsedReplyThreadsPreference, this.props.collapsedReplyThreads);
+        this.trackChangeIfNecessary(
+            collapsedReplyThreadsPreference,
+            this.props.collapsedReplyThreads,
+        );
 
         await this.props.actions.savePreferences(userId, preferences);
 
-        this.updateSection('');
+        this.updateSection("");
     };
 
     handleClockRadio = (militaryTime: string) => {
-        this.setState({militaryTime});
+        this.setState({ militaryTime });
     };
 
     handleTeammateNameDisplayRadio = (teammateNameDisplay: string) => {
-        this.setState({teammateNameDisplay});
+        this.setState({ teammateNameDisplay });
     };
 
     handleAvailabilityStatusRadio = (availabilityStatusOnPosts: string) => {
-        this.setState({availabilityStatusOnPosts});
+        this.setState({ availabilityStatusOnPosts });
     };
 
     handleChannelDisplayModeRadio(channelDisplayMode: string) {
-        this.setState({channelDisplayMode});
+        this.setState({ channelDisplayMode });
     }
 
     handlemessageDisplayRadio(messageDisplay: string) {
-        this.setState({messageDisplay});
+        this.setState({ messageDisplay });
     }
 
     handleCollapseRadio(collapseDisplay: string) {
-        this.setState({collapseDisplay});
+        this.setState({ collapseDisplay });
     }
 
     handleCollapseReplyThreadsRadio(collapsedReplyThreads: string) {
-        this.setState({collapsedReplyThreads});
+        this.setState({ collapsedReplyThreads });
     }
 
     handleLastActiveRadio(lastActiveDisplay: string) {
-        this.setState({lastActiveDisplay});
+        this.setState({ lastActiveDisplay });
     }
 
     handleLinkPreviewRadio(linkPreviewDisplay: string) {
-        this.setState({linkPreviewDisplay});
+        this.setState({ linkPreviewDisplay });
     }
 
     handleOneClickReactionsRadio = (oneClickReactionsOnPosts: string) => {
-        this.setState({oneClickReactionsOnPosts});
+        this.setState({ oneClickReactionsOnPosts });
     };
 
     handleClickToReplyRadio = (clickToReply: string) => {
-        this.setState({clickToReply});
+        this.setState({ clickToReply });
     };
 
-    handleOnChange(e: React.ChangeEvent, display: {[key: string]: any}) {
-        this.setState({...display});
+    handleOnChange(e: React.ChangeEvent, display: { [key: string]: any }) {
+        this.setState({ ...display });
         a11yFocus(e.currentTarget as HTMLElement);
     }
 
@@ -386,7 +399,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             this.setState(newState);
         }
 
-        this.setState({isSaving: false});
+        this.setState({ isSaving: false });
     };
 
     createSection(props: SectionProps) {
@@ -403,7 +416,8 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             onSubmit,
         } = props;
         let extraInfo = null;
-        let submit: (() => Promise<void>) | (() => void) | null = onSubmit || this.handleSubmit;
+        let submit: (() => Promise<void>) | (() => void) | null =
+            onSubmit || this.handleSubmit;
 
         const firstMessage = (
             <FormattedMessage
@@ -415,12 +429,14 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         let moreColon;
         let firstMessageMore;
         if (firstOption.radionButtonText.moreId) {
-            moreColon = ': ';
+            moreColon = ": ";
             firstMessageMore = (
-                <span className='font-weight--normal'>
+                <span className="font-weight--normal">
                     <FormattedMessage
                         id={firstOption.radionButtonText.moreId}
-                        defaultMessage={firstOption.radionButtonText.moreMessage}
+                        defaultMessage={
+                            firstOption.radionButtonText.moreMessage
+                        }
                     />
                 </span>
             );
@@ -436,10 +452,12 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         let secondMessageMore;
         if (secondOption.radionButtonText.moreId) {
             secondMessageMore = (
-                <span className='font-weight--normal'>
+                <span className="font-weight--normal">
                     <FormattedMessage
                         id={secondOption.radionButtonText.moreId}
-                        defaultMessage={secondOption.radionButtonText.moreMessage}
+                        defaultMessage={
+                            secondOption.radionButtonText.moreMessage
+                        }
                     />
                 </span>
             );
@@ -456,10 +474,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         }
 
         const messageTitle = (
-            <FormattedMessage
-                id={title.id}
-                defaultMessage={title.message}
-            />
+            <FormattedMessage id={title.id} defaultMessage={title.message} />
         );
 
         const messageDesc = (
@@ -488,8 +503,8 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 }
             }
 
-            const name = section + 'Format';
-            const key = section + 'UserDisplay';
+            const name = section + "Format";
+            const key = section + "UserDisplay";
 
             const firstDisplay = {
                 [display]: firstOption.value,
@@ -506,18 +521,20 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 };
 
                 thirdSection = (
-                    <div className='radio'>
+                    <div className="radio">
                         <label>
                             <input
-                                id={name + 'C'}
-                                type='radio'
+                                id={name + "C"}
+                                type="radio"
                                 name={name}
                                 checked={format[2]}
-                                onChange={(e) => this.handleOnChange(e, thirdDisplay)}
+                                onChange={(e) =>
+                                    this.handleOnChange(e, thirdDisplay)
+                                }
                             />
                             {thirdMessage}
                         </label>
-                        <br/>
+                        <br />
                     </div>
                 );
             }
@@ -526,16 +543,20 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             if (childOptionToShow) {
                 const childDisplay = childOptionToShow.display;
                 childOptionSection = (
-                    <div className='checkbox'>
-                        <hr/>
+                    <div className="checkbox">
+                        <hr />
                         <label>
                             <input
-                                id={name + 'childOption'}
-                                type='checkbox'
+                                id={name + "childOption"}
+                                type="checkbox"
                                 name={childOptionToShow.id}
-                                checked={childOptionToShow.value === 'true'}
+                                checked={childOptionToShow.value === "true"}
                                 onChange={(e) => {
-                                    this.handleOnChange(e, {[childDisplay]: e.target.checked ? 'true' : 'false'});
+                                    this.handleOnChange(e, {
+                                        [childDisplay]: e.target.checked
+                                            ? "true"
+                                            : "false",
+                                    });
                                 }}
                             />
                             <FormattedMessage
@@ -543,68 +564,74 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                                 defaultMessage={childOptionToShow.message}
                             />
                             {moreColon}
-                            <span className='font-weight--normal'>
+                            <span className="font-weight--normal">
                                 <FormattedMessage
                                     id={childOptionToShow.moreId}
-                                    defaultMessage={childOptionToShow.moreMessage}
+                                    defaultMessage={
+                                        childOptionToShow.moreMessage
+                                    }
                                 />
                             </span>
                         </label>
-                        <br/>
+                        <br />
                     </div>
                 );
             }
 
             let inputs = [
                 <fieldset key={key}>
-                    <legend className='form-legend hidden-label'>
+                    <legend className="form-legend hidden-label">
                         {messageTitle}
                     </legend>
-                    <div className='radio'>
+                    <div className="radio">
                         <label>
                             <input
-                                id={name + 'A'}
-                                type='radio'
+                                id={name + "A"}
+                                type="radio"
                                 name={name}
                                 checked={format[0]}
-                                onChange={(e) => this.handleOnChange(e, firstDisplay)}
+                                onChange={(e) =>
+                                    this.handleOnChange(e, firstDisplay)
+                                }
                             />
                             {firstMessage}
                             {moreColon}
                             {firstMessageMore}
                         </label>
-                        <br/>
+                        <br />
                     </div>
-                    <div className='radio'>
+                    <div className="radio">
                         <label>
                             <input
-                                id={name + 'B'}
-                                type='radio'
+                                id={name + "B"}
+                                type="radio"
                                 name={name}
                                 checked={format[1]}
-                                onChange={(e) => this.handleOnChange(e, secondDisplay)}
+                                onChange={(e) =>
+                                    this.handleOnChange(e, secondDisplay)
+                                }
                             />
                             {secondMessage}
                             {moreColon}
                             {secondMessageMore}
                         </label>
-                        <br/>
+                        <br />
                     </div>
                     {thirdSection}
                     <div>
-                        <br/>
+                        <br />
                         {messageDesc}
                     </div>
                     {childOptionSection}
                 </fieldset>,
             ];
 
-            if (display === 'teammateNameDisplay' && disabled) {
+            if (display === "teammateNameDisplay" && disabled) {
                 extraInfo = (
                     <span>
                         <FormattedMessage
-                            id='user.settings.display.teammateNameDisplay'
-                            defaultMessage='This field is handled through your System Administrator. If you want to change it, you need to do so through your System Administrator.'
+                            id="user.settings.display.teammateNameDisplay"
+                            defaultMessage="This field is handled through your System Administrator. If you want to change it, you need to do so through your System Administrator."
                         />
                     </span>
                 );
@@ -620,7 +647,8 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     serverError={this.state.serverError}
                     extraInfo={extraInfo}
                     updateSection={this.updateSection}
-                />);
+                />
+            );
         }
 
         let describe;
@@ -636,45 +664,46 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             <div>
                 <SettingItem
                     active={active}
-                    areAllSectionsInactive={this.props.activeSection === ''}
+                    areAllSectionsInactive={this.props.activeSection === ""}
                     title={messageTitle}
                     describe={describe}
                     section={section}
                     updateSection={this.updateSection}
                     max={max}
                 />
-                <div className='divider-dark'/>
+                <div className="divider-dark" />
             </div>
         );
     }
 
     render() {
         const collapseSection = this.createSection({
-            section: 'collapse',
-            display: 'collapseDisplay',
+            section: "collapse",
+            display: "collapseDisplay",
             value: this.state.collapseDisplay,
-            defaultDisplay: 'false',
+            defaultDisplay: "false",
             title: {
-                id: t('user.settings.display.collapseDisplay'),
-                message: 'Default Appearance of Image Previews',
+                id: t("user.settings.display.collapseDisplay"),
+                message: "Default Appearance of Image Previews",
             },
             firstOption: {
-                value: 'false',
+                value: "false",
                 radionButtonText: {
-                    id: t('user.settings.display.collapseOn'),
-                    message: 'On',
+                    id: t("user.settings.display.collapseOn"),
+                    message: "On",
                 },
             },
             secondOption: {
-                value: 'true',
+                value: "true",
                 radionButtonText: {
-                    id: t('user.settings.display.collapseOff'),
-                    message: 'Off',
+                    id: t("user.settings.display.collapseOff"),
+                    message: "Off",
                 },
             },
             description: {
-                id: t('user.settings.display.collapseDesc'),
-                message: 'Set whether previews of image links and image attachment thumbnails show as expanded or collapsed by default. This setting can also be controlled using the slash commands /expand and /collapse.',
+                id: t("user.settings.display.collapseDesc"),
+                message:
+                    "Set whether previews of image links and image attachment thumbnails show as expanded or collapsed by default. This setting can also be controlled using the slash commands /expand and /collapse.",
             },
         });
 
@@ -682,34 +711,35 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         if (this.props.enableLinkPreviews) {
             linkPreviewSection = this.createSection({
-                section: 'linkpreview',
-                display: 'linkPreviewDisplay',
+                section: "linkpreview",
+                display: "linkPreviewDisplay",
                 value: this.state.linkPreviewDisplay,
-                defaultDisplay: 'true',
+                defaultDisplay: "true",
                 title: {
-                    id: t('user.settings.display.linkPreviewDisplay'),
-                    message: 'Website Link Previews',
+                    id: t("user.settings.display.linkPreviewDisplay"),
+                    message: "Website Link Previews",
                 },
                 firstOption: {
-                    value: 'true',
+                    value: "true",
                     radionButtonText: {
-                        id: t('user.settings.display.linkPreviewOn'),
-                        message: 'On',
+                        id: t("user.settings.display.linkPreviewOn"),
+                        message: "On",
                     },
                 },
                 secondOption: {
-                    value: 'false',
+                    value: "false",
                     radionButtonText: {
-                        id: t('user.settings.display.linkPreviewOff'),
-                        message: 'Off',
+                        id: t("user.settings.display.linkPreviewOff"),
+                        message: "Off",
                     },
                 },
                 description: {
-                    id: t('user.settings.display.linkPreviewDesc'),
-                    message: 'When available, the first web link in a message will show a preview of the website content below the message.',
+                    id: t("user.settings.display.linkPreviewDesc"),
+                    message:
+                        "When available, the first web link in a message will show a preview of the website content below the message.",
                 },
             });
-            this.prevSections.message_display = 'linkpreview';
+            this.prevSections.message_display = "linkpreview";
         } else {
             this.prevSections.message_display = this.prevSections.linkpreview;
         }
@@ -718,141 +748,153 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         if (this.props.lastActiveTimeEnabled) {
             lastActiveSection = this.createSection({
-                section: 'lastactive',
-                display: 'lastActiveDisplay',
+                section: "lastactive",
+                display: "lastActiveDisplay",
                 value: this.state.lastActiveDisplay,
-                defaultDisplay: 'true',
+                defaultDisplay: "true",
                 title: {
-                    id: t('user.settings.display.lastActiveDisplay'),
-                    message: 'Share last active time',
+                    id: t("user.settings.display.lastActiveDisplay"),
+                    message: "Share last active time",
                 },
                 firstOption: {
-                    value: 'true',
+                    value: "true",
                     radionButtonText: {
-                        id: t('user.settings.display.lastActiveOn'),
-                        message: 'On',
+                        id: t("user.settings.display.lastActiveOn"),
+                        message: "On",
                     },
                 },
                 secondOption: {
-                    value: 'false',
+                    value: "false",
                     radionButtonText: {
-                        id: t('user.settings.display.lastActiveOff'),
-                        message: 'Off',
+                        id: t("user.settings.display.lastActiveOff"),
+                        message: "Off",
                     },
                 },
                 description: {
-                    id: t('user.settings.display.lastActiveDesc'),
-                    message: 'When enabled, other users will see when you were last active.',
+                    id: t("user.settings.display.lastActiveDesc"),
+                    message:
+                        "When enabled, other users will see when you were last active.",
                 },
                 onSubmit: this.submitLastActive,
             });
         }
 
         const clockSection = this.createSection({
-            section: 'clock',
-            display: 'militaryTime',
+            section: "clock",
+            display: "militaryTime",
             value: this.state.militaryTime,
-            defaultDisplay: 'false',
+            defaultDisplay: "false",
             title: {
-                id: t('user.settings.display.clockDisplay'),
-                message: 'Clock Display',
+                id: t("user.settings.display.clockDisplay"),
+                message: "Clock Display",
             },
             firstOption: {
-                value: 'false',
+                value: "false",
                 radionButtonText: {
-                    id: t('user.settings.display.normalClock'),
-                    message: '12-hour clock (example: 4:00 PM)',
+                    id: t("user.settings.display.normalClock"),
+                    message: "12-hour clock (example: 4:00 PM)",
                 },
             },
             secondOption: {
-                value: 'true',
+                value: "true",
                 radionButtonText: {
-                    id: t('user.settings.display.militaryClock'),
-                    message: '24-hour clock (example: 16:00)',
+                    id: t("user.settings.display.militaryClock"),
+                    message: "24-hour clock (example: 16:00)",
                 },
             },
             description: {
-                id: t('user.settings.display.preferTime'),
-                message: 'Select how you prefer time displayed.',
+                id: t("user.settings.display.preferTime"),
+                message: "Select how you prefer time displayed.",
             },
         });
 
         const teammateNameDisplaySection = this.createSection({
             section: Preferences.NAME_NAME_FORMAT,
-            display: 'teammateNameDisplay',
-            value: this.props.lockTeammateNameDisplay ? this.props.configTeammateNameDisplay : this.state.teammateNameDisplay,
+            display: "teammateNameDisplay",
+            value: this.props.lockTeammateNameDisplay
+                ? this.props.configTeammateNameDisplay
+                : this.state.teammateNameDisplay,
             defaultDisplay: this.props.configTeammateNameDisplay,
             title: {
-                id: t('user.settings.display.teammateNameDisplayTitle'),
-                message: 'Teammate Name Display',
+                id: t("user.settings.display.teammateNameDisplayTitle"),
+                message: "Teammate Name Display",
             },
             firstOption: {
                 value: Constants.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME,
                 radionButtonText: {
-                    id: t('user.settings.display.teammateNameDisplayUsername'),
-                    message: 'Show username',
+                    id: t("user.settings.display.teammateNameDisplayUsername"),
+                    message: "Show username",
                 },
             },
             secondOption: {
                 value: Constants.TEAMMATE_NAME_DISPLAY.SHOW_NICKNAME_FULLNAME,
                 radionButtonText: {
-                    id: t('user.settings.display.teammateNameDisplayNicknameFullname'),
-                    message: 'Show nickname if one exists, otherwise show first and last name',
+                    id: t(
+                        "user.settings.display.teammateNameDisplayNicknameFullname",
+                    ),
+                    message:
+                        "Show nickname if one exists, otherwise show first and last name",
                 },
             },
             thirdOption: {
                 value: Constants.TEAMMATE_NAME_DISPLAY.SHOW_FULLNAME,
                 radionButtonText: {
-                    id: t('user.settings.display.teammateNameDisplayFullname'),
-                    message: 'Show first and last name',
+                    id: t("user.settings.display.teammateNameDisplayFullname"),
+                    message: "Show first and last name",
                 },
             },
             description: {
-                id: t('user.settings.display.teammateNameDisplayDescription'),
-                message: 'Set how to display other user\'s names in posts and the Direct Messages list.',
+                id: t("user.settings.display.teammateNameDisplayDescription"),
+                message:
+                    "Set how to display other user's names in posts and the Direct Messages list.",
             },
             disabled: this.props.lockTeammateNameDisplay,
         });
 
         const availabilityStatusOnPostsSection = this.createSection({
-            section: 'availabilityStatus',
-            display: 'availabilityStatusOnPosts',
+            section: "availabilityStatus",
+            display: "availabilityStatusOnPosts",
             value: this.state.availabilityStatusOnPosts,
-            defaultDisplay: 'true',
+            defaultDisplay: "true",
             title: {
-                id: t('user.settings.display.availabilityStatusOnPostsTitle'),
-                message: 'Show user availability on posts',
+                id: t("user.settings.display.availabilityStatusOnPostsTitle"),
+                message: "Show user availability on posts",
             },
             firstOption: {
-                value: 'true',
+                value: "true",
                 radionButtonText: {
-                    id: t('user.settings.sidebar.on'),
-                    message: 'On',
+                    id: t("user.settings.sidebar.on"),
+                    message: "On",
                 },
             },
             secondOption: {
-                value: 'false',
+                value: "false",
                 radionButtonText: {
-                    id: t('user.settings.sidebar.off'),
-                    message: 'Off',
+                    id: t("user.settings.sidebar.off"),
+                    message: "Off",
                 },
             },
             description: {
-                id: t('user.settings.display.availabilityStatusOnPostsDescription'),
-                message: 'When enabled, online availability is displayed on profile images in the message list.',
+                id: t(
+                    "user.settings.display.availabilityStatusOnPostsDescription",
+                ),
+                message:
+                    "When enabled, online availability is displayed on profile images in the message list.",
             },
         });
 
         let timezoneSelection;
         if (!this.props.shouldAutoUpdateTimezone) {
             const userTimezone = this.props.userTimezone;
-            const active = this.props.activeSection === 'timezone';
+            const active = this.props.activeSection === "timezone";
             let max = null;
             if (active) {
                 max = (
                     <ManageTimezones
                         user={this.props.user}
-                        useAutomaticTimezone={Boolean(userTimezone.useAutomaticTimezone)}
+                        useAutomaticTimezone={Boolean(
+                            userTimezone.useAutomaticTimezone,
+                        )}
                         automaticTimezone={userTimezone.automaticTimezone}
                         manualTimezone={userTimezone.manualTimezone}
                         updateSection={this.updateSection}
@@ -863,61 +905,64 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 <div>
                     <SettingItem
                         active={active}
-                        areAllSectionsInactive={this.props.activeSection === ''}
+                        areAllSectionsInactive={this.props.activeSection === ""}
                         title={
                             <FormattedMessage
-                                id='user.settings.display.timezone'
-                                defaultMessage='Timezone'
+                                id="user.settings.display.timezone"
+                                defaultMessage="Timezone"
                             />
                         }
                         describe={this.props.timezoneLabel}
-                        section={'timezone'}
+                        section={"timezone"}
                         updateSection={this.updateSection}
                         max={max}
                     />
-                    <div className='divider-dark'/>
+                    <div className="divider-dark" />
                 </div>
             );
         }
 
         const messageDisplaySection = this.createSection({
             section: Preferences.MESSAGE_DISPLAY,
-            display: 'messageDisplay',
+            display: "messageDisplay",
             value: this.state.messageDisplay,
             defaultDisplay: Preferences.MESSAGE_DISPLAY_CLEAN,
             title: {
-                id: t('user.settings.display.messageDisplayTitle'),
-                message: 'Message Display',
+                id: t("user.settings.display.messageDisplayTitle"),
+                message: "Message Display",
             },
             firstOption: {
                 value: Preferences.MESSAGE_DISPLAY_CLEAN,
                 radionButtonText: {
-                    id: t('user.settings.display.messageDisplayClean'),
-                    message: 'Standard',
-                    moreId: t('user.settings.display.messageDisplayCleanDes'),
-                    moreMessage: 'Easy to scan and read.',
+                    id: t("user.settings.display.messageDisplayClean"),
+                    message: "Standard",
+                    moreId: t("user.settings.display.messageDisplayCleanDes"),
+                    moreMessage: "Easy to scan and read.",
                 },
             },
             secondOption: {
                 value: Preferences.MESSAGE_DISPLAY_COMPACT,
                 radionButtonText: {
-                    id: t('user.settings.display.messageDisplayCompact'),
-                    message: 'Compact',
-                    moreId: t('user.settings.display.messageDisplayCompactDes'),
-                    moreMessage: 'Fit as many messages on the screen as we can.',
+                    id: t("user.settings.display.messageDisplayCompact"),
+                    message: "Compact",
+                    moreId: t("user.settings.display.messageDisplayCompactDes"),
+                    moreMessage:
+                        "Fit as many messages on the screen as we can.",
                 },
                 childOption: {
-                    id: t('user.settings.display.colorize'),
+                    id: t("user.settings.display.colorize"),
                     value: this.state.colorizeUsernames,
-                    display: 'colorizeUsernames',
-                    message: 'Colorize usernames',
-                    moreId: t('user.settings.display.colorizeDes'),
-                    moreMessage: 'Use colors to distinguish users in compact mode',
+                    display: "colorizeUsernames",
+                    message: "Colorize usernames",
+                    moreId: t("user.settings.display.colorizeDes"),
+                    moreMessage:
+                        "Use colors to distinguish users in compact mode",
                 },
             },
             description: {
-                id: t('user.settings.display.messageDisplayDescription'),
-                message: 'Select how messages in a channel should be displayed.',
+                id: t("user.settings.display.messageDisplayDescription"),
+                message:
+                    "Select how messages in a channel should be displayed.",
             },
         });
 
@@ -926,89 +971,94 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         if (this.props.collapsedReplyThreadsAllowUserPreference) {
             collapsedReplyThreads = this.createSection({
                 section: Preferences.COLLAPSED_REPLY_THREADS,
-                display: 'collapsedReplyThreads',
+                display: "collapsedReplyThreads",
                 value: this.state.collapsedReplyThreads,
-                defaultDisplay: Preferences.COLLAPSED_REPLY_THREADS_FALLBACK_DEFAULT,
+                defaultDisplay:
+                    Preferences.COLLAPSED_REPLY_THREADS_FALLBACK_DEFAULT,
                 title: {
-                    id: t('user.settings.display.collapsedReplyThreadsTitle'),
-                    message: 'Collapsed Reply Threads',
+                    id: t("user.settings.display.collapsedReplyThreadsTitle"),
+                    message: "Collapsed Reply Threads",
                 },
                 firstOption: {
                     value: Preferences.COLLAPSED_REPLY_THREADS_ON,
                     radionButtonText: {
-                        id: t('user.settings.display.collapsedReplyThreadsOn'),
-                        message: 'On',
+                        id: t("user.settings.display.collapsedReplyThreadsOn"),
+                        message: "On",
                     },
                 },
                 secondOption: {
                     value: Preferences.COLLAPSED_REPLY_THREADS_OFF,
                     radionButtonText: {
-                        id: t('user.settings.display.collapsedReplyThreadsOff'),
-                        message: 'Off',
+                        id: t("user.settings.display.collapsedReplyThreadsOff"),
+                        message: "Off",
                     },
                 },
                 description: {
-                    id: t('user.settings.display.collapsedReplyThreadsDescription'),
-                    message: 'When enabled, reply messages are not shown in the channel and you\'ll be notified about threads you\'re following in the "Threads" view.',
+                    id: t(
+                        "user.settings.display.collapsedReplyThreadsDescription",
+                    ),
+                    message:
+                        "When enabled, reply messages are not shown in the channel and you'll be notified about threads you're following in the \"Threads\" view.",
                 },
             });
         }
 
         const clickToReply = this.createSection({
             section: Preferences.CLICK_TO_REPLY,
-            display: 'clickToReply',
+            display: "clickToReply",
             value: this.state.clickToReply,
-            defaultDisplay: 'true',
+            defaultDisplay: "true",
             title: {
-                id: t('user.settings.display.clickToReply'),
-                message: 'Click to open threads',
+                id: t("user.settings.display.clickToReply"),
+                message: "Click to open threads",
             },
             firstOption: {
-                value: 'true',
+                value: "true",
                 radionButtonText: {
-                    id: t('user.settings.sidebar.on'),
-                    message: 'On',
+                    id: t("user.settings.sidebar.on"),
+                    message: "On",
                 },
             },
             secondOption: {
-                value: 'false',
+                value: "false",
                 radionButtonText: {
-                    id: t('user.settings.sidebar.off'),
-                    message: 'Off',
+                    id: t("user.settings.sidebar.off"),
+                    message: "Off",
                 },
             },
             description: {
-                id: t('user.settings.display.clickToReplyDescription'),
-                message: 'When enabled, click anywhere on a message to open the reply thread.',
+                id: t("user.settings.display.clickToReplyDescription"),
+                message:
+                    "When enabled, click anywhere on a message to open the reply thread.",
             },
         });
 
         const channelDisplayModeSection = this.createSection({
             section: Preferences.CHANNEL_DISPLAY_MODE,
-            display: 'channelDisplayMode',
+            display: "channelDisplayMode",
             value: this.state.channelDisplayMode,
             defaultDisplay: Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
             title: {
-                id: t('user.settings.display.channelDisplayTitle'),
-                message: 'Channel Display',
+                id: t("user.settings.display.channelDisplayTitle"),
+                message: "Channel Display",
             },
             firstOption: {
                 value: Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
                 radionButtonText: {
-                    id: t('user.settings.display.fullScreen'),
-                    message: 'Full width',
+                    id: t("user.settings.display.fullScreen"),
+                    message: "Full width",
                 },
             },
             secondOption: {
                 value: Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
                 radionButtonText: {
-                    id: t('user.settings.display.fixedWidthCentered'),
-                    message: 'Fixed width, centered',
+                    id: t("user.settings.display.fixedWidthCentered"),
+                    message: "Fixed width, centered",
                 },
             },
             description: {
-                id: t('user.settings.display.channeldisplaymode'),
-                message: 'Select the width of the center channel.',
+                id: t("user.settings.display.channeldisplaymode"),
+                message: "Select the width of the center channel.",
             },
         });
 
@@ -1022,26 +1072,26 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         languagesSection = (
             <div>
                 <SettingItem
-                    active={this.props.activeSection === 'languages'}
-                    areAllSectionsInactive={this.props.activeSection === ''}
+                    active={this.props.activeSection === "languages"}
+                    areAllSectionsInactive={this.props.activeSection === ""}
                     title={
                         <FormattedMessage
-                            id='user.settings.display.language'
-                            defaultMessage='Language'
+                            id="user.settings.display.language"
+                            defaultMessage="Language"
                         />
                     }
                     describe={localeName}
-                    section={'languages'}
+                    section={"languages"}
                     updateSection={this.updateSection}
-                    max={(
+                    max={
                         <ManageLanguages
                             user={this.props.user}
                             locale={userLocale}
                             updateSection={this.updateSection}
                         />
-                    )}
+                    }
                 />
-                <div className='divider-dark'/>
+                <div className="divider-dark" />
             </div>
         );
 
@@ -1054,14 +1104,14 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             themeSection = (
                 <div>
                     <ThemeSetting
-                        selected={this.props.activeSection === 'theme'}
-                        areAllSectionsInactive={this.props.activeSection === ''}
+                        selected={this.props.activeSection === "theme"}
+                        areAllSectionsInactive={this.props.activeSection === ""}
                         updateSection={this.updateSection}
                         setRequireConfirm={this.props.setRequireConfirm}
                         setEnforceFocus={this.props.setEnforceFocus}
                         allowCustomThemes={this.props.allowCustomThemes}
                     />
-                    <div className='divider-dark'/>
+                    <div className="divider-dark" />
                 </div>
             );
         }
@@ -1070,70 +1120,72 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         if (this.props.emojiPickerEnabled) {
             oneClickReactionsOnPostsSection = this.createSection({
                 section: Preferences.ONE_CLICK_REACTIONS_ENABLED,
-                display: 'oneClickReactionsOnPosts',
+                display: "oneClickReactionsOnPosts",
                 value: this.state.oneClickReactionsOnPosts,
-                defaultDisplay: 'true',
+                defaultDisplay: "true",
                 title: {
-                    id: t('user.settings.display.oneClickReactionsOnPostsTitle'),
-                    message: 'Quick reactions on messages',
+                    id: t(
+                        "user.settings.display.oneClickReactionsOnPostsTitle",
+                    ),
+                    message: "Quick reactions on messages",
                 },
                 firstOption: {
-                    value: 'true',
+                    value: "true",
                     radionButtonText: {
-                        id: t('user.settings.sidebar.on'),
-                        message: 'On',
+                        id: t("user.settings.sidebar.on"),
+                        message: "On",
                     },
                 },
                 secondOption: {
-                    value: 'false',
+                    value: "false",
                     radionButtonText: {
-                        id: t('user.settings.sidebar.off'),
-                        message: 'Off',
+                        id: t("user.settings.sidebar.off"),
+                        message: "Off",
                     },
                 },
                 description: {
-                    id: t('user.settings.display.oneClickReactionsOnPostsDescription'),
-                    message: 'When enabled, you can react in one-click with recently used reactions when hovering over a message.',
+                    id: t(
+                        "user.settings.display.oneClickReactionsOnPostsDescription",
+                    ),
+                    message:
+                        "When enabled, you can react in one-click with recently used reactions when hovering over a message.",
                 },
             });
         }
 
         return (
-            <div id='displaySettings'>
-                <div className='modal-header'>
+            <div id="displaySettings">
+                <div className="modal-header">
                     <button
-                        id='closeButton'
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label='Close'
+                        id="closeButton"
+                        type="button"
+                        className="close"
+                        data-dismiss="modal"
+                        aria-label="Close"
                         onClick={this.props.closeModal}
                     >
-                        <span aria-hidden='true'>{'×'}</span>
+                        <span aria-hidden="true">{"×"}</span>
                     </button>
-                    <h4 className='modal-title'>
-                        <div className='modal-back'>
+                    <h4 className="modal-title">
+                        <div className="modal-back">
                             <span onClick={this.props.collapseModal}>
-                                <BackIcon/>
+                                <BackIcon />
                             </span>
                         </div>
                         <FormattedMessage
-                            id='user.settings.display.title'
-                            defaultMessage='Display Settings'
+                            id="user.settings.display.title"
+                            defaultMessage="Display Settings"
                         />
                     </h4>
                 </div>
-                <div className='user-settings'>
-                    <h3
-                        id='displaySettingsTitle'
-                        className='tab-header'
-                    >
+                <div className="user-settings">
+                    <h3 id="displaySettingsTitle" className="tab-header">
                         <FormattedMessage
-                            id='user.settings.display.title'
-                            defaultMessage='Display Settings'
+                            id="user.settings.display.title"
+                            defaultMessage="Display Settings"
                         />
                     </h3>
-                    <div className='divider-dark first'/>
+                    <div className="divider-dark first" />
                     {themeSection}
                     {collapsedReplyThreads}
                     {clockSection}

@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import type { GenericAction } from "mattermost-redux/types/actions";
 
-import storageReducer from 'reducers/storage';
+import storageReducer from "reducers/storage";
 
-import {StorageTypes} from 'utils/constants';
+import { StorageTypes } from "utils/constants";
 
 type ReducerState = ReturnType<typeof storageReducer>;
 
-describe('Reducers.Storage', () => {
+describe("Reducers.Storage", () => {
     const now = new Date();
 
-    it('Storage.SET_ITEM', () => {
+    it("Storage.SET_ITEM", () => {
         const nextState = storageReducer(
             {
                 storage: {},
@@ -20,19 +20,19 @@ describe('Reducers.Storage', () => {
             {
                 type: StorageTypes.SET_ITEM,
                 data: {
-                    name: 'key',
-                    prefix: 'user_id_',
-                    value: 'value',
+                    name: "key",
+                    prefix: "user_id_",
+                    value: "value",
                     timestamp: now,
                 },
             },
         );
         expect(nextState.storage).toEqual({
-            user_id_key: {value: 'value', timestamp: now},
+            user_id_key: { value: "value", timestamp: now },
         });
     });
 
-    it('Storage.SET_GLOBAL_ITEM', () => {
+    it("Storage.SET_GLOBAL_ITEM", () => {
         const nextState = storageReducer(
             {
                 storage: {},
@@ -40,29 +40,29 @@ describe('Reducers.Storage', () => {
             {
                 type: StorageTypes.SET_GLOBAL_ITEM,
                 data: {
-                    name: 'key',
-                    value: 'value',
+                    name: "key",
+                    value: "value",
                     timestamp: now,
                 },
             },
         );
         expect(nextState.storage).toEqual({
-            key: {value: 'value', timestamp: now},
+            key: { value: "value", timestamp: now },
         });
     });
 
-    it('Storage.REMOVE_ITEM', () => {
+    it("Storage.REMOVE_ITEM", () => {
         let nextState = storageReducer(
             {
                 storage: {
-                    user_id_key: 'value',
+                    user_id_key: "value",
                 },
             } as unknown as ReducerState,
             {
                 type: StorageTypes.REMOVE_ITEM,
                 data: {
-                    name: 'key',
-                    prefix: 'user_id_',
+                    name: "key",
+                    prefix: "user_id_",
                 },
             },
         );
@@ -74,25 +74,25 @@ describe('Reducers.Storage', () => {
             {
                 type: StorageTypes.REMOVE_ITEM,
                 data: {
-                    name: 'key',
-                    prefix: 'user_id_',
+                    name: "key",
+                    prefix: "user_id_",
                 },
             },
         );
         expect(nextState.storage).toEqual({});
     });
 
-    it('Storage.REMOVE_GLOBAL_ITEM', () => {
+    it("Storage.REMOVE_GLOBAL_ITEM", () => {
         let nextState = storageReducer(
             {
                 storage: {
-                    key: 'value',
+                    key: "value",
                 },
             } as unknown as ReducerState,
             {
                 type: StorageTypes.REMOVE_GLOBAL_ITEM,
                 data: {
-                    name: 'key',
+                    name: "key",
                 },
             },
         );
@@ -104,27 +104,30 @@ describe('Reducers.Storage', () => {
             {
                 type: StorageTypes.REMOVE_GLOBAL_ITEM,
                 data: {
-                    name: 'key',
+                    name: "key",
                 },
             },
         );
         expect(nextState.storage).toEqual({});
     });
 
-    describe('Storage.ACTION_ON_GLOBAL_ITEMS_WITH_PREFIX', () => {
-        it('should call the provided action on the given objects', () => {
-            const state = storageReducer({
-                storage: {
-                    prefix_key1: {value: 1, timestamp: now},
-                    prefix_key2: {value: 2, timestamp: now},
-                    not_prefix_key: {value: 3, timestamp: now},
-                },
-            } as unknown as ReducerState, {} as GenericAction);
+    describe("Storage.ACTION_ON_GLOBAL_ITEMS_WITH_PREFIX", () => {
+        it("should call the provided action on the given objects", () => {
+            const state = storageReducer(
+                {
+                    storage: {
+                        prefix_key1: { value: 1, timestamp: now },
+                        prefix_key2: { value: 2, timestamp: now },
+                        not_prefix_key: { value: 3, timestamp: now },
+                    },
+                } as unknown as ReducerState,
+                {} as GenericAction,
+            );
 
             const nextState = storageReducer(state, {
                 type: StorageTypes.ACTION_ON_GLOBAL_ITEMS_WITH_PREFIX,
                 data: {
-                    prefix: 'prefix',
+                    prefix: "prefix",
                     action: (_key: string, value: number) => value + 5,
                 },
             });
@@ -134,22 +137,27 @@ describe('Reducers.Storage', () => {
             expect(nextState.storage.prefix_key1.timestamp).not.toBe(now);
             expect(nextState.storage.prefix_key2.value).toBe(7);
             expect(nextState.storage.prefix_key2.timestamp).not.toBe(now);
-            expect(nextState.storage.prefix_key3).toBe(state.storage.prefix_key3);
+            expect(nextState.storage.prefix_key3).toBe(
+                state.storage.prefix_key3,
+            );
         });
 
-        it('should return the original state if no results change', () => {
-            const state = storageReducer({
-                storage: {
-                    prefix_key1: {value: 1, timestamp: now},
-                    prefix_key2: {value: 2, timestamp: now},
-                    not_prefix_key: {value: 3, timestamp: now},
-                },
-            } as unknown as ReducerState, {} as GenericAction);
+        it("should return the original state if no results change", () => {
+            const state = storageReducer(
+                {
+                    storage: {
+                        prefix_key1: { value: 1, timestamp: now },
+                        prefix_key2: { value: 2, timestamp: now },
+                        not_prefix_key: { value: 3, timestamp: now },
+                    },
+                } as unknown as ReducerState,
+                {} as GenericAction,
+            );
 
             const nextState = storageReducer(state, {
                 type: StorageTypes.ACTION_ON_GLOBAL_ITEMS_WITH_PREFIX,
                 data: {
-                    prefix: 'prefix',
+                    prefix: "prefix",
                     action: (key: string, value: number) => value,
                 },
             });
@@ -158,32 +166,26 @@ describe('Reducers.Storage', () => {
         });
     });
 
-    it('Storage.STORAGE_REHYDRATE', () => {
+    it("Storage.STORAGE_REHYDRATE", () => {
         let nextState = storageReducer(
             {
                 storage: {},
             } as ReducerState,
             {
                 type: StorageTypes.STORAGE_REHYDRATE,
-                data: {test: '123'},
+                data: { test: "123" },
             },
         );
-        expect(nextState.storage).toEqual({test: '123'});
-        nextState = storageReducer(
-            nextState,
-            {
-                type: StorageTypes.STORAGE_REHYDRATE,
-                data: {test: '456'},
-            },
-        );
-        expect(nextState.storage).toEqual({test: '456'});
-        nextState = storageReducer(
-            nextState,
-            {
-                type: StorageTypes.STORAGE_REHYDRATE,
-                data: {test2: '789'},
-            },
-        );
-        expect(nextState.storage).toEqual({test: '456', test2: '789'});
+        expect(nextState.storage).toEqual({ test: "123" });
+        nextState = storageReducer(nextState, {
+            type: StorageTypes.STORAGE_REHYDRATE,
+            data: { test: "456" },
+        });
+        expect(nextState.storage).toEqual({ test: "456" });
+        nextState = storageReducer(nextState, {
+            type: StorageTypes.STORAGE_REHYDRATE,
+            data: { test2: "789" },
+        });
+        expect(nextState.storage).toEqual({ test: "456", test2: "789" });
     });
 });

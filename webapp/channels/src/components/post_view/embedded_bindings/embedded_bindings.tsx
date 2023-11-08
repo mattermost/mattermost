@@ -1,17 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {AppBinding} from '@mattermost/types/apps';
-import type {Post} from '@mattermost/types/posts';
+import type { AppBinding } from "@mattermost/types/apps";
+import type { Post } from "@mattermost/types/posts";
 
-import type {TextFormattingOptions} from 'utils/text_formatting';
+import type { TextFormattingOptions } from "utils/text_formatting";
 
-import EmbeddedBinding from './embedded_binding';
+import EmbeddedBinding from "./embedded_binding";
 
 type Props = {
-
     /**
      * The post id
      */
@@ -26,8 +25,7 @@ type Props = {
      * Options specific to text formatting
      */
     options?: Partial<TextFormattingOptions>;
-
-}
+};
 
 export default class EmbeddedBindings extends React.PureComponent<Props> {
     static defaultProps = {
@@ -41,7 +39,7 @@ export default class EmbeddedBindings extends React.PureComponent<Props> {
                 <EmbeddedBinding
                     embed={embed}
                     post={this.props.post}
-                    key={'att_' + i}
+                    key={"att_" + i}
                     options={this.props.options}
                 />,
             );
@@ -50,7 +48,7 @@ export default class EmbeddedBindings extends React.PureComponent<Props> {
         return (
             <div
                 id={`messageAttachmentList_${this.props.post.id}`}
-                className='attachment__list'
+                className="attachment__list"
             >
                 {content}
             </div>

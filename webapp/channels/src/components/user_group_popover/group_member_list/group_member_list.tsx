@@ -1,28 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState, useRef} from 'react';
-import {useIntl} from 'react-intl';
-import {useHistory} from 'react-router-dom';
-import AutoSizer from 'react-virtualized-auto-sizer';
-import {VariableSizeList} from 'react-window';
-import type {ListChildComponentProps} from 'react-window';
-import InfiniteLoader from 'react-window-infinite-loader';
-import styled, {css} from 'styled-components';
+import React, { useEffect, useState, useRef } from "react";
+import { useIntl } from "react-intl";
+import { useHistory } from "react-router-dom";
+import AutoSizer from "react-virtualized-auto-sizer";
+import { VariableSizeList } from "react-window";
+import type { ListChildComponentProps } from "react-window";
+import InfiniteLoader from "react-window-infinite-loader";
+import styled, { css } from "styled-components";
 
-import type {ServerError} from '@mattermost/types/errors';
-import type {Group} from '@mattermost/types/groups';
-import type {UserProfile} from '@mattermost/types/users';
+import type { ServerError } from "@mattermost/types/errors";
+import type { Group } from "@mattermost/types/groups";
+import type { UserProfile } from "@mattermost/types/users";
 
-import NoResultsIndicator from 'components/no_results_indicator';
-import {NoResultsVariant} from 'components/no_results_indicator/types';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
-import Avatar from 'components/widgets/users/avatar';
+import NoResultsIndicator from "components/no_results_indicator";
+import { NoResultsVariant } from "components/no_results_indicator/types";
+import LoadingSpinner from "components/widgets/loading/loading_spinner";
+import SimpleTooltip from "components/widgets/simple_tooltip";
+import Avatar from "components/widgets/users/avatar";
 
-import * as Utils from 'utils/utils';
+import * as Utils from "utils/utils";
 
-import {Load} from '../constants';
+import { Load } from "../constants";
 
 const USERS_PER_PAGE = 100;
 
@@ -30,8 +30,9 @@ const USERS_PER_PAGE = 100;
 export const VIEWPORT_SCALE_FACTOR = 0.4;
 const ITEM_HEIGHT = 40;
 const MARGIN = 8;
-const getItemHeight = (isCap: boolean) => (isCap ? ITEM_HEIGHT + MARGIN : ITEM_HEIGHT);
-export const getListHeight = (num: number) => (num * ITEM_HEIGHT) + (2 * MARGIN);
+const getItemHeight = (isCap: boolean) =>
+    isCap ? ITEM_HEIGHT + MARGIN : ITEM_HEIGHT;
+export const getListHeight = (num: number) => num * ITEM_HEIGHT + 2 * MARGIN;
 
 // Reasonable extrema for the user list
 const MIN_LIST_HEIGHT = 120;
@@ -40,10 +41,9 @@ export const MAX_LIST_HEIGHT = 800;
 export type GroupMember = {
     user: UserProfile;
     displayName: string;
-}
+};
 
 export type Props = {
-
     /**
      * The group corresponding to the parent popover
      */
@@ -72,11 +72,18 @@ export type Props = {
     searchTerm: string;
 
     actions: {
-        getUsersInGroup: (groupId: string, page: number, perPage: number, sort: string) => Promise<{ data: UserProfile[] }>;
-        openDirectChannelToUserId: (userId?: string) => Promise<{ error: ServerError }>;
+        getUsersInGroup: (
+            groupId: string,
+            page: number,
+            perPage: number,
+            sort: string,
+        ) => Promise<{ data: UserProfile[] }>;
+        openDirectChannelToUserId: (
+            userId?: string,
+        ) => Promise<{ error: ServerError }>;
         closeRightHandSide: () => void;
     };
-}
+};
 
 const GroupMemberList = (props: Props) => {
     const {
@@ -92,11 +99,15 @@ const GroupMemberList = (props: Props) => {
 
     const history = useHistory();
 
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
 
-    const [nextPage, setNextPage] = useState(Math.floor(members.length / USERS_PER_PAGE));
+    const [nextPage, setNextPage] = useState(
+        Math.floor(members.length / USERS_PER_PAGE),
+    );
     const [nextPageLoadState, setNextPageLoadState] = useState(Load.DONE);
-    const [currentDMLoading, setCurrentDMLoading] = useState<string | undefined>(undefined);
+    const [currentDMLoading, setCurrentDMLoading] = useState<
+        string | undefined
+    >(undefined);
 
     const infiniteLoaderRef = useRef<InfiniteLoader | null>(null);
     const variableSizeListRef = useRef<VariableSizeList | null>(null);
@@ -116,7 +127,12 @@ const GroupMemberList = (props: Props) => {
 
     const loadNextPage = async () => {
         setNextPageLoadState(Load.LOADING);
-        const res = await actions.getUsersInGroup(group.id, nextPage, USERS_PER_PAGE, 'display_name');
+        const res = await actions.getUsersInGroup(
+            group.id,
+            nextPage,
+            USERS_PER_PAGE,
+            "display_name",
+        );
         if (res.data) {
             setNextPage(nextPage + 1);
             setNextPageLoadState(Load.DONE);
@@ -130,29 +146,41 @@ const GroupMemberList = (props: Props) => {
             return;
         }
         setCurrentDMLoading(user.id);
-        actions.openDirectChannelToUserId(user.id).then((result: { error: ServerError }) => {
-            if (!result.error) {
-                actions.closeRightHandSide();
-                setCurrentDMLoading(undefined);
-                hide?.();
-                history.push(`${teamUrl}/messages/@${user.username}`);
-            }
-        });
+        actions
+            .openDirectChannelToUserId(user.id)
+            .then((result: { error: ServerError }) => {
+                if (!result.error) {
+                    actions.closeRightHandSide();
+                    setCurrentDMLoading(undefined);
+                    hide?.();
+                    history.push(`${teamUrl}/messages/@${user.username}`);
+                }
+            });
     };
 
-    const isSearching = searchTerm !== '';
+    const isSearching = searchTerm !== "";
     const hasNextPage = !isSearching && members.length < group.member_count;
-    const itemCount = !isSearching && hasNextPage ? members.length + 1 : members.length;
+    const itemCount =
+        !isSearching && hasNextPage ? members.length + 1 : members.length;
 
-    const loadMoreItems = isSearching || nextPageLoadState === Load.LOADING ? () => {} : loadNextPage;
+    const loadMoreItems =
+        isSearching || nextPageLoadState === Load.LOADING
+            ? () => {}
+            : loadNextPage;
 
-    const maxListHeight = Math.min(MAX_LIST_HEIGHT, Math.max(MIN_LIST_HEIGHT, Utils.getViewportSize().h * VIEWPORT_SCALE_FACTOR));
+    const maxListHeight = Math.min(
+        MAX_LIST_HEIGHT,
+        Math.max(
+            MIN_LIST_HEIGHT,
+            Utils.getViewportSize().h * VIEWPORT_SCALE_FACTOR,
+        ),
+    );
 
     const isUserLoaded = (index: number) => {
         return isSearching || !hasNextPage || index < members.length;
     };
 
-    const Item = ({index, style}: ListChildComponentProps) => {
+    const Item = ({ index, style }: ListChildComponentProps) => {
         // Remove explicit height provided by VariableSizeList
         style.height = undefined;
 
@@ -162,42 +190,50 @@ const GroupMemberList = (props: Props) => {
 
             return (
                 <UserListItem
-                    className='group-member-list_item'
+                    className="group-member-list_item"
                     first={index === 0}
                     last={index === group.member_count - 1}
                     style={style}
                     key={user.id}
-                    role='listitem'
+                    role="listitem"
                 >
                     <UserButton
                         onClick={() => showUserOverlay(user)}
-                        aria-haspopup='dialog'
+                        aria-haspopup="dialog"
                     >
                         <Avatar
                             username={user.username}
-                            size={'sm'}
-                            url={Utils.imageURLForUser(user?.id ?? '')}
-                            className={'avatar-post-preview'}
+                            size={"sm"}
+                            url={Utils.imageURLForUser(user?.id ?? "")}
+                            className={"avatar-post-preview"}
                             tabIndex={-1}
                         />
-                        <Username className='overflow--ellipsis text-nowrap'>{name}</Username>
-                        <Gap className='group-member-list_gap'/>
+                        <Username className="overflow--ellipsis text-nowrap">
+                            {name}
+                        </Username>
+                        <Gap className="group-member-list_gap" />
                     </UserButton>
-                    <DMContainer className='group-member-list_dm-button'>
+                    <DMContainer className="group-member-list_dm-button">
                         <SimpleTooltip
                             id={`name-${user.id}`}
-                            content={formatMessage({id: 'group_member_list.sendMessageTooltip', defaultMessage: 'Send message'})}
+                            content={formatMessage({
+                                id: "group_member_list.sendMessageTooltip",
+                                defaultMessage: "Send message",
+                            })}
                         >
                             <DMButton
-                                className='btn btn-icon btn-xs'
+                                className="btn btn-icon btn-xs"
                                 aria-label={formatMessage(
-                                    {id: 'group_member_list.sendMessageButton', defaultMessage: 'Send message to {user}'},
-                                    {user: name})}
+                                    {
+                                        id: "group_member_list.sendMessageButton",
+                                        defaultMessage:
+                                            "Send message to {user}",
+                                    },
+                                    { user: name },
+                                )}
                                 onClick={() => showDirectChannel(user)}
                             >
-                                <i
-                                    className='icon icon-send'
-                                />
+                                <i className="icon icon-send" />
                             </DMButton>
                         </SimpleTooltip>
                     </DMContainer>
@@ -211,7 +247,7 @@ const GroupMemberList = (props: Props) => {
                 first={index === 0}
                 last={index === members.length}
             >
-                <LoadingSpinner/>
+                <LoadingSpinner />
             </LoadingItem>
         );
     };
@@ -220,13 +256,18 @@ const GroupMemberList = (props: Props) => {
         if (searchState === Load.LOADING) {
             return (
                 <LargeLoadingItem>
-                    <LoadingSpinner/>
+                    <LoadingSpinner />
                 </LargeLoadingItem>
             );
         } else if (searchState === Load.FAILED) {
             return (
                 <LoadFailedItem>
-                    <span>{Utils.localizeMessage('group_member_list.searchError', 'There was a problem getting results. Clear your search term and try again.')}</span>
+                    <span>
+                        {Utils.localizeMessage(
+                            "group_member_list.searchError",
+                            "There was a problem getting results. Clear your search term and try again.",
+                        )}
+                    </span>
                 </LoadFailedItem>
             );
         } else if (isSearching && members.length === 0) {
@@ -234,7 +275,7 @@ const GroupMemberList = (props: Props) => {
                 <NoResultsItem>
                     <NoResultsIndicator
                         variant={NoResultsVariant.ChannelSearch}
-                        titleValues={{channelName: `"${searchTerm}"`}}
+                        titleValues={{ channelName: `"${searchTerm}"` }}
                     />
                 </NoResultsItem>
             );
@@ -242,46 +283,63 @@ const GroupMemberList = (props: Props) => {
             return (
                 <LoadFailedItem>
                     <span>
-                        {Utils.localizeMessage('group_member_list.loadError', 'Oops! Something went wrong while loading this group.')}
-                        {' '}
-                        <RetryButton
-                            onClick={loadMoreItems}
-                        >
-                            {Utils.localizeMessage('group_member_list.retryLoadButton', 'Retry')}
+                        {Utils.localizeMessage(
+                            "group_member_list.loadError",
+                            "Oops! Something went wrong while loading this group.",
+                        )}{" "}
+                        <RetryButton onClick={loadMoreItems}>
+                            {Utils.localizeMessage(
+                                "group_member_list.retryLoadButton",
+                                "Retry",
+                            )}
                         </RetryButton>
                     </span>
                 </LoadFailedItem>
             );
         }
-        return (<AutoSizer>
-            {({height, width}) => (
-                <InfiniteLoader
-                    ref={infiniteLoaderRef}
-                    isItemLoaded={isUserLoaded}
-                    itemCount={itemCount}
-                    loadMoreItems={loadMoreItems}
-                    threshold={5}
-                >
-                    {({onItemsRendered, ref}) => (
-                        <VariableSizeList
-                            itemCount={itemCount}
-                            onItemsRendered={onItemsRendered}
-                            ref={ref}
-                            itemSize={(index) => getItemHeight(index === 0 || index === group.member_count - 1 || index === members.length + 1)}
-                            height={height}
-                            width={width}
-                        >
-                            {Item}
-                        </VariableSizeList>)}
-                </InfiniteLoader>
-            )}
-        </AutoSizer>);
+        return (
+            <AutoSizer>
+                {({ height, width }) => (
+                    <InfiniteLoader
+                        ref={infiniteLoaderRef}
+                        isItemLoaded={isUserLoaded}
+                        itemCount={itemCount}
+                        loadMoreItems={loadMoreItems}
+                        threshold={5}
+                    >
+                        {({ onItemsRendered, ref }) => (
+                            <VariableSizeList
+                                itemCount={itemCount}
+                                onItemsRendered={onItemsRendered}
+                                ref={ref}
+                                itemSize={(index) =>
+                                    getItemHeight(
+                                        index === 0 ||
+                                            index === group.member_count - 1 ||
+                                            index === members.length + 1,
+                                    )
+                                }
+                                height={height}
+                                width={width}
+                            >
+                                {Item}
+                            </VariableSizeList>
+                        )}
+                    </InfiniteLoader>
+                )}
+            </AutoSizer>
+        );
     };
 
     return (
         <UserList
-            style={{height: Math.min(maxListHeight, getListHeight(group.member_count))}}
-            role='list'
+            style={{
+                height: Math.min(
+                    maxListHeight,
+                    getListHeight(group.member_count),
+                ),
+            }}
+            role="list"
         >
             {renderContent()}
         </UserList>
@@ -297,14 +355,18 @@ const UserList = styled.div`
     position: relative;
 `;
 
-const UserListItem = styled.div<{first?: boolean; last?: boolean}>`
-    ${(props) => props.first && css `
-        margin-top: ${MARGIN}px;
-    `}
+const UserListItem = styled.div<{ first?: boolean; last?: boolean }>`
+    ${(props) =>
+        props.first &&
+        css`
+            margin-top: ${MARGIN}px;
+        `}
 
-    ${(props) => props.last && css `
-        margin-bottom: ${MARGIN}px;
-    `}
+    ${(props) =>
+        props.last &&
+        css`
+            margin-bottom: ${MARGIN}px;
+        `}
 
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -368,14 +430,18 @@ const DMButton = styled.button`
     }
 `;
 
-const LoadingItem = styled.div<{first?: boolean; last?: boolean}>`
-    ${(props) => props.first && css `
-        padding-top: ${MARGIN}px;
-    `}
+const LoadingItem = styled.div<{ first?: boolean; last?: boolean }>`
+    ${(props) =>
+        props.first &&
+        css`
+            padding-top: ${MARGIN}px;
+        `}
 
-    ${(props) => props.last && css `
-        padding-bottom: ${MARGIN}px;
-    `}
+    ${(props) =>
+        props.last &&
+        css`
+            padding-bottom: ${MARGIN}px;
+        `}
 
     display: flex;
     justify-content: center;

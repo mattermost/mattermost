@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import Constants from 'utils/constants';
+import Constants from "utils/constants";
 
-import MenuWrapperAnimation from './menu_wrapper_animation';
+import MenuWrapperAnimation from "./menu_wrapper_animation";
 
-import './menu_wrapper.scss';
+import "./menu_wrapper.scss";
 
-declare module 'react' {
+declare module "react" {
     interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
         disabled?: boolean;
     }
@@ -23,11 +23,11 @@ type Props = {
     isDisabled?: boolean;
     stopPropagationOnToggle?: boolean;
     open?: boolean;
-}
+};
 
 type State = {
     open: boolean;
-}
+};
 
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
@@ -36,14 +36,14 @@ export default class MenuWrapper extends React.PureComponent<Props, State> {
     private node: React.RefObject<HTMLDivElement>;
 
     public static defaultProps = {
-        className: '',
+        className: "",
         animationComponent: MenuWrapperAnimation,
     };
 
     public constructor(props: Props) {
         super(props);
         if (!Array.isArray(props.children) || props.children.length !== 2) {
-            throw new Error('MenuWrapper needs exactly 2 children');
+            throw new Error("MenuWrapper needs exactly 2 children");
         }
         this.state = {
             open: false,
@@ -81,13 +81,13 @@ export default class MenuWrapper extends React.PureComponent<Props, State> {
     }
 
     private addEventListeners() {
-        document.addEventListener('click', this.closeOnBlur, true);
-        document.addEventListener('keyup', this.keyboardClose, true);
+        document.addEventListener("click", this.closeOnBlur, true);
+        document.addEventListener("keyup", this.keyboardClose, true);
     }
 
     private removeEventListeners() {
-        document.removeEventListener('click', this.closeOnBlur, true);
-        document.removeEventListener('keyup', this.keyboardClose, true);
+        document.removeEventListener("click", this.closeOnBlur, true);
+        document.removeEventListener("keyup", this.keyboardClose, true);
     }
 
     private keyboardClose = (e: KeyboardEvent) => {
@@ -101,7 +101,12 @@ export default class MenuWrapper extends React.PureComponent<Props, State> {
     };
 
     private closeOnBlur = (e: Event) => {
-        if (this.node && this.node.current && e.target && this.node.current.contains(e.target as Node)) {
+        if (
+            this.node &&
+            this.node.current &&
+            e.target &&
+            this.node.current.contains(e.target as Node)
+        ) {
             return;
         }
 
@@ -110,7 +115,7 @@ export default class MenuWrapper extends React.PureComponent<Props, State> {
 
     public close = () => {
         if (this.state.open) {
-            this.setState({open: false});
+            this.setState({ open: false });
             if (this.props.onToggle) {
                 this.props.onToggle(false);
             }
@@ -123,13 +128,13 @@ export default class MenuWrapper extends React.PureComponent<Props, State> {
          * version (ie the one that uses a modal) needs propagation to close the modal after selecting something
          * We need to refactor this so that the modal is explicitly closed on toggle, but for now I am aiming to preserve the existing logic
          * so as to not break other things
-        **/
+         **/
         if (this.props.stopPropagationOnToggle) {
             e.preventDefault();
             e.stopPropagation();
         }
         const newState = !this.state.open;
-        this.setState({open: newState}, () => {
+        this.setState({ open: newState }, () => {
             if (this.props.onToggle) {
                 this.props.onToggle(newState);
             }
@@ -137,14 +142,18 @@ export default class MenuWrapper extends React.PureComponent<Props, State> {
     };
 
     public render() {
-        const {children} = this.props;
+        const { children } = this.props;
 
         const Animation = this.props.animationComponent;
 
         return (
             <div
                 id={this.props.id}
-                className={'MenuWrapper ' + this.props.className + (this.state.open ? ' MenuWrapper--open' : '')}
+                className={
+                    "MenuWrapper " +
+                    this.props.className +
+                    (this.state.open ? " MenuWrapper--open" : "")
+                }
                 onClick={this.toggle}
                 ref={this.node}
                 disabled={this.props.isDisabled}

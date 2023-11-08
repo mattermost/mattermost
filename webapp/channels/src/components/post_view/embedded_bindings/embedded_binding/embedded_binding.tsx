@@ -1,27 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {CSSProperties} from 'react';
+import React from "react";
+import type { CSSProperties } from "react";
 
-import type {AppBinding} from '@mattermost/types/apps';
-import type {Post} from '@mattermost/types/posts';
+import type { AppBinding } from "@mattermost/types/apps";
+import type { Post } from "@mattermost/types/posts";
 
-import {AppBindingLocations} from 'mattermost-redux/constants/apps';
-import {cleanBinding} from 'mattermost-redux/utils/apps';
+import { AppBindingLocations } from "mattermost-redux/constants/apps";
+import { cleanBinding } from "mattermost-redux/utils/apps";
 
-import Markdown from 'components/markdown';
-import ShowMore from 'components/post_view/show_more';
+import Markdown from "components/markdown";
+import ShowMore from "components/post_view/show_more";
 
-import LinkOnlyRenderer from 'utils/markdown/link_only_renderer';
-import type {TextFormattingOptions} from 'utils/text_formatting';
-import * as Utils from 'utils/utils';
+import LinkOnlyRenderer from "utils/markdown/link_only_renderer";
+import type { TextFormattingOptions } from "utils/text_formatting";
+import * as Utils from "utils/utils";
 
-import ButtonBinding from '../button_binding';
-import SelectBinding from '../select_binding';
+import ButtonBinding from "../button_binding";
+import SelectBinding from "../select_binding";
 
 type Props = {
-
     /**
      * The post id
      */
@@ -38,13 +37,13 @@ type Props = {
     options?: Partial<TextFormattingOptions>;
 
     currentRelativeTeamUrl: string;
-}
+};
 
 type State = {
     checkOverflow: number;
     embed: AppBinding;
     bindings: AppBinding[];
-}
+};
 
 export default class EmbeddedBinding extends React.PureComponent<Props, State> {
     private imageProps: Record<string, any>;
@@ -81,7 +80,9 @@ export default class EmbeddedBinding extends React.PureComponent<Props, State> {
     }
 
     static fillBindings = (binding: AppBinding): AppBinding[] => {
-        const copiedBindings = JSON.parse(JSON.stringify(binding)) as AppBinding;
+        const copiedBindings = JSON.parse(
+            JSON.stringify(binding),
+        ) as AppBinding;
         cleanBinding(copiedBindings, AppBindingLocations.IN_POST);
         return copiedBindings.bindings!;
     };
@@ -123,23 +124,18 @@ export default class EmbeddedBinding extends React.PureComponent<Props, State> {
             );
         });
 
-        return (
-            <div
-                className='attachment-actions'
-            >
-                {content}
-            </div>
-        );
+        return <div className="attachment-actions">{content}</div>;
     };
 
-    handleFormattedTextClick = (e: React.MouseEvent) => Utils.handleFormattedTextClick(e, this.props.currentRelativeTeamUrl);
+    handleFormattedTextClick = (e: React.MouseEvent) =>
+        Utils.handleFormattedTextClick(e, this.props.currentRelativeTeamUrl);
 
     checkPostOverflow = () => {
         // Increment checkOverflow to indicate change in height
         // and recompute textContainer height at ShowMore component
         // and see whether overflow text of show more/less is necessary or not.
         this.setState((prevState) => {
-            return {checkOverflow: prevState.checkOverflow + 1};
+            return { checkOverflow: prevState.checkOverflow + 1 };
         });
     };
 
@@ -150,12 +146,12 @@ export default class EmbeddedBinding extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {embed, options} = this.props;
+        const { embed, options } = this.props;
 
         let title;
         if (embed.label) {
             title = (
-                <h1 className='attachment__title'>
+                <h1 className="attachment__title">
                     <Markdown
                         message={embed.label}
                         options={{
@@ -191,22 +187,26 @@ export default class EmbeddedBinding extends React.PureComponent<Props, State> {
 
         return (
             <div
-                className={'attachment'}
+                className={"attachment"}
                 onClick={this.handleFormattedTextClick}
             >
-                <div className='attachment__content'>
+                <div className="attachment__content">
                     <div
-                        className={'clearfix attachment__container attachment__container--'}
+                        className={
+                            "clearfix attachment__container attachment__container--"
+                        }
                     >
                         {title}
                         <div>
                             <div
-                                className={'attachment__body attachment__body--no_thumb'}
+                                className={
+                                    "attachment__body attachment__body--no_thumb"
+                                }
                             >
                                 {attachmentText}
                                 {bindings}
                             </div>
-                            <div style={style.footer}/>
+                            <div style={style.footer} />
                         </div>
                     </div>
                 </div>
@@ -216,5 +216,5 @@ export default class EmbeddedBinding extends React.PureComponent<Props, State> {
 }
 
 const style = {
-    footer: {clear: 'both'} as CSSProperties,
+    footer: { clear: "both" } as CSSProperties,
 };

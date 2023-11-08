@@ -2,4 +2,4 @@
 // See LICENSE.txt for license information.
 
 // used as a stub for tsc type checker
-export default '';
+export default "";

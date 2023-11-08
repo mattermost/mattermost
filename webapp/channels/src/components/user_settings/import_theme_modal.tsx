@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage, injectIntl} from 'react-intl';
-import type {WrappedComponentProps} from 'react-intl';
+import React from "react";
+import { Modal } from "react-bootstrap";
+import { FormattedMessage, injectIntl } from "react-intl";
+import type { WrappedComponentProps } from "react-intl";
 
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
+import type { Theme } from "mattermost-redux/selectors/entities/preferences";
+import { setThemeDefaults } from "mattermost-redux/utils/theme_utils";
 
 interface Props extends WrappedComponentProps {
     callback: ((args: Theme) => void) | null;
@@ -18,21 +18,21 @@ type State = {
     value: string;
     inputError: React.ReactNode | null;
     show: boolean;
-}
+};
 
 class ImportThemeModal extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
         super(props);
 
         this.state = {
-            value: '',
+            value: "",
             inputError: null,
             show: true,
         };
     }
 
     private handleOnHide = () => {
-        this.setState({show: false});
+        this.setState({ show: false });
     };
 
     private handleSubmit = (e: React.MouseEvent<HTMLElement>) => {
@@ -44,8 +44,8 @@ class ImportThemeModal extends React.PureComponent<Props, State> {
             this.setState({
                 inputError: (
                     <FormattedMessage
-                        id='user.settings.import_theme.submitError'
-                        defaultMessage='Invalid format, please try copying and pasting in again.'
+                        id="user.settings.import_theme.submitError"
+                        defaultMessage="Invalid format, please try copying and pasting in again."
                     />
                 ),
             });
@@ -82,10 +82,10 @@ class ImportThemeModal extends React.PureComponent<Props, State> {
             sidebarText, // 5
             onlineIndicator, // 6
             mentionBg, // 7
-        ] = text.split(',');
+        ] = text.split(",");
 
         const theme = setThemeDefaults({
-            type: 'custom',
+            type: "custom",
             sidebarBg,
             sidebarText,
             sidebarUnreadText: sidebarText,
@@ -108,16 +108,16 @@ class ImportThemeModal extends React.PureComponent<Props, State> {
             return false;
         }
 
-        if (text.indexOf(' ') !== -1) {
+        if (text.indexOf(" ") !== -1) {
             return false;
         }
 
-        if (text.length > 0 && text.indexOf(',') === -1) {
+        if (text.length > 0 && text.indexOf(",") === -1) {
             return false;
         }
 
         if (text.length > 0) {
-            const colors = text.split(',');
+            const colors = text.split(",");
 
             if (colors.length !== 10) {
                 return false;
@@ -128,7 +128,7 @@ class ImportThemeModal extends React.PureComponent<Props, State> {
                     return false;
                 }
 
-                if (colors[i].charAt(0) !== '#') {
+                if (colors[i].charAt(0) !== "#") {
                     return false;
                 }
             }
@@ -139,16 +139,16 @@ class ImportThemeModal extends React.PureComponent<Props, State> {
 
     handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        this.setState({value});
+        this.setState({ value });
 
         if (ImportThemeModal.isInputValid(value)) {
-            this.setState({inputError: null});
+            this.setState({ inputError: null });
         } else {
             this.setState({
                 inputError: (
                     <FormattedMessage
-                        id='user.settings.import_theme.submitError'
-                        defaultMessage='Invalid format, please try copying and pasting in again.'
+                        id="user.settings.import_theme.submitError"
+                        defaultMessage="Invalid format, please try copying and pasting in again."
                     />
                 ),
             });
@@ -159,45 +159,42 @@ class ImportThemeModal extends React.PureComponent<Props, State> {
         return (
             <span>
                 <Modal
-                    dialogClassName='a11y__modal'
+                    dialogClassName="a11y__modal"
                     show={this.state.show}
                     onHide={this.handleOnHide}
                     onExited={this.props.onExited}
-                    role='dialog'
-                    aria-labelledby='importThemeModalLabel'
+                    role="dialog"
+                    aria-labelledby="importThemeModalLabel"
                 >
                     <Modal.Header closeButton={true}>
                         <Modal.Title
-                            componentClass='h1'
-                            id='importThemeModalLabel'
+                            componentClass="h1"
+                            id="importThemeModalLabel"
                         >
                             <FormattedMessage
-                                id='user.settings.import_theme.importHeader'
-                                defaultMessage='Import Slack Theme'
+                                id="user.settings.import_theme.importHeader"
+                                defaultMessage="Import Slack Theme"
                             />
                         </Modal.Title>
                     </Modal.Header>
-                    <form
-                        role='form'
-                        className='form-horizontal'
-                    >
+                    <form role="form" className="form-horizontal">
                         <Modal.Body>
                             <p>
                                 <FormattedMessage
-                                    id='user.settings.import_theme.importBody'
+                                    id="user.settings.import_theme.importBody"
                                     defaultMessage='To import a theme, go to a Slack team and look for "Preferences -> Themes". Open the custom theme option, copy the theme color values and paste them here:'
                                 />
                             </p>
-                            <div className='form-group less'>
-                                <div className='col-sm-12'>
+                            <div className="form-group less">
+                                <div className="col-sm-12">
                                     <input
-                                        id='themeVector'
-                                        type='text'
-                                        className='form-control'
+                                        id="themeVector"
+                                        type="text"
+                                        className="form-control"
                                         value={this.state.value}
                                         onChange={this.handleChange}
                                     />
-                                    <div className='input__help'>
+                                    <div className="input__help">
                                         {this.state.inputError}
                                     </div>
                                 </div>
@@ -205,25 +202,25 @@ class ImportThemeModal extends React.PureComponent<Props, State> {
                         </Modal.Body>
                         <Modal.Footer>
                             <button
-                                id='cancelButton'
-                                type='button'
-                                className='btn btn-tertiary'
+                                id="cancelButton"
+                                type="button"
+                                className="btn btn-tertiary"
                                 onClick={this.handleOnHide}
                             >
                                 <FormattedMessage
-                                    id='user.settings.import_theme.cancel'
-                                    defaultMessage='Cancel'
+                                    id="user.settings.import_theme.cancel"
+                                    defaultMessage="Cancel"
                                 />
                             </button>
                             <button
-                                id='submitButton'
+                                id="submitButton"
                                 onClick={this.handleSubmit}
-                                type='submit'
-                                className='btn btn-primary'
+                                type="submit"
+                                className="btn btn-primary"
                             >
                                 <FormattedMessage
-                                    id='user.settings.import_theme.submit'
-                                    defaultMessage='Submit'
+                                    id="user.settings.import_theme.submit"
+                                    defaultMessage="Submit"
                                 />
                             </button>
                         </Modal.Footer>

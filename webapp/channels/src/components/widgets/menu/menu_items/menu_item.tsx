@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
+import classNames from "classnames";
+import React from "react";
 
-import './menu_item.scss';
+import "./menu_item.scss";
 
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
@@ -15,8 +15,10 @@ export default function menuItem(Component: React.ComponentType<any>) {
         id?: string;
         icon?: React.ReactNode;
         text?: React.ReactNode;
-    }
-    class MenuItem extends React.PureComponent<Props & React.ComponentProps<typeof Component>> {
+    };
+    class MenuItem extends React.PureComponent<
+        Props & React.ComponentProps<typeof Component>
+    > {
         public static defaultProps = {
             show: true,
         };
@@ -24,7 +26,7 @@ export default function menuItem(Component: React.ComponentType<any>) {
         public static displayName?: string;
 
         public render() {
-            const {id, show, icon, text, ...props} = this.props;
+            const { id, show, icon, text, ...props } = this.props;
             if (!show) {
                 return null;
             }
@@ -33,7 +35,7 @@ export default function menuItem(Component: React.ComponentType<any>) {
             if (icon) {
                 textProp = (
                     <>
-                        <span className='icon'>{icon}</span>
+                        <span className="icon">{icon}</span>
                         {text}
                     </>
                 );
@@ -41,10 +43,10 @@ export default function menuItem(Component: React.ComponentType<any>) {
 
             return (
                 <li
-                    className={classNames('MenuItem', {
-                        'MenuItem--with-icon': icon,
+                    className={classNames("MenuItem", {
+                        "MenuItem--with-icon": icon,
                     })}
-                    role='menuitem'
+                    role="menuitem"
                     id={id}
                 >
                     <Component

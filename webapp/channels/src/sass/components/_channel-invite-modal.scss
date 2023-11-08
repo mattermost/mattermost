@@ -1,7 +1,7 @@
 @charset "UTF-8";
 
-@import 'utils/variables';
-@import 'utils/mixins';
+@import "utils/variables";
+@import "utils/mixins";
 
 .modal .channel-invite__content,
 .modal .user-groups-modal__content {
@@ -115,7 +115,7 @@
                 min-width: 110px;
                 margin-left: auto;
                 color: var(--button-bg);
-                font-family: 'Open Sans';
+                font-family: "Open Sans";
                 font-size: 14px;
                 font-style: normal;
                 font-weight: 600;

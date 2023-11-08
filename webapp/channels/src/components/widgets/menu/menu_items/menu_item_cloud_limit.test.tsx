@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Provider} from 'react-redux';
+import React from "react";
+import { Provider } from "react-redux";
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
-import {FileSizes} from 'utils/file_utils';
-import {limitThresholds} from 'utils/limits';
+import { mountWithIntl } from "tests/helpers/intl-test-helper";
+import mockStore from "tests/test_store";
+import { FileSizes } from "utils/file_utils";
+import { limitThresholds } from "utils/limits";
 
-import MenuItemCloudLimit from './menu_item_cloud_limit';
+import MenuItemCloudLimit from "./menu_item_cloud_limit";
 
 const zeroUsage = {
     files: {
@@ -36,18 +36,20 @@ const zeroUsage = {
 
 const general = {
     license: {
-        IsLicensed: 'true',
-        Cloud: 'true',
+        IsLicensed: "true",
+        Cloud: "true",
     },
 };
 
 const subscription = {
-    is_free_trial: 'false',
+    is_free_trial: "false",
 };
 
 const messageLimit = 10000;
-const warnMessageUsage = Math.ceil((limitThresholds.warn / 100) * messageLimit) + 1;
-const critialMessageUsage = Math.ceil((limitThresholds.danger / 100) * messageLimit) + 1;
+const warnMessageUsage =
+    Math.ceil((limitThresholds.warn / 100) * messageLimit) + 1;
+const critialMessageUsage =
+    Math.ceil((limitThresholds.danger / 100) * messageLimit) + 1;
 
 const limits = {
     limitsLoaded: true,
@@ -89,27 +91,27 @@ const usageCriticalMessages = {
 };
 
 const users = {
-    currentUserId: 'user_id',
+    currentUserId: "user_id",
     profiles: {
         user_id: {},
     },
 };
 
-const id = 'menuItemCloudLimit';
+const id = "menuItemCloudLimit";
 
-describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
-    test('Does not render if not cloud', () => {
+describe("components/widgets/menu/menu_items/menu_item_cloud_limit", () => {
+    test("Does not render if not cloud", () => {
         const state = {
             entities: {
                 general: {
                     license: {
-                        IsLicensed: 'true',
-                        Cloud: 'false',
+                        IsLicensed: "true",
+                        Cloud: "false",
                     },
                 },
                 cloud: {
                     subscription: {
-                        is_free_trial: 'false',
+                        is_free_trial: "false",
                     },
                     limits,
                 },
@@ -118,17 +120,21 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
             },
         };
         const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuItemCloudLimit id={id}/></Provider>);
-        expect(wrapper.find('li').exists()).toEqual(false);
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <MenuItemCloudLimit id={id} />
+            </Provider>,
+        );
+        expect(wrapper.find("li").exists()).toEqual(false);
     });
 
-    test('Does not render if free trial', () => {
+    test("Does not render if free trial", () => {
         const state = {
             entities: {
                 general,
                 cloud: {
                     subscription: {
-                        is_free_trial: 'true',
+                        is_free_trial: "true",
                     },
                     limits,
                 },
@@ -137,11 +143,15 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
             },
         };
         const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuItemCloudLimit id={id}/></Provider>);
-        expect(wrapper.find('li').exists()).toEqual(false);
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <MenuItemCloudLimit id={id} />
+            </Provider>,
+        );
+        expect(wrapper.find("li").exists()).toEqual(false);
     });
 
-    test('Does not render if no highest limit', () => {
+    test("Does not render if no highest limit", () => {
         const state = {
             entities: {
                 general,
@@ -154,12 +164,16 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
             },
         };
         const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuItemCloudLimit id={id}/></Provider>);
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <MenuItemCloudLimit id={id} />
+            </Provider>,
+        );
 
-        expect(wrapper.find('li').exists()).toEqual(false);
+        expect(wrapper.find("li").exists()).toEqual(false);
     });
 
-    test('renders when a limit needs attention', () => {
+    test("renders when a limit needs attention", () => {
         const state = {
             entities: {
                 general,
@@ -172,11 +186,15 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
             },
         };
         const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuItemCloudLimit id={id}/></Provider>);
-        expect(wrapper.find('li').exists()).toEqual(true);
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <MenuItemCloudLimit id={id} />
+            </Provider>,
+        );
+        expect(wrapper.find("li").exists()).toEqual(true);
     });
 
-    test('shows more attention grabbing UI and notify admin CTA if a limit is very close for non admin users', () => {
+    test("shows more attention grabbing UI and notify admin CTA if a limit is very close for non admin users", () => {
         const state = {
             entities: {
                 general,
@@ -187,17 +205,21 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
                 users,
                 usage: usageCriticalMessages,
                 teams: {
-                    currentTeamId: 'current_team_id',
+                    currentTeamId: "current_team_id",
                 },
             },
         };
         const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuItemCloudLimit id={id}/></Provider>);
-        expect(wrapper.find('li').prop('className')).toContain('critical');
-        expect(wrapper.find('NotifyAdminCTA')).toHaveLength(1);
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <MenuItemCloudLimit id={id} />
+            </Provider>,
+        );
+        expect(wrapper.find("li").prop("className")).toContain("critical");
+        expect(wrapper.find("NotifyAdminCTA")).toHaveLength(1);
     });
 
-    test('shows more attention grabbing UI if a limit is very close for admins', () => {
+    test("shows more attention grabbing UI if a limit is very close for admins", () => {
         const state = {
             entities: {
                 general,
@@ -206,22 +228,25 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
                     limits,
                 },
                 users: {
-                    currentUserId: 'current_user_id',
+                    currentUserId: "current_user_id",
                     profiles: {
-                        current_user_id: {roles: 'system_admin'},
+                        current_user_id: { roles: "system_admin" },
                     },
                 },
                 usage: usageCriticalMessages,
                 teams: {
-                    currentTeamId: 'current_team_id',
+                    currentTeamId: "current_team_id",
                 },
             },
         };
         const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuItemCloudLimit id={id}/></Provider>);
-        expect(wrapper.find('li').prop('className')).toContain('critical');
-        expect(wrapper.find('a')).toHaveLength(1);
-        expect(wrapper.find('a').text()).toEqual('View upgrade options.');
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <MenuItemCloudLimit id={id} />
+            </Provider>,
+        );
+        expect(wrapper.find("li").prop("className")).toContain("critical");
+        expect(wrapper.find("a")).toHaveLength(1);
+        expect(wrapper.find("a").text()).toEqual("View upgrade options.");
     });
 });
-

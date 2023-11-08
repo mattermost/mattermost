@@ -1,9 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import Constants, {EventTypes, A11yClassNames, A11yAttributeNames, A11yCustomEventTypes, isA11yFocusEventDetail} from 'utils/constants';
-import {isKeyPressed, cmdOrCtrlPressed} from 'utils/keyboard';
-import {isDesktopApp, isMac} from 'utils/user_agent';
+import Constants, {
+    EventTypes,
+    A11yClassNames,
+    A11yAttributeNames,
+    A11yCustomEventTypes,
+    isA11yFocusEventDetail,
+} from "utils/constants";
+import { isKeyPressed, cmdOrCtrlPressed } from "utils/keyboard";
+import { isDesktopApp, isMac } from "utils/user_agent";
 
 const listenerOptions = {
     capture: true,
@@ -47,28 +53,92 @@ export default class A11yController {
     resetNavigation = false;
 
     constructor() {
-        document.addEventListener(EventTypes.KEY_DOWN, this.handleKeyDown, listenerOptions);
-        document.addEventListener(EventTypes.KEY_UP, this.handleKeyUp, listenerOptions);
-        document.addEventListener(EventTypes.CLICK, this.handleMouseClick, listenerOptions);
-        document.addEventListener(EventTypes.MOUSE_DOWN, this.handleMouseDown, listenerOptions);
-        document.addEventListener(EventTypes.MOUSE_UP, this.handleMouseUp, listenerOptions);
-        document.addEventListener(EventTypes.FOCUS, this.handleFocus, listenerOptions);
-        document.addEventListener(A11yCustomEventTypes.FOCUS, this.handleA11yFocus, listenerOptions);
-        window.addEventListener(EventTypes.BLUR, this.handleWindowBlur, listenerOptions);
+        document.addEventListener(
+            EventTypes.KEY_DOWN,
+            this.handleKeyDown,
+            listenerOptions,
+        );
+        document.addEventListener(
+            EventTypes.KEY_UP,
+            this.handleKeyUp,
+            listenerOptions,
+        );
+        document.addEventListener(
+            EventTypes.CLICK,
+            this.handleMouseClick,
+            listenerOptions,
+        );
+        document.addEventListener(
+            EventTypes.MOUSE_DOWN,
+            this.handleMouseDown,
+            listenerOptions,
+        );
+        document.addEventListener(
+            EventTypes.MOUSE_UP,
+            this.handleMouseUp,
+            listenerOptions,
+        );
+        document.addEventListener(
+            EventTypes.FOCUS,
+            this.handleFocus,
+            listenerOptions,
+        );
+        document.addEventListener(
+            A11yCustomEventTypes.FOCUS,
+            this.handleA11yFocus,
+            listenerOptions,
+        );
+        window.addEventListener(
+            EventTypes.BLUR,
+            this.handleWindowBlur,
+            listenerOptions,
+        );
     }
 
     destroy() {
         this.clearActiveRegion();
         this.clearCurrentFocus();
 
-        document.removeEventListener(EventTypes.KEY_DOWN, this.handleKeyDown, listenerOptions);
-        document.removeEventListener(EventTypes.KEY_UP, this.handleKeyUp, listenerOptions);
-        document.removeEventListener(EventTypes.CLICK, this.handleMouseClick, listenerOptions);
-        document.removeEventListener(EventTypes.MOUSE_DOWN, this.handleMouseDown, listenerOptions);
-        document.removeEventListener(EventTypes.MOUSE_UP, this.handleMouseUp, listenerOptions);
-        document.removeEventListener(EventTypes.FOCUS, this.handleFocus, listenerOptions);
-        document.removeEventListener(A11yCustomEventTypes.FOCUS, this.handleA11yFocus, listenerOptions);
-        window.removeEventListener(EventTypes.BLUR, this.handleWindowBlur, listenerOptions);
+        document.removeEventListener(
+            EventTypes.KEY_DOWN,
+            this.handleKeyDown,
+            listenerOptions,
+        );
+        document.removeEventListener(
+            EventTypes.KEY_UP,
+            this.handleKeyUp,
+            listenerOptions,
+        );
+        document.removeEventListener(
+            EventTypes.CLICK,
+            this.handleMouseClick,
+            listenerOptions,
+        );
+        document.removeEventListener(
+            EventTypes.MOUSE_DOWN,
+            this.handleMouseDown,
+            listenerOptions,
+        );
+        document.removeEventListener(
+            EventTypes.MOUSE_UP,
+            this.handleMouseUp,
+            listenerOptions,
+        );
+        document.removeEventListener(
+            EventTypes.FOCUS,
+            this.handleFocus,
+            listenerOptions,
+        );
+        document.removeEventListener(
+            A11yCustomEventTypes.FOCUS,
+            this.handleA11yFocus,
+            listenerOptions,
+        );
+        window.removeEventListener(
+            EventTypes.BLUR,
+            this.handleWindowBlur,
+            listenerOptions,
+        );
     }
 
     // convenience getter/setters
@@ -81,7 +151,11 @@ export default class A11yController {
      * 4. There must be an active element and it must support classList
      */
     get navigationInProgress() {
-        if (!this.regions || !this.regions.length || !this.isElementValid(this.activeRegion)) {
+        if (
+            !this.regions ||
+            !this.regions.length ||
+            !this.isElementValid(this.activeRegion)
+        ) {
             return false;
         }
         if (!this.lastInputEventIsKeyDown) {
@@ -100,7 +174,9 @@ export default class A11yController {
      * Returns an array of available regions sorted by A11yAttributeNames.SORT_ORDER
      */
     get regions() {
-        let domElements = this.sortElementsByAttributeOrder(this.regionHTMLCollection);
+        let domElements = this.sortElementsByAttributeOrder(
+            this.regionHTMLCollection,
+        );
         domElements = domElements.filter((element) => {
             return this.elementIsVisible(element);
         });
@@ -111,7 +187,9 @@ export default class A11yController {
      * Returns an array of available sections sorted by A11yAttributeNames.SORT_ORDER and optionally reversed
      */
     get sections() {
-        let domElements = this.sortElementsByAttributeOrder(this.sectionHTMLCollection!);
+        let domElements = this.sortElementsByAttributeOrder(
+            this.sectionHTMLCollection!,
+        );
         domElements = domElements.filter((element) => {
             return this.elementIsVisible(element);
         });
@@ -170,13 +248,15 @@ export default class A11yController {
      * Returnes whether an a11y-specific key is currently pressed
      */
     get a11yKeyIsPressed() {
-        return this.f6KeyIsPressed ||
-               this.upArrowKeyIsPressed ||
-               this.downArrowKeyIsPressed ||
-               this.tabKeyIsPressed ||
-               this.tildeKeyIsPressed ||
-               this.lKeyIsPressed ||
-               this.escKeyIsPressed;
+        return (
+            this.f6KeyIsPressed ||
+            this.upArrowKeyIsPressed ||
+            this.downArrowKeyIsPressed ||
+            this.tabKeyIsPressed ||
+            this.tildeKeyIsPressed ||
+            this.lKeyIsPressed ||
+            this.escKeyIsPressed
+        );
     }
 
     /**
@@ -201,7 +281,12 @@ export default class A11yController {
      * utilize the a11y_controller to stop other keyboard events for accessibility reasons in favour of its own
      */
     get disableNavigation() {
-        return this.activeRegion && this.activeRegion.getAttribute(A11yAttributeNames.DISABLE_NAVIGATION) === 'true';
+        return (
+            this.activeRegion &&
+            this.activeRegion.getAttribute(
+                A11yAttributeNames.DISABLE_NAVIGATION,
+            ) === "true"
+        );
     }
 
     // public methods
@@ -251,7 +336,10 @@ export default class A11yController {
         }
         if (!this.disableNavigation) {
             let newRegion;
-            if (!this.activeRegion || (this.activeRegionIndex !== 0 && this.resetNavigation)) {
+            if (
+                !this.activeRegion ||
+                (this.activeRegionIndex !== 0 && this.resetNavigation)
+            ) {
                 newRegion = regions[0];
             } else if (this.activeRegionIndex === 0) {
                 newRegion = regions[regions.length - 1];
@@ -269,19 +357,25 @@ export default class A11yController {
      */
     nextSection() {
         const sections = this.sections;
-        const shouldLoopNavigation = this.getLoopNavigationAttribute(this.activeRegion);
+        const shouldLoopNavigation = this.getLoopNavigationAttribute(
+            this.activeRegion,
+        );
         if (
             this.modalIsOpen ||
             this.popupIsOpen ||
             !sections ||
             !sections.length ||
-            (!shouldLoopNavigation && this.activeSectionIndex === sections.length - 1)
+            (!shouldLoopNavigation &&
+                this.activeSectionIndex === sections.length - 1)
         ) {
             return;
         }
         if (!this.disableNavigation) {
             let newSection;
-            if (this.activeSection && this.activeSectionIndex < sections.length - 1) {
+            if (
+                this.activeSection &&
+                this.activeSectionIndex < sections.length - 1
+            ) {
                 newSection = sections[this.activeSectionIndex + 1];
             } else {
                 newSection = sections[0];
@@ -297,7 +391,9 @@ export default class A11yController {
      */
     previousSection() {
         const sections = this.sections;
-        const shouldLoopNavigation = this.getLoopNavigationAttribute(this.activeRegion);
+        const shouldLoopNavigation = this.getLoopNavigationAttribute(
+            this.activeRegion,
+        );
         if (
             this.modalIsOpen ||
             this.popupIsOpen ||
@@ -328,7 +424,10 @@ export default class A11yController {
      * @param element - the DOM element to set as the active element
      * @param elementPath - array of element's dom branch or boolean to find section/region of element
      */
-    nextElement(element: HTMLElement, elementPath: EventTarget[] | boolean = false) {
+    nextElement(
+        element: HTMLElement,
+        elementPath: EventTarget[] | boolean = false,
+    ) {
         function isPath(obj: unknown): obj is HTMLElement[] {
             return Array.isArray(obj);
         }
@@ -337,27 +436,41 @@ export default class A11yController {
         let section;
         if (isPath(elementPath)) {
             // is the current element in an active region?
-            if (!this.activeRegion || elementPath.indexOf(this.activeRegion) < 0) {
+            if (
+                !this.activeRegion ||
+                elementPath.indexOf(this.activeRegion) < 0
+            ) {
                 region = elementPath.find((pathElement) => {
                     if (!pathElement.classList) {
                         return false;
                     }
-                    return pathElement.classList.contains(A11yClassNames.REGION);
+                    return pathElement.classList.contains(
+                        A11yClassNames.REGION,
+                    );
                 });
             }
 
             // is the current element in an active section?
-            if (!this.activeSection || elementPath.indexOf(this.activeSection) < 0) {
+            if (
+                !this.activeSection ||
+                elementPath.indexOf(this.activeSection) < 0
+            ) {
                 section = elementPath.find((pathElement) => {
                     if (!pathElement.classList) {
                         return false;
                     }
-                    return pathElement.classList.contains(A11yClassNames.SECTION);
+                    return pathElement.classList.contains(
+                        A11yClassNames.SECTION,
+                    );
                 });
             }
-        } else if (elementPath && typeof element.closest === 'function') {
-            region = element.closest(`.${A11yClassNames.REGION}`) as HTMLElement;
-            section = element.closest(`.${A11yClassNames.SECTION}`) as HTMLElement;
+        } else if (elementPath && typeof element.closest === "function") {
+            region = element.closest(
+                `.${A11yClassNames.REGION}`,
+            ) as HTMLElement;
+            section = element.closest(
+                `.${A11yClassNames.SECTION}`,
+            ) as HTMLElement;
         }
         if (region && this.activeRegion !== region) {
             this.setActiveRegion(region, false);
@@ -388,7 +501,10 @@ export default class A11yController {
      * @emits {A11yCustomEventTypes.ACTIVATE} - emitted on the provided DOM element once set to active
      */
     setActiveRegion(element: HTMLElement, canFocusChild = true) {
-        if (!this.isElementValid(element, [this.activeRegion]) && !this.resetNavigation) {
+        if (
+            !this.isElementValid(element, [this.activeRegion]) &&
+            !this.resetNavigation
+        ) {
             return;
         }
 
@@ -397,17 +513,29 @@ export default class A11yController {
 
         // setup new active region
         this.activeRegion = element;
-        this.activeRegion.addEventListener(A11yCustomEventTypes.UPDATE, this.handleActiveRegionUpdate);
-        this.activeRegion.dispatchEvent(new Event(A11yCustomEventTypes.ACTIVATE));
+        this.activeRegion.addEventListener(
+            A11yCustomEventTypes.UPDATE,
+            this.handleActiveRegionUpdate,
+        );
+        this.activeRegion.dispatchEvent(
+            new Event(A11yCustomEventTypes.ACTIVATE),
+        );
 
         // apply visual updates to active region
         this.updateActiveRegion();
 
         // retrieve all sections for the new active region
-        this.sectionHTMLCollection = this.getAllSectionsForRegion(this.activeRegion);
+        this.sectionHTMLCollection = this.getAllSectionsForRegion(
+            this.activeRegion,
+        );
 
         // should the visual focus start on a child section
-        if (canFocusChild && this.getFocusChildAttribute(this.activeRegion) && this.sections && this.sections.length) {
+        if (
+            canFocusChild &&
+            this.getFocusChildAttribute(this.activeRegion) &&
+            this.sections &&
+            this.sections.length
+        ) {
             this.setActiveSection(this.sections[0]);
         }
     }
@@ -427,8 +555,13 @@ export default class A11yController {
 
         // setup new active section
         this.activeSection = element;
-        this.activeSection.addEventListener(A11yCustomEventTypes.UPDATE, this.handleActiveSectionUpdate);
-        this.activeSection.dispatchEvent(new Event(A11yCustomEventTypes.ACTIVATE));
+        this.activeSection.addEventListener(
+            A11yCustomEventTypes.UPDATE,
+            this.handleActiveSectionUpdate,
+        );
+        this.activeSection.dispatchEvent(
+            new Event(A11yCustomEventTypes.ACTIVATE),
+        );
 
         // apply visual updates to active section
         this.updateActiveSection();
@@ -449,9 +582,17 @@ export default class A11yController {
 
         // setup new active element
         this.activeElement = element;
-        this.activeElement.addEventListener(A11yCustomEventTypes.UPDATE, this.handleActiveElementUpdate);
-        if (this.activeElement !== this.activeRegion && this.activeElement !== this.activeSection) {
-            this.activeElement.dispatchEvent(new Event(A11yCustomEventTypes.ACTIVATE));
+        this.activeElement.addEventListener(
+            A11yCustomEventTypes.UPDATE,
+            this.handleActiveElementUpdate,
+        );
+        if (
+            this.activeElement !== this.activeRegion &&
+            this.activeElement !== this.activeSection
+        ) {
+            this.activeElement.dispatchEvent(
+                new Event(A11yCustomEventTypes.ACTIVATE),
+            );
         }
 
         // apply visual updates to active element
@@ -486,8 +627,8 @@ export default class A11yController {
         this.activeRegion.classList.add(A11yClassNames.ACTIVE);
 
         // ensure active region element is focusable
-        if (!this.activeRegion.getAttribute('tabindex')) {
-            this.activeRegion.setAttribute('tabindex', '-1');
+        if (!this.activeRegion.getAttribute("tabindex")) {
+            this.activeRegion.setAttribute("tabindex", "-1");
         }
     }
 
@@ -501,8 +642,8 @@ export default class A11yController {
         this.activeSection.classList.add(A11yClassNames.ACTIVE);
 
         // ensure active section element is focusable
-        if (!this.activeSection.getAttribute('tabindex')) {
-            this.activeSection.setAttribute('tabindex', '-1');
+        if (!this.activeSection.getAttribute("tabindex")) {
+            this.activeSection.setAttribute("tabindex", "-1");
         }
     }
 
@@ -520,7 +661,11 @@ export default class A11yController {
      * Updates the visual state of the currently focused element
      */
     udpateCurrentFocus(forceUpdate = false) {
-        if ((!this.focusedElement || !(this.a11yKeyIsPressed || this.manualFocus)) && !forceUpdate) {
+        if (
+            (!this.focusedElement ||
+                !(this.a11yKeyIsPressed || this.manualFocus)) &&
+            !forceUpdate
+        ) {
             return;
         }
         this.focusedElement?.classList.add(A11yClassNames.FOCUSED);
@@ -532,8 +677,13 @@ export default class A11yController {
     clearActiveRegion() {
         if (this.activeRegion) {
             this.activeRegion.classList.remove(A11yClassNames.ACTIVE);
-            this.activeRegion.dispatchEvent(new Event(A11yCustomEventTypes.DEACTIVATE));
-            this.activeRegion.removeEventListener(A11yCustomEventTypes.UPDATE, this.handleActiveRegionUpdate);
+            this.activeRegion.dispatchEvent(
+                new Event(A11yCustomEventTypes.DEACTIVATE),
+            );
+            this.activeRegion.removeEventListener(
+                A11yCustomEventTypes.UPDATE,
+                this.handleActiveRegionUpdate,
+            );
             this.activeRegion = undefined;
         }
         this.clearActiveSection();
@@ -545,8 +695,13 @@ export default class A11yController {
     clearActiveSection() {
         if (this.activeSection) {
             this.activeSection.classList.remove(A11yClassNames.ACTIVE);
-            this.activeSection.dispatchEvent(new Event(A11yCustomEventTypes.DEACTIVATE));
-            this.activeSection.removeEventListener(A11yCustomEventTypes.UPDATE, this.handleActiveSectionUpdate);
+            this.activeSection.dispatchEvent(
+                new Event(A11yCustomEventTypes.DEACTIVATE),
+            );
+            this.activeSection.removeEventListener(
+                A11yCustomEventTypes.UPDATE,
+                this.handleActiveSectionUpdate,
+            );
             this.activeSection = undefined;
         }
         this.clearActiveElement();
@@ -557,11 +712,19 @@ export default class A11yController {
      */
     clearActiveElement() {
         if (this.activeElement) {
-            if (this.activeElement !== this.activeRegion && this.activeElement !== this.activeSection) {
+            if (
+                this.activeElement !== this.activeRegion &&
+                this.activeElement !== this.activeSection
+            ) {
                 this.activeElement.classList.remove(A11yClassNames.ACTIVE);
-                this.activeElement.dispatchEvent(new Event(A11yCustomEventTypes.DEACTIVATE));
+                this.activeElement.dispatchEvent(
+                    new Event(A11yCustomEventTypes.DEACTIVATE),
+                );
             }
-            this.activeElement.removeEventListener(A11yCustomEventTypes.UPDATE, this.handleActiveElementUpdate);
+            this.activeElement.removeEventListener(
+                A11yCustomEventTypes.UPDATE,
+                this.handleActiveElementUpdate,
+            );
             this.activeElement = undefined;
         }
     }
@@ -570,7 +733,9 @@ export default class A11yController {
      * Clears all focused element classes and blurs the active element if requested
      */
     clearCurrentFocus(blurActiveElement = false) {
-        Array.from(document.getElementsByClassName(A11yClassNames.FOCUSED)).forEach((element) => {
+        Array.from(
+            document.getElementsByClassName(A11yClassNames.FOCUSED),
+        ).forEach((element) => {
             element.classList.remove(A11yClassNames.FOCUSED);
         });
         if (blurActiveElement) {
@@ -601,7 +766,9 @@ export default class A11yController {
      * - use of HTMLCollection is intentional as this object auto updates to reflect DOM changes
      */
     getAllRegions() {
-        return document.getElementsByClassName(A11yClassNames.REGION) as HTMLCollectionOf<HTMLElement>;
+        return document.getElementsByClassName(
+            A11yClassNames.REGION,
+        ) as HTMLCollectionOf<HTMLElement>;
     }
 
     /**
@@ -612,7 +779,9 @@ export default class A11yController {
         if (!region) {
             return undefined;
         }
-        return region.getElementsByClassName(A11yClassNames.SECTION) as HTMLCollectionOf<HTMLElement>;
+        return region.getElementsByClassName(
+            A11yClassNames.SECTION,
+        ) as HTMLCollectionOf<HTMLElement>;
     }
 
     /**
@@ -624,8 +793,14 @@ export default class A11yController {
             return [];
         }
         return Array.from(elements).sort((elementA, elementB) => {
-            const elementAOrder = parseInt(elementA.getAttribute(A11yAttributeNames.SORT_ORDER) || '', 10);
-            const elementBOrder = parseInt(elementB.getAttribute(A11yAttributeNames.SORT_ORDER) || '', 10);
+            const elementAOrder = parseInt(
+                elementA.getAttribute(A11yAttributeNames.SORT_ORDER) || "",
+                10,
+            );
+            const elementBOrder = parseInt(
+                elementB.getAttribute(A11yAttributeNames.SORT_ORDER) || "",
+                10,
+            );
 
             if (isNaN(elementAOrder) && isNaN(elementBOrder)) {
                 return 0;
@@ -646,23 +821,27 @@ export default class A11yController {
      * @param element - the DOM element to check
      */
     elementIsVisible(element: HTMLElement) {
-        return element &&
-            element instanceof HTMLElement &&
-            element.offsetParent;
+        return (
+            element && element instanceof HTMLElement && element.offsetParent
+        );
     }
 
     /**
      * Retuns an HTMLCollection of all DOM elements that have the A11yClassNames.MODAL class
      */
     getAllModals() {
-        return document.getElementsByClassName(A11yClassNames.MODAL) as HTMLCollectionOf<HTMLElement>;
+        return document.getElementsByClassName(
+            A11yClassNames.MODAL,
+        ) as HTMLCollectionOf<HTMLElement>;
     }
 
     /**
      * Retuns an HTMLCollection of all DOM elements that have the A11yClassNames.POPUP class
      */
     getAllPopups() {
-        return document.getElementsByClassName(A11yClassNames.POPUP) as HTMLCollectionOf<HTMLElement>;
+        return document.getElementsByClassName(
+            A11yClassNames.POPUP,
+        ) as HTMLCollectionOf<HTMLElement>;
     }
 
     /**
@@ -670,8 +849,10 @@ export default class A11yController {
      * @param element - the element to retrive the A11yAttributeNames.LOOP_NAVIGATION value from
      */
     getLoopNavigationAttribute(element: HTMLElement | undefined) {
-        const attributeValue = element?.getAttribute(A11yAttributeNames.LOOP_NAVIGATION);
-        if (attributeValue && attributeValue.toLowerCase() === 'false') {
+        const attributeValue = element?.getAttribute(
+            A11yAttributeNames.LOOP_NAVIGATION,
+        );
+        if (attributeValue && attributeValue.toLowerCase() === "false") {
             return false;
         }
         return true;
@@ -682,8 +863,10 @@ export default class A11yController {
      * @param element - the element to retrive the A11yAttributeNames.ORDER_REVERSE value from
      */
     getOrderReverseAttribute(element: HTMLElement) {
-        const attributeValue = element.getAttribute(A11yAttributeNames.ORDER_REVERSE);
-        if (attributeValue && attributeValue.toLowerCase() === 'true') {
+        const attributeValue = element.getAttribute(
+            A11yAttributeNames.ORDER_REVERSE,
+        );
+        if (attributeValue && attributeValue.toLowerCase() === "true") {
             return true;
         }
         return false;
@@ -694,8 +877,10 @@ export default class A11yController {
      * @param element - the element to retrive the A11yAttributeNames.FOCUS_CHILD value from
      */
     getFocusChildAttribute(element: HTMLElement) {
-        const attributeValue = element.getAttribute(A11yAttributeNames.FOCUS_CHILD);
-        if (attributeValue && attributeValue.toLowerCase() === 'true') {
+        const attributeValue = element.getAttribute(
+            A11yAttributeNames.FOCUS_CHILD,
+        );
+        if (attributeValue && attributeValue.toLowerCase() === "true") {
             return true;
         }
         return false;
@@ -706,7 +891,10 @@ export default class A11yController {
      * @param element - the DOM element to check
      * @param invalidElements - a list of invalid DOM elements to check against
      */
-    isElementValid(element: HTMLElement | undefined, invalidElements: Array<HTMLElement | undefined> = []) {
+    isElementValid(
+        element: HTMLElement | undefined,
+        invalidElements: Array<HTMLElement | undefined> = [],
+    ) {
         if (
             element &&
             element.classList &&
@@ -736,93 +924,104 @@ export default class A11yController {
             shiftIsPressed: event.shiftKey,
         };
         switch (true) {
-        case isKeyPressed(event, Constants.KeyCodes.TAB):
-            this.lastInputEventIsKeyDown = true;
-            if ((!isMac() && modifierKeys.altIsPressed) || cmdOrCtrlPressed(event)) {
-                return;
-            }
-            this.tabKeyIsPressed = true;
-            break;
-        case isKeyPressed(event, Constants.KeyCodes.TILDE):
-            this.lastInputEventIsKeyDown = true;
-            if (!this.regions || !this.regions.length) {
-                return;
-            }
+            case isKeyPressed(event, Constants.KeyCodes.TAB):
+                this.lastInputEventIsKeyDown = true;
+                if (
+                    (!isMac() && modifierKeys.altIsPressed) ||
+                    cmdOrCtrlPressed(event)
+                ) {
+                    return;
+                }
+                this.tabKeyIsPressed = true;
+                break;
+            case isKeyPressed(event, Constants.KeyCodes.TILDE):
+                this.lastInputEventIsKeyDown = true;
+                if (!this.regions || !this.regions.length) {
+                    return;
+                }
 
-            // Check to make sure both aren't pressed because some older webkit browsers set CTRL and ALT when AltGr is pressed
-            if (modifierKeys.ctrlIsPressed && !modifierKeys.altIsPressed) {
-                this.tildeKeyIsPressed = true;
+                // Check to make sure both aren't pressed because some older webkit browsers set CTRL and ALT when AltGr is pressed
+                if (modifierKeys.ctrlIsPressed && !modifierKeys.altIsPressed) {
+                    this.tildeKeyIsPressed = true;
+                    event.preventDefault();
+                    if (modifierKeys.shiftIsPressed) {
+                        this.previousRegion();
+                    } else {
+                        this.nextRegion();
+                    }
+                }
+                break;
+            case isKeyPressed(event, Constants.KeyCodes.F6):
+                this.lastInputEventIsKeyDown = true;
+                if (!isDesktopApp() && !cmdOrCtrlPressed(event)) {
+                    return;
+                }
+                this.f6KeyIsPressed = true;
                 event.preventDefault();
                 if (modifierKeys.shiftIsPressed) {
                     this.previousRegion();
                 } else {
                     this.nextRegion();
                 }
-            }
-            break;
-        case isKeyPressed(event, Constants.KeyCodes.F6):
-            this.lastInputEventIsKeyDown = true;
-            if (!isDesktopApp() && !cmdOrCtrlPressed(event)) {
-                return;
-            }
-            this.f6KeyIsPressed = true;
-            event.preventDefault();
-            if (modifierKeys.shiftIsPressed) {
-                this.previousRegion();
-            } else {
-                this.nextRegion();
-            }
-            break;
-        case isKeyPressed(event, Constants.KeyCodes.UP):
-            this.lastInputEventIsKeyDown = true;
-            if (!this.navigationInProgress || !this.sections || !this.sections.length) {
-                return;
-            }
-            this.upArrowKeyIsPressed = true;
-            event.preventDefault();
-            if (this.shouldReverseSections) {
-                this.nextSection();
-            } else {
-                this.previousSection();
-            }
-            break;
-        case isKeyPressed(event, Constants.KeyCodes.DOWN):
-            this.lastInputEventIsKeyDown = true;
-            if (!this.navigationInProgress || !this.sections || !this.sections.length) {
-                return;
-            }
-            this.downArrowKeyIsPressed = true;
-            event.preventDefault();
-            if (this.shouldReverseSections) {
-                this.previousSection();
-            } else {
-                this.nextSection();
-            }
-            break;
-        case isKeyPressed(event, Constants.KeyCodes.ESCAPE):
-            this.escKeyIsPressed = true;
-            this.lastInputEventIsKeyDown = true;
-            if (!this.navigationInProgress) {
-                return;
-            }
-            event.preventDefault();
-            this.cancelNavigation();
-            break;
-        case isKeyPressed(event, Constants.KeyCodes.ENTER):
-            this.enterKeyIsPressed = true;
-            break;
-        case isKeyPressed(event, Constants.KeyCodes.SPACE):
-            if (event.target.nodeName === 'BUTTON') {
+                break;
+            case isKeyPressed(event, Constants.KeyCodes.UP):
+                this.lastInputEventIsKeyDown = true;
+                if (
+                    !this.navigationInProgress ||
+                    !this.sections ||
+                    !this.sections.length
+                ) {
+                    return;
+                }
+                this.upArrowKeyIsPressed = true;
                 event.preventDefault();
-                event.stopPropagation();
-                event.target.click();
-            }
-            break;
-        case isKeyPressed(event, Constants.KeyCodes.L):
-            // For the Ctrl+Shift+L keyboard shortcut
-            this.lastInputEventIsKeyDown = true;
-            this.lKeyIsPressed = true;
-            break;
+                if (this.shouldReverseSections) {
+                    this.nextSection();
+                } else {
+                    this.previousSection();
+                }
+                break;
+            case isKeyPressed(event, Constants.KeyCodes.DOWN):
+                this.lastInputEventIsKeyDown = true;
+                if (
+                    !this.navigationInProgress ||
+                    !this.sections ||
+                    !this.sections.length
+                ) {
+                    return;
+                }
+                this.downArrowKeyIsPressed = true;
+                event.preventDefault();
+                if (this.shouldReverseSections) {
+                    this.previousSection();
+                } else {
+                    this.nextSection();
+                }
+                break;
+            case isKeyPressed(event, Constants.KeyCodes.ESCAPE):
+                this.escKeyIsPressed = true;
+                this.lastInputEventIsKeyDown = true;
+                if (!this.navigationInProgress) {
+                    return;
+                }
+                event.preventDefault();
+                this.cancelNavigation();
+                break;
+            case isKeyPressed(event, Constants.KeyCodes.ENTER):
+                this.enterKeyIsPressed = true;
+                break;
+            case isKeyPressed(event, Constants.KeyCodes.SPACE):
+                if (event.target.nodeName === "BUTTON") {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.target.click();
+                }
+                break;
+            case isKeyPressed(event, Constants.KeyCodes.L):
+                // For the Ctrl+Shift+L keyboard shortcut
+                this.lastInputEventIsKeyDown = true;
+                this.lKeyIsPressed = true;
+                break;
         }
     };
 
@@ -857,7 +1056,11 @@ export default class A11yController {
             // decided to leave this fix in for now. If we find the need for a more sustainable fix we can certainly do
             // that, as well, but for now this is sufficient.
             // @see: https://github.com/mattermost/mattermost-webapp/pull/8882#discussion_r790905592
-            if (this.lastInputEventIsKeyDown && this.windowIsFocused && event.target.id !== 'edit_textbox') {
+            if (
+                this.lastInputEventIsKeyDown &&
+                this.windowIsFocused &&
+                event.target.id !== "edit_textbox"
+            ) {
                 this.nextElement(event.target, event.composedPath() || true);
             }
         }

@@ -1,25 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
-import type {KeyboardEvent} from 'react';
+import React, { memo } from "react";
+import type { KeyboardEvent } from "react";
 
-import type {EmojiCategory} from '@mattermost/types/emojis';
+import type { EmojiCategory } from "@mattermost/types/emojis";
 
-import EmojiPickerCategory from 'components/emoji_picker/components/emoji_picker_category';
-import {
-    NavigationDirection,
-} from 'components/emoji_picker/types';
+import EmojiPickerCategory from "components/emoji_picker/components/emoji_picker_category";
+import { NavigationDirection } from "components/emoji_picker/types";
 import type {
     Categories,
-    CategoryOrEmojiRow} from 'components/emoji_picker/types';
-import {calculateCategoryRowIndex} from 'components/emoji_picker/utils';
+    CategoryOrEmojiRow,
+} from "components/emoji_picker/types";
+import { calculateCategoryRowIndex } from "components/emoji_picker/utils";
 
 interface Props {
     isFiltering: boolean;
     active: EmojiCategory;
     categories: Categories;
-    onClick: (categoryRowIndex: CategoryOrEmojiRow['index'], categoryName: EmojiCategory, firstEmojiId: string) => void;
+    onClick: (
+        categoryRowIndex: CategoryOrEmojiRow["index"],
+        categoryName: EmojiCategory,
+        firstEmojiId: string,
+    ) => void;
     onKeyDown: (moveTo: NavigationDirection) => void;
     focusOnSearchInput: () => void;
 }
@@ -34,30 +37,30 @@ function EmojiPickerCategories({
 }: Props) {
     const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
         switch (event.key) {
-        case 'ArrowRight':
-            event.stopPropagation();
-            event.preventDefault();
-            onKeyDown(NavigationDirection.NextEmoji);
-            focusOnSearchInput();
-            break;
-        case 'ArrowLeft':
-            event.stopPropagation();
-            event.preventDefault();
-            onKeyDown(NavigationDirection.PreviousEmoji);
-            focusOnSearchInput();
-            break;
-        case 'ArrowUp':
-            event.stopPropagation();
-            event.preventDefault();
-            onKeyDown(NavigationDirection.PreviousEmojiRow);
-            focusOnSearchInput();
-            break;
-        case 'ArrowDown':
-            event.stopPropagation();
-            event.preventDefault();
-            onKeyDown(NavigationDirection.NextEmojiRow);
-            focusOnSearchInput();
-            break;
+            case "ArrowRight":
+                event.stopPropagation();
+                event.preventDefault();
+                onKeyDown(NavigationDirection.NextEmoji);
+                focusOnSearchInput();
+                break;
+            case "ArrowLeft":
+                event.stopPropagation();
+                event.preventDefault();
+                onKeyDown(NavigationDirection.PreviousEmoji);
+                focusOnSearchInput();
+                break;
+            case "ArrowUp":
+                event.stopPropagation();
+                event.preventDefault();
+                onKeyDown(NavigationDirection.PreviousEmojiRow);
+                focusOnSearchInput();
+                break;
+            case "ArrowDown":
+                event.stopPropagation();
+                event.preventDefault();
+                onKeyDown(NavigationDirection.NextEmojiRow);
+                focusOnSearchInput();
+                break;
         }
     };
 
@@ -67,8 +70,8 @@ function EmojiPickerCategories({
 
     return (
         <div
-            id='emojiPickerCategories'
-            className='emoji-picker__categories'
+            id="emojiPickerCategories"
+            className="emoji-picker__categories"
             onKeyDown={handleKeyDown}
         >
             {categoryNames.map((categoryName) => {
@@ -78,15 +81,16 @@ function EmojiPickerCategories({
                     <EmojiPickerCategory
                         key={`${category.id}-${category.name}`}
                         category={category}
-                        categoryRowIndex={calculateCategoryRowIndex(categories, categoryName as EmojiCategory)}
+                        categoryRowIndex={calculateCategoryRowIndex(
+                            categories,
+                            categoryName as EmojiCategory,
+                        )}
                         onClick={onClick}
                         selected={activeCategory === category.name}
                         enable={!isFiltering}
                     />
                 );
-            },
-
-            )}
+            })}
         </div>
     );
 }

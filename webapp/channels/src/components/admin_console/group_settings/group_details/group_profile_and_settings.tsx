@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import GroupProfile from 'components/admin_console/group_settings/group_details/group_profile';
-import LineSwitch from 'components/admin_console/team_channel_settings/line_switch';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import AdminPanel from 'components/widgets/admin_console/admin_panel';
+import GroupProfile from "components/admin_console/group_settings/group_details/group_profile";
+import LineSwitch from "components/admin_console/team_channel_settings/line_switch";
+import FormattedMarkdownMessage from "components/formatted_markdown_message";
+import AdminPanel from "components/widgets/admin_console/admin_panel";
 
-import {t} from 'utils/i18n';
+import { t } from "utils/i18n";
 
 type GroupSettingsToggleProps = {
     isDefault: boolean;
@@ -25,7 +25,7 @@ const GroupSettingsToggle = ({
     isDisabled,
 }: GroupSettingsToggleProps) => (
     <LineSwitch
-        id={'allowReferenceSwitch'}
+        id={"allowReferenceSwitch"}
         disabled={isDisabled || isDefault}
         toggled={allowReference}
         last={true}
@@ -38,14 +38,14 @@ const GroupSettingsToggle = ({
         singleLine={false}
         title={
             <FormattedMessage
-                id='admin.team_settings.team_details.groupDetailsToggle'
-                defaultMessage='Enable Group Mention (Beta)'
+                id="admin.team_settings.team_details.groupDetailsToggle"
+                defaultMessage="Enable Group Mention (Beta)"
             />
         }
         subTitle={
             <FormattedMarkdownMessage
-                id='admin.team_settings.team_details.groupDetailsToggleDescr'
-                defaultMessage='When enabled, this group can be mentioned in other channels and teams. This may result in the group member list being visible to all users.'
+                id="admin.team_settings.team_details.groupDetailsToggleDescr"
+                defaultMessage="When enabled, this group can be mentioned in other channels and teams. This may result in the group member list being visible to all users."
             />
         }
     />
@@ -69,26 +69,26 @@ export const GroupProfileAndSettings = ({
     readOnly,
 }: GroupProfileAndSettingsProps) => (
     <AdminPanel
-        id='group_profile'
-        titleId={t('admin.group_settings.group_detail.groupProfileTitle')}
-        titleDefault='Group Profile'
+        id="group_profile"
+        titleId={t("admin.group_settings.group_detail.groupProfileTitle")}
+        titleDefault="Group Profile"
         subtitleId={t(
-            'admin.group_settings.group_detail.groupProfileDescription',
+            "admin.group_settings.group_detail.groupProfileDescription",
         )}
-        subtitleDefault='The name for this group.'
+        subtitleDefault="The name for this group."
     >
         <GroupProfile
             name={displayname}
-            title={t('admin.group_settings.group_details.group_profile.name')}
-            titleDefault={'Name:'}
-            customID={'groupDisplayName'}
+            title={t("admin.group_settings.group_details.group_profile.name")}
+            titleDefault={"Name:"}
+            customID={"groupDisplayName"}
             isDisabled={true}
             showAtMention={false}
         />
-        <div className='group-settings'>
-            <div className='group-settings--body'>
-                <div className='section-separator'>
-                    <hr className='separator__hr'/>
+        <div className="group-settings">
+            <div className="group-settings--body">
+                <div className="section-separator">
+                    <hr className="separator__hr" />
                 </div>
                 <GroupSettingsToggle
                     isDefault={false}
@@ -102,10 +102,10 @@ export const GroupProfileAndSettings = ({
             <GroupProfile
                 name={mentionname}
                 title={t(
-                    'admin.group_settings.group_details.group_mention.name',
+                    "admin.group_settings.group_details.group_mention.name",
                 )}
-                titleDefault={'Group Mention:'}
-                customID={'groupMention'}
+                titleDefault={"Group Mention:"}
+                customID={"groupMention"}
                 isDisabled={readOnly}
                 showAtMention={true}
                 onChange={onChange}

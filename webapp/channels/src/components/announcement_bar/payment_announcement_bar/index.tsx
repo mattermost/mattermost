@@ -1,46 +1,57 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {isEmpty} from 'lodash';
-import React, {useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {useSelector, useDispatch} from 'react-redux';
+import { isEmpty } from "lodash";
+import React, { useEffect, useState } from "react";
+import { FormattedMessage } from "react-intl";
+import { useSelector, useDispatch } from "react-redux";
 
-import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
+import { getCloudCustomer } from "mattermost-redux/actions/cloud";
 import {
     getCloudSubscription as selectCloudSubscription,
     getCloudCustomer as selectCloudCustomer,
     getSubscriptionProduct,
-} from 'mattermost-redux/selectors/entities/cloud';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
+} from "mattermost-redux/selectors/entities/cloud";
+import { getLicense } from "mattermost-redux/selectors/entities/general";
+import { isCurrentUserSystemAdmin } from "mattermost-redux/selectors/entities/users";
+import type { DispatchFunc } from "mattermost-redux/types/actions";
 
-import {getHistory} from 'utils/browser_history';
-import {isCustomerCardExpired} from 'utils/cloud_utils';
-import {AnnouncementBarTypes, CloudProducts, ConsolePages} from 'utils/constants';
-import {t} from 'utils/i18n';
+import { getHistory } from "utils/browser_history";
+import { isCustomerCardExpired } from "utils/cloud_utils";
+import {
+    AnnouncementBarTypes,
+    CloudProducts,
+    ConsolePages,
+} from "utils/constants";
+import { t } from "utils/i18n";
 
-import AnnouncementBar from '../default_announcement_bar';
+import AnnouncementBar from "../default_announcement_bar";
 
 export default function PaymentAnnouncementBar() {
     const [requestedCustomer, setRequestedCustomer] = useState(false);
     const dispatch = useDispatch<DispatchFunc>();
     const subscription = useSelector(selectCloudSubscription);
     const customer = useSelector(selectCloudCustomer);
-    const isStarterFree = useSelector(getSubscriptionProduct)?.sku === CloudProducts.STARTER;
+    const isStarterFree =
+        useSelector(getSubscriptionProduct)?.sku === CloudProducts.STARTER;
     const userIsAdmin = useSelector(isCurrentUserSystemAdmin);
-    const isCloud = useSelector(getLicense).Cloud === 'true';
+    const isCloud = useSelector(getLicense).Cloud === "true";
 
     useEffect(() => {
-        if (isCloud && !isStarterFree && isEmpty(customer) && userIsAdmin && !requestedCustomer) {
+        if (
+            isCloud &&
+            !isStarterFree &&
+            isEmpty(customer) &&
+            userIsAdmin &&
+            !requestedCustomer
+        ) {
             setRequestedCustomer(true);
             dispatch(getCloudCustomer());
         }
-    },
-    [isCloud, isStarterFree, customer, userIsAdmin, requestedCustomer]);
+    }, [isCloud, isStarterFree, customer, userIsAdmin, requestedCustomer]);
 
-    const mostRecentPaymentFailed = subscription?.last_invoice?.status === 'failed';
+    const mostRecentPaymentFailed =
+        subscription?.last_invoice?.status === "failed";
 
     if (
         // Prevents banner flashes if the subscription hasn't been loaded yet
@@ -60,16 +71,16 @@ export default function PaymentAnnouncementBar() {
 
     let message = (
         <FormattedMessage
-            id='admin.billing.subscription.creditCardExpired'
-            defaultMessage='Your credit card has expired. Update your payment information to avoid disruption.'
+            id="admin.billing.subscription.creditCardExpired"
+            defaultMessage="Your credit card has expired. Update your payment information to avoid disruption."
         />
     );
 
     if (mostRecentPaymentFailed) {
         message = (
             <FormattedMessage
-                id='admin.billing.subscription.mostRecentPaymentFailed'
-                defaultMessage='Your most recent payment failed'
+                id="admin.billing.subscription.mostRecentPaymentFailed"
+                defaultMessage="Your most recent payment failed"
             />
         );
     }
@@ -79,8 +90,8 @@ export default function PaymentAnnouncementBar() {
             type={AnnouncementBarTypes.CRITICAL}
             showCloseButton={false}
             onButtonClick={updatePaymentInfo}
-            modalButtonText={t('admin.billing.subscription.updatePaymentInfo')}
-            modalButtonDefaultText={'Update payment info'}
+            modalButtonText={t("admin.billing.subscription.updatePaymentInfo")}
+            modalButtonDefaultText={"Update payment info"}
             message={message}
             showLinkAsButton={true}
             isTallBanner={true}

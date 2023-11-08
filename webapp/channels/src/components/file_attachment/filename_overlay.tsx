@@ -1,22 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {FileInfo} from '@mattermost/types/files';
+import type { FileInfo } from "@mattermost/types/files";
 
-import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
+import { getFileDownloadUrl } from "mattermost-redux/utils/file_utils";
 
-import ExternalLink from 'components/external_link';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import AttachmentIcon from 'components/widgets/icons/attachment_icon';
+import ExternalLink from "components/external_link";
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
+import AttachmentIcon from "components/widgets/icons/attachment_icon";
 
-import {trimFilename} from 'utils/file_utils';
-import {localizeMessage} from 'utils/utils';
+import { trimFilename } from "utils/file_utils";
+import { localizeMessage } from "utils/utils";
 
 type Props = {
-
     /*
      * File detailed information
      */
@@ -25,7 +24,9 @@ type Props = {
     /*
      * Handler for when the thumbnail is clicked passed the index above
      */
-    handleImageClick?: (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void;
+    handleImageClick?: (
+        event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+    ) => void;
 
     /*
      * Display in compact format
@@ -46,7 +47,7 @@ type Props = {
      * Optional class like for icon
      */
     iconClass?: string;
-}
+};
 
 export default class FilenameOverlay extends React.PureComponent<Props> {
     render() {
@@ -67,38 +68,46 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
             filenameOverlay = (
                 <OverlayTrigger
                     delayShow={1000}
-                    placement='top'
-                    overlay={<Tooltip id='file-name__tooltip'>{fileName}</Tooltip>}
+                    placement="top"
+                    overlay={
+                        <Tooltip id="file-name__tooltip">{fileName}</Tooltip>
+                    }
                 >
                     <a
-                        id='file-attachment-link'
-                        href='#'
+                        id="file-attachment-link"
+                        href="#"
                         onClick={handleImageClick}
-                        className='post-image__name'
-                        rel='noopener noreferrer'
+                        className="post-image__name"
+                        rel="noopener noreferrer"
                     >
-                        <AttachmentIcon className='icon'/>
+                        <AttachmentIcon className="icon" />
                         {trimmedFilename}
                     </a>
                 </OverlayTrigger>
             );
         } else if (canDownload) {
             filenameOverlay = (
-                <div className={iconClass || 'post-image__name'}>
+                <div className={iconClass || "post-image__name"}>
                     <OverlayTrigger
                         delayShow={1000}
-                        placement='top'
+                        placement="top"
                         overlay={
-                            <Tooltip id='file-name__tooltip'>
-                                {localizeMessage('view_image_popover.download', 'Download')}
+                            <Tooltip id="file-name__tooltip">
+                                {localizeMessage(
+                                    "view_image_popover.download",
+                                    "Download",
+                                )}
                             </Tooltip>
                         }
                     >
                         <ExternalLink
                             href={getFileDownloadUrl(fileInfo.id)}
-                            aria-label={localizeMessage('view_image_popover.download', 'Download').toLowerCase()}
+                            aria-label={localizeMessage(
+                                "view_image_popover.download",
+                                "Download",
+                            ).toLowerCase()}
                             download={fileName}
-                            location='filename_overlay'
+                            location="filename_overlay"
                         >
                             {children || trimmedFilename}
                         </ExternalLink>
@@ -107,12 +116,10 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
             );
         } else {
             filenameOverlay = (
-                <span className='post-image__name'>
-                    {trimmedFilename}
-                </span>
+                <span className="post-image__name">{trimmedFilename}</span>
             );
         }
 
-        return (filenameOverlay);
+        return filenameOverlay;
     }
 }

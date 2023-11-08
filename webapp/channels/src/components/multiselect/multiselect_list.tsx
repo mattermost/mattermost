@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import type {getOptionValue} from 'react-select/src/builtins';
+import React from "react";
+import { FormattedMessage } from "react-intl";
+import type { getOptionValue } from "react-select/src/builtins";
 
-import LoadingScreen from 'components/loading_screen';
+import LoadingScreen from "components/loading_screen";
 
-import Constants from 'utils/constants';
-import {cmdOrCtrlPressed} from 'utils/keyboard';
+import Constants from "utils/constants";
+import { cmdOrCtrlPressed } from "utils/keyboard";
 
-import type {Value} from './multiselect';
+import type { Value } from "./multiselect";
 
 export type Props<T extends Value> = {
     ariaLabelRenderer: getOptionValue<T>;
@@ -22,7 +22,7 @@ export type Props<T extends Value> = {
         option: T,
         isSelected: boolean,
         add: (value: T) => void,
-        select: (value: T) => void
+        select: (value: T) => void,
     ) => void;
     query?: string;
     selectedItemRef?: React.RefObject<HTMLDivElement>;
@@ -30,14 +30,16 @@ export type Props<T extends Value> = {
     page: number;
     perPage: number;
     customNoOptionsMessage?: React.ReactNode;
-}
+};
 
 type State = {
     selected: number;
-}
+};
 const KeyCodes = Constants.KeyCodes;
 
-export default class MultiSelectList<T extends Value> extends React.PureComponent<Props<T>, State> {
+export default class MultiSelectList<
+    T extends Value,
+> extends React.PureComponent<Props<T>, State> {
     public static defaultProps = {
         options: [],
         perPage: 50,
@@ -57,11 +59,11 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
     }
 
     public componentDidMount() {
-        document.addEventListener('keydown', this.handleArrowPress);
+        document.addEventListener("keydown", this.handleArrowPress);
     }
 
     public componentWillUnmount() {
-        document.removeEventListener('keydown', this.handleArrowPress);
+        document.removeEventListener("keydown", this.handleArrowPress);
     }
 
     public componentDidUpdate(_: Props<T>, prevState: State) {
@@ -74,12 +76,14 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
             return;
         }
 
-        const selectRef = this.selectedItemRef.current || this.props.selectedItemRef?.current;
+        const selectRef =
+            this.selectedItemRef.current || this.props.selectedItemRef?.current;
         if (this.listRef.current && selectRef) {
             const elemTop = selectRef.getBoundingClientRect().top;
             const elemBottom = selectRef.getBoundingClientRect().bottom;
             const listTop = this.listRef.current.getBoundingClientRect().top;
-            const listBottom = this.listRef.current.getBoundingClientRect().bottom;
+            const listBottom =
+                this.listRef.current.getBoundingClientRect().bottom;
             if (elemBottom > listBottom) {
                 selectRef.scrollIntoView(false);
             } else if (elemTop < listTop) {
@@ -91,7 +95,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
     // setSelected updates the selected index and is referenced
     // externally by the MultiSelect component.
     public setSelected = (selected: number) => {
-        this.setState({selected});
+        this.setState({ selected });
     };
 
     private handleArrowPress = (e: KeyboardEvent) => {
@@ -106,26 +110,29 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
 
         let selected;
         switch (e.key) {
-        case KeyCodes.DOWN[0]:
-            if (this.state.selected === -1) {
-                selected = 0;
+            case KeyCodes.DOWN[0]:
+                if (this.state.selected === -1) {
+                    selected = 0;
+                    break;
+                }
+                selected = Math.min(
+                    this.state.selected + 1,
+                    options.length - 1,
+                );
                 break;
-            }
-            selected = Math.min(this.state.selected + 1, options.length - 1);
-            break;
-        case KeyCodes.UP[0]:
-            if (this.state.selected === -1) {
-                selected = 0;
+            case KeyCodes.UP[0]:
+                if (this.state.selected === -1) {
+                    selected = 0;
+                    break;
+                }
+                selected = Math.max(this.state.selected - 1, 0);
                 break;
-            }
-            selected = Math.max(this.state.selected - 1, 0);
-            break;
-        default:
-            return;
+            default:
+                return;
         }
 
         e.preventDefault();
-        this.setState({selected});
+        this.setState({ selected });
         this.props.onSelect(options[selected]);
     };
 
@@ -135,16 +142,16 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
         add: (value: T) => void,
         select: (value: T) => void,
     ) => {
-        let rowSelected = '';
+        let rowSelected = "";
         if (isSelected) {
-            rowSelected = 'more-modal__row--selected';
+            rowSelected = "more-modal__row--selected";
         }
 
         return (
             <div
                 ref={isSelected ? this.selectedItemRef : option.value}
                 className={rowSelected}
-                key={'multiselectoption' + option.value}
+                key={"multiselectoption" + option.value}
                 onClick={() => add(option)}
                 onMouseEnter={() => select(option)}
             >
@@ -163,16 +170,13 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
     };
 
     public render() {
-        const {options, customNoOptionsMessage} = this.props;
+        const { options, customNoOptionsMessage } = this.props;
         let renderOutput;
 
         if (this.props.loading) {
             renderOutput = (
                 <div aria-hidden={true}>
-                    <LoadingScreen
-                        position='absolute'
-                        key='loading'
-                    />
+                    <LoadingScreen position="absolute" key="loading" />
                 </div>
             );
         } else if (options == null || options.length === 0) {
@@ -181,14 +185,14 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
             } else {
                 renderOutput = (
                     <div
-                        key='no-users-found'
-                        className='no-channel-message'
+                        key="no-users-found"
+                        className="no-channel-message"
                         tabIndex={0}
                     >
-                        <p className='primary-message'>
+                        <p className="primary-message">
                             <FormattedMessage
-                                id='multiselect.list.notFound'
-                                defaultMessage='No results found matching <b>{searchQuery}</b>'
+                                id="multiselect.list.notFound"
+                                defaultMessage="No results found matching <b>{searchQuery}</b>"
                                 values={{
                                     searchQuery: this.props.query,
                                     b: (value: string) => <b>{value}</b>,
@@ -199,32 +203,39 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
                 );
             }
         } else {
-            let renderer: Props<T>['optionRenderer'];
+            let renderer: Props<T>["optionRenderer"];
             if (this.props.optionRenderer) {
                 renderer = this.props.optionRenderer;
             } else {
                 renderer = this.defaultOptionRenderer;
             }
 
-            const optionControls = options.map((o, i) => renderer(o, this.state.selected === i, this.props.onAdd, this.select));
+            const optionControls = options.map((o, i) =>
+                renderer(
+                    o,
+                    this.state.selected === i,
+                    this.props.onAdd,
+                    this.select,
+                ),
+            );
 
             const selectedOption = options[this.state.selected];
             const ariaLabel = this.props.ariaLabelRenderer(selectedOption);
 
             renderOutput = (
-                <div className='more-modal__list'>
+                <div className="more-modal__list">
                     <div
-                        className='sr-only'
-                        aria-live='polite'
-                        aria-atomic='true'
+                        className="sr-only"
+                        aria-live="polite"
+                        aria-atomic="true"
                     >
                         {ariaLabel}
                     </div>
                     <div
                         ref={this.listRef}
-                        id='multiSelectList'
-                        className='more-modal__options'
-                        role='presentation'
+                        id="multiSelectList"
+                        className="more-modal__options"
+                        role="presentation"
                         aria-hidden={true}
                     >
                         {optionControls}
@@ -234,10 +245,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
         }
 
         return (
-            <div
-                className='multi-select__wrapper'
-                aria-live='polite'
-            >
+            <div className="multi-select__wrapper" aria-live="polite">
                 {renderOutput}
             </div>
         );

@@ -1,24 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import type {ConnectedComponent} from 'react-redux';
-import {Link} from 'react-router-dom';
+import React from "react";
+import { FormattedMessage } from "react-intl";
+import type { ConnectedComponent } from "react-redux";
+import { Link } from "react-router-dom";
 
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {ServerError} from '@mattermost/types/errors';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Channel, ChannelMembership } from "@mattermost/types/channels";
+import type { ServerError } from "@mattermost/types/errors";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {Client4} from 'mattermost-redux/client';
+import { Client4 } from "mattermost-redux/client";
 
-import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import ProfilePicture from 'components/profile_picture';
-import BotTag from 'components/widgets/tag/bot_tag';
-import Tag from 'components/widgets/tag/tag';
+import CustomStatusEmoji from "components/custom_status/custom_status_emoji";
+import FormattedMarkdownMessage from "components/formatted_markdown_message";
+import ProfilePicture from "components/profile_picture";
+import BotTag from "components/widgets/tag/bot_tag";
+import Tag from "components/widgets/tag/tag";
 
-import * as Utils from 'utils/utils';
+import * as Utils from "utils/utils";
 
 type Props = {
     user: UserProfile;
@@ -47,12 +47,15 @@ type Props = {
     userCount?: number;
     totalUsers?: number;
     isDisabled?: boolean;
-}
+};
 type State = {
     error?: ServerError;
-}
+};
 
-export default class UserListRowWithError extends React.PureComponent<Props, State> {
+export default class UserListRowWithError extends React.PureComponent<
+    Props,
+    State
+> {
     constructor(props: Props) {
         super(props);
         this.state = {};
@@ -84,21 +87,21 @@ export default class UserListRowWithError extends React.PureComponent<Props, Sta
 
         // QUICK HACK, NEEDS A PROP FOR TOGGLING STATUS
         let email: React.ReactNode = this.props.user.email;
-        let emailStyle = 'more-modal__description';
+        let emailStyle = "more-modal__description";
         let status;
         if (this.props.user.is_bot) {
             email = null;
         } else if (this.props.extraInfo && this.props.extraInfo.length > 0) {
             email = (
                 <FormattedMarkdownMessage
-                    id='admin.user_item.emailTitle'
-                    defaultMessage='**Email:** {email}'
+                    id="admin.user_item.emailTitle"
+                    defaultMessage="**Email:** {email}"
                     values={{
                         email: this.props.user.email,
                     }}
                 />
             );
-            emailStyle = '';
+            emailStyle = "";
         } else {
             status = this.props.status;
         }
@@ -110,56 +113,72 @@ export default class UserListRowWithError extends React.PureComponent<Props, Sta
         let userCountID = null;
         let userCountEmail = null;
         if (this.props.userCount && this.props.userCount >= 0) {
-            userCountID = Utils.createSafeId('userListRowName' + this.props.userCount);
-            userCountEmail = Utils.createSafeId('userListRowEmail' + this.props.userCount);
+            userCountID = Utils.createSafeId(
+                "userListRowName" + this.props.userCount,
+            );
+            userCountEmail = Utils.createSafeId(
+                "userListRowEmail" + this.props.userCount,
+            );
         }
 
         let error = null;
         if (this.state.error) {
             error = (
-                <div className='has-error'>
-                    <label className='has-error control-label'>{this.state.error.message}</label>
+                <div className="has-error">
+                    <label className="has-error control-label">
+                        {this.state.error.message}
+                    </label>
                 </div>
             );
         }
 
         return (
             <div
-                data-testid='userListRow'
+                data-testid="userListRow"
                 key={this.props.user.id}
-                className='more-modal__row'
+                className="more-modal__row"
             >
                 <ProfilePicture
-                    src={Client4.getProfilePictureUrl(this.props.user.id, this.props.user.last_picture_update)}
+                    src={Client4.getProfilePictureUrl(
+                        this.props.user.id,
+                        this.props.user.last_picture_update,
+                    )}
                     status={status || undefined}
-                    size='md'
+                    size="md"
                 />
-                <div className='more-modal__right'>
-                    <div className='more-modal__top'>
-                        <div className='more-modal__details'>
+                <div className="more-modal__right">
+                    <div className="more-modal__top">
+                        <div className="more-modal__details">
                             <div
                                 id={userCountID || undefined}
-                                className='more-modal__name'
+                                className="more-modal__name"
                             >
-                                <Link to={'/admin_console/user_management/user/' + this.props.user.id}>
-                                    {Utils.displayEntireNameForUser(this.props.user)}
+                                <Link
+                                    to={
+                                        "/admin_console/user_management/user/" +
+                                        this.props.user.id
+                                    }
+                                >
+                                    {Utils.displayEntireNameForUser(
+                                        this.props.user,
+                                    )}
                                 </Link>
                                 <CustomStatusEmoji
                                     userID={this.props.user.id}
                                     showTooltip={true}
                                     emojiSize={16}
                                     emojiStyle={{
-                                        marginLeft: '8px',
+                                        marginLeft: "8px",
                                     }}
                                 />
 
-                                {this.props.user.is_bot && <BotTag/>}
+                                {this.props.user.is_bot && <BotTag />}
                                 {this.props.user.remote_id && (
                                     <Tag
                                         text={
                                             <FormattedMessage
-                                                id='admin.user_item.remoteUser'
-                                                defaultMessage='Remote user'
+                                                id="admin.user_item.remoteUser"
+                                                defaultMessage="Remote user"
                                             />
                                         }
                                     />
@@ -173,17 +192,9 @@ export default class UserListRowWithError extends React.PureComponent<Props, Sta
                             </div>
                             {this.props.extraInfo}
                         </div>
-                        <div
-                            className='more-modal__actions'
-                        >
-                            {buttons}
-                        </div>
+                        <div className="more-modal__actions">{buttons}</div>
                     </div>
-                    <div
-                        className='more-modal__bottom'
-                    >
-                        {error}
-                    </div>
+                    <div className="more-modal__bottom">{error}</div>
                 </div>
             </div>
         );

@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import memoize from 'memoize-one';
-import React from 'react';
-import type {ReactNode} from 'react';
-import {Overlay} from 'react-bootstrap';
+import memoize from "memoize-one";
+import React from "react";
+import type { ReactNode } from "react";
+import { Overlay } from "react-bootstrap";
 
-import type {Emoji} from '@mattermost/types/emojis';
+import type { Emoji } from "@mattermost/types/emojis";
 
-import {Constants} from 'utils/constants';
-import {popOverOverlayPosition} from 'utils/position_utils';
+import { Constants } from "utils/constants";
+import { popOverOverlayPosition } from "utils/position_utils";
 
-import EmojiPickerTabs from '../emoji_picker_tabs';
+import EmojiPickerTabs from "../emoji_picker_tabs";
 
-import type {PropsFromRedux} from './index';
+import type { PropsFromRedux } from "./index";
 
 export interface Props extends PropsFromRedux {
     container?: () => ReactNode;
@@ -29,7 +29,7 @@ export interface Props extends PropsFromRedux {
     spaceRequiredAbove?: number;
     spaceRequiredBelow?: number;
     enableGifPicker?: boolean;
-    defaultHorizontalPosition?: 'left' | 'right';
+    defaultHorizontalPosition?: "left" | "right";
 }
 
 export default class EmojiPickerOverlay extends React.PureComponent<Props> {
@@ -58,33 +58,71 @@ export default class EmojiPickerOverlay extends React.PureComponent<Props> {
         }
 
         if (emojiTrigger) {
-            calculatedRightOffset = window.innerWidth - emojiTrigger.getBoundingClientRect().left - Constants.DEFAULT_EMOJI_PICKER_LEFT_OFFSET;
+            calculatedRightOffset =
+                window.innerWidth -
+                emojiTrigger.getBoundingClientRect().left -
+                Constants.DEFAULT_EMOJI_PICKER_LEFT_OFFSET;
 
-            if (calculatedRightOffset < Constants.DEFAULT_EMOJI_PICKER_RIGHT_OFFSET) {
-                calculatedRightOffset = Constants.DEFAULT_EMOJI_PICKER_RIGHT_OFFSET;
+            if (
+                calculatedRightOffset <
+                Constants.DEFAULT_EMOJI_PICKER_RIGHT_OFFSET
+            ) {
+                calculatedRightOffset =
+                    Constants.DEFAULT_EMOJI_PICKER_RIGHT_OFFSET;
             }
         }
 
         return calculatedRightOffset;
     });
 
-    getPlacement = memoize((target, spaceRequiredAbove, spaceRequiredBelow, defaultHorizontalPosition, show) => {
-        if (!show) {
-            return 'top';
-        }
+    getPlacement = memoize(
+        (
+            target,
+            spaceRequiredAbove,
+            spaceRequiredBelow,
+            defaultHorizontalPosition,
+            show,
+        ) => {
+            if (!show) {
+                return "top";
+            }
 
-        if (target) {
-            const targetBounds = target.getBoundingClientRect();
-            return popOverOverlayPosition(targetBounds, window.innerHeight, spaceRequiredAbove, spaceRequiredBelow, defaultHorizontalPosition);
-        }
+            if (target) {
+                const targetBounds = target.getBoundingClientRect();
+                return popOverOverlayPosition(
+                    targetBounds,
+                    window.innerHeight,
+                    spaceRequiredAbove,
+                    spaceRequiredBelow,
+                    defaultHorizontalPosition,
+                );
+            }
 
-        return 'top';
-    });
+            return "top";
+        },
+    );
 
     render() {
-        const {target, rightOffset, spaceRequiredAbove, spaceRequiredBelow, defaultHorizontalPosition, show, isMobileView} = this.props;
-        const calculatedRightOffset = typeof rightOffset === 'undefined' ? this.emojiPickerPosition(target(), show) : rightOffset;
-        const placement = this.getPlacement(target(), spaceRequiredAbove, spaceRequiredBelow, defaultHorizontalPosition, show);
+        const {
+            target,
+            rightOffset,
+            spaceRequiredAbove,
+            spaceRequiredBelow,
+            defaultHorizontalPosition,
+            show,
+            isMobileView,
+        } = this.props;
+        const calculatedRightOffset =
+            typeof rightOffset === "undefined"
+                ? this.emojiPickerPosition(target(), show)
+                : rightOffset;
+        const placement = this.getPlacement(
+            target(),
+            spaceRequiredAbove,
+            spaceRequiredBelow,
+            defaultHorizontalPosition,
+            show,
+        );
 
         return (
             <Overlay

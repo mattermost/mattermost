@@ -1,23 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
+import React from "react";
+import {
+    FormattedMessage,
+    injectIntl,
+    type WrappedComponentProps,
+} from "react-intl";
 
-import type {AnalyticsRow} from '@mattermost/types/admin';
-import type {Channel} from '@mattermost/types/channels';
-import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type { AnalyticsRow } from "@mattermost/types/admin";
+import type { Channel } from "@mattermost/types/channels";
+import type { ClientConfig, ClientLicense } from "@mattermost/types/config";
+import type { PreferenceType } from "@mattermost/types/preferences";
 
-import type {Notice} from 'components/system_notice/types';
-import MattermostLogo from 'components/widgets/icons/mattermost_logo';
+import type { Notice } from "components/system_notice/types";
+import MattermostLogo from "components/widgets/icons/mattermost_logo";
 
-import {Preferences} from 'utils/constants';
+import { Preferences } from "utils/constants";
 
 interface Props extends WrappedComponentProps {
     currentUserId: string;
     notices: Notice[];
-    preferences: {[key: string]: any};
+    preferences: { [key: string]: any };
     dismissedNotices: any;
     isSystemAdmin?: boolean;
     serverVersion: string;
@@ -39,7 +43,10 @@ export class SystemNotice extends React.PureComponent<Props> {
     }
 
     componentDidUpdate(prevProps: Props) {
-        if (prevProps.isSystemAdmin !== this.props.isSystemAdmin && this.props.isSystemAdmin) {
+        if (
+            prevProps.isSystemAdmin !== this.props.isSystemAdmin &&
+            this.props.isSystemAdmin
+        ) {
             this.props.actions.getStandardAnalytics();
         }
     }
@@ -60,13 +67,15 @@ export class SystemNotice extends React.PureComponent<Props> {
                 continue;
             }
 
-            if (!notice.show?.(
-                this.props.serverVersion,
-                this.props.config,
-                this.props.license,
-                this.props.analytics,
-                this.props.currentChannel,
-            )) {
+            if (
+                !notice.show?.(
+                    this.props.serverVersion,
+                    this.props.config,
+                    this.props.license,
+                    this.props.analytics,
+                    this.props.currentChannel,
+                )
+            ) {
                 continue;
             }
 
@@ -82,12 +91,14 @@ export class SystemNotice extends React.PureComponent<Props> {
         }
 
         if (!remind) {
-            this.props.actions.savePreferences(this.props.currentUserId, [{
-                user_id: this.props.currentUserId,
-                category: Preferences.CATEGORY_SYSTEM_NOTICE,
-                name: notice.name,
-                value: 'dismissed',
-            }]);
+            this.props.actions.savePreferences(this.props.currentUserId, [
+                {
+                    user_id: this.props.currentUserId,
+                    category: Preferences.CATEGORY_SYSTEM_NOTICE,
+                    name: notice.name,
+                    value: "dismissed",
+                },
+            ]);
         }
 
         this.props.actions.dismissNotice(notice.name);
@@ -111,56 +122,55 @@ export class SystemNotice extends React.PureComponent<Props> {
         let visibleMessage;
         if (notice.adminOnly) {
             visibleMessage = (
-                <div className='system-notice__info'>
+                <div className="system-notice__info">
                     <i
-                        className='fa fa-eye'
-                        title={this.props.intl.formatMessage({id: 'system_notice.adminVisible.icon', defaultMessage: 'Only visible to System Admins Icon'})}
+                        className="fa fa-eye"
+                        title={this.props.intl.formatMessage({
+                            id: "system_notice.adminVisible.icon",
+                            defaultMessage:
+                                "Only visible to System Admins Icon",
+                        })}
                     />
                     <FormattedMessage
-                        id='system_notice.adminVisible'
-                        defaultMessage='Only visible to System Admins'
+                        id="system_notice.adminVisible"
+                        defaultMessage="Only visible to System Admins"
                     />
                 </div>
             );
         }
 
-        const icon = notice.icon || <MattermostLogo/>;
+        const icon = notice.icon || <MattermostLogo />;
 
         return (
-            <div
-                className='system-notice bg--white'
-            >
-                <div className='system-notice__logo'>
-                    {icon}
-                </div>
-                <div className='system-notice__body'>
-                    <div className='system-notice__title'>
-                        {notice.title}
-                    </div>
+            <div className="system-notice bg--white">
+                <div className="system-notice__logo">{icon}</div>
+                <div className="system-notice__body">
+                    <div className="system-notice__title">{notice.title}</div>
                     {notice.body}
                     {visibleMessage}
-                    <div className='system-notice__footer'>
+                    <div className="system-notice__footer">
                         <button
-                            id='systemnotice_remindme'
-                            className='btn btn-sm btn-primary'
+                            id="systemnotice_remindme"
+                            className="btn btn-sm btn-primary"
                             onClick={this.hideAndRemind}
                         >
                             <FormattedMessage
-                                id='system_notice.remind_me'
-                                defaultMessage='Remind Me Later'
+                                id="system_notice.remind_me"
+                                defaultMessage="Remind Me Later"
                             />
                         </button>
-                        {notice.allowForget &&
+                        {notice.allowForget && (
                             <button
-                                id='systemnotice_dontshow'
-                                className='btn btn-sm btn-tertiary'
+                                id="systemnotice_dontshow"
+                                className="btn btn-sm btn-tertiary"
                                 onClick={this.hideAndForget}
                             >
                                 <FormattedMessage
-                                    id='system_notice.dont_show'
+                                    id="system_notice.dont_show"
                                     defaultMessage="Don't Show Again"
                                 />
-                            </button>}
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

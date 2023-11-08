@@ -1,22 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import type {CSSProperties} from 'react';
+import classNames from "classnames";
+import React from "react";
+import type { CSSProperties } from "react";
 
-import MenuGroup from './menu_group';
-import MenuHeader from './menu_header';
-import MenuCloudTrial from './menu_items/menu_cloud_trial';
-import MenuItemAction from './menu_items/menu_item_action';
-import MenuItemCloudLimit from './menu_items/menu_item_cloud_limit';
-import MenuItemExternalLink from './menu_items/menu_item_external_link';
-import MenuItemLink from './menu_items/menu_item_link';
-import MenuItemToggleModalRedux from './menu_items/menu_item_toggle_modal_redux';
-import MenuStartTrial from './menu_items/menu_start_trial';
-import SubMenuItem from './menu_items/submenu_item';
+import MenuGroup from "./menu_group";
+import MenuHeader from "./menu_header";
+import MenuCloudTrial from "./menu_items/menu_cloud_trial";
+import MenuItemAction from "./menu_items/menu_item_action";
+import MenuItemCloudLimit from "./menu_items/menu_item_cloud_limit";
+import MenuItemExternalLink from "./menu_items/menu_item_external_link";
+import MenuItemLink from "./menu_items/menu_item_link";
+import MenuItemToggleModalRedux from "./menu_items/menu_item_toggle_modal_redux";
+import MenuStartTrial from "./menu_items/menu_start_trial";
+import SubMenuItem from "./menu_items/submenu_item";
 
-import './menu.scss';
+import "./menu.scss";
 
 type Props = {
     children?: React.ReactNode;
@@ -27,7 +27,7 @@ type Props = {
     customStyles?: CSSProperties;
     className?: string;
     listId?: string;
-}
+};
 
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
@@ -53,22 +53,29 @@ export default class Menu extends React.PureComponent<Props> {
         this.observer = new MutationObserver(this.hideUnneededDividers);
     }
 
-    public hideUnneededDividers = () => { //Public because it is used by tests
+    public hideUnneededDividers = () => {
+        //Public because it is used by tests
         if (this.node.current === null) {
             return;
         }
 
         this.observer.disconnect();
-        const children = Object.values(this.node.current.children).slice(0, this.node.current.children.length) as HTMLElement[];
+        const children = Object.values(this.node.current.children).slice(
+            0,
+            this.node.current.children.length,
+        ) as HTMLElement[];
 
         // Hiding dividers at beginning and duplicated ones
         let prevWasDivider = false;
         let isAtBeginning = true;
         for (const child of children) {
-            if (child.classList.contains('menu-divider') || child.classList.contains('mobile-menu-divider')) {
-                child.style.display = 'block';
+            if (
+                child.classList.contains("menu-divider") ||
+                child.classList.contains("mobile-menu-divider")
+            ) {
+                child.style.display = "block";
                 if (isAtBeginning || prevWasDivider) {
-                    child.style.display = 'none';
+                    child.style.display = "none";
                 }
                 prevWasDivider = true;
             } else {
@@ -80,13 +87,20 @@ export default class Menu extends React.PureComponent<Props> {
 
         // Hiding trailing dividers
         for (const child of children) {
-            if (child.classList.contains('menu-divider') || child.classList.contains('mobile-menu-divider')) {
-                child.style.display = 'none';
+            if (
+                child.classList.contains("menu-divider") ||
+                child.classList.contains("mobile-menu-divider")
+            ) {
+                child.style.display = "none";
             } else {
                 break;
             }
         }
-        this.observer.observe(this.node.current, {attributes: true, childList: true, subtree: true});
+        this.observer.observe(this.node.current, {
+            attributes: true,
+            childList: true,
+            subtree: true,
+        });
     };
 
     public componentDidMount() {
@@ -117,7 +131,15 @@ export default class Menu extends React.PureComponent<Props> {
     };
 
     public render() {
-        const {children, openUp, openLeft, id, listId, ariaLabel, customStyles} = this.props;
+        const {
+            children,
+            openUp,
+            openLeft,
+            id,
+            listId,
+            ariaLabel,
+            customStyles,
+        } = this.props;
         let styles: CSSProperties = {};
         if (customStyles) {
             styles = customStyles;
@@ -126,16 +148,16 @@ export default class Menu extends React.PureComponent<Props> {
         return (
             <div
                 aria-label={ariaLabel}
-                className='a11y__popup Menu'
+                className="a11y__popup Menu"
                 id={id}
-                role='menu'
+                role="menu"
             >
                 <ul
                     id={listId}
                     ref={this.node}
                     style={styles}
                     className={classNames(
-                        'Menu__content dropdown-menu',
+                        "Menu__content dropdown-menu",
                         {
                             openLeft,
                             openUp,

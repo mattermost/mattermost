@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import ColorContrastChecker from 'color-contrast-checker';
-import ColorHash from 'color-hash';
+import ColorContrastChecker from "color-contrast-checker";
+import ColorHash from "color-hash";
 
 const REQUIRED_COLOR_RATIO = 4.5;
 
@@ -39,7 +39,7 @@ export function generateColor(username: string, background: string): string {
             break;
         }
 
-        userAndSalt += 'salt';
+        userAndSalt += "salt";
     }
 
     cachedUserNameColors.set(cacheKey, userColor);

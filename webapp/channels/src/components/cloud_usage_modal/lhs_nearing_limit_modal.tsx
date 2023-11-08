@@ -1,25 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import React from "react";
+import { useIntl } from "react-intl";
+import { useDispatch, useSelector } from "react-redux";
 
-import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import { getSubscriptionProduct } from "mattermost-redux/selectors/entities/cloud";
 
-import {closeModal} from 'actions/views/modals';
+import { closeModal } from "actions/views/modals";
 
-import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHighestThresholdCloudLimit';
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetUsage from 'components/common/hooks/useGetUsage';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useGetHighestThresholdCloudLimit from "components/common/hooks/useGetHighestThresholdCloudLimit";
+import useGetLimits from "components/common/hooks/useGetLimits";
+import useGetUsage from "components/common/hooks/useGetUsage";
+import useOpenPricingModal from "components/common/hooks/useOpenPricingModal";
 
-import {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
-import type {Message} from 'utils/i18n';
-import {fallbackStarterLimits, asGBString, LimitTypes} from 'utils/limits';
+import { ModalIdentifiers } from "utils/constants";
+import { t } from "utils/i18n";
+import type { Message } from "utils/i18n";
+import { fallbackStarterLimits, asGBString, LimitTypes } from "utils/limits";
 
-import CloudUsageModal from './index';
+import CloudUsageModal from "./index";
 
 export default function LHSNearingLimitsModal() {
     const dispatch = useDispatch();
@@ -32,15 +32,18 @@ export default function LHSNearingLimitsModal() {
 
     const primaryAction = {
         message: {
-            id: t('workspace_limits.modals.view_plans'),
-            defaultMessage: 'View plans',
+            id: t("workspace_limits.modals.view_plans"),
+            defaultMessage: "View plans",
         },
-        onClick: () => openPricingModal({trackingLocation: 'cloud_usage_lhs_nearing_limit_modal'}),
+        onClick: () =>
+            openPricingModal({
+                trackingLocation: "cloud_usage_lhs_nearing_limit_modal",
+            }),
     };
     const secondaryAction = {
         message: {
-            id: t('workspace_limits.modals.close'),
-            defaultMessage: 'Close',
+            id: t("workspace_limits.modals.close"),
+            defaultMessage: "Close",
         },
         onClick: () => {
             dispatch(closeModal(ModalIdentifiers.CLOUD_LIMITS));
@@ -48,32 +51,45 @@ export default function LHSNearingLimitsModal() {
     };
     const highestLimit = useGetHighestThresholdCloudLimit(usage, limits);
     let title: Message = {
-        id: t('workspace_limits.modals.informational.title'),
-        defaultMessage: '{planName} limits',
+        id: t("workspace_limits.modals.informational.title"),
+        defaultMessage: "{planName} limits",
         values: {
             planName: product?.name,
         },
     };
 
     let description: Message = {
-        id: t('workspace_limits.modals.informational.description.freeLimits'),
-        defaultMessage: '{planName} is restricted to {messages} message history and {storage} file storage.',
+        id: t("workspace_limits.modals.informational.description.freeLimits"),
+        defaultMessage:
+            "{planName} is restricted to {messages} message history and {storage} file storage.",
         values: {
             planName: product?.name,
-            messages: intl.formatNumber(limits?.messages?.history ?? fallbackStarterLimits.messages.history),
-            storage: asGBString(limits?.files?.total_storage ?? fallbackStarterLimits.files.totalStorage, intl.formatNumber),
+            messages: intl.formatNumber(
+                limits?.messages?.history ??
+                    fallbackStarterLimits.messages.history,
+            ),
+            storage: asGBString(
+                limits?.files?.total_storage ??
+                    fallbackStarterLimits.files.totalStorage,
+                intl.formatNumber,
+            ),
         },
     };
 
     if (highestLimit && highestLimit.id === LimitTypes.messageHistory) {
         title = {
-            id: t('workspace_limits.modals.limits_reached.title.message_history'),
-            defaultMessage: 'Message history',
+            id: t(
+                "workspace_limits.modals.limits_reached.title.message_history",
+            ),
+            defaultMessage: "Message history",
         };
 
         description = {
-            id: t('workspace_limits.modals.limits_reached.description.message_history'),
-            defaultMessage: 'Your sent message history is no longer available but you can still send messages. Upgrade to a paid plan and get unlimited access to your message history.',
+            id: t(
+                "workspace_limits.modals.limits_reached.description.message_history",
+            ),
+            defaultMessage:
+                "Your sent message history is no longer available but you can still send messages. Upgrade to a paid plan and get unlimited access to your message history.",
         };
     }
 

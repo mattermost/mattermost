@@ -1,35 +1,41 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import moment from 'moment';
-import React, {useEffect} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import classNames from "classnames";
+import moment from "moment";
+import React, { useEffect } from "react";
+import { FormattedMessage } from "react-intl";
+import { useDispatch, useSelector } from "react-redux";
 
-import type {GlobalState} from '@mattermost/types/store';
+import type { GlobalState } from "@mattermost/types/store";
 
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import { isCurrentLicenseCloud } from "mattermost-redux/selectors/entities/cloud";
+import {
+    getConfig,
+    getLicense,
+} from "mattermost-redux/selectors/entities/general";
 import {
     getSelfHostedErrors,
     getTrueUpReviewProfile as trueUpReviewProfileSelector,
     getTrueUpReviewStatus as trueUpReviewStatusSelector,
-} from 'mattermost-redux/selectors/entities/hosted_customer';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+} from "mattermost-redux/selectors/entities/hosted_customer";
+import { isCurrentUserSystemAdmin } from "mattermost-redux/selectors/entities/users";
 
-import {submitTrueUpReview, getTrueUpReviewStatus} from 'actions/hosted_customer';
-import {pageVisited} from 'actions/telemetry_actions';
+import {
+    submitTrueUpReview,
+    getTrueUpReviewStatus,
+} from "actions/hosted_customer";
+import { pageVisited } from "actions/telemetry_actions";
 
-import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
-import ExternalLink from 'components/external_link';
-import CheckMarkSvg from 'components/widgets/icons/check_mark_icon';
-import WarningIcon from 'components/widgets/icons/fa_warning_icon';
+import useCWSAvailabilityCheck from "components/common/hooks/useCWSAvailabilityCheck";
+import ExternalLink from "components/external_link";
+import CheckMarkSvg from "components/widgets/icons/check_mark_icon";
+import WarningIcon from "components/widgets/icons/fa_warning_icon";
 
-import {DocLinks, TELEMETRY_CATEGORIES} from 'utils/constants';
-import {getIsStarterLicense, getIsGovSku} from 'utils/license_utils';
+import { DocLinks, TELEMETRY_CATEGORIES } from "utils/constants";
+import { getIsStarterLicense, getIsGovSku } from "utils/license_utils";
 
-import './true_up_review.scss';
+import "./true_up_review.scss";
 
 const TrueUpReview: React.FC = () => {
     const dispatch = useDispatch();
@@ -39,7 +45,7 @@ const TrueUpReview: React.FC = () => {
     const reviewStatus = useSelector(trueUpReviewStatusSelector);
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
     const license = useSelector(getLicense);
-    const isLicensed = license.IsLicensed === 'true';
+    const isLicensed = license.IsLicensed === "true";
     const isStarter = getIsStarterLicense(license);
     const isGovSku = getIsGovSku(license);
 
@@ -48,15 +54,20 @@ const TrueUpReview: React.FC = () => {
     // * are self-hosted (not cloud)
     // * are not on starter/free
     // * are not a government sku
-    const licenseIsTrueUpEligible = isLicensed && !isCloud && !isStarter && !isGovSku;
-    const telemetryEnabled = useSelector(getConfig).EnableDiagnostics === 'true';
+    const licenseIsTrueUpEligible =
+        isLicensed && !isCloud && !isStarter && !isGovSku;
+    const telemetryEnabled =
+        useSelector(getConfig).EnableDiagnostics === "true";
     const trueUpReviewError = useSelector((state: GlobalState) => {
         const errors = getSelfHostedErrors(state);
         return Boolean(errors.trueUpReview);
     });
 
     useEffect(() => {
-        if (reviewStatus.getRequestState !== 'IDLE' || !licenseIsTrueUpEligible) {
+        if (
+            reviewStatus.getRequestState !== "IDLE" ||
+            !licenseIsTrueUpEligible
+        ) {
             return;
         }
 
@@ -65,17 +76,24 @@ const TrueUpReview: React.FC = () => {
 
     // Download the review profile as a base64 encoded json file when the review request is submitted.
     useEffect(() => {
-        if (reviewProfile.getRequestState === 'LOADING') {
+        if (reviewProfile.getRequestState === "LOADING") {
             return;
         }
 
-        if (reviewProfile.getRequestState === 'OK' && isAirGapped && !trueUpReviewError && reviewProfile.content.length > 0) {
+        if (
+            reviewProfile.getRequestState === "OK" &&
+            isAirGapped &&
+            !trueUpReviewError &&
+            reviewProfile.content.length > 0
+        ) {
             // Create the bundle as a blob containing base64 encoded json data and assign it to a link element.
-            const blob = new Blob([reviewProfile.content], {type: 'application/text'});
+            const blob = new Blob([reviewProfile.content], {
+                type: "application/text",
+            });
             const href = URL.createObjectURL(blob);
 
-            const link = document.createElement('a');
-            const date = moment().format('MM-DD-YYYY');
+            const link = document.createElement("a");
+            const date = moment().format("MM-DD-YYYY");
             link.href = href;
             link.download = `True Up-${license.Id}-${date}.txt`;
             document.body.appendChild(link);
@@ -85,16 +103,21 @@ const TrueUpReview: React.FC = () => {
             document.body.removeChild(link);
             URL.revokeObjectURL(href);
         }
-    }, [isAirGapped, reviewProfile, reviewProfile.getRequestState, trueUpReviewError]);
+    }, [
+        isAirGapped,
+        reviewProfile,
+        reviewProfile.getRequestState,
+        trueUpReviewError,
+    ]);
 
     const formattedDueDate = (): string => {
         if (!reviewStatus.due_date) {
-            return '';
+            return "";
         }
 
         // Convert from milliseconds
         const date = new Date(reviewStatus.due_date);
-        return moment(date).format('MMMM DD, YYYY');
+        return moment(date).format("MMMM DD, YYYY");
     };
 
     const handleSubmitReview = () => {
@@ -102,33 +125,33 @@ const TrueUpReview: React.FC = () => {
     };
 
     const dueDate = (
-        <div className='TrueUpReview__dueDate'>
+        <div className="TrueUpReview__dueDate">
             <span>
                 <FormattedMessage
-                    id='admin.billing.trueUpReview.due_date'
-                    defaultMessage='Due '
+                    id="admin.billing.trueUpReview.due_date"
+                    defaultMessage="Due "
                 />
             </span>
-            <span>
-                {formattedDueDate()}
-            </span>
+            <span>{formattedDueDate()}</span>
         </div>
     );
 
     const submitButton = (
         <button
-            className={classNames('btn btn-primary TrueUpReview__submit', {'TrueUpReview__submit--error': trueUpReviewError})}
+            className={classNames("btn btn-primary TrueUpReview__submit", {
+                "TrueUpReview__submit--error": trueUpReviewError,
+            })}
             onClick={handleSubmitReview}
         >
             {isAirGapped ? (
                 <FormattedMessage
-                    id='admin.billing.trueUpReview.button_download'
-                    defaultMessage='Download Data'
+                    id="admin.billing.trueUpReview.button_download"
+                    defaultMessage="Download Data"
                 />
             ) : (
                 <FormattedMessage
-                    id='admin.billing.trueUpReview.button_share'
-                    defaultMessage='Share to Mattermost'
+                    id="admin.billing.trueUpReview.button_share"
+                    defaultMessage="Share to Mattermost"
                 />
             )}
         </button>
@@ -136,10 +159,10 @@ const TrueUpReview: React.FC = () => {
 
     const errorStatus = (
         <>
-            <WarningIcon additionalClassName={'TrueUpReview__warning'}/>
+            <WarningIcon additionalClassName={"TrueUpReview__warning"} />
             <FormattedMessage
-                id='admin.billing.trueUpReview.submit_error'
-                defaultMessage='There was an issue sending your True Up Review. Please try again.'
+                id="admin.billing.trueUpReview.submit_error"
+                defaultMessage="There was an issue sending your True Up Review. Please try again."
             />
             {submitButton}
         </>
@@ -147,26 +170,23 @@ const TrueUpReview: React.FC = () => {
 
     const successStatus = (
         <>
-            <CheckMarkSvg/>
+            <CheckMarkSvg />
             <FormattedMessage
-                id='admin.billing.trueUpReview.submit_success'
-                defaultMessage='Success!'
+                id="admin.billing.trueUpReview.submit_success"
+                defaultMessage="Success!"
             />
             <FormattedMessage
-                id='admin.billing.trueUpReview.submit.thanks_for_sharing'
-                defaultMessage='Thanks for sharing data needed for your true-up review.'
+                id="admin.billing.trueUpReview.submit.thanks_for_sharing"
+                defaultMessage="Thanks for sharing data needed for your true-up review."
             />
         </>
     );
 
     const trueUpDocsLink = (
-        <ExternalLink
-            href={DocLinks.TRUE_UP_REVIEW}
-            location='true_up_review'
-        >
+        <ExternalLink href={DocLinks.TRUE_UP_REVIEW} location="true_up_review">
             <FormattedMessage
-                id='admin.billing.trueUpReview.docsLinkCTA'
-                defaultMessage='Learn more about true-up.'
+                id="admin.billing.trueUpReview.docsLinkCTA"
+                defaultMessage="Learn more about true-up."
             />
         </ExternalLink>
     );
@@ -175,8 +195,8 @@ const TrueUpReview: React.FC = () => {
         <>
             {dueDate}
             <FormattedMessage
-                id='admin.billing.trueUpReview.share_data_for_review'
-                defaultMessage='Share your system statistics with Mattermost for your quarterly true-up Review. {link}'
+                id="admin.billing.trueUpReview.share_data_for_review"
+                defaultMessage="Share your system statistics with Mattermost for your quarterly true-up Review. {link}"
                 values={{
                     link: trueUpDocsLink,
                 }}
@@ -186,13 +206,13 @@ const TrueUpReview: React.FC = () => {
     );
 
     const cardContent = () => {
-        if (reviewProfile.getRequestState !== 'OK' && trueUpReviewError) {
+        if (reviewProfile.getRequestState !== "OK" && trueUpReviewError) {
             return errorStatus;
         }
 
         // If we just submitted and the review status is set as complete, show the success
         // status details.
-        if (reviewProfile.getRequestState === 'OK') {
+        if (reviewProfile.getRequestState === "OK") {
             return successStatus;
         }
 
@@ -210,7 +230,9 @@ const TrueUpReview: React.FC = () => {
     }
 
     // Only display the review details if we are within 2 weeks of the review due date.
-    const visibilityStart = moment(reviewStatus.due_date).startOf('day').subtract(30, 'days');
+    const visibilityStart = moment(reviewStatus.due_date)
+        .startOf("day")
+        .subtract(30, "days");
     if (moment().isSameOrBefore(visibilityStart)) {
         return null;
     }
@@ -224,26 +246,23 @@ const TrueUpReview: React.FC = () => {
         return null;
     }
 
-    pageVisited(TELEMETRY_CATEGORIES.TRUE_UP_REVIEW, 'pageview_true_up_review');
+    pageVisited(TELEMETRY_CATEGORIES.TRUE_UP_REVIEW, "pageview_true_up_review");
 
     return (
-        <div className='TrueUpReview__card'>
-            <div className='TrueUpReview__cardHeader'>
-                <div className='TrueUpReview__cardHeaderText'>
-                    <div className='TrueUpReview__cardHeaderText-top'>
+        <div className="TrueUpReview__card">
+            <div className="TrueUpReview__cardHeader">
+                <div className="TrueUpReview__cardHeaderText">
+                    <div className="TrueUpReview__cardHeaderText-top">
                         <FormattedMessage
-                            id='admin.billing.trueUpReview.title'
-                            defaultMessage='True Up Review'
+                            id="admin.billing.trueUpReview.title"
+                            defaultMessage="True Up Review"
                         />
                     </div>
                 </div>
             </div>
-            <div className='TrueUpReview__cardBody'>
-                {cardContent()}
-            </div>
+            <div className="TrueUpReview__cardBody">{cardContent()}</div>
         </div>
     );
 };
 
 export default TrueUpReview;
-

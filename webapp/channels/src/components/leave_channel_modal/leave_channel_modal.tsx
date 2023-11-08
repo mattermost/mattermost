@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, { useState } from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {Channel} from '@mattermost/types/channels';
+import type { Channel } from "@mattermost/types/channels";
 
-import ConfirmModal from 'components/confirm_modal';
+import ConfirmModal from "components/confirm_modal";
 
-import Constants from 'utils/constants';
+import Constants from "utils/constants";
 
 type Props = {
     channel: Channel;
@@ -17,20 +17,22 @@ type Props = {
     actions: {
         leaveChannel: (channelId: string) => any;
     };
-}
+};
 
-const LeaveChannelModal = ({actions, channel, callback, onExited}: Props) => {
+const LeaveChannelModal = ({ actions, channel, callback, onExited }: Props) => {
     const [show, setShow] = useState(true);
 
     const handleSubmit = () => {
         if (channel) {
             const channelId = channel.id;
-            actions.leaveChannel(channelId).then((result: {data: boolean}) => {
-                if (result.data) {
-                    callback?.();
-                    handleHide();
-                }
-            });
+            actions
+                .leaveChannel(channelId)
+                .then((result: { data: boolean }) => {
+                    if (result.data) {
+                        callback?.();
+                        handleHide();
+                    }
+                });
         }
     };
 
@@ -42,8 +44,8 @@ const LeaveChannelModal = ({actions, channel, callback, onExited}: Props) => {
         if (channel.type === Constants.PRIVATE_CHANNEL) {
             title = (
                 <FormattedMessage
-                    id='leave_private_channel_modal.title'
-                    defaultMessage='Leave Private Channel {channel}'
+                    id="leave_private_channel_modal.title"
+                    defaultMessage="Leave Private Channel {channel}"
                     values={{
                         channel: <b>{channel.display_name}</b>,
                     }}
@@ -52,8 +54,8 @@ const LeaveChannelModal = ({actions, channel, callback, onExited}: Props) => {
         } else {
             title = (
                 <FormattedMessage
-                    id='leave_public_channel_modal.title'
-                    defaultMessage='Leave Channel {channel}'
+                    id="leave_public_channel_modal.title"
+                    defaultMessage="Leave Channel {channel}"
                     values={{
                         channel: <b>{channel.display_name}</b>,
                     }}
@@ -64,8 +66,8 @@ const LeaveChannelModal = ({actions, channel, callback, onExited}: Props) => {
         if (channel.type === Constants.PRIVATE_CHANNEL) {
             message = (
                 <FormattedMessage
-                    id='leave_private_channel_modal.message'
-                    defaultMessage='Are you sure you wish to leave the private channel {channel}? You must be re-invited in order to re-join this channel in the future.'
+                    id="leave_private_channel_modal.message"
+                    defaultMessage="Are you sure you wish to leave the private channel {channel}? You must be re-invited in order to re-join this channel in the future."
                     values={{
                         channel: <b>{channel.display_name}</b>,
                     }}
@@ -74,8 +76,8 @@ const LeaveChannelModal = ({actions, channel, callback, onExited}: Props) => {
         } else {
             message = (
                 <FormattedMessage
-                    id='leave_public_channel_modal.message'
-                    defaultMessage='Are you sure you wish to leave the channel {channel}? You can re-join this channel in the future if you change your mind.'
+                    id="leave_public_channel_modal.message"
+                    defaultMessage="Are you sure you wish to leave the channel {channel}? You can re-join this channel in the future if you change your mind."
                     values={{
                         channel: <b>{channel.display_name}</b>,
                     }}
@@ -84,11 +86,11 @@ const LeaveChannelModal = ({actions, channel, callback, onExited}: Props) => {
         }
     }
 
-    const buttonClass = 'btn btn-danger';
+    const buttonClass = "btn btn-danger";
     const button = (
         <FormattedMessage
-            id='leave_private_channel_modal.leave'
-            defaultMessage='Yes, leave channel'
+            id="leave_private_channel_modal.leave"
+            defaultMessage="Yes, leave channel"
         />
     );
 

@@ -1,36 +1,41 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React, {useState, useEffect, useRef} from 'react';
-import type {CSSProperties} from 'react';
-import {useIntl} from 'react-intl';
+import classNames from "classnames";
+import React, { useState, useEffect, useRef } from "react";
+import type { CSSProperties } from "react";
+import { useIntl } from "react-intl";
 
-import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
-import PhoneOutlineIcon from '@mattermost/compass-icons/components/phone-outline';
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import ChevronDownIcon from "@mattermost/compass-icons/components/chevron-down";
+import PhoneOutlineIcon from "@mattermost/compass-icons/components/phone-outline";
+import type { Channel, ChannelMembership } from "@mattermost/types/channels";
 
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import Menu from "components/widgets/menu/menu";
+import MenuWrapper from "components/widgets/menu/menu_wrapper";
 
-import {Constants} from 'utils/constants';
+import { Constants } from "utils/constants";
 
-import type {PluginComponent} from 'types/store/plugins';
+import type { PluginComponent } from "types/store/plugins";
 
-import './call_button.scss';
+import "./call_button.scss";
 
 type Props = {
     currentChannel: Channel;
     channelMember?: ChannelMembership;
     pluginCallComponents: PluginComponent[];
     sidebarOpen: boolean;
-}
+};
 
-export default function CallButton({pluginCallComponents, currentChannel, channelMember, sidebarOpen}: Props) {
+export default function CallButton({
+    pluginCallComponents,
+    currentChannel,
+    channelMember,
+    sidebarOpen,
+}: Props) {
     const [active, setActive] = useState(false);
     const [clickEnabled, setClickEnabled] = useState(true);
     const prevSidebarOpen = useRef(sidebarOpen);
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
 
     useEffect(() => {
         if (prevSidebarOpen.current && !sidebarOpen) {
@@ -60,7 +65,7 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
         return (
             <div
                 style={style.container}
-                className='flex-child'
+                className="flex-child"
                 onClick={clickEnabled ? clickHandler : undefined}
                 onTouchEnd={clickEnabled ? clickHandler : undefined}
             >
@@ -72,7 +77,7 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
     const items = pluginCallComponents.map((item) => {
         return (
             <li
-                className='MenuItem'
+                className="MenuItem"
                 key={item.id}
                 onClick={(e) => {
                     e.preventDefault();
@@ -85,28 +90,38 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
     });
 
     return (
-        <div
-            style={style.container}
-            className='flex-child'
-        >
+        <div style={style.container} className="flex-child">
             <MenuWrapper onToggle={(toggle: boolean) => setActive(toggle)}>
-                <button className={classNames('style--none call-button dropdown', {active})}>
+                <button
+                    className={classNames("style--none call-button dropdown", {
+                        active,
+                    })}
+                >
                     <PhoneOutlineIcon
-                        color='inherit'
-                        aria-label={formatMessage({id: 'generic_icons.call', defaultMessage: 'Call icon'}).toLowerCase()}
+                        color="inherit"
+                        aria-label={formatMessage({
+                            id: "generic_icons.call",
+                            defaultMessage: "Call icon",
+                        }).toLowerCase()}
                     />
-                    <span className='call-button-label'>{'Call'}</span>
+                    <span className="call-button-label">{"Call"}</span>
                     <ChevronDownIcon
-                        color='inherit'
-                        aria-label={formatMessage({id: 'generic_icons.dropdown', defaultMessage: 'Dropdown Icon'}).toLowerCase()}
+                        color="inherit"
+                        aria-label={formatMessage({
+                            id: "generic_icons.dropdown",
+                            defaultMessage: "Dropdown Icon",
+                        }).toLowerCase()}
                     />
                 </button>
                 <Menu
-                    id='callOptions'
-                    ariaLabel={formatMessage({id: 'call_button.menuAriaLabel', defaultMessage: 'Call type selector'})}
+                    id="callOptions"
+                    ariaLabel={formatMessage({
+                        id: "call_button.menuAriaLabel",
+                        defaultMessage: "Call type selector",
+                    })}
                     customStyles={{
-                        top: 'auto',
-                        left: 'auto',
+                        top: "auto",
+                        left: "auto",
                         right: 0,
                     }}
                 >

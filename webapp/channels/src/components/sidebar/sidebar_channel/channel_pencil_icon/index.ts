@@ -1,31 +1,41 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
+import { connect } from "react-redux";
 
-import type {Channel} from '@mattermost/types/channels';
+import type { Channel } from "@mattermost/types/channels";
 
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
+import { getCurrentChannelId } from "mattermost-redux/selectors/entities/channels";
 
-import {getPostDraft} from 'selectors/rhs';
+import { getPostDraft } from "selectors/rhs";
 
-import {StoragePrefixes} from 'utils/constants';
+import { StoragePrefixes } from "utils/constants";
 
-import type {GlobalState} from 'types/store';
-import type {PostDraft} from 'types/store/draft';
+import type { GlobalState } from "types/store";
+import type { PostDraft } from "types/store/draft";
 
-import ChannelPencilIcon from './channel_pencil_icon';
+import ChannelPencilIcon from "./channel_pencil_icon";
 
 type OwnProps = {
-    id: Channel['id'];
-}
+    id: Channel["id"];
+};
 
-function hasDraft(draft: PostDraft|null, id: Channel['id'], currentChannelId?: string): boolean {
+function hasDraft(
+    draft: PostDraft | null,
+    id: Channel["id"],
+    currentChannelId?: string,
+): boolean {
     if (draft === null) {
         return false;
     }
 
-    return Boolean(draft.message.trim() || draft.fileInfos.length || draft.uploadsInProgress.length) && currentChannelId !== id;
+    return (
+        Boolean(
+            draft.message.trim() ||
+                draft.fileInfos.length ||
+                draft.uploadsInProgress.length,
+        ) && currentChannelId !== id
+    );
 }
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {

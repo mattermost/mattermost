@@ -76,7 +76,7 @@
                 margin-left: -15px;
                 border-radius: 50%;
                 color: $white;
-                font-family: 'Open Sans', sans-serif;
+                font-family: "Open Sans", sans-serif;
                 font-size: 23px;
                 font-weight: 200;
                 line-height: 0;
@@ -92,10 +92,10 @@
                     }
                 }
 
-                >li {
-                    >a,
-                    >button,
-                    >.styleSelectableItemDiv {
+                > li {
+                    > a,
+                    > button,
+                    > .styleSelectableItemDiv {
                         display: flex;
                         width: 100%;
                         height: auto;
@@ -165,7 +165,7 @@
                 }
 
                 .nav-pills {
-                    >li {
+                    > li {
                         &:hover {
                             a {
                                 background: transparent !important;
@@ -246,7 +246,7 @@
                                 padding: 0 40px;
                                 text-align: center;
 
-                                >span {
+                                > span {
                                     display: block;
                                     overflow: hidden;
                                     font-family: Metropolis, sans-serif;
@@ -282,8 +282,8 @@
                             top: auto;
                         }
 
-                        >li {
-                            >a {
+                        > li {
+                            > a {
                                 font-size: 1.1em;
                                 line-height: 2.7;
 
@@ -307,7 +307,10 @@
                                 display: flex;
                                 width: 100%;
                                 align-items: center;
-                                color: rgba(var(--center-channel-color-rgb), 0.75);
+                                color: rgba(
+                                    var(--center-channel-color-rgb),
+                                    0.75
+                                );
                                 text-align: left;
                             }
 
@@ -340,7 +343,7 @@
             }
 
             .nav-pills {
-                >li {
+                > li {
                     &.active {
                         button {
                             background: transparent;
@@ -428,7 +431,7 @@
                     width: 100%;
                     height: 100%;
                     background: alpha-color($black, 0.3);
-                    content: '';
+                    content: "";
                 }
 
                 .MenuItem {
@@ -504,7 +507,7 @@
         height: 100%;
         border-radius: 0;
 
-        >ul {
+        > ul {
             margin-top: 66px;
         }
 
@@ -526,7 +529,7 @@
             height: calc(100vh - 55px);
         }
 
-        >* {
+        > * {
             flex-grow: 0;
         }
     }
@@ -634,8 +637,8 @@
                 }
 
                 .MenuItem {
-                    >button,
-                    >a {
+                    > button,
+                    > a {
                         width: 100%;
                         height: auto;
                         padding: 3px 16px;
@@ -666,20 +669,24 @@
     .post__header,
     .GlobalThreads {
         .dropdown-menu {
-            >li {
-                >div {
-                    border-top-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
+            > li {
+                > div {
+                    border-top-color: rgba(
+                        var(--center-channel-color-rgb),
+                        0.08
+                    ) !important;
 
                     .SubMenu__icon {
                         padding: 0 5px 0 8px !important;
                     }
                 }
 
-                >div,
-                >button {
+                > div,
+                > button {
                     height: auto;
                     padding: 15px 20px;
-                    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+                    border-top: 1px solid
+                        rgba(var(--center-channel-color-rgb), 0.12);
                     border-radius: 0;
                 }
 
@@ -813,7 +820,7 @@
             color: $white;
             font-size: 15px;
 
-            >div {
+            > div {
                 &:first-child {
                     overflow: auto;
                     height: calc(100vh - 150px);
@@ -834,7 +841,7 @@
             margin-left: -15px;
             border-radius: 50%;
             color: $white;
-            font-family: 'Open Sans', sans-serif;
+            font-family: "Open Sans", sans-serif;
             font-size: 23px;
             font-weight: 200;
             line-height: 0;
@@ -860,7 +867,7 @@
         .prompt__heading {
             display: block;
 
-            >div {
+            > div {
                 &:first-child {
                     display: block;
                     margin: 0 0 1em;
@@ -896,7 +903,7 @@
     .compliance-panel,
     .audit-panel {
         .row {
-            >.form-group {
+            > .form-group {
                 padding-left: 15px;
             }
         }
@@ -983,7 +990,7 @@
 
             &::after {
                 top: -3px;
-                content: '...';
+                content: "...";
                 font-size: 20px;
             }
         }
@@ -1072,7 +1079,7 @@
                 top: -6px;
                 min-width: 45px;
 
-                >div {
+                > div {
                     width: auto;
                 }
 
@@ -1325,7 +1332,7 @@
         .navbar-nav {
             margin-top: 0;
 
-            >li {
+            > li {
                 float: left;
             }
 
@@ -1341,7 +1348,7 @@
     body {
         &.white {
             .inner-wrap {
-                >.row.content {
+                > .row.content {
                     margin-bottom: -185px;
                 }
             }
@@ -1507,7 +1514,7 @@
                     margin: 1.5em 0 1em;
                 }
 
-                >a {
+                > a {
                     margin: 0;
                     font-size: 15px;
                     line-height: 2.5;
@@ -1527,7 +1534,7 @@
         transform: translate3d(-290px, 0, 0);
         transition: transform 0.35s ease;
 
-        +.inner-wrap #app-content {
+        + .inner-wrap #app-content {
             margin-left: 0;
         }
 
@@ -1633,7 +1640,7 @@
                     margin: 1.5em 0 1em;
                 }
 
-                >a {
+                > a {
                     margin: 0;
                     font-size: 15px;
                     line-height: 2.5;
@@ -1750,8 +1757,10 @@
                 height: 100%;
                 //Some trickery in order for the z-index transition to happen immediately on move-in and delayed on move-out.
                 background-color: transparent;
-                content: '';
-                transition: background-color 0.35s ease, z-index 0s ease 0.35s;
+                content: "";
+                transition:
+                    background-color 0.35s ease,
+                    z-index 0s ease 0.35s;
             }
         }
 
@@ -1865,7 +1874,7 @@
     .multi-select__help {
         flex-direction: column;
 
-        >span {
+        > span {
             &:first-child {
                 margin-bottom: 1rem;
             }
@@ -1973,10 +1982,10 @@
 
         .post {
             .open {
-                >.dropdown-menu__content {
+                > .dropdown-menu__content {
                     display: table;
 
-                    >.dropdown-menu {
+                    > .dropdown-menu {
                         display: table-cell;
                     }
                 }
@@ -1985,7 +1994,7 @@
     }
 
     .access-history__table {
-        >div {
+        > div {
             display: block;
         }
 
@@ -2001,7 +2010,7 @@
     }
 
     .activity-log__table {
-        >div {
+        > div {
             display: block;
         }
 
@@ -2086,7 +2095,7 @@
     .nav-tabs {
         margin-top: 1em;
 
-        >li {
+        > li {
             margin-right: 0;
 
             a {
@@ -2261,7 +2270,7 @@
         }
 
         .Select-input {
-            >input {
+            > input {
                 padding: 8px 0;
             }
         }
@@ -2293,8 +2302,8 @@
             .dropdown-menu {
                 padding-top: 1em;
 
-                >li {
-                    >a {
+                > li {
+                    > a {
                         border: none;
                         font-size: 13px;
                         line-height: 27px;

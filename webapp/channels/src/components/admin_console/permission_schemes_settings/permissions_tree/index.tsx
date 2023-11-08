@@ -1,15 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
+import { connect } from "react-redux";
 
-import Permissions from 'mattermost-redux/constants/permissions';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import Permissions from "mattermost-redux/constants/permissions";
+import {
+    getConfig,
+    getLicense,
+} from "mattermost-redux/selectors/entities/general";
+import { isCustomGroupsEnabled } from "mattermost-redux/selectors/entities/preferences";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import PermissionsTree from './permissions_tree';
+import PermissionsTree from "./permissions_tree";
 
 export const EXCLUDED_PERMISSIONS = [
     Permissions.VIEW_MEMBERS,

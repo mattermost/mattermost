@@ -3,10 +3,11 @@
 
 module.exports = {
     meta: {
-        type: 'problem',
-        fixable: 'code',
+        type: "problem",
+        fixable: "code",
         messages: {
-            unexpected: 'Unexpected second argument passed to dispatch. getState does not need to be passed into dispatch.',
+            unexpected:
+                "Unexpected second argument passed to dispatch. getState does not need to be passed into dispatch.",
         },
     },
     create(context) {
@@ -15,7 +16,7 @@ module.exports = {
             if (args.length === 2) {
                 context.report({
                     node,
-                    messageId: 'unexpected',
+                    messageId: "unexpected",
                     fix(fixer) {
                         const sourceCode = context.getSourceCode();
 
@@ -29,7 +30,10 @@ module.exports = {
                         ];
 
                         // And remove the trailing comma if one exists
-                        if (after.type === 'Punctuator' && after.value === ',') {
+                        if (
+                            after.type === "Punctuator" &&
+                            after.value === ","
+                        ) {
                             fixes.push(fixer.remove(after));
                         }
 

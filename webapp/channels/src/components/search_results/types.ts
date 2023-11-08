@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type React from 'react';
-import type {IntlShape} from 'react-intl';
+import type React from "react";
+import type { IntlShape } from "react-intl";
 
-import type {FileInfo} from '@mattermost/types/files';
-import type {Post} from '@mattermost/types/posts';
+import type { FileInfo } from "@mattermost/types/files";
+import type { Post } from "@mattermost/types/posts";
 
-import type {SearchFilterType} from 'components/search/types';
+import type { SearchFilterType } from "components/search/types";
 
-import type {SearchType} from 'types/store/rhs';
+import type { SearchType } from "types/store/rhs";
 
 export type OwnProps = {
     [key: string]: any;
@@ -29,7 +29,7 @@ export type OwnProps = {
     setSearchType: (searchType: SearchType) => void;
     searchFilterType: SearchFilterType;
     setSearchFilterType: (filterType: SearchFilterType) => void;
-}
+};
 
 export type StateProps = {
     results: Post[];
@@ -42,11 +42,10 @@ export type StateProps = {
     isSearchGettingMore: boolean;
     isSearchAtEnd: boolean;
     isSearchFilesAtEnd: boolean;
-}
+};
 
 export type IntlProps = {
     intl: IntlShape;
-}
+};
 
 export type Props = OwnProps & StateProps & IntlProps;
-

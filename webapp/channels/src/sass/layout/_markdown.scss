@@ -43,7 +43,7 @@ h6.markdown__heading {
 .markdown__paragraph-inline {
     display: inline;
 
-    +.markdown__paragraph-inline {
+    + .markdown__paragraph-inline {
         margin-left: 4px;
     }
 }
@@ -108,7 +108,9 @@ h6.markdown__heading {
 
         &:hover {
             z-index: 2;
-            box-shadow: 0 2px 5px 0 rgba($black, 0.1), 0 2px 5px 0 rgba($black, 0.1);
+            box-shadow:
+                0 2px 5px 0 rgba($black, 0.1),
+                0 2px 5px 0 rgba($black, 0.1);
             transition: all 0.1s linear;
         }
     }
@@ -124,7 +126,9 @@ h6.markdown__heading {
 
         &:hover {
             z-index: 2;
-            box-shadow: 0 2px 2px 0 rgba($black, 0.1), 0 2px 2px 0 rgba($black, 0.1);
+            box-shadow:
+                0 2px 2px 0 rgba($black, 0.1),
+                0 2px 2px 0 rgba($black, 0.1);
             transition: all 0.1s linear;
         }
     }
@@ -164,7 +168,9 @@ h6.markdown__heading {
 
         &:hover {
             z-index: 2;
-            box-shadow: 0 2px 2px 0 rgba($black, 0.1), 0 2px 2px 0 rgba($black, 0.1);
+            box-shadow:
+                0 2px 2px 0 rgba($black, 0.1),
+                0 2px 2px 0 rgba($black, 0.1);
             transition: all 0.1s linear;
         }
     }
@@ -286,7 +292,7 @@ h6.markdown__heading {
     color: $white;
     user-select: none;
 
-    >span {
+    > span {
         position: relative;
         padding: 4px;
         opacity: 0;
@@ -312,7 +318,7 @@ h6.markdown__heading {
             }
         }
 
-        >i {
+        > i {
             margin-top: 1px;
             margin-left: -2px;
             color: rgba(var(--center-channel-color-rgb), 0.56);
@@ -394,7 +400,7 @@ ol.markdown__list {
     padding: 0;
     counter-reset: list;
 
-    >li {
+    > li {
         display: table-row;
         counter-increment: list;
 
@@ -419,7 +425,7 @@ blockquote {
         top: 5px;
         left: 8px;
         display: inline-block;
-        content: '\f10d';
+        content: "\f10d";
         font-family: FontAwesome, sans-serif;
         font-size: 20px;
         font-style: normal;

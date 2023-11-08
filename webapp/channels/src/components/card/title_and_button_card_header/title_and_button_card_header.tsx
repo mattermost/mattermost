@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
 type Props = {
     title: React.ReactNode;
@@ -16,27 +16,20 @@ const TitleAndButtonCardHeader: React.FC<Props> = (props: Props) => {
     return (
         <>
             <div>
-                <div className='text-top'>
-                    {props.title}
-                </div>
-                {
-                    props.subtitle &&
-                    <div className='text-bottom'>
-                        {props.subtitle}
-                    </div>
-                }
+                <div className="text-top">{props.title}</div>
+                {props.subtitle && (
+                    <div className="text-bottom">{props.subtitle}</div>
+                )}
             </div>
-            {
-                props.buttonText && props.onClick &&
-                    <button
-                        disabled={props.isDisabled}
-                        className='btn btn-primary'
-                        onClick={props.onClick}
-                    >
-                        {props.buttonText}
-                    </button>
-            }
-
+            {props.buttonText && props.onClick && (
+                <button
+                    disabled={props.isDisabled}
+                    className="btn btn-primary"
+                    onClick={props.onClick}
+                >
+                    {props.buttonText}
+                </button>
+            )}
         </>
     );
 };

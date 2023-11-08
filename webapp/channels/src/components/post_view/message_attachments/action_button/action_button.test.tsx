@@ -1,119 +1,141 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import {Preferences} from 'mattermost-redux/constants';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
+import { Preferences } from "mattermost-redux/constants";
+import type { Theme } from "mattermost-redux/selectors/entities/preferences";
+import { changeOpacity } from "mattermost-redux/utils/theme_utils";
 
-import {screen, userEvent, renderWithIntl} from 'tests/react_testing_utils';
+import { screen, userEvent, renderWithIntl } from "tests/react_testing_utils";
 
-import ActionButton from './action_button';
+import ActionButton from "./action_button";
 
-describe('components/post_view/message_attachments/action_button.jsx', () => {
+describe("components/post_view/message_attachments/action_button.jsx", () => {
     const baseProps = {
-        action: {id: 'action_id_1', name: 'action_name_1', cookie: 'cookie-contents'},
+        action: {
+            id: "action_id_1",
+            name: "action_name_1",
+            cookie: "cookie-contents",
+        },
         handleAction: jest.fn(),
         theme: Preferences.THEMES.denim as unknown as Theme,
     };
 
-    test('should match default component state with given props', () => {
-        renderWithIntl(<ActionButton {...baseProps}/>);
+    test("should match default component state with given props", () => {
+        renderWithIntl(<ActionButton {...baseProps} />);
 
-        const button = screen.getByRole('button');
-        expect(button).toHaveAttribute('data-action-cookie', 'cookie-contents');
-        expect(button).toHaveAttribute('data-action-id', 'action_id_1');
+        const button = screen.getByRole("button");
+        expect(button).toHaveAttribute("data-action-cookie", "cookie-contents");
+        expect(button).toHaveAttribute("data-action-id", "action_id_1");
 
-        const loadingIcon = screen.getByTitle('Loading Icon');
-        expect(loadingIcon).toHaveClass('fa fa-spinner fa-fw fa-pulse spinner');
+        const loadingIcon = screen.getByTitle("Loading Icon");
+        expect(loadingIcon).toHaveClass("fa fa-spinner fa-fw fa-pulse spinner");
     });
 
-    test('should call handleAction on click', () => {
-        renderWithIntl(<ActionButton {...baseProps}/>);
+    test("should call handleAction on click", () => {
+        renderWithIntl(<ActionButton {...baseProps} />);
 
-        const button = screen.getByRole('button');
+        const button = screen.getByRole("button");
 
         userEvent.click(button);
 
         expect(baseProps.handleAction).toHaveBeenCalledTimes(1);
     });
 
-    test('should have correct styles when provided color from theme', () => {
+    test("should have correct styles when provided color from theme", () => {
         const props = {
             ...baseProps,
-            action: {...baseProps.action, style: 'onlineIndicator'},
+            action: { ...baseProps.action, style: "onlineIndicator" },
         };
 
-        renderWithIntl(<ActionButton {...props}/>);
+        renderWithIntl(<ActionButton {...props} />);
 
-        const button = screen.getByRole('button');
+        const button = screen.getByRole("button");
 
-        expect(button).toHaveStyle(`background-color: ${changeOpacity(Preferences.THEMES.denim.onlineIndicator, 0.08)}`);
-        expect(button).toHaveStyle(`color: ${Preferences.THEMES.denim.onlineIndicator}`);
+        expect(button).toHaveStyle(
+            `background-color: ${changeOpacity(
+                Preferences.THEMES.denim.onlineIndicator,
+                0.08,
+            )}`,
+        );
+        expect(button).toHaveStyle(
+            `color: ${Preferences.THEMES.denim.onlineIndicator}`,
+        );
     });
 
-    test('should have correct styles when provided color from not default theme', () => {
+    test("should have correct styles when provided color from not default theme", () => {
         const props = {
             ...baseProps,
             theme: Preferences.THEMES.indigo as unknown as Theme,
-            action: {...baseProps.action, style: 'danger'},
+            action: { ...baseProps.action, style: "danger" },
         };
 
-        renderWithIntl(<ActionButton {...props}/>);
+        renderWithIntl(<ActionButton {...props} />);
 
-        const button = screen.getByRole('button');
+        const button = screen.getByRole("button");
 
-        expect(button).toHaveStyle(`background-color: ${changeOpacity(Preferences.THEMES.indigo.errorTextColor, 0.08)}`);
-        expect(button).toHaveStyle(`color: ${Preferences.THEMES.indigo.errorTextColor}`);
+        expect(button).toHaveStyle(
+            `background-color: ${changeOpacity(
+                Preferences.THEMES.indigo.errorTextColor,
+                0.08,
+            )}`,
+        );
+        expect(button).toHaveStyle(
+            `color: ${Preferences.THEMES.indigo.errorTextColor}`,
+        );
     });
 
-    test('should have correct styles when provided status color', () => {
+    test("should have correct styles when provided status color", () => {
         const props = {
             ...baseProps,
-            action: {...baseProps.action, style: 'success'},
+            action: { ...baseProps.action, style: "success" },
         };
 
-        renderWithIntl(<ActionButton {...props}/>);
-        const button = screen.getByRole('button');
+        renderWithIntl(<ActionButton {...props} />);
+        const button = screen.getByRole("button");
 
-        expect(button).toHaveStyle(`background-color: ${changeOpacity('#339970', 0.08)}`);
-        expect(button).toHaveStyle(`color: ${'#339970'}`);
+        expect(button).toHaveStyle(
+            `background-color: ${changeOpacity("#339970", 0.08)}`,
+        );
+        expect(button).toHaveStyle(`color: ${"#339970"}`);
     });
 
-    test('should have correct styles when provided hex color', () => {
+    test("should have correct styles when provided hex color", () => {
         const props = {
             ...baseProps,
-            action: {...baseProps.action, style: '#28a745'},
+            action: { ...baseProps.action, style: "#28a745" },
         };
 
-        renderWithIntl(<ActionButton {...props}/>);
-        const button = screen.getByRole('button');
+        renderWithIntl(<ActionButton {...props} />);
+        const button = screen.getByRole("button");
 
-        expect(button).toHaveStyle(`background-color: ${changeOpacity(props.action.style, 0.08)}`);
+        expect(button).toHaveStyle(
+            `background-color: ${changeOpacity(props.action.style, 0.08)}`,
+        );
         expect(button).toHaveStyle(`color: ${props.action.style}`);
     });
 
-    test('should have no styles when provided invalid hex color', () => {
+    test("should have no styles when provided invalid hex color", () => {
         const props = {
             ...baseProps,
-            action: {...baseProps.action, style: '#wrong'},
+            action: { ...baseProps.action, style: "#wrong" },
         };
 
-        renderWithIntl(<ActionButton {...props}/>);
-        const button = screen.getByRole('button');
+        renderWithIntl(<ActionButton {...props} />);
+        const button = screen.getByRole("button");
 
         expect(button.style.length).toBe(0);
     });
 
-    test('should have no styles when provided undefined', () => {
+    test("should have no styles when provided undefined", () => {
         const props = {
             ...baseProps,
-            action: {...baseProps.action, style: undefined},
+            action: { ...baseProps.action, style: undefined },
         };
 
-        renderWithIntl(<ActionButton {...props}/>);
-        const button = screen.getByRole('button');
+        renderWithIntl(<ActionButton {...props} />);
+        const button = screen.getByRole("button");
 
         expect(button.style.length).toBe(0);
     });

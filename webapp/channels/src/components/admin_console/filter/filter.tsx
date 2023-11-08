@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import classNames from "classnames";
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import FilterList from './filter_list';
-import './filter.scss';
+import FilterList from "./filter_list";
+import "./filter.scss";
 
 export type Filters = {
     [filterKey: string]: string[];
@@ -22,7 +22,6 @@ export type FilterValues = {
 };
 
 export type FilterOption = {
-
     // Display name of the filter option eg. 'Channels', 'Roles' or <FormattedMessage .../>
     name: string | JSX.Element;
 
@@ -34,17 +33,17 @@ export type FilterOption = {
 
     // Filter Component type, optional parameter defaults to FilterCheckbox
     type?: React.ElementType;
-}
+};
 
 export type FilterOptions = {
     [key: string]: FilterOption;
-}
+};
 
 type Props = {
     onFilter: (filters: FilterOptions) => void;
     options: FilterOptions;
     keys: string[];
-}
+};
 
 type State = {
     show: boolean;
@@ -52,7 +51,7 @@ type State = {
     keys: string[];
     optionsModified: boolean;
     filterCount: number;
-}
+};
 
 class Filter extends React.PureComponent<Props, State> {
     private buttonRef: React.RefObject<HTMLButtonElement>;
@@ -61,7 +60,7 @@ class Filter extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
         super(props);
 
-        let options = {...props.options};
+        let options = { ...props.options };
         let keys = [...props.keys];
         let valid = true;
         keys.forEach((key) => {
@@ -95,11 +94,11 @@ class Filter extends React.PureComponent<Props, State> {
     }
 
     componentDidMount = () => {
-        document.addEventListener('mousedown', this.handleClickOutside);
+        document.addEventListener("mousedown", this.handleClickOutside);
     };
 
     componentWillUnmount = () => {
-        document.removeEventListener('mousedown', this.handleClickOutside);
+        document.removeEventListener("mousedown", this.handleClickOutside);
     };
 
     handleClickOutside = (event: MouseEvent) => {
@@ -110,7 +109,7 @@ class Filter extends React.PureComponent<Props, State> {
     };
 
     hidePopover = () => {
-        this.setState({show: false});
+        this.setState({ show: false });
         this.buttonRef?.current?.blur();
     };
 
@@ -120,7 +119,7 @@ class Filter extends React.PureComponent<Props, State> {
             return;
         }
 
-        this.setState({show: true});
+        this.setState({ show: true });
     };
 
     updateValues = async (values: FilterValues, optionKey: string) => {
@@ -133,19 +132,23 @@ class Filter extends React.PureComponent<Props, State> {
                 },
             },
         };
-        this.setState({options, optionsModified: true});
+        this.setState({ options, optionsModified: true });
     };
 
     onFilter = () => {
         this.props.onFilter(this.state.options);
-        this.setState({optionsModified: false, show: false, filterCount: this.calculateFilterCount()});
+        this.setState({
+            optionsModified: false,
+            show: false,
+            filterCount: this.calculateFilterCount(),
+        });
     };
 
     calculateFilterCount = () => {
         const options = this.state.options;
         let filterCount = 0;
         this.props.keys.forEach((key) => {
-            const {values, keys} = options[key];
+            const { values, keys } = options[key];
             keys.forEach((filterKey: string) => {
                 if (values[filterKey].value instanceof Array) {
                     filterCount += (values[filterKey].value as string[]).length;
@@ -158,11 +161,11 @@ class Filter extends React.PureComponent<Props, State> {
     };
 
     resetFilters = () => {
-        this.setState({options: {...this.props.options}}, this.onFilter);
+        this.setState({ options: { ...this.props.options } }, this.onFilter);
     };
 
     renderFilterOptions = () => {
-        const {keys, options} = this.state;
+        const { keys, options } = this.state;
         return keys.map((key: string) => {
             const filter = options[key];
             const FilterListComponent = filter.type || FilterList;
@@ -180,65 +183,61 @@ class Filter extends React.PureComponent<Props, State> {
 
     render() {
         const filters = this.renderFilterOptions();
-        const {filterCount} = this.state;
+        const { filterCount } = this.state;
 
         return (
-            <div
-                className='Filter'
-                ref={this.filterRef}
-            >
+            <div className="Filter" ref={this.filterRef}>
                 <button
-                    type='button'
-                    className={classNames('Filter_button', {Filter__active: this.state.show})}
+                    type="button"
+                    className={classNames("Filter_button", {
+                        Filter__active: this.state.show,
+                    })}
                     onClick={this.togglePopover}
                     ref={this.buttonRef}
                 >
-                    <i className='Icon icon-filter-variant'/>
+                    <i className="Icon icon-filter-variant" />
 
                     <FormattedMessage
-                        id='admin.filter.filters'
-                        defaultMessage='Filters'
+                        id="admin.filter.filters"
+                        defaultMessage="Filters"
                     />
                     {filterCount > 0 && ` (${filterCount})`}
                 </button>
 
                 <div
-                    className={classNames('Filter_content', {Filter__show: this.state.show})}
+                    className={classNames("Filter_content", {
+                        Filter__show: this.state.show,
+                    })}
                 >
-                    <div className='Filter_header'>
-                        <div className='Filter_title'>
+                    <div className="Filter_header">
+                        <div className="Filter_title">
                             <FormattedMessage
-                                id='admin.filter.title'
-                                defaultMessage='Filter by'
+                                id="admin.filter.title"
+                                defaultMessage="Filter by"
                             />
                         </div>
 
-                        <a
-                            className='Filter_reset'
-                            onClick={this.resetFilters}
-                        >
+                        <a className="Filter_reset" onClick={this.resetFilters}>
                             <FormattedMessage
-                                id='admin.filter.reset'
-                                defaultMessage='Reset filters'
+                                id="admin.filter.reset"
+                                defaultMessage="Reset filters"
                             />
                         </a>
                     </div>
 
-                    <hr/>
+                    <hr />
 
-                    <div className='Filter_lists'>
-                        {filters}
-                    </div>
+                    <div className="Filter_lists">{filters}</div>
 
                     <button
-                        type='button'
-                        className='btn btn-primary btn-sm Filter_apply'
+                        type="button"
+                        className="btn btn-primary btn-sm Filter_apply"
                         disabled={!this.state.optionsModified}
                         onClick={this.onFilter}
                     >
                         <FormattedMessage
-                            id='admin.filter.apply'
-                            defaultMessage='Apply'
+                            id="admin.filter.apply"
+                            defaultMessage="Apply"
                         />
                     </button>
                 </div>

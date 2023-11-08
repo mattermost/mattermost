@@ -5,7 +5,7 @@
 
 module.exports = {
     moduleNameMapper: {
-        '^@mattermost/types/(.*)$': '<rootDir>/../types/src/$1',
+        "^@mattermost/types/(.*)$": "<rootDir>/../types/src/$1",
     },
-    setupFiles: ['<rootDir>/setup_jest.ts'],
+    setupFiles: ["<rootDir>/setup_jest.ts"],
 };

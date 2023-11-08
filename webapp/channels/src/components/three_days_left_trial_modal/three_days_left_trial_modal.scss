@@ -1,5 +1,5 @@
-@import 'utils/variables';
-@import 'utils/mixins';
+@import "utils/variables";
+@import "utils/mixins";
 
 //  since the modal is kind of tall, this makes it look more aligned to the top and the content better distributed
 .GenericModal.modal-dialog {
@@ -48,7 +48,7 @@
                     display: flex;
                     flex-direction: column;
                     margin-left: 15px;
-                    font-family: 'Open Sans';
+                    font-family: "Open Sans";
                     font-style: normal;
 
                     .title {

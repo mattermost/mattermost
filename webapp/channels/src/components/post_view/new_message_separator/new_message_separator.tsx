@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import NotificationSeparator from 'components/widgets/separator/notification-separator';
+import NotificationSeparator from "components/widgets/separator/notification-separator";
 
-import type {PluginComponent} from 'types/store/plugins';
+import type { PluginComponent } from "types/store/plugins";
 
 type Props = {
     separatorId: string;
@@ -15,12 +15,12 @@ type Props = {
     lastViewedAt: number;
     channelId?: string;
     threadId?: string;
-}
+};
 
 export default class NewMessageSeparator extends React.PureComponent<Props> {
     render(): JSX.Element {
-        const pluginItems = this.props.newMessagesSeparatorActions?.
-            map((item) => {
+        const pluginItems = this.props.newMessagesSeparatorActions?.map(
+            (item) => {
                 if (!item.component) {
                     return null;
                 }
@@ -34,17 +34,15 @@ export default class NewMessageSeparator extends React.PureComponent<Props> {
                         threadId={this.props.threadId}
                     />
                 );
-            });
+            },
+        );
 
         return (
-            <div
-                ref={this.props.wrapperRef}
-                className='new-separator'
-            >
+            <div ref={this.props.wrapperRef} className="new-separator">
                 <NotificationSeparator id={this.props.separatorId}>
                     <FormattedMessage
-                        id='posts_view.newMsg'
-                        defaultMessage='New Messages'
+                        id="posts_view.newMsg"
+                        defaultMessage="New Messages"
                     />
                     {pluginItems}
                 </NotificationSeparator>

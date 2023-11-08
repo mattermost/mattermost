@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as Utils from 'utils/utils';
+import * as Utils from "utils/utils";
 
 export default class ValidationResult {
     result: boolean;
@@ -18,7 +18,7 @@ export default class ValidationResult {
         return this.result;
     }
 
-    public error(): string|null {
+    public error(): string | null {
         if (this.result) {
             return null;
         }

@@ -1,20 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import React from "react";
+import { FormattedMessage } from "react-intl";
+import { useDispatch, useSelector } from "react-redux";
 
-import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {
+    getCloudSubscription,
+    getSubscriptionProduct,
+} from "mattermost-redux/selectors/entities/cloud";
+import { getLicense } from "mattermost-redux/selectors/entities/general";
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {openModal} from 'actions/views/modals';
+import { trackEvent } from "actions/telemetry_actions";
+import { openModal } from "actions/views/modals";
 
-import {CloudProducts, ModalIdentifiers} from 'utils/constants';
-import {isCloudLicense} from 'utils/license_utils';
+import { CloudProducts, ModalIdentifiers } from "utils/constants";
+import { isCloudLicense } from "utils/license_utils";
 
-import DeleteWorkspaceModal from './delete_workspace_modal';
+import DeleteWorkspaceModal from "./delete_workspace_modal";
 
 export default function DeleteWorkspaceCTA() {
     const dispatch = useDispatch();
@@ -26,18 +29,19 @@ export default function DeleteWorkspaceCTA() {
     const product = useSelector(getSubscriptionProduct);
 
     const isNotCloud = !isCloudLicense(license);
-    const isFreeTrial = subscription?.is_free_trial === 'true';
+    const isFreeTrial = subscription?.is_free_trial === "true";
     const isEnterprise = product?.sku === CloudProducts.ENTERPRISE;
 
     const handleOnClickDelete = () => {
-        trackEvent('cloud_admin', 'click_delete_workspace');
+        trackEvent("cloud_admin", "click_delete_workspace");
 
         dispatch(
             openModal({
                 modalId: ModalIdentifiers.DELETE_WORKSPACE,
                 dialogType: DeleteWorkspaceModal,
                 dialogProps: {
-                    callerCTA: 'system_console > billing > subscription > delete_workspace_cta',
+                    callerCTA:
+                        "system_console > billing > subscription > delete_workspace_cta",
                 },
             }),
         );
@@ -58,18 +62,18 @@ export default function DeleteWorkspaceCTA() {
     }
 
     return (
-        <div className='cancelSubscriptionSection'>
-            <div className='cancelSubscriptionSection__text'>
-                <div className='cancelSubscriptionSection__text-title'>
+        <div className="cancelSubscriptionSection">
+            <div className="cancelSubscriptionSection__text">
+                <div className="cancelSubscriptionSection__text-title">
                     <FormattedMessage
-                        id='admin.billing.subscription.deleteWorkspaceSection.title'
-                        defaultMessage='Delete your workspace'
+                        id="admin.billing.subscription.deleteWorkspaceSection.title"
+                        defaultMessage="Delete your workspace"
                     />
                 </div>
-                <div className='cancelSubscriptionSection__text-description'>
+                <div className="cancelSubscriptionSection__text-description">
                     <FormattedMessage
-                        id='admin.billing.subscription.deleteWorkspaceSection.description'
-                        defaultMessage='Deleting {workspaceLink} is final and cannot be reversed.'
+                        id="admin.billing.subscription.deleteWorkspaceSection.description"
+                        defaultMessage="Deleting {workspaceLink} is final and cannot be reversed."
                         values={{
                             workspaceLink: (
                                 <a href={`${workspaceUrl}`}>{workspaceUrl}</a>
@@ -78,12 +82,12 @@ export default function DeleteWorkspaceCTA() {
                     />
                 </div>
                 <button
-                    className='btn cancelSubscriptionSection__contactUs'
+                    className="btn cancelSubscriptionSection__contactUs"
                     onClick={handleOnClickDelete}
                 >
                     <FormattedMessage
-                        id='admin.billing.subscription.deleteWorkspaceSection.delete'
-                        defaultMessage='Delete Workspace'
+                        id="admin.billing.subscription.deleteWorkspaceSection.delete"
+                        defaultMessage="Delete Workspace"
                     />
                 </button>
             </div>

@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {useHistory} from 'react-router-dom';
+import React from "react";
+import { useHistory } from "react-router-dom";
 
-import {trackEvent} from 'actions/telemetry_actions';
+import { trackEvent } from "actions/telemetry_actions";
 
-import {TELEMETRY_CATEGORIES} from 'utils/constants';
+import { TELEMETRY_CATEGORIES } from "utils/constants";
 
-import './dashboard.scss';
+import "./dashboard.scss";
 
 type CtaButtonsProps = {
     learnMoreLink?: string;
@@ -37,29 +37,29 @@ const CtaButtons = ({
             );
         }
 
-        if (id === 'cta' && typeof actionButtonCallback === 'function') {
+        if (id === "cta" && typeof actionButtonCallback === "function") {
             actionButtonCallback();
-        } else if (link?.startsWith('/')) {
+        } else if (link?.startsWith("/")) {
             history.push(link);
-        } else if (link?.startsWith('http')) {
-            window.open(link, '_blank');
+        } else if (link?.startsWith("http")) {
+            window.open(link, "_blank");
         }
     };
 
     return (
-        <div className='ctaButtons'>
+        <div className="ctaButtons">
             {(actionLink || actionButtonCallback) && actionText && (
                 <button
-                    className='actionButton annnouncementBar__purchaseNow'
-                    onClick={getClickHandler('cta', actionLink)}
+                    className="actionButton annnouncementBar__purchaseNow"
+                    onClick={getClickHandler("cta", actionLink)}
                 >
                     {actionText}
                 </button>
             )}
             {learnMoreLink && learnMoreText && (
                 <button
-                    className='learnMoreButton light-blue-btn'
-                    onClick={getClickHandler('learn-more', learnMoreLink)}
+                    className="learnMoreButton light-blue-btn"
+                    onClick={getClickHandler("learn-more", learnMoreLink)}
                 >
                     {learnMoreText}
                 </button>

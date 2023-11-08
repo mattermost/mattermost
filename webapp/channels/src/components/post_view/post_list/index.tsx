@@ -1,36 +1,46 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import type { Dispatch, ActionCreatorsMapObject } from "redux";
 
-import {markChannelAsRead} from 'mattermost-redux/actions/channels';
-import {RequestStatus} from 'mattermost-redux/constants';
-import {getRecentPostsChunkInChannel, makeGetPostsChunkAroundPost, getUnreadPostsChunk, getPost, isPostsChunkIncludingUnreadsPosts, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
-import type {Action} from 'mattermost-redux/types/actions';
-import {memoizeResult} from 'mattermost-redux/utils/helpers';
-import {makePreparePostIdsForPostList} from 'mattermost-redux/utils/post_list';
+import { markChannelAsRead } from "mattermost-redux/actions/channels";
+import { RequestStatus } from "mattermost-redux/constants";
+import {
+    getRecentPostsChunkInChannel,
+    makeGetPostsChunkAroundPost,
+    getUnreadPostsChunk,
+    getPost,
+    isPostsChunkIncludingUnreadsPosts,
+    getLimitedViews,
+} from "mattermost-redux/selectors/entities/posts";
+import type { Action } from "mattermost-redux/types/actions";
+import { memoizeResult } from "mattermost-redux/utils/helpers";
+import { makePreparePostIdsForPostList } from "mattermost-redux/utils/post_list";
 
-import {updateNewMessagesAtInChannel} from 'actions/global_actions';
+import { updateNewMessagesAtInChannel } from "actions/global_actions";
 import {
     loadPosts,
     loadUnreads,
     loadPostsAround,
     syncPostsInChannel,
     loadLatestPosts,
-} from 'actions/views/channel';
-import {getIsMobileView} from 'selectors/views/browser';
+} from "actions/views/channel";
+import { getIsMobileView } from "selectors/views/browser";
 
-import {getLatestPostId} from 'utils/post_utils';
+import { getLatestPostId } from "utils/post_utils";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import PostList from './post_list';
-import type {Props as PostListProps} from './post_list';
+import PostList from "./post_list";
+import type { Props as PostListProps } from "./post_list";
 
-const isFirstLoad = (state: GlobalState, channelId: string) => !state.entities.posts.postsInChannel[channelId];
-const memoizedGetLatestPostId = memoizeResult((postIds: string[]) => getLatestPostId(postIds));
+const isFirstLoad = (state: GlobalState, channelId: string) =>
+    !state.entities.posts.postsInChannel[channelId];
+const memoizedGetLatestPostId = memoizeResult((postIds: string[]) =>
+    getLatestPostId(postIds),
+);
 
 // This function is added as a fail safe for the channel sync issue we have.
 // When the user switches to a team for the first time we show the channel of previous team and then settle for the right channel after that
@@ -47,21 +57,36 @@ function makeMapStateToProps() {
     const getPostsChunkAroundPost = makeGetPostsChunkAroundPost();
     const preparePostIdsForPostList = makePreparePostIdsForPostList();
 
-    return function mapStateToProps(state: GlobalState, ownProps: Pick<Props, 'focusedPostId' | 'unreadChunkTimeStamp' | 'channelId'> & {shouldStartFromBottomWhenUnread: boolean}) {
+    return function mapStateToProps(
+        state: GlobalState,
+        ownProps: Pick<
+            Props,
+            "focusedPostId" | "unreadChunkTimeStamp" | "channelId"
+        > & { shouldStartFromBottomWhenUnread: boolean },
+    ) {
         let latestPostTimeStamp = 0;
         let postIds: string[] | undefined;
         let chunk;
         let atLatestPost = false;
         let atOldestPost = false;
         let formattedPostIds: string[] | undefined;
-        const {focusedPostId, unreadChunkTimeStamp, channelId, shouldStartFromBottomWhenUnread} = ownProps;
+        const {
+            focusedPostId,
+            unreadChunkTimeStamp,
+            channelId,
+            shouldStartFromBottomWhenUnread,
+        } = ownProps;
         const channelViewState = state.views.channel;
         const lastViewedAt = channelViewState.lastChannelViewTime[channelId];
-        const isPrefetchingInProcess = channelViewState.channelPrefetchStatus[channelId] === RequestStatus.STARTED;
+        const isPrefetchingInProcess =
+            channelViewState.channelPrefetchStatus[channelId] ===
+            RequestStatus.STARTED;
         const limitedViews = getLimitedViews(state);
-        const hasInaccessiblePosts = Boolean(limitedViews.channels[channelId]) || limitedViews.channels[channelId] === 0;
+        const hasInaccessiblePosts =
+            Boolean(limitedViews.channels[channelId]) ||
+            limitedViews.channels[channelId] === 0;
 
-        const focusedPost = getPost(state, focusedPostId || '');
+        const focusedPost = getPost(state, focusedPostId || "");
 
         if (focusedPostId && focusedPost !== undefined) {
             chunk = getPostsChunkAroundPost(state, focusedPostId, channelId);
@@ -79,11 +104,21 @@ function makeMapStateToProps() {
 
         let shouldHideNewMessageIndicator = false;
         if (unreadChunkTimeStamp != null) {
-            shouldHideNewMessageIndicator = shouldStartFromBottomWhenUnread && !isPostsChunkIncludingUnreadsPosts(state, chunk!, unreadChunkTimeStamp);
+            shouldHideNewMessageIndicator =
+                shouldStartFromBottomWhenUnread &&
+                !isPostsChunkIncludingUnreadsPosts(
+                    state,
+                    chunk!,
+                    unreadChunkTimeStamp,
+                );
         }
 
         if (postIds) {
-            formattedPostIds = preparePostIdsForPostList(state, {postIds, lastViewedAt, indicateNewMessages: !shouldHideNewMessageIndicator});
+            formattedPostIds = preparePostIdsForPostList(state, {
+                postIds,
+                lastViewedAt,
+                indicateNewMessages: !shouldHideNewMessageIndicator,
+            });
             if (postIds.length) {
                 const latestPostId = memoizedGetLatestPostId(postIds);
                 const latestPost = getPost(state, latestPostId);
@@ -109,15 +144,21 @@ function makeMapStateToProps() {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, PostListProps['actions']>({
-            loadUnreads,
-            loadPosts,
-            loadLatestPosts,
-            loadPostsAround,
-            syncPostsInChannel,
-            markChannelAsRead,
-            updateNewMessagesAtInChannel,
-        }, dispatch),
+        actions: bindActionCreators<
+            ActionCreatorsMapObject<Action>,
+            PostListProps["actions"]
+        >(
+            {
+                loadUnreads,
+                loadPosts,
+                loadLatestPosts,
+                loadPostsAround,
+                syncPostsInChannel,
+                markChannelAsRead,
+                updateNewMessagesAtInChannel,
+            },
+            dispatch,
+        ),
     };
 }
 

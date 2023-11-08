@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {Dispatch} from 'redux';
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import type { Dispatch } from "redux";
 
 import {
     getPlugins,
@@ -13,12 +13,12 @@ import {
     installPluginFromUrl,
     enablePlugin,
     disablePlugin,
-} from 'mattermost-redux/actions/admin';
-import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {streamlinedMarketplaceEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import type {GenericAction} from 'mattermost-redux/types/actions';
+} from "mattermost-redux/actions/admin";
+import { appsFeatureFlagEnabled } from "mattermost-redux/selectors/entities/apps";
+import { streamlinedMarketplaceEnabled } from "mattermost-redux/selectors/entities/preferences";
+import type { GenericAction } from "mattermost-redux/types/actions";
 
-import PluginManagement from './plugin_management';
+import PluginManagement from "./plugin_management";
 
 function mapStateToProps(state: any) {
     return {
@@ -31,15 +31,18 @@ function mapStateToProps(state: any) {
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators({
-            uploadPlugin,
-            installPluginFromUrl,
-            removePlugin,
-            getPlugins,
-            getPluginStatuses,
-            enablePlugin,
-            disablePlugin,
-        }, dispatch),
+        actions: bindActionCreators(
+            {
+                uploadPlugin,
+                installPluginFromUrl,
+                removePlugin,
+                getPlugins,
+                getPluginStatuses,
+                enablePlugin,
+                disablePlugin,
+            },
+            dispatch,
+        ),
     };
 }
 

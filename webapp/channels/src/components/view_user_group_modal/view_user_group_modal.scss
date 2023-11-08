@@ -54,7 +54,8 @@
             &.group-member-list {
                 max-height: 450px;
                 padding-bottom: 16px;
-                border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+                border-top: 1px solid
+                    rgba(var(--center-channel-color-rgb), 0.08);
                 overflow-y: scroll; // for Firefox and browsers that doesn't support overflow-y:overlay property
                 overflow-y: overlay;
 

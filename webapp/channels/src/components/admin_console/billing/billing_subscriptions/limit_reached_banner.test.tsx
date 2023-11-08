@@ -1,69 +1,72 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {GlobalState} from '@mattermost/types/store';
-import type {UserProfile, UsersState} from '@mattermost/types/users';
+import type { GlobalState } from "@mattermost/types/store";
+import type { UserProfile, UsersState } from "@mattermost/types/users";
 
-import {Preferences} from 'mattermost-redux/constants';
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+import { Preferences } from "mattermost-redux/constants";
+import { getPreferenceKey } from "mattermost-redux/utils/preference_utils";
 
-import * as useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
-import * as useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
-import * as useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import * as useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-import * as useSaveBool from 'components/common/hooks/useSavePreferences';
+import * as useGetUsageDeltas from "components/common/hooks/useGetUsageDeltas";
+import * as useOpenCloudPurchaseModal from "components/common/hooks/useOpenCloudPurchaseModal";
+import * as useOpenPricingModal from "components/common/hooks/useOpenPricingModal";
+import * as useOpenSalesLink from "components/common/hooks/useOpenSalesLink";
+import * as useSaveBool from "components/common/hooks/useSavePreferences";
 
-import {fireEvent, renderWithFullContext, screen} from 'tests/react_testing_utils';
-import {CloudProducts} from 'utils/constants';
+import {
+    fireEvent,
+    renderWithFullContext,
+    screen,
+} from "tests/react_testing_utils";
+import { CloudProducts } from "utils/constants";
 
-import LimitReachedBanner from './limit_reached_banner';
+import LimitReachedBanner from "./limit_reached_banner";
 
-const upgradeCloudKey = getPreferenceKey(Preferences.CATEGORY_UPGRADE_CLOUD, Preferences.SYSTEM_CONSOLE_LIMIT_REACHED);
+const upgradeCloudKey = getPreferenceKey(
+    Preferences.CATEGORY_UPGRADE_CLOUD,
+    Preferences.SYSTEM_CONSOLE_LIMIT_REACHED,
+);
 
 const state: GlobalState = {
     entities: {
         users: {
-            currentUserId: 'userid',
+            currentUserId: "userid",
             profiles: {
                 userid: {} as UserProfile,
             },
         } as unknown as UsersState,
         preferences: {
             myPreferences: {
-                [upgradeCloudKey]: {value: 'false'},
+                [upgradeCloudKey]: { value: "false" },
             },
         },
         cloud: {
-            limits: {
-            },
-            products: {
-            },
+            limits: {},
+            products: {},
         },
         general: {
-            license: {
-            },
-            config: {
-            },
+            license: {},
+            config: {},
         },
     },
 } as GlobalState;
 
 const base = {
-    id: '',
-    name: '',
-    description: '',
+    id: "",
+    name: "",
+    description: "",
     price_per_seat: 0,
     add_ons: [],
-    product_family: '',
-    billing_scheme: '',
-    recurring_interval: '',
-    cross_sells_to: '',
+    product_family: "",
+    billing_scheme: "",
+    recurring_interval: "",
+    cross_sells_to: "",
 };
 
-const free = {...base, sku: CloudProducts.STARTER};
-const enterprise = {...base, sku: CloudProducts.ENTERPRISE};
+const free = { ...base, sku: CloudProducts.STARTER };
+const enterprise = { ...base, sku: CloudProducts.ENTERPRISE };
 
 const noLimitReached = {
     files: {
@@ -100,11 +103,14 @@ const titleFree = /Upgrade to one of our paid plans to avoid/;
 const titleProfessional = /Upgrade to Enterprise to avoid Professional plan/;
 
 function makeSpies() {
-    const mockUseOpenSalesLink = jest.spyOn(useOpenSalesLink, 'default');
-    const mockUseGetUsageDeltas = jest.spyOn(useGetUsageDeltas, 'default');
-    const mockUseOpenCloudPurchaseModal = jest.spyOn(useOpenCloudPurchaseModal, 'default');
-    const mockUseOpenPricingModal = jest.spyOn(useOpenPricingModal, 'default');
-    const mockUseSaveBool = jest.spyOn(useSaveBool, 'useSaveBool');
+    const mockUseOpenSalesLink = jest.spyOn(useOpenSalesLink, "default");
+    const mockUseGetUsageDeltas = jest.spyOn(useGetUsageDeltas, "default");
+    const mockUseOpenCloudPurchaseModal = jest.spyOn(
+        useOpenCloudPurchaseModal,
+        "default",
+    );
+    const mockUseOpenPricingModal = jest.spyOn(useOpenPricingModal, "default");
+    const mockUseSaveBool = jest.spyOn(useSaveBool, "useSaveBool");
     return {
         useOpenSalesLink: mockUseOpenSalesLink,
         useGetUsageDeltas: mockUseGetUsageDeltas,
@@ -114,18 +120,21 @@ function makeSpies() {
     };
 }
 
-describe('limits_reached_banner', () => {
-    test('does not render when product is enterprise', () => {
+describe("limits_reached_banner", () => {
+    test("does not render when product is enterprise", () => {
         const spies = makeSpies();
         spies.useGetUsageDeltas.mockReturnValue(someLimitReached);
 
-        renderWithFullContext(<LimitReachedBanner product={enterprise}/>, state);
+        renderWithFullContext(
+            <LimitReachedBanner product={enterprise} />,
+            state,
+        );
 
         expect(screen.queryByText(titleFree)).not.toBeInTheDocument();
         expect(screen.queryByText(titleProfessional)).not.toBeInTheDocument();
     });
 
-    test('does not render when banner was dismissed', () => {
+    test("does not render when banner was dismissed", () => {
         const myState = {
             ...state,
             entities: {
@@ -134,7 +143,7 @@ describe('limits_reached_banner', () => {
                     ...state.entities.preferences,
                     myPreferences: {
                         ...state.entities.preferences.myPreferences,
-                        [upgradeCloudKey]: {value: 'true'},
+                        [upgradeCloudKey]: { value: "true" },
                     },
                 },
             },
@@ -143,50 +152,53 @@ describe('limits_reached_banner', () => {
         const spies = makeSpies();
         spies.useGetUsageDeltas.mockReturnValue(someLimitReached);
 
-        renderWithFullContext(<LimitReachedBanner product={enterprise}/>, myState);
+        renderWithFullContext(
+            <LimitReachedBanner product={enterprise} />,
+            myState,
+        );
 
         expect(screen.queryByText(titleFree)).not.toBeInTheDocument();
         expect(screen.queryByText(titleProfessional)).not.toBeInTheDocument();
     });
 
-    test('does not render when no limit reached', () => {
+    test("does not render when no limit reached", () => {
         const spies = makeSpies();
         spies.useGetUsageDeltas.mockReturnValue(noLimitReached);
 
-        renderWithFullContext(<LimitReachedBanner product={free}/>, state);
+        renderWithFullContext(<LimitReachedBanner product={free} />, state);
 
         expect(screen.queryByText(titleFree)).not.toBeInTheDocument();
         expect(screen.queryByText(titleProfessional)).not.toBeInTheDocument();
     });
 
-    test('renders free banner', () => {
+    test("renders free banner", () => {
         const spies = makeSpies();
         const mockOpenPricingModal = jest.fn();
         spies.useOpenPricingModal.mockReturnValue(mockOpenPricingModal);
         spies.useGetUsageDeltas.mockReturnValue(someLimitReached);
 
-        renderWithFullContext(<LimitReachedBanner product={free}/>, state);
+        renderWithFullContext(<LimitReachedBanner product={free} />, state);
 
         screen.getByText(titleFree);
         expect(screen.queryByText(titleProfessional)).not.toBeInTheDocument();
 
-        fireEvent.click(screen.getByText('View plans'));
+        fireEvent.click(screen.getByText("View plans"));
 
         expect(mockOpenPricingModal).toHaveBeenCalled();
     });
 
-    test('clicking Contact Sales opens sales link', () => {
+    test("clicking Contact Sales opens sales link", () => {
         const spies = makeSpies();
         const mockOpenSalesLink = jest.fn();
-        spies.useOpenSalesLink.mockReturnValue([mockOpenSalesLink, '']);
+        spies.useOpenSalesLink.mockReturnValue([mockOpenSalesLink, ""]);
         spies.useGetUsageDeltas.mockReturnValue(someLimitReached);
 
-        renderWithFullContext(<LimitReachedBanner product={free}/>, state);
+        renderWithFullContext(<LimitReachedBanner product={free} />, state);
 
         screen.getByText(titleFree);
         expect(screen.queryByText(titleProfessional)).not.toBeInTheDocument();
 
-        fireEvent.click(screen.getByText('Contact sales'));
+        fireEvent.click(screen.getByText("Contact sales"));
 
         expect(mockOpenSalesLink).toHaveBeenCalled();
     });

@@ -1,54 +1,55 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
-import {Provider} from 'react-redux';
+import { shallow } from "enzyme";
+import React from "react";
+import { Provider } from "react-redux";
 
-import type {Channel} from '@mattermost/types/channels';
-import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
+import type { Channel } from "@mattermost/types/channels";
+import type {
+    UserThread,
+    UserThreadSynthetic,
+} from "@mattermost/types/threads";
+import type { UserProfile, UserStatus } from "@mattermost/types/users";
 
-import mockStore from 'tests/test_store';
+import mockStore from "tests/test_store";
 
-import type {PostDraft} from 'types/store/draft';
+import type { PostDraft } from "types/store/draft";
 
-import ThreadDraft from './thread_draft';
+import ThreadDraft from "./thread_draft";
 
-describe('components/drafts/drafts_row', () => {
+describe("components/drafts/drafts_row", () => {
     const baseProps = {
         channel: {
-            id: '',
+            id: "",
         } as Channel,
-        channelUrl: '',
-        displayName: '',
-        draftId: '',
-        rootId: '' as UserThread['id'] | UserThreadSynthetic['id'],
-        id: {} as Channel['id'],
-        status: {} as UserStatus['status'],
+        channelUrl: "",
+        displayName: "",
+        draftId: "",
+        rootId: "" as UserThread["id"] | UserThreadSynthetic["id"],
+        id: {} as Channel["id"],
+        status: {} as UserStatus["status"],
         thread: {
-            id: '',
+            id: "",
         } as UserThread | UserThreadSynthetic,
-        type: 'thread' as 'channel' | 'thread',
+        type: "thread" as "channel" | "thread",
         user: {} as UserProfile,
         value: {} as PostDraft,
         isRemote: false,
     };
 
-    it('should match snapshot for channel draft', () => {
+    it("should match snapshot for channel draft", () => {
         const store = mockStore();
 
         const wrapper = shallow(
             <Provider store={store}>
-                <ThreadDraft
-                    {...baseProps}
-                />
+                <ThreadDraft {...baseProps} />
             </Provider>,
         );
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should match snapshot for undefined thread', () => {
+    it("should match snapshot for undefined thread", () => {
         const store = mockStore();
 
         const props = {
@@ -58,9 +59,7 @@ describe('components/drafts/drafts_row', () => {
 
         const wrapper = shallow(
             <Provider store={store}>
-                <ThreadDraft
-                    {...props}
-                />
+                <ThreadDraft {...props} />
             </Provider>,
         );
         expect(wrapper).toMatchSnapshot();

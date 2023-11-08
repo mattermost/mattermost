@@ -1,30 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PluginManifest} from './plugins';
-import {AppManifest} from './apps';
+import { PluginManifest } from "./plugins";
+import { AppManifest } from "./apps";
 
 export type MarketplaceLabel = {
     name: string;
     description?: string;
     url?: string;
-}
+};
 
 export enum HostingType {
-    OnPrem = 'on-prem',
-    Cloud = 'cloud',
+    OnPrem = "on-prem",
+    Cloud = "cloud",
 }
 
 export enum AuthorType {
-    Mattermost = 'mattermost',
-    Partner = 'partner',
-    Community = 'community',
+    Mattermost = "mattermost",
+    Partner = "partner",
+    Community = "community",
 }
 
 export enum ReleaseStage {
-    Production = 'production',
-    Beta = 'beta',
-    Experimental = 'experimental',
+    Production = "production",
+    Beta = "beta",
+    Experimental = "experimental",
 }
 
 interface MarketplaceBaseItem {

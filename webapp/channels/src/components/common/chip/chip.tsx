@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import styled from 'styled-components';
+import React from "react";
+import { FormattedMessage } from "react-intl";
+import styled from "styled-components";
 
-import RenderEmoji from 'components/emoji/render_emoji';
+import RenderEmoji from "components/emoji/render_emoji";
 
 // This component is a temporary placeholder for use until the authoritative `compass-components` Chip is implemented.
 
@@ -20,7 +20,7 @@ type Props = {
     otherOption?: boolean;
     leadingIcon?: string;
     additionalMarkup?: React.ReactNode | React.ReactNodeArray;
-}
+};
 
 const StyledChip = styled.button<{ otherOption?: boolean }>`
     display: flex;
@@ -41,7 +41,10 @@ const StyledChip = styled.button<{ otherOption?: boolean }>`
     border-radius: 16px;
 
     background-color: var(--center-channel-bg);
-    ${(p) => (p.otherOption ? 'color: rgba(var(--center-channel-color-rgb), 0.72);' : '')}
+    ${(p) =>
+        p.otherOption
+            ? "color: rgba(var(--center-channel-color-rgb), 0.72);"
+            : ""}
 
     &:hover {
         background-color: rgba(var(--center-channel-color-rgb), 0.08);
@@ -63,21 +66,23 @@ export default class Chip extends React.PureComponent<Props> {
             <StyledChip
                 onClick={this.onClick}
                 otherOption={this.props.otherOption}
-                className={this.props.className || ''}
+                className={this.props.className || ""}
             >
                 {this.props.leadingIcon && (
                     <RenderEmoji
                         emojiName={this.props.leadingIcon}
-                        emojiStyle={{marginRight: '11px'}}
+                        emojiStyle={{ marginRight: "11px" }}
                     />
                 )}
-                {(this.props.id && this.props.defaultMessage && this.props.values) && (
-                    <FormattedMessage
-                        id={this.props.id}
-                        defaultMessage={this.props.defaultMessage}
-                        values={this.props.values}
-                    />
-                )}
+                {this.props.id &&
+                    this.props.defaultMessage &&
+                    this.props.values && (
+                        <FormattedMessage
+                            id={this.props.id}
+                            defaultMessage={this.props.defaultMessage}
+                            values={this.props.values}
+                        />
+                    )}
                 {this.props.additionalMarkup}
             </StyledChip>
         );

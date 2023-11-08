@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type React from 'react';
+import type React from "react";
 
-import {FINISHED} from './constant';
+import { FINISHED } from "./constant";
 
-export type ActionType = 'next' | 'prev' | 'dismiss' | 'jump' | 'skipped'
+export type ActionType = "next" | "prev" | "dismiss" | "jump" | "skipped";
 
 export interface ChannelsTourTipManager {
     show: boolean;
@@ -20,12 +20,15 @@ export interface ChannelsTourTipManager {
 }
 
 export const KeyCodes: Record<string, [string, number]> = {
-    ENTER: ['Enter', 13],
-    COMPOSING: ['Composing', 229],
+    ENTER: ["Enter", 13],
+    COMPOSING: ["Composing", 229],
 };
 
 // This is extracted from utils file to remove dependency on utils file of webapp
-export function isKeyPressed(event: KeyboardEvent, key: [string, number]): boolean {
+export function isKeyPressed(
+    event: KeyboardEvent,
+    key: [string, number],
+): boolean {
     // There are two types of keyboards
     // 1. English with different layouts(Ex: Dvorak)
     // 2. Different language keyboards(Ex: Russian)
@@ -35,8 +38,13 @@ export function isKeyPressed(event: KeyboardEvent, key: [string, number]): boole
     }
 
     // checks for event.key for older browsers and also for the case of different English layout keyboards.
-    if (typeof event.key !== 'undefined' && event.key !== 'Unidentified' && event.key !== 'Dead') {
-        const isPressedByCode = event.key === key[0] || event.key === key[0].toUpperCase();
+    if (
+        typeof event.key !== "undefined" &&
+        event.key !== "Unidentified" &&
+        event.key !== "Dead"
+    ) {
+        const isPressedByCode =
+            event.key === key[0] || event.key === key[0].toUpperCase();
         if (isPressedByCode) {
             return true;
         }

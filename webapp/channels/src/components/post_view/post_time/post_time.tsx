@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ComponentProps} from 'react';
-import {Link} from 'react-router-dom';
+import React from "react";
+import type { ComponentProps } from "react";
+import { Link } from "react-router-dom";
 
-import * as GlobalActions from 'actions/global_actions';
+import * as GlobalActions from "actions/global_actions";
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Timestamp, {RelativeRanges} from 'components/timestamp';
-import Tooltip from 'components/tooltip';
+import OverlayTrigger from "components/overlay_trigger";
+import Timestamp, { RelativeRanges } from "components/timestamp";
+import Tooltip from "components/tooltip";
 
-import {Locations} from 'utils/constants';
-import {isMobile} from 'utils/user_agent';
+import { Locations } from "utils/constants";
+import { isMobile } from "utils/user_agent";
 
 const POST_TOOLTIP_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,
@@ -20,7 +20,6 @@ const POST_TOOLTIP_RANGES = [
 ];
 
 type Props = {
-
     /*
      * If true, time will be rendered as a permalink to the post
      */
@@ -40,7 +39,7 @@ type Props = {
     postId: string;
     teamUrl: string;
     timestampProps?: ComponentProps<typeof Timestamp>;
-}
+};
 
 export default class PostTime extends React.PureComponent<Props> {
     static defaultProps: Partial<Props> = {
@@ -67,40 +66,38 @@ export default class PostTime extends React.PureComponent<Props> {
         const postTime = (
             <Timestamp
                 value={eventTime}
-                className='post__time'
+                className="post__time"
                 useDate={false}
                 {...timestampProps}
             />
         );
 
-        const content = isMobile() || !isPermalink ? (
-            <div
-                role='presentation'
-                className='post__permalink post_permalink_mobile_view'
-            >
-                {postTime}
-            </div>
-        ) : (
-            <Link
-                id={`${location}_time_${postId}`}
-                to={`${teamUrl}/pl/${postId}`}
-                className='post__permalink'
-                onClick={this.handleClick}
-                aria-labelledby={eventTime.toString()}
-            >
-                {postTime}
-            </Link>
-        );
+        const content =
+            isMobile() || !isPermalink ? (
+                <div
+                    role="presentation"
+                    className="post__permalink post_permalink_mobile_view"
+                >
+                    {postTime}
+                </div>
+            ) : (
+                <Link
+                    id={`${location}_time_${postId}`}
+                    to={`${teamUrl}/pl/${postId}`}
+                    className="post__permalink"
+                    onClick={this.handleClick}
+                    aria-labelledby={eventTime.toString()}
+                >
+                    {postTime}
+                </Link>
+            );
 
         return (
             <OverlayTrigger
                 delayShow={500}
-                placement='top'
+                placement="top"
                 overlay={
-                    <Tooltip
-                        id={eventTime.toString()}
-                        className='hidden-xs'
-                    >
+                    <Tooltip id={eventTime.toString()} className="hidden-xs">
                         <Timestamp
                             value={eventTime}
                             ranges={POST_TOOLTIP_RANGES}

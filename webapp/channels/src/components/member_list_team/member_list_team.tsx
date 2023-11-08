@@ -1,19 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {TeamMembership, TeamStats, GetTeamMembersOpts} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
+import type {
+    TeamMembership,
+    TeamStats,
+    GetTeamMembersOpts,
+} from "@mattermost/types/teams";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {Teams} from 'mattermost-redux/constants';
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import { Teams } from "mattermost-redux/constants";
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import SearchableUserList from 'components/searchable_user_list/searchable_user_list_container';
-import TeamMembersDropdown from 'components/team_members_dropdown';
+import SearchableUserList from "components/searchable_user_list/searchable_user_list_container";
+import TeamMembersDropdown from "components/team_members_dropdown";
 
-import Constants from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
+import Constants from "utils/constants";
+import * as UserAgent from "utils/user_agent";
 
 const USERS_PER_PAGE = 50;
 
@@ -27,25 +31,42 @@ type Props = {
     totalTeamMembers: number;
     canManageTeamMembers?: boolean;
     actions: {
-        getTeamMembers: (teamId: string, page?: number, perPage?: number, options?: GetTeamMembersOpts) => Promise<{data: TeamMembership}>;
-        searchProfiles: (term: string, options?: {[key: string]: any}) => Promise<{data: UserProfile[]}>;
-        getTeamStats: (teamId: string) => Promise<{data: TeamStats}>;
-        loadProfilesAndTeamMembers: (page: number, perPage: number, teamId?: string, options?: {[key: string]: any}) => Promise<{
+        getTeamMembers: (
+            teamId: string,
+            page?: number,
+            perPage?: number,
+            options?: GetTeamMembersOpts,
+        ) => Promise<{ data: TeamMembership }>;
+        searchProfiles: (
+            term: string,
+            options?: { [key: string]: any },
+        ) => Promise<{ data: UserProfile[] }>;
+        getTeamStats: (teamId: string) => Promise<{ data: TeamStats }>;
+        loadProfilesAndTeamMembers: (
+            page: number,
+            perPage: number,
+            teamId?: string,
+            options?: { [key: string]: any },
+        ) => Promise<{
             data: boolean;
         }>;
         loadStatusesForProfilesList: (users: UserProfile[]) => Promise<{
             data: boolean;
         }>;
-        loadTeamMembersForProfilesList: (profiles: any, teamId: string, reloadAllMembers: boolean) => Promise<{
+        loadTeamMembersForProfilesList: (
+            profiles: any,
+            teamId: string,
+            reloadAllMembers: boolean,
+        ) => Promise<{
             data: boolean;
         }>;
         setModalSearchTerm: (term: string) => ActionResult;
     };
-}
+};
 
 type State = {
     loading: boolean;
-}
+};
 
 export default class MemberListTeam extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;
@@ -62,8 +83,16 @@ export default class MemberListTeam extends React.PureComponent<Props, State> {
 
     async componentDidMount() {
         await Promise.all([
-            this.props.actions.loadProfilesAndTeamMembers(0, Constants.PROFILE_CHUNK_SIZE, this.props.currentTeamId, {active: true}),
-            this.props.actions.getTeamMembers(this.props.currentTeamId, 0, Constants.DEFAULT_MAX_USERS_PER_TEAM,
+            this.props.actions.loadProfilesAndTeamMembers(
+                0,
+                Constants.PROFILE_CHUNK_SIZE,
+                this.props.currentTeamId,
+                { active: true },
+            ),
+            this.props.actions.getTeamMembers(
+                this.props.currentTeamId,
+                0,
+                Constants.DEFAULT_MAX_USERS_PER_TEAM,
                 {
                     sort: Teams.SORT_USERNAME_OPTION,
                     exclude_deleted_users: true,
@@ -75,7 +104,7 @@ export default class MemberListTeam extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
-        this.props.actions.setModalSearchTerm('');
+        this.props.actions.setModalSearchTerm("");
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -83,50 +112,61 @@ export default class MemberListTeam extends React.PureComponent<Props, State> {
             clearTimeout(this.searchTimeoutId);
 
             const searchTerm = this.props.searchTerm;
-            if (searchTerm === '') {
+            if (searchTerm === "") {
                 this.loadComplete();
                 this.searchTimeoutId = 0;
                 return;
             }
 
-            const searchTimeoutId = window.setTimeout(
-                async () => {
-                    const {
-                        loadStatusesForProfilesList,
-                        loadTeamMembersForProfilesList,
-                        searchProfiles,
-                    } = this.props.actions;
-                    const {data} = await searchProfiles(searchTerm, {team_id: this.props.currentTeamId});
+            const searchTimeoutId = window.setTimeout(async () => {
+                const {
+                    loadStatusesForProfilesList,
+                    loadTeamMembersForProfilesList,
+                    searchProfiles,
+                } = this.props.actions;
+                const { data } = await searchProfiles(searchTerm, {
+                    team_id: this.props.currentTeamId,
+                });
 
-                    if (searchTimeoutId !== this.searchTimeoutId) {
-                        return;
+                if (searchTimeoutId !== this.searchTimeoutId) {
+                    return;
+                }
+
+                this.setState({ loading: true });
+
+                loadStatusesForProfilesList(data);
+                loadTeamMembersForProfilesList(
+                    data,
+                    this.props.currentTeamId,
+                    true,
+                ).then(({ data: membersLoaded }) => {
+                    if (membersLoaded) {
+                        this.loadComplete();
                     }
-
-                    this.setState({loading: true});
-
-                    loadStatusesForProfilesList(data);
-                    loadTeamMembersForProfilesList(data, this.props.currentTeamId, true).then(({data: membersLoaded}) => {
-                        if (membersLoaded) {
-                            this.loadComplete();
-                        }
-                    });
-                },
-                Constants.SEARCH_TIMEOUT_MILLISECONDS,
-            );
+                });
+            }, Constants.SEARCH_TIMEOUT_MILLISECONDS);
 
             this.searchTimeoutId = searchTimeoutId;
         }
     }
 
     loadComplete = () => {
-        this.setState({loading: false});
+        this.setState({ loading: false });
     };
 
     nextPage = async (page: number) => {
-        this.setState({loading: true});
+        this.setState({ loading: true });
         await Promise.all([
-            this.props.actions.loadProfilesAndTeamMembers(page, USERS_PER_PAGE, this.props.currentTeamId, {active: true}),
-            this.props.actions.getTeamMembers(this.props.currentTeamId, page, Constants.DEFAULT_MAX_USERS_PER_TEAM,
+            this.props.actions.loadProfilesAndTeamMembers(
+                page,
+                USERS_PER_PAGE,
+                this.props.currentTeamId,
+                { active: true },
+            ),
+            this.props.actions.getTeamMembers(
+                this.props.currentTeamId,
+                page,
+                Constants.DEFAULT_MAX_USERS_PER_TEAM,
                 {
                     sort: Teams.SORT_USERNAME_OPTION,
                     exclude_deleted_users: true,

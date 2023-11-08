@@ -1,21 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AppBinding, AppField, AppForm} from '@mattermost/types/apps';
+import type { AppBinding, AppField, AppForm } from "@mattermost/types/apps";
 
-import {AppBindingLocations, AppFieldTypes} from 'mattermost-redux/constants/apps';
+import {
+    AppBindingLocations,
+    AppFieldTypes,
+} from "mattermost-redux/constants/apps";
 
 export function cleanBinding(binding: AppBinding, topLocation: string) {
     cleanBindingRec(binding, topLocation, 0);
 }
 
-function cleanBindingRec(binding: AppBinding, topLocation: string, depth: number) {
+function cleanBindingRec(
+    binding: AppBinding,
+    topLocation: string,
+    depth: number,
+) {
     if (!binding) {
         return;
     }
 
     const toRemove: number[] = [];
-    const usedLabels: {[label: string]: boolean} = {};
+    const usedLabels: { [label: string]: boolean } = {};
     binding.bindings?.forEach((b, i) => {
         // Inheritance and defaults
 
@@ -24,10 +31,10 @@ function cleanBindingRec(binding: AppBinding, topLocation: string, depth: number
         }
 
         if (!b.label) {
-            b.label = b.location || '';
+            b.label = b.location || "";
         }
 
-        b.location = binding.location + '/' + b.location;
+        b.location = binding.location + "/" + b.location;
 
         // Validation
         if (!b.app_id) {
@@ -42,36 +49,38 @@ function cleanBindingRec(binding: AppBinding, topLocation: string, depth: number
         }
 
         switch (topLocation) {
-        case AppBindingLocations.COMMAND: {
-            if (b.label.match(/ |\t/)) {
-                toRemove.unshift(i);
-                return;
-            }
+            case AppBindingLocations.COMMAND: {
+                if (b.label.match(/ |\t/)) {
+                    toRemove.unshift(i);
+                    return;
+                }
 
-            if (usedLabels[b.label]) {
-                toRemove.unshift(i);
-                return;
+                if (usedLabels[b.label]) {
+                    toRemove.unshift(i);
+                    return;
+                }
+                break;
             }
-            break;
-        }
-        case AppBindingLocations.CHANNEL_HEADER_ICON: {
-            // First level of channel header icons must have an icon to show as the icon
-            if (!b.icon && depth === 0) {
-                toRemove.unshift(i);
-                return;
+            case AppBindingLocations.CHANNEL_HEADER_ICON: {
+                // First level of channel header icons must have an icon to show as the icon
+                if (!b.icon && depth === 0) {
+                    toRemove.unshift(i);
+                    return;
+                }
+                break;
             }
-            break;
-        }
         }
 
         // Must have only subbindings, a form or a submit call.
         const hasBindings = Boolean(b.bindings?.length);
         const hasForm = Boolean(b.form);
         const hasSubmit = Boolean(b.submit);
-        if ((!hasBindings && !hasForm && !hasSubmit) ||
+        if (
+            (!hasBindings && !hasForm && !hasSubmit) ||
             (hasBindings && hasForm) ||
             (hasBindings && hasSubmit) ||
-            (hasForm && hasSubmit)) {
+            (hasForm && hasSubmit)
+        ) {
             toRemove.unshift(i);
             return;
         }
@@ -101,12 +110,16 @@ function cleanBindingRec(binding: AppBinding, topLocation: string, depth: number
     });
 }
 
-export function validateBindings(bindings: AppBinding[] | null = []): AppBinding[] {
+export function validateBindings(
+    bindings: AppBinding[] | null = [],
+): AppBinding[] {
     if (!bindings || (bindings.length && bindings.length === 0)) {
         return [];
     }
     const filterAndCleanBindings = (location: string): AppBinding[] => {
-        const filteredBindings = bindings.filter((b) => b.location === location);
+        const filteredBindings = bindings.filter(
+            (b) => b.location === location,
+        );
         if (filteredBindings?.length === 0) {
             return [];
         }
@@ -114,8 +127,12 @@ export function validateBindings(bindings: AppBinding[] | null = []): AppBinding
         return filteredBindings.filter((b) => b.bindings?.length);
     };
 
-    const channelHeaderBindings = filterAndCleanBindings(AppBindingLocations.CHANNEL_HEADER_ICON);
-    const postMenuBindings = filterAndCleanBindings(AppBindingLocations.POST_MENU_ITEM);
+    const channelHeaderBindings = filterAndCleanBindings(
+        AppBindingLocations.CHANNEL_HEADER_ICON,
+    );
+    const postMenuBindings = filterAndCleanBindings(
+        AppBindingLocations.POST_MENU_ITEM,
+    );
     const commandBindings = filterAndCleanBindings(AppBindingLocations.COMMAND);
 
     return postMenuBindings.concat(channelHeaderBindings, commandBindings);
@@ -127,7 +144,7 @@ export function cleanForm(form?: AppForm) {
     }
 
     const toRemove: number[] = [];
-    const usedLabels: {[label: string]: boolean} = {};
+    const usedLabels: { [label: string]: boolean } = {};
     form.fields?.forEach((field, i) => {
         if (!field.name) {
             toRemove.unshift(i);
@@ -155,18 +172,18 @@ export function cleanForm(form?: AppForm) {
         }
 
         switch (field.type) {
-        case AppFieldTypes.STATIC_SELECT:
-            cleanStaticSelect(field);
-            if (!field.options?.length) {
-                toRemove.unshift(i);
-                return;
-            }
-            break;
-        case AppFieldTypes.DYNAMIC_SELECT:
-            if (!field.lookup) {
-                toRemove.unshift(i);
-                return;
-            }
+            case AppFieldTypes.STATIC_SELECT:
+                cleanStaticSelect(field);
+                if (!field.options?.length) {
+                    toRemove.unshift(i);
+                    return;
+                }
+                break;
+            case AppFieldTypes.DYNAMIC_SELECT:
+                if (!field.lookup) {
+                    toRemove.unshift(i);
+                    return;
+                }
         }
         usedLabels[label] = true;
     });
@@ -178,8 +195,8 @@ export function cleanForm(form?: AppForm) {
 
 function cleanStaticSelect(field: AppField) {
     const toRemove: number[] = [];
-    const usedLabels: {[label: string]: boolean} = {};
-    const usedValues: {[label: string]: boolean} = {};
+    const usedLabels: { [label: string]: boolean } = {};
+    const usedValues: { [label: string]: boolean } = {};
     field.options?.forEach((option, i) => {
         let label = option.label;
         if (!label) {

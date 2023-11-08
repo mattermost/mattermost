@@ -7,23 +7,29 @@ import type {
     Product,
     CloudCustomer,
     CloudState,
-} from '@mattermost/types/cloud';
-import type {GlobalState} from '@mattermost/types/store';
+} from "@mattermost/types/cloud";
+import type { GlobalState } from "@mattermost/types/store";
 
-import {getLicense} from './general';
+import { getLicense } from "./general";
 
 export function getCloudLimits(state: GlobalState): Limits {
     return state.entities.cloud.limits.limits;
 }
 
-export function getCloudSubscription(state: GlobalState): Subscription | undefined {
+export function getCloudSubscription(
+    state: GlobalState,
+): Subscription | undefined {
     return state.entities.cloud.subscription;
 }
-export function getCloudCustomer(state: GlobalState): CloudCustomer | undefined {
+export function getCloudCustomer(
+    state: GlobalState,
+): CloudCustomer | undefined {
     return state.entities.cloud.customer;
 }
 
-export function getCloudProducts(state: GlobalState): Record<string, Product> | undefined {
+export function getCloudProducts(
+    state: GlobalState,
+): Record<string, Product> | undefined {
     return state.entities.cloud.products;
 }
 
@@ -31,15 +37,17 @@ export function getCloudLimitsLoaded(state: GlobalState): boolean {
     return state.entities.cloud.limits.limitsLoaded;
 }
 
-export function getCloudErrors(state: GlobalState): CloudState['errors'] {
+export function getCloudErrors(state: GlobalState): CloudState["errors"] {
     return state.entities.cloud.errors;
 }
 
-export function getCloudInvoices(state: GlobalState): CloudState['invoices'] {
+export function getCloudInvoices(state: GlobalState): CloudState["invoices"] {
     return state.entities.cloud.invoices;
 }
 
-export function getSubscriptionProduct(state: GlobalState): Product | undefined {
+export function getSubscriptionProduct(
+    state: GlobalState,
+): Product | undefined {
     const subscription = getCloudSubscription(state);
     if (!subscription) {
         return undefined;
@@ -53,15 +61,18 @@ export function getSubscriptionProduct(state: GlobalState): Product | undefined 
 }
 
 export function getSubscriptionProductName(state: GlobalState): string {
-    return getSubscriptionProduct(state)?.name || '';
+    return getSubscriptionProduct(state)?.name || "";
 }
 
 export function checkHadPriorTrial(state: GlobalState): boolean {
     const subscription = getCloudSubscription(state);
-    return Boolean(subscription?.is_free_trial === 'false' && subscription?.trial_end_at > 0);
+    return Boolean(
+        subscription?.is_free_trial === "false" &&
+            subscription?.trial_end_at > 0,
+    );
 }
 
 export function isCurrentLicenseCloud(state: GlobalState): boolean {
     const license = getLicense(state);
-    return license?.Cloud === 'true';
+    return license?.Cloud === "true";
 }

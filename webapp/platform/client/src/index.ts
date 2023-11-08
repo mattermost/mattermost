@@ -6,8 +6,8 @@ export {
     ClientError,
     DEFAULT_LIMIT_AFTER,
     DEFAULT_LIMIT_BEFORE,
-} from './client4';
+} from "./client4";
 
-export type {TelemetryHandler} from './telemetry';
-export type {WebSocketMessage} from './websocket';
-export {default as WebSocketClient} from './websocket';
+export type { TelemetryHandler } from "./telemetry";
+export type { WebSocketMessage } from "./websocket";
+export { default as WebSocketClient } from "./websocket";

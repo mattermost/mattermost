@@ -1,11 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AppCall, AppCallRequest, AppCallResponse, AppCallValues, AppContext, AppExpand, AppSelectOption} from '@mattermost/types/apps';
+import type {
+    AppCall,
+    AppCallRequest,
+    AppCallResponse,
+    AppCallValues,
+    AppContext,
+    AppExpand,
+    AppSelectOption,
+} from "@mattermost/types/apps";
 
-import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
+import { AppCallResponseTypes } from "mattermost-redux/constants/apps";
 
-export const appsPluginID = 'com.mattermost.apps';
+export const appsPluginID = "com.mattermost.apps";
 
 export function createCallContext(
     appID: string,
@@ -44,11 +52,14 @@ export function createCallRequest(
     };
 }
 
-export const makeCallErrorResponse = (errMessage: string): AppCallResponse<any> => {
+export const makeCallErrorResponse = (
+    errMessage: string,
+): AppCallResponse<any> => {
     return {
         type: AppCallResponseTypes.ERROR,
         text: errMessage,
     };
 };
 
-export const filterEmptyOptions = (option: AppSelectOption) => option.value && !option.value.match(/^[ \t]+$/);
+export const filterEmptyOptions = (option: AppSelectOption) =>
+    option.value && !option.value.match(/^[ \t]+$/);

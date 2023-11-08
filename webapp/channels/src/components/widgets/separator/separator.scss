@@ -1,6 +1,6 @@
 @charset 'UTF-8';
 
-@import 'utils/module';
+@import "utils/module";
 
 .Separator {
     position: relative;
@@ -19,7 +19,7 @@
         display: none;
         width: 100%;
         height: 1em;
-        content: '';
+        content: "";
     }
 
     &::before {

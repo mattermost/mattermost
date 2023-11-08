@@ -2,23 +2,23 @@
 // See LICENSE.txt for license information.
 
 export type EmojiCategory =
-    | 'recent'
-    | 'searchResults'
-    | 'smileys-emotion'
-    | 'people-body'
-    | 'animals-nature'
-    | 'food-drink'
-    | 'activities'
-    | 'travel-places'
-    | 'objects'
-    | 'symbols'
-    | 'flags'
-    | 'custom';
+    | "recent"
+    | "searchResults"
+    | "smileys-emotion"
+    | "people-body"
+    | "animals-nature"
+    | "food-drink"
+    | "activities"
+    | "travel-places"
+    | "objects"
+    | "symbols"
+    | "flags"
+    | "custom";
 
 export type CustomEmoji = {
     id: string;
     name: string;
-    category: 'custom';
+    category: "custom";
     create_at: number;
     update_at: number;
     delete_at: number;
@@ -48,7 +48,7 @@ export type SystemEmojiVariation = {
     has_img_google: boolean;
     has_img_twitter: boolean;
     has_img_facebook: boolean;
-}
+};
 
 export type Emoji = SystemEmoji | CustomEmoji;
 

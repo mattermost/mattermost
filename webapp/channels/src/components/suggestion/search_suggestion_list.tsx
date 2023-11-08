@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import Popover from 'components/widgets/popover';
+import Popover from "components/widgets/popover";
 
-import Constants from 'utils/constants';
+import Constants from "utils/constants";
 
-import type {UserProfile} from './command_provider/app_command_parser/app_command_parser_dependencies';
-import SuggestionList from './suggestion_list';
+import type { UserProfile } from "./command_provider/app_command_parser/app_command_parser_dependencies";
+import SuggestionList from "./suggestion_list";
 
 interface Item extends UserProfile {
     type: string;
@@ -21,10 +21,14 @@ interface Props {
     ariaLiveRef?: React.RefObject<HTMLDivElement>;
     inputRef?: React.RefObject<HTMLInputElement>;
     open: boolean;
-    position?: 'top' | 'bottom';
+    position?: "top" | "bottom";
     renderDividers?: string[];
     renderNoResults?: boolean;
-    onCompleteWord: (term: string, matchedPretext: string, e?: React.KeyboardEventHandler<HTMLDivElement>) => boolean;
+    onCompleteWord: (
+        term: string,
+        matchedPretext: string,
+        e?: React.KeyboardEventHandler<HTMLDivElement>,
+    ) => boolean;
     preventClose?: () => void;
     onItemHover: (term: string) => void;
     pretext: string;
@@ -57,7 +61,7 @@ export default class SearchSuggestionList extends SuggestionList {
         this.popoverRef = React.createRef();
         this.itemsContainerRef = React.createRef();
         this.suggestionReadOut = React.createRef();
-        this.currentLabel = '';
+        this.currentLabel = "";
     }
 
     generateLabel(item: Item) {
@@ -70,7 +74,10 @@ export default class SearchSuggestionList extends SuggestionList {
             } else if (item.first_name || item.last_name) {
                 this.currentLabel += ` ${item.first_name} ${item.last_name}`;
             }
-        } else if (item.type === Constants.DM_CHANNEL || item.type === Constants.GM_CHANNEL) {
+        } else if (
+            item.type === Constants.DM_CHANNEL ||
+            item.type === Constants.GM_CHANNEL
+        ) {
             this.currentLabel = item.display_name;
         } else {
             this.currentLabel = item.name;
@@ -84,7 +91,8 @@ export default class SearchSuggestionList extends SuggestionList {
     }
 
     getContent = () => {
-        return this.itemsContainerRef?.current?.parentNode as HTMLDivElement | null;
+        return this.itemsContainerRef?.current
+            ?.parentNode as HTMLDivElement | null;
     };
 
     renderChannelDivider(type: string) {
@@ -92,30 +100,30 @@ export default class SearchSuggestionList extends SuggestionList {
         if (type === Constants.OPEN_CHANNEL) {
             text = (
                 <FormattedMessage
-                    id='suggestion.search.public'
-                    defaultMessage='Public Channels'
+                    id="suggestion.search.public"
+                    defaultMessage="Public Channels"
                 />
             );
         } else if (type === Constants.PRIVATE_CHANNEL) {
             text = (
                 <FormattedMessage
-                    id='suggestion.search.private'
-                    defaultMessage='Private Channels'
+                    id="suggestion.search.private"
+                    defaultMessage="Private Channels"
                 />
             );
         } else {
             text = (
                 <FormattedMessage
-                    id='suggestion.search.direct'
-                    defaultMessage='Direct Messages'
+                    id="suggestion.search.direct"
+                    defaultMessage="Direct Messages"
                 />
             );
         }
 
         return (
             <div
-                key={type + '-divider'}
-                className='search-autocomplete__divider'
+                key={type + "-divider"}
+                className="search-autocomplete__divider"
             >
                 <span>{text}</span>
             </div>
@@ -140,15 +148,26 @@ export default class SearchSuggestionList extends SuggestionList {
             // temporary hack to add dividers between public and private channels in the search suggestion list
             if (this.props.renderDividers) {
                 if (i === 0 || item.type !== this.props.items[i - 1].type) {
-                    if (item.type === Constants.DM_CHANNEL || item.type === Constants.GM_CHANNEL) {
+                    if (
+                        item.type === Constants.DM_CHANNEL ||
+                        item.type === Constants.GM_CHANNEL
+                    ) {
                         if (!haveDMDivider) {
-                            items.push(this.renderChannelDivider(Constants.DM_CHANNEL));
+                            items.push(
+                                this.renderChannelDivider(Constants.DM_CHANNEL),
+                            );
                         }
                         haveDMDivider = true;
                     } else if (item.type === Constants.PRIVATE_CHANNEL) {
-                        items.push(this.renderChannelDivider(Constants.PRIVATE_CHANNEL));
+                        items.push(
+                            this.renderChannelDivider(
+                                Constants.PRIVATE_CHANNEL,
+                            ),
+                        );
                     } else if (item.type === Constants.OPEN_CHANNEL) {
-                        items.push(this.renderChannelDivider(Constants.OPEN_CHANNEL));
+                        items.push(
+                            this.renderChannelDivider(Constants.OPEN_CHANNEL),
+                        );
                     }
                 }
             }
@@ -160,7 +179,9 @@ export default class SearchSuggestionList extends SuggestionList {
             items.push(
                 <Component
                     key={term}
-                    ref={(ref: React.RefObject<HTMLDivElement>) => this.itemRefs.set(term, ref)}
+                    ref={(ref: React.RefObject<HTMLDivElement>) =>
+                        this.itemRefs.set(term, ref)
+                    }
                     item={item}
                     term={term}
                     matchedPretext={this.props.matchedPretext[i]}
@@ -174,18 +195,16 @@ export default class SearchSuggestionList extends SuggestionList {
         return (
             <Popover
                 ref={this.popoverRef}
-                id='search-autocomplete__popover'
-                className='search-help-popover autocomplete visible'
-                placement='bottom'
+                id="search-autocomplete__popover"
+                className="search-help-popover autocomplete visible"
+                placement="bottom"
             >
                 <div
                     ref={this.suggestionReadOut}
-                    aria-live='polite'
-                    className='hidden-label'
+                    aria-live="polite"
+                    className="hidden-label"
                 />
-                <div ref={this.itemsContainerRef}>
-                    {items}
-                </div>
+                <div ref={this.itemsContainerRef}>{items}</div>
             </Popover>
         );
     }

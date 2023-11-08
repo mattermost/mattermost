@@ -1,12 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {EmojiCategory, Emoji, SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
+import type {
+    EmojiCategory,
+    Emoji,
+    SystemEmoji,
+    CustomEmoji,
+} from "@mattermost/types/emojis";
 
 import type {
     CATEGORY_HEADER_ROW,
     EMOJIS_ROW,
-} from 'components/emoji_picker/constants';
+} from "components/emoji_picker/constants";
 
 export type Category = {
     className: string;
@@ -27,10 +32,10 @@ export type CategoryHeaderRow = {
         categoryIndex: number;
         categoryName: EmojiCategory;
         emojiIndex: -1;
-        emojiId: '';
+        emojiId: "";
         item: undefined;
     }>;
-}
+};
 
 export type EmojiRow = {
     index: number;
@@ -39,26 +44,26 @@ export type EmojiRow = {
         categoryIndex: number;
         categoryName: EmojiCategory;
         emojiIndex: number;
-        emojiId: CustomEmoji['id'] | SystemEmoji['unified'];
+        emojiId: CustomEmoji["id"] | SystemEmoji["unified"];
         item: Emoji;
     }>;
-}
+};
 
 export type EmojiCursor = {
     rowIndex: number;
-    emojiId: CustomEmoji['id'] | SystemEmoji['unified'];
+    emojiId: CustomEmoji["id"] | SystemEmoji["unified"];
     emoji: Emoji | undefined;
 };
 
 export type EmojiPosition = {
     rowIndex: number;
-    emojiId: CustomEmoji['id'] | SystemEmoji['unified'];
+    emojiId: CustomEmoji["id"] | SystemEmoji["unified"];
     categoryName: EmojiCategory;
-}
+};
 
 export enum NavigationDirection {
-    NextEmoji = 'next',
-    PreviousEmoji = 'previous',
-    NextEmojiRow = 'nextRow',
-    PreviousEmojiRow = 'previousRow',
+    NextEmoji = "next",
+    PreviousEmoji = "previous",
+    NextEmojiRow = "nextRow",
+    PreviousEmojiRow = "previousRow",
 }

@@ -1,31 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {uniq, difference} from 'lodash';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import { uniq, difference } from "lodash";
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {Role} from '@mattermost/types/roles';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Role } from "@mattermost/types/roles";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {Client4} from 'mattermost-redux/client';
-import Permissions from 'mattermost-redux/constants/permissions';
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import { Client4 } from "mattermost-redux/client";
+import Permissions from "mattermost-redux/constants/permissions";
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import BlockableLink from 'components/admin_console/blockable_link';
-import SaveChangesPanel from 'components/admin_console/team_channel_settings/save_changes_panel';
-import FormError from 'components/form_error';
-import AdminHeader from 'components/widgets/admin_console/admin_header';
+import BlockableLink from "components/admin_console/blockable_link";
+import SaveChangesPanel from "components/admin_console/team_channel_settings/save_changes_panel";
+import FormError from "components/form_error";
+import AdminHeader from "components/widgets/admin_console/admin_header";
 
-import {getHistory} from 'utils/browser_history';
-import Constants from 'utils/constants';
+import { getHistory } from "utils/browser_history";
+import Constants from "utils/constants";
 
-import {isError} from 'types/actions';
+import { isError } from "types/actions";
 
-import SystemRolePermissions from './system_role_permissions';
-import SystemRoleUsers from './system_role_users';
-import {writeAccess} from './types';
-import type {PermissionToUpdate, PermissionsToUpdate} from './types';
+import SystemRolePermissions from "./system_role_permissions";
+import SystemRoleUsers from "./system_role_users";
+import { writeAccess } from "./types";
+import type { PermissionToUpdate, PermissionsToUpdate } from "./types";
 
 type Props = {
     role: Role;
@@ -37,7 +37,7 @@ type Props = {
         updateUserRoles(userId: string, roles: string): Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => void;
     };
-}
+};
 
 type State = {
     usersToAdd: Record<string, UserProfile>;
@@ -48,7 +48,7 @@ type State = {
     saveNeeded: boolean;
     serverError: JSX.Element | undefined;
     saveKey: number;
-}
+};
 
 export default class SystemRole extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -67,18 +67,31 @@ export default class SystemRole extends React.PureComponent<Props, State> {
     }
 
     getSaveStateNeeded = (nextState: Partial<State>): boolean => {
-        const {role} = this.props;
-        const {usersToAdd, usersToRemove, updatedRolePermissions, permissionsToUpdate} = {...this.state, ...nextState};
+        const { role } = this.props;
+        const {
+            usersToAdd,
+            usersToRemove,
+            updatedRolePermissions,
+            permissionsToUpdate,
+        } = { ...this.state, ...nextState };
         let saveNeeded = false;
-        saveNeeded = Object.keys(usersToAdd).length > 0 || Object.keys(usersToRemove).length > 0;
+        saveNeeded =
+            Object.keys(usersToAdd).length > 0 ||
+            Object.keys(usersToRemove).length > 0;
         if (Object.keys(permissionsToUpdate).length > 0) {
-            saveNeeded = saveNeeded || difference(updatedRolePermissions, role.permissions).length > 0 || difference(role.permissions, updatedRolePermissions).length > 0;
+            saveNeeded =
+                saveNeeded ||
+                difference(updatedRolePermissions, role.permissions).length >
+                    0 ||
+                difference(role.permissions, updatedRolePermissions).length > 0;
         }
         return saveNeeded;
     };
 
     addUsersToRole = (users: UserProfile[]) => {
-        const {actions: {setNavigationBlocked}} = this.props;
+        const {
+            actions: { setNavigationBlocked },
+        } = this.props;
         const usersToAdd = {
             ...this.state.usersToAdd,
         };
@@ -93,13 +106,18 @@ export default class SystemRole extends React.PureComponent<Props, State> {
             }
         });
 
-        const saveNeeded = this.getSaveStateNeeded({usersToAdd, usersToRemove});
+        const saveNeeded = this.getSaveStateNeeded({
+            usersToAdd,
+            usersToRemove,
+        });
         setNavigationBlocked(saveNeeded);
-        this.setState({usersToAdd, usersToRemove, saveNeeded});
+        this.setState({ usersToAdd, usersToRemove, saveNeeded });
     };
 
     removeUserFromRole = (user: UserProfile) => {
-        const {actions: {setNavigationBlocked}} = this.props;
+        const {
+            actions: { setNavigationBlocked },
+        } = this.props;
         const usersToAdd = {
             ...this.state.usersToAdd,
         };
@@ -112,20 +130,35 @@ export default class SystemRole extends React.PureComponent<Props, State> {
             usersToRemove[user.id] = user;
         }
 
-        const saveNeeded = this.getSaveStateNeeded({usersToAdd, usersToRemove});
+        const saveNeeded = this.getSaveStateNeeded({
+            usersToAdd,
+            usersToRemove,
+        });
         setNavigationBlocked(saveNeeded);
-        this.setState({usersToRemove, usersToAdd, saveNeeded});
+        this.setState({ usersToRemove, usersToAdd, saveNeeded });
     };
 
     handleSubmit = async () => {
-        this.setState({saving: true, saveNeeded: false});
-        const {usersToRemove, usersToAdd, updatedRolePermissions, permissionsToUpdate} = this.state;
-        const {role, actions: {editRole, updateUserRoles, setNavigationBlocked}} = this.props;
+        this.setState({ saving: true, saveNeeded: false });
+        const {
+            usersToRemove,
+            usersToAdd,
+            updatedRolePermissions,
+            permissionsToUpdate,
+        } = this.state;
+        const {
+            role,
+            actions: { editRole, updateUserRoles, setNavigationBlocked },
+        } = this.props;
         let serverError;
 
         // Do not update permissions if sysadmin or if roles have not been updated (to prevent overrwiting roles with no permissions)
-        if (role.name !== Constants.PERMISSIONS_SYSTEM_ADMIN && Object.keys(permissionsToUpdate).length > 0) {
-            const rolePermissionsWithAncillaryPermssions = await Client4.getAncillaryPermissions(updatedRolePermissions);
+        if (
+            role.name !== Constants.PERMISSIONS_SYSTEM_ADMIN &&
+            Object.keys(permissionsToUpdate).length > 0
+        ) {
+            const rolePermissionsWithAncillaryPermssions =
+                await Client4.getAncillaryPermissions(updatedRolePermissions);
 
             const newRole: Role = {
                 ...role,
@@ -133,7 +166,7 @@ export default class SystemRole extends React.PureComponent<Props, State> {
             };
             const result = await editRole(newRole);
             if (isError(result)) {
-                serverError = <FormError error={result.error.message}/>;
+                serverError = <FormError error={result.error.message} />;
             }
         }
 
@@ -142,7 +175,9 @@ export default class SystemRole extends React.PureComponent<Props, State> {
             const removeUserPromises: Array<Promise<ActionResult>> = [];
             userIdsToRemove.forEach((userId) => {
                 const user = usersToRemove[userId];
-                const updatedRoles = uniq(user.roles.split(' ').filter((r) => r !== role.name)).join(' ');
+                const updatedRoles = uniq(
+                    user.roles.split(" ").filter((r) => r !== role.name),
+                ).join(" ");
                 removeUserPromises.push(updateUserRoles(userId, updatedRoles));
             });
 
@@ -150,8 +185,10 @@ export default class SystemRole extends React.PureComponent<Props, State> {
             const resultWithError = results.find(isError);
 
             // const count = result.filter(isSuccess).length; // To be used for potential telemetry
-            if (resultWithError && 'error' in resultWithError) {
-                serverError = <FormError error={resultWithError.error.message}/>;
+            if (resultWithError && "error" in resultWithError) {
+                serverError = (
+                    <FormError error={resultWithError.error.message} />
+                );
             }
         }
 
@@ -160,7 +197,10 @@ export default class SystemRole extends React.PureComponent<Props, State> {
             const addUserPromises: Array<Promise<ActionResult>> = [];
             userIdsToAdd.forEach((userId) => {
                 const user = usersToAdd[userId];
-                const updatedRoles = uniq([...user.roles.split(' '), role.name]).join(' ');
+                const updatedRoles = uniq([
+                    ...user.roles.split(" "),
+                    role.name,
+                ]).join(" ");
                 addUserPromises.push(updateUserRoles(userId, updatedRoles));
             });
 
@@ -168,18 +208,20 @@ export default class SystemRole extends React.PureComponent<Props, State> {
             const resultWithError = results.find(isError);
 
             // const count = result.filter(isSuccess).length; // To be used for potential telemetry
-            if (resultWithError && 'error' in resultWithError) {
-                serverError = <FormError error={resultWithError.error.message}/>;
+            if (resultWithError && "error" in resultWithError) {
+                serverError = (
+                    <FormError error={resultWithError.error.message} />
+                );
             }
         }
 
-        let {saveKey} = this.state;
+        let { saveKey } = this.state;
         if (!serverError) {
             saveKey += 1;
         }
 
         if (!serverError) {
-            getHistory().push('/admin_console/user_management/system_roles');
+            getHistory().push("/admin_console/user_management/system_roles");
         }
         setNavigationBlocked(Boolean(serverError));
         this.setState({
@@ -193,7 +235,10 @@ export default class SystemRole extends React.PureComponent<Props, State> {
     };
 
     updatePermissions = (permissions: PermissionToUpdate[]) => {
-        const {role, actions: {setNavigationBlocked}} = this.props;
+        const {
+            role,
+            actions: { setNavigationBlocked },
+        } = this.props;
         const updatedPermissions: PermissionsToUpdate = {};
         permissions.forEach((perm) => {
             updatedPermissions[perm.name] = perm.value;
@@ -203,8 +248,14 @@ export default class SystemRole extends React.PureComponent<Props, State> {
             ...updatedPermissions,
         };
 
-        let updatedRolePermissions: string[] = role.permissions.
-            filter((permission) => permission.startsWith('sysconsole_') && !(permission.replace(/sysconsole_(read|write)_/, '') in permissionsToUpdate));
+        let updatedRolePermissions: string[] = role.permissions.filter(
+            (permission) =>
+                permission.startsWith("sysconsole_") &&
+                !(
+                    permission.replace(/sysconsole_(read|write)_/, "") in
+                    permissionsToUpdate
+                ),
+        );
 
         Object.keys(permissionsToUpdate).forEach((permissionShortName) => {
             const value = permissionsToUpdate[permissionShortName];
@@ -213,7 +264,10 @@ export default class SystemRole extends React.PureComponent<Props, State> {
                 const writePermission = `sysconsole_write_${permissionShortName}`;
 
                 if (value === writeAccess) {
-                    updatedRolePermissions.push(readPermission, writePermission);
+                    updatedRolePermissions.push(
+                        readPermission,
+                        writePermission,
+                    );
                 } else {
                     updatedRolePermissions.push(readPermission);
                 }
@@ -239,16 +293,27 @@ export default class SystemRole extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {usersToAdd, usersToRemove, saving, saveNeeded, serverError, permissionsToUpdate, saveKey} = this.state;
-        const {role, isDisabled, isLicensedForCloud} = this.props;
-        const defaultName = role.name.split('').map((r) => r.charAt(0).toUpperCase() + r.slice(1)).join(' ');
+        const {
+            usersToAdd,
+            usersToRemove,
+            saving,
+            saveNeeded,
+            serverError,
+            permissionsToUpdate,
+            saveKey,
+        } = this.state;
+        const { role, isDisabled, isLicensedForCloud } = this.props;
+        const defaultName = role.name
+            .split("")
+            .map((r) => r.charAt(0).toUpperCase() + r.slice(1))
+            .join(" ");
         return (
-            <div className='wrapper--fixed'>
+            <div className="wrapper--fixed">
                 <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
-                            to='/admin_console/user_management/system_roles'
-                            className='fa fa-angle-left back'
+                            to="/admin_console/user_management/system_roles"
+                            className="fa fa-angle-left back"
                         />
                         <FormattedMessage
                             id={`admin.permissions.roles.${role.name}.name`}
@@ -256,14 +321,17 @@ export default class SystemRole extends React.PureComponent<Props, State> {
                         />
                     </div>
                 </AdminHeader>
-                <div className='admin-console__wrapper'>
-                    <div className='admin-console__content'>
+                <div className="admin-console__wrapper">
+                    <div className="admin-console__content">
                         <SystemRolePermissions
                             role={role}
                             isLicensedForCloud={isLicensedForCloud}
                             permissionsToUpdate={permissionsToUpdate}
                             updatePermissions={this.updatePermissions}
-                            readOnly={isDisabled || role.name === Constants.PERMISSIONS_SYSTEM_ADMIN}
+                            readOnly={
+                                isDisabled ||
+                                role.name === Constants.PERMISSIONS_SYSTEM_ADMIN
+                            }
                         />
 
                         <SystemRoleUsers
@@ -280,7 +348,7 @@ export default class SystemRole extends React.PureComponent<Props, State> {
 
                 <SaveChangesPanel
                     saving={saving}
-                    cancelLink='/admin_console/user_management/system_roles'
+                    cancelLink="/admin_console/user_management/system_roles"
                     saveNeeded={saveNeeded}
                     onClick={this.handleSubmit}
                     serverError={serverError}
@@ -290,4 +358,3 @@ export default class SystemRole extends React.PureComponent<Props, State> {
         );
     }
 }
-

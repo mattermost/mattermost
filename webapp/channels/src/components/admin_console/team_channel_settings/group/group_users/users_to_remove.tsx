@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {ChannelMembership} from '@mattermost/types/channels';
-import type {TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
+import type { ChannelMembership } from "@mattermost/types/channels";
+import type { TeamMembership } from "@mattermost/types/teams";
+import type { UserProfile } from "@mattermost/types/users";
+import type { RelationOneToOne } from "@mattermost/types/utilities";
 
-import GeneralConstants from 'mattermost-redux/constants/general';
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import GeneralConstants from "mattermost-redux/constants/general";
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import DataGrid from 'components/admin_console/data_grid/data_grid';
-import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
-import type {FilterOptions} from 'components/admin_console/filter/filter';
-import UserGridName from 'components/admin_console/user_grid/user_grid_name';
+import DataGrid from "components/admin_console/data_grid/data_grid";
+import type { Row, Column } from "components/admin_console/data_grid/data_grid";
+import type { FilterOptions } from "components/admin_console/filter/filter";
+import UserGridName from "components/admin_console/user_grid/user_grid_name";
 
-import UsersToRemoveGroups from './users_to_remove_groups';
-import GroupUsersRole from './users_to_remove_role';
+import UsersToRemoveGroups from "./users_to_remove_groups";
+import GroupUsersRole from "./users_to_remove_role";
 
-import './users_to_remove.scss';
+import "./users_to_remove.scss";
 
 const GROUP_MEMBERS_PAGE_SIZE = 10;
 
@@ -28,24 +28,32 @@ export type Filters = {
     roles?: string[];
     channel_roles?: string[];
     team_roles?: string[];
-}
+};
 
-export type Memberships = RelationOneToOne<UserProfile, TeamMembership> | RelationOneToOne<UserProfile, ChannelMembership>;
+export type Memberships =
+    | RelationOneToOne<UserProfile, TeamMembership>
+    | RelationOneToOne<UserProfile, ChannelMembership>;
 
 interface Props {
     members: UserProfile[];
     memberships: Memberships;
     total: number;
     searchTerm: string;
-    scope: 'team' | 'channel';
+    scope: "team" | "channel";
     scopeId: string;
     enableGuestAccounts: boolean;
     filters: Filters;
     actions: {
-        loadTeamMembersForProfilesList: (profiles: UserProfile[], teamId: string) => Promise<{
+        loadTeamMembersForProfilesList: (
+            profiles: UserProfile[],
+            teamId: string,
+        ) => Promise<{
             data: boolean;
         }>;
-        loadChannelMembersForProfilesList: (profiles: UserProfile[], channelId: string) => Promise<{
+        loadChannelMembersForProfilesList: (
+            profiles: UserProfile[],
+            channelId: string,
+        ) => Promise<{
             data: boolean;
         }>;
         setModalSearchTerm: (term: string) => ActionResult;
@@ -69,14 +77,21 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
     }
 
     async componentDidMount() {
-        const {members, total} = this.props;
+        const { members, total } = this.props;
         const MEMBERSHIPS_TO_LOAD_COUNT = 100;
         const promises = [];
         let membershipsLoaded = 0;
 
         // Pre-load all memberships since users are also already loaded into the state
         while (membershipsLoaded < total) {
-            promises.push(this.loadMembersForProfilesList(members.slice(membershipsLoaded, membershipsLoaded + MEMBERSHIPS_TO_LOAD_COUNT)));
+            promises.push(
+                this.loadMembersForProfilesList(
+                    members.slice(
+                        membershipsLoaded,
+                        membershipsLoaded + MEMBERSHIPS_TO_LOAD_COUNT,
+                    ),
+                ),
+            );
             membershipsLoaded += MEMBERSHIPS_TO_LOAD_COUNT;
         }
         await Promise.all(promises);
@@ -84,38 +99,44 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
     }
 
     setStateLoading = (loading: boolean) => {
-        this.setState({loading});
+        this.setState({ loading });
     };
 
     componentWillUnmount() {
-        this.props.actions.setModalSearchTerm('');
+        this.props.actions.setModalSearchTerm("");
         this.props.actions.setModalFilters({});
     }
 
     loadMembersForProfilesList = async (profiles: UserProfile[]) => {
-        const {loadChannelMembersForProfilesList, loadTeamMembersForProfilesList} = this.props.actions;
-        const {scope, scopeId} = this.props;
-        if (scope === 'channel') {
+        const {
+            loadChannelMembersForProfilesList,
+            loadTeamMembersForProfilesList,
+        } = this.props.actions;
+        const { scope, scopeId } = this.props;
+        if (scope === "channel") {
             await loadChannelMembersForProfilesList(profiles, scopeId);
-        } else if (scope === 'team') {
+        } else if (scope === "team") {
             await loadTeamMembersForProfilesList(profiles, scopeId);
         }
     };
 
     previousPage = async () => {
         const page = this.state.page < 1 ? 0 : this.state.page - 1;
-        this.setState({page});
+        this.setState({ page });
     };
 
     nextPage = async () => {
-        const {total} = this.props;
-        const page = (this.state.page + 1) * GROUP_MEMBERS_PAGE_SIZE >= total ? this.state.page : this.state.page + 1;
-        this.setState({page});
+        const { total } = this.props;
+        const page =
+            (this.state.page + 1) * GROUP_MEMBERS_PAGE_SIZE >= total
+                ? this.state.page
+                : this.state.page + 1;
+        this.setState({ page });
     };
 
     onSearch = (term: string) => {
         this.props.actions.setModalSearchTerm(term);
-        this.setState({page: 0});
+        this.setState({ page: 0 });
     };
 
     private onFilter = async (filterOptions: FilterOptions) => {
@@ -126,9 +147,9 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
         let filters = {};
         Object.keys(roles).forEach((filterKey: string) => {
             if (roles[filterKey].value) {
-                if (filterKey.includes('team')) {
+                if (filterKey.includes("team")) {
                     teamRoles.push(filterKey);
-                } else if (filterKey.includes('channel')) {
+                } else if (filterKey.includes("channel")) {
                     channelRoles.push(filterKey);
                 } else {
                     systemRoles.push(filterKey);
@@ -136,25 +157,29 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
             }
         });
 
-        if (systemRoles.length > 0 || teamRoles.length > 0 || channelRoles.length > 0) {
+        if (
+            systemRoles.length > 0 ||
+            teamRoles.length > 0 ||
+            channelRoles.length > 0
+        ) {
             if (systemRoles.length > 0) {
-                filters = {roles: systemRoles};
+                filters = { roles: systemRoles };
             }
             if (teamRoles.length > 0) {
-                filters = {...filters, team_roles: teamRoles};
+                filters = { ...filters, team_roles: teamRoles };
             }
             if (channelRoles.length > 0) {
-                filters = {...filters, channel_roles: channelRoles};
+                filters = { ...filters, channel_roles: channelRoles };
             }
         }
         this.props.actions.setModalFilters(filters);
-        this.setState({page: 0});
+        this.setState({ page: 0 });
     };
 
     private getPaginationProps = () => {
-        const {page} = this.state;
-        const startCount = (page * GROUP_MEMBERS_PAGE_SIZE) + 1;
-        let endCount = (page * GROUP_MEMBERS_PAGE_SIZE) + GROUP_MEMBERS_PAGE_SIZE;
+        const { page } = this.state;
+        const startCount = page * GROUP_MEMBERS_PAGE_SIZE + 1;
+        let endCount = page * GROUP_MEMBERS_PAGE_SIZE + GROUP_MEMBERS_PAGE_SIZE;
         const total = this.props.total;
         if (endCount > total) {
             endCount = total;
@@ -162,12 +187,12 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
         const lastPage = endCount === total;
         const firstPage = page === 0;
 
-        return {startCount, endCount, page, lastPage, firstPage, total};
+        return { startCount, endCount, page, lastPage, firstPage, total };
     };
 
     private getRows = (): Row[] => {
-        const {members, memberships, scope} = this.props;
-        const {startCount, endCount} = this.getPaginationProps();
+        const { members, memberships, scope } = this.props;
+        const { startCount, endCount } = this.getPaginationProps();
 
         let usersToDisplay = members;
         usersToDisplay = usersToDisplay.slice(startCount - 1, endCount);
@@ -180,12 +205,7 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
             return {
                 cells: {
                     id: user.id,
-                    name: (
-                        <UserGridName
-                            key={user.id}
-                            user={user}
-                        />
-                    ),
+                    name: <UserGridName key={user.id} user={user} />,
                     role: (
                         <GroupUsersRole
                             key={user.id}
@@ -194,12 +214,7 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
                             scope={scope}
                         />
                     ),
-                    groups: (
-                        <UsersToRemoveGroups
-                            key={user.id}
-                            user={user}
-                        />
-                    ),
+                    groups: <UsersToRemoveGroups key={user.id} user={user} />,
                 },
             };
         });
@@ -210,31 +225,31 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
             {
                 name: (
                     <FormattedMessage
-                        id='admin.team_channel_settings.user_list.nameHeader'
-                        defaultMessage='Name'
+                        id="admin.team_channel_settings.user_list.nameHeader"
+                        defaultMessage="Name"
                     />
                 ),
-                field: 'name',
+                field: "name",
                 width: 5,
             },
             {
                 name: (
                     <FormattedMessage
-                        id='admin.team_channel_settings.user_list.roleHeader'
-                        defaultMessage='Role'
+                        id="admin.team_channel_settings.user_list.roleHeader"
+                        defaultMessage="Role"
                     />
                 ),
-                field: 'role',
+                field: "role",
                 width: 2,
             },
             {
                 name: (
                     <FormattedMessage
-                        id='admin.team_channel_settings.user_list.groupsHeader'
-                        defaultMessage='Groups'
+                        id="admin.team_channel_settings.user_list.groupsHeader"
+                        defaultMessage="Groups"
                     />
                 ),
-                field: 'groups',
+                field: "groups",
                 width: 3,
             },
         ];
@@ -245,16 +260,16 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
             role: {
                 name: (
                     <FormattedMessage
-                        id='admin.user_grid.role'
-                        defaultMessage='Role'
+                        id="admin.user_grid.role"
+                        defaultMessage="Role"
                     />
                 ),
                 values: {
                     [GeneralConstants.SYSTEM_GUEST_ROLE]: {
                         name: (
                             <FormattedMessage
-                                id='admin.user_grid.guest'
-                                defaultMessage='Guest'
+                                id="admin.user_grid.guest"
+                                defaultMessage="Guest"
                             />
                         ),
                         value: false,
@@ -262,25 +277,28 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
                     [GeneralConstants.SYSTEM_ADMIN_ROLE]: {
                         name: (
                             <FormattedMessage
-                                id='admin.user_grid.system_admin'
-                                defaultMessage='System Admin'
+                                id="admin.user_grid.system_admin"
+                                defaultMessage="System Admin"
                             />
                         ),
                         value: false,
                     },
                 },
-                keys: [GeneralConstants.SYSTEM_GUEST_ROLE, GeneralConstants.SYSTEM_ADMIN_ROLE],
+                keys: [
+                    GeneralConstants.SYSTEM_GUEST_ROLE,
+                    GeneralConstants.SYSTEM_ADMIN_ROLE,
+                ],
             },
         };
 
-        if (this.props.scope === 'channel') {
+        if (this.props.scope === "channel") {
             filterOptions.role.values = {
                 ...filterOptions.role.values,
                 [GeneralConstants.CHANNEL_USER_ROLE]: {
                     name: (
                         <FormattedMessage
-                            id='admin.user_item.member'
-                            defaultMessage='Member'
+                            id="admin.user_item.member"
+                            defaultMessage="Member"
                         />
                     ),
                     value: false,
@@ -288,22 +306,27 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
                 [GeneralConstants.CHANNEL_ADMIN_ROLE]: {
                     name: (
                         <FormattedMessage
-                            id='admin.user_grid.channel_admin'
-                            defaultMessage='Channel Admin'
+                            id="admin.user_grid.channel_admin"
+                            defaultMessage="Channel Admin"
                         />
                     ),
                     value: false,
                 },
             };
-            filterOptions.role.keys = [GeneralConstants.SYSTEM_GUEST_ROLE, GeneralConstants.CHANNEL_USER_ROLE, GeneralConstants.CHANNEL_ADMIN_ROLE, GeneralConstants.SYSTEM_ADMIN_ROLE];
-        } else if (this.props.scope === 'team') {
+            filterOptions.role.keys = [
+                GeneralConstants.SYSTEM_GUEST_ROLE,
+                GeneralConstants.CHANNEL_USER_ROLE,
+                GeneralConstants.CHANNEL_ADMIN_ROLE,
+                GeneralConstants.SYSTEM_ADMIN_ROLE,
+            ];
+        } else if (this.props.scope === "team") {
             filterOptions.role.values = {
                 ...filterOptions.role.values,
                 [GeneralConstants.TEAM_USER_ROLE]: {
                     name: (
                         <FormattedMessage
-                            id='admin.user_item.member'
-                            defaultMessage='Member'
+                            id="admin.user_item.member"
+                            defaultMessage="Member"
                         />
                     ),
                     value: false,
@@ -311,18 +334,25 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
                 [GeneralConstants.TEAM_ADMIN_ROLE]: {
                     name: (
                         <FormattedMessage
-                            id='admin.user_grid.team_admin'
-                            defaultMessage='Team Admin'
+                            id="admin.user_grid.team_admin"
+                            defaultMessage="Team Admin"
                         />
                     ),
                     value: false,
                 },
             };
-            filterOptions.role.keys = [GeneralConstants.SYSTEM_GUEST_ROLE, GeneralConstants.TEAM_USER_ROLE, GeneralConstants.TEAM_ADMIN_ROLE, GeneralConstants.SYSTEM_ADMIN_ROLE];
+            filterOptions.role.keys = [
+                GeneralConstants.SYSTEM_GUEST_ROLE,
+                GeneralConstants.TEAM_USER_ROLE,
+                GeneralConstants.TEAM_ADMIN_ROLE,
+                GeneralConstants.SYSTEM_ADMIN_ROLE,
+            ];
         }
 
         if (!this.props.enableGuestAccounts) {
-            delete filterOptions.role.values[GeneralConstants.SYSTEM_GUEST_ROLE];
+            delete filterOptions.role.values[
+                GeneralConstants.SYSTEM_GUEST_ROLE
+            ];
             filterOptions.role.keys.splice(0, 1);
         }
 
@@ -332,19 +362,19 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
     public render = (): JSX.Element => {
         const rows: Row[] = this.getRows();
         const columns: Column[] = this.getColumns();
-        const {startCount, endCount, total} = this.getPaginationProps();
+        const { startCount, endCount, total } = this.getPaginationProps();
         const options = this.getFilterOptions();
-        const keys = ['role'];
+        const keys = ["role"];
 
         const placeholderEmpty: JSX.Element = (
             <FormattedMessage
-                id='admin.member_list_group.notFound'
-                defaultMessage='No users found'
+                id="admin.member_list_group.notFound"
+                defaultMessage="No users found"
             />
         );
 
         return (
-            <div className='UsersToRemove'>
+            <div className="UsersToRemove">
                 <DataGrid
                     columns={columns}
                     rows={rows}
@@ -356,8 +386,8 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
                     endCount={endCount}
                     total={total}
                     onSearch={this.onSearch}
-                    filterProps={{options, keys, onFilter: this.onFilter}}
-                    term={this.props.searchTerm || ''}
+                    filterProps={{ options, keys, onFilter: this.onFilter }}
+                    term={this.props.searchTerm || ""}
                     placeholderEmpty={placeholderEmpty}
                 />
             </div>

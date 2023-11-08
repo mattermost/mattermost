@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import keyMirror from 'mattermost-redux/utils/key_mirror';
+import keyMirror from "mattermost-redux/utils/key_mirror";
 
 export default keyMirror({
     SEARCH_POSTS_REQUEST: null,

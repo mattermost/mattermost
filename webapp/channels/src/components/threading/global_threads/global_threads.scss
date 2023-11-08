@@ -60,8 +60,8 @@
     display: grid;
     overflow: hidden;
     grid-template-areas:
-        'header header'
-        'list pane';
+        "header header"
+        "list pane";
 
     // 2-column
     grid-template-columns: var(--list) var(--pane);
@@ -70,8 +70,8 @@
     // single column
     @media screen and (max-width: 1020px) {
         grid-template-areas:
-            'header header'
-            'main main';
+            "header header"
+            "main main";
 
         &:not(.thread-selected) {
             .ThreadList {

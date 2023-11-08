@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import LDAPToEmail from './ldap_to_email';
+import LDAPToEmail from "./ldap_to_email";
 
-describe('components/claim/components/ldap_to_email.jsx', () => {
+describe("components/claim/components/ldap_to_email.jsx", () => {
     const requiredProps = {
-        email: '',
+        email: "",
         passwordConfig: {
             minimumLength: 5,
             requireLowercase: true,
@@ -16,21 +16,34 @@ describe('components/claim/components/ldap_to_email.jsx', () => {
             requireNumber: true,
             requireSymbol: true,
         },
-        switchLdapToEmail: jest.fn(() => Promise.resolve({data: {follow_link: '/login'}})),
+        switchLdapToEmail: jest.fn(() =>
+            Promise.resolve({ data: { follow_link: "/login" } }),
+        ),
     };
 
-    test('submit() should have called switchLdapToEmail', async () => {
-        const loginId = '';
-        const password = 'psw';
-        const token = 'abcd1234';
-        const ldapPasswordParam = 'ldapPsw';
+    test("submit() should have called switchLdapToEmail", async () => {
+        const loginId = "";
+        const password = "psw";
+        const token = "abcd1234";
+        const ldapPasswordParam = "ldapPsw";
 
-        const wrapper = shallow(<LDAPToEmail {...requiredProps}/>);
+        const wrapper = shallow(<LDAPToEmail {...requiredProps} />);
 
-        wrapper.find('LoginMfa').simulate('submit', {loginId, password, token, ldapPasswordParam});
+        wrapper
+            .find("LoginMfa")
+            .simulate("submit", {
+                loginId,
+                password,
+                token,
+                ldapPasswordParam,
+            });
 
         expect(requiredProps.switchLdapToEmail).toHaveBeenCalledTimes(1);
-        expect(requiredProps.switchLdapToEmail).
-            toHaveBeenCalledWith(ldapPasswordParam, requiredProps.email, password, token);
+        expect(requiredProps.switchLdapToEmail).toHaveBeenCalledWith(
+            ldapPasswordParam,
+            requiredProps.email,
+            password,
+            token,
+        );
     });
 });

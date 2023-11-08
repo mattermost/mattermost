@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import AccordionToggleIcon from 'components/widgets/icons/accordion_toggle_icon';
+import AccordionToggleIcon from "components/widgets/icons/accordion_toggle_icon";
 
-import AdminPanel from './admin_panel';
+import AdminPanel from "./admin_panel";
 
 type Props = {
     children?: React.ReactNode;
@@ -23,14 +23,18 @@ type Props = {
 const AdminPanelTogglable: React.FC<Props> = (props: Props) => {
     return (
         <AdminPanel
-            className={'AdminPanelTogglable ' + props.className + (props.open ? '' : ' closed')}
+            className={
+                "AdminPanelTogglable " +
+                props.className +
+                (props.open ? "" : " closed")
+            }
             id={props.id}
             titleId={props.titleId}
             titleDefault={props.titleDefault}
             subtitleId={props.subtitleId}
             subtitleDefault={props.subtitleDefault}
             onHeaderClick={props.onToggle}
-            button={<AccordionToggleIcon/>}
+            button={<AccordionToggleIcon />}
         >
             {props.children}
         </AdminPanel>
@@ -38,7 +42,7 @@ const AdminPanelTogglable: React.FC<Props> = (props: Props) => {
 };
 
 AdminPanelTogglable.defaultProps = {
-    className: '',
+    className: "",
     open: true,
 };
 

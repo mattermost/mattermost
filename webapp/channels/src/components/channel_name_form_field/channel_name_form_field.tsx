@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useIntl } from "react-intl";
+import { useSelector } from "react-redux";
 
-import type {Team} from '@mattermost/types/teams';
+import type { Team } from "@mattermost/types/teams";
 
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import { getCurrentTeam } from "mattermost-redux/selectors/entities/teams";
 
-import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
-import Input from 'components/widgets/inputs/input/input';
-import URLInput from 'components/widgets/inputs/url_input/url_input';
+import type { CustomMessageInputType } from "components/widgets/inputs/input/input";
+import Input from "components/widgets/inputs/input/input";
+import URLInput from "components/widgets/inputs/url_input/url_input";
 
-import Constants from 'utils/constants';
-import {cleanUpUrlable, getSiteURL, validateChannelUrl} from 'utils/url';
-import {generateSlug, localizeMessage} from 'utils/utils';
+import Constants from "utils/constants";
+import { cleanUpUrlable, getSiteURL, validateChannelUrl } from "utils/url";
+import { generateSlug, localizeMessage } from "utils/utils";
 
 export type Props = {
     value: string;
@@ -27,9 +27,9 @@ export type Props = {
     onErrorStateChange?: (isError: boolean) => void;
     team?: Team;
     urlError?: string;
-}
+};
 
-import './channel_name_form_field.scss';
+import "./channel_name_form_field.scss";
 
 function validateDisplayName(displayNameParam: string) {
     const errors: string[] = [];
@@ -37,11 +37,21 @@ function validateDisplayName(displayNameParam: string) {
     const displayName = displayNameParam.trim();
 
     if (displayName.length < Constants.MIN_CHANNELNAME_LENGTH) {
-        errors.push(localizeMessage('channel_modal.name.longer', 'Channel names must have at least 2 characters.'));
+        errors.push(
+            localizeMessage(
+                "channel_modal.name.longer",
+                "Channel names must have at least 2 characters.",
+            ),
+        );
     }
 
     if (displayName.length > Constants.MAX_CHANNELNAME_LENGTH) {
-        errors.push(localizeMessage('channel_modal.name.shorter', 'Channel names must have maximum 64 characters.'));
+        errors.push(
+            localizeMessage(
+                "channel_modal.name.shorter",
+                "Channel names must have maximum 64 characters.",
+            ),
+        );
     }
 
     return errors;
@@ -51,38 +61,48 @@ function validateDisplayName(displayNameParam: string) {
 // along with stuff to edit its URL.
 const ChannelNameFormField = (props: Props): JSX.Element => {
     const intl = useIntl();
-    const {formatMessage} = intl;
+    const { formatMessage } = intl;
 
     const displayNameModified = useRef<boolean>(false);
-    const [displayNameError, setDisplayNameError] = useState<string>('');
-    const displayName = useRef<string>('');
+    const [displayNameError, setDisplayNameError] = useState<string>("");
+    const displayName = useRef<string>("");
     const urlModified = useRef<boolean>(false);
-    const [url, setURL] = useState<string>('');
-    const [urlError, setURLError] = useState<string>('');
-    const [inputCustomMessage, setInputCustomMessage] = useState<CustomMessageInputType | null>(null);
+    const [url, setURL] = useState<string>("");
+    const [urlError, setURLError] = useState<string>("");
+    const [inputCustomMessage, setInputCustomMessage] =
+        useState<CustomMessageInputType | null>(null);
 
-    const {name: currentTeamName} = useSelector(getCurrentTeam);
+    const { name: currentTeamName } = useSelector(getCurrentTeam);
     const teamName = props.team ? props.team.name : currentTeamName;
 
-    const handleOnDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        e.preventDefault();
-        const {target: {value: updatedDisplayName}} = e;
+    const handleOnDisplayNameChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            e.preventDefault();
+            const {
+                target: { value: updatedDisplayName },
+            } = e;
 
-        const displayNameErrors = validateDisplayName(updatedDisplayName);
+            const displayNameErrors = validateDisplayName(updatedDisplayName);
 
-        // set error if any, else clear it
-        setDisplayNameError(displayNameErrors.length ? displayNameErrors[displayNameErrors.length - 1] : '');
-        displayName.current = updatedDisplayName;
-        props.onDisplayNameChange(updatedDisplayName);
+            // set error if any, else clear it
+            setDisplayNameError(
+                displayNameErrors.length
+                    ? displayNameErrors[displayNameErrors.length - 1]
+                    : "",
+            );
+            displayName.current = updatedDisplayName;
+            props.onDisplayNameChange(updatedDisplayName);
 
-        if (!urlModified.current) {
-            // if URL isn't explicitly modified, it's derived from the display name
-            const cleanURL = cleanUpUrlable(updatedDisplayName);
-            setURL(cleanURL);
-            setURLError('');
-            props.onURLChange(cleanURL);
-        }
-    }, [props.onDisplayNameChange, props.onURLChange]);
+            if (!urlModified.current) {
+                // if URL isn't explicitly modified, it's derived from the display name
+                const cleanURL = cleanUpUrlable(updatedDisplayName);
+                setURL(cleanURL);
+                setURLError("");
+                props.onURLChange(cleanURL);
+            }
+        },
+        [props.onDisplayNameChange, props.onURLChange],
+    );
 
     const handleOnDisplayNameBlur = useCallback(() => {
         if (displayName.current && !url) {
@@ -96,36 +116,48 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         }
     }, [props.onURLChange, displayName.current, url, displayNameModified]);
 
-    const handleOnURLChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        e.preventDefault();
-        const {target: {value: url}} = e;
+    const handleOnURLChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            e.preventDefault();
+            const {
+                target: { value: url },
+            } = e;
 
-        const cleanURL = url.toLowerCase().replace(/\s/g, '-');
-        const urlErrors = validateChannelUrl(cleanURL, intl) as string[];
+            const cleanURL = url.toLowerCase().replace(/\s/g, "-");
+            const urlErrors = validateChannelUrl(cleanURL, intl) as string[];
 
-        setURLError(urlErrors.length ? urlErrors[urlErrors.length - 1] : '');
-        setURL(cleanURL);
-        urlModified.current = true;
-        props.onURLChange(cleanURL);
-    }, [props.onURLChange]);
+            setURLError(
+                urlErrors.length ? urlErrors[urlErrors.length - 1] : "",
+            );
+            setURL(cleanURL);
+            urlModified.current = true;
+            props.onURLChange(cleanURL);
+        },
+        [props.onURLChange],
+    );
 
     useEffect(() => {
         if (props.onErrorStateChange) {
-            props.onErrorStateChange(Boolean(displayNameError) || Boolean(urlError));
+            props.onErrorStateChange(
+                Boolean(displayNameError) || Boolean(urlError),
+            );
         }
     }, [displayNameError, urlError]);
 
     return (
         <React.Fragment>
             <Input
-                type='text'
-                autoComplete='off'
+                type="text"
+                autoComplete="off"
                 autoFocus={props.autoFocus !== false}
                 required={true}
                 name={props.name}
                 containerClassName={`${props.name}-container`}
                 inputClassName={`${props.name}-input channel-name-input-field`}
-                label={formatMessage({id: 'channel_modal.name.label', defaultMessage: 'Channel name'})}
+                label={formatMessage({
+                    id: "channel_modal.name.label",
+                    defaultMessage: "Channel name",
+                })}
                 placeholder={props.placeholder}
                 limit={Constants.MAX_CHANNELNAME_LENGTH}
                 value={props.value}
@@ -134,7 +166,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 onBlur={handleOnDisplayNameBlur}
             />
             <URLInput
-                className='new-channel-modal__url'
+                className="new-channel-modal__url"
                 base={getSiteURL()}
                 path={`${teamName}/channels`}
                 pathInfo={url}

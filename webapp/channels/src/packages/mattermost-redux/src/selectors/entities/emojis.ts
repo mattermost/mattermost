@@ -1,20 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {CustomEmoji} from '@mattermost/types/emojis';
-import type {GlobalState} from '@mattermost/types/store';
-import type {IDMappedObjects} from '@mattermost/types/utilities';
+import type { CustomEmoji } from "@mattermost/types/emojis";
+import type { GlobalState } from "@mattermost/types/store";
+import type { IDMappedObjects } from "@mattermost/types/utilities";
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {createIdsSelector} from 'mattermost-redux/utils/helpers';
+import { createSelector } from "mattermost-redux/selectors/create_selector";
+import { getConfig } from "mattermost-redux/selectors/entities/general";
+import { createIdsSelector } from "mattermost-redux/utils/helpers";
 
 export const getCustomEmojisEnabled = (state: GlobalState): boolean => {
-    return getConfig(state)?.EnableCustomEmoji === 'true';
+    return getConfig(state)?.EnableCustomEmoji === "true";
 };
 
-export const getCustomEmojis: (state: GlobalState) => IDMappedObjects<CustomEmoji> = createSelector(
-    'getCustomEmojis',
+export const getCustomEmojis: (
+    state: GlobalState,
+) => IDMappedObjects<CustomEmoji> = createSelector(
+    "getCustomEmojis",
     getCustomEmojisEnabled,
     (state) => state.entities.emojis.customEmoji,
     (customEmojiEnabled, customEmoji) => {
@@ -26,8 +28,10 @@ export const getCustomEmojis: (state: GlobalState) => IDMappedObjects<CustomEmoj
     },
 );
 
-export const getCustomEmojisAsMap: (state: GlobalState) => Map<string, CustomEmoji> = createSelector(
-    'getCustomEmojisAsMap',
+export const getCustomEmojisAsMap: (
+    state: GlobalState,
+) => Map<string, CustomEmoji> = createSelector(
+    "getCustomEmojisAsMap",
     getCustomEmojis,
     (emojis) => {
         const map = new Map();
@@ -38,8 +42,10 @@ export const getCustomEmojisAsMap: (state: GlobalState) => Map<string, CustomEmo
     },
 );
 
-export const getCustomEmojisByName: (state: GlobalState) => Map<string, CustomEmoji> = createSelector(
-    'getCustomEmojisByName',
+export const getCustomEmojisByName: (
+    state: GlobalState,
+) => Map<string, CustomEmoji> = createSelector(
+    "getCustomEmojisByName",
     getCustomEmojis,
     (emojis: IDMappedObjects<CustomEmoji>): Map<string, CustomEmoji> => {
         const map: Map<string, CustomEmoji> = new Map();
@@ -52,12 +58,13 @@ export const getCustomEmojisByName: (state: GlobalState) => Map<string, CustomEm
     },
 );
 
-export const getCustomEmojiIdsSortedByName: (state: GlobalState) => string[] = createIdsSelector(
-    'getCustomEmojiIdsSortedByName',
-    getCustomEmojis,
-    (emojis: IDMappedObjects<CustomEmoji>): string[] => {
-        return Object.keys(emojis).sort(
-            (a: string, b: string): number => emojis[a].name.localeCompare(emojis[b].name),
-        );
-    },
-);
+export const getCustomEmojiIdsSortedByName: (state: GlobalState) => string[] =
+    createIdsSelector(
+        "getCustomEmojiIdsSortedByName",
+        getCustomEmojis,
+        (emojis: IDMappedObjects<CustomEmoji>): string[] => {
+            return Object.keys(emojis).sort((a: string, b: string): number =>
+                emojis[a].name.localeCompare(emojis[b].name),
+            );
+        },
+    );

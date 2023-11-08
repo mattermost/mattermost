@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Link} from 'react-router-dom';
-import styled from 'styled-components';
+import React from "react";
+import { Link } from "react-router-dom";
+import styled from "styled-components";
 
-import glyphMap, {CheckIcon} from '@mattermost/compass-icons/components';
-import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
+import glyphMap, { CheckIcon } from "@mattermost/compass-icons/components";
+import type { IconGlyphTypes } from "@mattermost/compass-icons/IconGlyphs";
 
 export interface ProductMenuItemProps {
     destination: string;
@@ -53,28 +53,22 @@ const MenuItemTextContainer = styled.div`
     line-height: 20px;
 `;
 
-const ProductMenuItem = ({icon, destination, text, active, onClick, tourTip, id}: ProductMenuItemProps): JSX.Element => {
+const ProductMenuItem = ({
+    icon,
+    destination,
+    text,
+    active,
+    onClick,
+    tourTip,
+    id,
+}: ProductMenuItemProps): JSX.Element => {
     const ProductIcon = glyphMap[icon];
 
     return (
-        <MenuItem
-            to={destination}
-            onClick={onClick}
-            id={id}
-        >
-            <ProductIcon
-                size={24}
-                color={'var(--button-bg)'}
-            />
-            <MenuItemTextContainer>
-                {text}
-            </MenuItemTextContainer>
-            {active && (
-                <CheckIcon
-                    size={18}
-                    color={'var(--button-bg)'}
-                />
-            )}
+        <MenuItem to={destination} onClick={onClick} id={id}>
+            <ProductIcon size={24} color={"var(--button-bg)"} />
+            <MenuItemTextContainer>{text}</MenuItemTextContainer>
+            {active && <CheckIcon size={18} color={"var(--button-bg)"} />}
             {tourTip || null}
         </MenuItem>
     );

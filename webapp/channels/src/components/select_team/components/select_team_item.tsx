@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ReactNode, MouseEvent} from 'react';
-import {injectIntl, type WrappedComponentProps} from 'react-intl';
+import React from "react";
+import type { ReactNode, MouseEvent } from "react";
+import { injectIntl, type WrappedComponentProps } from "react-intl";
 
-import type {Team} from '@mattermost/types/teams';
+import type { Team } from "@mattermost/types/teams";
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import TeamInfoIcon from 'components/widgets/icons/team_info_icon';
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
+import TeamInfoIcon from "components/widgets/icons/team_info_icon";
 
-import * as Utils from 'utils/utils';
+import * as Utils from "utils/utils";
 
 interface Props extends WrappedComponentProps {
     team: Team;
@@ -34,60 +34,73 @@ export class SelectTeamItem extends React.PureComponent<Props> {
         }
 
         const descriptionTooltip = (
-            <Tooltip id='team-description__tooltip'>
-                {team.description}
-            </Tooltip>
+            <Tooltip id="team-description__tooltip">{team.description}</Tooltip>
         );
 
         return (
             <OverlayTrigger
                 delayShow={1000}
-                placement='top'
+                placement="top"
                 overlay={descriptionTooltip}
                 rootClose={true}
                 container={this}
             >
-                <TeamInfoIcon className='icon icon--info'/>
+                <TeamInfoIcon className="icon icon--info" />
             </OverlayTrigger>
         );
     };
 
     render() {
-        const {canJoinPublicTeams, canJoinPrivateTeams, loading, team} = this.props;
+        const { canJoinPublicTeams, canJoinPrivateTeams, loading, team } =
+            this.props;
         let icon;
         if (loading) {
             icon = (
                 <span
-                    className='fa fa-refresh fa-spin right signup-team__icon'
-                    title={this.props.intl.formatMessage({id: 'generic_icons.loading', defaultMessage: 'Loading Icon'})}
+                    className="fa fa-refresh fa-spin right signup-team__icon"
+                    title={this.props.intl.formatMessage({
+                        id: "generic_icons.loading",
+                        defaultMessage: "Loading Icon",
+                    })}
                 />
             );
         } else {
             icon = (
                 <span
-                    className='fa fa-angle-right right signup-team__icon'
-                    title={this.props.intl.formatMessage({id: 'select_team.join.icon', defaultMessage: 'Join Team Icon'})}
+                    className="fa fa-angle-right right signup-team__icon"
+                    title={this.props.intl.formatMessage({
+                        id: "select_team.join.icon",
+                        defaultMessage: "Join Team Icon",
+                    })}
                 />
             );
         }
 
-        const canJoin = (team.allow_open_invite && canJoinPublicTeams) || (!team.allow_open_invite && canJoinPrivateTeams);
+        const canJoin =
+            (team.allow_open_invite && canJoinPublicTeams) ||
+            (!team.allow_open_invite && canJoinPrivateTeams);
 
         return (
-            <div className='signup-team-dir'>
+            <div className="signup-team-dir">
                 {this.renderDescriptionTooltip()}
                 <a
-                    href='#'
+                    href="#"
                     id={Utils.createSafeId(team.display_name)}
                     onClick={canJoin ? this.handleTeamClick : undefined}
-                    className={canJoin ? '' : 'disabled'}
+                    className={canJoin ? "" : "disabled"}
                 >
-                    <span className='signup-team-dir__name'>{team.display_name}</span>
-                    {!team.allow_open_invite &&
+                    <span className="signup-team-dir__name">
+                        {team.display_name}
+                    </span>
+                    {!team.allow_open_invite && (
                         <i
-                            className='fa fa-lock light'
-                            title={this.props.intl.formatMessage({id: 'select_team.private.icon', defaultMessage: 'Private team'})}
-                        />}
+                            className="fa fa-lock light"
+                            title={this.props.intl.formatMessage({
+                                id: "select_team.private.icon",
+                                defaultMessage: "Private team",
+                            })}
+                        />
+                    )}
                     {canJoin && icon}
                 </a>
             </div>

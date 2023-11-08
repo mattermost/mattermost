@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import './single_column_layout.scss';
+import "./single_column_layout.scss";
 
 type Props = {
     children: React.ReactNode | React.ReactNodeArray;
@@ -21,10 +21,7 @@ export default function SingleColumnLayout(props: Props) {
     }
 
     return (
-        <div
-            className='SingleColumnLayout'
-            style={props.style}
-        >
+        <div className="SingleColumnLayout" style={props.style}>
             {children}
         </div>
     );

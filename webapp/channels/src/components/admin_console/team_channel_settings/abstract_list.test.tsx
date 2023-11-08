@@ -1,46 +1,47 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import { shallow } from "enzyme";
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {Channel} from '@mattermost/types/channels';
+import type { Channel } from "@mattermost/types/channels";
 
-import {TestHelper} from 'utils/test_helper';
+import { TestHelper } from "utils/test_helper";
 
-import AbstractList from './abstract_list';
-import GroupRow from './group/group_row';
+import AbstractList from "./abstract_list";
+import GroupRow from "./group/group_row";
 
-import type {TeamWithMembership} from '../system_user_detail/team_list/types';
+import type { TeamWithMembership } from "../system_user_detail/team_list/types";
 
-describe('admin_console/team_channel_settings/AbstractList', () => {
+describe("admin_console/team_channel_settings/AbstractList", () => {
     const header = (
-        <div className='groups-list--header'>
-            <div className='group-name adjusted'>
+        <div className="groups-list--header">
+            <div className="group-name adjusted">
                 <FormattedMessage
-                    id='admin.channel_settings.channel_list.nameHeader'
-                    defaultMessage='Name'
+                    id="admin.channel_settings.channel_list.nameHeader"
+                    defaultMessage="Name"
                 />
             </div>
-            <div className='group-content'>
-                <div className='group-description'>
+            <div className="group-content">
+                <div className="group-description">
                     <FormattedMessage
-                        id='admin.channel_settings.channel_list.teamHeader'
-                        defaultMessage='Team'
+                        id="admin.channel_settings.channel_list.teamHeader"
+                        defaultMessage="Team"
                     />
                 </div>
-                <div className='group-description adjusted'>
+                <div className="group-description adjusted">
                     <FormattedMessage
-                        id='admin.channel_settings.channel_list.managementHeader'
-                        defaultMessage='Management'
+                        id="admin.channel_settings.channel_list.managementHeader"
+                        defaultMessage="Management"
                     />
                 </div>
-                <div className='group-actions'/>
+                <div className="group-actions" />
             </div>
-        </div>);
+        </div>
+    );
 
-    test('should match snapshot, no headers', () => {
+    test("should match snapshot, no headers", () => {
         const testChannels: Channel[] = [];
 
         const actions = {
@@ -55,20 +56,23 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
                 total={0}
                 header={header}
                 renderRow={renderRow}
-                emptyListTextId={'test'}
-                emptyListTextDefaultMessage={'test'}
+                emptyListTextId={"test"}
+                emptyListTextDefaultMessage={"test"}
                 actions={actions}
-            />);
+            />,
+        );
 
-        wrapper.setState({loading: false});
+        wrapper.setState({ loading: false });
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, with data', () => {
-        const testTeams: TeamWithMembership[] = [TestHelper.getTeamMock({
-            id: '123',
-            display_name: 'DN',
-        }) as TeamWithMembership];
+    test("should match snapshot, with data", () => {
+        const testTeams: TeamWithMembership[] = [
+            TestHelper.getTeamMock({
+                id: "123",
+                display_name: "DN",
+            }) as TeamWithMembership,
+        ];
 
         const actions = {
             getData: jest.fn().mockResolvedValue(testTeams),
@@ -83,12 +87,13 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
                 total={testTeams.length}
                 header={header}
                 renderRow={renderRow}
-                emptyListTextId={'test'}
-                emptyListTextDefaultMessage={'test'}
+                emptyListTextId={"test"}
+                emptyListTextDefaultMessage={"test"}
                 actions={actions}
-            />);
+            />,
+        );
 
-        wrapper.setState({loading: false});
+        wrapper.setState({ loading: false });
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -99,7 +104,7 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
                 group={item}
                 removeGroup={jest.fn()}
                 setNewGroupRole={jest.fn()}
-                type='channel'
+                type="channel"
             />
         );
     });

@@ -1,5 +1,5 @@
-@import 'sass/utils/_mixins';
-@import './mixins';
+@import "sass/utils/_mixins";
+@import "./mixins";
 
 .BillingSubscriptions {
     .BillingSubscriptions__topWrapper {
@@ -16,7 +16,7 @@
 }
 
 .BillingSubscriptions__tooltip.tooltip {
-    font-family: 'Open Sans', sans-serif;
+    font-family: "Open Sans", sans-serif;
 
     &.bottom {
         padding: 10px 0;
@@ -62,7 +62,7 @@
             height: 0;
             border: 11px solid transparent;
             border-bottom-color: var(--sys-center-channel-bg);
-            content: '';
+            content: "";
         }
     }
 }
@@ -119,11 +119,21 @@
     line-height: 14px;
 
     &:hover:not(.disabled) {
-        background: linear-gradient(0deg, rgba(var(--center-channel-color-rgb), 0.16), rgba(var(--center-channel-color-rgb), 0.16)), var(--button-bg);
+        background: linear-gradient(
+                0deg,
+                rgba(var(--center-channel-color-rgb), 0.16),
+                rgba(var(--center-channel-color-rgb), 0.16)
+            ),
+            var(--button-bg);
     }
 
     &:active {
-        background: linear-gradient(0deg, rgba(var(--center-channel-color-rgb), 0.32), rgba(var(--center-channel-color-rgb), 0.32)), var(--button-bg);
+        background: linear-gradient(
+                0deg,
+                rgba(var(--center-channel-color-rgb), 0.32),
+                rgba(var(--center-channel-color-rgb), 0.32)
+            ),
+            var(--button-bg);
     }
 
     &:focus {

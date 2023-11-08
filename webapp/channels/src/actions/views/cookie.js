@@ -6,11 +6,11 @@ export function clearUserCookie() {
     // can't tell if the server set the cookie with or without the domain.
     // The server will have set the domain if ServiceSettings.EnableCookiesForSubdomains is true
     // The server will have set a non-default path if Mattermost is also served from a subpath.
-    document.cookie = 'MMUSERID=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/';
+    document.cookie = "MMUSERID=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/";
     document.cookie = `MMUSERID=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=${window.basename}`;
     document.cookie = `MMUSERID=;expires=Thu, 01 Jan 1970 00:00:01 GMT;domain=${window.location.hostname};path=/`;
     document.cookie = `MMUSERID=;expires=Thu, 01 Jan 1970 00:00:01 GMT;domain=${window.location.hostname};path=${window.basename}`;
-    document.cookie = 'MMCSRF=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/';
+    document.cookie = "MMCSRF=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/";
     document.cookie = `MMCSRF=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=${window.basename}`;
     document.cookie = `MMCSRF=;expires=Thu, 01 Jan 1970 00:00:01 GMT;domain=${window.location.hostname};path=/`;
     document.cookie = `MMCSRF=;expires=Thu, 01 Jan 1970 00:00:01 GMT;domain=${window.location.hostname};path=${window.basename}`;

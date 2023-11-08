@@ -1,20 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import {getStatusesByIds} from 'mattermost-redux/actions/users';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
-import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
-import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import { getStatusesByIds } from "mattermost-redux/actions/users";
+import { getCurrentChannelId } from "mattermost-redux/selectors/entities/channels";
+import { getPostsInCurrentChannel } from "mattermost-redux/selectors/entities/posts";
+import { getDirectShowPreferences } from "mattermost-redux/selectors/entities/preferences";
+import { getCurrentUserId } from "mattermost-redux/selectors/entities/users";
+import type {
+    ActionFunc,
+    DispatchFunc,
+    GetStateFunc,
+} from "mattermost-redux/types/actions";
 
-import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
+import { loadCustomEmojisForCustomStatusesByUserIds } from "actions/emoji_actions";
 
-import {Constants} from 'utils/constants';
+import { Constants } from "utils/constants";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
 export function loadStatusesForChannelAndSidebar(): ActionFunc {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
@@ -25,7 +29,12 @@ export function loadStatusesForChannelAndSidebar(): ActionFunc {
         const postsInChannel = getPostsInCurrentChannel(state);
 
         if (postsInChannel) {
-            const posts = postsInChannel.slice(0, (state as GlobalState).views.channel.postVisibility[channelId] || 0);
+            const posts = postsInChannel.slice(
+                0,
+                (state as GlobalState).views.channel.postVisibility[
+                    channelId
+                ] || 0,
+            );
             for (const post of posts) {
                 if (post.user_id) {
                     statusesToLoad[post.user_id] = true;
@@ -36,7 +45,7 @@ export function loadStatusesForChannelAndSidebar(): ActionFunc {
         const dmPrefs = getDirectShowPreferences(state);
 
         for (const pref of dmPrefs) {
-            if (pref.value === 'true') {
+            if (pref.value === "true") {
                 statusesToLoad[pref.name] = true;
             }
         }
@@ -45,14 +54,14 @@ export function loadStatusesForChannelAndSidebar(): ActionFunc {
         statusesToLoad[currentUserId] = true;
 
         dispatch(loadStatusesByIds(Object.keys(statusesToLoad)));
-        return {data: true};
+        return { data: true };
     };
 }
 
 export function loadStatusesForProfilesList(users: UserProfile[] | null) {
     return (dispatch: DispatchFunc) => {
         if (users == null) {
-            return {data: false};
+            return { data: false };
         }
 
         const statusesToLoad = [];
@@ -62,14 +71,16 @@ export function loadStatusesForProfilesList(users: UserProfile[] | null) {
 
         dispatch(loadStatusesByIds(statusesToLoad));
 
-        return {data: true};
+        return { data: true };
     };
 }
 
-export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | null) {
+export function loadStatusesForProfilesMap(
+    users: Record<string, UserProfile> | null,
+) {
     return (dispatch: DispatchFunc) => {
         if (users == null) {
-            return {data: false};
+            return { data: false };
         }
 
         const statusesToLoad = [];
@@ -81,19 +92,19 @@ export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | 
 
         dispatch(loadStatusesByIds(statusesToLoad));
 
-        return {data: true};
+        return { data: true };
     };
 }
 
 export function loadStatusesByIds(userIds: string[]) {
     return (dispatch: DispatchFunc) => {
         if (userIds.length === 0) {
-            return {data: false};
+            return { data: false };
         }
 
         dispatch(getStatusesByIds(userIds));
         dispatch(loadCustomEmojisForCustomStatusesByUserIds(userIds));
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -102,17 +113,19 @@ export function loadProfilesMissingStatus(users: UserProfile[]) {
         const state = getState();
         const statuses = state.entities.users.statuses;
 
-        const missingStatusByIds = users.
-            filter((user) => !statuses[user.id]).
-            map((user) => user.id);
+        const missingStatusByIds = users
+            .filter((user) => !statuses[user.id])
+            .map((user) => user.id);
 
         if (missingStatusByIds.length === 0) {
-            return {data: false};
+            return { data: false };
         }
 
         dispatch(getStatusesByIds(missingStatusByIds));
-        dispatch(loadCustomEmojisForCustomStatusesByUserIds(missingStatusByIds));
-        return {data: true};
+        dispatch(
+            loadCustomEmojisForCustomStatusesByUserIds(missingStatusByIds),
+        );
+        return { data: true };
     };
 }
 
@@ -122,12 +135,9 @@ export function startPeriodicStatusUpdates() {
     return (dispatch: DispatchFunc) => {
         clearInterval(intervalId);
 
-        intervalId = setInterval(
-            () => {
-                dispatch(loadStatusesForChannelAndSidebar());
-            },
-            Constants.STATUS_INTERVAL,
-        );
+        intervalId = setInterval(() => {
+            dispatch(loadStatusesForChannelAndSidebar());
+        }, Constants.STATUS_INTERVAL);
     };
 }
 

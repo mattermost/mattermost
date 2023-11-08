@@ -1,36 +1,38 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import type { ActionCreatorsMapObject, Dispatch } from "redux";
 
-import {getFirstAdminSetupComplete} from 'mattermost-redux/actions/general';
-import {getProfiles} from 'mattermost-redux/actions/users';
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-import {getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {shouldShowTermsOfService, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {Action} from 'mattermost-redux/types/actions';
-
-import {migrateRecentEmojis} from 'actions/emoji_actions';
-import {loadConfigAndMe, registerCustomPostRenderer} from 'actions/views/root';
-import {getShowLaunchingWorkspace} from 'selectors/onboarding';
-import {shouldShowAppBar} from 'selectors/plugins';
+import { getFirstAdminSetupComplete } from "mattermost-redux/actions/general";
+import { getProfiles } from "mattermost-redux/actions/users";
+import { isCurrentLicenseCloud } from "mattermost-redux/selectors/entities/cloud";
+import { getConfig } from "mattermost-redux/selectors/entities/general";
+import { getTheme } from "mattermost-redux/selectors/entities/preferences";
+import { getTeam } from "mattermost-redux/selectors/entities/teams";
 import {
-    getIsRhsExpanded,
-    getIsRhsOpen,
-    getRhsState,
-} from 'selectors/rhs';
-import LocalStorageStore from 'stores/local_storage_store';
+    shouldShowTermsOfService,
+    getCurrentUserId,
+} from "mattermost-redux/selectors/entities/users";
+import type { Action } from "mattermost-redux/types/actions";
 
-import {initializeProducts} from 'plugins/products';
+import { migrateRecentEmojis } from "actions/emoji_actions";
+import {
+    loadConfigAndMe,
+    registerCustomPostRenderer,
+} from "actions/views/root";
+import { getShowLaunchingWorkspace } from "selectors/onboarding";
+import { shouldShowAppBar } from "selectors/plugins";
+import { getIsRhsExpanded, getIsRhsOpen, getRhsState } from "selectors/rhs";
+import LocalStorageStore from "stores/local_storage_store";
 
-import type {GlobalState} from 'types/store/index';
+import { initializeProducts } from "plugins/products";
 
-import Root from './root';
-import type {Actions} from './root';
+import type { GlobalState } from "types/store/index";
+
+import Root from "./root";
+import type { Actions } from "./root";
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
@@ -44,10 +46,12 @@ function mapStateToProps(state: GlobalState) {
 
     return {
         theme: getTheme(state),
-        telemetryEnabled: config.DiagnosticsEnabled === 'true',
-        noAccounts: config.NoAccounts === 'true',
+        telemetryEnabled: config.DiagnosticsEnabled === "true",
+        noAccounts: config.NoAccounts === "true",
         telemetryId: config.DiagnosticId,
-        permalinkRedirectTeamName: permalinkRedirectTeam ? permalinkRedirectTeam.name : '',
+        permalinkRedirectTeamName: permalinkRedirectTeam
+            ? permalinkRedirectTeam.name
+            : "",
         showTermsOfService,
         plugins,
         products,
@@ -62,14 +66,17 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
-            loadConfigAndMe,
-            getFirstAdminSetupComplete,
-            getProfiles,
-            migrateRecentEmojis,
-            registerCustomPostRenderer,
-            initializeProducts,
-        }, dispatch),
+        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>(
+            {
+                loadConfigAndMe,
+                getFirstAdminSetupComplete,
+                getProfiles,
+                migrateRecentEmojis,
+                registerCustomPostRenderer,
+                initializeProducts,
+            },
+            dispatch,
+        ),
     };
 }
 

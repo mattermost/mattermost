@@ -1,34 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import SearchSuggestionList from 'components/suggestion/search_suggestion_list';
+import SearchSuggestionList from "components/suggestion/search_suggestion_list";
 
-import {TestHelper} from 'utils/test_helper';
+import { TestHelper } from "utils/test_helper";
 
-describe('components/SearchSuggestionList', () => {
+describe("components/SearchSuggestionList", () => {
     const baseProps = {
         open: true,
         onCompleteWord: jest.fn(),
-        pretext: '',
+        pretext: "",
         cleared: false,
         matchedPretext: [],
         items: [],
         terms: [],
-        selection: '',
+        selection: "",
         components: [],
         onItemHover: jest.fn(),
     };
 
-    test('should not throw error when currentLabel is null and label is generated', () => {
+    test("should not throw error when currentLabel is null and label is generated", () => {
         const userProfile = TestHelper.getUserMock();
         const item = {
             ...userProfile,
-            type: 'item_type',
-            display_name: 'item_display_name',
-            name: 'item_name',
+            type: "item_type",
+            display_name: "item_display_name",
+            name: "item_name",
         };
 
         const wrapper = shallow(

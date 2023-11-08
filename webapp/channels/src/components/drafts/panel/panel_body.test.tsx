@@ -1,30 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Provider} from 'react-redux';
+import React from "react";
+import { Provider } from "react-redux";
 
-import {PostPriority} from '@mattermost/types/posts';
-import type {UserProfile, UserStatus} from '@mattermost/types/users';
+import { PostPriority } from "@mattermost/types/posts";
+import type { UserProfile, UserStatus } from "@mattermost/types/users";
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
-import * as utils from 'utils/utils';
+import { mountWithIntl } from "tests/helpers/intl-test-helper";
+import mockStore from "tests/test_store";
+import * as utils from "utils/utils";
 
-import type {PostDraft} from 'types/store/draft';
+import type { PostDraft } from "types/store/draft";
 
-import PanelBody from './panel_body';
+import PanelBody from "./panel_body";
 
-describe('components/drafts/panel/panel_body', () => {
+describe("components/drafts/panel/panel_body", () => {
     const baseProps = {
-        channelId: 'channel_id',
-        displayName: 'display_name',
-        fileInfos: [] as PostDraft['fileInfos'],
-        message: 'message',
-        status: 'status' as UserStatus['status'],
-        uploadsInProgress: [] as PostDraft['uploadsInProgress'],
-        userId: 'user_id' as UserProfile['id'],
-        username: 'username' as UserProfile['username'],
+        channelId: "channel_id",
+        displayName: "display_name",
+        fileInfos: [] as PostDraft["fileInfos"],
+        message: "message",
+        status: "status" as UserStatus["status"],
+        uploadsInProgress: [] as PostDraft["uploadsInProgress"],
+        userId: "user_id" as UserProfile["id"],
+        username: "username" as UserProfile["username"],
     };
 
     const initialState = {
@@ -34,13 +34,13 @@ describe('components/drafts/panel/panel_body', () => {
             },
             posts: {
                 posts: {
-                    root_id: {id: 'root_id', channel_id: 'channel_id'},
+                    root_id: { id: "root_id", channel_id: "channel_id" },
                 },
             },
             channels: {
-                currentChannelId: 'channel_id',
+                currentChannelId: "channel_id",
                 channels: {
-                    channel_id: {id: 'channel_id', team_id: 'team_id'},
+                    channel_id: { id: "channel_id", team_id: "team_id" },
                 },
             },
             preferences: {
@@ -54,37 +54,41 @@ describe('components/drafts/panel/panel_body', () => {
                 customEmoji: {},
             },
             users: {
-                currentUserId: 'userid1',
-                profiles: {userid1: {id: 'userid1', username: 'username1', roles: 'system_user'}},
+                currentUserId: "userid1",
+                profiles: {
+                    userid1: {
+                        id: "userid1",
+                        username: "username1",
+                        roles: "system_user",
+                    },
+                },
                 profilesInChannel: {},
             },
             teams: {
-                currentTeamId: 'team_id',
+                currentTeamId: "team_id",
                 teams: {
                     team_id: {
-                        id: 'team_id',
-                        name: 'team-id',
-                        display_name: 'Team ID',
+                        id: "team_id",
+                        name: "team-id",
+                        display_name: "Team ID",
                     },
                 },
             },
         },
     };
 
-    it('should match snapshot', () => {
+    it("should match snapshot", () => {
         const store = mockStore(initialState);
 
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <PanelBody
-                    {...baseProps}
-                />
+                <PanelBody {...baseProps} />
             </Provider>,
         );
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should match snapshot for requested_ack', () => {
+    it("should match snapshot for requested_ack", () => {
         const store = mockStore(initialState);
 
         const wrapper = mountWithIntl(
@@ -92,7 +96,7 @@ describe('components/drafts/panel/panel_body', () => {
                 <PanelBody
                     {...baseProps}
                     priority={{
-                        priority: '',
+                        priority: "",
                         requested_ack: true,
                     }}
                 />
@@ -101,7 +105,7 @@ describe('components/drafts/panel/panel_body', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should match snapshot for priority', () => {
+    it("should match snapshot for priority", () => {
         const store = mockStore(initialState);
 
         const wrapper = mountWithIntl(
@@ -118,19 +122,17 @@ describe('components/drafts/panel/panel_body', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should have called handleFormattedTextClick', () => {
-        const handleClickSpy = jest.spyOn(utils, 'handleFormattedTextClick');
+    it("should have called handleFormattedTextClick", () => {
+        const handleClickSpy = jest.spyOn(utils, "handleFormattedTextClick");
         const store = mockStore(initialState);
 
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <PanelBody
-                    {...baseProps}
-                />
+                <PanelBody {...baseProps} />
             </Provider>,
         );
 
-        wrapper.find('div.post__content').simulate('click');
+        wrapper.find("div.post__content").simulate("click");
         expect(handleClickSpy).toHaveBeenCalledTimes(1);
         expect(wrapper).toMatchSnapshot();
     });

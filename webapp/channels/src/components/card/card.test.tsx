@@ -1,47 +1,46 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import { mount, shallow } from "enzyme";
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import Card from './card';
-import TitleAndButtonCardHeader from './title_and_button_card_header/title_and_button_card_header';
+import Card from "./card";
+import TitleAndButtonCardHeader from "./title_and_button_card_header/title_and_button_card_header";
 
-describe('components/card/card', () => {
+describe("components/card/card", () => {
     const baseProps = {
         expanded: false,
     };
 
     const headerProps = {
-        title:
-    <FormattedMessage
-        id='admin.data_retention.customPolicies.title'
-        defaultMessage='Custom retention policies'
-    />,
-        subtitle:
-    <FormattedMessage
-        id='admin.data_retention.customPolicies.subTitle'
-        defaultMessage='Customize how long specific teams and channels will keep messages.'
-    />,
-        body:
-    <div>
-        {'Hello!'}
-    </div>,
+        title: (
+            <FormattedMessage
+                id="admin.data_retention.customPolicies.title"
+                defaultMessage="Custom retention policies"
+            />
+        ),
+        subtitle: (
+            <FormattedMessage
+                id="admin.data_retention.customPolicies.subTitle"
+                defaultMessage="Customize how long specific teams and channels will keep messages."
+            />
+        ),
+        body: <div>{"Hello!"}</div>,
     };
 
-    test('should match snapshot', () => {
+    test("should match snapshot", () => {
         const wrapper = mount(
             <Card {...baseProps}>
-                <Card.Header>{'Header Test'}</Card.Header>
-                <Card.Body>{'Body Test'}</Card.Body>
+                <Card.Header>{"Header Test"}</Card.Header>
+                <Card.Body>{"Body Test"}</Card.Body>
             </Card>,
         );
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when expanded', () => {
+    test("should match snapshot when expanded", () => {
         const props = {
             ...baseProps,
             expanded: true,
@@ -49,51 +48,48 @@ describe('components/card/card', () => {
 
         const wrapper = mount(
             <Card {...props}>
-                <Card.Header>{'Header Test'}</Card.Header>
-                <Card.Body>{'Body Test'}</Card.Body>
+                <Card.Header>{"Header Test"}</Card.Header>
+                <Card.Body>{"Body Test"}</Card.Body>
             </Card>,
         );
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when using header content and no button', () => {
+    test("should match snapshot when using header content and no button", () => {
         const props = {
             ...baseProps,
             expanded: true,
-            className: 'console',
+            className: "console",
         };
 
         const wrapper = shallow(
             <Card {...props}>
                 <Card.Header>
-                    <TitleAndButtonCardHeader
-                        {...headerProps}
-                    />
+                    <TitleAndButtonCardHeader {...headerProps} />
                 </Card.Header>
-                <Card.Body>{'Body Test'}</Card.Body>
+                <Card.Body>{"Body Test"}</Card.Body>
             </Card>,
         );
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when using header content and a button', () => {
+    test("should match snapshot when using header content and a button", () => {
         const props = {
             ...baseProps,
             expanded: true,
-            className: 'console',
+            className: "console",
         };
 
         const buttonProps = {
-            buttonText:
-    <FormattedMessage
-        id='admin.data_retention.customPolicies.addPolicy'
-        defaultMessage='Add policy'
-    />,
-            onClick:
-                () => {}
-            ,
+            buttonText: (
+                <FormattedMessage
+                    id="admin.data_retention.customPolicies.addPolicy"
+                    defaultMessage="Add policy"
+                />
+            ),
+            onClick: () => {},
         };
 
         const wrapper = shallow(
@@ -104,7 +100,7 @@ describe('components/card/card', () => {
                         {...buttonProps}
                     />
                 </Card.Header>
-                <Card.Body>{'Body Test'}</Card.Body>
+                <Card.Body>{"Body Test"}</Card.Body>
             </Card>,
         );
 

@@ -1,37 +1,44 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Stripe} from '@stripe/stripe-js';
-import {getCode} from 'country-list';
+import type { Stripe } from "@stripe/stripe-js";
+import { getCode } from "country-list";
 
-import type {CreateSubscriptionRequest} from '@mattermost/types/cloud';
-import type {SelfHostedExpansionRequest} from '@mattermost/types/hosted_customer';
-import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
-import type {ValueOf} from '@mattermost/types/utilities';
+import type { CreateSubscriptionRequest } from "@mattermost/types/cloud";
+import type { SelfHostedExpansionRequest } from "@mattermost/types/hosted_customer";
+import { SelfHostedSignupProgress } from "@mattermost/types/hosted_customer";
+import type { ValueOf } from "@mattermost/types/utilities";
 
-import {HostedCustomerTypes} from 'mattermost-redux/action_types';
-import {bindClientFunc} from 'mattermost-redux/actions/helpers';
-import {Client4} from 'mattermost-redux/client';
-import {getSelfHostedErrors} from 'mattermost-redux/selectors/entities/hosted_customer';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import { HostedCustomerTypes } from "mattermost-redux/action_types";
+import { bindClientFunc } from "mattermost-redux/actions/helpers";
+import { Client4 } from "mattermost-redux/client";
+import { getSelfHostedErrors } from "mattermost-redux/selectors/entities/hosted_customer";
+import type {
+    ActionFunc,
+    DispatchFunc,
+    GetStateFunc,
+} from "mattermost-redux/types/actions";
 
-import {getConfirmCardSetup} from 'components/payment_form/stripe';
+import { getConfirmCardSetup } from "components/payment_form/stripe";
 
-import type {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
+import type { StripeSetupIntent, BillingDetails } from "types/cloud/sku";
 
-function selfHostedNeedsConfirmation(progress: ValueOf<typeof SelfHostedSignupProgress>): boolean {
+function selfHostedNeedsConfirmation(
+    progress: ValueOf<typeof SelfHostedSignupProgress>,
+): boolean {
     switch (progress) {
-    case SelfHostedSignupProgress.START:
-    case SelfHostedSignupProgress.CREATED_CUSTOMER:
-    case SelfHostedSignupProgress.CREATED_INTENT:
-        return true;
-    default:
-        return false;
+        case SelfHostedSignupProgress.START:
+        case SelfHostedSignupProgress.CREATED_CUSTOMER:
+        case SelfHostedSignupProgress.CREATED_INTENT:
+            return true;
+        default:
+            return false;
     }
 }
 
-const STRIPE_UNEXPECTED_STATE = 'setup_intent_unexpected_state';
-const STRIPE_ALREADY_SUCCEEDED = 'You cannot update this SetupIntent because it has already succeeded.';
+const STRIPE_UNEXPECTED_STATE = "setup_intent_unexpected_state";
+const STRIPE_ALREADY_SUCCEEDED =
+    "You cannot update this SetupIntent because it has already succeeded.";
 
 export function confirmSelfHostedSignup(
     stripe: Stripe,
@@ -67,27 +74,45 @@ export function confirmSelfHostedSignup(
                 },
             );
             if (!result) {
-                return {data: false, error: 'failed to confirm card with Stripe'};
+                return {
+                    data: false,
+                    error: "failed to confirm card with Stripe",
+                };
             }
 
-            const {setupIntent, error: stripeError} = result;
+            const { setupIntent, error: stripeError } = result;
 
             if (stripeError) {
-                if (stripeError.code === STRIPE_UNEXPECTED_STATE && stripeError.message === STRIPE_ALREADY_SUCCEEDED && stripeError.setup_intent?.status === 'succeeded') {
+                if (
+                    stripeError.code === STRIPE_UNEXPECTED_STATE &&
+                    stripeError.message === STRIPE_ALREADY_SUCCEEDED &&
+                    stripeError.setup_intent?.status === "succeeded"
+                ) {
                     dispatch({
                         type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS,
                         data: SelfHostedSignupProgress.CONFIRMED_INTENT,
                     });
                 } else {
-                    return {data: false, error: stripeError.message || 'Stripe failed to confirm payment method'};
+                    return {
+                        data: false,
+                        error:
+                            stripeError.message ||
+                            "Stripe failed to confirm payment method",
+                    };
                 }
             } else {
                 if (setupIntent === null || setupIntent === undefined) {
-                    return {data: false, error: 'Stripe did not return successful setup intent'};
+                    return {
+                        data: false,
+                        error: "Stripe did not return successful setup intent",
+                    };
                 }
 
-                if (setupIntent.status !== 'succeeded') {
-                    return {data: false, error: `Stripe setup intent status was: ${setupIntent.status}`};
+                if (setupIntent.status !== "succeeded") {
+                    return {
+                        data: false,
+                        error: `Stripe setup intent status was: ${setupIntent.status}`,
+                    };
                 }
                 dispatch({
                     type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS,
@@ -98,7 +123,10 @@ export function confirmSelfHostedSignup(
 
         let confirmResult;
         try {
-            confirmResult = await Client4.confirmSelfHostedSignup(stripeSetupIntent.id, subscriptionRequest);
+            confirmResult = await Client4.confirmSelfHostedSignup(
+                stripeSetupIntent.id,
+                subscriptionRequest,
+            );
             dispatch({
                 type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS,
                 data: confirmResult.progress,
@@ -109,12 +137,12 @@ export function confirmSelfHostedSignup(
 
             // unprocessable entity, e.g. failed export compliance
             if (error.status_code === 422) {
-                return {data: false, error: error.status_code};
+                return { data: false, error: error.status_code };
             }
-            return {data: false, error};
+            return { data: false, error };
         }
 
-        return {data: confirmResult.license};
+        return { data: confirmResult.license };
     };
 }
 
@@ -167,7 +195,7 @@ export function retryFailedHostedCustomerFetches() {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const errors = getSelfHostedErrors(getState());
         if (Object.keys(errors).length === 0) {
-            return {data: true};
+            return { data: true };
         }
 
         if (errors.products) {
@@ -178,7 +206,7 @@ export function retryFailedHostedCustomerFetches() {
             dispatch(getSelfHostedInvoices());
         }
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -235,27 +263,45 @@ export function confirmSelfHostedExpansion(
             );
 
             if (!result) {
-                return {data: false, error: 'failed to confirm card with Stripe'};
+                return {
+                    data: false,
+                    error: "failed to confirm card with Stripe",
+                };
             }
 
-            const {setupIntent, error: stripeError} = result;
+            const { setupIntent, error: stripeError } = result;
 
             if (stripeError) {
-                if (stripeError.code === STRIPE_UNEXPECTED_STATE && stripeError.message === STRIPE_ALREADY_SUCCEEDED && stripeError.setup_intent?.status === 'succeeded') {
+                if (
+                    stripeError.code === STRIPE_UNEXPECTED_STATE &&
+                    stripeError.message === STRIPE_ALREADY_SUCCEEDED &&
+                    stripeError.setup_intent?.status === "succeeded"
+                ) {
                     dispatch({
                         type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS,
                         data: SelfHostedSignupProgress.CONFIRMED_INTENT,
                     });
                 } else {
-                    return {data: false, error: stripeError.message || 'Stripe failed to confirm payment method'};
+                    return {
+                        data: false,
+                        error:
+                            stripeError.message ||
+                            "Stripe failed to confirm payment method",
+                    };
                 }
             } else {
                 if (setupIntent === null || setupIntent === undefined) {
-                    return {data: false, error: 'Stripe did not return successful setup intent'};
+                    return {
+                        data: false,
+                        error: "Stripe did not return successful setup intent",
+                    };
                 }
 
-                if (setupIntent.status !== 'succeeded') {
-                    return {data: false, error: `Stripe setup intent status was: ${setupIntent.status}`};
+                if (setupIntent.status !== "succeeded") {
+                    return {
+                        data: false,
+                        error: `Stripe setup intent status was: ${setupIntent.status}`,
+                    };
                 }
                 dispatch({
                     type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS,
@@ -266,7 +312,10 @@ export function confirmSelfHostedExpansion(
 
         let confirmResult;
         try {
-            confirmResult = await Client4.confirmSelfHostedExpansion(stripeSetupIntent.id, expansionRequest);
+            confirmResult = await Client4.confirmSelfHostedExpansion(
+                stripeSetupIntent.id,
+                expansionRequest,
+            );
             dispatch({
                 type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS,
                 data: confirmResult.progress,
@@ -277,11 +326,11 @@ export function confirmSelfHostedExpansion(
 
             // unprocessable entity, e.g. failed export compliance
             if (error.status_code === 422) {
-                return {data: false, error: error.status_code};
+                return { data: false, error: error.status_code };
             }
-            return {data: false, error};
+            return { data: false, error };
         }
 
-        return {data: confirmResult.license};
+        return { data: confirmResult.license };
     };
 }

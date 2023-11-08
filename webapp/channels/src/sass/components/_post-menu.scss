@@ -47,7 +47,8 @@
     padding: 0 6px;
 }
 
-.post-menu__item--selected { // Used for the flag icon when it is in the flagged state
+.post-menu__item--selected {
+    // Used for the flag icon when it is in the flagged state
     color: var(--link-color);
     fill: var(--link-color);
 }
@@ -56,8 +57,8 @@
     margin: 0 0 0 2px;
     font-weight: 600;
     -webkit-user-select: none; /* Chrome all / Safari all */
-    -moz-user-select: none;    /* Firefox all */
-    -ms-user-select: none;     /* IE 10+ */
+    -moz-user-select: none; /* Firefox all */
+    -ms-user-select: none; /* IE 10+ */
     user-select: none;
 }
 

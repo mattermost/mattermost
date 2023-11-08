@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import type {ConnectedProps} from 'react-redux';
+import { connect } from "react-redux";
+import type { ConnectedProps } from "react-redux";
 
-import {emitBrowserWindowResized} from 'actions/views/browser';
+import { emitBrowserWindowResized } from "actions/views/browser";
 
-import MobileViewWatcher from './mobile_view_watcher';
+import MobileViewWatcher from "./mobile_view_watcher";
 
 const mapDispatchToProps = {
     emitBrowserWindowResized,

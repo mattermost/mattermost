@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getChannelHeaderMenuPluginComponents} from 'selectors/plugins';
+import { getChannelHeaderMenuPluginComponents } from "selectors/plugins";
 
-describe('selectors/plugins', () => {
-    describe('getChannelHeaderMenuPluginComponents', () => {
-        test('no channel header components found', () => {
+describe("selectors/plugins", () => {
+    describe("getChannelHeaderMenuPluginComponents", () => {
+        test("no channel header components found", () => {
             const expectedComponents = [];
 
             const state = {
@@ -27,7 +27,7 @@ describe('selectors/plugins', () => {
             expect(components).toEqual(expectedComponents);
         });
 
-        test('one channel header component found as shouldRender returns true', () => {
+        test("one channel header component found as shouldRender returns true", () => {
             const expectedComponents = [
                 {
                     shouldRender: () => true,
@@ -54,10 +54,10 @@ describe('selectors/plugins', () => {
             expect(components).toEqual(expectedComponents);
         });
 
-        test('one channel header component found as shouldRender is not defined', () => {
+        test("one channel header component found as shouldRender is not defined", () => {
             const expectedComponents = [
                 {
-                    id: 'testId',
+                    id: "testId",
                 },
             ];
 
@@ -81,7 +81,7 @@ describe('selectors/plugins', () => {
             expect(components).toEqual(expectedComponents);
         });
 
-        test('no channel header components found as shouldRender returns false', () => {
+        test("no channel header components found as shouldRender returns false", () => {
             const expectedComponents = [];
 
             const state = {
@@ -95,9 +95,11 @@ describe('selectors/plugins', () => {
                 },
                 plugins: {
                     components: {
-                        ChannelHeader: [{
-                            shouldRender: () => false,
-                        }],
+                        ChannelHeader: [
+                            {
+                                shouldRender: () => false,
+                            },
+                        ],
                     },
                 },
             };
@@ -106,7 +108,7 @@ describe('selectors/plugins', () => {
             expect(components).toEqual(expectedComponents);
         });
 
-        test('memoization', () => {
+        test("memoization", () => {
             let shouldRenderResult = false;
 
             let state = {
@@ -120,9 +122,11 @@ describe('selectors/plugins', () => {
                 },
                 plugins: {
                     components: {
-                        ChannelHeader: [{
-                            shouldRender: () => shouldRenderResult,
-                        }],
+                        ChannelHeader: [
+                            {
+                                shouldRender: () => shouldRenderResult,
+                            },
+                        ],
                     },
                 },
             };
@@ -137,14 +141,14 @@ describe('selectors/plugins', () => {
             expect(secondResult).toBe(firstResult);
 
             // Something unrelated changed in state
-            state = {...state};
+            state = { ...state };
 
             const thirdResult = getChannelHeaderMenuPluginComponents(state);
 
             expect(thirdResult).toBe(firstResult);
 
             // shouldRender changed because something else in state changed
-            state = {...state};
+            state = { ...state };
             shouldRenderResult = true;
 
             const fourthResult = getChannelHeaderMenuPluginComponents(state);
@@ -164,7 +168,7 @@ describe('selectors/plugins', () => {
                         ChannelHeader: [
                             ...state.plugins.components.ChannelHeader,
                             {
-                                id: 'anotherPlugin',
+                                id: "anotherPlugin",
                             },
                         ],
                     },

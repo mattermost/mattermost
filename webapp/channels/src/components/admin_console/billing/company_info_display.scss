@@ -37,13 +37,23 @@
     color: var(--sys-button-color);
 
     &:hover:not(.disabled) {
-        background: linear-gradient(0deg, rgba(var(--sys-center-channel-color-rgb), 0.16), rgba(var(--sys-center-channel-color-rgb), 0.16)), var(--sys-button-bg);
+        background: linear-gradient(
+                0deg,
+                rgba(var(--sys-center-channel-color-rgb), 0.16),
+                rgba(var(--sys-center-channel-color-rgb), 0.16)
+            ),
+            var(--sys-button-bg);
         color: var(--sys-button-color);
         text-decoration: none;
     }
 
     &:active {
-        background: linear-gradient(0deg, rgba(var(--sys-center-channel-color-rgb), 0.32), rgba(var(--sys-center-channel-color-rgb), 0.32)), var(--sys-button-bg);
+        background: linear-gradient(
+                0deg,
+                rgba(var(--sys-center-channel-color-rgb), 0.32),
+                rgba(var(--sys-center-channel-color-rgb), 0.32)
+            ),
+            var(--sys-button-bg);
         color: var(--sys-button-color);
         text-decoration: none;
     }

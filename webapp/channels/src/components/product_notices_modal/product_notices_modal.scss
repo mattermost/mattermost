@@ -83,8 +83,7 @@
             color: var(--button-color);
 
             &:hover:not(.disabled) {
-                background:
-                    linear-gradient(
+                background: linear-gradient(
                         0deg,
                         rgba(var(--center-channel-color-rgb), 0.16),
                         rgba(var(--center-channel-color-rgb), 0.16)
@@ -93,8 +92,7 @@
             }
 
             &:active {
-                background:
-                    linear-gradient(
+                background: linear-gradient(
                         0deg,
                         rgba(var(--center-channel-color-rgb), 0.32),
                         rgba(var(--center-channel-color-rgb), 0.32)

@@ -46,17 +46,24 @@
             color: rgba(var(--center-channel-color-rgb), 0.56) !important;
         }
 
-        .DayPicker-Day:not(.DayPicker-Day--disabled):not(.DayPicker-Day--outside):not(.DayPicker-Day--selected) {
+        .DayPicker-Day:not(.DayPicker-Day--disabled):not(
+                .DayPicker-Day--outside
+            ):not(.DayPicker-Day--selected) {
             &:hover {
                 background-color: var(--center-channel-bg) !important;
 
                 &::before {
-                    background-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
+                    background-color: rgba(
+                        var(--center-channel-color-rgb),
+                        0.08
+                    ) !important;
                 }
             }
         }
 
-        .DayPicker-Day--selected:not(.DayPicker-Day--disabled):not(.DayPicker-Day--outside) {
+        .DayPicker-Day--selected:not(.DayPicker-Day--disabled):not(
+                .DayPicker-Day--outside
+            ) {
             background-color: var(--button-bg) !important;
             color: var(--button-color) !important;
 

@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {General} from 'mattermost-redux/constants';
-import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
+import { General } from "mattermost-redux/constants";
+import deepFreezeAndThrowOnMutation from "mattermost-redux/utils/deep_freeze";
 
-import {makeAddLastViewAtToProfiles} from './utils';
+import { makeAddLastViewAtToProfiles } from "./utils";
 
-import TestHelper from '../../../test/test_helper';
+import TestHelper from "../../../test/test_helper";
 
-describe('utils.makeAddLastViewAtToProfiles', () => {
-    it('Should return profiles with last_viewed_at from membership if channel and membership exists', () => {
+describe("utils.makeAddLastViewAtToProfiles", () => {
+    it("Should return profiles with last_viewed_at from membership if channel and membership exists", () => {
         const currentUser = TestHelper.fakeUserWithStatus(General.ONLINE);
         const user1 = TestHelper.fakeUserWithStatus(General.OUT_OF_OFFICE);
         const user2 = TestHelper.fakeUserWithStatus(General.OFFLINE);
@@ -40,9 +40,18 @@ describe('utils.makeAddLastViewAtToProfiles', () => {
             [channel3.id]: channel3,
         };
 
-        const membership1 = {...TestHelper.fakeChannelMember(currentUser.id, channel1.id), last_viewed_at: 1};
-        const membership2 = {...TestHelper.fakeChannelMember(currentUser.id, channel2.id), last_viewed_at: 2};
-        const membership3 = {...TestHelper.fakeChannelMember(currentUser.id, channel3.id), last_viewed_at: 3};
+        const membership1 = {
+            ...TestHelper.fakeChannelMember(currentUser.id, channel1.id),
+            last_viewed_at: 1,
+        };
+        const membership2 = {
+            ...TestHelper.fakeChannelMember(currentUser.id, channel2.id),
+            last_viewed_at: 2,
+        };
+        const membership3 = {
+            ...TestHelper.fakeChannelMember(currentUser.id, channel3.id),
+            last_viewed_at: 3,
+        };
 
         const myMembers = {
             [membership1.channel_id]: membership1,
@@ -51,7 +60,7 @@ describe('utils.makeAddLastViewAtToProfiles', () => {
         };
 
         const channelsInTeam = {
-            '': [channel1.id, channel2.id, channel3.id],
+            "": [channel1.id, channel2.id, channel3.id],
         };
 
         const testState = deepFreezeAndThrowOnMutation({
@@ -62,7 +71,7 @@ describe('utils.makeAddLastViewAtToProfiles', () => {
                     statuses,
                 },
                 teams: {
-                    currentTeamId: 'currentTeam',
+                    currentTeamId: "currentTeam",
                 },
                 channels: {
                     channels,
@@ -79,6 +88,13 @@ describe('utils.makeAddLastViewAtToProfiles', () => {
         });
 
         const addLastViewAtToProfiles = makeAddLastViewAtToProfiles();
-        expect(addLastViewAtToProfiles(testState, [user1, user2, user3, user4])).toEqual([{...user1, last_viewed_at: 1}, {...user2, last_viewed_at: 2}, {...user3, last_viewed_at: 3}, {...user4, last_viewed_at: 0}]);
+        expect(
+            addLastViewAtToProfiles(testState, [user1, user2, user3, user4]),
+        ).toEqual([
+            { ...user1, last_viewed_at: 1 },
+            { ...user2, last_viewed_at: 2 },
+            { ...user3, last_viewed_at: 3 },
+            { ...user4, last_viewed_at: 0 },
+        ]);
     });
 });

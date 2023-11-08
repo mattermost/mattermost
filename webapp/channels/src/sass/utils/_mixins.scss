@@ -15,9 +15,7 @@
     @if $value == antialiased {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-    }
-
-    @else {
+    } @else {
         -webkit-font-smoothing: subpixel-antialiased;
         -moz-osx-font-smoothing: auto;
     }
@@ -137,11 +135,21 @@
     transition: all 0.15s ease-out;
 
     &:hover {
-        background: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08)), var(--button-bg);
+        background: linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.08),
+                rgba(0, 0, 0, 0.08)
+            ),
+            var(--button-bg);
     }
 
     &:active {
-        background: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)), var(--button-bg);
+        background: linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.16),
+                rgba(0, 0, 0, 0.16)
+            ),
+            var(--button-bg);
     }
 
     &:focus {
@@ -389,7 +397,8 @@
 }
 
 @mixin shake-horizontally {
-    animation: shake-horizontally 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    animation: shake-horizontally 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97)
+        both;
     backface-visibility: hidden;
     perspective: 1000px;
     transform: translate3d(0, 0, 0);

@@ -1,23 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {ChromePicker} from 'react-color';
-import type {ColorResult} from 'react-color';
-import tinycolor from 'tinycolor2';
+import React from "react";
+import { ChromePicker } from "react-color";
+import type { ColorResult } from "react-color";
+import tinycolor from "tinycolor2";
 
 type Props = {
     id: string;
     onChange: (color: string) => void;
     value: string;
     isDisabled?: boolean;
-}
+};
 
 type State = {
     focused: boolean;
     isOpened: boolean;
     value: string;
-}
+};
 
 export default class ColorInput extends React.PureComponent<Props, State> {
     private colorPicker: React.RefObject<HTMLDivElement>;
@@ -46,21 +46,26 @@ export default class ColorInput extends React.PureComponent<Props, State> {
     }
 
     public componentDidUpdate(prevProps: Props, prevState: State) {
-        const {isOpened: prevIsOpened} = prevState;
-        const {isOpened} = this.state;
+        const { isOpened: prevIsOpened } = prevState;
+        const { isOpened } = this.state;
 
         if (isOpened !== prevIsOpened) {
             if (isOpened) {
-                document.addEventListener('click', this.checkClick, {capture: true});
+                document.addEventListener("click", this.checkClick, {
+                    capture: true,
+                });
             } else {
-                document.removeEventListener('click', this.checkClick);
+                document.removeEventListener("click", this.checkClick);
             }
         }
     }
 
     private checkClick = (e: MouseEvent): void => {
-        if (!this.colorPicker.current || !this.colorPicker.current.contains(e.target as Element)) {
-            this.setState({isOpened: false});
+        if (
+            !this.colorPicker.current ||
+            !this.colorPicker.current.contains(e.target as Element)
+        ) {
+            this.setState({ isOpened: false });
         }
     };
 
@@ -68,11 +73,11 @@ export default class ColorInput extends React.PureComponent<Props, State> {
         if (!this.state.isOpened && this.colorInput.current) {
             this.colorInput.current.focus();
         }
-        this.setState({isOpened: !this.state.isOpened});
+        this.setState({ isOpened: !this.state.isOpened });
     };
 
     public handleColorChange = (newColorData: ColorResult) => {
-        this.setState({focused: false});
+        this.setState({ focused: false });
         this.props.onChange(newColorData.hex);
     };
 
@@ -80,13 +85,13 @@ export default class ColorInput extends React.PureComponent<Props, State> {
         const value = event.target.value;
 
         const color = tinycolor(value);
-        const normalizedColor = '#' + color.toHex();
+        const normalizedColor = "#" + color.toHex();
 
         if (color.isValid()) {
             this.props.onChange(normalizedColor);
         }
 
-        this.setState({value});
+        this.setState({ value });
     };
 
     private onFocus = (event: React.FocusEvent<HTMLInputElement>): void => {
@@ -103,7 +108,7 @@ export default class ColorInput extends React.PureComponent<Props, State> {
         const value = this.state.value;
 
         const color = tinycolor(value);
-        const normalizedColor = '#' + color.toHex();
+        const normalizedColor = "#" + color.toHex();
 
         if (color.isValid()) {
             this.props.onChange(normalizedColor);
@@ -124,22 +129,22 @@ export default class ColorInput extends React.PureComponent<Props, State> {
 
     private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
         // open picker on enter or space
-        if (event.key === 'Enter' || event.key === ' ') {
+        if (event.key === "Enter" || event.key === " ") {
             this.togglePicker();
         }
     };
 
     public render() {
-        const {id} = this.props;
-        const {isOpened, value} = this.state;
+        const { id } = this.props;
+        const { isOpened, value } = this.state;
 
         return (
-            <div className='color-input input-group'>
+            <div className="color-input input-group">
                 <input
                     id={`${id}-inputColorValue`}
                     ref={this.colorInput}
-                    className='form-control'
-                    type='text'
+                    className="form-control"
+                    type="text"
                     value={value}
                     onChange={this.onChange}
                     onBlur={this.onBlur}
@@ -147,28 +152,27 @@ export default class ColorInput extends React.PureComponent<Props, State> {
                     onKeyDown={this.onKeyDown}
                     maxLength={7}
                     disabled={this.props.isDisabled}
-                    data-testid='color-inputColorValue'
-
+                    data-testid="color-inputColorValue"
                 />
-                {!this.props.isDisabled &&
+                {!this.props.isDisabled && (
                     <span
                         id={`${id}-squareColorIcon`}
-                        className='input-group-addon color-pad'
+                        className="input-group-addon color-pad"
                         onClick={this.togglePicker}
                     >
                         <i
                             id={`${id}-squareColorIconValue`}
-                            className='color-icon'
+                            className="color-icon"
                             style={{
                                 backgroundColor: value,
                             }}
                         />
                     </span>
-                }
+                )}
                 {isOpened && (
                     <div
                         ref={this.colorPicker}
-                        className='color-popover'
+                        className="color-popover"
                         id={`${id}-ChromePickerModal`}
                     >
                         <ChromePicker

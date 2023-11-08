@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
 interface Props {
     name: string;
     imageUrl: string;
 }
-declare module 'react' {
+declare module "react" {
     interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
         alt?: string;
     }
 }
 
-const PostEmoji = ({name, imageUrl}: Props) => {
+const PostEmoji = ({ name, imageUrl }: Props) => {
     const emojiText = `:${name}:`;
     const backgroundImageUrl = `url(${imageUrl})`;
 
@@ -24,9 +24,9 @@ const PostEmoji = ({name, imageUrl}: Props) => {
     return (
         <span
             alt={emojiText}
-            className='emoticon'
+            className="emoticon"
             title={emojiText}
-            style={{backgroundImage: backgroundImageUrl}}
+            style={{ backgroundImage: backgroundImageUrl }}
         >
             {emojiText}
         </span>

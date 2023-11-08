@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import PluginState from 'mattermost-redux/constants/plugins';
+import PluginState from "mattermost-redux/constants/plugins";
 
-import PluginManagement from 'components/admin_console/plugin_management/plugin_management';
+import PluginManagement from "components/admin_console/plugin_management/plugin_management";
 
-describe('components/PluginManagement', () => {
+describe("components/PluginManagement", () => {
     const defaultProps = {
         config: {
             PluginSettings: {
@@ -18,7 +18,7 @@ describe('components/PluginManagement', () => {
                 EnableMarketplace: true,
                 EnableRemoteMarketplace: true,
                 AutomaticPrepackagedPlugins: true,
-                MarketplaceURL: 'marketplace.example.com',
+                MarketplaceURL: "marketplace.example.com",
                 RequirePluginSignature: false,
             },
             ExperimentalSettings: {
@@ -27,37 +27,37 @@ describe('components/PluginManagement', () => {
         },
         pluginStatuses: {
             plugin_0: {
-                id: 'plugin_0',
-                version: '0.1.0',
+                id: "plugin_0",
+                version: "0.1.0",
                 state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                name: 'Plugin 0',
-                description: 'The plugin 0.',
+                name: "Plugin 0",
+                description: "The plugin 0.",
                 active: false,
                 instances: [
                     {
-                        cluster_id: 'cluster_id_1',
+                        cluster_id: "cluster_id_1",
                         state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                        version: '0.1.0',
+                        version: "0.1.0",
                     },
                 ],
             },
             plugin_1: {
-                id: 'plugin_1',
-                version: '0.0.1',
+                id: "plugin_1",
+                version: "0.0.1",
                 state: PluginState.PLUGIN_STATE_STOPPING,
-                name: 'Plugin 1',
-                description: 'The plugin.',
+                name: "Plugin 1",
+                description: "The plugin.",
                 active: true,
                 instances: [
                     {
-                        cluster_id: 'cluster_id_1',
+                        cluster_id: "cluster_id_1",
                         state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                        version: '0.0.1',
+                        version: "0.0.1",
                     },
                     {
-                        cluster_id: 'cluster_id_2',
+                        cluster_id: "cluster_id_2",
                         state: PluginState.PLUGIN_STATE_RUNNING,
-                        version: '0.0.2',
+                        version: "0.0.2",
                     },
                 ],
             },
@@ -65,26 +65,26 @@ describe('components/PluginManagement', () => {
         plugins: {
             plugin_0: {
                 active: false,
-                description: 'The plugin 0.',
-                id: 'plugin_0',
-                name: 'Plugin 0',
-                version: '0.1.0',
+                description: "The plugin 0.",
+                id: "plugin_0",
+                name: "Plugin 0",
+                version: "0.1.0",
                 settings_schema: {
-                    footer: 'This is a footer',
-                    header: 'This is a header',
+                    footer: "This is a footer",
+                    header: "This is a header",
                     settings: [],
                 },
                 webapp: {},
             },
             plugin_1: {
                 active: true,
-                description: 'The plugin 1.',
-                id: 'plugin_1',
-                name: 'Plugin 1',
-                version: '0.1.0',
+                description: "The plugin 1.",
+                id: "plugin_1",
+                name: "Plugin 1",
+                version: "0.1.0",
                 settings_schema: {
-                    footer: 'This is a footer',
-                    header: 'This is a header',
+                    footer: "This is a footer",
+                    header: "This is a header",
                     settings: [],
                 },
                 webapp: {},
@@ -103,13 +103,13 @@ describe('components/PluginManagement', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const props = {...defaultProps};
-        const wrapper = shallow(<PluginManagement {...props}/>);
+    test("should match snapshot", () => {
+        const props = { ...defaultProps };
+        const wrapper = shallow(<PluginManagement {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, disabled', () => {
+    test("should match snapshot, disabled", () => {
         const props = {
             ...defaultProps,
             config: {
@@ -120,11 +120,11 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallow(<PluginManagement {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when `Enable Plugins` is hidden', () => {
+    test("should match snapshot when `Enable Plugins` is hidden", () => {
         const props = {
             ...defaultProps,
             config: {
@@ -134,11 +134,11 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallow(<PluginManagement {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when `Require Signature Plugin` is true', () => {
+    test("should match snapshot when `Require Signature Plugin` is true", () => {
         const props = {
             ...defaultProps,
             config: {
@@ -149,11 +149,11 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallow(<PluginManagement {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when `Enable Marketplace` is false', () => {
+    test("should match snapshot when `Enable Marketplace` is false", () => {
         const props = {
             ...defaultProps,
             config: {
@@ -164,11 +164,11 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallow(<PluginManagement {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when `Enable Remote Marketplace` is false', () => {
+    test("should match snapshot when `Enable Remote Marketplace` is false", () => {
         const props = {
             ...defaultProps,
             config: {
@@ -179,11 +179,11 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallow(<PluginManagement {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, upload disabled', () => {
+    test("should match snapshot, upload disabled", () => {
         const props = {
             ...defaultProps,
             config: {
@@ -194,11 +194,11 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallow(<PluginManagement {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, allow insecure URL enabled', () => {
+    test("should match snapshot, allow insecure URL enabled", () => {
         const props = {
             ...defaultProps,
             config: {
@@ -209,19 +209,21 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallow(<PluginManagement {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, text entered into the URL install text box', () => {
+    test("should match snapshot, text entered into the URL install text box", () => {
         const props = defaultProps;
 
-        const wrapper = shallow(<PluginManagement {...props}/>);
-        wrapper.setState({pluginDownloadUrl: 'https://pluginsite.com/plugin.tar.gz'});
+        const wrapper = shallow(<PluginManagement {...props} />);
+        wrapper.setState({
+            pluginDownloadUrl: "https://pluginsite.com/plugin.tar.gz",
+        });
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, No installed plugins', () => {
+    test("should match snapshot, No installed plugins", () => {
         const props = {
             config: {
                 ...defaultProps.config,
@@ -246,18 +248,18 @@ describe('components/PluginManagement', () => {
                 disablePlugin: jest.fn(),
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
-        wrapper.setState({loading: false});
+        const wrapper = shallow(<PluginManagement {...props} />);
+        wrapper.setState({ loading: false });
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, with installed plugins', () => {
-        const wrapper = shallow(<PluginManagement {...defaultProps}/>);
-        wrapper.setState({loading: false});
+    test("should match snapshot, with installed plugins", () => {
+        const wrapper = shallow(<PluginManagement {...defaultProps} />);
+        wrapper.setState({ loading: false });
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, with installed plugins and not settings link should set hasSettings to false', () => {
+    test("should match snapshot, with installed plugins and not settings link should set hasSettings to false", () => {
         const props = {
             config: {
                 ...defaultProps.config,
@@ -270,37 +272,37 @@ describe('components/PluginManagement', () => {
             },
             pluginStatuses: {
                 plugin_0: {
-                    id: 'plugin_0',
-                    version: '0.1.0',
+                    id: "plugin_0",
+                    version: "0.1.0",
                     state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                    name: 'Plugin 0',
-                    description: 'The plugin 0.',
+                    name: "Plugin 0",
+                    description: "The plugin 0.",
                     active: false,
                     instances: [
                         {
-                            cluster_id: 'cluster_id_1',
+                            cluster_id: "cluster_id_1",
                             state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                            version: '0.1.0',
+                            version: "0.1.0",
                         },
                     ],
                 },
                 plugin_1: {
-                    id: 'plugin_1',
-                    version: '0.0.1',
+                    id: "plugin_1",
+                    version: "0.0.1",
                     state: PluginState.PLUGIN_STATE_STOPPING,
-                    name: 'Plugin 1',
-                    description: 'The plugin.',
+                    name: "Plugin 1",
+                    description: "The plugin.",
                     active: true,
                     instances: [
                         {
-                            cluster_id: 'cluster_id_1',
+                            cluster_id: "cluster_id_1",
                             state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                            version: '0.0.1',
+                            version: "0.0.1",
                         },
                         {
-                            cluster_id: 'cluster_id_2',
+                            cluster_id: "cluster_id_2",
                             state: PluginState.PLUGIN_STATE_RUNNING,
-                            version: '0.0.2',
+                            version: "0.0.2",
                         },
                     ],
                 },
@@ -308,19 +310,19 @@ describe('components/PluginManagement', () => {
             plugins: {
                 plugin_0: {
                     active: false,
-                    description: 'The plugin 0.',
-                    id: 'plugin_0',
-                    name: 'Plugin 0',
-                    version: '0.1.0',
+                    description: "The plugin 0.",
+                    id: "plugin_0",
+                    name: "Plugin 0",
+                    version: "0.1.0",
                     settings_schema: {},
                     webapp: {},
                 },
                 plugin_1: {
                     active: true,
-                    description: 'The plugin 1.',
-                    id: 'plugin_1',
-                    name: 'Plugin 1',
-                    version: '0.1.0',
+                    description: "The plugin 1.",
+                    id: "plugin_1",
+                    name: "Plugin 1",
+                    version: "0.1.0",
                     settings_schema: {},
                     webapp: {},
                 },
@@ -337,12 +339,12 @@ describe('components/PluginManagement', () => {
                 disablePlugin: jest.fn(),
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
-        wrapper.setState({loading: false});
+        const wrapper = shallow(<PluginManagement {...props} />);
+        wrapper.setState({ loading: false });
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, with installed plugins and just header should set hasSettings to true', () => {
+    test("should match snapshot, with installed plugins and just header should set hasSettings to true", () => {
         const props = {
             config: {
                 ...defaultProps.config,
@@ -355,17 +357,17 @@ describe('components/PluginManagement', () => {
             },
             pluginStatuses: {
                 plugin_0: {
-                    id: 'plugin_0',
-                    version: '0.1.0',
+                    id: "plugin_0",
+                    version: "0.1.0",
                     state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                    name: 'Plugin 0',
-                    description: 'The plugin 0.',
+                    name: "Plugin 0",
+                    description: "The plugin 0.",
                     active: false,
                     instances: [
                         {
-                            cluster_id: 'cluster_id_1',
+                            cluster_id: "cluster_id_1",
                             state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                            version: '0.1.0',
+                            version: "0.1.0",
                         },
                     ],
                 },
@@ -373,12 +375,12 @@ describe('components/PluginManagement', () => {
             plugins: {
                 plugin_0: {
                     active: false,
-                    description: 'The plugin 0.',
-                    id: 'plugin_0',
-                    name: 'Plugin 0',
-                    version: '0.1.0',
+                    description: "The plugin 0.",
+                    id: "plugin_0",
+                    name: "Plugin 0",
+                    version: "0.1.0",
                     settings_schema: {
-                        header: 'This is a header',
+                        header: "This is a header",
                     },
                     webapp: {},
                 },
@@ -395,12 +397,12 @@ describe('components/PluginManagement', () => {
                 disablePlugin: jest.fn(),
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
-        wrapper.setState({loading: false});
+        const wrapper = shallow(<PluginManagement {...props} />);
+        wrapper.setState({ loading: false });
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, with installed plugins and just footer should set hasSettings to true', () => {
+    test("should match snapshot, with installed plugins and just footer should set hasSettings to true", () => {
         const props = {
             config: {
                 ...defaultProps.config,
@@ -413,17 +415,17 @@ describe('components/PluginManagement', () => {
             },
             pluginStatuses: {
                 plugin_0: {
-                    id: 'plugin_0',
-                    version: '0.1.0',
+                    id: "plugin_0",
+                    version: "0.1.0",
                     state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                    name: 'Plugin 0',
-                    description: 'The plugin 0.',
+                    name: "Plugin 0",
+                    description: "The plugin 0.",
                     active: false,
                     instances: [
                         {
-                            cluster_id: 'cluster_id_1',
+                            cluster_id: "cluster_id_1",
                             state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                            version: '0.1.0',
+                            version: "0.1.0",
                         },
                     ],
                 },
@@ -431,12 +433,12 @@ describe('components/PluginManagement', () => {
             plugins: {
                 plugin_0: {
                     active: false,
-                    description: 'The plugin 0.',
-                    id: 'plugin_0',
-                    name: 'Plugin 0',
-                    version: '0.1.0',
+                    description: "The plugin 0.",
+                    id: "plugin_0",
+                    name: "Plugin 0",
+                    version: "0.1.0",
                     settings_schema: {
-                        footer: 'This is a footer',
+                        footer: "This is a footer",
                     },
                     webapp: {},
                 },
@@ -453,12 +455,12 @@ describe('components/PluginManagement', () => {
                 disablePlugin: jest.fn(),
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
-        wrapper.setState({loading: false});
+        const wrapper = shallow(<PluginManagement {...props} />);
+        wrapper.setState({ loading: false });
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, with installed plugins and just settings should set hasSettings to true', () => {
+    test("should match snapshot, with installed plugins and just settings should set hasSettings to true", () => {
         const props = {
             config: {
                 ...defaultProps.config,
@@ -471,17 +473,17 @@ describe('components/PluginManagement', () => {
             },
             pluginStatuses: {
                 plugin_0: {
-                    id: 'plugin_0',
-                    version: '0.1.0',
+                    id: "plugin_0",
+                    version: "0.1.0",
                     state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                    name: 'Plugin 0',
-                    description: 'The plugin 0.',
+                    name: "Plugin 0",
+                    description: "The plugin 0.",
                     active: false,
                     instances: [
                         {
-                            cluster_id: 'cluster_id_1',
+                            cluster_id: "cluster_id_1",
                             state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                            version: '0.1.0',
+                            version: "0.1.0",
                         },
                     ],
                 },
@@ -489,14 +491,12 @@ describe('components/PluginManagement', () => {
             plugins: {
                 plugin_0: {
                     active: false,
-                    description: 'The plugin 0.',
-                    id: 'plugin_0',
-                    name: 'Plugin 0',
-                    version: '0.1.0',
+                    description: "The plugin 0.",
+                    id: "plugin_0",
+                    name: "Plugin 0",
+                    version: "0.1.0",
                     settings_schema: {
-                        settings: [
-                            {bla: 'test', xoxo: 'test2'},
-                        ],
+                        settings: [{ bla: "test", xoxo: "test2" }],
                     },
                     webapp: {},
                 },
@@ -513,8 +513,8 @@ describe('components/PluginManagement', () => {
                 disablePlugin: jest.fn(),
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
-        wrapper.setState({loading: false});
+        const wrapper = shallow(<PluginManagement {...props} />);
+        wrapper.setState({ loading: false });
         expect(wrapper).toMatchSnapshot();
     });
 });

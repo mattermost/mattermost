@@ -6,16 +6,19 @@ export function popOverOverlayPosition(
     innerHeight: number,
     spaceRequiredAbove: number,
     spaceRequiredBelow?: number,
-    horizontalPosition?: 'left' | 'right',
+    horizontalPosition?: "left" | "right",
 ): string {
     let placement: string;
 
     if (targetBounds.top > spaceRequiredAbove) {
-        placement = 'top';
-    } else if (innerHeight - targetBounds.bottom > (spaceRequiredBelow || spaceRequiredAbove)) {
-        placement = 'bottom';
+        placement = "top";
+    } else if (
+        innerHeight - targetBounds.bottom >
+        (spaceRequiredBelow || spaceRequiredAbove)
+    ) {
+        placement = "bottom";
     } else {
-        placement = horizontalPosition || 'left';
+        placement = horizontalPosition || "left";
     }
     return placement;
 }
@@ -28,7 +31,7 @@ export function approxGroupPopOverHeight(
     maxListHeight: number,
 ): number {
     return Math.min(
-        (viewPortHeight * viewportScaleFactor) + headerHeight,
+        viewPortHeight * viewportScaleFactor + headerHeight,
         groupListHeight + headerHeight,
         maxListHeight,
     );

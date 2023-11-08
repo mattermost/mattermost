@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combineReducers} from 'redux';
+import { combineReducers } from "redux";
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import type { GenericAction } from "mattermost-redux/types/actions";
 
-import {ActionTypes} from 'utils/constants';
+import { ActionTypes } from "utils/constants";
 
 export function switcherOpen(state = false, action: GenericAction) {
     switch (action.type) {
-    case ActionTypes.SET_PRODUCT_SWITCHER_OPEN:
-        return action.open;
-    default:
-        return state;
+        case ActionTypes.SET_PRODUCT_SWITCHER_OPEN:
+            return action.open;
+        default:
+            return state;
     }
 }
 

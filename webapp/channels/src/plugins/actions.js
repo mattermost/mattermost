@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {hideRHSPlugin as hideRHSPluginAction} from 'actions/views/rhs';
-import {getPluggableId} from 'selectors/rhs';
+import { hideRHSPlugin as hideRHSPluginAction } from "actions/views/rhs";
+import { getPluggableId } from "selectors/rhs";
 
-import {ActionTypes} from 'utils/constants';
+import { ActionTypes } from "utils/constants";
 
 export const removeWebappPlugin = (manifest) => {
     return (dispatch) => {
         dispatch(hideRHSPlugin(manifest.id));
-        dispatch({type: ActionTypes.REMOVED_WEBAPP_PLUGIN, data: manifest});
+        dispatch({ type: ActionTypes.REMOVED_WEBAPP_PLUGIN, data: manifest });
     };
 };
 
@@ -17,9 +17,13 @@ export const removeWebappPlugin = (manifest) => {
 const hideRHSPlugin = (manifestId) => {
     return (dispatch, getState) => {
         const state = getState();
-        const rhsPlugins = state.plugins.components.RightHandSidebarComponent || [];
+        const rhsPlugins =
+            state.plugins.components.RightHandSidebarComponent || [];
         const pluggableId = getPluggableId(state);
-        const pluginComponent = rhsPlugins.find((element) => element.id === pluggableId && element.pluginId === manifestId);
+        const pluginComponent = rhsPlugins.find(
+            (element) =>
+                element.id === pluggableId && element.pluginId === manifestId,
+        );
 
         // Hide RHS if its showing this plugin
         if (pluginComponent) {

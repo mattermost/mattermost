@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 function isFunction(obj: any): boolean {
-    return typeof obj === 'function';
+    return typeof obj === "function";
 }
 
 type Listener = (...args: any[]) => void;

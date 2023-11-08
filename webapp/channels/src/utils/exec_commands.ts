@@ -6,5 +6,5 @@
  * @param text The text to insert.
  */
 export function execCommandInsertText(text: string) {
-    document.execCommand('insertText', false, text);
+    document.execCommand("insertText", false, text);
 }

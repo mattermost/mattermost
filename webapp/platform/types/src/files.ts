@@ -24,20 +24,20 @@ export type FilesState = {
     files: Record<string, FileInfo>;
     filesFromSearch: Record<string, FileSearchResultItem>;
     fileIdsByPostId: Record<string, string[]>;
-    filePublicLink?: {link: string};
+    filePublicLink?: { link: string };
 };
 
 export type FileUploadResponse = {
     file_infos: FileInfo[];
     client_ids: string[];
-}
+};
 
 export type FileSearchResultItem = FileInfo & {
     channel_id: string;
-}
+};
 
 export type FileSearchResults = {
-    order: Array<FileSearchResultItem['id']>;
+    order: Array<FileSearchResultItem["id"]>;
     file_infos: Map<string, FileSearchResultItem>;
     next_file_info_id: string;
     prev_file_info_id: string;

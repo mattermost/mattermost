@@ -19,14 +19,16 @@
         #forward_post_textbox {
             overflow: auto;
             border: none;
-            box-shadow: inset 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.16);
+            box-shadow: inset 0 0 0 1px
+                rgba(var(--center-channel-color-rgb), 0.16);
 
             &:focus {
                 box-shadow: inset 0 0 0 2px var(--button-bg);
             }
 
             &:focus:not(:focus-visible) {
-                box-shadow: inset 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.16);
+                box-shadow: inset 0 0 0 1px
+                    rgba(var(--center-channel-color-rgb), 0.16);
             }
 
             &:focus:focus-visible {

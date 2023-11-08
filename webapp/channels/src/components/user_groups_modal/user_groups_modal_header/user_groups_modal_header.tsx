@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import React, { useCallback } from "react";
+import { Modal } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
 
-import CreateUserGroupsModal from 'components/create_user_groups_modal';
+import CreateUserGroupsModal from "components/create_user_groups_modal";
 
-import {ModalIdentifiers} from 'utils/constants';
+import { ModalIdentifiers } from "utils/constants";
 
-import type {ModalData} from 'types/actions';
+import type { ModalData } from "types/actions";
 
 export type Props = {
     canCreateCustomGroups: boolean;
@@ -18,7 +18,7 @@ export type Props = {
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
     };
-}
+};
 
 const UserGroupsModalHeader = (props: Props) => {
     const goToCreateModal = useCallback(() => {
@@ -34,27 +34,23 @@ const UserGroupsModalHeader = (props: Props) => {
 
     return (
         <Modal.Header closeButton={true}>
-            <Modal.Title
-                componentClass='h1'
-                id='userGroupsModalLabel'
-            >
+            <Modal.Title componentClass="h1" id="userGroupsModalLabel">
                 <FormattedMessage
-                    id='user_groups_modal.title'
-                    defaultMessage='User Groups'
+                    id="user_groups_modal.title"
+                    defaultMessage="User Groups"
                 />
             </Modal.Title>
-            {
-                props.canCreateCustomGroups &&
+            {props.canCreateCustomGroups && (
                 <button
-                    className='user-groups-create btn btn-secondary btn-sm'
+                    className="user-groups-create btn btn-secondary btn-sm"
                     onClick={goToCreateModal}
                 >
                     <FormattedMessage
-                        id='user_groups_modal.createNew'
-                        defaultMessage='Create Group'
+                        id="user_groups_modal.createNew"
+                        defaultMessage="Create Group"
                     />
                 </button>
-            }
+            )}
         </Modal.Header>
     );
 };

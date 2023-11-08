@@ -1,21 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React, {useState, useEffect, useRef} from 'react';
-import type {CSSProperties} from 'react';
-import ReactSelect, {components} from 'react-select';
-import type {Props as SelectProps, IndicatorContainerProps, ControlProps, OptionProps} from 'react-select';
+import classNames from "classnames";
+import React, { useState, useEffect, useRef } from "react";
+import type { CSSProperties } from "react";
+import ReactSelect, { components } from "react-select";
+import type {
+    Props as SelectProps,
+    IndicatorContainerProps,
+    ControlProps,
+    OptionProps,
+} from "react-select";
 
-import 'components/widgets/inputs/input/input.scss';
-import './dropdown_input_hybrid.scss';
+import "components/widgets/inputs/input/input.scss";
+import "./dropdown_input_hybrid.scss";
 
 type OptionType = {
     label: string | JSX.Element;
     value: string;
-}
+};
 
-type Props<T> = Omit<SelectProps<T>, 'onChange'> & {
+type Props<T> = Omit<SelectProps<T>, "onChange"> & {
     value: T;
     legend?: string;
     error?: string;
@@ -36,18 +41,18 @@ type Props<T> = Omit<SelectProps<T>, 'onChange'> & {
 const baseStyles = {
     input: (provided: CSSProperties) => ({
         ...provided,
-        color: 'var(--center-channel-color)',
+        color: "var(--center-channel-color)",
     }),
     control: (provided: CSSProperties) => ({
         ...provided,
-        border: 'none',
-        boxShadow: 'none',
-        padding: '0 2px',
-        cursor: 'pointer',
+        border: "none",
+        boxShadow: "none",
+        padding: "0 2px",
+        cursor: "pointer",
     }),
     indicatorSeparator: (provided: CSSProperties) => ({
         ...provided,
-        display: 'none',
+        display: "none",
     }),
     menuPortal: (provided: CSSProperties) => ({
         ...provided,
@@ -56,31 +61,33 @@ const baseStyles = {
 };
 
 const IndicatorsContainer = (props: IndicatorContainerProps<OptionType>) => (
-    <div className='DropdownInput__indicatorsContainer'>
+    <div className="DropdownInput__indicatorsContainer">
         <components.IndicatorsContainer {...props}>
-            <i className='icon icon-chevron-down'/>
+            <i className="icon icon-chevron-down" />
         </components.IndicatorsContainer>
     </div>
 );
 
 const Control = (props: ControlProps<OptionType>) => (
-    <div className='DropdownInput__controlContainer'>
-        <components.Control {...props}/>
+    <div className="DropdownInput__controlContainer">
+        <components.Control {...props} />
     </div>
 );
 
 const Option = (props: OptionProps<OptionType>) => (
     <div
-        className={classNames('DropdownInput__option', {
+        className={classNames("DropdownInput__option", {
             selected: props.isSelected,
             focused: props.isFocused,
         })}
     >
-        <components.Option {...props}/>
+        <components.Option {...props} />
     </div>
 );
 
-const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>) => {
+const DropdownInputHybrid = <T extends OptionType = OptionType>(
+    props: Props<T>,
+) => {
     const {
         value,
         placeholder,
@@ -121,18 +128,24 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
     useEffect(() => {
         if (!inputValue && !focused && !inputFocused) {
             onDropdownChange(defaultValue);
-            showTextInput('');
+            showTextInput("");
         }
     }, [focused, inputFocused]);
 
     const getMenuStyles = () =>
-        (showInput ? {
-            menu: (provided: CSSProperties) => ({
-                ...provided,
-                width: containerRef.current ? `${containerRef.current.offsetWidth}px` : '0px',
-                left: inputRef.current ? `-${inputRef.current.offsetWidth}px` : '0px',
-            }),
-        } : {});
+        showInput
+            ? {
+                  menu: (provided: CSSProperties) => ({
+                      ...provided,
+                      width: containerRef.current
+                          ? `${containerRef.current.offsetWidth}px`
+                          : "0px",
+                      left: inputRef.current
+                          ? `-${inputRef.current.offsetWidth}px`
+                          : "0px",
+                  }),
+              }
+            : {};
 
     const onInputBlur = () => setInputFocused(false);
 
@@ -172,62 +185,74 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
 
     return (
         <div
-            className='DropdownInput hybrid_container'
+            className="DropdownInput hybrid_container"
             ref={containerRef}
             style={{
-                width: '100%',
+                width: "100%",
             }}
         >
             <fieldset
-                className={classNames('Input_fieldset', className, {
+                className={classNames("Input_fieldset", className, {
                     Input_fieldset___error: error,
                     Input_fieldset___legend: showLegend,
                     Input_fieldset___split: showInput,
                 })}
             >
-                <legend className={classNames('Input_legend', {Input_legend___focus: showLegend})}>
-                    {showLegend ? (legend || placeholder) : null}
+                <legend
+                    className={classNames("Input_legend", {
+                        Input_legend___focus: showLegend,
+                    })}
+                >
+                    {showLegend ? legend || placeholder : null}
                 </legend>
                 <div
-                    className={classNames('Input_wrapper input_hybrid_wrapper', {showInput})}
+                    className={classNames(
+                        "Input_wrapper input_hybrid_wrapper",
+                        { showInput },
+                    )}
                     onFocus={onInputFocus}
                     onBlur={onInputBlur}
                     style={{
-                        maxWidth: showInput ? '10000px' : '0',
+                        maxWidth: showInput ? "10000px" : "0",
                     }}
                 >
                     <input
                         name={`Input_${name}`}
-                        type={inputType || 'text'}
+                        type={inputType || "text"}
                         value={inputValue}
                         onChange={onInputChange}
                         placeholder={placeholder}
                         required={false}
-                        className={classNames('Input form-control')}
+                        className={classNames("Input form-control")}
                         ref={inputRef}
                         id={inputId}
                     />
                 </div>
                 <div
-                    className={classNames('Input_wrapper dropdown_hybrid_wrapper', {showInput: !showInput})}
+                    className={classNames(
+                        "Input_wrapper dropdown_hybrid_wrapper",
+                        { showInput: !showInput },
+                    )}
                     onFocus={onDropdownInputFocus}
                     onBlur={onDropdownInputBlur}
                     style={{
-                        width: showInput ? `${width}px` : '100%',
+                        width: showInput ? `${width}px` : "100%",
                     }}
                 >
                     <ReactSelect
                         id={`DropdownInput_${name}`}
-                        placeholder={focused ? '' : placeholder}
+                        placeholder={focused ? "" : placeholder}
                         components={{
                             IndicatorsContainer,
                             Option,
                             Control,
                         }}
-                        className={classNames('Input', className, {Input__focus: showLegend})}
+                        className={classNames("Input", className, {
+                            Input__focus: showLegend,
+                        })}
                         classNamePrefix={dropdownClassNamePrefix}
                         onChange={onValueChange as any}
-                        styles={{...baseStyles, ...getMenuStyles()}}
+                        styles={{ ...baseStyles, ...getMenuStyles() }}
                         value={value}
                         hideSelectedOptions={true}
                         isSearchable={false}

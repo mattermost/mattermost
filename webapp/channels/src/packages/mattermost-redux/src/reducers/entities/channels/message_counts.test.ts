@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ServerChannel} from '@mattermost/types/channels';
+import type { ServerChannel } from "@mattermost/types/channels";
 
-import {updateMessageCount} from './message_counts';
+import { updateMessageCount } from "./message_counts";
 
-describe('reducers.entities.channels', () => {
-    describe('updateMessageCounts', () => {
-        it('root and total should be different if there are threads', () => {
+describe("reducers.entities.channels", () => {
+    describe("updateMessageCounts", () => {
+        it("root and total should be different if there are threads", () => {
             const state = {
                 myid: {
                     total: 0,
@@ -15,7 +15,7 @@ describe('reducers.entities.channels', () => {
                 },
             };
             const channel = {
-                id: 'myid',
+                id: "myid",
                 total_msg_count_root: 1,
                 total_msg_count: 5,
             };

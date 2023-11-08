@@ -1,23 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router-dom';
-import semver from 'semver';
+import classNames from "classnames";
+import React from "react";
+import { FormattedMessage } from "react-intl";
+import { Link } from "react-router-dom";
+import semver from "semver";
 
-import type {MarketplaceLabel} from '@mattermost/types/marketplace';
-import type {PluginStatusRedux} from '@mattermost/types/plugins';
+import type { MarketplaceLabel } from "@mattermost/types/marketplace";
+import type { PluginStatusRedux } from "@mattermost/types/plugins";
 
-import ConfirmModal from 'components/confirm_modal';
-import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+import ConfirmModal from "components/confirm_modal";
+import ExternalLink from "components/external_link";
+import FormattedMarkdownMessage from "components/formatted_markdown_message";
+import LoadingWrapper from "components/widgets/loading/loading_wrapper";
 
-import {localizeMessage} from 'utils/utils';
+import { localizeMessage } from "utils/utils";
 
-import MarketplaceItem from '../marketplace_item';
+import MarketplaceItem from "../marketplace_item";
 
 type UpdateVersionProps = {
     version: string;
@@ -25,20 +25,16 @@ type UpdateVersionProps = {
 };
 
 // UpdateVersion renders the version text in the update details, linking out to release notes if available.
-export const UpdateVersion = ({version, releaseNotesUrl}: UpdateVersionProps): JSX.Element => {
+export const UpdateVersion = ({
+    version,
+    releaseNotesUrl,
+}: UpdateVersionProps): JSX.Element => {
     if (!releaseNotesUrl) {
-        return (
-            <span>
-                {version}
-            </span>
-        );
+        return <span>{version}</span>;
     }
 
     return (
-        <ExternalLink
-            location='marketplace_item_plugin'
-            href={releaseNotesUrl}
-        >
+        <ExternalLink location="marketplace_item_plugin" href={releaseNotesUrl}>
             {version}
         </ExternalLink>
     );
@@ -53,7 +49,13 @@ export type UpdateDetailsProps = {
 };
 
 // UpdateDetails renders an inline update prompt for plugins, when available.
-export const UpdateDetails = ({version, releaseNotesUrl, installedVersion, isInstalling, onUpdate}: UpdateDetailsProps): JSX.Element | null => {
+export const UpdateDetails = ({
+    version,
+    releaseNotesUrl,
+    installedVersion,
+    isInstalling,
+    onUpdate,
+}: UpdateDetailsProps): JSX.Element | null => {
     if (!installedVersion || isInstalling) {
         return null;
     }
@@ -70,22 +72,21 @@ export const UpdateDetails = ({version, releaseNotesUrl, installedVersion, isIns
     }
 
     return (
-        <div className={classNames('update')}>
+        <div className={classNames("update")}>
             <FormattedMessage
-                id='marketplace_modal.list.update_available'
-                defaultMessage='Update available:'
-            />
-            {' '}
+                id="marketplace_modal.list.update_available"
+                defaultMessage="Update available:"
+            />{" "}
             <UpdateVersion
                 version={version}
                 releaseNotesUrl={releaseNotesUrl}
             />
-            {' - '}
+            {" - "}
             <b>
                 <a onClick={onUpdate}>
                     <FormattedMessage
-                        id='marketplace_modal.list.update'
-                        defaultMessage='Update'
+                        id="marketplace_modal.list.update"
+                        defaultMessage="Update"
                     />
                 </a>
             </b>
@@ -104,7 +105,15 @@ export type UpdateConfirmationModalProps = {
 };
 
 // UpdateConfirmationModal prompts before allowing upgrade, specially handling major version changes.
-export const UpdateConfirmationModal = ({show, name, version, installedVersion, releaseNotesUrl, onUpdate, onCancel}: UpdateConfirmationModalProps): JSX.Element | null => {
+export const UpdateConfirmationModal = ({
+    show,
+    name,
+    version,
+    installedVersion,
+    releaseNotesUrl,
+    onUpdate,
+    onCancel,
+}: UpdateConfirmationModalProps): JSX.Element | null => {
     if (!installedVersion) {
         return null;
     }
@@ -120,33 +129,33 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
         return null;
     }
 
-    const messages = [(
-        <p key='intro'>
+    const messages = [
+        <p key="intro">
             <FormattedMessage
-                id='marketplace_modal.list.update_confirmation.message.intro'
+                id="marketplace_modal.list.update_confirmation.message.intro"
                 defaultMessage={`Are you sure you want to update the ${name} plugin to ${version}?`}
-                values={{name, version}}
+                values={{ name, version }}
             />
-        </p>
-    )];
+        </p>,
+    ];
 
     if (releaseNotesUrl) {
         messages.push(
-            <p key='current'>
+            <p key="current">
                 <FormattedMarkdownMessage
-                    id='marketplace_modal.list.update_confirmation.message.current_with_release_notes'
-                    defaultMessage='You currently have {installedVersion} installed. View the [release notes](!{releaseNotesUrl}) to learn about the changes included in this update.'
-                    values={{installedVersion, releaseNotesUrl}}
+                    id="marketplace_modal.list.update_confirmation.message.current_with_release_notes"
+                    defaultMessage="You currently have {installedVersion} installed. View the [release notes](!{releaseNotesUrl}) to learn about the changes included in this update."
+                    values={{ installedVersion, releaseNotesUrl }}
                 />
             </p>,
         );
     } else {
         messages.push(
-            <p key='current'>
+            <p key="current">
                 <FormattedMessage
-                    id='marketplace_modal.list.update_confirmation.message.current'
+                    id="marketplace_modal.list.update_confirmation.message.current"
                     defaultMessage={`You currently have ${installedVersion} installed.`}
-                    values={{installedVersion}}
+                    values={{ installedVersion }}
                 />
             </p>,
         );
@@ -154,7 +163,8 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
 
     let sameMajorVersion = false;
     try {
-        sameMajorVersion = semver.major(version) === semver.major(installedVersion);
+        sameMajorVersion =
+            semver.major(version) === semver.major(installedVersion);
     } catch (e) {
         // If we fail to parse the version, assume a potentially breaking change.
         // In practice, this won't happen since we already tried to parse the version above.
@@ -163,26 +173,22 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
     if (!sameMajorVersion) {
         if (releaseNotesUrl) {
             messages.push(
-                <p
-                    className='alert alert-warning'
-                    key='warning'
-                >
+                <p className="alert alert-warning" key="warning">
                     <FormattedMarkdownMessage
-                        id='marketplace_modal.list.update_confirmation.message.warning_major_version_with_release_notes'
-                        defaultMessage='This update may contain breaking changes. Consult the [release notes](!{releaseNotesUrl}) before upgrading.'
-                        values={{releaseNotesUrl}}
+                        id="marketplace_modal.list.update_confirmation.message.warning_major_version_with_release_notes"
+                        defaultMessage="This update may contain breaking changes. Consult the [release notes](!{releaseNotesUrl}) before upgrading."
+                        values={{ releaseNotesUrl }}
                     />
                 </p>,
             );
         } else {
             messages.push(
-                <p
-                    className='alert alert-warning'
-                    key='warning'
-                >
+                <p className="alert alert-warning" key="warning">
                     <FormattedMessage
-                        id='marketplace_modal.list.update_confirmation.message.warning_major_version'
-                        defaultMessage={'This update may contain breaking changes.'}
+                        id="marketplace_modal.list.update_confirmation.message.warning_major_version"
+                        defaultMessage={
+                            "This update may contain breaking changes."
+                        }
                     />
                 </p>,
             );
@@ -194,15 +200,15 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
             show={show}
             title={
                 <FormattedMessage
-                    id='marketplace_modal.list.update_confirmation.title'
-                    defaultMessage={'Confirm Plugin Update'}
+                    id="marketplace_modal.list.update_confirmation.title"
+                    defaultMessage={"Confirm Plugin Update"}
                 />
             }
             message={messages}
             confirmButtonText={
                 <FormattedMessage
-                    id='marketplace_modal.list.update_confirmation.confirm_button'
-                    defaultMessage='Update'
+                    id="marketplace_modal.list.update_confirmation.confirm_button"
+                    defaultMessage="Update"
                 />
             }
             onConfirm={onUpdate}
@@ -237,7 +243,10 @@ type MarketplaceItemState = {
     showUpdateConfirmationModal: boolean;
 };
 
-export default class MarketplaceItemPlugin extends React.PureComponent <MarketplaceItemPluginProps, MarketplaceItemState> {
+export default class MarketplaceItemPlugin extends React.PureComponent<
+    MarketplaceItemPluginProps,
+    MarketplaceItemState
+> {
     constructor(props: MarketplaceItemPluginProps) {
         super(props);
 
@@ -248,55 +257,57 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
 
     trackEvent = (eventName: string, allowDetail = true): void => {
         if (this.props.isDefaultMarketplace && allowDetail) {
-            this.props.trackEvent('plugins', eventName, {
+            this.props.trackEvent("plugins", eventName, {
                 plugin_id: this.props.id,
                 version: this.props.version,
                 installed_version: this.props.installedVersion,
             });
         } else {
-            this.props.trackEvent('plugins', eventName);
+            this.props.trackEvent("plugins", eventName);
         }
     };
 
     showUpdateConfirmationModal = (): void => {
-        this.setState({showUpdateConfirmationModal: true});
+        this.setState({ showUpdateConfirmationModal: true });
     };
 
     hideUpdateConfirmationModal = (): void => {
-        this.setState({showUpdateConfirmationModal: false});
+        this.setState({ showUpdateConfirmationModal: false });
     };
 
     onInstall = (): void => {
-        this.trackEvent('ui_marketplace_download');
+        this.trackEvent("ui_marketplace_download");
         this.props.actions.installPlugin(this.props.id);
     };
 
     onConfigure = (): void => {
-        this.trackEvent('ui_marketplace_configure', false);
+        this.trackEvent("ui_marketplace_configure", false);
 
         this.props.actions.closeMarketplaceModal();
     };
 
     onUpdate = (): void => {
-        this.trackEvent('ui_marketplace_download_update');
+        this.trackEvent("ui_marketplace_download_update");
 
         this.hideUpdateConfirmationModal();
         this.props.actions.installPlugin(this.props.id);
     };
 
     getItemButton(): JSX.Element {
-        if (this.props.installedVersion !== '' && !this.props.installing && !this.props.error) {
+        if (
+            this.props.installedVersion !== "" &&
+            !this.props.installing &&
+            !this.props.error
+        ) {
             return (
-                <Link
-                    to={'/admin_console/plugins/plugin_' + this.props.id}
-                >
+                <Link to={"/admin_console/plugins/plugin_" + this.props.id}>
                     <button
                         onClick={this.onConfigure}
-                        className='plugin-configure'
+                        className="plugin-configure"
                     >
                         <FormattedMessage
-                            id='marketplace_modal.list.configure'
-                            defaultMessage='Configure'
+                            id="marketplace_modal.list.configure"
+                            defaultMessage="Configure"
                         />
                     </button>
                 </Link>
@@ -307,15 +318,15 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
         if (this.props.error) {
             actionButton = (
                 <FormattedMessage
-                    id='marketplace_modal.list.try_again'
-                    defaultMessage='Try Again'
+                    id="marketplace_modal.list.try_again"
+                    defaultMessage="Try Again"
                 />
             );
         } else {
             actionButton = (
                 <FormattedMessage
-                    id='marketplace_modal.list.install'
-                    defaultMessage='Install'
+                    id="marketplace_modal.list.install"
+                    defaultMessage="Install"
                 />
             );
         }
@@ -323,27 +334,29 @@ export default class MarketplaceItemPlugin extends React.PureComponent <Marketpl
         return (
             <button
                 onClick={this.onInstall}
-                className='plugin-install always-show-enabled'
+                className="plugin-install always-show-enabled"
                 disabled={this.props.installing}
             >
                 <LoadingWrapper
                     loading={this.props.installing}
-                    text={localizeMessage('marketplace_modal.installing', 'Installing...')}
+                    text={localizeMessage(
+                        "marketplace_modal.installing",
+                        "Installing...",
+                    )}
                 >
                     {actionButton}
                 </LoadingWrapper>
-
             </button>
         );
     }
 
     render(): JSX.Element {
         let version = `(${this.props.version})`;
-        if (this.props.installedVersion !== '') {
+        if (this.props.installedVersion !== "") {
             version = `(${this.props.installedVersion})`;
         }
 
-        const versionLabel = <span className='light subtitle'>{version}</span>;
+        const versionLabel = <span className="light subtitle">{version}</span>;
 
         const updateDetails = (
             <UpdateDetails

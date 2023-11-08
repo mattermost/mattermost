@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useRef, useCallback, useState} from 'react';
+import { useRef, useCallback, useState } from "react";
 
 type CopyOptions = {
     successCopyTimeout?: number;
@@ -38,26 +38,27 @@ export default function useCopyText(options: CopyOptions): CopyResponse {
         }
         const clipboard = navigator.clipboard;
         if (clipboard) {
-            clipboard.writeText(options.text).
-                then(() => {
+            clipboard
+                .writeText(options.text)
+                .then(() => {
                     setCopiedRecently(true);
                     setCopyError(false);
-                }).
-                catch(() => {
+                })
+                .catch(() => {
                     setCopiedRecently(false);
                     setCopyError(true);
                 });
         } else {
-            const textField = document.createElement('textarea');
+            const textField = document.createElement("textarea");
             textField.innerText = options.text;
-            textField.style.position = 'fixed';
-            textField.style.opacity = '0';
+            textField.style.position = "fixed";
+            textField.style.opacity = "0";
 
             document.body.appendChild(textField);
             textField.select();
 
             try {
-                const success = document.execCommand('copy');
+                const success = document.execCommand("copy");
                 setCopiedRecently(success);
                 setCopyError(!success);
             } catch (err) {
@@ -79,4 +80,3 @@ export default function useCopyText(options: CopyOptions): CopyResponse {
         onClick,
     };
 }
-

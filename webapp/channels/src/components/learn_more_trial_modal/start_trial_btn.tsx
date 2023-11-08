@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {useIntl} from 'react-intl';
+import React from "react";
+import { useIntl } from "react-intl";
 
-import useOpenStartTrialFormModal from 'components/common/hooks/useOpenStartTrialFormModal';
+import useOpenStartTrialFormModal from "components/common/hooks/useOpenStartTrialFormModal";
 
-import './start_trial_btn.scss';
+import "./start_trial_btn.scss";
 
 export type StartTrialBtnProps = {
     message: string;
@@ -25,7 +25,7 @@ const StartTrialBtn = ({
     disabled = false,
     renderAsButton = false,
 }: StartTrialBtnProps) => {
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
     const openTrialForm = useOpenStartTrialFormModal();
     const startTrial = async () => {
         // reading status from here instead of normal flow because
@@ -40,9 +40,12 @@ const StartTrialBtn = ({
         }
     };
 
-    const id = 'start_trial_btn';
+    const id = "start_trial_btn";
 
-    const btnText = formatMessage({id: 'admin.ldap_feature_discovery.call_to_action.primary', defaultMessage: 'Start trial'});
+    const btnText = formatMessage({
+        id: "admin.ldap_feature_discovery.call_to_action.primary",
+        defaultMessage: "Start trial",
+    });
 
     return renderAsButton ? (
         <button
@@ -56,7 +59,7 @@ const StartTrialBtn = ({
     ) : (
         <a
             id={id}
-            className='StartTrialBtn start-trial-btn'
+            className="StartTrialBtn start-trial-btn"
             onClick={startTrial}
         >
             {btnText}

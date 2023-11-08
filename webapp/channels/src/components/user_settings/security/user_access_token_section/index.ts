@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import type { Dispatch, ActionCreatorsMapObject } from "redux";
 
-import type {GlobalState} from '@mattermost/types/store';
+import type { GlobalState } from "@mattermost/types/store";
 
 import {
     clearUserAccessTokens,
@@ -14,15 +14,27 @@ import {
     revokeUserAccessToken,
     enableUserAccessToken,
     disableUserAccessToken,
-} from 'mattermost-redux/actions/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+} from "mattermost-redux/actions/users";
+import type { ActionFunc } from "mattermost-redux/types/actions";
 
-import UserAccessTokenSection from './user_access_token_section';
+import UserAccessTokenSection from "./user_access_token_section";
 
 type Actions = {
-    getUserAccessTokensForUser: (userId: string, page: number, perPage: number) => void;
-    createUserAccessToken: (userId: string, description: string) => Promise<{
-        data: {token: string; description: string; id: string; is_active: boolean} | null;
+    getUserAccessTokensForUser: (
+        userId: string,
+        page: number,
+        perPage: number,
+    ) => void;
+    createUserAccessToken: (
+        userId: string,
+        description: string,
+    ) => Promise<{
+        data: {
+            token: string;
+            description: string;
+            id: string;
+            is_active: boolean;
+        } | null;
         error?: {
             message: string;
         };
@@ -46,7 +58,7 @@ type Actions = {
         };
     }>;
     clearUserAccessTokens: () => void;
-}
+};
 
 function mapStateToProps(state: GlobalState) {
     return {
@@ -56,15 +68,24 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
-            getUserAccessTokensForUser,
-            createUserAccessToken,
-            revokeUserAccessToken,
-            enableUserAccessToken,
-            disableUserAccessToken,
-            clearUserAccessTokens,
-        }, dispatch),
+        actions: bindActionCreators<
+            ActionCreatorsMapObject<ActionFunc>,
+            Actions
+        >(
+            {
+                getUserAccessTokensForUser,
+                createUserAccessToken,
+                revokeUserAccessToken,
+                enableUserAccessToken,
+                disableUserAccessToken,
+                clearUserAccessTokens,
+            },
+            dispatch,
+        ),
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(UserAccessTokenSection);
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps,
+)(UserAccessTokenSection);

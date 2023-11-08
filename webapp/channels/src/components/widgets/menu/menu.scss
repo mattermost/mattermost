@@ -42,7 +42,9 @@
             @media screen and (min-width: 768px) {
                 max-height: 80vh;
                 overflow-y: hidden;
-                transition: max-height 1000ms ease-in, opacity 250ms linear;
+                transition:
+                    max-height 1000ms ease-in,
+                    opacity 250ms linear;
             }
 
             @media screen and (max-width: 640px) {
@@ -69,7 +71,9 @@
             @media screen and (min-width: 768px) {
                 max-height: 0;
                 overflow-y: hidden;
-                transition: max-height 1000ms ease-in 0ms, opacity 250ms linear 750ms;
+                transition:
+                    max-height 1000ms ease-in 0ms,
+                    opacity 250ms linear 750ms;
             }
 
             @media screen and (max-width: 768px) {

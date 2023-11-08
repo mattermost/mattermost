@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import debounce from 'lodash/debounce';
-import React from 'react';
-import type {CSSProperties} from 'react';
+import debounce from "lodash/debounce";
+import React from "react";
+import type { CSSProperties } from "react";
 
-import LoadingScreen from 'components/loading_screen';
+import LoadingScreen from "components/loading_screen";
 
 const SCROLL_BUFFER = 100;
 const DEBOUNCE_WAIT_TIME = 200;
@@ -68,8 +68,8 @@ export default class InfiniteScroll extends React.PureComponent<Props, State> {
 
     static defaultProps = {
         bufferValue: SCROLL_BUFFER,
-        endOfDataMessage: '',
-        styleClass: '',
+        endOfDataMessage: "",
+        styleClass: "",
         loaderStyle: {},
     };
 
@@ -83,11 +83,17 @@ export default class InfiniteScroll extends React.PureComponent<Props, State> {
     }
 
     componentDidMount(): void {
-        this.node.current?.addEventListener('scroll', this.debounceHandleScroll);
+        this.node.current?.addEventListener(
+            "scroll",
+            this.debounceHandleScroll,
+        );
     }
 
     componentWillUnmount(): void {
-        this.node.current?.removeEventListener('scroll', this.debounceHandleScroll);
+        this.node.current?.removeEventListener(
+            "scroll",
+            this.debounceHandleScroll,
+        );
     }
 
     validateBuffer = (buffer: number): number => {
@@ -102,8 +108,9 @@ export default class InfiniteScroll extends React.PureComponent<Props, State> {
     };
 
     handleScroll = (): void => {
-        const {isFetching, isEndofData} = this.state;
-        const {callBack, bufferValue, totalItems, itemsPerPage, pageNumber} = this.props;
+        const { isFetching, isEndofData } = this.state;
+        const { callBack, bufferValue, totalItems, itemsPerPage, pageNumber } =
+            this.props;
 
         const node = this.node.current;
         const validBuffer = this.validateBuffer(bufferValue);
@@ -112,37 +119,40 @@ export default class InfiniteScroll extends React.PureComponent<Props, State> {
         const nearBottom = node!.scrollTop > toScroll;
 
         if (nearBottom && !isEndofData && !isFetching) {
-            this.setState({isFetching: true},
-                async () => {
-                    await callBack();
+            this.setState({ isFetching: true }, async () => {
+                await callBack();
 
-                    this.setState({
-                        isFetching: false,
-                    });
-
-                    if (totalItems === 0) {
-                        this.setState({
-                            isEndofData: true,
-                        });
-                        return;
-                    }
-
-                    const amountOfPages = this.getAmountOfPages(totalItems, itemsPerPage);
-
-                    if (pageNumber === amountOfPages) {
-                        this.setState({
-                            isEndofData: true,
-                        });
-                    }
+                this.setState({
+                    isFetching: false,
                 });
+
+                if (totalItems === 0) {
+                    this.setState({
+                        isEndofData: true,
+                    });
+                    return;
+                }
+
+                const amountOfPages = this.getAmountOfPages(
+                    totalItems,
+                    itemsPerPage,
+                );
+
+                if (pageNumber === amountOfPages) {
+                    this.setState({
+                        isEndofData: true,
+                    });
+                }
+            });
         }
     };
 
     debounceHandleScroll = debounce(this.handleScroll, DEBOUNCE_WAIT_TIME);
 
     render(): React.ReactNode {
-        const {children, endOfDataMessage, styleClass, loaderStyle} = this.props;
-        const {isEndofData, isFetching} = this.state;
+        const { children, endOfDataMessage, styleClass, loaderStyle } =
+            this.props;
+        const { isEndofData, isFetching } = this.state;
         const showLoader = !isEndofData && isFetching; // show loader if fetching and end of data is not reached.
         return (
             <>
@@ -152,10 +162,7 @@ export default class InfiniteScroll extends React.PureComponent<Props, State> {
                 >
                     {children}
                     {showLoader && (
-                        <LoadingScreen
-                            style={loaderStyle}
-                            message=' '
-                        />
+                        <LoadingScreen style={loaderStyle} message=" " />
                     )}
                     {!showLoader && endOfDataMessage}
                 </div>

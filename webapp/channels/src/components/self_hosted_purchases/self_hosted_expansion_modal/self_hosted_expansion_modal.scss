@@ -85,15 +85,15 @@
             display: none;
         }
 
-        >.lhs {
+        > .lhs {
             width: 25%;
         }
 
-        >.center {
+        > .center {
             width: 50%;
         }
 
-        >.rhs {
+        > .rhs {
             position: sticky;
             display: flex;
             width: 25%;
@@ -131,7 +131,7 @@
             width: 100%;
             height: 100%;
 
-            >div {
+            > div {
                 position: absolute;
                 top: 0;
                 left: 0;
@@ -145,7 +145,7 @@
                 justify-content: flex-start;
             }
 
-            input[type=checkbox] {
+            input[type="checkbox"] {
                 width: 17px;
                 height: 17px;
                 flex-shrink: 0;
@@ -159,15 +159,15 @@
     @media (max-width: 1020px) {
         .SelfHostedExpansionModal {
             .form-view {
-                >.lhs {
+                > .lhs {
                     display: none;
                 }
 
-                >.center {
+                > .center {
                     width: 66%;
                 }
 
-                >.rhs {
+                > .rhs {
                     width: 33%;
                 }
             }

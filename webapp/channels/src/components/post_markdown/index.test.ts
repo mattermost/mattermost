@@ -1,26 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {TestHelper} from 'utils/test_helper';
+import { TestHelper } from "utils/test_helper";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import {makeGetMentionKeysForPost} from './index';
+import { makeGetMentionKeysForPost } from "./index";
 
-describe('makeGetMentionKeysForPost', () => {
+describe("makeGetMentionKeysForPost", () => {
     const channel = TestHelper.getChannelMock({});
-    const team = TestHelper.getTeamMock({group_constrained: false});
+    const team = TestHelper.getTeamMock({ group_constrained: false });
     let user = TestHelper.getUserMock({
-        username: 'a123',
+        username: "a123",
     });
-    user = {...user,
+    user = {
+        ...user,
         notify_props: {
             ...user.notify_props,
-            channel: 'true',
-        }};
+            channel: "true",
+        },
+    };
     const group = TestHelper.getGroupMock({
-        id: '123',
-        name: 'developers',
+        id: "123",
+        name: "developers",
         allow_reference: true,
         delete_at: 0,
     });
@@ -38,16 +40,14 @@ describe('makeGetMentionKeysForPost', () => {
                 groups: {
                     [group.id]: group,
                 },
-                myGroups: [
-                    group.id,
-                ],
+                myGroups: [group.id],
             },
             teams: {
                 teams: {
                     [team.id]: team,
                 },
                 groupsAssociatedToTeam: {
-                    [team.id]: {ids: []},
+                    [team.id]: { ids: [] },
                 },
             },
             channels: {
@@ -55,7 +55,7 @@ describe('makeGetMentionKeysForPost', () => {
                     [channel.id]: channel,
                 },
                 groupsAssociatedToChannel: {
-                    [channel.id]: {ids: [group]},
+                    [channel.id]: { ids: [group] },
                 },
             },
             general: {
@@ -67,7 +67,7 @@ describe('makeGetMentionKeysForPost', () => {
         },
     } as GlobalState;
 
-    it('should return all mentionKeys', () => {
+    it("should return all mentionKeys", () => {
         const post = TestHelper.getPostMock({
             props: {
                 disable_group_highlight: false,
@@ -76,11 +76,17 @@ describe('makeGetMentionKeysForPost', () => {
         });
         const getMentionKeysForPost = makeGetMentionKeysForPost();
         const results = getMentionKeysForPost(baseState, post, channel);
-        const expected = [{key: '@channel'}, {key: '@all'}, {key: '@here'}, {key: '@a123'}, {key: '@developers'}];
+        const expected = [
+            { key: "@channel" },
+            { key: "@all" },
+            { key: "@here" },
+            { key: "@a123" },
+            { key: "@developers" },
+        ];
         expect(results).toEqual(expected);
     });
 
-    it('should return mentionKeys without groups', () => {
+    it("should return mentionKeys without groups", () => {
         const post = TestHelper.getPostMock({
             props: {
                 disable_group_highlight: true,
@@ -89,11 +95,16 @@ describe('makeGetMentionKeysForPost', () => {
         });
         const getMentionKeysForPost = makeGetMentionKeysForPost();
         const results = getMentionKeysForPost(baseState, post, channel);
-        const expected = [{key: '@channel'}, {key: '@all'}, {key: '@here'}, {key: '@a123'}];
+        const expected = [
+            { key: "@channel" },
+            { key: "@all" },
+            { key: "@here" },
+            { key: "@a123" },
+        ];
         expect(results).toEqual(expected);
     });
 
-    it('should return group mentions and all mentions without channel mentions', () => {
+    it("should return group mentions and all mentions without channel mentions", () => {
         const post = TestHelper.getPostMock({
             props: {
                 disable_group_highlight: false,
@@ -102,11 +113,11 @@ describe('makeGetMentionKeysForPost', () => {
         });
         const getMentionKeysForPost = makeGetMentionKeysForPost();
         const results = getMentionKeysForPost(baseState, post, channel);
-        const expected = [{key: '@a123'}, {key: '@developers'}];
+        const expected = [{ key: "@a123" }, { key: "@developers" }];
         expect(results).toEqual(expected);
     });
 
-    it('should return all mentions without group mentions and channel mentions', () => {
+    it("should return all mentions without group mentions and channel mentions", () => {
         const post = TestHelper.getPostMock({
             props: {
                 disable_group_highlight: true,
@@ -115,7 +126,7 @@ describe('makeGetMentionKeysForPost', () => {
         });
         const getMentionKeysForPost = makeGetMentionKeysForPost();
         const results = getMentionKeysForPost(baseState, post, channel);
-        const expected = [{key: '@a123'}];
+        const expected = [{ key: "@a123" }];
         expect(results).toEqual(expected);
     });
 });

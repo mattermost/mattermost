@@ -1,31 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
+import IconButton from "@mattermost/compass-components/components/icon-button"; // eslint-disable-line no-restricted-imports
 
-import {CloudProducts} from 'utils/constants';
-import {FileSizes} from 'utils/file_utils';
+import { CloudProducts } from "utils/constants";
+import { FileSizes } from "utils/file_utils";
 
-import SidebarHeader from './sidebar_header';
-import type {Props} from './sidebar_header';
+import SidebarHeader from "./sidebar_header";
+import type { Props } from "./sidebar_header";
 
-import AddChannelDropdown from '../add_channel_dropdown';
+import AddChannelDropdown from "../add_channel_dropdown";
 
 let props: Props;
 
 const mockDispatch = jest.fn();
 let mockState: any;
 
-jest.mock('react-redux', () => ({
-    ...jest.requireActual('react-redux') as typeof import('react-redux'),
-    useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
+jest.mock("react-redux", () => ({
+    ...(jest.requireActual("react-redux") as typeof import("react-redux")),
+    useSelector: (selector: (state: typeof mockState) => unknown) =>
+        selector(mockState),
     useDispatch: () => mockDispatch,
 }));
 
-describe('Components/SidebarHeader', () => {
+describe("Components/SidebarHeader", () => {
     beforeEach(() => {
         props = {
             showNewChannelModal: jest.fn(),
@@ -50,11 +51,12 @@ describe('Components/SidebarHeader', () => {
                     myPreferences: {},
                 },
                 teams: {
-                    currentTeamId: 'currentteam',
+                    currentTeamId: "currentteam",
                     teams: {
                         currentteam: {
-                            id: 'currentteam',
-                            description: 'et iste illum reprehenderit aliquid in rem itaque in maxime eius.',
+                            id: "currentteam",
+                            description:
+                                "et iste illum reprehenderit aliquid in rem itaque in maxime eius.",
                         },
                     },
                 },
@@ -62,7 +64,7 @@ describe('Components/SidebarHeader', () => {
                     profiles: {
                         uid: {},
                     },
-                    currentUserId: 'uid',
+                    currentUserId: "uid",
                 },
                 usage: {
                     integrations: {
@@ -88,13 +90,13 @@ describe('Components/SidebarHeader', () => {
                 },
                 cloud: {
                     subscription: {
-                        product_id: 'test_prod_1',
+                        product_id: "test_prod_1",
                         trial_end_at: 1652807380,
-                        is_free_trial: 'false',
+                        is_free_trial: "false",
                     },
                     products: {
                         test_prod_1: {
-                            id: 'test_prod_1',
+                            id: "test_prod_1",
                             sku: CloudProducts.STARTER,
                             price_per_seat: 0,
                         },
@@ -130,14 +132,16 @@ describe('Components/SidebarHeader', () => {
         };
     });
 
-    it('should show AddChannelDropdown', () => {
-        const wrapper = shallow(<SidebarHeader {...props}/>);
+    it("should show AddChannelDropdown", () => {
+        const wrapper = shallow(<SidebarHeader {...props} />);
         expect(wrapper.find(AddChannelDropdown).length).toBe(1);
     });
 
-    it('should embed teams menu dropdown into heading', () => {
-        const wrapper = shallow(<SidebarHeader {...props}/>);
+    it("should embed teams menu dropdown into heading", () => {
+        const wrapper = shallow(<SidebarHeader {...props} />);
         expect(wrapper.find(IconButton).length).toBe(0);
-        expect(wrapper.find('i').prop('className')).toBe('icon icon-chevron-down');
+        expect(wrapper.find("i").prop("className")).toBe(
+            "icon icon-chevron-down",
+        );
     });
 });

@@ -1,32 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import bing from 'sounds/bing.mp3';
-import calls_calm from 'sounds/calls_calm.mp3';
-import calls_cheerful from 'sounds/calls_cheerful.mp3';
-import calls_dynamic from 'sounds/calls_dynamic.mp3';
-import calls_urgent from 'sounds/calls_urgent.mp3';
-import crackle from 'sounds/crackle.mp3';
-import down from 'sounds/down.mp3';
-import hello from 'sounds/hello.mp3';
-import ripple from 'sounds/ripple.mp3';
-import upstairs from 'sounds/upstairs.mp3';
-import * as UserAgent from 'utils/user_agent';
+import bing from "sounds/bing.mp3";
+import calls_calm from "sounds/calls_calm.mp3";
+import calls_cheerful from "sounds/calls_cheerful.mp3";
+import calls_dynamic from "sounds/calls_dynamic.mp3";
+import calls_urgent from "sounds/calls_urgent.mp3";
+import crackle from "sounds/crackle.mp3";
+import down from "sounds/down.mp3";
+import hello from "sounds/hello.mp3";
+import ripple from "sounds/ripple.mp3";
+import upstairs from "sounds/upstairs.mp3";
+import * as UserAgent from "utils/user_agent";
 
 export const notificationSounds = new Map([
-    ['Bing', bing],
-    ['Crackle', crackle],
-    ['Down', down],
-    ['Hello', hello],
-    ['Ripple', ripple],
-    ['Upstairs', upstairs],
+    ["Bing", bing],
+    ["Crackle", crackle],
+    ["Down", down],
+    ["Hello", hello],
+    ["Ripple", ripple],
+    ["Upstairs", upstairs],
 ]);
 
 export const callsNotificationSounds = new Map([
-    ['Dynamic', calls_dynamic],
-    ['Calm', calls_calm],
-    ['Urgent', calls_urgent],
-    ['Cheerful', calls_cheerful],
+    ["Dynamic", calls_dynamic],
+    ["Calm", calls_calm],
+    ["Urgent", calls_urgent],
+    ["Cheerful", calls_cheerful],
 ]);
 
 let canDing = true;
@@ -41,7 +41,9 @@ export function ding(name: string) {
 }
 
 export function tryNotificationSound(name: string) {
-    const audio = new Audio(notificationSounds.get(name) ?? notificationSounds.get('Bing'));
+    const audio = new Audio(
+        notificationSounds.get(name) ?? notificationSounds.get("Bing"),
+    );
     audio.play();
 }
 
@@ -53,7 +55,7 @@ export function ring(name: string) {
     stopRing();
 
     currentRing = loopNotificationRing(name);
-    currentRing.addEventListener('pause', () => {
+    currentRing.addEventListener("pause", () => {
         stopRing();
     });
 }
@@ -61,7 +63,7 @@ export function ring(name: string) {
 export function stopRing() {
     if (currentRing) {
         currentRing.pause();
-        currentRing.src = '';
+        currentRing.src = "";
         currentRing.remove();
         currentRing = null;
     }
@@ -77,7 +79,7 @@ export function tryNotificationRing(name: string) {
     clearTimeout(currentTimer);
 
     currentTryRing = loopNotificationRing(name);
-    currentTryRing.addEventListener('pause', () => {
+    currentTryRing.addEventListener("pause", () => {
         stopTryNotificationRing();
     });
 
@@ -89,19 +91,22 @@ export function tryNotificationRing(name: string) {
 export function stopTryNotificationRing() {
     if (currentTryRing) {
         currentTryRing.pause();
-        currentTryRing.src = '';
+        currentTryRing.src = "";
         currentTryRing.remove();
         currentTryRing = null;
     }
 }
 
 export function loopNotificationRing(name: string) {
-    const audio = new Audio(callsNotificationSounds.get(name) ?? callsNotificationSounds.get('Calm'));
+    const audio = new Audio(
+        callsNotificationSounds.get(name) ??
+            callsNotificationSounds.get("Calm"),
+    );
     audio.loop = true;
     audio.play();
     return audio;
 }
 
 export function hasSoundOptions() {
-    return (!UserAgent.isEdge());
+    return !UserAgent.isEdge();
 }

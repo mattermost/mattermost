@@ -1,22 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React, {useCallback} from 'react';
-import {useIntl} from 'react-intl';
+import classNames from "classnames";
+import React, { useCallback } from "react";
+import { useIntl } from "react-intl";
 
-import type {ChannelType} from '@mattermost/types/channels';
+import type { ChannelType } from "@mattermost/types/channels";
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import CheckCircleIcon from 'components/widgets/icons/check_circle_icon';
-import GlobeCircleSolidIcon from 'components/widgets/icons/globe_circle_solid_icon';
-import LockCircleSolidIcon from 'components/widgets/icons/lock_circle_solid_icon';
-import UpgradeBadge from 'components/widgets/icons/upgrade_badge_icon';
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
+import CheckCircleIcon from "components/widgets/icons/check_circle_icon";
+import GlobeCircleSolidIcon from "components/widgets/icons/globe_circle_solid_icon";
+import LockCircleSolidIcon from "components/widgets/icons/lock_circle_solid_icon";
+import UpgradeBadge from "components/widgets/icons/upgrade_badge_icon";
 
-import {Constants} from 'utils/constants';
+import { Constants } from "utils/constants";
 
-import './public-private-selector.scss';
+import "./public-private-selector.scss";
 
 type BigButtonSelectorProps = {
     id: ChannelType;
@@ -58,20 +58,43 @@ const BigButtonSelector = ({
     const button = (
         <button
             id={`public-private-selector-button-${id}`}
-            className={classNames('public-private-selector-button', {selected, disabled, locked})}
+            className={classNames("public-private-selector-button", {
+                selected,
+                disabled,
+                locked,
+            })}
             onClick={handleOnClick}
         >
-            <IconSVG className={classNames('public-private-selector-button-icon', iconClassName)}/>
-            <div className='public-private-selector-button-text'>
-                <div className={classNames('public-private-selector-button-title', titleClassName)}>
+            <IconSVG
+                className={classNames(
+                    "public-private-selector-button-icon",
+                    iconClassName,
+                )}
+            />
+            <div className="public-private-selector-button-text">
+                <div
+                    className={classNames(
+                        "public-private-selector-button-title",
+                        titleClassName,
+                    )}
+                >
                     {title}
-                    {locked && <UpgradeBadge className='public-private-selector-button-icon-upgrade'/>}
+                    {locked && (
+                        <UpgradeBadge className="public-private-selector-button-icon-upgrade" />
+                    )}
                 </div>
-                <div className={classNames('public-private-selector-button-description', descriptionClassName)}>
+                <div
+                    className={classNames(
+                        "public-private-selector-button-description",
+                        descriptionClassName,
+                    )}
+                >
                     {description}
                 </div>
             </div>
-            {selected && <CheckCircleIcon className='public-private-selector-button-icon-check'/>}
+            {selected && (
+                <CheckCircleIcon className="public-private-selector-button-icon-check" />
+            )}
         </button>
     );
 
@@ -80,7 +103,7 @@ const BigButtonSelector = ({
     }
 
     const tooltipContainer = (
-        <Tooltip id={'public-private-selector-button-tooltip'}>
+        <Tooltip id={"public-private-selector-button-tooltip"}>
             {tooltip}
         </Tooltip>
     );
@@ -88,7 +111,7 @@ const BigButtonSelector = ({
     return (
         <OverlayTrigger
             delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement='top'
+            placement="top"
             overlay={tooltipContainer}
         >
             {button}
@@ -141,7 +164,7 @@ const PublicPrivateSelector = ({
     } = {} as ButtonSelectorProps,
     onChange,
 }: PublicPrivateSelectorProps) => {
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
 
     const canSelectPublic = !disabledPublic && !lockedPublic;
     const canSelectPrivate = !disabledPrivate && !lockedPrivate;
@@ -162,11 +185,23 @@ const PublicPrivateSelector = ({
     );
 
     return (
-        <div className={classNames('public-private-selector', className)}>
+        <div className={classNames("public-private-selector", className)}>
             <BigButtonSelector
                 id={Constants.OPEN_CHANNEL as ChannelType}
-                title={titlePublic || formatMessage({id: 'public_private_selector.public.title', defaultMessage: 'Public'})}
-                description={descriptionPublic || formatMessage({id: 'public_private_selector.public.description', defaultMessage: 'Anyone'})}
+                title={
+                    titlePublic ||
+                    formatMessage({
+                        id: "public_private_selector.public.title",
+                        defaultMessage: "Public",
+                    })
+                }
+                description={
+                    descriptionPublic ||
+                    formatMessage({
+                        id: "public_private_selector.public.description",
+                        defaultMessage: "Anyone",
+                    })
+                }
                 iconSVG={GlobeCircleSolidIcon}
                 titleClassName={titleClassNamePublic}
                 descriptionClassName={descriptionClassNamePublic}
@@ -179,8 +214,20 @@ const PublicPrivateSelector = ({
             />
             <BigButtonSelector
                 id={Constants.PRIVATE_CHANNEL as ChannelType}
-                title={titlePrivate || formatMessage({id: 'public_private_selector.private.title', defaultMessage: 'Private'})}
-                description={descriptionPrivate || formatMessage({id: 'public_private_selector.private.description', defaultMessage: 'Only invited members'})}
+                title={
+                    titlePrivate ||
+                    formatMessage({
+                        id: "public_private_selector.private.title",
+                        defaultMessage: "Private",
+                    })
+                }
+                description={
+                    descriptionPrivate ||
+                    formatMessage({
+                        id: "public_private_selector.private.description",
+                        defaultMessage: "Only invited members",
+                    })
+                }
                 iconSVG={LockCircleSolidIcon}
                 titleClassName={titleClassNamePrivate}
                 descriptionClassName={descriptionClassNamePrivate}

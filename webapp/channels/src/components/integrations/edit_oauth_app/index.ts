@@ -4,18 +4,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import type { Dispatch, ActionCreatorsMapObject } from "redux";
 
-import type {OAuthApp} from '@mattermost/types/integrations';
-import type {GlobalState} from '@mattermost/types/store';
+import type { OAuthApp } from "@mattermost/types/integrations";
+import type { GlobalState } from "@mattermost/types/store";
 
-import {getOAuthApp, editOAuthApp} from 'mattermost-redux/actions/integrations';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import {
+    getOAuthApp,
+    editOAuthApp,
+} from "mattermost-redux/actions/integrations";
+import { getConfig } from "mattermost-redux/selectors/entities/general";
+import type { ActionFunc, ActionResult } from "mattermost-redux/types/actions";
 
-import EditOAuthApp from './edit_oauth_app';
+import EditOAuthApp from "./edit_oauth_app";
 
 type Actions = {
     getOAuthApp: (id: string) => OAuthApp;
@@ -28,8 +31,10 @@ type Props = {
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {
     const config = getConfig(state);
-    const oauthAppId: string = (new URLSearchParams(ownProps.location.search)).get('id') || '';
-    const enableOAuthServiceProvider = config.EnableOAuthServiceProvider === 'true';
+    const oauthAppId: string =
+        new URLSearchParams(ownProps.location.search).get("id") || "";
+    const enableOAuthServiceProvider =
+        config.EnableOAuthServiceProvider === "true";
 
     return {
         oauthAppId,
@@ -40,10 +45,16 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
-            getOAuthApp,
-            editOAuthApp,
-        }, dispatch),
+        actions: bindActionCreators<
+            ActionCreatorsMapObject<ActionFunc>,
+            Actions
+        >(
+            {
+                getOAuthApp,
+                editOAuthApp,
+            },
+            dispatch,
+        ),
     };
 }
 

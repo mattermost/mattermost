@@ -16,7 +16,11 @@ $toggle-default-font-size: 0.75rem;
 
 // Mixin for Switch Colors
 // Variables: $color, $bg, $active-bg
-@mixin toggle-color($color: $btn-default-color, $bg: $btn-default-bg, $active-bg: $brand-primary) {
+@mixin toggle-color(
+    $color: $btn-default-color,
+    $bg: $btn-default-bg,
+    $active-bg: $brand-primary
+) {
     background: $bg;
     color: $color;
 
@@ -27,7 +31,11 @@ $toggle-default-font-size: 0.75rem;
 
 // Mixin for Default Switch Styles
 // Variables: $size, $margin, $color, $bg, $active-bg, $font-size
-@mixin toggle-mixin($size: $toggle-default-size, $margin: $toggle-default-margin, $font-size: $toggle-default-font-size) {
+@mixin toggle-mixin(
+    $size: $toggle-default-size,
+    $margin: $toggle-default-margin,
+    $font-size: $toggle-default-font-size
+) {
     $handlePosition: calc($size/7);
     $handleSize: calc($size - (2 * $handlePosition));
 
@@ -89,7 +97,7 @@ $toggle-default-font-size: 0.75rem;
     }
 
     &.btn-xs {
-        @include toggle-mixin($size:1rem,$margin:0);
+        @include toggle-mixin($size: 1rem, $margin: 0);
     }
 
     .bg-text {
@@ -111,7 +119,7 @@ $toggle-default-font-size: 0.75rem;
     @include toggle-color(
         $color: rgb(var(--button-color-rgb)),
         $bg: rgba(var(--center-channel-color-rgb), 0.32),
-        $active-bg: rgb(var(--button-bg-rgb)),
+        $active-bg: rgb(var(--button-bg-rgb))
     );
 
     &.disabled {
@@ -128,7 +136,7 @@ $toggle-default-font-size: 0.75rem;
     }
 
     &.btn-xs {
-        @include toggle-mixin($size:1rem,$margin:0);
+        @include toggle-mixin($size: 1rem, $margin: 0);
     }
 
     .bg-text {

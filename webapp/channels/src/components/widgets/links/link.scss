@@ -19,7 +19,12 @@
     }
 
     &:hover:not(.disabled) {
-        background: linear-gradient(0deg, rgba(var(--center-channel-color-rgb), 0.16), rgba(var(--center-channel-color-rgb), 0.16)), var(--button-bg);
+        background: linear-gradient(
+                0deg,
+                rgba(var(--center-channel-color-rgb), 0.16),
+                rgba(var(--center-channel-color-rgb), 0.16)
+            ),
+            var(--button-bg);
         color: var(--button-color);
         text-decoration: none;
     }

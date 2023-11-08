@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-import type {Subscription} from '@mattermost/types/cloud';
+import type { Subscription } from "@mattermost/types/cloud";
 
-import {
-    getCloudSubscription as getCloudSubscriptionAction,
-} from 'mattermost-redux/actions/cloud';
-import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import { getCloudSubscription as getCloudSubscriptionAction } from "mattermost-redux/actions/cloud";
+import { getCloudSubscription } from "mattermost-redux/selectors/entities/cloud";
+import { getLicense } from "mattermost-redux/selectors/entities/general";
 
 export default function useGetSubscription(): Subscription | undefined {
     const cloudSubscription = useSelector(getCloudSubscription);
@@ -20,7 +18,11 @@ export default function useGetSubscription(): Subscription | undefined {
     const [requestedSubscription, setRequestedSubscription] = useState(false);
 
     useEffect(() => {
-        if (license.Cloud === 'true' && !retrievedCloudSub && !requestedSubscription) {
+        if (
+            license.Cloud === "true" &&
+            !retrievedCloudSub &&
+            !requestedSubscription
+        ) {
             dispatch(getCloudSubscriptionAction());
             setRequestedSubscription(true);
         }

@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
+import { trackEvent } from "actions/telemetry_actions.jsx";
 
-import Markdown from 'components/markdown';
+import Markdown from "components/markdown";
 
-import alertIcon from 'images/icons/round-white-info-icon.svg';
+import alertIcon from "images/icons/round-white-info-icon.svg";
 
-import AnnouncementBar from './default_announcement_bar';
+import AnnouncementBar from "./default_announcement_bar";
 
-const localStoragePrefix = '__announcement__';
+const localStoragePrefix = "__announcement__";
 
 type AnnouncementBarProps = React.ComponentProps<typeof AnnouncementBar>;
 
@@ -23,9 +23,12 @@ interface Props extends Partial<AnnouncementBarProps> {
 
 type State = {
     dismissed: boolean;
-}
+};
 
-export default class TextDismissableBar extends React.PureComponent<Props, State> {
+export default class TextDismissableBar extends React.PureComponent<
+    Props,
+    State
+> {
     constructor(props: Props) {
         super(props);
 
@@ -35,9 +38,11 @@ export default class TextDismissableBar extends React.PureComponent<Props, State
     }
 
     static getDerivedStateFromProps(props: Props) {
-        const dismissed = localStorage.getItem(localStoragePrefix + props.text?.toString());
+        const dismissed = localStorage.getItem(
+            localStoragePrefix + props.text?.toString(),
+        );
         return {
-            dismissed: (dismissed === 'true'),
+            dismissed: dismissed === "true",
         };
     }
 
@@ -45,9 +50,12 @@ export default class TextDismissableBar extends React.PureComponent<Props, State
         if (!this.props.allowDismissal) {
             return;
         }
-        trackEvent('signup', 'click_dismiss_bar');
+        trackEvent("signup", "click_dismiss_bar");
 
-        localStorage.setItem(localStoragePrefix + this.props.text?.toString(), 'true');
+        localStorage.setItem(
+            localStoragePrefix + this.props.text?.toString(),
+            "true",
+        );
         this.setState({
             dismissed: true,
         });
@@ -60,7 +68,7 @@ export default class TextDismissableBar extends React.PureComponent<Props, State
         if (this.state.dismissed) {
             return null;
         }
-        const {allowDismissal, text, ...extraProps} = this.props;
+        const { allowDismissal, text, ...extraProps } = this.props;
         return (
             <AnnouncementBar
                 {...extraProps}
@@ -68,11 +76,8 @@ export default class TextDismissableBar extends React.PureComponent<Props, State
                 handleClose={this.handleDismiss}
                 message={
                     <>
-                        <img
-                            className='advisor-icon'
-                            src={alertIcon}
-                        />
-                        {typeof text === 'string' ? (
+                        <img className="advisor-icon" src={alertIcon} />
+                        {typeof text === "string" ? (
                             <Markdown
                                 message={text}
                                 options={{
@@ -80,11 +85,12 @@ export default class TextDismissableBar extends React.PureComponent<Props, State
                                     mentionHighlight: false,
                                 }}
                             />
-                        ) : text}
+                        ) : (
+                            text
+                        )}
                     </>
                 }
             />
         );
     }
 }
-

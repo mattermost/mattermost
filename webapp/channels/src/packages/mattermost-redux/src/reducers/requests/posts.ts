@@ -1,16 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combineReducers} from 'redux';
+import { combineReducers } from "redux";
 
-import type {PostsRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+import type {
+    PostsRequestsStatuses,
+    RequestStatusType,
+} from "@mattermost/types/requests";
 
-import {PostTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import { PostTypes } from "mattermost-redux/action_types";
+import type { GenericAction } from "mattermost-redux/types/actions";
 
-import {handleRequest, initialRequestState} from './helpers';
+import { handleRequest, initialRequestState } from "./helpers";
 
-function createPost(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function createPost(
+    state: RequestStatusType = initialRequestState(),
+    action: GenericAction,
+): RequestStatusType {
     if (action.type === PostTypes.CREATE_POST_RESET_REQUEST) {
         return initialRequestState();
     }
@@ -24,7 +30,10 @@ function createPost(state: RequestStatusType = initialRequestState(), action: Ge
     );
 }
 
-function editPost(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function editPost(
+    state: RequestStatusType = initialRequestState(),
+    action: GenericAction,
+): RequestStatusType {
     return handleRequest(
         PostTypes.EDIT_POST_REQUEST,
         PostTypes.EDIT_POST_SUCCESS,
@@ -34,7 +43,10 @@ function editPost(state: RequestStatusType = initialRequestState(), action: Gene
     );
 }
 
-function getPostThread(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function getPostThread(
+    state: RequestStatusType = initialRequestState(),
+    action: GenericAction,
+): RequestStatusType {
     return handleRequest(
         PostTypes.GET_POST_THREAD_REQUEST,
         PostTypes.GET_POST_THREAD_SUCCESS,
@@ -44,8 +56,8 @@ function getPostThread(state: RequestStatusType = initialRequestState(), action:
     );
 }
 
-export default (combineReducers({
+export default combineReducers({
     createPost,
     editPost,
     getPostThread,
-}) as (b: PostsRequestsStatuses, a: GenericAction) => PostsRequestsStatuses);
+}) as (b: PostsRequestsStatuses, a: GenericAction) => PostsRequestsStatuses;

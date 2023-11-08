@@ -1,25 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useCallback} from 'react';
-import {useSelector, useDispatch, shallowEqual} from 'react-redux';
+import { useCallback } from "react";
+import { useSelector, useDispatch, shallowEqual } from "react-redux";
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import { createSelector } from "mattermost-redux/selectors/create_selector";
+import { getCurrentTeamId } from "mattermost-redux/selectors/entities/teams";
+import { getCurrentUserId } from "mattermost-redux/selectors/entities/users";
 
-import {setGlobalItem} from 'actions/storage';
-import {makeGetGlobalItem} from 'selectors/storage';
+import { setGlobalItem } from "actions/storage";
+import { makeGetGlobalItem } from "selectors/storage";
 
-const currentUserAndTeamSuffix = createSelector('currentUserAndTeamSuffix', [
-    getCurrentUserId,
-    getCurrentTeamId,
-], (
-    userId,
-    teamId,
-) => {
-    return `:${userId}:${teamId}`;
-});
+const currentUserAndTeamSuffix = createSelector(
+    "currentUserAndTeamSuffix",
+    [getCurrentUserId, getCurrentTeamId],
+    (userId, teamId) => {
+        return `:${userId}:${teamId}`;
+    },
+);
 
 /**
  *
@@ -37,11 +35,14 @@ export function useGlobalState<TVal>(
     const suffixToUse = suffix || defaultSuffix;
     const storedKey = `${name}${suffixToUse}`;
 
-    const value = useSelector(makeGetGlobalItem(storedKey, initialValue), shallowEqual);
-    const setValue = useCallback((newValue) => dispatch(setGlobalItem(storedKey, newValue)), [storedKey]);
+    const value = useSelector(
+        makeGetGlobalItem(storedKey, initialValue),
+        shallowEqual,
+    );
+    const setValue = useCallback(
+        (newValue) => dispatch(setGlobalItem(storedKey, newValue)),
+        [storedKey],
+    );
 
-    return [
-        value,
-        setValue,
-    ];
+    return [value, setValue];
 }

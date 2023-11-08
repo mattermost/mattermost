@@ -1,24 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ReactNode} from 'react';
-import {IntlProvider as BaseIntlProvider} from 'react-intl';
-import type {IntlConfig} from 'react-intl';
+import React from "react";
+import type { ReactNode } from "react";
+import { IntlProvider as BaseIntlProvider } from "react-intl";
+import type { IntlConfig } from "react-intl";
 
-import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-import {setLocalizeFunction} from 'mattermost-redux/utils/i18n_utils';
+import { Client4 } from "mattermost-redux/client";
+import type { ActionFunc } from "mattermost-redux/types/actions";
+import { setLocalizeFunction } from "mattermost-redux/utils/i18n_utils";
 
-import * as I18n from 'i18n/i18n';
-import {localizeMessage} from 'utils/utils';
+import * as I18n from "i18n/i18n";
+import { localizeMessage } from "utils/utils";
 
 type Props = {
     children: ReactNode;
-    locale: IntlConfig['locale'];
-    translations?: IntlConfig['messages'];
+    locale: IntlConfig["locale"];
+    translations?: IntlConfig["messages"];
     actions: {
-        loadTranslations: ((locale: string, url: string) => ActionFunc) | (() => void);
+        loadTranslations:
+            | ((locale: string, url: string) => ActionFunc)
+            | (() => void);
     };
 };
 
@@ -66,7 +68,7 @@ export default class IntlProvider extends React.PureComponent<Props> {
                 key={this.props.locale}
                 locale={this.props.locale}
                 messages={this.props.translations}
-                textComponent='span'
+                textComponent="span"
                 wrapRichTextChunksInFragment={false}
             >
                 {this.props.children}

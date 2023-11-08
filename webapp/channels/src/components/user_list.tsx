@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import type { ReactNode } from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Channel, ChannelMembership } from "@mattermost/types/channels";
+import type { TeamMembership } from "@mattermost/types/teams";
+import type { UserProfile } from "@mattermost/types/users";
 
-import LoadingScreen from 'components/loading_screen';
+import LoadingScreen from "components/loading_screen";
 
-import UserListRow from './user_list_row';
+import UserListRow from "./user_list_row";
 
 type Props = {
     rowComponentType?: React.ComponentType<any>;
@@ -26,7 +26,7 @@ type Props = {
     };
     isDisabled?: boolean;
     users?: UserProfile[] | null;
-    extraInfo?: {[key: string]: Array<string | JSX.Element>};
+    extraInfo?: { [key: string]: Array<string | JSX.Element> };
     actionProps?: {
         mfaEnabled: boolean;
         enableUserAccessTokens: boolean;
@@ -38,9 +38,9 @@ type Props = {
         doManageTokens: (user: UserProfile) => void;
         isDisabled?: boolean;
     };
-}
+};
 
-export default class UserList extends React.PureComponent <Props> {
+export default class UserList extends React.PureComponent<Props> {
     static defaultProps = {
         users: [],
         extraInfo: {},
@@ -67,10 +67,14 @@ export default class UserList extends React.PureComponent <Props> {
 
         let content;
         if (users == null) {
-            return <LoadingScreen/>;
-        } else if (users.length > 0 && RowComponentType && this.props.actionProps) {
+            return <LoadingScreen />;
+        } else if (
+            users.length > 0 &&
+            RowComponentType &&
+            this.props.actionProps
+        ) {
             content = users.map((user: UserProfile, index: number) => {
-                const {actionUserProps, extraInfo} = this.props;
+                const { actionUserProps, extraInfo } = this.props;
                 const userId = user.id;
                 return (
                     <RowComponentType
@@ -90,24 +94,20 @@ export default class UserList extends React.PureComponent <Props> {
         } else {
             content = (
                 <div
-                    key='no-users-found'
-                    className='more-modal__placeholder-row'
-                    data-testid='noUsersFound'
+                    key="no-users-found"
+                    className="more-modal__placeholder-row"
+                    data-testid="noUsersFound"
                 >
                     <p>
                         <FormattedMessage
-                            id='user_list.notFound'
-                            defaultMessage='No users found'
+                            id="user_list.notFound"
+                            defaultMessage="No users found"
                         />
                     </p>
                 </div>
             );
         }
 
-        return (
-            <div ref={this.containerRef}>
-                {content}
-            </div>
-        );
+        return <div ref={this.containerRef}>{content}</div>;
     }
 }

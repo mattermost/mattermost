@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {useIntl} from 'react-intl';
-import styled from 'styled-components';
+import React from "react";
+import { useIntl } from "react-intl";
+import styled from "styled-components";
 
 const EditButton = styled.button`
     border: 0;
@@ -49,34 +49,48 @@ interface EditableAreaProps {
     className?: string;
 }
 
-const EditableAreaBase = ({editable, content, emptyLabel, onEdit, className}: EditableAreaProps) => {
-    const {formatMessage} = useIntl();
+const EditableAreaBase = ({
+    editable,
+    content,
+    emptyLabel,
+    onEdit,
+    className,
+}: EditableAreaProps) => {
+    const { formatMessage } = useIntl();
 
     const allowEditArea = editable && content;
 
     return (
         <div className={className}>
-            <div className='EditableArea__content'>
+            <div className="EditableArea__content">
                 {content}
                 {!content && editable && (
                     <EmptyPlace
                         onClick={onEdit}
-                        aria-label={formatMessage({id: 'channel_info_rhs.edit_link', defaultMessage: 'Edit'})}
+                        aria-label={formatMessage({
+                            id: "channel_info_rhs.edit_link",
+                            defaultMessage: "Edit",
+                        })}
                     >
                         {emptyLabel}
-                        <i className='icon icon-pencil-outline edit-icon'/>
+                        <i className="icon icon-pencil-outline edit-icon" />
                     </EmptyPlace>
                 )}
             </div>
-            <div className='EditableArea__edit'>
+            <div className="EditableArea__edit">
                 {allowEditArea ? (
                     <EditButton
                         onClick={onEdit}
-                        aria-label={formatMessage({id: 'channel_info_rhs.edit_link', defaultMessage: 'Edit'})}
+                        aria-label={formatMessage({
+                            id: "channel_info_rhs.edit_link",
+                            defaultMessage: "Edit",
+                        })}
                     >
-                        <i className='icon icon-pencil-outline'/>
+                        <i className="icon icon-pencil-outline" />
                     </EditButton>
-                ) : ''}
+                ) : (
+                    ""
+                )}
             </div>
         </div>
     );
@@ -84,19 +98,19 @@ const EditableAreaBase = ({editable, content, emptyLabel, onEdit, className}: Ed
 
 const EditableArea = styled(EditableAreaBase)`
     display: flex;
-    &>.EditableArea__content {
+    & > .EditableArea__content {
         flex: 1;
         p:last-child {
-            margin-bottom:0;
+            margin-bottom: 0;
         }
     }
     &:hover {
-        &>.EditableArea__edit {
+        & > .EditableArea__edit {
             visibility: visible;
         }
     }
 
-    &>.EditableArea__edit {
+    & > .EditableArea__edit {
         visibility: hidden;
         width: 24px;
     }

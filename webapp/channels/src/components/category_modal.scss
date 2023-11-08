@@ -7,7 +7,9 @@
 }
 
 .GenericModal__button.delete {
-    background: var(--dnd-indicator) !important; // TODO: Figure out a way around important flag
+    background: var(
+        --dnd-indicator
+    ) !important; // TODO: Figure out a way around important flag
 }
 
 .delete-category__helpText {

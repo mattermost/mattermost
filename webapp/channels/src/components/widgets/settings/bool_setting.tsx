@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import Setting from './setting';
+import Setting from "./setting";
 
 type Props = {
     id: string;
@@ -16,12 +16,12 @@ type Props = {
     inputClassName: string;
     onChange(name: string, value: any): void; // value is any since onChange is a common func for inputs and checkboxes
     autoFocus?: boolean;
-}
+};
 
 export default class BoolSetting extends React.PureComponent<Props> {
     public static defaultProps: Partial<Props> = {
-        labelClassName: '',
-        inputClassName: '',
+        labelClassName: "",
+        inputClassName: "",
     };
 
     private handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -37,13 +37,13 @@ export default class BoolSetting extends React.PureComponent<Props> {
                 helpText={this.props.helpText}
                 inputId={this.props.id}
             >
-                <div className='checkbox'>
+                <div className="checkbox">
                     <label>
                         <input
                             id={this.props.id}
                             disabled={this.props.disabled}
                             autoFocus={this.props.autoFocus}
-                            type='checkbox'
+                            type="checkbox"
                             checked={this.props.value}
                             onChange={this.handleChange}
                         />

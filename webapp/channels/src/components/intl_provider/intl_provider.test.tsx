@@ -1,93 +1,96 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import { mount, shallow } from "enzyme";
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import IntlProvider from 'components/intl_provider/intl_provider';
+import IntlProvider from "components/intl_provider/intl_provider";
 
-import {getLanguageInfo} from 'i18n/i18n';
+import { getLanguageInfo } from "i18n/i18n";
 
-describe('components/IntlProvider', () => {
+describe("components/IntlProvider", () => {
     const baseProps = {
-        locale: 'en',
+        locale: "en",
         translations: {
-            'test.hello_world': 'Hello, World!',
+            "test.hello_world": "Hello, World!",
         },
         actions: {
             loadTranslations: () => {}, // eslint-disable-line
         },
         children: (
             <FormattedMessage
-                id='test.hello_world'
-                defaultMessage='Hello, World!'
+                id="test.hello_world"
+                defaultMessage="Hello, World!"
             />
         ),
     };
 
-    test('should render children when passed translation strings', () => {
-        const wrapper = mount(<IntlProvider {...baseProps}/>);
+    test("should render children when passed translation strings", () => {
+        const wrapper = mount(<IntlProvider {...baseProps} />);
 
         expect(wrapper.find(FormattedMessage).childAt(0)).toMatchSnapshot();
     });
 
-    test('should render children when passed translation strings for a non-default locale', () => {
+    test("should render children when passed translation strings for a non-default locale", () => {
         const props = {
             ...baseProps,
-            locale: 'fr',
+            locale: "fr",
             translations: {
-                'test.hello_world': 'Bonjour tout le monde!',
+                "test.hello_world": "Bonjour tout le monde!",
             },
         };
 
-        const wrapper = mount(<IntlProvider {...props}/>);
+        const wrapper = mount(<IntlProvider {...props} />);
 
         expect(wrapper.find(FormattedMessage).childAt(0)).toMatchSnapshot();
     });
 
-    test('should render null when missing translation strings', () => {
+    test("should render null when missing translation strings", () => {
         const props = {
             ...baseProps,
             translations: undefined,
         };
 
-        const wrapper = mount(<IntlProvider {...props}/>);
+        const wrapper = mount(<IntlProvider {...props} />);
 
         expect(wrapper.find(FormattedMessage).exists()).toBe(false);
     });
 
-    test('on mount, should attempt to load missing translations', () => {
+    test("on mount, should attempt to load missing translations", () => {
         const props = {
             ...baseProps,
-            locale: 'fr',
+            locale: "fr",
             translations: undefined,
             actions: {
                 loadTranslations: jest.fn(),
             },
         };
 
-        shallow(<IntlProvider {...props}/>);
+        shallow(<IntlProvider {...props} />);
 
-        expect(props.actions.loadTranslations).toBeCalledWith('fr', getLanguageInfo('fr').url);
+        expect(props.actions.loadTranslations).toBeCalledWith(
+            "fr",
+            getLanguageInfo("fr").url,
+        );
     });
 
-    test('on mount, should not attempt to load when given translations', () => {
+    test("on mount, should not attempt to load when given translations", () => {
         const props = {
             ...baseProps,
-            locale: 'fr',
+            locale: "fr",
             translations: {},
             actions: {
                 loadTranslations: jest.fn(),
             },
         };
 
-        shallow(<IntlProvider {...props}/>);
+        shallow(<IntlProvider {...props} />);
 
         expect(props.actions.loadTranslations).not.toBeCalled();
     });
 
-    test('on locale change, should attempt to load missing translations', () => {
+    test("on locale change, should attempt to load missing translations", () => {
         const props = {
             ...baseProps,
             actions: {
@@ -95,19 +98,22 @@ describe('components/IntlProvider', () => {
             },
         };
 
-        const wrapper = shallow(<IntlProvider {...props}/>);
+        const wrapper = shallow(<IntlProvider {...props} />);
 
         expect(props.actions.loadTranslations).not.toBeCalled();
 
         wrapper.setProps({
-            locale: 'fr',
+            locale: "fr",
             translations: null,
         });
 
-        expect(props.actions.loadTranslations).toBeCalledWith('fr', getLanguageInfo('fr').url);
+        expect(props.actions.loadTranslations).toBeCalledWith(
+            "fr",
+            getLanguageInfo("fr").url,
+        );
     });
 
-    test('on locale change, should not attempt to load when given translations', () => {
+    test("on locale change, should not attempt to load when given translations", () => {
         const props = {
             ...baseProps,
             actions: {
@@ -115,12 +121,12 @@ describe('components/IntlProvider', () => {
             },
         };
 
-        const wrapper = shallow(<IntlProvider {...props}/>);
+        const wrapper = shallow(<IntlProvider {...props} />);
 
         expect(props.actions.loadTranslations).not.toBeCalled();
 
         wrapper.setProps({
-            locale: 'fr',
+            locale: "fr",
             translations: {},
         });
 

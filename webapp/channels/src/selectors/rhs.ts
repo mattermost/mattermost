@@ -1,25 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from '@mattermost/types/channels';
-import type {Post, PostType} from '@mattermost/types/posts';
+import type { Channel } from "@mattermost/types/channels";
+import type { Post, PostType } from "@mattermost/types/posts";
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import { createSelector } from "mattermost-redux/selectors/create_selector";
+import { makeGetChannel } from "mattermost-redux/selectors/entities/channels";
+import { getCurrentUserId } from "mattermost-redux/selectors/entities/users";
 
-import {makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage';
+import {
+    makeGetGlobalItem,
+    makeGetGlobalItemWithDefault,
+} from "selectors/storage";
 
-import type {SidebarSize} from 'components/resizable_sidebar/constants';
+import type { SidebarSize } from "components/resizable_sidebar/constants";
 
-import {PostTypes, StoragePrefixes} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
+import { PostTypes, StoragePrefixes } from "utils/constants";
+import { localizeMessage } from "utils/utils";
 
-import type {GlobalState} from 'types/store';
-import type {PostDraft} from 'types/store/draft';
-import type {RhsState, FakePost, SearchType} from 'types/store/rhs';
+import type { GlobalState } from "types/store";
+import type { PostDraft } from "types/store/draft";
+import type { RhsState, FakePost, SearchType } from "types/store/rhs";
 
-export function getSelectedPostId(state: GlobalState): Post['id'] {
+export function getSelectedPostId(state: GlobalState): Post["id"] {
     return state.views.rhs.selectedPostId;
 }
 
@@ -31,11 +34,11 @@ export function getSelectedPostFocussedAt(state: GlobalState): number {
     return state.views.rhs.selectedPostFocussedAt;
 }
 
-export function getSelectedPostCardId(state: GlobalState): Post['id'] {
+export function getSelectedPostCardId(state: GlobalState): Post["id"] {
     return state.views.rhs.selectedPostCardId;
 }
 
-export function getHighlightedPostId(state: GlobalState): Post['id'] {
+export function getHighlightedPostId(state: GlobalState): Post["id"] {
     return state.views.rhs.highlightedPostId;
 }
 
@@ -57,7 +60,7 @@ export const getSelectedChannel = (() => {
     return (state: GlobalState) => {
         const channelId = getSelectedChannelId(state);
 
-        return getChannel(state, {id: channelId});
+        return getChannel(state, { id: channelId });
     };
 })();
 
@@ -76,12 +79,17 @@ function getRealSelectedPost(state: GlobalState) {
 }
 
 export const getSelectedPost = createSelector(
-    'getSelectedPost',
+    "getSelectedPost",
     getSelectedPostId,
     getRealSelectedPost,
     getSelectedChannelId,
     getCurrentUserId,
-    (selectedPostId: Post['id'], selectedPost: Post, selectedPostChannelId: Channel['id'], currentUserId): Post|FakePost => {
+    (
+        selectedPostId: Post["id"],
+        selectedPost: Post,
+        selectedPostChannelId: Channel["id"],
+        currentUserId,
+    ): Post | FakePost => {
         if (selectedPost) {
             return selectedPost;
         }
@@ -91,7 +99,10 @@ export const getSelectedPost = createSelector(
             id: selectedPostId,
             exists: false,
             type: PostTypes.FAKE_PARENT_DELETED as PostType,
-            message: localizeMessage('rhs_thread.rootPostDeletedMessage.body', 'Part of this thread has been deleted due to a data retention policy. You can no longer reply to this thread.'),
+            message: localizeMessage(
+                "rhs_thread.rootPostDeletedMessage.body",
+                "Part of this thread has been deleted due to a data retention policy. You can no longer reply to this thread.",
+            ),
             channel_id: selectedPostChannelId,
             user_id: currentUserId,
         };
@@ -103,10 +114,15 @@ export function getRhsState(state: GlobalState): RhsState {
 }
 
 export function getPreviousRhsState(state: GlobalState): RhsState {
-    if (state.views.rhs.previousRhsStates === null || state.views.rhs.previousRhsStates.length === 0) {
+    if (
+        state.views.rhs.previousRhsStates === null ||
+        state.views.rhs.previousRhsStates.length === 0
+    ) {
         return null;
     }
-    return state.views.rhs.previousRhsStates[state.views.rhs.previousRhsStates.length - 1];
+    return state.views.rhs.previousRhsStates[
+        state.views.rhs.previousRhsStates.length - 1
+    ];
 }
 
 export function getSearchTerms(state: GlobalState): string {
@@ -138,15 +154,23 @@ export function getIsSearchGettingMore(state: GlobalState): boolean {
 }
 
 export function makeGetChannelDraft() {
-    const defaultDraft = Object.freeze({message: '', fileInfos: [], uploadsInProgress: [], createAt: 0, updateAt: 0, channelId: '', rootId: ''});
+    const defaultDraft = Object.freeze({
+        message: "",
+        fileInfos: [],
+        uploadsInProgress: [],
+        createAt: 0,
+        updateAt: 0,
+        channelId: "",
+        rootId: "",
+    });
     const getDraft = makeGetGlobalItemWithDefault(defaultDraft);
 
     return (state: GlobalState, channelId: string): PostDraft => {
         const draft = getDraft(state, StoragePrefixes.DRAFT + channelId);
         if (
-            typeof draft.message !== 'undefined' &&
-            typeof draft.uploadsInProgress !== 'undefined' &&
-            typeof draft.fileInfos !== 'undefined'
+            typeof draft.message !== "undefined" &&
+            typeof draft.uploadsInProgress !== "undefined" &&
+            typeof draft.fileInfos !== "undefined"
         ) {
             return draft;
         }
@@ -155,8 +179,20 @@ export function makeGetChannelDraft() {
     };
 }
 
-export function getPostDraft(state: GlobalState, prefixId: string, suffixId: string): PostDraft {
-    const defaultDraft = {message: '', fileInfos: [], uploadsInProgress: [], createAt: 0, updateAt: 0, channelId: '', rootId: ''};
+export function getPostDraft(
+    state: GlobalState,
+    prefixId: string,
+    suffixId: string,
+): PostDraft {
+    const defaultDraft = {
+        message: "",
+        fileInfos: [],
+        uploadsInProgress: [],
+        createAt: 0,
+        updateAt: 0,
+        channelId: "",
+        rootId: "",
+    };
 
     if (prefixId === StoragePrefixes.COMMENT_DRAFT) {
         defaultDraft.rootId = suffixId;
@@ -164,9 +200,9 @@ export function getPostDraft(state: GlobalState, prefixId: string, suffixId: str
     const draft = makeGetGlobalItem(prefixId + suffixId, defaultDraft)(state);
 
     if (
-        typeof draft.message !== 'undefined' &&
-        typeof draft.uploadsInProgress !== 'undefined' &&
-        typeof draft.fileInfos !== 'undefined'
+        typeof draft.message !== "undefined" &&
+        typeof draft.uploadsInProgress !== "undefined" &&
+        typeof draft.fileInfos !== "undefined"
     ) {
         return draft;
     }

@@ -1,21 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {GlobalState} from '@mattermost/types/store';
-import type {Team, TeamMembership, TeamStats} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
-import type {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
+import type { GlobalState } from "@mattermost/types/store";
+import type { Team, TeamMembership, TeamStats } from "@mattermost/types/teams";
+import type { UserProfile } from "@mattermost/types/users";
+import type {
+    IDMappedObjects,
+    RelationOneToOne,
+} from "@mattermost/types/utilities";
 
-import {Permissions} from 'mattermost-redux/constants';
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
-import {getConfig, isCompatibleWithJoinViewTeamPermissions} from 'mattermost-redux/selectors/entities/general';
-import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles_helpers';
-import {createIdsSelector} from 'mattermost-redux/utils/helpers';
-import {sortTeamsWithLocale, filterTeamsStartingWithTerm} from 'mattermost-redux/utils/team_utils';
-import {isTeamAdmin} from 'mattermost-redux/utils/user_utils';
+import { Permissions } from "mattermost-redux/constants";
+import { createSelector } from "mattermost-redux/selectors/create_selector";
+import { getDataRetentionCustomPolicy } from "mattermost-redux/selectors/entities/admin";
+import {
+    getConfig,
+    isCompatibleWithJoinViewTeamPermissions,
+} from "mattermost-redux/selectors/entities/general";
+import { haveISystemPermission } from "mattermost-redux/selectors/entities/roles_helpers";
+import { createIdsSelector } from "mattermost-redux/utils/helpers";
+import {
+    sortTeamsWithLocale,
+    filterTeamsStartingWithTerm,
+} from "mattermost-redux/utils/team_utils";
+import { isTeamAdmin } from "mattermost-redux/utils/user_utils";
 
-import {isCollapsedThreadsEnabled} from './preferences';
+import { isCollapsedThreadsEnabled } from "./preferences";
 
 export function getCurrentTeamId(state: GlobalState) {
     return state.entities.teams.currentTeamId;
@@ -32,10 +41,11 @@ export function getTeams(state: GlobalState): IDMappedObjects<Team> {
 }
 
 export function getTeamsInPolicy() {
-    return (createSelector(
-        'getTeamsInPolicy',
+    return createSelector(
+        "getTeamsInPolicy",
         getTeams,
-        (state: GlobalState, props: {policyId: string}) => getDataRetentionCustomPolicy(state, props.policyId),
+        (state: GlobalState, props: { policyId: string }) =>
+            getDataRetentionCustomPolicy(state, props.policyId),
         (allTeams, policy) => {
             if (!policy) {
                 return [];
@@ -51,9 +61,13 @@ export function getTeamsInPolicy() {
             });
 
             return policyTeams;
-        }) as (b: GlobalState, a: {
-        policyId: string;
-    }) => Team[]);
+        },
+    ) as (
+        b: GlobalState,
+        a: {
+            policyId: string;
+        },
+    ) => Team[];
 }
 
 export function getTeamStats(state: GlobalState) {
@@ -69,23 +83,20 @@ export function getMembersInTeams(state: GlobalState) {
 }
 
 export const getTeamsList: (state: GlobalState) => Team[] = createSelector(
-    'getTeamsList',
+    "getTeamsList",
     getTeams,
     (teams) => {
         return Object.values(teams);
     },
 );
 
-export const getActiveTeamsList: (state: GlobalState) => Team[] = createSelector(
-    'getActiveTeamsList',
-    getTeamsList,
-    (teams) => {
+export const getActiveTeamsList: (state: GlobalState) => Team[] =
+    createSelector("getActiveTeamsList", getTeamsList, (teams) => {
         return teams.filter((team) => team.delete_at === 0);
-    },
-);
+    });
 
 export const getCurrentTeam: (state: GlobalState) => Team = createSelector(
-    'getCurrentTeam',
+    "getCurrentTeam",
     getTeams,
     getCurrentTeamId,
     (teams, currentTeamId) => {
@@ -98,29 +109,34 @@ export function getTeam(state: GlobalState, id: string): Team {
     return teams[id];
 }
 
-export const getCurrentTeamMembership: (state: GlobalState) => TeamMembership = createSelector(
-    'getCurrentTeamMembership',
-    getCurrentTeamId,
-    getTeamMemberships,
-    (currentTeamId: string, teamMemberships: {[teamId: string]: TeamMembership}): TeamMembership => {
-        return teamMemberships[currentTeamId];
-    },
-);
+export const getCurrentTeamMembership: (state: GlobalState) => TeamMembership =
+    createSelector(
+        "getCurrentTeamMembership",
+        getCurrentTeamId,
+        getTeamMemberships,
+        (
+            currentTeamId: string,
+            teamMemberships: { [teamId: string]: TeamMembership },
+        ): TeamMembership => {
+            return teamMemberships[currentTeamId];
+        },
+    );
 
-export const isCurrentUserCurrentTeamAdmin: (state: GlobalState) => boolean = createSelector(
-    'isCurrentUserCurrentTeamAdmin',
-    getCurrentTeamMembership,
-    (member) => {
-        if (member) {
-            const roles = member.roles || '';
-            return isTeamAdmin(roles);
-        }
-        return false;
-    },
-);
+export const isCurrentUserCurrentTeamAdmin: (state: GlobalState) => boolean =
+    createSelector(
+        "isCurrentUserCurrentTeamAdmin",
+        getCurrentTeamMembership,
+        (member) => {
+            if (member) {
+                const roles = member.roles || "";
+                return isTeamAdmin(roles);
+            }
+            return false;
+        },
+    );
 
 export const getCurrentTeamUrl: (state: GlobalState) => string = createSelector(
-    'getCurrentTeamUrl',
+    "getCurrentTeamUrl",
     getCurrentTeam,
     (state) => getConfig(state).SiteURL as string,
     (currentTeam, siteURL) => {
@@ -132,51 +148,60 @@ export const getCurrentTeamUrl: (state: GlobalState) => string = createSelector(
     },
 );
 
-export const getCurrentRelativeTeamUrl: (state: GlobalState) => string = createSelector(
-    'getCurrentRelativeTeamUrl',
-    getCurrentTeam,
-    (currentTeam) => {
-        if (!currentTeam) {
-            return '/';
-        }
-        return `/${currentTeam.name}`;
-    },
-);
+export const getCurrentRelativeTeamUrl: (state: GlobalState) => string =
+    createSelector(
+        "getCurrentRelativeTeamUrl",
+        getCurrentTeam,
+        (currentTeam) => {
+            if (!currentTeam) {
+                return "/";
+            }
+            return `/${currentTeam.name}`;
+        },
+    );
 
 export function getRelativeTeamUrl(state: GlobalState, teamId: string): string {
     const team = getTeam(state, teamId);
     return `/${team.name}`;
 }
 
-export const getCurrentTeamStats: (state: GlobalState) => TeamStats = createSelector(
-    'getCurrentTeamStats',
-    getCurrentTeamId,
-    getTeamStats,
-    (currentTeamId, teamStats) => {
-        return teamStats[currentTeamId];
-    },
-);
+export const getCurrentTeamStats: (state: GlobalState) => TeamStats =
+    createSelector(
+        "getCurrentTeamStats",
+        getCurrentTeamId,
+        getTeamStats,
+        (currentTeamId, teamStats) => {
+            return teamStats[currentTeamId];
+        },
+    );
 
 export const getMyTeams: (state: GlobalState) => Team[] = createSelector(
-    'getMyTeams',
+    "getMyTeams",
     getTeams,
     getTeamMemberships,
     (teams, members) => {
-        return Object.values(teams).filter((t) => members[t.id] && t.delete_at === 0);
+        return Object.values(teams).filter(
+            (t) => members[t.id] && t.delete_at === 0,
+        );
     },
 );
 
 export const getMyDeletedTeams: (state: GlobalState) => Team[] = createSelector(
-    'getMyDeletedTeams',
+    "getMyDeletedTeams",
     getTeams,
     getTeamMemberships,
     (teams, members) => {
-        return Object.values(teams).filter((t) => members[t.id] && t.delete_at !== 0);
+        return Object.values(teams).filter(
+            (t) => members[t.id] && t.delete_at !== 0,
+        );
     },
 );
 
-export const getMyTeamMember: (state: GlobalState, teamId: string) => TeamMembership = createSelector(
-    'getMyTeamMember',
+export const getMyTeamMember: (
+    state: GlobalState,
+    teamId: string,
+) => TeamMembership = createSelector(
+    "getMyTeamMember",
     getTeamMemberships,
     (state: GlobalState, teamId: string) => teamId,
     (teamMemberships, teamId) => {
@@ -184,8 +209,10 @@ export const getMyTeamMember: (state: GlobalState, teamId: string) => TeamMember
     },
 );
 
-export const getMembersInCurrentTeam: (state: GlobalState) => RelationOneToOne<UserProfile, TeamMembership> = createSelector(
-    'getMembersInCurrentTeam',
+export const getMembersInCurrentTeam: (
+    state: GlobalState,
+) => RelationOneToOne<UserProfile, TeamMembership> = createSelector(
+    "getMembersInCurrentTeam",
     getCurrentTeamId,
     getMembersInTeams,
     (currentTeamId, teamMembers) => {
@@ -193,8 +220,11 @@ export const getMembersInCurrentTeam: (state: GlobalState) => RelationOneToOne<U
     },
 );
 
-export const getMembersInTeam: (state: GlobalState, teamId: string) => RelationOneToOne<UserProfile, TeamMembership> = createSelector(
-    'getMembersInTeam',
+export const getMembersInTeam: (
+    state: GlobalState,
+    teamId: string,
+) => RelationOneToOne<UserProfile, TeamMembership> = createSelector(
+    "getMembersInTeam",
     (state: GlobalState, teamId: string) => teamId,
     getMembersInTeams,
     (teamId, teamMembers) => {
@@ -202,32 +232,51 @@ export const getMembersInTeam: (state: GlobalState, teamId: string) => RelationO
     },
 );
 
-export function getTeamMember(state: GlobalState, teamId: string, userId: string): TeamMembership | undefined {
+export function getTeamMember(
+    state: GlobalState,
+    teamId: string,
+    userId: string,
+): TeamMembership | undefined {
     return getMembersInTeams(state)[teamId]?.[userId];
 }
 
-export const getListableTeamIds: (state: GlobalState) => Array<Team['id']> = createIdsSelector(
-    'getListableTeamIds',
-    getTeams,
-    getTeamMemberships,
-    (state) => haveISystemPermission(state, {permission: Permissions.LIST_PUBLIC_TEAMS}),
-    (state) => haveISystemPermission(state, {permission: Permissions.LIST_PRIVATE_TEAMS}),
-    isCompatibleWithJoinViewTeamPermissions,
-    (teams, myMembers, canListPublicTeams, canListPrivateTeams, compatibleWithJoinViewTeamPermissions) => {
-        return Object.keys(teams).filter((id) => {
-            const team = teams[id];
-            const member = myMembers[id];
-            let canList = team.allow_open_invite;
-            if (compatibleWithJoinViewTeamPermissions) {
-                canList = (canListPrivateTeams && !team.allow_open_invite) || (canListPublicTeams && team.allow_open_invite);
-            }
-            return team.delete_at === 0 && canList && !member;
-        });
-    },
-);
+export const getListableTeamIds: (state: GlobalState) => Array<Team["id"]> =
+    createIdsSelector(
+        "getListableTeamIds",
+        getTeams,
+        getTeamMemberships,
+        (state) =>
+            haveISystemPermission(state, {
+                permission: Permissions.LIST_PUBLIC_TEAMS,
+            }),
+        (state) =>
+            haveISystemPermission(state, {
+                permission: Permissions.LIST_PRIVATE_TEAMS,
+            }),
+        isCompatibleWithJoinViewTeamPermissions,
+        (
+            teams,
+            myMembers,
+            canListPublicTeams,
+            canListPrivateTeams,
+            compatibleWithJoinViewTeamPermissions,
+        ) => {
+            return Object.keys(teams).filter((id) => {
+                const team = teams[id];
+                const member = myMembers[id];
+                let canList = team.allow_open_invite;
+                if (compatibleWithJoinViewTeamPermissions) {
+                    canList =
+                        (canListPrivateTeams && !team.allow_open_invite) ||
+                        (canListPublicTeams && team.allow_open_invite);
+                }
+                return team.delete_at === 0 && canList && !member;
+            });
+        },
+    );
 
 export const getListableTeams: (state: GlobalState) => Team[] = createSelector(
-    'getListableTeams',
+    "getListableTeams",
     getTeams,
     getListableTeamIds,
     (teams, listableTeamIds) => {
@@ -235,13 +284,16 @@ export const getListableTeams: (state: GlobalState) => Team[] = createSelector(
     },
 );
 
-export const getSortedListableTeams: (state: GlobalState, locale: string) => Team[] = createSelector(
-    'getSortedListableTeams',
+export const getSortedListableTeams: (
+    state: GlobalState,
+    locale: string,
+) => Team[] = createSelector(
+    "getSortedListableTeams",
     getTeams,
     getListableTeamIds,
     (state: GlobalState, locale: string) => locale,
     (teams, listableTeamIds, locale) => {
-        const listableTeams: {[x: string]: Team} = {};
+        const listableTeams: { [x: string]: Team } = {};
 
         for (const id of listableTeamIds) {
             listableTeams[id] = teams[id];
@@ -251,28 +303,43 @@ export const getSortedListableTeams: (state: GlobalState, locale: string) => Tea
     },
 );
 
-export const getJoinableTeamIds: (state: GlobalState) => Array<Team['id']> = createIdsSelector(
-    'getJoinableTeamIds',
-    getTeams,
-    getTeamMemberships,
-    (state: GlobalState) => haveISystemPermission(state, {permission: Permissions.JOIN_PUBLIC_TEAMS}),
-    (state: GlobalState) => haveISystemPermission(state, {permission: Permissions.JOIN_PRIVATE_TEAMS}),
-    isCompatibleWithJoinViewTeamPermissions,
-    (teams, myMembers, canJoinPublicTeams, canJoinPrivateTeams, compatibleWithJoinViewTeamPermissions) => {
-        return Object.keys(teams).filter((id) => {
-            const team = teams[id];
-            const member = myMembers[id];
-            let canJoin = team.allow_open_invite;
-            if (compatibleWithJoinViewTeamPermissions) {
-                canJoin = (canJoinPrivateTeams && !team.allow_open_invite) || (canJoinPublicTeams && team.allow_open_invite);
-            }
-            return team.delete_at === 0 && canJoin && !member;
-        });
-    },
-);
+export const getJoinableTeamIds: (state: GlobalState) => Array<Team["id"]> =
+    createIdsSelector(
+        "getJoinableTeamIds",
+        getTeams,
+        getTeamMemberships,
+        (state: GlobalState) =>
+            haveISystemPermission(state, {
+                permission: Permissions.JOIN_PUBLIC_TEAMS,
+            }),
+        (state: GlobalState) =>
+            haveISystemPermission(state, {
+                permission: Permissions.JOIN_PRIVATE_TEAMS,
+            }),
+        isCompatibleWithJoinViewTeamPermissions,
+        (
+            teams,
+            myMembers,
+            canJoinPublicTeams,
+            canJoinPrivateTeams,
+            compatibleWithJoinViewTeamPermissions,
+        ) => {
+            return Object.keys(teams).filter((id) => {
+                const team = teams[id];
+                const member = myMembers[id];
+                let canJoin = team.allow_open_invite;
+                if (compatibleWithJoinViewTeamPermissions) {
+                    canJoin =
+                        (canJoinPrivateTeams && !team.allow_open_invite) ||
+                        (canJoinPublicTeams && team.allow_open_invite);
+                }
+                return team.delete_at === 0 && canJoin && !member;
+            });
+        },
+    );
 
 export const getJoinableTeams: (state: GlobalState) => Team[] = createSelector(
-    'getJoinableTeams',
+    "getJoinableTeams",
     getTeams,
     getJoinableTeamIds,
     (teams, joinableTeamIds) => {
@@ -280,13 +347,16 @@ export const getJoinableTeams: (state: GlobalState) => Team[] = createSelector(
     },
 );
 
-export const getSortedJoinableTeams: (state: GlobalState, locale: string) => Team[] = createSelector(
-    'getSortedJoinableTeams',
+export const getSortedJoinableTeams: (
+    state: GlobalState,
+    locale: string,
+) => Team[] = createSelector(
+    "getSortedJoinableTeams",
     getTeams,
     getJoinableTeamIds,
     (state: GlobalState, locale: string) => locale,
     (teams, joinableTeamIds, locale) => {
-        const joinableTeams: {[x: string]: Team} = {};
+        const joinableTeams: { [x: string]: Team } = {};
 
         for (const id of joinableTeamIds) {
             joinableTeams[id] = teams[id];
@@ -296,8 +366,11 @@ export const getSortedJoinableTeams: (state: GlobalState, locale: string) => Tea
     },
 );
 
-export const getMySortedTeamIds: (state: GlobalState, locale: string) => Array<Team['id']> = createIdsSelector(
-    'getMySortedTeamIds',
+export const getMySortedTeamIds: (
+    state: GlobalState,
+    locale: string,
+) => Array<Team["id"]> = createIdsSelector(
+    "getMySortedTeamIds",
     getMyTeams,
     (state: GlobalState, locale: string) => locale,
     (teams, locale) => {
@@ -313,33 +386,41 @@ export function getMyTeamsCount(state: GlobalState) {
 // > 0 means is returning the mention count
 // 0 means that there are no unread messages
 // -1 means that there are unread messages but no mentions
-export const getChannelDrawerBadgeCount: (state: GlobalState) => number = createSelector(
-    'getChannelDrawerBadgeCount',
-    getCurrentTeamId,
-    getTeamMemberships,
-    isCollapsedThreadsEnabled,
-    (currentTeamId, teamMembers, collapsed) => {
-        let mentionCount = 0;
-        let messageCount = 0;
-        Object.values(teamMembers).forEach((m: TeamMembership) => {
-            if (m.team_id !== currentTeamId) {
-                mentionCount += collapsed ? (m.mention_count_root || 0) : (m.mention_count || 0);
-                messageCount += collapsed ? (m.msg_count_root || 0) : (m.msg_count || 0);
+export const getChannelDrawerBadgeCount: (state: GlobalState) => number =
+    createSelector(
+        "getChannelDrawerBadgeCount",
+        getCurrentTeamId,
+        getTeamMemberships,
+        isCollapsedThreadsEnabled,
+        (currentTeamId, teamMembers, collapsed) => {
+            let mentionCount = 0;
+            let messageCount = 0;
+            Object.values(teamMembers).forEach((m: TeamMembership) => {
+                if (m.team_id !== currentTeamId) {
+                    mentionCount += collapsed
+                        ? m.mention_count_root || 0
+                        : m.mention_count || 0;
+                    messageCount += collapsed
+                        ? m.msg_count_root || 0
+                        : m.msg_count || 0;
+                }
+            });
+
+            let badgeCount = 0;
+            if (mentionCount) {
+                badgeCount = mentionCount;
+            } else if (messageCount) {
+                badgeCount = -1;
             }
-        });
 
-        let badgeCount = 0;
-        if (mentionCount) {
-            badgeCount = mentionCount;
-        } else if (messageCount) {
-            badgeCount = -1;
-        }
+            return badgeCount;
+        },
+    );
 
-        return badgeCount;
-    },
-);
-
-export const isTeamSameWithCurrentTeam = (state: GlobalState, teamName: string): boolean => {
+export const isTeamSameWithCurrentTeam = (
+    state: GlobalState,
+    teamName: string,
+): boolean => {
     const targetTeam = getTeamByName(state, teamName);
     const currentTeam = getCurrentTeam(state);
 
@@ -350,9 +431,12 @@ export const isTeamSameWithCurrentTeam = (state: GlobalState, teamName: string):
 // > 0 means is returning the mention count
 // 0 means that there are no unread messages
 // -1 means that there are unread messages but no mentions
-export function makeGetBadgeCountForTeamId(): (state: GlobalState, id: string) => number {
+export function makeGetBadgeCountForTeamId(): (
+    state: GlobalState,
+    id: string,
+) => number {
     return createSelector(
-        'makeGetBadgeCountForTeamId',
+        "makeGetBadgeCountForTeamId",
         getTeamMemberships,
         (state: GlobalState, id: string) => id,
         isCollapsedThreadsEnabled,
@@ -361,8 +445,12 @@ export function makeGetBadgeCountForTeamId(): (state: GlobalState, id: string) =
             let badgeCount = 0;
 
             if (member) {
-                const mentionCount = collapsed ? member.mention_count_root : member.mention_count;
-                const msgCount = collapsed ? member.msg_count_root : member.msg_count;
+                const mentionCount = collapsed
+                    ? member.mention_count_root
+                    : member.mention_count;
+                const msgCount = collapsed
+                    ? member.msg_count_root
+                    : member.msg_count;
                 if (mentionCount) {
                     badgeCount = mentionCount;
                 } else if (msgCount) {

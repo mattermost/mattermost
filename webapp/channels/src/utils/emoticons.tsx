@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {formatWithRenderer} from './markdown';
-import PlainRenderer from './markdown/plain_renderer';
+import { formatWithRenderer } from "./markdown";
+import PlainRenderer from "./markdown/plain_renderer";
 
 export const emoticonPatterns: { [key: string]: RegExp } = {
     slightly_smiling_face: /(^|\B)(:-?\))($|\B)/g, // :)
@@ -49,7 +49,7 @@ export function matchEmoticons(text: string): RegExpMatchArray | null {
 
 export function handleEmoticons(
     text: string,
-    tokens: Map<string, {value: string; originalText: string}>,
+    tokens: Map<string, { value: string; originalText: string }>,
 ): string {
     let output = text;
 
@@ -74,7 +74,7 @@ export function handleEmoticons(
     output = output.replace(
         EMOJI_PATTERN,
         (fullMatch: string, matchText: string, name: string): string =>
-            replaceEmoticonWithToken(fullMatch, '', matchText, name),
+            replaceEmoticonWithToken(fullMatch, "", matchText, name),
     );
 
     // match text smilies like :D
@@ -83,7 +83,9 @@ export function handleEmoticons(
 
         // this might look a bit funny, but since the name isn't contained in the actual match
         // like with the named emoticons, we need to add it in manually
-        output = output.replace(pattern, (fullMatch, prefix, matchText) => replaceEmoticonWithToken(fullMatch, prefix, matchText, name));
+        output = output.replace(pattern, (fullMatch, prefix, matchText) =>
+            replaceEmoticonWithToken(fullMatch, prefix, matchText, name),
+        );
     }
 
     return output;

@@ -1,23 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import MainMenu from 'components/main_menu/main_menu';
+import MainMenu from "components/main_menu/main_menu";
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import { shallowWithIntl } from "tests/helpers/intl-test-helper";
 
-describe('plugins/MainMenuActions', () => {
+describe("plugins/MainMenuActions", () => {
     const pluginAction = jest.fn();
 
     const requiredProps = {
-        teamId: 'someteamid',
-        teamType: '',
-        teamDisplayName: 'some name',
-        teamName: 'somename',
-        currentUser: {id: 'someuserid', roles: 'system_user'} as UserProfile,
+        teamId: "someteamid",
+        teamType: "",
+        teamDisplayName: "some name",
+        teamName: "somename",
+        currentUser: { id: "someuserid", roles: "system_user" } as UserProfile,
         enableCommands: true,
         enableCustomEmoji: true,
         enableIncomingWebhooks: true,
@@ -29,15 +29,22 @@ describe('plugins/MainMenuActions', () => {
         enablePluginMarketplace: true,
         showDropdown: true,
         onToggleDropdown: () => {}, //eslint-disable-line no-empty-function
-        pluginMenuItems: [{id: 'someplugin', pluginId: 'test', text: 'some plugin text', action: pluginAction}],
+        pluginMenuItems: [
+            {
+                id: "someplugin",
+                pluginId: "test",
+                text: "some plugin text",
+                action: pluginAction,
+            },
+        ],
         canCreateOrDeleteCustomEmoji: true,
         canManageIntegrations: true,
         moreTeamsToJoin: true,
         guestAccessEnabled: true,
         teamIsGroupConstrained: true,
-        teamUrl: '/team',
+        teamUrl: "/team",
         location: {
-            pathname: '/team',
+            pathname: "/team",
         },
         actions: {
             openModal: jest.fn(),
@@ -59,38 +66,39 @@ describe('plugins/MainMenuActions', () => {
         mobile: false,
     };
 
-    test('should match snapshot in web view', () => {
-        let wrapper = shallowWithIntl(
-            <MainMenu
-                {...requiredProps}
-            />,
-        );
+    test("should match snapshot in web view", () => {
+        let wrapper = shallowWithIntl(<MainMenu {...requiredProps} />);
 
         wrapper = wrapper.shallow();
 
         expect(wrapper).toMatchSnapshot();
-        expect(wrapper.findWhere((node) => node.key() === 'someplugin_pluginmenuitem')).toHaveLength(1);
+        expect(
+            wrapper.findWhere(
+                (node) => node.key() === "someplugin_pluginmenuitem",
+            ),
+        ).toHaveLength(1);
     });
 
-    test('should match snapshot in mobile view with some plugin and ability to click plugin', () => {
+    test("should match snapshot in mobile view with some plugin and ability to click plugin", () => {
         const props = {
             ...requiredProps,
             mobile: true,
         };
 
-        let wrapper = shallowWithIntl(
-            <MainMenu
-                {...props}
-            />,
-        );
+        let wrapper = shallowWithIntl(<MainMenu {...props} />);
 
         wrapper = wrapper.shallow();
 
         expect(wrapper).toMatchSnapshot();
-        expect(wrapper.findWhere((node) => node.key() === 'someplugin_pluginmenuitem')).toHaveLength(1);
+        expect(
+            wrapper.findWhere(
+                (node) => node.key() === "someplugin_pluginmenuitem",
+            ),
+        ).toHaveLength(1);
 
-        wrapper.findWhere((node) => node.key() === 'someplugin_pluginmenuitem').simulate('click');
+        wrapper
+            .findWhere((node) => node.key() === "someplugin_pluginmenuitem")
+            .simulate("click");
         expect(pluginAction).toBeCalled();
     });
 });
-

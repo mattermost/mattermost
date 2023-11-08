@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useRef, useState} from 'react';
-import {CSSTransition} from 'react-transition-group';
-import styled from 'styled-components';
+import React, { useEffect, useRef, useState } from "react";
+import { CSSTransition } from "react-transition-group";
+import styled from "styled-components";
 
 interface LineLimiterProps {
     children: React.ReactNode;
@@ -15,12 +15,20 @@ interface LineLimiterProps {
     errorMargin?: number;
 }
 
-const LineLimiterBase = ({children, maxLines, lineHeight, moreText, lessText, errorMargin = 0.1, className}: LineLimiterProps) => {
+const LineLimiterBase = ({
+    children,
+    maxLines,
+    lineHeight,
+    moreText,
+    lessText,
+    errorMargin = 0.1,
+    className,
+}: LineLimiterProps) => {
     const maxLineHeight = maxLines * lineHeight;
 
     const [needLimiter, setNeedLimiter] = useState(false);
     const [open, setOpen] = useState(false);
-    const [maxHeight, setMaxHeight] = useState('inherit');
+    const [maxHeight, setMaxHeight] = useState("inherit");
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -30,7 +38,7 @@ const LineLimiterBase = ({children, maxLines, lineHeight, moreText, lessText, er
 
         const contentHeight = ref.current.scrollHeight;
         const margin = maxLineHeight * errorMargin;
-        if (contentHeight > (maxLineHeight + margin)) {
+        if (contentHeight > maxLineHeight + margin) {
             setNeedLimiter(true);
 
             if (open) {
@@ -40,7 +48,7 @@ const LineLimiterBase = ({children, maxLines, lineHeight, moreText, lessText, er
             }
         } else {
             setNeedLimiter(false);
-            setMaxHeight('inherit');
+            setMaxHeight("inherit");
         }
     }, [children, open]);
 
@@ -48,20 +56,17 @@ const LineLimiterBase = ({children, maxLines, lineHeight, moreText, lessText, er
         <CSSTransition
             in={open}
             timeout={500}
-            classNames='LineLimiter--Transition-'
+            classNames="LineLimiter--Transition-"
         >
             <>
-                <div
-                    className={className}
-                    style={{maxHeight}}
-                >
+                <div className={className} style={{ maxHeight }}>
                     <div>
                         <div ref={ref}>{children}</div>
                     </div>
                 </div>
                 {needLimiter && (
                     <ToggleButton
-                        className='LineLimiter__toggler'
+                        className="LineLimiter__toggler"
                         onClick={() => setOpen(!open)}
                     >
                         {open ? lessText : moreText}
@@ -94,7 +99,7 @@ const LineLimiter = styled(LineLimiterBase)<LineLimiterProps>`
         .emoticon {
             max-height: ${(props) => props.lineHeight}px;
             min-height: ${(props) => props.lineHeight}px;
-         }
+        }
     }
 
     .markdown-inline-img__container img.markdown-inline-img {
@@ -104,7 +109,7 @@ const LineLimiter = styled(LineLimiterBase)<LineLimiterProps>`
     }
 
     & > * {
-       overflow: hidden;
+        overflow: hidden;
     }
 `;
 

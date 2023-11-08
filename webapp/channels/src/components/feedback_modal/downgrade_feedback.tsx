@@ -1,63 +1,63 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {injectIntl} from 'react-intl';
-import type {WrappedComponentProps} from 'react-intl';
+import React from "react";
+import { injectIntl } from "react-intl";
+import type { WrappedComponentProps } from "react-intl";
 
-import type {Feedback} from '@mattermost/types/cloud';
+import type { Feedback } from "@mattermost/types/cloud";
 
-import FeedbackModal from 'components/feedback_modal/feedback';
-import type {FeedbackOption} from 'components/feedback_modal/feedback';
+import FeedbackModal from "components/feedback_modal/feedback";
+import type { FeedbackOption } from "components/feedback_modal/feedback";
 
 type Props = {
     onSubmit: (downgradeFeedback: Feedback) => void;
-} &WrappedComponentProps
+} & WrappedComponentProps;
 
 const DowngradeFeedbackModal = (props: Props) => {
     const downgradeFeedbackModalTitle = props.intl.formatMessage({
-        id: 'feedback.downgradeWorkspace.feedbackTitle',
-        defaultMessage: 'Please share your reason for downgrading',
+        id: "feedback.downgradeWorkspace.feedbackTitle",
+        defaultMessage: "Please share your reason for downgrading",
     });
 
     const placeHolder = props.intl.formatMessage({
-        id: 'feedback.downgradeWorkspace.tellUsWhy',
-        defaultMessage: 'Please tell us why you are downgrading',
+        id: "feedback.downgradeWorkspace.tellUsWhy",
+        defaultMessage: "Please tell us why you are downgrading",
     });
 
     const downgradeButtonText = props.intl.formatMessage({
-        id: 'feedback.downgradeWorkspace.downgrade',
-        defaultMessage: 'Downgrade',
+        id: "feedback.downgradeWorkspace.downgrade",
+        defaultMessage: "Downgrade",
     });
 
     const downgradeFeedbackOptions: FeedbackOption[] = [
         {
             translatedMessage: props.intl.formatMessage({
-                id: 'feedback.downgradeWorkspace.technicalIssues',
-                defaultMessage: 'Experienced technical issues',
+                id: "feedback.downgradeWorkspace.technicalIssues",
+                defaultMessage: "Experienced technical issues",
             }),
-            submissionValue: 'Experienced technical issues',
+            submissionValue: "Experienced technical issues",
         },
         {
             translatedMessage: props.intl.formatMessage({
-                id: 'feedback.downgradeWorkspace.noLongerNeeded',
-                defaultMessage: 'No longer need Cloud Professional features',
+                id: "feedback.downgradeWorkspace.noLongerNeeded",
+                defaultMessage: "No longer need Cloud Professional features",
             }),
-            submissionValue: 'No longer need Cloud Professional features',
+            submissionValue: "No longer need Cloud Professional features",
         },
         {
             translatedMessage: props.intl.formatMessage({
-                id: 'feedback.downgradeWorkspace.exploringOptions',
-                defaultMessage: 'Exploring other solutions',
+                id: "feedback.downgradeWorkspace.exploringOptions",
+                defaultMessage: "Exploring other solutions",
             }),
-            submissionValue: 'Exploring other solutions',
+            submissionValue: "Exploring other solutions",
         },
         {
             translatedMessage: props.intl.formatMessage({
-                id: 'feedback.downgradeWorkspace.tooExpensive',
-                defaultMessage: 'Too expensive',
+                id: "feedback.downgradeWorkspace.tooExpensive",
+                defaultMessage: "Too expensive",
             }),
-            submissionValue: 'Too expensive',
+            submissionValue: "Too expensive",
         },
     ];
 

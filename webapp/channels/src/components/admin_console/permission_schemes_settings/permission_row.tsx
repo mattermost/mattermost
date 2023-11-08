@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {Role} from '@mattermost/types/roles';
+import type { Role } from "@mattermost/types/roles";
 
-import PermissionCheckbox from './permission_checkbox';
-import PermissionDescription from './permission_description';
-import type {AdditionalValues} from './permissions_tree/types';
+import PermissionCheckbox from "./permission_checkbox";
+import PermissionDescription from "./permission_description";
+import type { AdditionalValues } from "./permissions_tree/types";
 
 type Props = {
     id: string;
@@ -20,7 +20,7 @@ type Props = {
     value: string;
     onChange: (id: string) => void;
     additionalValues: AdditionalValues;
-}
+};
 
 const PermissionRow = (props: Props): JSX.Element => {
     const toggleSelect = (): void => {
@@ -30,36 +30,37 @@ const PermissionRow = (props: Props): JSX.Element => {
         props.onChange(props.id);
     };
 
-    const {id, uniqId, inherited, value, readOnly, selected, additionalValues} = props;
-    let classes = 'permission-row';
+    const {
+        id,
+        uniqId,
+        inherited,
+        value,
+        readOnly,
+        selected,
+        additionalValues,
+    } = props;
+    let classes = "permission-row";
     if (readOnly) {
-        classes += ' read-only';
+        classes += " read-only";
     }
 
     if (selected === id) {
-        classes += ' selected';
+        classes += " selected";
     }
 
     return (
-        <div
-            className={classes}
-            onClick={toggleSelect}
-            id={uniqId}
-        >
-            <PermissionCheckbox
-                value={value}
-                id={`${uniqId}-checkbox`}
-            />
-            <span className='permission-name'>
+        <div className={classes} onClick={toggleSelect} id={uniqId}>
+            <PermissionCheckbox value={value} id={`${uniqId}-checkbox`} />
+            <span className="permission-name">
                 <FormattedMessage
-                    id={'admin.permissions.permission.' + id + '.name'}
+                    id={"admin.permissions.permission." + id + ".name"}
                 />
             </span>
             <PermissionDescription
                 inherited={inherited}
                 id={id}
                 selectRow={props.selectRow}
-                rowType='permission'
+                rowType="permission"
                 additionalValues={additionalValues}
             />
         </div>

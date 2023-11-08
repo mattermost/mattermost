@@ -1,5 +1,5 @@
-@import 'sass/utils/mixins';
-@import 'sass/utils/functions';
+@import "sass/utils/mixins";
+@import "sass/utils/functions";
 
 .Reaction {
     @include button-style--none;
@@ -157,6 +157,10 @@
 }
 
 @keyframes reacted-anim {
-    from { transform: translateY(0%); }
-    to { transform: translateY(-100%); }
+    from {
+        transform: translateY(0%);
+    }
+    to {
+        transform: translateY(-100%);
+    }
 }

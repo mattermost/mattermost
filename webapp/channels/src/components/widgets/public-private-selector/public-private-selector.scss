@@ -33,7 +33,8 @@
             }
 
             &:hover {
-                border: 1px solid rgba(var(--sidebar-text-active-border-rgb), 0.4);
+                border: 1px solid
+                    rgba(var(--sidebar-text-active-border-rgb), 0.4);
                 box-shadow: var(--elevation-2);
             }
         }
@@ -50,7 +51,8 @@
             }
 
             &.selected {
-                border: 1px solid rgba(var(--sidebar-text-active-border-rgb), 0.32);
+                border: 1px solid
+                    rgba(var(--sidebar-text-active-border-rgb), 0.32);
             }
         }
 

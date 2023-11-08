@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import Popover from 'components/widgets/popover';
+import Popover from "components/widgets/popover";
 
 type SuggestionItem = {
     key: string;
@@ -14,18 +14,26 @@ type SuggestionItem = {
     preventClose: () => void;
     handleEscape: () => void;
     isSelection: boolean;
-    onClick: (term: string, matchedPretext: string[], e?: React.MouseEvent<HTMLDivElement>) => boolean;
-}
+    onClick: (
+        term: string,
+        matchedPretext: string[],
+        e?: React.MouseEvent<HTMLDivElement>,
+    ) => boolean;
+};
 
 type Props = {
-    onCompleteWord: (term: string, matchedPretext: string[], e?: React.MouseEvent<HTMLDivElement>) => boolean;
+    onCompleteWord: (
+        term: string,
+        matchedPretext: string[],
+        e?: React.MouseEvent<HTMLDivElement>,
+    ) => boolean;
     matchedPretext: string[];
     items: SuggestionItem[];
     terms: string[];
     preventClose: () => void;
     handleEscape: () => void;
     components: Array<React.ComponentType<SuggestionItem>>;
-}
+};
 
 export default class SuggestionDate extends React.PureComponent<Props> {
     render() {
@@ -55,9 +63,9 @@ export default class SuggestionDate extends React.PureComponent<Props> {
 
         return (
             <Popover
-                id='search-autocomplete__popover'
-                className='search-help-popover autocomplete visible'
-                placement='bottom'
+                id="search-autocomplete__popover"
+                className="search-help-popover autocomplete visible"
+                placement="bottom"
             >
                 {itemComponent}
             </Popover>

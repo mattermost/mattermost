@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Address, Product, Invoice} from './cloud';
-import {ValueOf} from './utilities';
+import type { Address, Product, Invoice } from "./cloud";
+import { ValueOf } from "./utilities";
 
 export const SelfHostedSignupProgress = {
-    START: 'START',
-    CREATED_CUSTOMER: 'CREATED_CUSTOMER',
-    CREATED_INTENT: 'CREATED_INTENT',
-    CONFIRMED_INTENT: 'CONFIRMED_INTENT',
-    CREATED_SUBSCRIPTION: 'CREATED_SUBSCRIPTION',
-    PAID: 'PAID',
-    CREATED_LICENSE: 'CREATED_LICENSE',
+    START: "START",
+    CREATED_CUSTOMER: "CREATED_CUSTOMER",
+    CREATED_INTENT: "CREATED_INTENT",
+    CONFIRMED_INTENT: "CONFIRMED_INTENT",
+    CREATED_SUBSCRIPTION: "CREATED_SUBSCRIPTION",
+    PAID: "PAID",
+    CREATED_LICENSE: "CREATED_LICENSE",
 } as const;
 
 export interface SelfHostedSignupForm {
@@ -56,18 +56,18 @@ export type HostedCustomerState = {
     signupProgress: ValueOf<typeof SelfHostedSignupProgress>;
     trueUpReviewStatus: TrueUpReviewStatusReducer;
     trueUpReviewProfile: TrueUpReviewProfileReducer;
-}
+};
 
 export type TrueUpReviewProfile = {
     content: string;
-}
+};
 
 export type TrueUpReviewStatus = {
     due_date: number;
     complete: boolean;
-}
+};
 
-type RequestState = 'IDLE' | 'LOADING' | 'OK'
+type RequestState = "IDLE" | "LOADING" | "OK";
 export interface TrueUpReviewProfileReducer extends TrueUpReviewProfile {
     getRequestState: RequestState;
 }
@@ -79,4 +79,4 @@ export interface TrueUpReviewStatusReducer extends TrueUpReviewStatus {
 export type SelfHostedExpansionRequest = {
     seats: number;
     license_id: string;
-}
+};

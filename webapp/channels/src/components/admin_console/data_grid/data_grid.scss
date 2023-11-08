@@ -1,4 +1,4 @@
-@import 'utils/variables';
+@import "utils/variables";
 
 .DataGrid {
     width: 100%;
@@ -158,14 +158,16 @@
 
         .DataGrid_header {
             padding: 8px 0;
-            border-bottom: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
+            border-bottom: 1px solid
+                rgba(var(--sys-center-channel-color-rgb), 0.16);
             color: var(--sys-center-channel-color);
             font-size: 14px;
             font-weight: 600;
             line-height: 16px;
 
             &:last-child {
-                border-bottom: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+                border-bottom: 1px solid
+                    rgba(var(--sys-center-channel-color-rgb), 0.08);
             }
 
             .DataGrid_cell {

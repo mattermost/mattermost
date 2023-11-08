@@ -1,6 +1,6 @@
 @charset 'UTF-8';
 
-@import 'utils/module';
+@import "utils/module";
 
 .TeamIcon__content {
     display: flex;
@@ -38,7 +38,10 @@
     text-align: center;
     text-transform: uppercase;
     transform-origin: center center;
-    transition: box-shadow 0.3s, background-color 0.3s, border-color 0.3s;
+    transition:
+        box-shadow 0.3s,
+        background-color 0.3s,
+        border-color 0.3s;
     will-change: box-shadow, background-color, border-color;
 
     &:not(.no-hover):hover {

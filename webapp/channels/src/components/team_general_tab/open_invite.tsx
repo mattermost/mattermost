@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import React, { useCallback, useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 
-import type {Team} from '@mattermost/types/teams';
+import type { Team } from "@mattermost/types/teams";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import ExternalLink from 'components/external_link';
-import SettingItemMax from 'components/setting_item_max';
-import SettingItemMin from 'components/setting_item_min';
+import ExternalLink from "components/external_link";
+import SettingItemMax from "components/setting_item_max";
+import SettingItemMin from "components/setting_item_min";
 
 type Props = {
     teamId?: string;
@@ -22,19 +22,21 @@ type Props = {
 };
 
 const OpenInvite = (props: Props) => {
-    const {teamId, isActive, isGroupConstrained, onToggle, patchTeam} = props;
+    const { teamId, isActive, isGroupConstrained, onToggle, patchTeam } = props;
     const intl = useIntl();
-    const [serverError, setServerError] = useState('');
-    const [allowOpenInvite, setAllowOpenInvite] = useState(props.allowOpenInvite);
+    const [serverError, setServerError] = useState("");
+    const [allowOpenInvite, setAllowOpenInvite] = useState(
+        props.allowOpenInvite,
+    );
 
     const submit = useCallback(() => {
-        setServerError('');
+        setServerError("");
         const data = {
             id: teamId,
             allow_open_invite: allowOpenInvite,
         };
 
-        patchTeam(data).then(({error}) => {
+        patchTeam(data).then(({ error }) => {
             if (error) {
                 setServerError(error.message);
             } else {
@@ -53,21 +55,35 @@ const OpenInvite = (props: Props) => {
     }, [isActive, onToggle]);
 
     if (!isActive) {
-        let describe = '';
+        let describe = "";
         if (props.allowOpenInvite) {
-            describe = intl.formatMessage({id: 'general_tab.yes', defaultMessage: 'Yes'});
+            describe = intl.formatMessage({
+                id: "general_tab.yes",
+                defaultMessage: "Yes",
+            });
         } else if (isGroupConstrained) {
-            describe = intl.formatMessage({id: 'team_settings.openInviteSetting.groupConstrained', defaultMessage: 'No, members of this team are added and removed by linked groups.'});
+            describe = intl.formatMessage({
+                id: "team_settings.openInviteSetting.groupConstrained",
+                defaultMessage:
+                    "No, members of this team are added and removed by linked groups.",
+            });
         } else {
-            describe = intl.formatMessage({id: 'general_tab.no', defaultMessage: 'No'});
+            describe = intl.formatMessage({
+                id: "general_tab.no",
+                defaultMessage: "No",
+            });
         }
 
         return (
             <SettingItemMin
-                title={intl.formatMessage({id: 'general_tab.openInviteTitle', defaultMessage: 'Allow any user with an account on this server to join this team'})}
+                title={intl.formatMessage({
+                    id: "general_tab.openInviteTitle",
+                    defaultMessage:
+                        "Allow any user with an account on this server to join this team",
+                })}
                 describe={describe}
                 updateSection={handleToggle}
-                section={'open_invite'}
+                section={"open_invite"}
             />
         );
     }
@@ -76,16 +92,16 @@ const OpenInvite = (props: Props) => {
 
     if (isGroupConstrained) {
         inputs = [
-            <div key='userOpenInviteOptions'>
+            <div key="userOpenInviteOptions">
                 <div>
                     <FormattedMessage
-                        id='team_settings.openInviteDescription.groupConstrained'
-                        defaultMessage='No, members of this team are added and removed by linked groups. <link>Learn More</link>'
+                        id="team_settings.openInviteDescription.groupConstrained"
+                        defaultMessage="No, members of this team are added and removed by linked groups. <link>Learn More</link>"
                         values={{
                             link: (msg: React.ReactNode) => (
                                 <ExternalLink
-                                    href='https://mattermost.com/pl/default-ldap-group-constrained-team-channel.html'
-                                    location='open_invite'
+                                    href="https://mattermost.com/pl/default-ldap-group-constrained-team-channel.html"
+                                    location="open_invite"
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -97,48 +113,48 @@ const OpenInvite = (props: Props) => {
         ];
     } else {
         inputs = [
-            <fieldset key='userOpenInviteOptions'>
-                <legend className='form-legend hidden-label'>
+            <fieldset key="userOpenInviteOptions">
+                <legend className="form-legend hidden-label">
                     <FormattedMessage
-                        id='team_settings.openInviteDescription.ariaLabel'
-                        defaultMessage='Invite Code'
+                        id="team_settings.openInviteDescription.ariaLabel"
+                        defaultMessage="Invite Code"
                     />
                 </legend>
-                <div className='radio'>
+                <div className="radio">
                     <label>
                         <input
-                            id='teamOpenInvite'
-                            name='userOpenInviteOptions'
-                            type='radio'
+                            id="teamOpenInvite"
+                            name="userOpenInviteOptions"
+                            type="radio"
                             defaultChecked={allowOpenInvite}
                             onChange={() => setAllowOpenInvite(true)}
                         />
                         <FormattedMessage
-                            id='general_tab.yes'
-                            defaultMessage='Yes'
+                            id="general_tab.yes"
+                            defaultMessage="Yes"
                         />
                     </label>
-                    <br/>
+                    <br />
                 </div>
-                <div className='radio'>
+                <div className="radio">
                     <label>
                         <input
-                            id='teamOpenInviteNo'
-                            name='userOpenInviteOptions'
-                            type='radio'
+                            id="teamOpenInviteNo"
+                            name="userOpenInviteOptions"
+                            type="radio"
                             defaultChecked={!allowOpenInvite}
                             onChange={() => setAllowOpenInvite(false)}
                         />
                         <FormattedMessage
-                            id='general_tab.no'
-                            defaultMessage='No'
+                            id="general_tab.no"
+                            defaultMessage="No"
                         />
                     </label>
-                    <br/>
+                    <br />
                 </div>
-                <div className='mt-5'>
+                <div className="mt-5">
                     <FormattedMessage
-                        id='general_tab.openInviteDesc'
+                        id="general_tab.openInviteDesc"
                         defaultMessage='When allowed, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing from "Yes" to "No" will regenerate the invitation code, create a new invitation link and invalidate the previous link.'
                     />
                 </div>
@@ -148,7 +164,11 @@ const OpenInvite = (props: Props) => {
 
     return (
         <SettingItemMax
-            title={intl.formatMessage({id: 'general_tab.openInviteTitle', defaultMessage: 'Allow any user with an account on this server to join this team'})}
+            title={intl.formatMessage({
+                id: "general_tab.openInviteTitle",
+                defaultMessage:
+                    "Allow any user with an account on this server to join this team",
+            })}
             inputs={inputs}
             submit={submit}
             serverError={serverError}

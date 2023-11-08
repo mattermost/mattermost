@@ -1,28 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {debounce} from 'lodash';
-import React from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import { debounce } from "lodash";
+import React from "react";
+import { Modal } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import type { GenericAction } from "mattermost-redux/types/actions";
 
-import type MultiSelect from 'components/multiselect/multiselect';
+import type MultiSelect from "components/multiselect/multiselect";
 
-import {getHistory} from 'utils/browser_history';
-import Constants from 'utils/constants';
+import { getHistory } from "utils/browser_history";
+import Constants from "utils/constants";
 
-import List from './list';
-import {USERS_PER_PAGE} from './list/list';
-import {
-    isGroupChannel,
-    optionValue,
-} from './types';
-import type {
-    OptionValue} from './types';
+import List from "./list";
+import { USERS_PER_PAGE } from "./list/list";
+import { isGroupChannel, optionValue } from "./types";
+import type { OptionValue } from "./types";
 
 export type Props = {
     currentUserId: string;
@@ -33,24 +29,34 @@ export type Props = {
     totalCount: number;
 
     /*
-    * List of current channel members of existing channel
-    */
+     * List of current channel members of existing channel
+     */
     currentChannelMembers?: UserProfile[];
 
     /*
-    * Whether the modal is for existing channel or not
-    */
+     * Whether the modal is for existing channel or not
+     */
     isExistingChannel: boolean;
 
     /*
-    * The mode by which direct messages are restricted, if at all.
-    */
+     * The mode by which direct messages are restricted, if at all.
+     */
     restrictDirectMessage?: string;
     onModalDismissed?: () => void;
     onExited?: () => void;
     actions: {
-        getProfiles: (page?: number | undefined, perPage?: number | undefined, options?: any) => Promise<any>;
-        getProfilesInTeam: (teamId: string, page: number, perPage?: number | undefined, sort?: string | undefined, options?: any) => Promise<any>;
+        getProfiles: (
+            page?: number | undefined,
+            perPage?: number | undefined,
+            options?: any,
+        ) => Promise<any>;
+        getProfilesInTeam: (
+            teamId: string,
+            page: number,
+            perPage?: number | undefined,
+            sort?: string | undefined,
+            options?: any,
+        ) => Promise<any>;
         loadProfilesMissingStatus: (users: UserProfile[]) => void;
         getTotalUsersStats: () => void;
         loadStatusesForProfilesList: (users: any) => {
@@ -63,7 +69,7 @@ export type Props = {
         searchGroupChannels: (term: string) => Promise<any>;
         setModalSearchTerm: (term: any) => GenericAction;
     };
-}
+};
 
 type State = {
     values: OptionValue[];
@@ -71,9 +77,12 @@ type State = {
     search: boolean;
     saving: boolean;
     loadingUsers: boolean;
-}
+};
 
-export default class MoreDirectChannels extends React.PureComponent<Props, State> {
+export default class MoreDirectChannels extends React.PureComponent<
+    Props,
+    State
+> {
     searchTimeoutId: any;
     exitToChannel?: string;
     multiselect: React.RefObject<MultiSelect<OptionValue>>;
@@ -119,35 +128,42 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
             clearTimeout(this.searchTimeoutId);
 
             const searchTerm = this.props.searchTerm;
-            if (searchTerm === '') {
+            if (searchTerm === "") {
                 this.resetPaging();
             } else {
-                const teamId = this.props.restrictDirectMessage === 'any' ? '' : this.props.currentTeamId;
+                const teamId =
+                    this.props.restrictDirectMessage === "any"
+                        ? ""
+                        : this.props.currentTeamId;
 
-                this.searchTimeoutId = setTimeout(
-                    async () => {
-                        this.setUsersLoadingState(true);
-                        const [{data: profilesData}, {data: groupChannelsData}] = await Promise.all([
-                            this.props.actions.searchProfiles(searchTerm, {team_id: teamId}),
-                            this.props.actions.searchGroupChannels(searchTerm),
-                        ]);
-                        if (profilesData) {
-                            this.props.actions.loadStatusesForProfilesList(profilesData);
-                        }
-                        if (groupChannelsData) {
-                            this.props.actions.loadProfilesForGroupChannels(groupChannelsData);
-                        }
-                        this.resetPaging();
-                        this.setUsersLoadingState(false);
-                    },
-                    Constants.SEARCH_TIMEOUT_MILLISECONDS,
-                );
+                this.searchTimeoutId = setTimeout(async () => {
+                    this.setUsersLoadingState(true);
+                    const [
+                        { data: profilesData },
+                        { data: groupChannelsData },
+                    ] = await Promise.all([
+                        this.props.actions.searchProfiles(searchTerm, {
+                            team_id: teamId,
+                        }),
+                        this.props.actions.searchGroupChannels(searchTerm),
+                    ]);
+                    if (profilesData) {
+                        this.props.actions.loadStatusesForProfilesList(
+                            profilesData,
+                        );
+                    }
+                    if (groupChannelsData) {
+                        this.props.actions.loadProfilesForGroupChannels(
+                            groupChannelsData,
+                        );
+                    }
+                    this.resetPaging();
+                    this.setUsersLoadingState(false);
+                }, Constants.SEARCH_TIMEOUT_MILLISECONDS);
             }
         }
 
-        if (
-            prevProps.users.length !== this.props.users.length
-        ) {
+        if (prevProps.users.length !== this.props.users.length) {
             this.props.actions.loadProfilesMissingStatus(this.props.users);
         }
     }
@@ -157,8 +173,8 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
     }
 
     handleHide = () => {
-        this.props.actions.setModalSearchTerm('');
-        this.setState({show: false});
+        this.props.actions.setModalSearchTerm("");
+        this.setState({ show: false });
     };
 
     setUsersLoadingState = (loadingState: boolean) => {
@@ -177,7 +193,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
     };
 
     handleSubmit = (values = this.state.values) => {
-        const {actions} = this.props;
+        const { actions } = this.props;
         if (this.state.saving) {
             return;
         }
@@ -187,14 +203,15 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
             return;
         }
 
-        this.setState({saving: true});
+        this.setState({ saving: true });
 
         const done = (result: any) => {
-            const {data, error} = result;
-            this.setState({saving: false});
+            const { data, error } = result;
+            this.setState({ saving: false });
 
             if (!error) {
-                this.exitToChannel = '/' + this.props.currentTeamName + '/channels/' + data.name;
+                this.exitToChannel =
+                    "/" + this.props.currentTeamName + "/channels/" + data.name;
                 this.handleHide();
             }
         };
@@ -216,7 +233,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 values.push(value);
             }
 
-            this.setState({values});
+            this.setState({ values });
         }
     };
 
@@ -230,19 +247,27 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
             values.push(optionValue(user));
         }
 
-        this.setState({values});
+        this.setState({ values });
     };
 
     getUserProfiles = (page?: number) => {
         const pageNum = page ? page + 1 : 0;
-        if (this.props.restrictDirectMessage === 'any') {
-            this.props.actions.getProfiles(pageNum, USERS_PER_PAGE * 2).then(() => {
-                this.setUsersLoadingState(false);
-            });
+        if (this.props.restrictDirectMessage === "any") {
+            this.props.actions
+                .getProfiles(pageNum, USERS_PER_PAGE * 2)
+                .then(() => {
+                    this.setUsersLoadingState(false);
+                });
         } else {
-            this.props.actions.getProfilesInTeam(this.props.currentTeamId, pageNum, USERS_PER_PAGE * 2).then(() => {
-                this.setUsersLoadingState(false);
-            });
+            this.props.actions
+                .getProfilesInTeam(
+                    this.props.currentTeamId,
+                    pageNum,
+                    USERS_PER_PAGE * 2,
+                )
+                .then(() => {
+                    this.setUsersLoadingState(false);
+                });
         }
     };
 
@@ -262,7 +287,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
     }, 250);
 
     handleDelete = (values: OptionValue[]) => {
-        this.setState({values});
+        this.setState({ values });
     };
 
     render() {
@@ -286,40 +311,33 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
 
         return (
             <Modal
-                dialogClassName='a11y__modal more-modal more-direct-channels'
+                dialogClassName="a11y__modal more-modal more-direct-channels"
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}
                 onEntered={this.loadModalData}
-                role='dialog'
-                aria-labelledby='moreDmModalLabel'
-                id='moreDmModal'
+                role="dialog"
+                aria-labelledby="moreDmModalLabel"
+                id="moreDmModal"
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title
-                        componentClass='h1'
-                        id='moreDmModalLabel'
-                    >
+                    <Modal.Title componentClass="h1" id="moreDmModalLabel">
                         <FormattedMessage
-                            id='more_direct_channels.title'
-                            defaultMessage='Direct Messages'
+                            id="more_direct_channels.title"
+                            defaultMessage="Direct Messages"
                         />
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body
-                    role='application'
-                >
-                    {body}
-                </Modal.Body>
-                <Modal.Footer className='modal-footer--invisible'>
+                <Modal.Body role="application">{body}</Modal.Body>
+                <Modal.Footer className="modal-footer--invisible">
                     <button
-                        id='closeModalButton'
-                        type='button'
-                        className='btn btn-tertiary'
+                        id="closeModalButton"
+                        type="button"
+                        className="btn btn-tertiary"
                     >
                         <FormattedMessage
-                            id='general_button.close'
-                            defaultMessage='Close'
+                            id="general_button.close"
+                            defaultMessage="Close"
                         />
                     </button>
                 </Modal.Footer>

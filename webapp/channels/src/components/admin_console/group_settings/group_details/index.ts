@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import type { ActionCreatorsMapObject, Dispatch } from "redux";
 
-import type {GlobalState} from '@mattermost/types/store';
+import type { GlobalState } from "@mattermost/types/store";
 
 import {
     getGroup as fetchGroup,
@@ -15,21 +15,21 @@ import {
     patchGroup,
     patchGroupSyncable,
     unlinkGroupSyncable,
-} from 'mattermost-redux/actions/groups';
-import {getProfilesInGroup} from 'mattermost-redux/actions/users';
+} from "mattermost-redux/actions/groups";
+import { getProfilesInGroup } from "mattermost-redux/actions/users";
 import {
     getGroup,
     getGroupChannels,
     getGroupMemberCount,
     getGroupTeams,
-} from 'mattermost-redux/selectors/entities/groups';
-import {getProfilesInGroup as selectProfilesInGroup} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+} from "mattermost-redux/selectors/entities/groups";
+import { getProfilesInGroup as selectProfilesInGroup } from "mattermost-redux/selectors/entities/users";
+import type { ActionFunc, GenericAction } from "mattermost-redux/types/actions";
 
-import {setNavigationBlocked} from 'actions/admin_actions';
+import { setNavigationBlocked } from "actions/admin_actions";
 
-import GroupDetails from './group_details';
-import type {Props} from './group_details';
+import GroupDetails from "./group_details";
+import type { Props } from "./group_details";
 
 type OwnProps = {
     match: {
@@ -60,8 +60,8 @@ function mapStateToProps(state: GlobalState, props: OwnProps) {
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
         actions: bindActionCreators<
-        ActionCreatorsMapObject<ActionFunc | GenericAction>,
-        Props['actions']
+            ActionCreatorsMapObject<ActionFunc | GenericAction>,
+            Props["actions"]
         >(
             {
                 setNavigationBlocked,

@@ -1,23 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {batchActions} from 'redux-batched-actions';
+import { batchActions } from "redux-batched-actions";
 
-import type {ServerError} from '@mattermost/types/errors';
+import type { ServerError } from "@mattermost/types/errors";
 
-import {UserTypes} from 'mattermost-redux/action_types';
-import {logError} from 'mattermost-redux/actions/errors';
-import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
-import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc, DispatchFunc} from 'mattermost-redux/types/actions';
+import { UserTypes } from "mattermost-redux/action_types";
+import { logError } from "mattermost-redux/actions/errors";
+import { loadRolesIfNeeded } from "mattermost-redux/actions/roles";
+import { Client4 } from "mattermost-redux/client";
+import type { ActionFunc, DispatchFunc } from "mattermost-redux/types/actions";
 
-export function login(loginId: string, password: string, mfaToken = ''): ActionFunc {
+export function login(
+    loginId: string,
+    password: string,
+    mfaToken = "",
+): ActionFunc {
     return async (dispatch: DispatchFunc) => {
-        dispatch({type: UserTypes.LOGIN_REQUEST, data: null});
+        dispatch({ type: UserTypes.LOGIN_REQUEST, data: null });
 
         try {
             // This is partial user profile we recieved when we login. We still need to make getMe for complete user profile.
-            const loggedInUserProfile = await Client4.login(loginId, password, mfaToken);
+            const loggedInUserProfile = await Client4.login(
+                loginId,
+                password,
+                mfaToken,
+            );
 
             dispatch(
                 batchActions([
@@ -31,27 +39,28 @@ export function login(loginId: string, password: string, mfaToken = ''): ActionF
                 ]),
             );
 
-            dispatch(loadRolesIfNeeded(loggedInUserProfile.roles.split(' ')));
+            dispatch(loadRolesIfNeeded(loggedInUserProfile.roles.split(" ")));
         } catch (error) {
             dispatch({
                 type: UserTypes.LOGIN_FAILURE,
                 error,
             });
             dispatch(logError(error as ServerError));
-            return {error};
+            return { error };
         }
 
-        return {data: true};
+        return { data: true };
     };
 }
 
 export function loginWithDesktopToken(token: string): ActionFunc {
     return async (dispatch: DispatchFunc) => {
-        dispatch({type: UserTypes.LOGIN_REQUEST, data: null});
+        dispatch({ type: UserTypes.LOGIN_REQUEST, data: null });
 
         try {
             // This is partial user profile we recieved when we login. We still need to make getMe for complete user profile.
-            const loggedInUserProfile = await Client4.loginWithDesktopToken(token);
+            const loggedInUserProfile =
+                await Client4.loginWithDesktopToken(token);
 
             dispatch(
                 batchActions([
@@ -65,26 +74,30 @@ export function loginWithDesktopToken(token: string): ActionFunc {
                 ]),
             );
 
-            dispatch(loadRolesIfNeeded(loggedInUserProfile.roles.split(' ')));
+            dispatch(loadRolesIfNeeded(loggedInUserProfile.roles.split(" ")));
         } catch (error) {
             dispatch({
                 type: UserTypes.LOGIN_FAILURE,
                 error,
             });
             dispatch(logError(error as ServerError));
-            return {error};
+            return { error };
         }
 
-        return {data: true};
+        return { data: true };
     };
 }
 
 export function loginById(id: string, password: string): ActionFunc {
     return async (dispatch: DispatchFunc) => {
-        dispatch({type: UserTypes.LOGIN_REQUEST, data: null});
+        dispatch({ type: UserTypes.LOGIN_REQUEST, data: null });
 
         try {
-            const loggedInUserProfile = await Client4.loginById(id, password, '');
+            const loggedInUserProfile = await Client4.loginById(
+                id,
+                password,
+                "",
+            );
 
             dispatch(
                 batchActions([
@@ -98,16 +111,16 @@ export function loginById(id: string, password: string): ActionFunc {
                 ]),
             );
 
-            dispatch(loadRolesIfNeeded(loggedInUserProfile.roles.split(' ')));
+            dispatch(loadRolesIfNeeded(loggedInUserProfile.roles.split(" ")));
         } catch (error) {
             dispatch({
                 type: UserTypes.LOGIN_FAILURE,
                 error,
             });
             dispatch(logError(error as ServerError));
-            return {error};
+            return { error };
         }
 
-        return {data: true};
+        return { data: true };
     };
 }

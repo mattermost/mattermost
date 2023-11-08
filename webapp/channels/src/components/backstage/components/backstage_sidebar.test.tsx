@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
-import type {ComponentProps} from 'react';
+import { shallow } from "enzyme";
+import React from "react";
+import type { ComponentProps } from "react";
 
-import {TestHelper} from 'utils/test_helper';
+import { TestHelper } from "utils/test_helper";
 
-import BackstageCategory from './backstage_category';
-import BackstageSidebar from './backstage_sidebar';
+import BackstageCategory from "./backstage_category";
+import BackstageSidebar from "./backstage_sidebar";
 
-describe('components/backstage/components/BackstageSidebar', () => {
+describe("components/backstage/components/BackstageSidebar", () => {
     const defaultProps: ComponentProps<typeof BackstageSidebar> = {
         team: TestHelper.getTeamMock({
-            id: 'team-id',
-            name: 'team_name',
+            id: "team-id",
+            name: "team_name",
         }),
         user: TestHelper.getUserMock({}),
         enableCustomEmoji: false,
@@ -26,12 +26,28 @@ describe('components/backstage/components/BackstageSidebar', () => {
         canManageIntegrations: false,
     };
 
-    describe('custom emoji', () => {
+    describe("custom emoji", () => {
         const testCases = [
-            {enableCustomEmoji: false, canCreateOrDeleteCustomEmoji: false, expectedResult: false},
-            {enableCustomEmoji: false, canCreateOrDeleteCustomEmoji: true, expectedResult: false},
-            {enableCustomEmoji: true, canCreateOrDeleteCustomEmoji: false, expectedResult: false},
-            {enableCustomEmoji: true, canCreateOrDeleteCustomEmoji: true, expectedResult: true},
+            {
+                enableCustomEmoji: false,
+                canCreateOrDeleteCustomEmoji: false,
+                expectedResult: false,
+            },
+            {
+                enableCustomEmoji: false,
+                canCreateOrDeleteCustomEmoji: true,
+                expectedResult: false,
+            },
+            {
+                enableCustomEmoji: true,
+                canCreateOrDeleteCustomEmoji: false,
+                expectedResult: false,
+            },
+            {
+                enableCustomEmoji: true,
+                canCreateOrDeleteCustomEmoji: true,
+                expectedResult: true,
+            },
         ];
 
         testCases.forEach((testCase) => {
@@ -39,23 +55,43 @@ describe('components/backstage/components/BackstageSidebar', () => {
                 const props = {
                     ...defaultProps,
                     enableCustomEmoji: testCase.enableCustomEmoji,
-                    canCreateOrDeleteCustomEmoji: testCase.canCreateOrDeleteCustomEmoji,
+                    canCreateOrDeleteCustomEmoji:
+                        testCase.canCreateOrDeleteCustomEmoji,
                 };
-                const wrapper = shallow(
-                    <BackstageSidebar {...props}/>,
-                );
+                const wrapper = shallow(<BackstageSidebar {...props} />);
 
-                expect(wrapper.find(BackstageCategory).find({name: 'emoji'}).exists()).toBe(testCase.expectedResult);
+                expect(
+                    wrapper
+                        .find(BackstageCategory)
+                        .find({ name: "emoji" })
+                        .exists(),
+                ).toBe(testCase.expectedResult);
             });
         });
     });
 
-    describe('incoming webhooks', () => {
+    describe("incoming webhooks", () => {
         const testCases = [
-            {canManageIntegrations: false, enableIncomingWebhooks: false, expectedResult: false},
-            {canManageIntegrations: false, enableIncomingWebhooks: true, expectedResult: false},
-            {canManageIntegrations: true, enableIncomingWebhooks: false, expectedResult: false},
-            {canManageIntegrations: true, enableIncomingWebhooks: true, expectedResult: true},
+            {
+                canManageIntegrations: false,
+                enableIncomingWebhooks: false,
+                expectedResult: false,
+            },
+            {
+                canManageIntegrations: false,
+                enableIncomingWebhooks: true,
+                expectedResult: false,
+            },
+            {
+                canManageIntegrations: true,
+                enableIncomingWebhooks: false,
+                expectedResult: false,
+            },
+            {
+                canManageIntegrations: true,
+                enableIncomingWebhooks: true,
+                expectedResult: true,
+            },
         ];
 
         testCases.forEach((testCase) => {
@@ -65,21 +101,40 @@ describe('components/backstage/components/BackstageSidebar', () => {
                     enableIncomingWebhooks: testCase.enableIncomingWebhooks,
                     canManageIntegrations: testCase.canManageIntegrations,
                 };
-                const wrapper = shallow(
-                    <BackstageSidebar {...props}/>,
-                );
+                const wrapper = shallow(<BackstageSidebar {...props} />);
 
-                expect(wrapper.find(BackstageCategory).find({name: 'incoming_webhooks'}).exists()).toBe(testCase.expectedResult);
+                expect(
+                    wrapper
+                        .find(BackstageCategory)
+                        .find({ name: "incoming_webhooks" })
+                        .exists(),
+                ).toBe(testCase.expectedResult);
             });
         });
     });
 
-    describe('outgoing webhooks', () => {
+    describe("outgoing webhooks", () => {
         const testCases = [
-            {canManageIntegrations: false, enableOutgoingWebhooks: false, expectedResult: false},
-            {canManageIntegrations: false, enableOutgoingWebhooks: true, expectedResult: false},
-            {canManageIntegrations: true, enableOutgoingWebhooks: false, expectedResult: false},
-            {canManageIntegrations: true, enableOutgoingWebhooks: true, expectedResult: true},
+            {
+                canManageIntegrations: false,
+                enableOutgoingWebhooks: false,
+                expectedResult: false,
+            },
+            {
+                canManageIntegrations: false,
+                enableOutgoingWebhooks: true,
+                expectedResult: false,
+            },
+            {
+                canManageIntegrations: true,
+                enableOutgoingWebhooks: false,
+                expectedResult: false,
+            },
+            {
+                canManageIntegrations: true,
+                enableOutgoingWebhooks: true,
+                expectedResult: true,
+            },
         ];
 
         testCases.forEach((testCase) => {
@@ -89,21 +144,40 @@ describe('components/backstage/components/BackstageSidebar', () => {
                     enableOutgoingWebhooks: testCase.enableOutgoingWebhooks,
                     canManageIntegrations: testCase.canManageIntegrations,
                 };
-                const wrapper = shallow(
-                    <BackstageSidebar {...props}/>,
-                );
+                const wrapper = shallow(<BackstageSidebar {...props} />);
 
-                expect(wrapper.find(BackstageCategory).find({name: 'outgoing_webhooks'}).exists()).toBe(testCase.expectedResult);
+                expect(
+                    wrapper
+                        .find(BackstageCategory)
+                        .find({ name: "outgoing_webhooks" })
+                        .exists(),
+                ).toBe(testCase.expectedResult);
             });
         });
     });
 
-    describe('commands', () => {
+    describe("commands", () => {
         const testCases = [
-            {canManageIntegrations: false, enableCommands: false, expectedResult: false},
-            {canManageIntegrations: false, enableCommands: true, expectedResult: false},
-            {canManageIntegrations: true, enableCommands: false, expectedResult: false},
-            {canManageIntegrations: true, enableCommands: true, expectedResult: true},
+            {
+                canManageIntegrations: false,
+                enableCommands: false,
+                expectedResult: false,
+            },
+            {
+                canManageIntegrations: false,
+                enableCommands: true,
+                expectedResult: false,
+            },
+            {
+                canManageIntegrations: true,
+                enableCommands: false,
+                expectedResult: false,
+            },
+            {
+                canManageIntegrations: true,
+                enableCommands: true,
+                expectedResult: true,
+            },
         ];
 
         testCases.forEach((testCase) => {
@@ -113,43 +187,66 @@ describe('components/backstage/components/BackstageSidebar', () => {
                     enableCommands: testCase.enableCommands,
                     canManageIntegrations: testCase.canManageIntegrations,
                 };
-                const wrapper = shallow(
-                    <BackstageSidebar {...props}/>,
-                );
+                const wrapper = shallow(<BackstageSidebar {...props} />);
 
-                expect(wrapper.find(BackstageCategory).find({name: 'commands'}).exists()).toBe(testCase.expectedResult);
+                expect(
+                    wrapper
+                        .find(BackstageCategory)
+                        .find({ name: "commands" })
+                        .exists(),
+                ).toBe(testCase.expectedResult);
             });
         });
     });
 
-    describe('oauth2 apps', () => {
+    describe("oauth2 apps", () => {
         const testCases = [
-            {canManageIntegrations: false, enableOAuthServiceProvider: false, expectedResult: false},
-            {canManageIntegrations: false, enableOAuthServiceProvider: true, expectedResult: false},
-            {canManageIntegrations: true, enableOAuthServiceProvider: false, expectedResult: false},
-            {canManageIntegrations: true, enableOAuthServiceProvider: true, expectedResult: true},
+            {
+                canManageIntegrations: false,
+                enableOAuthServiceProvider: false,
+                expectedResult: false,
+            },
+            {
+                canManageIntegrations: false,
+                enableOAuthServiceProvider: true,
+                expectedResult: false,
+            },
+            {
+                canManageIntegrations: true,
+                enableOAuthServiceProvider: false,
+                expectedResult: false,
+            },
+            {
+                canManageIntegrations: true,
+                enableOAuthServiceProvider: true,
+                expectedResult: true,
+            },
         ];
 
         testCases.forEach((testCase) => {
             it(`when oauth2 apps is ${testCase.enableOAuthServiceProvider} and can manage integrations is ${testCase.canManageIntegrations}`, () => {
                 const props = {
                     ...defaultProps,
-                    enableOAuthServiceProvider: testCase.enableOAuthServiceProvider,
+                    enableOAuthServiceProvider:
+                        testCase.enableOAuthServiceProvider,
                     canManageIntegrations: testCase.canManageIntegrations,
                 };
-                const wrapper = shallow(
-                    <BackstageSidebar {...props}/>,
-                );
+                const wrapper = shallow(<BackstageSidebar {...props} />);
 
-                expect(wrapper.find(BackstageCategory).find({name: 'oauth2-apps'}).exists()).toBe(testCase.expectedResult);
+                expect(
+                    wrapper
+                        .find(BackstageCategory)
+                        .find({ name: "oauth2-apps" })
+                        .exists(),
+                ).toBe(testCase.expectedResult);
             });
         });
     });
 
-    describe('bots', () => {
+    describe("bots", () => {
         const testCases = [
-            {canManageIntegrations: false, expectedResult: false},
-            {canManageIntegrations: true, expectedResult: true},
+            { canManageIntegrations: false, expectedResult: false },
+            { canManageIntegrations: true, expectedResult: true },
         ];
 
         testCases.forEach((testCase) => {
@@ -158,17 +255,20 @@ describe('components/backstage/components/BackstageSidebar', () => {
                     ...defaultProps,
                     canManageIntegrations: testCase.canManageIntegrations,
                 };
-                const wrapper = shallow(
-                    <BackstageSidebar {...props}/>,
-                );
+                const wrapper = shallow(<BackstageSidebar {...props} />);
 
-                expect(wrapper.find(BackstageCategory).find({name: 'bots'}).exists()).toBe(testCase.expectedResult);
+                expect(
+                    wrapper
+                        .find(BackstageCategory)
+                        .find({ name: "bots" })
+                        .exists(),
+                ).toBe(testCase.expectedResult);
             });
         });
     });
 
-    describe('all integrations', () => {
-        it('can manage integrations', () => {
+    describe("all integrations", () => {
+        it("can manage integrations", () => {
             const props = {
                 ...defaultProps,
                 enableIncomingWebhooks: true,
@@ -177,18 +277,38 @@ describe('components/backstage/components/BackstageSidebar', () => {
                 enableOAuthServiceProvider: true,
                 canManageIntegrations: true,
             };
-            const wrapper = shallow(
-                <BackstageSidebar {...props}/>,
-            );
+            const wrapper = shallow(<BackstageSidebar {...props} />);
 
-            expect(wrapper.find(BackstageCategory).find({name: 'incoming_webhooks'}).exists()).toBe(true);
-            expect(wrapper.find(BackstageCategory).find({name: 'outgoing_webhooks'}).exists()).toBe(true);
-            expect(wrapper.find(BackstageCategory).find({name: 'commands'}).exists()).toBe(true);
-            expect(wrapper.find(BackstageCategory).find({name: 'oauth2-apps'}).exists()).toBe(true);
-            expect(wrapper.find(BackstageCategory).find({name: 'bots'}).exists()).toBe(true);
+            expect(
+                wrapper
+                    .find(BackstageCategory)
+                    .find({ name: "incoming_webhooks" })
+                    .exists(),
+            ).toBe(true);
+            expect(
+                wrapper
+                    .find(BackstageCategory)
+                    .find({ name: "outgoing_webhooks" })
+                    .exists(),
+            ).toBe(true);
+            expect(
+                wrapper
+                    .find(BackstageCategory)
+                    .find({ name: "commands" })
+                    .exists(),
+            ).toBe(true);
+            expect(
+                wrapper
+                    .find(BackstageCategory)
+                    .find({ name: "oauth2-apps" })
+                    .exists(),
+            ).toBe(true);
+            expect(
+                wrapper.find(BackstageCategory).find({ name: "bots" }).exists(),
+            ).toBe(true);
         });
 
-        it('cannot manage integrations', () => {
+        it("cannot manage integrations", () => {
             const props = {
                 ...defaultProps,
                 enableIncomingWebhooks: true,
@@ -197,15 +317,35 @@ describe('components/backstage/components/BackstageSidebar', () => {
                 enableOAuthServiceProvider: true,
                 canManageIntegrations: false,
             };
-            const wrapper = shallow(
-                <BackstageSidebar {...props}/>,
-            );
+            const wrapper = shallow(<BackstageSidebar {...props} />);
 
-            expect(wrapper.find(BackstageCategory).find({name: 'incoming_webhooks'}).exists()).toBe(false);
-            expect(wrapper.find(BackstageCategory).find({name: 'outgoing_webhooks'}).exists()).toBe(false);
-            expect(wrapper.find(BackstageCategory).find({name: 'commands'}).exists()).toBe(false);
-            expect(wrapper.find(BackstageCategory).find({name: 'oauth2-apps'}).exists()).toBe(false);
-            expect(wrapper.find(BackstageCategory).find({name: 'bots'}).exists()).toBe(false);
+            expect(
+                wrapper
+                    .find(BackstageCategory)
+                    .find({ name: "incoming_webhooks" })
+                    .exists(),
+            ).toBe(false);
+            expect(
+                wrapper
+                    .find(BackstageCategory)
+                    .find({ name: "outgoing_webhooks" })
+                    .exists(),
+            ).toBe(false);
+            expect(
+                wrapper
+                    .find(BackstageCategory)
+                    .find({ name: "commands" })
+                    .exists(),
+            ).toBe(false);
+            expect(
+                wrapper
+                    .find(BackstageCategory)
+                    .find({ name: "oauth2-apps" })
+                    .exists(),
+            ).toBe(false);
+            expect(
+                wrapper.find(BackstageCategory).find({ name: "bots" }).exists(),
+            ).toBe(false);
         });
     });
 });

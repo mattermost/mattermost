@@ -1,39 +1,42 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {debounce} from 'lodash';
-import React, {useEffect, useCallback, useState, useRef} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
-import styled from 'styled-components';
+import { debounce } from "lodash";
+import React, { useEffect, useCallback, useState, useRef } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
+import styled from "styled-components";
 
-import {MagnifyIcon} from '@mattermost/compass-icons/components';
-import type {Group} from '@mattermost/types/groups';
-import type {UserProfile} from '@mattermost/types/users';
+import { MagnifyIcon } from "@mattermost/compass-icons/components";
+import type { Group } from "@mattermost/types/groups";
+import type { UserProfile } from "@mattermost/types/users";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import LocalizedIcon from 'components/localized_icon';
-import {QuickInput} from 'components/quick_input/quick_input';
-import GroupMemberList from 'components/user_group_popover/group_member_list';
-import UserGroupsModal from 'components/user_groups_modal';
-import ViewUserGroupModal from 'components/view_user_group_modal';
-import Popover from 'components/widgets/popover';
+import LocalizedIcon from "components/localized_icon";
+import { QuickInput } from "components/quick_input/quick_input";
+import GroupMemberList from "components/user_group_popover/group_member_list";
+import UserGroupsModal from "components/user_groups_modal";
+import ViewUserGroupModal from "components/view_user_group_modal";
+import Popover from "components/widgets/popover";
 
-import Constants, {A11yClassNames, A11yCustomEventTypes, ModalIdentifiers} from 'utils/constants';
-import type {A11yFocusEventDetail} from 'utils/constants';
-import {t} from 'utils/i18n';
-import * as Keyboard from 'utils/keyboard';
-import {shouldFocusMainTextbox} from 'utils/post_utils';
+import Constants, {
+    A11yClassNames,
+    A11yCustomEventTypes,
+    ModalIdentifiers,
+} from "utils/constants";
+import type { A11yFocusEventDetail } from "utils/constants";
+import { t } from "utils/i18n";
+import * as Keyboard from "utils/keyboard";
+import { shouldFocusMainTextbox } from "utils/post_utils";
 
-import type {ModalData} from 'types/actions';
+import type { ModalData } from "types/actions";
 
-import {Load} from './constants';
-import useShouldClose from './useShouldClose';
+import { Load } from "./constants";
+import useShouldClose from "./useShouldClose";
 
-import './user_group_popover.scss';
+import "./user_group_popover.scss";
 
 export type Props = {
-
     /**
      * The group corresponding to the parent popover
      */
@@ -64,19 +67,13 @@ export type Props = {
         searchProfiles: (term: string, options: any) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
-}
+};
 
 const UserGroupPopover = (props: Props) => {
-    const {
-        group,
-        actions,
-        hide,
-        returnFocus,
-        searchTerm,
-        showUserOverlay,
-    } = props;
+    const { group, actions, hide, returnFocus, searchTerm, showUserOverlay } =
+        props;
 
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
 
     const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -84,31 +81,36 @@ const UserGroupPopover = (props: Props) => {
 
     const shouldClose = useShouldClose();
 
-    const doSearch = useCallback(debounce(async (term) => {
-        const res = await actions.searchProfiles(term, {in_group_id: group.id});
-        if (res.data) {
-            setSearchState(Load.DONE);
-        } else {
-            setSearchState(Load.FAILED);
-        }
-    }, Constants.SEARCH_TIMEOUT_MILLISECONDS), [actions.searchProfiles]);
+    const doSearch = useCallback(
+        debounce(async (term) => {
+            const res = await actions.searchProfiles(term, {
+                in_group_id: group.id,
+            });
+            if (res.data) {
+                setSearchState(Load.DONE);
+            } else {
+                setSearchState(Load.FAILED);
+            }
+        }, Constants.SEARCH_TIMEOUT_MILLISECONDS),
+        [actions.searchProfiles],
+    );
 
     useEffect(() => {
         // Focus the close button when the popover first opens
-        document.dispatchEvent(new CustomEvent<A11yFocusEventDetail>(
-            A11yCustomEventTypes.FOCUS, {
+        document.dispatchEvent(
+            new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
                 detail: {
                     target: closeRef.current,
                     keyboardOnly: true,
                 },
-            },
-        ));
+            }),
+        );
 
         // Unset the popover search term on mount and unmount
         // This is to prevent some odd rendering issues when quickly opening and closing popovers
-        actions.setPopoverSearchTerm('');
+        actions.setPopoverSearchTerm("");
         return () => {
-            actions.setPopoverSearchTerm('');
+            actions.setPopoverSearchTerm("");
         };
     }, []);
 
@@ -163,7 +165,7 @@ const UserGroupPopover = (props: Props) => {
     };
 
     const handleClear = () => {
-        actions.setPopoverSearchTerm('');
+        actions.setPopoverSearchTerm("");
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -184,13 +186,10 @@ const UserGroupPopover = (props: Props) => {
     );
 
     return (
-        <Popover
-            {...props}
-            id='user-group-popover'
-        >
+        <Popover {...props} id="user-group-popover">
             {tabCatcher}
             <Body
-                role='dialog'
+                role="dialog"
                 aria-modal={true}
                 onKeyDown={handleKeyDown}
                 className={A11yClassNames.POPUP}
@@ -198,29 +197,36 @@ const UserGroupPopover = (props: Props) => {
             >
                 <Header>
                     <Heading>
-                        <Title
-                            className='overflow--ellipsis text-nowrap'
-                        >
+                        <Title className="overflow--ellipsis text-nowrap">
                             {group.display_name}
                         </Title>
                         <CloseButton
-                            className='btn btn-sm btn-compact btn-icon'
-                            aria-label={formatMessage({id: 'user_group_popover.close', defaultMessage: 'Close'})}
+                            className="btn btn-sm btn-compact btn-icon"
+                            aria-label={formatMessage({
+                                id: "user_group_popover.close",
+                                defaultMessage: "Close",
+                            })}
                             onClick={handleClose}
                             ref={closeRef}
                         >
                             <LocalizedIcon
-                                className='icon icon-close'
-                                ariaLabel={{id: t('user_group_popover.close'), defaultMessage: 'Close'}}
+                                className="icon icon-close"
+                                ariaLabel={{
+                                    id: t("user_group_popover.close"),
+                                    defaultMessage: "Close",
+                                }}
                             />
                         </CloseButton>
                     </Heading>
                     <Subtitle>
-                        <span className='overflow--ellipsis text-nowrap'>{'@'}{group.name}</span>
-                        <Dot>{'•'}</Dot>
+                        <span className="overflow--ellipsis text-nowrap">
+                            {"@"}
+                            {group.name}
+                        </span>
+                        <Dot>{"•"}</Dot>
                         <FormattedMessage
-                            id='user_group_popover.memberCount'
-                            defaultMessage='{member_count} {member_count, plural, one {Member} other {Members}}'
+                            id="user_group_popover.memberCount"
+                            defaultMessage="{member_count} {member_count, plural, one {Member} other {Members}}"
                             values={{
                                 member_count: group.member_count,
                             }}
@@ -228,18 +234,33 @@ const UserGroupPopover = (props: Props) => {
                         />
                     </Subtitle>
                     <HeaderButton
-                        aria-label={`${group.display_name} @${group.name} ${formatMessage({id: 'user_group_popover.memberCount', defaultMessage: '{member_count} {member_count, plural, one {Member} other {Members}}'}, {member_count: group.member_count})} ${formatMessage({id: 'user_group_popover.openGroupModal', defaultMessage: 'View full group info'})}`}
+                        aria-label={`${group.display_name} @${
+                            group.name
+                        } ${formatMessage(
+                            {
+                                id: "user_group_popover.memberCount",
+                                defaultMessage:
+                                    "{member_count} {member_count, plural, one {Member} other {Members}}",
+                            },
+                            { member_count: group.member_count },
+                        )} ${formatMessage({
+                            id: "user_group_popover.openGroupModal",
+                            defaultMessage: "View full group info",
+                        })}`}
                         onClick={openViewGroupModal}
-                        className='user-group-popover_header-button'
+                        className="user-group-popover_header-button"
                     />
                 </Header>
                 {group.member_count > 10 ? (
                     <SearchBar>
-                        <MagnifyIcon/>
+                        <MagnifyIcon />
                         <QuickInput
-                            type='text'
-                            className='user-group-popover_search-bar'
-                            placeholder={formatMessage({id: 'user_group_popover.searchGroupMembers', defaultMessage: 'Search members'})}
+                            type="text"
+                            className="user-group-popover_search-bar"
+                            placeholder={formatMessage({
+                                id: "user_group_popover.searchGroupMembers",
+                                defaultMessage: "Search members",
+                            })}
                             value={searchTerm}
                             onChange={handleSearch}
                             clearable={true}
@@ -255,7 +276,8 @@ const UserGroupPopover = (props: Props) => {
                 />
             </Body>
             {tabCatcher}
-        </Popover>);
+        </Popover>
+    );
 };
 
 const Body = styled.div`
@@ -314,7 +336,7 @@ const Heading = styled.div`
     font-size: 16px;
     display: flex;
     align-items: center;
-    font-family: 'Metropolis', sans-serif;
+    font-family: "Metropolis", sans-serif;
 `;
 
 const Subtitle = styled.div`

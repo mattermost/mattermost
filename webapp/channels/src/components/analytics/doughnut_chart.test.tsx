@@ -1,83 +1,64 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Chart, ChartData} from 'chart.js';
-import {shallow, mount} from 'enzyme';
-import React from 'react';
+import type { Chart, ChartData } from "chart.js";
+import { shallow, mount } from "enzyme";
+import React from "react";
 
-import DoughnutChart from 'components/analytics/doughnut_chart';
+import DoughnutChart from "components/analytics/doughnut_chart";
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import { mountWithIntl } from "tests/helpers/intl-test-helper";
 
-jest.mock('chart.js');
+jest.mock("chart.js");
 
-describe('components/analytics/doughnut_chart.tsx', () => {
-    test('should match snapshot, on loading', () => {
+describe("components/analytics/doughnut_chart.tsx", () => {
+    test("should match snapshot, on loading", () => {
         const wrapper = shallow(
-            <DoughnutChart
-                title='Test'
-                height={400}
-                width={600}
-            />,
+            <DoughnutChart title="Test" height={400} width={600} />,
         );
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, loaded without data', () => {
-        const Chart = jest.requireMock('chart.js');
+    test("should match snapshot, loaded without data", () => {
+        const Chart = jest.requireMock("chart.js");
         const data: ChartData | undefined = undefined;
 
         const wrapper = mountWithIntl(
-            <DoughnutChart
-                title='Test'
-                height={400}
-                width={600}
-                data={data}
-            />,
+            <DoughnutChart title="Test" height={400} width={600} data={data} />,
         );
 
         expect(Chart).not.toBeCalled();
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, loaded with data', () => {
-        const Chart = jest.requireMock('chart.js');
+    test("should match snapshot, loaded with data", () => {
+        const Chart = jest.requireMock("chart.js");
         const data: ChartData = {
-            datasets: [
-                {data: [1, 2, 3]},
-            ],
+            datasets: [{ data: [1, 2, 3] }],
         };
 
         const wrapper = mount(
-            <DoughnutChart
-                title='Test'
-                height={400}
-                width={600}
-                data={data}
-            />,
+            <DoughnutChart title="Test" height={400} width={600} data={data} />,
         );
-        expect(Chart).toBeCalledWith(expect.anything(), {data, options: {}, type: 'doughnut'});
+        expect(Chart).toBeCalledWith(expect.anything(), {
+            data,
+            options: {},
+            type: "doughnut",
+        });
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should create and destroy the chart on mount and unmount with data', () => {
-        const Chart = jest.requireMock('chart.js');
+    test("should create and destroy the chart on mount and unmount with data", () => {
+        const Chart = jest.requireMock("chart.js");
 
         const data: ChartData = {
-            datasets: [
-                {data: [1, 2, 3]},
-            ],
-            labels: ['test1', 'test2', 'test3'],
+            datasets: [{ data: [1, 2, 3] }],
+            labels: ["test1", "test2", "test3"],
         };
 
         const wrapper = mount<DoughnutChart>(
-            <DoughnutChart
-                title='Test'
-                height={400}
-                width={600}
-                data={data}
-            />,
+            <DoughnutChart title="Test" height={400} width={600} data={data} />,
         );
 
         expect(Chart).toBeCalled();
@@ -86,26 +67,22 @@ describe('components/analytics/doughnut_chart.tsx', () => {
         expect(chartDestroy).toBeCalled();
     });
 
-    test('should update the chart on data change', () => {
-        const Chart = jest.requireMock('chart.js');
+    test("should update the chart on data change", () => {
+        const Chart = jest.requireMock("chart.js");
 
         const oldData: ChartData = {
-            datasets: [
-                {data: [1, 2, 3]},
-            ],
-            labels: ['test1', 'test2', 'test3'],
+            datasets: [{ data: [1, 2, 3] }],
+            labels: ["test1", "test2", "test3"],
         };
 
         const newData: ChartData = {
-            datasets: [
-                {data: [1, 2, 3, 4]},
-            ],
-            labels: ['test1', 'test2', 'test3', 'test4'],
+            datasets: [{ data: [1, 2, 3, 4] }],
+            labels: ["test1", "test2", "test3", "test4"],
         };
 
         const wrapper = mount<DoughnutChart>(
             <DoughnutChart
-                title='Test'
+                title="Test"
                 height={400}
                 width={600}
                 data={oldData}
@@ -114,9 +91,9 @@ describe('components/analytics/doughnut_chart.tsx', () => {
 
         expect(Chart).toBeCalled();
         expect((wrapper.instance().chart as Chart).update).not.toBeCalled();
-        wrapper.setProps({title: 'new title'});
+        wrapper.setProps({ title: "new title" });
         expect((wrapper.instance().chart as Chart).update).not.toBeCalled();
-        wrapper.setProps({data: newData});
+        wrapper.setProps({ data: newData });
         expect((wrapper.instance().chart as Chart).update).toBeCalled();
     });
 });

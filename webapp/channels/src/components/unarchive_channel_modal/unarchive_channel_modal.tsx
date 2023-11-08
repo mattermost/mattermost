@@ -1,37 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { Modal } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
 
-import type {Channel} from '@mattermost/types/channels';
+import type { Channel } from "@mattermost/types/channels";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import FormattedMarkdownMessage from "components/formatted_markdown_message";
 
-import Constants from 'utils/constants';
+import Constants from "utils/constants";
 
 type Props = {
     onExited: () => void;
     channel: Channel;
     actions: ChannelDetailsActions;
-}
+};
 
 type State = {
     show: boolean;
-}
+};
 
 export type ChannelDetailsActions = {
     unarchiveChannel: (channelId: string) => Promise<ActionResult>;
 };
 
-export default class UnarchiveChannelModal extends React.PureComponent<Props, State> {
+export default class UnarchiveChannelModal extends React.PureComponent<
+    Props,
+    State
+> {
     constructor(props: Props) {
         super(props);
 
-        this.state = {show: true};
+        this.state = { show: true };
     }
 
     handleUnarchive = (): void => {
@@ -43,36 +46,38 @@ export default class UnarchiveChannelModal extends React.PureComponent<Props, St
     };
 
     onHide = (): void => {
-        this.setState({show: false});
+        this.setState({ show: false });
     };
 
     render(): JSX.Element {
         return (
             <Modal
-                dialogClassName='a11y__modal'
+                dialogClassName="a11y__modal"
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={this.props.onExited}
-                role='dialog'
-                aria-labelledby='unarchiveChannelModalLabel'
-                id='unarchiveChannelModal'
+                role="dialog"
+                aria-labelledby="unarchiveChannelModalLabel"
+                id="unarchiveChannelModal"
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title
-                        componentClass='h1'
-                        id='unarchiveChannelModalLabel'
+                        componentClass="h1"
+                        id="unarchiveChannelModalLabel"
                     >
                         <FormattedMessage
-                            id='unarchive_channel.confirm'
-                            defaultMessage='Confirm UNARCHIVE Channel'
+                            id="unarchive_channel.confirm"
+                            defaultMessage="Confirm UNARCHIVE Channel"
                         />
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <div className='alert alert-danger'>
+                    <div className="alert alert-danger">
                         <FormattedMarkdownMessage
-                            id='unarchive_channel.viewArchived.question'
-                            defaultMessage={'Are you sure you wish to unarchive the **{display_name}** channel?'}
+                            id="unarchive_channel.viewArchived.question"
+                            defaultMessage={
+                                "Are you sure you wish to unarchive the **{display_name}** channel?"
+                            }
                             values={{
                                 display_name: this.props.channel.display_name,
                             }}
@@ -81,26 +86,26 @@ export default class UnarchiveChannelModal extends React.PureComponent<Props, St
                 </Modal.Body>
                 <Modal.Footer>
                     <button
-                        type='button'
-                        className='btn btn-tertiary'
+                        type="button"
+                        className="btn btn-tertiary"
                         onClick={this.onHide}
                     >
                         <FormattedMessage
-                            id='unarchive_channel.cancel'
-                            defaultMessage='Cancel'
+                            id="unarchive_channel.cancel"
+                            defaultMessage="Cancel"
                         />
                     </button>
                     <button
-                        type='button'
-                        className='btn btn-danger'
-                        data-dismiss='modal'
+                        type="button"
+                        className="btn btn-danger"
+                        data-dismiss="modal"
                         onClick={this.handleUnarchive}
                         autoFocus={true}
-                        id='unarchiveChannelModalDeleteButton'
+                        id="unarchiveChannelModalDeleteButton"
                     >
                         <FormattedMessage
-                            id='unarchive_channel.del'
-                            defaultMessage='Unarchive'
+                            id="unarchive_channel.del"
+                            defaultMessage="Unarchive"
                         />
                     </button>
                 </Modal.Footer>

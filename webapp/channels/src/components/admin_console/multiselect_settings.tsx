@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import ReactSelect from 'react-select';
-import type {ValueType} from 'react-select';
+import React from "react";
+import ReactSelect from "react-select";
+import type { ValueType } from "react-select";
 
-import FormError from 'components/form_error';
+import FormError from "components/form_error";
 
-import Setting from './setting';
+import Setting from "./setting";
 
 interface Option {
     value: string;
@@ -31,8 +31,8 @@ interface State {
 }
 
 export default class MultiSelectSetting extends React.PureComponent<
-Props,
-State
+    Props,
+    State
 > {
     static defaultProps: Partial<Props> = {
         disabled: false,
@@ -41,7 +41,7 @@ State
     constructor(props: Props) {
         super(props);
 
-        this.state = {error: false};
+        this.state = { error: false };
     }
 
     handleChange = (newValue: ValueType<Option>) => {
@@ -50,7 +50,7 @@ State
         });
 
         this.props.onChange(this.props.id, values);
-        this.setState({error: false});
+        this.setState({ error: false });
     };
 
     calculateValue = () => {
@@ -63,7 +63,7 @@ State
         }, []);
     };
 
-    getOptionLabel = ({text}: { text: string}) => text;
+    getOptionLabel = ({ text }: { text: string }) => text;
 
     render() {
         return (
@@ -78,14 +78,14 @@ State
                     isMulti={true}
                     getOptionLabel={this.getOptionLabel}
                     options={this.props.values}
-                    delimiter={','}
+                    delimiter={","}
                     clearable={false}
                     isDisabled={this.props.disabled || this.props.setByEnv}
                     noResultsText={this.props.noResultText}
                     onChange={this.handleChange}
                     value={this.calculateValue()}
                 />
-                <FormError error={this.state.error}/>
+                <FormError error={this.state.error} />
             </Setting>
         );
     }

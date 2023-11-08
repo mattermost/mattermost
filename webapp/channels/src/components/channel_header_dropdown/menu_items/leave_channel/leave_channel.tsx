@@ -1,20 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {Channel} from '@mattermost/types/channels';
+import type { Channel } from "@mattermost/types/channels";
 
-import LeaveChannelModal from 'components/leave_channel_modal';
-import Menu from 'components/widgets/menu/menu';
+import LeaveChannelModal from "components/leave_channel_modal";
+import Menu from "components/widgets/menu/menu";
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
+import { Constants, ModalIdentifiers } from "utils/constants";
+import { localizeMessage } from "utils/utils";
 
-import type {PropsFromRedux} from './index';
+import type { PropsFromRedux } from "./index";
 
 interface Props extends PropsFromRedux {
-
     /**
      * Object with info about user
      */
@@ -47,10 +46,7 @@ export default class LeaveChannel extends React.PureComponent<Props> {
 
         const {
             channel,
-            actions: {
-                leaveChannel,
-                openModal,
-            },
+            actions: { leaveChannel, openModal },
         } = this.props;
 
         if (channel.type === Constants.PRIVATE_CHANNEL) {
@@ -67,14 +63,18 @@ export default class LeaveChannel extends React.PureComponent<Props> {
     };
 
     render() {
-        const {channel, isDefault, isGuestUser, id} = this.props;
+        const { channel, isDefault, isGuestUser, id } = this.props;
 
         return (
             <Menu.ItemAction
                 id={id}
-                show={(!isDefault || isGuestUser) && channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL}
+                show={
+                    (!isDefault || isGuestUser) &&
+                    channel.type !== Constants.DM_CHANNEL &&
+                    channel.type !== Constants.GM_CHANNEL
+                }
                 onClick={this.handleLeave}
-                text={localizeMessage('channel_header.leave', 'Leave Channel')}
+                text={localizeMessage("channel_header.leave", "Leave Channel")}
                 isDangerous={true}
             />
         );

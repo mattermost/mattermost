@@ -1,36 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React, {useEffect, useState, useRef} from 'react';
-import type {ChangeEvent, MouseEvent, FormEvent} from 'react';
-import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import classNames from "classnames";
+import React, { useEffect, useState, useRef } from "react";
+import type { ChangeEvent, MouseEvent, FormEvent } from "react";
+import { useIntl } from "react-intl";
+import { useSelector } from "react-redux";
 
-import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
+import { getCurrentChannelNameForSearchShortcut } from "mattermost-redux/selectors/entities/channels";
 
-import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
-import UserGuideDropdown from 'components/search/user_guide_dropdown';
-import SearchBar from 'components/search_bar/search_bar';
-import SearchHint from 'components/search_hint/search_hint';
-import SearchResults from 'components/search_results';
-import type Provider from 'components/suggestion/provider';
-import SearchChannelProvider from 'components/suggestion/search_channel_provider';
-import SearchDateProvider from 'components/suggestion/search_date_provider';
-import SearchUserProvider from 'components/suggestion/search_user_provider';
-import FlagIcon from 'components/widgets/icons/flag_icon';
-import MentionsIcon from 'components/widgets/icons/mentions_icon';
-import SearchIcon from 'components/widgets/icons/search_icon';
-import Popover from 'components/widgets/popover';
+import HeaderIconWrapper from "components/channel_header/components/header_icon_wrapper";
+import UserGuideDropdown from "components/search/user_guide_dropdown";
+import SearchBar from "components/search_bar/search_bar";
+import SearchHint from "components/search_hint/search_hint";
+import SearchResults from "components/search_results";
+import type Provider from "components/suggestion/provider";
+import SearchChannelProvider from "components/suggestion/search_channel_provider";
+import SearchDateProvider from "components/suggestion/search_date_provider";
+import SearchUserProvider from "components/suggestion/search_user_provider";
+import FlagIcon from "components/widgets/icons/flag_icon";
+import MentionsIcon from "components/widgets/icons/mentions_icon";
+import SearchIcon from "components/widgets/icons/search_icon";
+import Popover from "components/widgets/popover";
 
-import Constants, {searchHintOptions, RHSStates, searchFilesHintOptions} from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
-import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
-import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
+import Constants, {
+    searchHintOptions,
+    RHSStates,
+    searchFilesHintOptions,
+} from "utils/constants";
+import * as Keyboard from "utils/keyboard";
+import { isServerVersionGreaterThanOrEqualTo } from "utils/server_version";
+import { isDesktopApp, getDesktopVersion, isMacApp } from "utils/user_agent";
 
-import type {SearchType} from 'types/store/rhs';
+import type { SearchType } from "types/store/rhs";
 
-import type {Props, SearchFilterType} from './types';
+import type { Props, SearchFilterType } from "./types";
 
 interface SearchHintOption {
     searchTerm: string;
@@ -40,14 +44,17 @@ interface SearchHintOption {
     };
 }
 
-const determineVisibleSearchHintOptions = (searchTerms: string, searchType: SearchType): SearchHintOption[] => {
+const determineVisibleSearchHintOptions = (
+    searchTerms: string,
+    searchType: SearchType,
+): SearchHintOption[] => {
     let newVisibleSearchHintOptions: SearchHintOption[] = [];
     let options = searchHintOptions;
-    if (searchType === 'files') {
+    if (searchType === "files") {
         options = searchFilesHintOptions;
     }
 
-    if (searchTerms.trim() === '') {
+    if (searchTerms.trim() === "") {
         return options;
     }
 
@@ -55,13 +62,23 @@ const determineVisibleSearchHintOptions = (searchTerms: string, searchType: Sear
     const pretext = pretextArray[pretextArray.length - 1];
     const penultimatePretext = pretextArray[pretextArray.length - 2];
 
-    const shouldShowHintOptions = penultimatePretext ? !options.some(({searchTerm}) => penultimatePretext.toLowerCase().endsWith(searchTerm.toLowerCase())) : !options.some(({searchTerm}) => searchTerms.toLowerCase().endsWith(searchTerm.toLowerCase()));
+    const shouldShowHintOptions = penultimatePretext
+        ? !options.some(({ searchTerm }) =>
+              penultimatePretext
+                  .toLowerCase()
+                  .endsWith(searchTerm.toLowerCase()),
+          )
+        : !options.some(({ searchTerm }) =>
+              searchTerms.toLowerCase().endsWith(searchTerm.toLowerCase()),
+          );
 
     if (shouldShowHintOptions) {
         try {
             newVisibleSearchHintOptions = options.filter((option) => {
-                return new RegExp(pretext, 'ig').
-                    test(option.searchTerm) && option.searchTerm.toLowerCase() !== pretext.toLowerCase();
+                return (
+                    new RegExp(pretext, "ig").test(option.searchTerm) &&
+                    option.searchTerm.toLowerCase() !== pretext.toLowerCase()
+                );
             });
         } catch {
             newVisibleSearchHintOptions = [];
@@ -84,18 +101,23 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
     } = props;
 
     const intl = useIntl();
-    const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
+    const currentChannelName = useSelector(
+        getCurrentChannelNameForSearchShortcut,
+    );
 
     // generate intial component state and setters
     const [focused, setFocused] = useState<boolean>(false);
     const [dropdownFocused, setDropdownFocused] = useState<boolean>(false);
     const [keepInputFocused, setKeepInputFocused] = useState<boolean>(false);
-    const [indexChangedViaKeyPress, setIndexChangedViaKeyPress] = useState<boolean>(false);
-    const [highlightedSearchHintIndex, setHighlightedSearchHintIndex] = useState<number>(-1);
-    const [visibleSearchHintOptions, setVisibleSearchHintOptions] = useState<SearchHintOption[]>(
-        determineVisibleSearchHintOptions(searchTerms, searchType),
-    );
-    const [searchFilterType, setSearchFilterType] = useState<SearchFilterType>('all');
+    const [indexChangedViaKeyPress, setIndexChangedViaKeyPress] =
+        useState<boolean>(false);
+    const [highlightedSearchHintIndex, setHighlightedSearchHintIndex] =
+        useState<number>(-1);
+    const [visibleSearchHintOptions, setVisibleSearchHintOptions] = useState<
+        SearchHintOption[]
+    >(determineVisibleSearchHintOptions(searchTerms, searchType));
+    const [searchFilterType, setSearchFilterType] =
+        useState<SearchFilterType>("all");
 
     const suggestionProviders = useRef<Provider[]>([
         new SearchDateProvider(),
@@ -103,14 +125,19 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         new SearchUserProvider(actions.autocompleteUsersInTeam),
     ]);
 
-    const isDesktop = isDesktopApp() && isServerVersionGreaterThanOrEqualTo(getDesktopVersion(), '4.7.0');
+    const isDesktop =
+        isDesktopApp() &&
+        isServerVersionGreaterThanOrEqualTo(getDesktopVersion(), "4.7.0");
     useEffect(() => {
         if (!enableFindShortcut) {
             return undefined;
         }
 
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (Keyboard.cmdOrCtrlPressed(e) && Keyboard.isKeyPressed(e, Constants.KeyCodes.F)) {
+            if (
+                Keyboard.cmdOrCtrlPressed(e) &&
+                Keyboard.isKeyPressed(e, Constants.KeyCodes.F)
+            ) {
                 if (!isDesktop && !e.shiftKey) {
                     return;
                 }
@@ -132,15 +159,17 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
             }
         };
 
-        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener("keydown", handleKeyDown);
         return () => {
-            document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener("keydown", handleKeyDown);
         };
     }, [hideSearchBar, currentChannelName]);
 
     useEffect((): void => {
         if (!isMobileView) {
-            setVisibleSearchHintOptions(determineVisibleSearchHintOptions(searchTerms, searchType));
+            setVisibleSearchHintOptions(
+                determineVisibleSearchHintOptions(searchTerms, searchType),
+            );
         }
     }, [isMobileView, searchTerms, searchType]);
 
@@ -185,10 +214,10 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
     };
 
     const handleAddSearchTerm = (term: string): void => {
-        const pretextArray = searchTerms?.split(' ') || [];
+        const pretextArray = searchTerms?.split(" ") || [];
         pretextArray.pop();
         pretextArray.push(term.toLowerCase());
-        handleUpdateSearchTerms(pretextArray.join(' '));
+        handleUpdateSearchTerms(pretextArray.join(" "));
     };
 
     const handleUpdateSearchTerms = (terms: string): void => {
@@ -196,13 +225,16 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         updateHighlightedSearchHint();
     };
 
-    const handleOnSearchTypeSelected = (searchType || searchTerms) ? undefined : (value: SearchType) => {
-        actions.updateSearchType(value);
-        if (!searchType) {
-            setDropdownFocused(false);
-        }
-        setFocused(true);
-    };
+    const handleOnSearchTypeSelected =
+        searchType || searchTerms
+            ? undefined
+            : (value: SearchType) => {
+                  actions.updateSearchType(value);
+                  if (!searchType) {
+                      setDropdownFocused(false);
+                  }
+                  setFocused(true);
+              };
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
         const term = e.target.value;
@@ -210,7 +242,10 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
     };
 
     // call this function without parameters to reset `SearchHint`
-    const updateHighlightedSearchHint = (indexDelta = 0, changedViaKeyPress = false): void => {
+    const updateHighlightedSearchHint = (
+        indexDelta = 0,
+        changedViaKeyPress = false,
+    ): void => {
         if (Math.abs(indexDelta) > 1) {
             return;
         }
@@ -218,20 +253,24 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         let newIndex = highlightedSearchHintIndex + indexDelta;
 
         switch (indexDelta) {
-        case 1:
-            // KEY.DOWN
-            // is it at the end of the list?
-            newIndex = newIndex === visibleSearchHintOptions.length ? 0 : newIndex;
-            break;
-        case -1:
-            // KEY.UP
-            // is it at the start of the list (or initial value)?
-            newIndex = newIndex < 0 ? visibleSearchHintOptions.length - 1 : newIndex;
-            break;
-        case 0:
-        default:
-            // reset the index (e.g. on blur)
-            newIndex = -1;
+            case 1:
+                // KEY.DOWN
+                // is it at the end of the list?
+                newIndex =
+                    newIndex === visibleSearchHintOptions.length ? 0 : newIndex;
+                break;
+            case -1:
+                // KEY.UP
+                // is it at the start of the list (or initial value)?
+                newIndex =
+                    newIndex < 0
+                        ? visibleSearchHintOptions.length - 1
+                        : newIndex;
+                break;
+            case 0:
+            default:
+                // reset the index (e.g. on blur)
+                newIndex = -1;
         }
 
         setHighlightedSearchHintIndex(newIndex);
@@ -245,12 +284,16 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         if (indexChangedViaKeyPress && !searchType && !searchTerms) {
             e.preventDefault();
             setKeepInputFocused(true);
-            actions.updateSearchType(highlightedSearchHintIndex === 0 ? 'messages' : 'files');
+            actions.updateSearchType(
+                highlightedSearchHintIndex === 0 ? "messages" : "files",
+            );
             setHighlightedSearchHintIndex(-1);
         } else if (indexChangedViaKeyPress) {
             e.preventDefault();
             setKeepInputFocused(true);
-            handleAddSearchTerm(visibleSearchHintOptions[highlightedSearchHintIndex].searchTerm);
+            handleAddSearchTerm(
+                visibleSearchHintOptions[highlightedSearchHintIndex].searchTerm,
+            );
         }
 
         if (props.isMentionSearch) {
@@ -275,7 +318,9 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
             return;
         }
 
-        const {error} = await actions.showSearchResults(Boolean(props.isMentionSearch));
+        const { error } = await actions.showSearchResults(
+            Boolean(props.isMentionSearch),
+        );
 
         if (!error) {
             handleSearchOnSuccess();
@@ -293,8 +338,8 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
             setFocused(false);
             actions.updateRhsState(RHSStates.SEARCH);
         }
-        actions.updateSearchTerms('');
-        actions.updateSearchType('');
+        actions.updateSearchTerms("");
+        actions.updateSearchType("");
     };
 
     const handleShrink = (): void => {
@@ -303,29 +348,79 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
 
     const handleSetSearchFilter = (filterType: SearchFilterType): void => {
         switch (filterType) {
-        case 'documents':
-            props.actions.filterFilesSearchByExt(['doc', 'pdf', 'docx', 'odt', 'rtf', 'txt']);
-            break;
-        case 'spreadsheets':
-            props.actions.filterFilesSearchByExt(['xls', 'xlsx', 'ods']);
-            break;
-        case 'presentations':
-            props.actions.filterFilesSearchByExt(['ppt', 'pptx', 'odp']);
-            break;
-        case 'code':
-            props.actions.filterFilesSearchByExt(['py', 'go', 'java', 'kt', 'c', 'cpp', 'h', 'html', 'js', 'ts', 'cs', 'vb', 'php', 'pl', 'r', 'rb', 'sql', 'swift', 'json']);
-            break;
-        case 'images':
-            props.actions.filterFilesSearchByExt(['png', 'jpg', 'jpeg', 'bmp', 'tiff', 'svg', 'psd', 'xcf']);
-            break;
-        case 'audio':
-            props.actions.filterFilesSearchByExt(['ogg', 'mp3', 'wav', 'flac']);
-            break;
-        case 'video':
-            props.actions.filterFilesSearchByExt(['ogm', 'mp4', 'avi', 'webm', 'mov', 'mkv', 'mpeg', 'mpg']);
-            break;
-        default:
-            props.actions.filterFilesSearchByExt([]);
+            case "documents":
+                props.actions.filterFilesSearchByExt([
+                    "doc",
+                    "pdf",
+                    "docx",
+                    "odt",
+                    "rtf",
+                    "txt",
+                ]);
+                break;
+            case "spreadsheets":
+                props.actions.filterFilesSearchByExt(["xls", "xlsx", "ods"]);
+                break;
+            case "presentations":
+                props.actions.filterFilesSearchByExt(["ppt", "pptx", "odp"]);
+                break;
+            case "code":
+                props.actions.filterFilesSearchByExt([
+                    "py",
+                    "go",
+                    "java",
+                    "kt",
+                    "c",
+                    "cpp",
+                    "h",
+                    "html",
+                    "js",
+                    "ts",
+                    "cs",
+                    "vb",
+                    "php",
+                    "pl",
+                    "r",
+                    "rb",
+                    "sql",
+                    "swift",
+                    "json",
+                ]);
+                break;
+            case "images":
+                props.actions.filterFilesSearchByExt([
+                    "png",
+                    "jpg",
+                    "jpeg",
+                    "bmp",
+                    "tiff",
+                    "svg",
+                    "psd",
+                    "xcf",
+                ]);
+                break;
+            case "audio":
+                props.actions.filterFilesSearchByExt([
+                    "ogg",
+                    "mp3",
+                    "wav",
+                    "flac",
+                ]);
+                break;
+            case "video":
+                props.actions.filterFilesSearchByExt([
+                    "ogm",
+                    "mp4",
+                    "avi",
+                    "webm",
+                    "mov",
+                    "mkv",
+                    "mpeg",
+                    "mpg",
+                ]);
+                break;
+            default:
+                props.actions.filterFilesSearchByExt([]);
         }
         setSearchFilterType(filterType);
         if (props.isChannelFiles && currentChannel) {
@@ -368,35 +463,39 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         <HeaderIconWrapper
             iconComponent={
                 <MentionsIcon
-                    className='icon icon--standard'
-                    aria-hidden='true'
+                    className="icon icon--standard"
+                    aria-hidden="true"
                 />
             }
             ariaLabel={true}
-            buttonClass={classNames(
-                'channel-header__icon',
-                {'channel-header__icon--active': props.isMentionSearch},
-            )}
-            buttonId={props.isSideBarRight ? 'sbrChannelHeaderMentionButton' : 'channelHeaderMentionButton'}
+            buttonClass={classNames("channel-header__icon", {
+                "channel-header__icon--active": props.isMentionSearch,
+            })}
+            buttonId={
+                props.isSideBarRight
+                    ? "sbrChannelHeaderMentionButton"
+                    : "channelHeaderMentionButton"
+            }
             onClick={searchMentions}
-            tooltipKey={'recentMentions'}
+            tooltipKey={"recentMentions"}
             isRhsOpen={props.isRhsOpen}
         />
     );
 
     const renderFlagBtn = (): JSX.Element => (
         <HeaderIconWrapper
-            iconComponent={
-                <FlagIcon className='icon icon--standard'/>
-            }
+            iconComponent={<FlagIcon className="icon icon--standard" />}
             ariaLabel={true}
-            buttonClass={classNames(
-                'channel-header__icon ',
-                {'channel-header__icon--active': props.isFlaggedPosts},
-            )}
-            buttonId={props.isSideBarRight ? 'sbrChannelHeaderFlagButton' : 'channelHeaderFlagButton'}
+            buttonClass={classNames("channel-header__icon ", {
+                "channel-header__icon--active": props.isFlaggedPosts,
+            })}
+            buttonId={
+                props.isSideBarRight
+                    ? "sbrChannelHeaderFlagButton"
+                    : "channelHeaderFlagButton"
+            }
             onClick={getFlagged}
-            tooltipKey={'flaggedPosts'}
+            tooltipKey={"flaggedPosts"}
             isRhsOpen={props.isRhsOpen}
         />
     );
@@ -406,10 +505,15 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
 
         searchTerms?.split(/[: ]/g).forEach((word: string): void => {
             let options = searchHintOptions;
-            if (searchType === 'files') {
+            if (searchType === "files") {
                 options = searchFilesHintOptions;
             }
-            if (options.some(({searchTerm}) => searchTerm.toLowerCase() === word.toLowerCase())) {
+            if (
+                options.some(
+                    ({ searchTerm }) =>
+                        searchTerm.toLowerCase() === word.toLowerCase(),
+                )
+            ) {
                 termsUsed++;
             }
         });
@@ -418,12 +522,14 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
             return <></>;
         }
 
-        const helpClass = `search-help-popover${((dropdownFocused || focused) && termsUsed <= 2) ? ' visible' : ''}`;
+        const helpClass = `search-help-popover${
+            (dropdownFocused || focused) && termsUsed <= 2 ? " visible" : ""
+        }`;
 
         return (
             <Popover
-                id={`${props.isSideBarRight ? 'sbr-' : ''}searchbar-help-popup`}
-                placement='bottom'
+                id={`${props.isSideBarRight ? "sbr-" : ""}searchbar-help-popup`}
+                placement="bottom"
                 className={helpClass}
             >
                 <SearchHint
@@ -444,15 +550,22 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
 
     const renderSearchBar = (): JSX.Element => (
         <>
-            <div className='sidebar-collapse__container'>
+            <div className="sidebar-collapse__container">
                 <div
-                    id={props.isSideBarRight ? 'sbrSidebarCollapse' : 'sidebarCollapse'}
-                    className='sidebar-collapse'
+                    id={
+                        props.isSideBarRight
+                            ? "sbrSidebarCollapse"
+                            : "sidebarCollapse"
+                    }
+                    className="sidebar-collapse"
                     onClick={handleClose}
                 >
                     <span
-                        className='fa fa-2x fa-angle-left'
-                        title={intl.formatMessage({id: 'generic_icons.back', defaultMessage: 'Back Icon'})}
+                        className="fa fa-2x fa-angle-left"
+                        title={intl.formatMessage({
+                            id: "generic_icons.back",
+                            defaultMessage: "Back Icon",
+                        })}
                     />
                 </div>
             </div>
@@ -473,7 +586,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                 getFocus={props.getFocus}
                 searchTerms={searchTerms}
                 searchType={searchType}
-                clearSearchType={() => actions.updateSearchType('')}
+                clearSearchType={() => actions.updateSearchType("")}
             >
                 {!props.isMobileView && renderHintPopover()}
             </SearchBar>
@@ -487,39 +600,37 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                 <HeaderIconWrapper
                     iconComponent={
                         <SearchIcon
-                            className='icon icon--standard'
-                            aria-hidden='true'
+                            className="icon icon--standard"
+                            aria-hidden="true"
                         />
                     }
                     ariaLabel={true}
-                    buttonId={'channelHeaderSearchButton'}
+                    buttonId={"channelHeaderSearchButton"}
                     onClick={searchButtonClick}
-                    tooltipKey={'search'}
+                    tooltipKey={"search"}
                 />
             );
         }
 
         return (
             <div
-                id='searchbarContainer'
-                className={'search-bar-container--global'}
+                id="searchbarContainer"
+                className={"search-bar-container--global"}
             >
-                <div className='sidebar-right__table'>
-                    {renderSearchBar()}
-                </div>
+                <div className="sidebar-right__table">{renderSearchBar()}</div>
             </div>
         );
     }
 
     return (
-        <div className='sidebar--right__content'>
+        <div className="sidebar--right__content">
             {!hideMobileSearchBarInRHS && (
-                <div className='search-bar__container channel-header alt'>
-                    <div className='sidebar-right__table'>
+                <div className="search-bar__container channel-header alt">
+                    <div className="sidebar-right__table">
                         {renderSearchBar()}
                         {renderMentionButton()}
                         {renderFlagBtn()}
-                        <UserGuideDropdown/>
+                        <UserGuideDropdown />
                     </div>
                 </div>
             )}
@@ -539,17 +650,21 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                     getMoreFilesForSearch={props.actions.getMoreFilesForSearch}
                     setSearchFilterType={handleSetSearchFilter}
                     searchFilterType={searchFilterType}
-                    setSearchType={(value: SearchType) => actions.updateSearchType(value)}
-                    searchType={searchType || 'messages'}
+                    setSearchType={(value: SearchType) =>
+                        actions.updateSearchType(value)
+                    }
+                    searchType={searchType || "messages"}
                 />
-            ) : props.children}
+            ) : (
+                props.children
+            )}
         </div>
     );
 };
 
 const defaultProps: Partial<Props> = {
-    searchTerms: '',
-    channelDisplayName: '',
+    searchTerms: "",
+    channelDisplayName: "",
     isSideBarRight: false,
     hideMobileSearchBarInRHS: false,
     getFocus: () => {},

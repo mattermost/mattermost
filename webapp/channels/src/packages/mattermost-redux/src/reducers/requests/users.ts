@@ -1,55 +1,75 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combineReducers} from 'redux';
+import { combineReducers } from "redux";
 
-import type {UsersRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+import type {
+    UsersRequestsStatuses,
+    RequestStatusType,
+} from "@mattermost/types/requests";
 
-import {UserTypes} from 'mattermost-redux/action_types';
-import {RequestStatus} from 'mattermost-redux/constants';
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import { UserTypes } from "mattermost-redux/action_types";
+import { RequestStatus } from "mattermost-redux/constants";
+import type { GenericAction } from "mattermost-redux/types/actions";
 
-import {handleRequest, initialRequestState} from './helpers';
+import { handleRequest, initialRequestState } from "./helpers";
 
-function login(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function login(
+    state: RequestStatusType = initialRequestState(),
+    action: GenericAction,
+): RequestStatusType {
     switch (action.type) {
-    case UserTypes.LOGIN_REQUEST:
-        return {...state, status: RequestStatus.STARTED};
+        case UserTypes.LOGIN_REQUEST:
+            return { ...state, status: RequestStatus.STARTED };
 
-    case UserTypes.LOGIN_SUCCESS:
-        return {...state, status: RequestStatus.SUCCESS, error: null};
+        case UserTypes.LOGIN_SUCCESS:
+            return { ...state, status: RequestStatus.SUCCESS, error: null };
 
-    case UserTypes.LOGIN_FAILURE:
-        return {...state, status: RequestStatus.FAILURE, error: action.error};
+        case UserTypes.LOGIN_FAILURE:
+            return {
+                ...state,
+                status: RequestStatus.FAILURE,
+                error: action.error,
+            };
 
-    case UserTypes.LOGOUT_SUCCESS:
-        return {...state, status: RequestStatus.NOT_STARTED, error: null};
+        case UserTypes.LOGOUT_SUCCESS:
+            return { ...state, status: RequestStatus.NOT_STARTED, error: null };
 
-    default:
-        return state;
+        default:
+            return state;
     }
 }
 
-function logout(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function logout(
+    state: RequestStatusType = initialRequestState(),
+    action: GenericAction,
+): RequestStatusType {
     switch (action.type) {
-    case UserTypes.LOGOUT_REQUEST:
-        return {...state, status: RequestStatus.STARTED};
+        case UserTypes.LOGOUT_REQUEST:
+            return { ...state, status: RequestStatus.STARTED };
 
-    case UserTypes.LOGOUT_SUCCESS:
-        return {...state, status: RequestStatus.SUCCESS, error: null};
+        case UserTypes.LOGOUT_SUCCESS:
+            return { ...state, status: RequestStatus.SUCCESS, error: null };
 
-    case UserTypes.LOGOUT_FAILURE:
-        return {...state, status: RequestStatus.FAILURE, error: action.error};
+        case UserTypes.LOGOUT_FAILURE:
+            return {
+                ...state,
+                status: RequestStatus.FAILURE,
+                error: action.error,
+            };
 
-    case UserTypes.RESET_LOGOUT_STATE:
-        return initialRequestState();
+        case UserTypes.RESET_LOGOUT_STATE:
+            return initialRequestState();
 
-    default:
-        return state;
+        default:
+            return state;
     }
 }
 
-function autocompleteUsers(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function autocompleteUsers(
+    state: RequestStatusType = initialRequestState(),
+    action: GenericAction,
+): RequestStatusType {
     return handleRequest(
         UserTypes.AUTOCOMPLETE_USERS_REQUEST,
         UserTypes.AUTOCOMPLETE_USERS_SUCCESS,
@@ -59,7 +79,10 @@ function autocompleteUsers(state: RequestStatusType = initialRequestState(), act
     );
 }
 
-function updateMe(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function updateMe(
+    state: RequestStatusType = initialRequestState(),
+    action: GenericAction,
+): RequestStatusType {
     return handleRequest(
         UserTypes.UPDATE_ME_REQUEST,
         UserTypes.UPDATE_ME_SUCCESS,
@@ -69,9 +92,9 @@ function updateMe(state: RequestStatusType = initialRequestState(), action: Gene
     );
 }
 
-export default (combineReducers({
+export default combineReducers({
     login,
     logout,
     autocompleteUsers,
     updateMe,
-}) as (b: UsersRequestsStatuses, a: GenericAction) => UsersRequestsStatuses);
+}) as (b: UsersRequestsStatuses, a: GenericAction) => UsersRequestsStatuses;

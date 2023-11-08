@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ReactNode, MouseEventHandler} from 'react';
-import type {OverlayTriggerProps} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import type { ReactNode, MouseEventHandler } from "react";
+import type { OverlayTriggerProps } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import CloseIcon from 'components/widgets/icons/close_icon';
-import UnreadAboveIcon from 'components/widgets/icons/unread_above_icon';
-import UnreadBelowIcon from 'components/widgets/icons/unread_below_icon';
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
+import CloseIcon from "components/widgets/icons/close_icon";
+import UnreadAboveIcon from "components/widgets/icons/unread_above_icon";
+import UnreadBelowIcon from "components/widgets/icons/unread_below_icon";
 
-import Constants from 'utils/constants';
+import Constants from "utils/constants";
 
-import './toast.scss';
+import "./toast.scss";
 
 export type Props = {
     onClick?: MouseEventHandler<HTMLDivElement>;
@@ -25,16 +25,16 @@ export type Props = {
     showActions?: boolean; //used for showing jump actions
     width: number;
     extraClasses?: string;
-    overlayPlacement?: OverlayTriggerProps['placement'];
-    jumpDirection?: 'up' | 'down';
-}
+    overlayPlacement?: OverlayTriggerProps["placement"];
+    jumpDirection?: "up" | "down";
+};
 
 export default class Toast extends React.PureComponent<Props> {
     private mounted!: boolean;
 
     static defaultProps = {
-        overlayPlacement: 'bottom',
-        jumpDirection: 'down',
+        overlayPlacement: "bottom",
+        jumpDirection: "down",
     };
 
     componentDidMount() {
@@ -46,51 +46,61 @@ export default class Toast extends React.PureComponent<Props> {
     }
 
     handleDismiss = () => {
-        if (typeof this.props.onDismiss == 'function') {
+        if (typeof this.props.onDismiss == "function") {
             this.props.onDismiss();
         }
     };
 
     render() {
-        let toastClass = 'toast';
-        const {show, extraClasses, showActions, width, overlayPlacement, jumpDirection} = this.props;
+        let toastClass = "toast";
+        const {
+            show,
+            extraClasses,
+            showActions,
+            width,
+            overlayPlacement,
+            jumpDirection,
+        } = this.props;
 
         if (extraClasses) {
             toastClass += ` ${extraClasses}`;
         }
 
         if (show) {
-            toastClass += ' toast__visible';
+            toastClass += " toast__visible";
         }
 
-        let toastActionClass = 'toast__message';
+        let toastActionClass = "toast__message";
         if (showActions) {
-            toastActionClass += ' toast__pointer';
+            toastActionClass += " toast__pointer";
         }
 
         const jumpSection = () => {
             return (
-                <div
-                    className='toast__jump'
-                >
-                    {jumpDirection === 'down' ? <UnreadBelowIcon/> : <UnreadAboveIcon/>}
-                    {width > Constants.MOBILE_SCREEN_WIDTH && this.props.onClickMessage}
+                <div className="toast__jump">
+                    {jumpDirection === "down" ? (
+                        <UnreadBelowIcon />
+                    ) : (
+                        <UnreadAboveIcon />
+                    )}
+                    {width > Constants.MOBILE_SCREEN_WIDTH &&
+                        this.props.onClickMessage}
                 </div>
             );
         };
 
-        let closeTooltip = (<div/>);
+        let closeTooltip = <div />;
         if (showActions && show) {
             closeTooltip = (
-                <Tooltip id='toast-close__tooltip'>
+                <Tooltip id="toast-close__tooltip">
                     <FormattedMessage
-                        id='general_button.close'
-                        defaultMessage='Close'
+                        id="general_button.close"
+                        defaultMessage="Close"
                     />
-                    <div className='tooltip__shortcut--txt'>
+                    <div className="tooltip__shortcut--txt">
                         <FormattedMessage
-                            id='general_button.esc'
-                            defaultMessage='esc'
+                            id="general_button.esc"
+                            defaultMessage="esc"
                         />
                     </div>
                 </Tooltip>
@@ -112,14 +122,15 @@ export default class Toast extends React.PureComponent<Props> {
                     overlay={closeTooltip}
                 >
                     <div
-                        className='toast__dismiss'
+                        className="toast__dismiss"
                         onClick={this.handleDismiss}
-                        data-testid={extraClasses ? `dismissToast-${extraClasses}` : 'dismissToast'}
+                        data-testid={
+                            extraClasses
+                                ? `dismissToast-${extraClasses}`
+                                : "dismissToast"
+                        }
                     >
-                        <CloseIcon
-                            className='close-btn'
-                            id='dismissToast'
-                        />
+                        <CloseIcon className="close-btn" id="dismissToast" />
                     </div>
                 </OverlayTrigger>
             </div>

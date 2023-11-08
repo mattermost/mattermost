@@ -1,29 +1,52 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import type { Dispatch, ActionCreatorsMapObject } from "redux";
 
-import type {ChannelStats} from '@mattermost/types/channels';
-import type {ServerError} from '@mattermost/types/errors';
-import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
+import type { ChannelStats } from "@mattermost/types/channels";
+import type { ServerError } from "@mattermost/types/errors";
+import type {
+    UserProfile,
+    UsersStats,
+    GetFilteredUsersStatsOpts,
+} from "@mattermost/types/users";
 
-import {getChannelStats} from 'mattermost-redux/actions/channels';
-import {getFilteredUsersStats} from 'mattermost-redux/actions/users';
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getChannelMembersInChannels, getAllChannelStats, getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {makeGetProfilesInChannel, makeSearchProfilesInChannel, filterProfiles, getFilteredUsersStats as selectFilteredUsersStats} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import {filterProfilesStartingWithTerm, profileListToMap} from 'mattermost-redux/utils/user_utils';
+import { getChannelStats } from "mattermost-redux/actions/channels";
+import { getFilteredUsersStats } from "mattermost-redux/actions/users";
+import { createSelector } from "mattermost-redux/selectors/create_selector";
+import {
+    getChannelMembersInChannels,
+    getAllChannelStats,
+    getChannel,
+} from "mattermost-redux/selectors/entities/channels";
+import { getConfig } from "mattermost-redux/selectors/entities/general";
+import {
+    makeGetProfilesInChannel,
+    makeSearchProfilesInChannel,
+    filterProfiles,
+    getFilteredUsersStats as selectFilteredUsersStats,
+} from "mattermost-redux/selectors/entities/users";
+import type {
+    ActionResult,
+    ActionFunc,
+    GenericAction,
+} from "mattermost-redux/types/actions";
+import {
+    filterProfilesStartingWithTerm,
+    profileListToMap,
+} from "mattermost-redux/utils/user_utils";
 
-import {loadProfilesAndReloadChannelMembers, searchProfilesAndChannelMembers} from 'actions/user_actions';
-import {setUserGridSearch, setUserGridFilters} from 'actions/views/search';
+import {
+    loadProfilesAndReloadChannelMembers,
+    searchProfilesAndChannelMembers,
+} from "actions/user_actions";
+import { setUserGridSearch, setUserGridFilters } from "actions/views/search";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import ChannelMembers from './channel_members';
+import ChannelMembers from "./channel_members";
 
 type Props = {
     channelId: string;
@@ -35,10 +58,19 @@ type Actions = {
     getChannelStats: (channelId: string) => Promise<{
         data: boolean;
     }>;
-    loadProfilesAndReloadChannelMembers: (page: number, perPage: number, channelId?: string, sort?: string, options?: {[key: string]: any}) => Promise<{
+    loadProfilesAndReloadChannelMembers: (
+        page: number,
+        perPage: number,
+        channelId?: string,
+        sort?: string,
+        options?: { [key: string]: any },
+    ) => Promise<{
         data: boolean;
     }>;
-    searchProfilesAndChannelMembers: (term: string, options?: {[key: string]: any}) => Promise<{
+    searchProfilesAndChannelMembers: (
+        term: string,
+        options?: { [key: string]: any },
+    ) => Promise<{
         data: boolean;
     }>;
     getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{
@@ -49,7 +81,10 @@ type Actions = {
     setUserGridFilters: (filters: GetFilteredUsersStatsOpts) => ActionResult;
 };
 
-function searchUsersToAdd(users: Record<string, UserProfile>, term: string): Record<string, UserProfile> {
+function searchUsersToAdd(
+    users: Record<string, UserProfile>,
+    term: string,
+): Record<string, UserProfile> {
     const profiles = filterProfilesStartingWithTerm(Object.values(users), term);
     const filteredProfilesMap = filterProfiles(profileListToMap(profiles), {});
 
@@ -57,10 +92,10 @@ function searchUsersToAdd(users: Record<string, UserProfile>, term: string): Rec
 }
 
 const getUserGridFilters = createSelector(
-    'getUserGridFilters',
+    "getUserGridFilters",
     (state: GlobalState) => state.views.search.userGridSearch.filters,
     (filters = {}) => {
-        return {...filters, active: true};
+        return { ...filters, active: true };
     },
 );
 
@@ -69,18 +104,23 @@ function makeMapStateToProps() {
     const doSearchProfilesInChannel = makeSearchProfilesInChannel();
 
     return function mapStateToProps(state: GlobalState, props: Props) {
-        const {channelId, usersToRemove} = props;
-        let {usersToAdd} = props;
+        const { channelId, usersToRemove } = props;
+        let { usersToAdd } = props;
 
         const config = getConfig(state);
-        const channelMembers = getChannelMembersInChannels(state)[channelId] || {};
-        const channel = getChannel(state, channelId) || {channel_id: channelId};
-        const searchTerm = state.views.search.userGridSearch?.term || '';
+        const channelMembers =
+            getChannelMembersInChannels(state)[channelId] || {};
+        const channel = getChannel(state, channelId) || {
+            channel_id: channelId,
+        };
+        const searchTerm = state.views.search.userGridSearch?.term || "";
         const filters = getUserGridFilters(state);
 
         let totalCount: number;
         if (Object.keys(filters).length === 1) {
-            const stats: ChannelStats = getAllChannelStats(state)[channelId] || {
+            const stats: ChannelStats = getAllChannelStats(state)[
+                channelId
+            ] || {
                 member_count: 0,
                 channel_id: channelId,
                 pinnedpost_count: 0,
@@ -89,7 +129,9 @@ function makeMapStateToProps() {
             };
             totalCount = stats.member_count;
         } else {
-            const filteredUserStats: UsersStats = selectFilteredUsersStats(state) || {
+            const filteredUserStats: UsersStats = selectFilteredUsersStats(
+                state,
+            ) || {
                 total_users_count: 0,
             };
             totalCount = filteredUserStats.total_users_count;
@@ -97,7 +139,13 @@ function makeMapStateToProps() {
 
         let users = [];
         if (searchTerm) {
-            users = doSearchProfilesInChannel(state, channelId, searchTerm, false, filters);
+            users = doSearchProfilesInChannel(
+                state,
+                channelId,
+                searchTerm,
+                false,
+                filters,
+            );
             usersToAdd = searchUsersToAdd(usersToAdd, searchTerm);
         } else {
             users = doGetProfilesInChannel(state, channelId, filters);
@@ -113,21 +161,27 @@ function makeMapStateToProps() {
             usersToRemove,
             totalCount,
             searchTerm,
-            enableGuestAccounts: config.EnableGuestAccounts === 'true',
+            enableGuestAccounts: config.EnableGuestAccounts === "true",
         };
     };
 }
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
-            getChannelStats,
-            loadProfilesAndReloadChannelMembers,
-            searchProfilesAndChannelMembers,
-            getFilteredUsersStats,
-            setUserGridSearch,
-            setUserGridFilters,
-        }, dispatch),
+        actions: bindActionCreators<
+            ActionCreatorsMapObject<ActionFunc | GenericAction>,
+            Actions
+        >(
+            {
+                getChannelStats,
+                loadProfilesAndReloadChannelMembers,
+                searchProfilesAndChannelMembers,
+                getFilteredUsersStats,
+                setUserGridSearch,
+                setUserGridFilters,
+            },
+            dispatch,
+        ),
     };
 }
 

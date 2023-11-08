@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import {Draggable} from 'react-beautiful-dnd';
-import {injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
-import {Link} from 'react-router-dom';
+import classNames from "classnames";
+import React from "react";
+import { Draggable } from "react-beautiful-dnd";
+import { injectIntl } from "react-intl";
+import type { IntlShape } from "react-intl";
+import { Link } from "react-router-dom";
 
-import {mark, trackEvent} from 'actions/telemetry_actions.jsx';
+import { mark, trackEvent } from "actions/telemetry_actions.jsx";
 
-import CopyUrlContextMenu from 'components/copy_url_context_menu';
+import CopyUrlContextMenu from "components/copy_url_context_menu";
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
-} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import TeamIcon from 'components/widgets/team_icon/team_icon';
+} from "components/keyboard_shortcuts/keyboard_shortcuts_sequence";
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
+import TeamIcon from "components/widgets/team_icon/team_icon";
 
-import Constants from 'utils/constants';
-import {isDesktopApp} from 'utils/user_agent';
-import {localizeMessage} from 'utils/utils';
+import Constants from "utils/constants";
+import { isDesktopApp } from "utils/user_agent";
+import { localizeMessage } from "utils/utils";
 
 interface Props {
     btnClass?: string;
@@ -33,7 +33,7 @@ interface Props {
     active?: boolean;
     unread?: boolean;
     mentions?: number;
-    placement?: 'left' | 'right' | 'top' | 'bottom';
+    placement?: "left" | "right" | "top" | "bottom";
     teamIconUrl?: string | null;
     switchTeam: (url: string) => void;
     intl: IntlShape;
@@ -46,64 +46,88 @@ interface Props {
 
 class TeamButton extends React.PureComponent<Props> {
     handleSwitch = (e: React.MouseEvent) => {
-        mark('TeamLink#click');
+        mark("TeamLink#click");
         e.preventDefault();
         this.props.switchTeam(this.props.url);
 
         setTimeout(() => {
-            trackEvent('ui', 'ui_team_sidebar_switch_team');
+            trackEvent("ui", "ui_team_sidebar_switch_team");
         }, 0);
     };
 
     render() {
-        const {teamIconUrl, displayName, btnClass, mentions, unread, isDraggable = false, teamIndex, teamId, order} = this.props;
-        const {formatMessage} = this.props.intl;
+        const {
+            teamIconUrl,
+            displayName,
+            btnClass,
+            mentions,
+            unread,
+            isDraggable = false,
+            teamIndex,
+            teamId,
+            order,
+        } = this.props;
+        const { formatMessage } = this.props.intl;
 
-        let teamClass: string = this.props.active ? 'active' : '';
-        const isNotCreateTeamButton: boolean = !this.props.url.endsWith('create_team') && !this.props.url.endsWith('select_team');
+        let teamClass: string = this.props.active ? "active" : "";
+        const isNotCreateTeamButton: boolean =
+            !this.props.url.endsWith("create_team") &&
+            !this.props.url.endsWith("select_team");
 
         let badge: JSX.Element | undefined;
 
-        let ariaLabel = formatMessage({
-            id: 'team.button.ariaLabel',
-            defaultMessage: '{teamName} team',
-        },
-        {
-            teamName: displayName,
-        });
-
-        if (!teamClass) {
-            if (unread && !this.props.isInProduct) {
-                teamClass = 'unread';
-
-                badge = (
-                    <span className={'unread-badge'}/>
-                );
-            } else if (isNotCreateTeamButton) {
-                teamClass = '';
-            } else {
-                teamClass = 'special';
-            }
-            ariaLabel = formatMessage({
-                id: 'team.button.unread.ariaLabel',
-                defaultMessage: '{teamName} team unread',
+        let ariaLabel = formatMessage(
+            {
+                id: "team.button.ariaLabel",
+                defaultMessage: "{teamName} team",
             },
             {
                 teamName: displayName,
-            });
+            },
+        );
 
-            if (mentions) {
-                ariaLabel = formatMessage({
-                    id: 'team.button.mentions.ariaLabel',
-                    defaultMessage: '{teamName} team, {mentionCount} mentions',
+        if (!teamClass) {
+            if (unread && !this.props.isInProduct) {
+                teamClass = "unread";
+
+                badge = <span className={"unread-badge"} />;
+            } else if (isNotCreateTeamButton) {
+                teamClass = "";
+            } else {
+                teamClass = "special";
+            }
+            ariaLabel = formatMessage(
+                {
+                    id: "team.button.unread.ariaLabel",
+                    defaultMessage: "{teamName} team unread",
                 },
                 {
                     teamName: displayName,
-                    mentionCount: mentions,
-                });
+                },
+            );
+
+            if (mentions) {
+                ariaLabel = formatMessage(
+                    {
+                        id: "team.button.mentions.ariaLabel",
+                        defaultMessage:
+                            "{teamName} team, {mentionCount} mentions",
+                    },
+                    {
+                        teamName: displayName,
+                        mentionCount: mentions,
+                    },
+                );
 
                 badge = (
-                    <span className={classNames('badge badge-max-number pull-right small', {urgent: this.props.hasUrgent})}>{mentions > 99 ? '99+' : mentions}</span>
+                    <span
+                        className={classNames(
+                            "badge badge-max-number pull-right small",
+                            { urgent: this.props.hasUrgent },
+                        )}
+                    >
+                        {mentions > 99 ? "99+" : mentions}
+                    </span>
                 );
             }
         }
@@ -114,20 +138,25 @@ class TeamButton extends React.PureComponent<Props> {
             <TeamIcon
                 className={teamClass}
                 withHover={true}
-                content={this.props.content || displayName || ''}
+                content={this.props.content || displayName || ""}
                 url={teamIconUrl}
             />
         );
 
-        let toolTip = this.props.tip || localizeMessage('team.button.name_undefined', 'This team does not have a name');
+        let toolTip =
+            this.props.tip ||
+            localizeMessage(
+                "team.button.name_undefined",
+                "This team does not have a name",
+            );
         let orderIndicator: JSX.Element | undefined;
-        if (typeof this.props.order !== 'undefined' && this.props.order < 10) {
+        if (typeof this.props.order !== "undefined" && this.props.order < 10) {
             toolTip = (
                 <>
                     {toolTip}
                     <KeyboardShortcutSequence
                         shortcut={KEYBOARD_SHORTCUTS.teamNavigation}
-                        values={{order}}
+                        values={{ order }}
                         hideDescription={true}
                         isInsideTooltip={true}
                     />
@@ -135,11 +164,7 @@ class TeamButton extends React.PureComponent<Props> {
             );
 
             if (this.props.showOrder) {
-                orderIndicator = (
-                    <div className='order-indicator'>
-                        {order}
-                    </div>
-                );
+                orderIndicator = <div className="order-indicator">{order}</div>;
             }
         }
 
@@ -153,7 +178,7 @@ class TeamButton extends React.PureComponent<Props> {
                     </Tooltip>
                 }
             >
-                <div className={'team-btn ' + btnClass}>
+                <div className={"team-btn " + btnClass}>
                     {!this.props.isInProduct && badge}
                     {content}
                 </div>
@@ -186,21 +211,20 @@ class TeamButton extends React.PureComponent<Props> {
         }
 
         return isDraggable ? (
-            <Draggable
-                draggableId={teamId!}
-                index={teamIndex!}
-            >
+            <Draggable draggableId={teamId!} index={teamIndex!}>
                 {(provided, snapshot) => {
                     return (
                         <div
-                            className='draggable-team-container'
+                            className="draggable-team-container"
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
                         >
                             <div
-
-                                className={classNames([`team-container ${teamClass}`, {isDragging: snapshot.isDragging}])}
+                                className={classNames([
+                                    `team-container ${teamClass}`,
+                                    { isDragging: snapshot.isDragging },
+                                ])}
                             >
                                 {teamButton}
                                 {orderIndicator}

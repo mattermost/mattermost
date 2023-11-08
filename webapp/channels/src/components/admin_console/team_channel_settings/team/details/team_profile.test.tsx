@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
-import * as reactRedux from 'react-redux';
+import { shallow } from "enzyme";
+import React from "react";
+import * as reactRedux from "react-redux";
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
-import {CloudProducts} from 'utils/constants';
-import {FileSizes} from 'utils/file_utils';
-import {TestHelper} from 'utils/test_helper';
+import { mountWithIntl } from "tests/helpers/intl-test-helper";
+import mockStore from "tests/test_store";
+import { CloudProducts } from "utils/constants";
+import { FileSizes } from "utils/file_utils";
+import { TestHelper } from "utils/test_helper";
 
-import {TeamProfile} from './team_profile';
+import { TeamProfile } from "./team_profile";
 
-describe('admin_console/team_channel_settings/team/TeamProfile__Cloud', () => {
+describe("admin_console/team_channel_settings/team/TeamProfile__Cloud", () => {
     const baseProps = {
         team: TestHelper.getTeamMock(),
         onToggleArchive: jest.fn(),
@@ -30,25 +30,25 @@ describe('admin_console/team_channel_settings/team/TeamProfile__Cloud', () => {
         entities: {
             general: {
                 license: {
-                    IsLicensed: 'true',
-                    Cloud: 'true',
+                    IsLicensed: "true",
+                    Cloud: "true",
                 },
             },
             users: {
-                currentUserId: 'current_user_id',
+                currentUserId: "current_user_id",
                 profiles: {
-                    current_user_id: {roles: 'system_admin'},
+                    current_user_id: { roles: "system_admin" },
                 },
             },
             cloud: {
                 subscription: {
-                    product_id: 'test_prod_1',
+                    product_id: "test_prod_1",
                     trial_end_at: 1652807380,
-                    is_free_trial: 'false',
+                    is_free_trial: "false",
                 },
                 products: {
                     test_prod_1: {
-                        id: 'test_prod_1',
+                        id: "test_prod_1",
                         sku: CloudProducts.STARTER,
                         price_per_seat: 0,
                     },
@@ -101,18 +101,18 @@ describe('admin_console/team_channel_settings/team/TeamProfile__Cloud', () => {
         },
     };
 
-    test('should match snapshot - archived, at teams limit', () => {
+    test("should match snapshot - archived, at teams limit", () => {
         const store = mockStore(initialState);
         const wrapper = mountWithIntl(
             <reactRedux.Provider store={store}>
-                <TeamProfile {...baseProps}/>
+                <TeamProfile {...baseProps} />
             </reactRedux.Provider>,
         );
         expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('OverlayTrigger').exists()).toEqual(true);
+        expect(wrapper.find("OverlayTrigger").exists()).toEqual(true);
     });
 
-    test('should match snapshot - not archived, at teams limit', () => {
+    test("should match snapshot - not archived, at teams limit", () => {
         const props = {
             ...baseProps,
             isArchived: false,
@@ -120,16 +120,16 @@ describe('admin_console/team_channel_settings/team/TeamProfile__Cloud', () => {
         const store = mockStore(initialState);
         const wrapper = mountWithIntl(
             <reactRedux.Provider store={store}>
-                <TeamProfile {...props}/>
+                <TeamProfile {...props} />
             </reactRedux.Provider>,
         );
         expect(wrapper).toMatchSnapshot();
 
         // Unarchived will always be archiveable
-        expect(wrapper.find('OverlayTrigger').exists()).toEqual(false);
+        expect(wrapper.find("OverlayTrigger").exists()).toEqual(false);
     });
 
-    test('restore should not be disabled when below teams limit', () => {
+    test("restore should not be disabled when below teams limit", () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.limits = {
             limitsLoaded: true,
@@ -178,17 +178,17 @@ describe('admin_console/team_channel_settings/team/TeamProfile__Cloud', () => {
         const store = mockStore(state);
         const wrapper = mountWithIntl(
             <reactRedux.Provider store={store}>
-                <TeamProfile {...baseProps}/>
+                <TeamProfile {...baseProps} />
             </reactRedux.Provider>,
         );
         expect(wrapper).toMatchSnapshot();
 
         // Unarchived will always be archiveable
-        expect(wrapper.find('OverlayTrigger').exists()).toEqual(false);
+        expect(wrapper.find("OverlayTrigger").exists()).toEqual(false);
     });
 });
 
-describe('admin_console/team_channel_settings/team/TeamProfile', () => {
+describe("admin_console/team_channel_settings/team/TeamProfile", () => {
     const baseProps = {
         team: TestHelper.getTeamMock(),
         onToggleArchive: jest.fn(),
@@ -205,14 +205,14 @@ describe('admin_console/team_channel_settings/team/TeamProfile', () => {
         entities: {
             general: {
                 license: {
-                    IsLicensed: 'true',
-                    Cloud: 'false',
+                    IsLicensed: "true",
+                    Cloud: "false",
                 },
             },
             users: {
-                currentUserId: 'current_user_id',
+                currentUserId: "current_user_id",
                 profiles: {
-                    current_user_id: {roles: 'system_admin'},
+                    current_user_id: { roles: "system_admin" },
                 },
             },
             usage: {
@@ -239,13 +239,13 @@ describe('admin_console/team_channel_settings/team/TeamProfile', () => {
             },
             cloud: {
                 subscription: {
-                    product_id: 'test_prod_1',
+                    product_id: "test_prod_1",
                     trial_end_at: 1652807380,
-                    is_free_trial: 'false',
+                    is_free_trial: "false",
                 },
                 products: {
                     test_prod_1: {
-                        id: 'test_prod_1',
+                        id: "test_prod_1",
                         sku: CloudProducts.STARTER,
                         price_per_seat: 0,
                     },
@@ -276,27 +276,27 @@ describe('admin_console/team_channel_settings/team/TeamProfile', () => {
     };
     const state = JSON.parse(JSON.stringify(initialState));
     const store = mockStore(state);
-    test('should match snapshot (not cloud, freemium disabled', () => {
+    test("should match snapshot (not cloud, freemium disabled", () => {
         const wrapper = shallow(
             <reactRedux.Provider store={store}>
-                <TeamProfile {...baseProps}/>
+                <TeamProfile {...baseProps} />
             </reactRedux.Provider>,
         );
         expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('OverlayTrigger').exists()).toEqual(false);
+        expect(wrapper.find("OverlayTrigger").exists()).toEqual(false);
     });
 
-    test('should match snapshot with isArchived true', () => {
+    test("should match snapshot with isArchived true", () => {
         const props = {
             ...baseProps,
             isArchived: true,
         };
         const wrapper = shallow(
             <reactRedux.Provider store={store}>
-                <TeamProfile {...props}/>
+                <TeamProfile {...props} />
             </reactRedux.Provider>,
         );
         expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('OverlayTrigger').exists()).toEqual(false);
+        expect(wrapper.find("OverlayTrigger").exists()).toEqual(false);
     });
 });

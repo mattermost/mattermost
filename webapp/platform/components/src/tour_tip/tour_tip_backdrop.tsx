@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React from "react";
+import ReactDOM from "react-dom";
 
-import type {Props as PunchOutCoordsHeightAndWidth} from '../common/hooks/useMeasurePunchouts';
+import type { Props as PunchOutCoordsHeightAndWidth } from "../common/hooks/useMeasurePunchouts";
 
 type Props = {
     overlayPunchOut: PunchOutCoordsHeightAndWidth | null;
@@ -14,13 +14,17 @@ type Props = {
     onPunchOut?: (e: React.MouseEvent) => void;
     appendTo: HTMLElement;
     transparent?: boolean;
-}
+};
 
-const TourTipRootPortal = ({children, show, element}: {children: React.ReactNode ; show: boolean; element: Element}) =>
-    (show ? ReactDOM.createPortal(
-        children,
-        element,
-    ) : null);
+const TourTipRootPortal = ({
+    children,
+    show,
+    element,
+}: {
+    children: React.ReactNode;
+    show: boolean;
+    element: Element;
+}) => (show ? ReactDOM.createPortal(children, element) : null);
 
 export const TourTipBackdrop = ({
     show,
@@ -33,13 +37,13 @@ export const TourTipBackdrop = ({
 }: Props) => {
     const vertices = [];
     if (overlayPunchOut) {
-        const {x, y, width, height} = overlayPunchOut;
+        const { x, y, width, height } = overlayPunchOut;
 
         // draw to top left of punch out
-        vertices.push('0% 0%');
-        vertices.push('0% 100%');
-        vertices.push('100% 100%');
-        vertices.push('100% 0%');
+        vertices.push("0% 0%");
+        vertices.push("0% 100%");
+        vertices.push("100% 100%");
+        vertices.push("100% 0%");
         vertices.push(`${x} 0%`);
         vertices.push(`${x} ${y}`);
 
@@ -51,21 +55,27 @@ export const TourTipBackdrop = ({
 
         // close off punch out
         vertices.push(`${x} 0%`);
-        vertices.push('0% 0%');
+        vertices.push("0% 0%");
     }
     const backdrop = (
         <div
             onClick={onDismiss}
-            className={`tour-tip__backdrop ${transparent ? 'tour-tip__backdrop--transparent' : ''}`}
+            className={`tour-tip__backdrop ${
+                transparent ? "tour-tip__backdrop--transparent" : ""
+            }`}
             style={{
-                clipPath: vertices.length ? `polygon(${vertices.join(', ')})` : undefined,
+                clipPath: vertices.length
+                    ? `polygon(${vertices.join(", ")})`
+                    : undefined,
             }}
         />
     );
-    const overlay = interactivePunchOut ? backdrop : (
+    const overlay = interactivePunchOut ? (
+        backdrop
+    ) : (
         <>
             <div
-                className={'tour-tip__overlay'}
+                className={"tour-tip__overlay"}
                 onClick={onPunchOut || onDismiss}
             />
             {backdrop}
@@ -73,10 +83,7 @@ export const TourTipBackdrop = ({
     );
 
     return (
-        <TourTipRootPortal
-            show={show}
-            element={appendTo}
-        >
+        <TourTipRootPortal show={show} element={appendTo}>
             {overlay}
         </TourTipRootPortal>
     );

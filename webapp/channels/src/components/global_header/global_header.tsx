@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {useSelector} from 'react-redux';
-import styled from 'styled-components';
+import React from "react";
+import { useSelector } from "react-redux";
+import styled from "styled-components";
 
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import { getTheme } from "mattermost-redux/selectors/entities/preferences";
 
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import CompassThemeProvider from "components/compass_theme_provider/compass_theme_provider";
 
-import {useCurrentProductId} from 'utils/products';
+import { useCurrentProductId } from "utils/products";
 
-import CenterControls from './center_controls/center_controls';
-import {useIsLoggedIn} from './hooks';
-import LeftControls from './left_controls/left_controls';
-import RightControls from './right_controls/right_controls';
+import CenterControls from "./center_controls/center_controls";
+import { useIsLoggedIn } from "./hooks";
+import LeftControls from "./left_controls/left_controls";
+import RightControls from "./right_controls/right_controls";
 
 const GlobalHeaderContainer = styled.header`
     position: relative;
@@ -49,10 +49,10 @@ const GlobalHeader = (): JSX.Element | null => {
 
     return (
         <CompassThemeProvider theme={theme}>
-            <GlobalHeaderContainer id='global-header'>
-                <LeftControls/>
-                <CenterControls productId={currentProductID}/>
-                <RightControls productId={currentProductID}/>
+            <GlobalHeaderContainer id="global-header">
+                <LeftControls />
+                <CenterControls productId={currentProductID} />
+                <RightControls productId={currentProductID} />
             </GlobalHeaderContainer>
         </CompassThemeProvider>
     );

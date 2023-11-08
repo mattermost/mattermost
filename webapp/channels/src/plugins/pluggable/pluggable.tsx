@@ -1,21 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {WebSocketClient} from '@mattermost/client';
+import type { WebSocketClient } from "@mattermost/client";
 
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import type { Theme } from "mattermost-redux/selectors/entities/preferences";
 
-import webSocketClient from 'client/web_websocket_client';
+import webSocketClient from "client/web_websocket_client";
 
-import type {GlobalState} from 'types/store';
-import type {ProductComponent} from 'types/store/plugins';
+import type { GlobalState } from "types/store";
+import type { ProductComponent } from "types/store/plugins";
 
-import PluggableErrorBoundary from './error_boundary';
+import PluggableErrorBoundary from "./error_boundary";
 
 type Props = {
-
     /*
      * Override the component to be plugged
      */
@@ -24,7 +23,7 @@ type Props = {
     /*
      * Components for overriding provided by plugins
      */
-    components: GlobalState['plugins']['components'];
+    components: GlobalState["plugins"]["components"];
 
     /*
      * Logged in user's theme
@@ -41,30 +40,37 @@ type Props = {
      *
      * Only supported when pluggableName is "Product".
      */
-    subComponentName?: 'mainComponent' | 'publicComponent' | 'headerCentreComponent' | 'headerRightComponent';
+    subComponentName?:
+        | "mainComponent"
+        | "publicComponent"
+        | "headerCentreComponent"
+        | "headerRightComponent";
 
     /*
      * Accept any other prop to pass onto the plugin component
      */
     [name: string]: any;
-}
+};
 
 type BaseChildProps = {
     theme: Theme;
     webSocketClient?: WebSocketClient;
-}
+};
 
 export default function Pluggable(props: Props): JSX.Element | null {
     const {
         components,
         pluggableId,
         pluggableName,
-        subComponentName = '',
+        subComponentName = "",
         theme,
         ...otherProps
     } = props;
 
-    if (!pluggableName || !Object.hasOwnProperty.call(components, pluggableName)) {
+    if (
+        !pluggableName ||
+        !Object.hasOwnProperty.call(components, pluggableName)
+    ) {
         return null;
     }
 
@@ -72,30 +78,30 @@ export default function Pluggable(props: Props): JSX.Element | null {
 
     if (pluggableId) {
         pluginComponents = pluginComponents.filter(
-            (element) => element.id === pluggableId);
+            (element) => element.id === pluggableId,
+        );
     }
 
     // Override the default component with any registered plugin's component
     // Select a specific component by pluginId if available
     let content;
 
-    if (pluggableName === 'Product') {
+    if (pluggableName === "Product") {
         content = (pluginComponents as ProductComponent[]).map((pc) => {
             if (!subComponentName || !pc[subComponentName]) {
                 return null;
             }
 
-            const Component = pc[subComponentName]! as React.ComponentType<BaseChildProps>;
+            const Component = pc[
+                subComponentName
+            ]! as React.ComponentType<BaseChildProps>;
 
             return (
                 <PluggableErrorBoundary
                     key={pluggableName + pc.id}
                     pluginId={pc.pluginId}
                 >
-                    <Component
-                        {...otherProps}
-                        theme={theme}
-                    />
+                    <Component {...otherProps} theme={theme} />
                 </PluggableErrorBoundary>
             );
         });
@@ -105,7 +111,8 @@ export default function Pluggable(props: Props): JSX.Element | null {
                 return null;
             }
 
-            const Component = p.component as React.ComponentType<BaseChildProps>;
+            const Component =
+                p.component as React.ComponentType<BaseChildProps>;
 
             return (
                 <PluggableErrorBoundary
@@ -122,9 +129,5 @@ export default function Pluggable(props: Props): JSX.Element | null {
         });
     }
 
-    return (
-        <React.Fragment>
-            {content}
-        </React.Fragment>
-    );
+    return <React.Fragment>{content}</React.Fragment>;
 }

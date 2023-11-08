@@ -1,44 +1,44 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {Post} from '@mattermost/types/posts';
+import type { Post } from "@mattermost/types/posts";
 
-import {Posts} from 'mattermost-redux/constants';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
+import { Posts } from "mattermost-redux/constants";
+import type { Theme } from "mattermost-redux/selectors/entities/preferences";
+import { isPostEphemeral } from "mattermost-redux/utils/post_utils";
 
-import PostMarkdown from 'components/post_markdown';
-import ShowMore from 'components/post_view/show_more';
-import type {AttachmentTextOverflowType} from 'components/post_view/show_more/show_more';
+import PostMarkdown from "components/post_markdown";
+import ShowMore from "components/post_view/show_more";
+import type { AttachmentTextOverflowType } from "components/post_view/show_more/show_more";
 
-import Pluggable from 'plugins/pluggable';
-import type {TextFormattingOptions} from 'utils/text_formatting';
-import * as Utils from 'utils/utils';
+import Pluggable from "plugins/pluggable";
+import type { TextFormattingOptions } from "utils/text_formatting";
+import * as Utils from "utils/utils";
 
 type Props = {
-    post: Post; /* The post to render the message for */
-    enableFormatting?: boolean; /* Set to enable Markdown formatting */
-    options?: TextFormattingOptions; /* Options specific to text formatting */
-    compactDisplay?: boolean; /* Set to render post body compactly */
-    isRHS?: boolean; /* Flags if the post_message_view is for the RHS (Reply). */
-    isRHSOpen?: boolean; /* Whether or not the RHS is visible */
-    isRHSExpanded?: boolean; /* Whether or not the RHS is expanded */
-    theme: Theme; /* Logged in user's theme */
-    pluginPostTypes?: any; /* Post type components from plugins */
+    post: Post /* The post to render the message for */;
+    enableFormatting?: boolean /* Set to enable Markdown formatting */;
+    options?: TextFormattingOptions /* Options specific to text formatting */;
+    compactDisplay?: boolean /* Set to render post body compactly */;
+    isRHS?: boolean /* Flags if the post_message_view is for the RHS (Reply). */;
+    isRHSOpen?: boolean /* Whether or not the RHS is visible */;
+    isRHSExpanded?: boolean /* Whether or not the RHS is expanded */;
+    theme: Theme /* Logged in user's theme */;
+    pluginPostTypes?: any /* Post type components from plugins */;
     currentRelativeTeamUrl: string;
     overflowType?: AttachmentTextOverflowType;
-    maxHeight?: number; /* The max height used by the show more component */
-    showPostEditedIndicator?: boolean; /* Whether or not to render the post edited indicator */
-}
+    maxHeight?: number /* The max height used by the show more component */;
+    showPostEditedIndicator?: boolean /* Whether or not to render the post edited indicator */;
+};
 
 type State = {
     collapse: boolean;
     hasOverflow: boolean;
     checkOverflow: number;
-}
+};
 
 export default class PostMessageView extends React.PureComponent<Props, State> {
     private imageProps: any;
@@ -70,7 +70,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         // and recompute textContainer height at ShowMore component
         // and see whether overflow text of show more/less is necessary or not.
         this.setState((prevState) => {
-            return {checkOverflow: prevState.checkOverflow + 1};
+            return { checkOverflow: prevState.checkOverflow + 1 };
         });
     };
 
@@ -84,15 +84,16 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         return (
             <p>
                 <FormattedMessage
-                    id='post_body.deleted'
-                    defaultMessage='(message deleted)'
+                    id="post_body.deleted"
+                    defaultMessage="(message deleted)"
                 />
             </p>
         );
     }
 
-    handleFormattedTextClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
-        Utils.handleFormattedTextClick(e, this.props.currentRelativeTeamUrl);
+    handleFormattedTextClick = (
+        e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+    ) => Utils.handleFormattedTextClick(e, this.props.currentRelativeTeamUrl);
 
     render() {
         const {
@@ -115,7 +116,8 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
             return <span>{post.message}</span>;
         }
 
-        const postType = post.props && post.props.type ? post.props.type : post.type;
+        const postType =
+            post.props && post.props.type ? post.props.type : post.type;
 
         if (pluginPostTypes && pluginPostTypes.hasOwnProperty(postType)) {
             const PluginComponent = pluginPostTypes[postType].component;
@@ -132,11 +134,16 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         let message = post.message;
         const isEphemeral = isPostEphemeral(post);
         if (compactDisplay && isEphemeral) {
-            const visibleMessage = Utils.localizeMessage('post_info.message.visible.compact', ' (Only visible to you)');
+            const visibleMessage = Utils.localizeMessage(
+                "post_info.message.visible.compact",
+                " (Only visible to you)",
+            );
             message = message.concat(visibleMessage);
         }
 
-        const id = isRHS ? `rhsPostMessageText_${post.id}` : `postMessageText_${post.id}`;
+        const id = isRHS
+            ? `rhsPostMessageText_${post.id}`
+            : `postMessageText_${post.id}`;
 
         return (
             <ShowMore
@@ -148,8 +155,8 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                 <div
                     tabIndex={0}
                     id={id}
-                    className='post-message__text'
-                    dir='auto'
+                    className="post-message__text"
+                    dir="auto"
                     onClick={this.handleFormattedTextClick}
                 >
                     <PostMarkdown
@@ -159,11 +166,13 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                         post={post}
                         channelId={post.channel_id}
                         mentionKeys={[]}
-                        showPostEditedIndicator={this.props.showPostEditedIndicator}
+                        showPostEditedIndicator={
+                            this.props.showPostEditedIndicator
+                        }
                     />
                 </div>
                 <Pluggable
-                    pluggableName='PostMessageAttachment'
+                    pluggableName="PostMessageAttachment"
                     postId={post.id}
                     onHeightChange={this.handleHeightReceived}
                 />

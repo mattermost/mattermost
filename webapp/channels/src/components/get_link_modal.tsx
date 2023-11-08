@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { Modal } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
 
-import SuccessIcon from 'components/widgets/icons/fa_success_icon';
+import SuccessIcon from "components/widgets/icons/fa_success_icon";
 
 type Props = {
     show: boolean;
@@ -14,11 +14,11 @@ type Props = {
     title: string;
     helpText?: string;
     link: string;
-}
+};
 
 type State = {
     copiedLink: boolean;
-}
+};
 
 export default class GetLinkModal extends React.PureComponent<Props, State> {
     private textAreaRef = React.createRef<HTMLTextAreaElement>();
@@ -34,7 +34,7 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
     }
 
     public onHide = (): void => {
-        this.setState({copiedLink: false});
+        this.setState({ copiedLink: false });
         this.props.onHide();
     };
 
@@ -46,9 +46,9 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
             textarea.setSelectionRange(0, this.props.link.length);
 
             try {
-                this.setState({copiedLink: document.execCommand('copy')});
+                this.setState({ copiedLink: document.execCommand("copy") });
             } catch (err) {
-                this.setState({copiedLink: false});
+                this.setState({ copiedLink: false });
             }
         }
     };
@@ -59,26 +59,26 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
             helpText = (
                 <p>
                     {this.props.helpText}
-                    <br/>
-                    <br/>
+                    <br />
+                    <br />
                 </p>
             );
         }
 
         let copyLink = null;
 
-        if (document.queryCommandSupported('copy')) {
+        if (document.queryCommandSupported("copy")) {
             copyLink = (
                 <button
-                    id='linkModalCopyLink'
-                    data-copy-btn='true'
-                    type='button'
-                    className='btn btn-primary pull-left'
+                    id="linkModalCopyLink"
+                    data-copy-btn="true"
+                    type="button"
+                    className="btn btn-primary pull-left"
                     onClick={this.copyLink}
                 >
                     <FormattedMessage
-                        id='get_link.copy'
-                        defaultMessage='Copy Link'
+                        id="get_link.copy"
+                        defaultMessage="Copy Link"
                     />
                 </button>
             );
@@ -86,10 +86,10 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
 
         const linkText = (
             <textarea
-                id='linkModalTextArea'
-                className='form-control no-resize min-height'
+                id="linkModalTextArea"
+                className="form-control no-resize min-height"
                 ref={this.textAreaRef}
-                dir='auto'
+                dir="auto"
                 value={this.props.link}
                 onClick={this.copyLink}
                 readOnly={true}
@@ -99,11 +99,11 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
         let copyLinkConfirm = null;
         if (this.state.copiedLink) {
             copyLinkConfirm = (
-                <p className='alert alert-success alert--confirm'>
-                    <SuccessIcon/>
+                <p className="alert alert-success alert--confirm">
+                    <SuccessIcon />
                     <FormattedMessage
-                        id='get_link.clipboard'
-                        defaultMessage=' Link copied'
+                        id="get_link.clipboard"
+                        defaultMessage=" Link copied"
                     />
                 </p>
             );
@@ -111,18 +111,15 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
 
         return (
             <Modal
-                dialogClassName='a11y__modal'
+                dialogClassName="a11y__modal"
                 show={this.props.show}
                 onHide={this.onHide}
                 onExited={this.props.onExited}
-                role='dialog'
-                aria-labelledby='getLinkModalLabel'
+                role="dialog"
+                aria-labelledby="getLinkModalLabel"
             >
-                <Modal.Header
-                    id='getLinkModalLabel'
-                    closeButton={true}
-                >
-                    <h4 className='modal-title'>{this.props.title}</h4>
+                <Modal.Header id="getLinkModalLabel" closeButton={true}>
+                    <h4 className="modal-title">{this.props.title}</h4>
                 </Modal.Header>
                 <Modal.Body>
                     {helpText}
@@ -130,14 +127,14 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                 </Modal.Body>
                 <Modal.Footer>
                     <button
-                        id='linkModalCloseButton'
-                        type='button'
-                        className='btn btn-tertiary'
+                        id="linkModalCloseButton"
+                        type="button"
+                        className="btn btn-tertiary"
                         onClick={this.onHide}
                     >
                         <FormattedMessage
-                            id='get_link.close'
-                            defaultMessage='Close'
+                            id="get_link.close"
+                            defaultMessage="Close"
                         />
                     </button>
                     {copyLink}

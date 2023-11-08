@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {FormEvent, memo} from 'react';
-import {useIntl} from 'react-intl';
-import styled from 'styled-components';
+import React, { FormEvent, memo } from "react";
+import { useIntl } from "react-intl";
+import styled from "styled-components";
 
-import {SendIcon} from '@mattermost/compass-icons/components';
+import { SendIcon } from "@mattermost/compass-icons/components";
 
-import {t} from 'utils/i18n';
+import { t } from "utils/i18n";
 
 type SendButtonProps = {
     handleSubmit: (e: React.FormEvent) => void;
     disabled: boolean;
-}
+};
 
 const SendButtonContainer = styled.button`
     display: flex;
@@ -42,8 +42,8 @@ const SendButtonContainer = styled.button`
     }
 `;
 
-const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
-    const {formatMessage} = useIntl();
+const SendButton = ({ disabled, handleSubmit }: SendButtonProps) => {
+    const { formatMessage } = useIntl();
 
     const sendMessage = (e: React.FormEvent) => {
         e.stopPropagation();
@@ -53,21 +53,21 @@ const SendButton = ({disabled, handleSubmit}: SendButtonProps) => {
 
     return (
         <SendButtonContainer
-            data-testid='SendMessageButton'
+            data-testid="SendMessageButton"
             tabIndex={0}
             aria-label={formatMessage({
-                id: 'create_post.send_message',
-                defaultMessage: 'Send a message',
+                id: "create_post.send_message",
+                defaultMessage: "Send a message",
             })}
             disabled={disabled}
             onClick={sendMessage}
         >
             <SendIcon
                 size={18}
-                color='currentColor'
+                color="currentColor"
                 aria-label={formatMessage({
-                    id: t('create_post.icon'),
-                    defaultMessage: 'Create a post',
+                    id: t("create_post.icon"),
+                    defaultMessage: "Create a post",
                 })}
             />
         </SendButtonContainer>

@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import type {Value} from './multiselect';
-import MultiSelectList from './multiselect_list';
-import type {Props as MultiSelectProps} from './multiselect_list';
+import type { Value } from "./multiselect";
+import MultiSelectList from "./multiselect_list";
+import type { Props as MultiSelectProps } from "./multiselect_list";
 
-const element = () => <div/>;
+const element = () => <div />;
 
-describe('components/multiselect/multiselect', () => {
+describe("components/multiselect/multiselect", () => {
     const optionsNumber = 8;
     const users = [];
     for (let i = 0; i < optionsNumber; i++) {
-        users.push({id: `${i}`, label: `${i}`, value: `${i}`});
+        users.push({ id: `${i}`, label: `${i}`, value: `${i}` });
     }
 
     const selectedItemRef = {
@@ -40,8 +40,13 @@ describe('components/multiselect/multiselect', () => {
         page: 1,
     };
 
-    test('MultiSelectList should have selected item scrollIntoView to align at bottom of list', () => {
-        const renderOption: MultiSelectProps<Value>['optionRenderer'] = (option, isSelected, onAdd, onMouseMove) => {
+    test("MultiSelectList should have selected item scrollIntoView to align at bottom of list", () => {
+        const renderOption: MultiSelectProps<Value>["optionRenderer"] = (
+            option,
+            isSelected,
+            onAdd,
+            onMouseMove,
+        ) => {
             return (
                 <p
                     key={option.id}
@@ -55,10 +60,7 @@ describe('components/multiselect/multiselect', () => {
         };
 
         const wrapper = shallow(
-            <MultiSelectList
-                {...baseProps}
-                optionRenderer={renderOption}
-            />,
+            <MultiSelectList {...baseProps} optionRenderer={renderOption} />,
         );
 
         (wrapper.instance() as any).listRef = {
@@ -70,12 +72,19 @@ describe('components/multiselect/multiselect', () => {
             },
         } as any;
 
-        wrapper.setState({selected: 1});
-        expect(selectedItemRef.current.scrollIntoView).toHaveBeenCalledWith(false);
+        wrapper.setState({ selected: 1 });
+        expect(selectedItemRef.current.scrollIntoView).toHaveBeenCalledWith(
+            false,
+        );
     });
 
-    test('MultiSelectList should have selected item scrollIntoView to align at top of list', () => {
-        const renderOption: MultiSelectProps<Value>['optionRenderer'] = (option, isSelected, onAdd, onMouseMove) => {
+    test("MultiSelectList should have selected item scrollIntoView to align at top of list", () => {
+        const renderOption: MultiSelectProps<Value>["optionRenderer"] = (
+            option,
+            isSelected,
+            onAdd,
+            onMouseMove,
+        ) => {
             return (
                 <p
                     key={option.id}
@@ -89,10 +98,7 @@ describe('components/multiselect/multiselect', () => {
         };
 
         const wrapper = shallow(
-            <MultiSelectList
-                {...baseProps}
-                optionRenderer={renderOption}
-            />,
+            <MultiSelectList {...baseProps} optionRenderer={renderOption} />,
         );
 
         (wrapper.instance() as any).listRef = {
@@ -104,7 +110,9 @@ describe('components/multiselect/multiselect', () => {
             },
         } as any;
 
-        wrapper.setState({selected: 1});
-        expect(selectedItemRef.current.scrollIntoView).toHaveBeenCalledWith(true);
+        wrapper.setState({ selected: 1 });
+        expect(selectedItemRef.current.scrollIntoView).toHaveBeenCalledWith(
+            true,
+        );
     });
 });

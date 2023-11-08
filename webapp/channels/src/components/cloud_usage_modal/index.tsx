@@ -1,23 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {useSelector} from 'react-redux';
+import React from "react";
+import { useSelector } from "react-redux";
 
-import {GenericModal} from '@mattermost/components';
-import type {Limits} from '@mattermost/types/cloud';
+import { GenericModal } from "@mattermost/components";
+import type { Limits } from "@mattermost/types/cloud";
 
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import { getTheme } from "mattermost-redux/selectors/entities/preferences";
 
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetUsage from 'components/common/hooks/useGetUsage';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import useGetLimits from "components/common/hooks/useGetLimits";
+import useGetUsage from "components/common/hooks/useGetUsage";
+import CompassThemeProvider from "components/compass_theme_provider/compass_theme_provider";
 
-import type {Message} from 'utils/i18n';
+import type { Message } from "utils/i18n";
 
-import WorkspaceLimitsPanel, {messageToElement} from './workspace_limits_panel';
+import WorkspaceLimitsPanel, {
+    messageToElement,
+} from "./workspace_limits_panel";
 
-import './index.scss';
+import "./index.scss";
 
 interface ModalAction {
     message: Message | React.ReactNode;
@@ -49,17 +51,28 @@ export default function CloudUsageModal(props: Props) {
             compassDesign={true}
             onExited={props.onClose}
             modalHeaderText={messageToElement(props.title)}
-            cancelButtonText={props.secondaryAction && messageToElement(props.secondaryAction.message)}
+            cancelButtonText={
+                props.secondaryAction &&
+                messageToElement(props.secondaryAction.message)
+            }
             handleConfirm={props.primaryAction?.onClick}
-            confirmButtonText={props.primaryAction && messageToElement(props.primaryAction.message)}
-            className='CloudUsageModal'
+            confirmButtonText={
+                props.primaryAction &&
+                messageToElement(props.primaryAction.message)
+            }
+            className="CloudUsageModal"
             backdrop={props.backdrop}
             backdropClassName={props.backdropClassName}
         >
             <>
-                {React.isValidElement(props.description) ? props.description : <p className='CloudUsageModal__description'>
-                    {props.description && messageToElement(props.description)}
-                </p>}
+                {React.isValidElement(props.description) ? (
+                    props.description
+                ) : (
+                    <p className="CloudUsageModal__description">
+                        {props.description &&
+                            messageToElement(props.description)}
+                    </p>
+                )}
                 <WorkspaceLimitsPanel
                     showIcons={true}
                     limits={props.ownLimits || limits}
@@ -73,9 +86,5 @@ export default function CloudUsageModal(props: Props) {
         return modal;
     }
 
-    return (
-        <CompassThemeProvider theme={theme}>
-            {modal}
-        </CompassThemeProvider>
-    );
+    return <CompassThemeProvider theme={theme}>{modal}</CompassThemeProvider>;
 }

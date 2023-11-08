@@ -1,45 +1,49 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {notifyMe} from 'actions/notification_actions';
-import {openModal} from 'actions/views/modals';
-import {closeRightHandSide, selectPostById} from 'actions/views/rhs';
-import {getSelectedPostId, getIsRhsOpen} from 'selectors/rhs';
+import { notifyMe } from "actions/notification_actions";
+import { openModal } from "actions/views/modals";
+import { closeRightHandSide, selectPostById } from "actions/views/rhs";
+import { getSelectedPostId, getIsRhsOpen } from "selectors/rhs";
 
-import ChannelInviteModal from 'components/channel_invite_modal';
-import ChannelMembersModal from 'components/channel_members_modal';
-import {openPricingModal} from 'components/global_header/right_controls/plan_upgrade_button';
-import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
-import PurchaseModal from 'components/purchase_modal';
-import StartTrialFormModal from 'components/start_trial_form_modal';
-import ThreadViewer from 'components/threading/thread_viewer';
-import Timestamp from 'components/timestamp';
-import BotTag from 'components/widgets/tag/bot_tag';
-import Avatar from 'components/widgets/users/avatar';
+import ChannelInviteModal from "components/channel_invite_modal";
+import ChannelMembersModal from "components/channel_members_modal";
+import { openPricingModal } from "components/global_header/right_controls/plan_upgrade_button";
+import { useNotifyAdmin } from "components/notify_admin_cta/notify_admin_cta";
+import PurchaseModal from "components/purchase_modal";
+import StartTrialFormModal from "components/start_trial_form_modal";
+import ThreadViewer from "components/threading/thread_viewer";
+import Timestamp from "components/timestamp";
+import BotTag from "components/widgets/tag/bot_tag";
+import Avatar from "components/widgets/users/avatar";
 
-import {getHistory} from 'utils/browser_history';
-import {ModalIdentifiers} from 'utils/constants';
-import messageHtmlToComponent from 'utils/message_html_to_component';
-import * as NotificationSounds from 'utils/notification_sounds';
-import {formatText} from 'utils/text_formatting';
-import {useWebSocket, useWebSocketClient, WebSocketContext} from 'utils/use_websocket';
-import {imageURLForUser} from 'utils/utils';
+import { getHistory } from "utils/browser_history";
+import { ModalIdentifiers } from "utils/constants";
+import messageHtmlToComponent from "utils/message_html_to_component";
+import * as NotificationSounds from "utils/notification_sounds";
+import { formatText } from "utils/text_formatting";
+import {
+    useWebSocket,
+    useWebSocketClient,
+    WebSocketContext,
+} from "utils/use_websocket";
+import { imageURLForUser } from "utils/utils";
 
-import CreatePost from './exported_create_post';
-import {openInteractiveDialog} from './interactive_dialog'; // This import has intentional side effects. Do not remove without research.
-import Textbox from './textbox';
+import CreatePost from "./exported_create_post";
+import { openInteractiveDialog } from "./interactive_dialog"; // This import has intentional side effects. Do not remove without research.
+import Textbox from "./textbox";
 
 // Common libraries exposed on window for plugins to use as Webpack externals.
-window.React = require('react');
-window.ReactDOM = require('react-dom');
-window.ReactIntl = require('react-intl');
-window.Redux = require('redux');
-window.ReactRedux = require('react-redux');
-window.ReactBootstrap = require('react-bootstrap');
-window.ReactRouterDom = require('react-router-dom');
-window.PropTypes = require('prop-types');
-window.Luxon = require('luxon');
-window.StyledComponents = require('styled-components');
+window.React = require("react");
+window.ReactDOM = require("react-dom");
+window.ReactIntl = require("react-intl");
+window.Redux = require("redux");
+window.ReactRedux = require("react-redux");
+window.ReactBootstrap = require("react-bootstrap");
+window.ReactRouterDom = require("react-router-dom");
+window.PropTypes = require("prop-types");
+window.Luxon = require("luxon");
+window.StyledComponents = require("styled-components");
 
 // Functions exposed on window for plugins to use.
 window.PostUtils = {
@@ -51,7 +55,7 @@ window.PostUtils = {
         let options;
         if (otherArgs.length === 2) {
             options = otherArgs[1];
-        } else if (otherArgs.length === 1 && typeof otherArgs[0] === 'object') {
+        } else if (otherArgs.length === 1 && typeof otherArgs[0] === "object") {
             options = otherArgs[0];
         }
 
@@ -61,11 +65,14 @@ window.PostUtils = {
 window.openInteractiveDialog = openInteractiveDialog;
 window.useNotifyAdmin = useNotifyAdmin;
 window.WebappUtils = {
-    modals: {openModal, ModalIdentifiers},
-    notificationSounds: {ring: NotificationSounds.ring, stopRing: NotificationSounds.stopRing},
+    modals: { openModal, ModalIdentifiers },
+    notificationSounds: {
+        ring: NotificationSounds.ring,
+        stopRing: NotificationSounds.stopRing,
+    },
     sendDesktopNotificationToMe: notifyMe,
 };
-Object.defineProperty(window.WebappUtils, 'browserHistory', {
+Object.defineProperty(window.WebappUtils, "browserHistory", {
     get: () => getHistory(),
 });
 

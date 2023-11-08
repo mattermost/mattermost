@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
+import { connect } from "react-redux";
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import { createSelector } from "mattermost-redux/selectors/create_selector";
 import {
     getCurrentChannel,
     isCurrentChannelDefault,
@@ -11,29 +11,29 @@ import {
     isCurrentChannelMuted,
     isCurrentChannelArchived,
     getRedirectChannelNameForTeam,
-} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+} from "mattermost-redux/selectors/entities/channels";
+import { getCurrentTeamId } from "mattermost-redux/selectors/entities/teams";
 import {
     getUser,
     getCurrentUser,
     getUserStatuses,
     getCurrentUserId,
-} from 'mattermost-redux/selectors/entities/users';
+} from "mattermost-redux/selectors/entities/users";
 
-import {getPenultimateViewedChannelName} from 'selectors/local_storage';
-import {getChannelHeaderMenuPluginComponents} from 'selectors/plugins';
+import { getPenultimateViewedChannelName } from "selectors/local_storage";
+import { getChannelHeaderMenuPluginComponents } from "selectors/plugins";
 
-import {Constants} from 'utils/constants';
-import * as Utils from 'utils/utils';
+import { Constants } from "utils/constants";
+import * as Utils from "utils/utils";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import Desktop from './channel_header_dropdown';
-import Items from './channel_header_dropdown_items';
-import Mobile from './mobile_channel_header_dropdown';
+import Desktop from "./channel_header_dropdown";
+import Items from "./channel_header_dropdown_items";
+import Mobile from "./mobile_channel_header_dropdown";
 
 const getTeammateId = createSelector(
-    'getTeammateId',
+    "getTeammateId",
     getCurrentChannel,
     getCurrentUserId,
     (channel, currentUserId) => {
@@ -46,7 +46,7 @@ const getTeammateId = createSelector(
 );
 
 const getTeammateStatus = createSelector(
-    'getTeammateStatus',
+    "getTeammateStatus",
     getUserStatuses,
     getTeammateId,
     (userStatuses, teammateId) => {
@@ -66,9 +66,12 @@ const mapStateToProps = (state: GlobalState) => ({
     isMuted: isCurrentChannelMuted(state),
     isReadonly: false,
     isArchived: isCurrentChannelArchived(state),
-    penultimateViewedChannelName: getPenultimateViewedChannelName(state) || getRedirectChannelNameForTeam(state, getCurrentTeamId(state)),
+    penultimateViewedChannelName:
+        getPenultimateViewedChannelName(state) ||
+        getRedirectChannelNameForTeam(state, getCurrentTeamId(state)),
     pluginMenuItems: getChannelHeaderMenuPluginComponents(state),
-    isLicensedForLDAPGroups: state.entities.general.license.LDAPGroups === 'true',
+    isLicensedForLDAPGroups:
+        state.entities.general.license.LDAPGroups === "true",
 });
 
 const mobileMapStateToProps = (state: GlobalState) => {
@@ -77,7 +80,7 @@ const mobileMapStateToProps = (state: GlobalState) => {
     const teammateId = getTeammateId(state);
 
     let teammateIsBot = false;
-    let displayName = '';
+    let displayName = "";
     if (teammateId) {
         const teammate = getUser(state, teammateId);
         teammateIsBot = teammate && teammate.is_bot;
@@ -96,4 +99,6 @@ const mobileMapStateToProps = (state: GlobalState) => {
 
 export const ChannelHeaderDropdown = Desktop;
 export const ChannelHeaderDropdownItems = connect(mapStateToProps)(Items);
-export const MobileChannelHeaderDropdown = connect(mobileMapStateToProps)(Mobile);
+export const MobileChannelHeaderDropdown = connect(mobileMapStateToProps)(
+    Mobile,
+);

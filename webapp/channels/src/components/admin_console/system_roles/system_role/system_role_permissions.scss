@@ -1,4 +1,4 @@
-@import 'utils/variables';
+@import "utils/variables";
 
 #SystemRolePermissions {
     margin-top: 0;
@@ -58,7 +58,8 @@
                         box-sizing: border-box;
                         justify-content: space-between;
                         padding: 1px 0 1px 4px;
-                        border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
+                        border: 1px solid
+                            rgba(var(--sys-center-channel-color-rgb), 0.16);
                         background: var(--sys-center-channel-bg);
                         border-radius: 4px;
                         color: var(--sys-center-channel-color);
@@ -68,7 +69,8 @@
                         line-height: 28px;
 
                         &:hover {
-                            border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.48);
+                            border: 1px solid
+                                rgba(var(--sys-center-channel-color-rgb), 0.48);
                         }
 
                         .PermissionSectionDropdownButton_text {
@@ -82,13 +84,17 @@
 
                         .PermissionSectionDropdownButton_more {
                             margin-right: 8px;
-                            color: rgba(var(--sys-center-channel-color-rgb), 0.6);
+                            color: rgba(
+                                var(--sys-center-channel-color-rgb),
+                                0.6
+                            );
                         }
 
                         .PermissionSectionDropdownButton_icon {
                             min-width: 32px;
                             height: 31px;
-                            border-left: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
+                            border-left: 1px solid
+                                rgba(var(--sys-center-channel-color-rgb), 0.16);
                             margin-top: -1px;
 
                             .Icon {
@@ -106,8 +112,14 @@
                         opacity: 1;
 
                         .PermissionSectionDropdownButton {
-                            border-color: rgba(var(--sys-center-channel-color-rgb), 0.16);
-                            background: rgba(var(--sys-center-channel-color-rgb), 0.08);
+                            border-color: rgba(
+                                var(--sys-center-channel-color-rgb),
+                                0.16
+                            );
+                            background: rgba(
+                                var(--sys-center-channel-color-rgb),
+                                0.08
+                            );
                             color: var(--sys-center-channel-color);
                         }
                     }
@@ -131,7 +143,8 @@
 
         .PermissionSubsections {
             padding-left: 16px;
-            border-left: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
+            border-left: 1px solid
+                rgba(var(--sys-center-channel-color-rgb), 0.16);
             margin: 0 0 14px 16px;
 
             .PermissionSection {
@@ -151,7 +164,10 @@
                 .PermissionSection_description {
                     span {
                         padding: 0 4px;
-                        background: rgba(var(--sys-center-channel-color-rgb), 0.08);
+                        background: rgba(
+                            var(--sys-center-channel-color-rgb),
+                            0.08
+                        );
                         border-radius: 2px;
                     }
 

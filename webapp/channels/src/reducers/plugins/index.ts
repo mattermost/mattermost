@@ -1,20 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import remove from 'lodash/remove';
-import {combineReducers} from 'redux';
+import remove from "lodash/remove";
+import { combineReducers } from "redux";
 
-import type {ClientPluginManifest} from '@mattermost/types/plugins';
-import type {IDMappedObjects} from '@mattermost/types/utilities';
+import type { ClientPluginManifest } from "@mattermost/types/plugins";
+import type { IDMappedObjects } from "@mattermost/types/utilities";
 
-import {UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
+import { UserTypes } from "mattermost-redux/action_types";
+import type { GenericAction } from "mattermost-redux/types/actions";
 
-import {ActionTypes} from 'utils/constants';
+import { ActionTypes } from "utils/constants";
 
-import type {PluginsState, PluginComponent, AdminConsolePluginComponent, Menu} from 'types/store/plugins';
+import type {
+    PluginsState,
+    PluginComponent,
+    AdminConsolePluginComponent,
+    Menu,
+} from "types/store/plugins";
 
-function hasMenuId(menu: Menu|PluginComponent, menuId: string) {
+function hasMenuId(menu: Menu | PluginComponent, menuId: string) {
     if (!menu.subMenu) {
         return false;
     }
@@ -31,7 +36,10 @@ function hasMenuId(menu: Menu|PluginComponent, menuId: string) {
     return false;
 }
 
-function buildMenu(rootMenu: Menu|PluginComponent, data: Menu): Menu|PluginComponent {
+function buildMenu(
+    rootMenu: Menu | PluginComponent,
+    data: Menu,
+): Menu | PluginComponent {
     // Recursively build the full menu tree.
     const subMenu = rootMenu.subMenu?.map((m: Menu) => buildMenu(m, data));
     if (rootMenu.id === data.parentMenuId) {
@@ -56,12 +64,15 @@ function sortComponents(a: PluginComponent, b: PluginComponent) {
     return 0;
 }
 
-function removePostPluginComponents(state: PluginsState['postTypes'], action: GenericAction) {
+function removePostPluginComponents(
+    state: PluginsState["postTypes"],
+    action: GenericAction,
+) {
     if (!action.data) {
         return state;
     }
 
-    const nextState = {...state};
+    const nextState = { ...state };
     let modified = false;
     Object.keys(nextState).forEach((k) => {
         const c = nextState[k];
@@ -78,8 +89,11 @@ function removePostPluginComponents(state: PluginsState['postTypes'], action: Ge
     return state;
 }
 
-function removePostPluginComponent(state: PluginsState['postTypes'], action: GenericAction) {
-    const nextState = {...state};
+function removePostPluginComponent(
+    state: PluginsState["postTypes"],
+    action: GenericAction,
+) {
+    const nextState = { ...state };
     const keys = Object.keys(nextState);
     for (let i = 0; i < keys.length; i++) {
         const k = keys[i];
@@ -92,12 +106,15 @@ function removePostPluginComponent(state: PluginsState['postTypes'], action: Gen
     return state;
 }
 
-function removePluginComponents(state: PluginsState['components'], action: GenericAction) {
+function removePluginComponents(
+    state: PluginsState["components"],
+    action: GenericAction,
+) {
     if (!action.data) {
         return state;
     }
 
-    const nextState = {...state};
+    const nextState = { ...state };
     const types = Object.keys(nextState);
     let modified = false;
     for (let i = 0; i < types.length; i++) {
@@ -120,7 +137,10 @@ function removePluginComponents(state: PluginsState['components'], action: Gener
     return state;
 }
 
-function removePluginComponent(state: PluginsState['components'], action: GenericAction) {
+function removePluginComponent(
+    state: PluginsState["components"],
+    action: GenericAction,
+) {
     let newState = state;
     const types = Object.keys(state);
     for (let i = 0; i < types.length; i++) {
@@ -130,49 +150,52 @@ function removePluginComponent(state: PluginsState['components'], action: Generi
             if (componentList[j].id === action.id) {
                 const nextArray = [...componentList];
                 nextArray.splice(j, 1);
-                newState = {...newState, [componentType]: nextArray};
+                newState = { ...newState, [componentType]: nextArray };
             }
         }
     }
     return newState;
 }
 
-function plugins(state: IDMappedObjects<ClientPluginManifest> = {}, action: GenericAction) {
+function plugins(
+    state: IDMappedObjects<ClientPluginManifest> = {},
+    action: GenericAction,
+) {
     switch (action.type) {
-    case ActionTypes.RECEIVED_WEBAPP_PLUGINS: {
-        if (action.data) {
-            const nextState: IDMappedObjects<ClientPluginManifest> = {};
-            action.data.forEach((p: ClientPluginManifest) => {
-                nextState[p.id] = p;
-            });
-            return nextState;
+        case ActionTypes.RECEIVED_WEBAPP_PLUGINS: {
+            if (action.data) {
+                const nextState: IDMappedObjects<ClientPluginManifest> = {};
+                action.data.forEach((p: ClientPluginManifest) => {
+                    nextState[p.id] = p;
+                });
+                return nextState;
+            }
+            return state;
         }
-        return state;
-    }
-    case ActionTypes.RECEIVED_WEBAPP_PLUGIN: {
-        if (action.data) {
-            const nextState = {...state};
-            nextState[action.data.id] = action.data;
-            return nextState;
+        case ActionTypes.RECEIVED_WEBAPP_PLUGIN: {
+            if (action.data) {
+                const nextState = { ...state };
+                nextState[action.data.id] = action.data;
+                return nextState;
+            }
+            return state;
         }
-        return state;
-    }
-    case ActionTypes.REMOVED_WEBAPP_PLUGIN: {
-        if (action.data && state[action.data.id]) {
-            const nextState = {...state};
-            Reflect.deleteProperty(nextState, action.data.id);
-            return nextState;
+        case ActionTypes.REMOVED_WEBAPP_PLUGIN: {
+            if (action.data && state[action.data.id]) {
+                const nextState = { ...state };
+                Reflect.deleteProperty(nextState, action.data.id);
+                return nextState;
+            }
+            return state;
         }
-        return state;
-    }
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-    default:
-        return state;
+        case UserTypes.LOGOUT_SUCCESS:
+            return {};
+        default:
+            return state;
     }
 }
 
-const initialComponents: PluginsState['components'] = {
+const initialComponents: PluginsState["components"] = {
     AppBar: [],
     CallButton: [],
     FilePreview: [],
@@ -194,199 +217,232 @@ const initialComponents: PluginsState['components'] = {
     DesktopNotificationHooks: [],
 };
 
-function components(state: PluginsState['components'] = initialComponents, action: GenericAction) {
+function components(
+    state: PluginsState["components"] = initialComponents,
+    action: GenericAction,
+) {
     switch (action.type) {
-    case ActionTypes.RECEIVED_PLUGIN_COMPONENT: {
-        if (action.name && action.data) {
-            const nextState = {...state};
-            const currentArray = nextState[action.name] || [];
-            const nextArray = [...currentArray];
-            let actionData = action.data;
-            if (action.name === 'PostDropdownMenu' && actionData.parentMenuId) {
-                // Remove the menu from nextArray to rebuild it later.
-                const menu = remove(nextArray, (c) => hasMenuId(c, actionData.parentMenuId) && c.pluginId === actionData.pluginId);
+        case ActionTypes.RECEIVED_PLUGIN_COMPONENT: {
+            if (action.name && action.data) {
+                const nextState = { ...state };
+                const currentArray = nextState[action.name] || [];
+                const nextArray = [...currentArray];
+                let actionData = action.data;
+                if (
+                    action.name === "PostDropdownMenu" &&
+                    actionData.parentMenuId
+                ) {
+                    // Remove the menu from nextArray to rebuild it later.
+                    const menu = remove(
+                        nextArray,
+                        (c) =>
+                            hasMenuId(c, actionData.parentMenuId) &&
+                            c.pluginId === actionData.pluginId,
+                    );
 
-                // Request is for an unknown menuId, return original state.
-                if (!menu[0]) {
+                    // Request is for an unknown menuId, return original state.
+                    if (!menu[0]) {
+                        return state;
+                    }
+                    actionData = buildMenu(menu[0], actionData);
+                }
+                nextArray.push(actionData);
+                nextArray.sort(sortComponents);
+                nextState[action.name] = nextArray;
+                return nextState;
+            }
+            return state;
+        }
+        case ActionTypes.REMOVED_PLUGIN_COMPONENT:
+            return removePluginComponent(state, action);
+        case ActionTypes.REMOVED_WEBAPP_PLUGIN:
+            return removePluginComponents(state, action);
+
+        case UserTypes.LOGOUT_SUCCESS:
+            return initialComponents;
+        default:
+            return state;
+    }
+}
+
+function postTypes(
+    state: PluginsState["postTypes"] = {},
+    action: GenericAction,
+) {
+    switch (action.type) {
+        case ActionTypes.RECEIVED_PLUGIN_POST_COMPONENT: {
+            if (action.data) {
+                // Skip saving the component if one already exists and the new plugin id
+                // is lower alphabetically
+                const currentPost = state[action.data.type];
+                if (
+                    currentPost &&
+                    action.data.pluginId > currentPost.pluginId
+                ) {
                     return state;
                 }
-                actionData = buildMenu(menu[0], actionData);
-            }
-            nextArray.push(actionData);
-            nextArray.sort(sortComponents);
-            nextState[action.name] = nextArray;
-            return nextState;
-        }
-        return state;
-    }
-    case ActionTypes.REMOVED_PLUGIN_COMPONENT:
-        return removePluginComponent(state, action);
-    case ActionTypes.REMOVED_WEBAPP_PLUGIN:
-        return removePluginComponents(state, action);
 
-    case UserTypes.LOGOUT_SUCCESS:
-        return initialComponents;
-    default:
-        return state;
+                const nextState = { ...state };
+                nextState[action.data.type] = action.data;
+                return nextState;
+            }
+            return state;
+        }
+        case ActionTypes.REMOVED_PLUGIN_POST_COMPONENT:
+            return removePostPluginComponent(state, action);
+        case ActionTypes.REMOVED_WEBAPP_PLUGIN:
+            return removePostPluginComponents(state, action);
+
+        case UserTypes.LOGOUT_SUCCESS:
+            return {};
+        default:
+            return state;
     }
 }
 
-function postTypes(state: PluginsState['postTypes'] = {}, action: GenericAction) {
+function postCardTypes(
+    state: PluginsState["postTypes"] = {},
+    action: GenericAction,
+) {
     switch (action.type) {
-    case ActionTypes.RECEIVED_PLUGIN_POST_COMPONENT: {
-        if (action.data) {
-            // Skip saving the component if one already exists and the new plugin id
-            // is lower alphabetically
-            const currentPost = state[action.data.type];
-            if (currentPost && action.data.pluginId > currentPost.pluginId) {
+        case ActionTypes.RECEIVED_PLUGIN_POST_CARD_COMPONENT: {
+            if (action.data) {
+                // Skip saving the component if one already exists and the new plugin id
+                // is lower alphabetically
+                const currentPost = state[action.data.type];
+                if (
+                    currentPost &&
+                    action.data.pluginId > currentPost.pluginId
+                ) {
+                    return state;
+                }
+
+                const nextState = { ...state };
+                nextState[action.data.type] = action.data;
+                return nextState;
+            }
+            return state;
+        }
+        case ActionTypes.REMOVED_PLUGIN_POST_CARD_COMPONENT:
+            return removePostPluginComponent(state, action);
+        case ActionTypes.REMOVED_WEBAPP_PLUGIN:
+            return removePostPluginComponents(state, action);
+
+        case UserTypes.LOGOUT_SUCCESS:
+            return {};
+        default:
+            return state;
+    }
+}
+
+function adminConsoleReducers(
+    state: { [pluginId: string]: any } = {},
+    action: GenericAction,
+) {
+    switch (action.type) {
+        case ActionTypes.RECEIVED_ADMIN_CONSOLE_REDUCER: {
+            if (action.data) {
+                const nextState = { ...state };
+                nextState[action.data.pluginId] = action.data.reducer;
+                return nextState;
+            }
+            return state;
+        }
+        case ActionTypes.REMOVED_ADMIN_CONSOLE_REDUCER: {
+            if (action.data && state[action.data.pluginId]) {
+                const nextState = { ...state };
+                delete nextState[action.data.pluginId];
+                return nextState;
+            }
+            return state;
+        }
+        case ActionTypes.REMOVED_WEBAPP_PLUGIN:
+            if (action.data && state[action.data.id]) {
+                const nextState = { ...state };
+                delete nextState[action.data.id];
+                return nextState;
+            }
+            return state;
+
+        case UserTypes.LOGOUT_SUCCESS:
+            return {};
+        default:
+            return state;
+    }
+}
+
+function adminConsoleCustomComponents(
+    state: {
+        [pluginId: string]: Record<string, AdminConsolePluginComponent>;
+    } = {},
+    action: GenericAction,
+) {
+    switch (action.type) {
+        case ActionTypes.RECEIVED_ADMIN_CONSOLE_CUSTOM_COMPONENT: {
+            if (!action.data) {
                 return state;
             }
 
-            const nextState = {...state};
-            nextState[action.data.type] = action.data;
+            const pluginId = action.data.pluginId;
+            const key = action.data.key.toLowerCase();
+
+            const nextState = { ...state };
+            let nextArray: Record<string, AdminConsolePluginComponent> = {};
+            if (nextState[pluginId]) {
+                nextArray = { ...nextState[pluginId] };
+            }
+            nextArray[key] = action.data;
+            nextState[pluginId] = nextArray;
+
             return nextState;
         }
-        return state;
-    }
-    case ActionTypes.REMOVED_PLUGIN_POST_COMPONENT:
-        return removePostPluginComponent(state, action);
-    case ActionTypes.REMOVED_WEBAPP_PLUGIN:
-        return removePostPluginComponents(state, action);
-
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-    default:
-        return state;
-    }
-}
-
-function postCardTypes(state: PluginsState['postTypes'] = {}, action: GenericAction) {
-    switch (action.type) {
-    case ActionTypes.RECEIVED_PLUGIN_POST_CARD_COMPONENT: {
-        if (action.data) {
-            // Skip saving the component if one already exists and the new plugin id
-            // is lower alphabetically
-            const currentPost = state[action.data.type];
-            if (currentPost && action.data.pluginId > currentPost.pluginId) {
+        case ActionTypes.REMOVED_WEBAPP_PLUGIN: {
+            if (!action.data || !state[action.data.id]) {
                 return state;
             }
 
-            const nextState = {...state};
-            nextState[action.data.type] = action.data;
+            const pluginId = action.data.id;
+            const nextState = { ...state };
+            delete nextState[pluginId];
             return nextState;
         }
-        return state;
-    }
-    case ActionTypes.REMOVED_PLUGIN_POST_CARD_COMPONENT:
-        return removePostPluginComponent(state, action);
-    case ActionTypes.REMOVED_WEBAPP_PLUGIN:
-        return removePostPluginComponents(state, action);
 
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-    default:
-        return state;
-    }
-}
-
-function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: GenericAction) {
-    switch (action.type) {
-    case ActionTypes.RECEIVED_ADMIN_CONSOLE_REDUCER: {
-        if (action.data) {
-            const nextState = {...state};
-            nextState[action.data.pluginId] = action.data.reducer;
-            return nextState;
-        }
-        return state;
-    }
-    case ActionTypes.REMOVED_ADMIN_CONSOLE_REDUCER: {
-        if (action.data && state[action.data.pluginId]) {
-            const nextState = {...state};
-            delete nextState[action.data.pluginId];
-            return nextState;
-        }
-        return state;
-    }
-    case ActionTypes.REMOVED_WEBAPP_PLUGIN:
-        if (action.data && state[action.data.id]) {
-            const nextState = {...state};
-            delete nextState[action.data.id];
-            return nextState;
-        }
-        return state;
-
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-    default:
-        return state;
-    }
-}
-
-function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string, AdminConsolePluginComponent>} = {}, action: GenericAction) {
-    switch (action.type) {
-    case ActionTypes.RECEIVED_ADMIN_CONSOLE_CUSTOM_COMPONENT: {
-        if (!action.data) {
+        case UserTypes.LOGOUT_SUCCESS:
+            return {};
+        default:
             return state;
-        }
-
-        const pluginId = action.data.pluginId;
-        const key = action.data.key.toLowerCase();
-
-        const nextState = {...state};
-        let nextArray: Record<string, AdminConsolePluginComponent> = {};
-        if (nextState[pluginId]) {
-            nextArray = {...nextState[pluginId]};
-        }
-        nextArray[key] = action.data;
-        nextState[pluginId] = nextArray;
-
-        return nextState;
-    }
-    case ActionTypes.REMOVED_WEBAPP_PLUGIN: {
-        if (!action.data || !state[action.data.id]) {
-            return state;
-        }
-
-        const pluginId = action.data.id;
-        const nextState = {...state};
-        delete nextState[pluginId];
-        return nextState;
-    }
-
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-    default:
-        return state;
     }
 }
 
-function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action: GenericAction) {
+function siteStatsHandlers(
+    state: PluginsState["siteStatsHandlers"] = {},
+    action: GenericAction,
+) {
     switch (action.type) {
-    case ActionTypes.RECEIVED_PLUGIN_STATS_HANDLER:
-        if (action.data) {
-            const nextState = {...state};
-            nextState[action.data.pluginId] = action.data.handler;
-            return nextState;
-        }
-        return state;
+        case ActionTypes.RECEIVED_PLUGIN_STATS_HANDLER:
+            if (action.data) {
+                const nextState = { ...state };
+                nextState[action.data.pluginId] = action.data.handler;
+                return nextState;
+            }
+            return state;
 
-    case ActionTypes.REMOVED_WEBAPP_PLUGIN:
-        if (action.data) {
-            const nextState = {...state};
-            delete nextState[action.data.id];
-            return nextState;
-        }
-        return state;
+        case ActionTypes.REMOVED_WEBAPP_PLUGIN:
+            if (action.data) {
+                const nextState = { ...state };
+                delete nextState[action.data.id];
+                return nextState;
+            }
+            return state;
 
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-    default:
-        return state;
+        case UserTypes.LOGOUT_SUCCESS:
+            return {};
+        default:
+            return state;
     }
 }
 
 export default combineReducers({
-
     // object where every key is a plugin id and values are webapp plugin manifests
     plugins,
 

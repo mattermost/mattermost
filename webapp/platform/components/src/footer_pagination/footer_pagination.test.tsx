@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {render, screen} from '@testing-library/react';
+import React from "react";
+import { render, screen } from "@testing-library/react";
 
-import {FooterPagination} from './footer_pagination';
-import {wrapIntl} from '../testUtils'
+import { FooterPagination } from "./footer_pagination";
+import { wrapIntl } from "../testUtils";
 
-describe('LegacyGenericModal/FooterPagination', () => {
+describe("LegacyGenericModal/FooterPagination", () => {
     const baseProps = {
         page: 0,
         total: 0,
@@ -16,22 +16,22 @@ describe('LegacyGenericModal/FooterPagination', () => {
         onPreviousPage: jest.fn(),
     };
 
-    test('should render default', () => {
-        const wrapper = render(wrapIntl(<FooterPagination {...baseProps}/>));
+    test("should render default", () => {
+        const wrapper = render(wrapIntl(<FooterPagination {...baseProps} />));
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should render pagination legend', () => {
+    test("should render pagination legend", () => {
         const props = {
             ...baseProps,
             page: 0,
             total: 17,
             itemsPerPage: 10,
-        }
+        };
 
-        render(wrapIntl(<FooterPagination {...props}/>));
+        render(wrapIntl(<FooterPagination {...props} />));
 
-        expect(screen.getByText('Showing 1-10 of 17')).toBeInTheDocument();
+        expect(screen.getByText("Showing 1-10 of 17")).toBeInTheDocument();
     });
 });

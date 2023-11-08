@@ -82,48 +82,48 @@
     height: 100%;
 
     &.text {
-        @include file-icon('../images/icons/text.svg');
+        @include file-icon("../images/icons/text.svg");
     }
 
     &.audio {
-        @include file-icon('../images/icons/audio.svg');
+        @include file-icon("../images/icons/audio.svg");
     }
 
     &.video {
-        @include file-icon('../images/icons/video.svg');
+        @include file-icon("../images/icons/video.svg");
     }
 
     &.ppt {
-        @include file-icon('../images/icons/ppt.svg');
+        @include file-icon("../images/icons/ppt.svg");
     }
 
     &.generic,
     &.other {
-        @include file-icon('../images/icons/generic.svg');
+        @include file-icon("../images/icons/generic.svg");
     }
 
     &.code {
-        @include file-icon('../images/icons/code.svg');
+        @include file-icon("../images/icons/code.svg");
     }
 
     &.excel {
-        @include file-icon('../images/icons/excel.svg');
+        @include file-icon("../images/icons/excel.svg");
     }
 
     &.word {
-        @include file-icon('../images/icons/word.svg');
+        @include file-icon("../images/icons/word.svg");
     }
 
     &.pdf {
-        @include file-icon('../images/icons/pdf.svg');
+        @include file-icon("../images/icons/pdf.svg");
     }
 
     &.patch {
-        @include file-icon('../images/icons/patch.svg');
+        @include file-icon("../images/icons/patch.svg");
     }
 
     &.image {
-        @include file-icon('../images/icons/image.svg');
+        @include file-icon("../images/icons/image.svg");
     }
 }
 
@@ -247,7 +247,9 @@
                 }
 
                 &:hover {
-                    box-shadow: 0 2px 5px 0 rgba($black, 0.1), 0 2px 10px 0 rgba($black, 0.1);
+                    box-shadow:
+                        0 2px 5px 0 rgba($black, 0.1),
+                        0 2px 10px 0 rgba($black, 0.1);
                 }
 
                 &.min-preview {
@@ -279,12 +281,14 @@
                     height: inherit;
 
                     &:hover {
-                        box-shadow: 0 2px 5px 0 rgba($black, 0.1), 0 2px 10px 0 rgba($black, 0.1);
+                        box-shadow:
+                            0 2px 5px 0 rgba($black, 0.1),
+                            0 2px 10px 0 rgba($black, 0.1);
                     }
                 }
             }
 
-            >.file-preview__button {
+            > .file-preview__button {
                 min-width: 40px;
                 min-height: 40px;
                 text-align: left;
@@ -351,7 +355,9 @@
     &:focus-within,
     &.keep-open {
         overflow: visible;
-        box-shadow: 0 2px 3px 0 rgba($black, 0.1), 0 2px 3px 0 rgba($black, 0.1);
+        box-shadow:
+            0 2px 3px 0 rgba($black, 0.1),
+            0 2px 3px 0 rgba($black, 0.1);
 
         .file-dropdown-icon {
             display: flex;
@@ -776,7 +782,9 @@
 
     &:hover {
         z-index: 2;
-        box-shadow: 0 2px 5px 0 rgba($black, 0.1), 0 2px 5px 0 rgba($black, 0.1);
+        box-shadow:
+            0 2px 5px 0 rgba($black, 0.1),
+            0 2px 5px 0 rgba($black, 0.1);
         transition: all 0.1s linear;
     }
 

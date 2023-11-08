@@ -1,18 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
+import React from "react";
+import { FormattedMessage, injectIntl, type IntlShape } from "react-intl";
 
-import type {ServerError} from '@mattermost/types/errors';
+import type { ServerError } from "@mattermost/types/errors";
 
-import {isEmail} from 'mattermost-redux/utils/helpers';
+import { isEmail } from "mattermost-redux/utils/helpers";
 
-import BackButton from 'components/common/back_button';
+import BackButton from "components/common/back_button";
 
 interface Props {
     actions: {
-        sendPasswordResetEmail: (email: string) => Promise<{data: any; error: ServerError}>;
+        sendPasswordResetEmail: (
+            email: string,
+        ) => Promise<{ data: any; error: ServerError }>;
     };
     intl: IntlShape;
 }
@@ -38,8 +40,8 @@ export class PasswordResetSendLink extends React.PureComponent<Props, State> {
             this.setState({
                 error: (
                     <FormattedMessage
-                        id='password_send.error'
-                        defaultMessage='Please enter a valid email address.'
+                        id="password_send.error"
+                        defaultMessage="Please enter a valid email address."
                     />
                 ),
             });
@@ -47,28 +49,29 @@ export class PasswordResetSendLink extends React.PureComponent<Props, State> {
         }
 
         // End of error checking clear error
-        this.setState({error: null});
+        this.setState({ error: null });
 
-        const {data, error} = await this.props.actions.sendPasswordResetEmail(email);
+        const { data, error } =
+            await this.props.actions.sendPasswordResetEmail(email);
         if (data) {
             this.setState({
                 error: null,
                 updateText: (
                     <div
-                        id='passwordResetEmailSent'
-                        className='reset-form alert alert-success'
+                        id="passwordResetEmailSent"
+                        className="reset-form alert alert-success"
                     >
                         <FormattedMessage
-                            id='password_send.link'
-                            defaultMessage='If the account exists, a password reset email will be sent to:'
+                            id="password_send.link"
+                            defaultMessage="If the account exists, a password reset email will be sent to:"
                         />
                         <div>
                             <b>{email}</b>
                         </div>
-                        <br/>
+                        <br />
                         <FormattedMessage
-                            id='password_send.checkInbox'
-                            defaultMessage='Please check your inbox.'
+                            id="password_send.checkInbox"
+                            defaultMessage="Please check your inbox."
                         />
                     </div>
                 ),
@@ -88,26 +91,26 @@ export class PasswordResetSendLink extends React.PureComponent<Props, State> {
         let error = null;
         if (this.state.error) {
             error = (
-                <div className='form-group has-error'>
-                    <label className='control-label'>{this.state.error}</label>
+                <div className="form-group has-error">
+                    <label className="control-label">{this.state.error}</label>
                 </div>
             );
         }
 
-        let formClass = 'form-group';
+        let formClass = "form-group";
         if (error) {
-            formClass += ' has-error';
+            formClass += " has-error";
         }
 
         return (
             <div>
-                <BackButton/>
-                <div className='col-sm-12'>
-                    <div className='signup-team__container'>
+                <BackButton />
+                <div className="col-sm-12">
+                    <div className="signup-team__container">
                         <FormattedMessage
-                            id='password_send.title'
-                            tagName='h1'
-                            defaultMessage='Password Reset'
+                            id="password_send.title"
+                            tagName="h1"
+                            defaultMessage="Password Reset"
                         />
                         {this.state.updateText}
                         <form
@@ -116,34 +119,34 @@ export class PasswordResetSendLink extends React.PureComponent<Props, State> {
                         >
                             <p>
                                 <FormattedMessage
-                                    id='password_send.description'
-                                    defaultMessage='To reset your password, enter the email address you used to sign up'
+                                    id="password_send.description"
+                                    defaultMessage="To reset your password, enter the email address you used to sign up"
                                 />
                             </p>
                             <div className={formClass}>
                                 <input
-                                    id='passwordResetEmailInput'
-                                    type='email'
-                                    className='form-control'
-                                    name='email'
+                                    id="passwordResetEmailInput"
+                                    type="email"
+                                    className="form-control"
+                                    name="email"
                                     placeholder={this.props.intl.formatMessage({
-                                        id: 'password_send.email',
-                                        defaultMessage: 'Email',
+                                        id: "password_send.email",
+                                        defaultMessage: "Email",
                                     })}
                                     ref={this.emailInput}
-                                    spellCheck='false'
+                                    spellCheck="false"
                                     autoFocus={true}
                                 />
                             </div>
                             {error}
                             <button
-                                id='passwordResetButton'
-                                type='submit'
-                                className='btn btn-primary'
+                                id="passwordResetButton"
+                                type="submit"
+                                className="btn btn-primary"
                             >
                                 <FormattedMessage
-                                    id='password_send.reset'
-                                    defaultMessage='Reset my password'
+                                    id="password_send.reset"
+                                    defaultMessage="Reset my password"
                                 />
                             </button>
                         </form>

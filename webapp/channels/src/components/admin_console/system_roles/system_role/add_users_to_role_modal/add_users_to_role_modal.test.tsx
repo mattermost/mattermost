@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import {TestHelper} from 'utils/test_helper';
+import { TestHelper } from "utils/test_helper";
 
-import AddUsersToRoleModal from './add_users_to_role_modal';
+import AddUsersToRoleModal from "./add_users_to_role_modal";
 
-describe('admin_console/add_users_to_role_modal', () => {
+describe("admin_console/add_users_to_role_modal", () => {
     const baseProps = {
         role: TestHelper.getRoleMock(),
         users: [TestHelper.getUserMock()],
@@ -22,76 +22,77 @@ describe('admin_console/add_users_to_role_modal', () => {
         },
     };
 
-    test('should have single passed value', () => {
-        const wrapper = shallow(
-            <AddUsersToRoleModal
-                {...baseProps}
-            />);
-        expect(wrapper.find('MultiSelect').prop('options')).toHaveLength(1);
+    test("should have single passed value", () => {
+        const wrapper = shallow(<AddUsersToRoleModal {...baseProps} />);
+        expect(wrapper.find("MultiSelect").prop("options")).toHaveLength(1);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should exclude user', () => {
-        const props = {...baseProps, excludeUsers: {user_id: TestHelper.getUserMock()}};
-        const wrapper = shallow(
-            <AddUsersToRoleModal
-                {...props}
-            />);
-        expect(wrapper.find('MultiSelect').prop('options')).toHaveLength(0);
+    test("should exclude user", () => {
+        const props = {
+            ...baseProps,
+            excludeUsers: { user_id: TestHelper.getUserMock() },
+        };
+        const wrapper = shallow(<AddUsersToRoleModal {...props} />);
+        expect(wrapper.find("MultiSelect").prop("options")).toHaveLength(0);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should include additional user', () => {
-        const props = {...baseProps, includeUsers: {user_id1: TestHelper.getUserMock()}};
-        const wrapper = shallow(
-            <AddUsersToRoleModal
-                {...props}
-            />);
-        expect(wrapper.find('MultiSelect').prop('options')).toHaveLength(2);
+    test("should include additional user", () => {
+        const props = {
+            ...baseProps,
+            includeUsers: { user_id1: TestHelper.getUserMock() },
+        };
+        const wrapper = shallow(<AddUsersToRoleModal {...props} />);
+        expect(wrapper.find("MultiSelect").prop("options")).toHaveLength(2);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should include additional user', () => {
-        const props = {...baseProps, includeUsers: {user_id1: TestHelper.getUserMock()}};
-        const wrapper = shallow(
-            <AddUsersToRoleModal
-                {...props}
-            />);
-        expect(wrapper.find('MultiSelect').prop('options')).toHaveLength(2);
+    test("should include additional user", () => {
+        const props = {
+            ...baseProps,
+            includeUsers: { user_id1: TestHelper.getUserMock() },
+        };
+        const wrapper = shallow(<AddUsersToRoleModal {...props} />);
+        expect(wrapper.find("MultiSelect").prop("options")).toHaveLength(2);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should not include bot user', () => {
+    test("should not include bot user", () => {
         const botUser = TestHelper.getUserMock();
         botUser.is_bot = true;
-        const props = {...baseProps,
+        const props = {
+            ...baseProps,
             actions: {
-                getProfiles: jest.fn().mockResolvedValue({data: [TestHelper.getUserMock(), botUser]}),
+                getProfiles: jest
+                    .fn()
+                    .mockResolvedValue({
+                        data: [TestHelper.getUserMock(), botUser],
+                    }),
                 searchProfiles: jest.fn(),
             },
         };
-        const wrapper = shallow(
-            <AddUsersToRoleModal
-                {...props}
-            />);
-        expect(wrapper.find('MultiSelect').prop('options')).toHaveLength(1);
+        const wrapper = shallow(<AddUsersToRoleModal {...props} />);
+        expect(wrapper.find("MultiSelect").prop("options")).toHaveLength(1);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('search should not include bot user', () => {
+    test("search should not include bot user", () => {
         const botUser = TestHelper.getUserMock();
         botUser.is_bot = true;
-        const props = {...baseProps,
+        const props = {
+            ...baseProps,
             actions: {
-                searchProfiles: jest.fn().mockResolvedValue({data: [TestHelper.getUserMock(), botUser]}),
+                searchProfiles: jest
+                    .fn()
+                    .mockResolvedValue({
+                        data: [TestHelper.getUserMock(), botUser],
+                    }),
                 getProfiles: jest.fn(),
             },
         };
-        const wrapper = shallow(
-            <AddUsersToRoleModal
-                {...props}
-            />);
-        expect(wrapper.find('MultiSelect').prop('options')).toHaveLength(1);
+        const wrapper = shallow(<AddUsersToRoleModal {...props} />);
+        expect(wrapper.find("MultiSelect").prop("options")).toHaveLength(1);
         expect(wrapper).toMatchSnapshot();
     });
 });

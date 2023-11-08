@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import {TestHelper} from 'utils/test_helper';
+import { TestHelper } from "utils/test_helper";
 
-import SystemRolePermission from './system_role_permission';
-import {readAccess} from './types';
+import SystemRolePermission from "./system_role_permission";
+import { readAccess } from "./types";
 
-describe('admin_console/system_role_permission', () => {
-    test('should match snapshot', () => {
+describe("admin_console/system_role_permission", () => {
+    test("should match snapshot", () => {
         const props = {
             readOnly: true,
             setSectionVisible: jest.fn(),
             section: {
-                name: 'environemnt',
+                name: "environemnt",
                 hasDescription: true,
                 subsections: [],
             },
@@ -32,10 +32,7 @@ describe('admin_console/system_role_permission', () => {
             },
         };
 
-        const wrapper = shallow(
-            <SystemRolePermission
-                {...props}
-            />);
+        const wrapper = shallow(<SystemRolePermission {...props} />);
 
         expect(wrapper).toMatchSnapshot();
     });

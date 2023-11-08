@@ -1,24 +1,38 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Stripe} from '@stripe/stripe-js';
-import {getCode} from 'country-list';
+import type { Stripe } from "@stripe/stripe-js";
+import { getCode } from "country-list";
 
-import type {Address, CloudCustomerPatch, Feedback, WorkspaceDeletionRequest} from '@mattermost/types/cloud';
+import type {
+    Address,
+    CloudCustomerPatch,
+    Feedback,
+    WorkspaceDeletionRequest,
+} from "@mattermost/types/cloud";
 
-import {CloudTypes} from 'mattermost-redux/action_types';
-import {getCloudCustomer, getCloudProducts, getCloudSubscription, getInvoices} from 'mattermost-redux/actions/cloud';
-import {Client4} from 'mattermost-redux/client';
-import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import { CloudTypes } from "mattermost-redux/action_types";
+import {
+    getCloudCustomer,
+    getCloudProducts,
+    getCloudSubscription,
+    getInvoices,
+} from "mattermost-redux/actions/cloud";
+import { Client4 } from "mattermost-redux/client";
+import { getCloudErrors } from "mattermost-redux/selectors/entities/cloud";
+import type {
+    ActionFunc,
+    DispatchFunc,
+    GetStateFunc,
+} from "mattermost-redux/types/actions";
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
+import { trackEvent } from "actions/telemetry_actions.jsx";
 
-import {getConfirmCardSetup} from 'components/payment_form/stripe';
+import { getConfirmCardSetup } from "components/payment_form/stripe";
 
-import {getBlankAddressWithCountry} from 'utils/utils';
+import { getBlankAddressWithCountry } from "utils/utils";
 
-import type {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
+import type { StripeSetupIntent, BillingDetails } from "types/cloud/sku";
 
 // Returns true for success, and false for any error
 export function completeStripeAddPaymentMethod(
@@ -29,7 +43,8 @@ export function completeStripeAddPaymentMethod(
     return async () => {
         let paymentSetupIntent: StripeSetupIntent;
         try {
-            paymentSetupIntent = await Client4.createPaymentMethod() as StripeSetupIntent;
+            paymentSetupIntent =
+                (await Client4.createPaymentMethod()) as StripeSetupIntent;
         } catch (error) {
             return error;
         }
@@ -60,7 +75,7 @@ export function completeStripeAddPaymentMethod(
             return false;
         }
 
-        const {setupIntent, error: stripeError} = result;
+        const { setupIntent, error: stripeError } = result;
 
         if (stripeError) {
             return false;
@@ -70,7 +85,7 @@ export function completeStripeAddPaymentMethod(
             return false;
         }
 
-        if (setupIntent.status !== 'succeeded') {
+        if (setupIntent.status !== "succeeded") {
             return false;
         }
 
@@ -101,19 +116,29 @@ export function subscribeCloudSubscription(
                 customerPatch,
             );
 
-            return {data: subscription};
+            return { data: subscription };
         } catch (e: any) {
             // In the event that the status code returned is 422, this request has been blocked by export compliance
-            return {data: false, error: {error: e.message, status: e.status_code}};
+            return {
+                data: false,
+                error: { error: e.message, status: e.status_code },
+            };
         }
     };
 }
 
-export function requestCloudTrial(page: string, subscriptionId: string, email = ''): ActionFunc {
-    trackEvent('api', 'api_request_cloud_trial_license', {from_page: page});
+export function requestCloudTrial(
+    page: string,
+    subscriptionId: string,
+    email = "",
+): ActionFunc {
+    trackEvent("api", "api_request_cloud_trial_license", { from_page: page });
     return async (dispatch: DispatchFunc): Promise<any> => {
         try {
-            const newSubscription = await Client4.requestCloudTrial(subscriptionId, email);
+            const newSubscription = await Client4.requestCloudTrial(
+                subscriptionId,
+                email,
+            );
             dispatch({
                 type: CloudTypes.RECEIVED_CLOUD_SUBSCRIPTION,
                 data: newSubscription.data,
@@ -125,8 +150,8 @@ export function requestCloudTrial(page: string, subscriptionId: string, email = 
     };
 }
 
-export function validateBusinessEmail(email = '') {
-    trackEvent('api', 'api_validate_business_email');
+export function validateBusinessEmail(email = "") {
+    trackEvent("api", "api_validate_business_email");
     return async () => {
         try {
             const res = await Client4.validateBusinessEmail(email);
@@ -138,7 +163,7 @@ export function validateBusinessEmail(email = '') {
 }
 
 export function validateWorkspaceBusinessEmail() {
-    trackEvent('api', 'api_validate_workspace_business_email');
+    trackEvent("api", "api_validate_workspace_business_email");
     return async () => {
         try {
             const res = await Client4.validateWorkspaceBusinessEmail();
@@ -205,7 +230,7 @@ export function getFilesUsage(): ActionFunc {
         } catch (error) {
             return error;
         }
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -216,13 +241,16 @@ export function getTeamsUsage(): ActionFunc {
             if (result) {
                 dispatch({
                     type: CloudTypes.RECEIVED_TEAMS_USAGE,
-                    data: {active: result.active, cloudArchived: result.cloud_archived},
+                    data: {
+                        active: result.active,
+                        cloudArchived: result.cloud_archived,
+                    },
                 });
             }
         } catch (error) {
             return error;
         }
-        return {data: false};
+        return { data: false };
     };
 }
 
@@ -241,7 +269,7 @@ export function retryFailedCloudFetches() {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const errors = getCloudErrors(getState());
         if (Object.keys(errors).length === 0) {
-            return {data: true};
+            return { data: true };
         }
 
         if (errors.subscription) {
@@ -264,6 +292,6 @@ export function retryFailedCloudFetches() {
             getCloudLimits()(dispatch, getState);
         }
 
-        return {data: true};
+        return { data: true };
     };
 }

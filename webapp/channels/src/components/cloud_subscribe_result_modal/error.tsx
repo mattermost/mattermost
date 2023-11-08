@@ -1,25 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import React from "react";
+import { FormattedMessage } from "react-intl";
+import { useDispatch, useSelector } from "react-redux";
 
-import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import { getSubscriptionProduct } from "mattermost-redux/selectors/entities/cloud";
 
-import {closeModal} from 'actions/views/modals';
-import {isModalOpen} from 'selectors/views/modals';
+import { closeModal } from "actions/views/modals";
+import { isModalOpen } from "selectors/views/modals";
 
-import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
-import PaymentFailedSvg from 'components/common/svg_images_components/payment_failed_svg';
-import IconMessage from 'components/purchase_modal/icon_message';
-import FullScreenModal from 'components/widgets/modals/full_screen_modal';
+import { useOpenCloudZendeskSupportForm } from "components/common/hooks/useOpenZendeskForm";
+import PaymentFailedSvg from "components/common/svg_images_components/payment_failed_svg";
+import IconMessage from "components/purchase_modal/icon_message";
+import FullScreenModal from "components/widgets/modals/full_screen_modal";
 
-import {ModalIdentifiers} from 'utils/constants';
+import { ModalIdentifiers } from "utils/constants";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import './style.scss';
+import "./style.scss";
 
 type Props = {
     onHide?: () => void;
@@ -30,7 +30,10 @@ function ErrorModal(props: Props) {
     const dispatch = useDispatch();
     const subscriptionProduct = useSelector(getSubscriptionProduct);
 
-    const [openContactSupport] = useOpenCloudZendeskSupportForm('Cloud Subscription', '');
+    const [openContactSupport] = useOpenCloudZendeskSupportForm(
+        "Cloud Subscription",
+        "",
+    );
 
     const isSuccessModalOpen = useSelector((state: GlobalState) =>
         isModalOpen(state, ModalIdentifiers.ERROR_MODAL),
@@ -45,22 +48,21 @@ function ErrorModal(props: Props) {
 
     const onHide = () => {
         dispatch(closeModal(ModalIdentifiers.ERROR_MODAL));
-        if (typeof props.onHide === 'function') {
+        if (typeof props.onHide === "function") {
             props.onHide();
         }
     };
 
     return (
-        <FullScreenModal
-            show={isSuccessModalOpen}
-            onClose={onHide}
-        >
-            <div className='cloud_subscribe_result_modal'>
+        <FullScreenModal show={isSuccessModalOpen} onClose={onHide}>
+            <div className="cloud_subscribe_result_modal">
                 <IconMessage
                     formattedTitle={
                         <FormattedMessage
-                            defaultMessage={'We were unable to change your plan'}
-                            id={'error_modal.title'}
+                            defaultMessage={
+                                "We were unable to change your plan"
+                            }
+                            id={"error_modal.title"}
                             values={{
                                 selectedProductName: subscriptionProduct?.name,
                             }}
@@ -68,37 +70,32 @@ function ErrorModal(props: Props) {
                     }
                     formattedSubtitle={
                         <FormattedMessage
-                            id={'error_modal.subtitle'}
+                            id={"error_modal.subtitle"}
                             defaultMessage={
-                                'An error occurred while changing your plan. Please go back and try again, or contact the support team.'
+                                "An error occurred while changing your plan. Please go back and try again, or contact the support team."
                             }
-                            values={{plan: subscriptionProduct?.name}}
+                            values={{ plan: subscriptionProduct?.name }}
                         />
                     }
                     error={true}
-                    icon={
-                        <PaymentFailedSvg
-                            width={444}
-                            height={313}
-                        />
-                    }
+                    icon={<PaymentFailedSvg width={444} height={313} />}
                     formattedButtonText={
                         <FormattedMessage
-                            defaultMessage={'Try again'}
-                            id={'error_modal.try_again'}
+                            defaultMessage={"Try again"}
+                            id={"error_modal.try_again"}
                         />
                     }
                     formattedTertiaryButonText={
                         <FormattedMessage
-                            defaultMessage={'Contact Support'}
+                            defaultMessage={"Contact Support"}
                             id={
-                                'admin.billing.subscription.privateCloudCard.contactSupport'
+                                "admin.billing.subscription.privateCloudCard.contactSupport"
                             }
                         />
                     }
                     tertiaryButtonHandler={openContactSupport}
                     buttonHandler={onBackButtonPress}
-                    className={'success'}
+                    className={"success"}
                 />
             </div>
         </FullScreenModal>

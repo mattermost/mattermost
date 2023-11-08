@@ -1,40 +1,58 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import type { Dispatch, ActionCreatorsMapObject } from "redux";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import {getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getMembersInTeams} from 'mattermost-redux/selectors/entities/teams';
-import {filterProfiles} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
-import {memoizeResult} from 'mattermost-redux/utils/helpers';
-import {filterProfilesStartingWithTerm, profileListToMap} from 'mattermost-redux/utils/user_utils';
+import { getChannelMembersInChannels } from "mattermost-redux/selectors/entities/channels";
+import { getConfig } from "mattermost-redux/selectors/entities/general";
+import { getMembersInTeams } from "mattermost-redux/selectors/entities/teams";
+import { filterProfiles } from "mattermost-redux/selectors/entities/users";
+import type {
+    ActionResult,
+    GenericAction,
+    ActionFunc,
+} from "mattermost-redux/types/actions";
+import { memoizeResult } from "mattermost-redux/utils/helpers";
+import {
+    filterProfilesStartingWithTerm,
+    profileListToMap,
+} from "mattermost-redux/utils/user_utils";
 
-import {loadChannelMembersForProfilesList, loadTeamMembersForProfilesList} from 'actions/user_actions';
-import {setModalSearchTerm, setModalFilters} from 'actions/views/search';
+import {
+    loadChannelMembersForProfilesList,
+    loadTeamMembersForProfilesList,
+} from "actions/user_actions";
+import { setModalSearchTerm, setModalFilters } from "actions/views/search";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import UsersToRemove from './users_to_remove';
-import type {Filters, Memberships} from './users_to_remove';
+import UsersToRemove from "./users_to_remove";
+import type { Filters, Memberships } from "./users_to_remove";
 
 type Props = {
     members: UserProfile[];
-    scope: 'team' | 'channel';
+    scope: "team" | "channel";
     scopeId: string;
     total: number;
 };
 
 type Actions = {
-    loadTeamMembersForProfilesList: (profiles: UserProfile[], id: string, reloadAllMembers?: boolean) => Promise<{
+    loadTeamMembersForProfilesList: (
+        profiles: UserProfile[],
+        id: string,
+        reloadAllMembers?: boolean,
+    ) => Promise<{
         data: boolean;
     }>;
-    loadChannelMembersForProfilesList: (profiles: UserProfile[], id: string, reloadAllMembers?: boolean) => Promise<{
+    loadChannelMembersForProfilesList: (
+        profiles: UserProfile[],
+        id: string,
+        reloadAllMembers?: boolean,
+    ) => Promise<{
         data: boolean;
     }>;
     setModalSearchTerm: (term: string) => ActionResult;
@@ -42,31 +60,44 @@ type Actions = {
 };
 
 function makeMapStateToProps() {
-    const searchUsers = memoizeResult((users: UserProfile[], term: string, filters: Filters, memberships: Memberships) => {
-        let profiles = users;
-        if (term !== '') {
-            profiles = filterProfilesStartingWithTerm(users, term);
-        }
+    const searchUsers = memoizeResult(
+        (
+            users: UserProfile[],
+            term: string,
+            filters: Filters,
+            memberships: Memberships,
+        ) => {
+            let profiles = users;
+            if (term !== "") {
+                profiles = filterProfilesStartingWithTerm(users, term);
+            }
 
-        if (Object.keys(filters).length > 0) {
-            const filteredProfilesMap = filterProfiles(profileListToMap(profiles), filters, memberships);
-            profiles = Object.keys(filteredProfilesMap).map((key) => filteredProfilesMap[key]);
-        }
+            if (Object.keys(filters).length > 0) {
+                const filteredProfilesMap = filterProfiles(
+                    profileListToMap(profiles),
+                    filters,
+                    memberships,
+                );
+                profiles = Object.keys(filteredProfilesMap).map(
+                    (key) => filteredProfilesMap[key],
+                );
+            }
 
-        return profiles;
-    });
+            return profiles;
+        },
+    );
 
     return (state: GlobalState, props: Props) => {
-        const {scope, scopeId} = props;
-        let {members, total} = props;
+        const { scope, scopeId } = props;
+        let { members, total } = props;
 
-        const searchTerm = state.views.search.modalSearch || '';
+        const searchTerm = state.views.search.modalSearch || "";
         const filters = state.views.search.modalFilters || {};
 
         let memberships = {};
-        if (scope === 'channel') {
+        if (scope === "channel") {
             memberships = getChannelMembersInChannels(state)[scopeId] || {};
-        } else if (scope === 'team') {
+        } else if (scope === "team") {
             memberships = getMembersInTeams(state)[scopeId] || {};
         }
 
@@ -75,7 +106,8 @@ function makeMapStateToProps() {
             total = members.length;
         }
 
-        const enableGuestAccounts = getConfig(state)?.EnableGuestAccounts === 'true';
+        const enableGuestAccounts =
+            getConfig(state)?.EnableGuestAccounts === "true";
 
         return {
             ...props,
@@ -92,12 +124,18 @@ function makeMapStateToProps() {
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
-            loadChannelMembersForProfilesList,
-            loadTeamMembersForProfilesList,
-            setModalSearchTerm,
-            setModalFilters,
-        }, dispatch),
+        actions: bindActionCreators<
+            ActionCreatorsMapObject<ActionFunc | GenericAction>,
+            Actions
+        >(
+            {
+                loadChannelMembersForProfilesList,
+                loadTeamMembersForProfilesList,
+                setModalSearchTerm,
+                setModalFilters,
+            },
+            dispatch,
+        ),
     };
 }
 

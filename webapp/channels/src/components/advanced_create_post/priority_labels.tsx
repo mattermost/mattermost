@@ -1,30 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
-import type {CSSProperties} from 'react';
-import {FormattedMessage} from 'react-intl';
-import styled from 'styled-components';
+import React, { memo } from "react";
+import type { CSSProperties } from "react";
+import { FormattedMessage } from "react-intl";
+import styled from "styled-components";
 
-import {CheckCircleOutlineIcon, BellRingOutlineIcon} from '@mattermost/compass-icons/components';
-import type {PostPriorityMetadata} from '@mattermost/types/posts';
+import {
+    CheckCircleOutlineIcon,
+    BellRingOutlineIcon,
+} from "@mattermost/compass-icons/components";
+import type { PostPriorityMetadata } from "@mattermost/types/posts";
 
-import OverlayTrigger from 'components/overlay_trigger';
-import {HasNoMentions, HasSpecialMentions} from 'components/post_priority/error_messages';
-import PriorityLabel from 'components/post_priority/post_priority_label';
-import Tooltip from 'components/tooltip';
+import OverlayTrigger from "components/overlay_trigger";
+import {
+    HasNoMentions,
+    HasSpecialMentions,
+} from "components/post_priority/error_messages";
+import PriorityLabel from "components/post_priority/post_priority_label";
+import Tooltip from "components/tooltip";
 
-import Constants from 'utils/constants';
+import Constants from "utils/constants";
 
 type Props = {
     canRemove: boolean;
     hasError: boolean;
-    specialMentions?: {[key: string]: boolean};
+    specialMentions?: { [key: string]: boolean };
     onRemove?: () => void;
-    padding?: CSSProperties['padding'];
-    persistentNotifications?: PostPriorityMetadata['persistent_notifications'];
-    priority?: PostPriorityMetadata['priority'];
-    requestedAck?: PostPriorityMetadata['requested_ack'];
+    padding?: CSSProperties["padding"];
+    persistentNotifications?: PostPriorityMetadata["persistent_notifications"];
+    priority?: PostPriorityMetadata["priority"];
+    requestedAck?: PostPriorityMetadata["requested_ack"];
 };
 
 type StyledProps = {
@@ -35,12 +41,14 @@ const Priority = styled.div`
     align-items: center;
     display: flex;
     gap: 6px;
-    padding: ${(props: {padding: CSSProperties['padding']}) => props.padding || '14px 16px 0'}
+    padding: ${(props: { padding: CSSProperties["padding"] }) =>
+        props.padding || "14px 16px 0"};
 `;
 
 const Acknowledgements = styled.div`
     align-items: center;
-    color: ${(props: StyledProps) => (props.hasError ? 'var(--dnd-indicator)' : 'var(--online-indicator)')};
+    color: ${(props: StyledProps) =>
+        props.hasError ? "var(--dnd-indicator)" : "var(--online-indicator)"};
     display: flex;
 
     > span {
@@ -99,87 +107,91 @@ function PriorityLabels({
 }: Props) {
     return (
         <Priority padding={padding}>
-            {priority && (
-                <PriorityLabel
-                    size='xs'
-                    priority={priority}
-                />
-            )}
+            {priority && <PriorityLabel size="xs" priority={priority} />}
             {persistentNotifications && (
                 <OverlayTrigger
-                    placement='top'
+                    placement="top"
                     delayShow={Constants.OVERLAY_TIME_DELAY}
                     trigger={Constants.OVERLAY_DEFAULT_TRIGGER}
-                    overlay={(
-                        <Tooltip id='post-priority-picker-persistent-notifications-tooltip'>
+                    overlay={
+                        <Tooltip id="post-priority-picker-persistent-notifications-tooltip">
                             <FormattedMessage
-                                id={'post_priority.persistent_notifications.tooltip'}
-                                defaultMessage={'Persistent notifications will be sent'}
+                                id={
+                                    "post_priority.persistent_notifications.tooltip"
+                                }
+                                defaultMessage={
+                                    "Persistent notifications will be sent"
+                                }
                             />
                         </Tooltip>
-                    )}
+                    }
                 >
                     <Notifications>
-                        <BellRingOutlineIcon size={14}/>
+                        <BellRingOutlineIcon size={14} />
                     </Notifications>
                 </OverlayTrigger>
             )}
             {requestedAck && (
                 <Acknowledgements hasError={hasError}>
                     <OverlayTrigger
-                        placement='top'
+                        placement="top"
                         delayShow={Constants.OVERLAY_TIME_DELAY}
                         trigger={Constants.OVERLAY_DEFAULT_TRIGGER}
-                        overlay={(
-                            <Tooltip id='post-priority-picker-ack-tooltip'>
+                        overlay={
+                            <Tooltip id="post-priority-picker-ack-tooltip">
                                 <FormattedMessage
-                                    id={'post_priority.request_acknowledgement.tooltip'}
-                                    defaultMessage={'Acknowledgement will be requested'}
+                                    id={
+                                        "post_priority.request_acknowledgement.tooltip"
+                                    }
+                                    defaultMessage={
+                                        "Acknowledgement will be requested"
+                                    }
                                 />
                             </Tooltip>
-                        )}
+                        }
                     >
-                        <CheckCircleOutlineIcon size={14}/>
+                        <CheckCircleOutlineIcon size={14} />
                     </OverlayTrigger>
-                    {!(priority) && (
+                    {!priority && (
                         <FormattedMessage
-                            id={'post_priority.request_acknowledgement'}
-                            defaultMessage={'Request acknowledgement'}
+                            id={"post_priority.request_acknowledgement"}
+                            defaultMessage={"Request acknowledgement"}
                         />
                     )}
                 </Acknowledgements>
             )}
             {hasError && (
                 <Error>
-                    {(specialMentions && Object.values(specialMentions).includes(true)) ? <HasSpecialMentions specialMentions={specialMentions}/> : <HasNoMentions/>}
+                    {specialMentions &&
+                    Object.values(specialMentions).includes(true) ? (
+                        <HasSpecialMentions specialMentions={specialMentions} />
+                    ) : (
+                        <HasNoMentions />
+                    )}
                 </Error>
             )}
             {canRemove && (
                 <OverlayTrigger
-                    placement='top'
+                    placement="top"
                     delayShow={Constants.OVERLAY_TIME_DELAY}
                     trigger={Constants.OVERLAY_DEFAULT_TRIGGER}
-                    overlay={(
-                        <Tooltip id='post-priority-picker-tooltip'>
+                    overlay={
+                        <Tooltip id="post-priority-picker-tooltip">
                             <FormattedMessage
-                                id={'post_priority.remove'}
-                                defaultMessage={'Remove {priority}'}
-                                values={{priority}}
+                                id={"post_priority.remove"}
+                                defaultMessage={"Remove {priority}"}
+                                values={{ priority }}
                             />
                         </Tooltip>
-                    )}
+                    }
                 >
-                    <Close
-                        type='button'
-                        className='close'
-                        onClick={onRemove}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                        <span className='sr-only'>
+                    <Close type="button" className="close" onClick={onRemove}>
+                        <span aria-hidden="true">{"×"}</span>
+                        <span className="sr-only">
                             <FormattedMessage
-                                id={'post_priority.remove'}
-                                defaultMessage={'Remove {priority}'}
-                                values={{priority}}
+                                id={"post_priority.remove"}
+                                defaultMessage={"Remove {priority}"}
+                                values={{ priority }}
                             />
                         </span>
                     </Close>

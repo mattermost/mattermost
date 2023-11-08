@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import './admin_panel.scss';
+import "./admin_panel.scss";
 
 type Props = {
     id?: string;
@@ -20,14 +20,8 @@ type Props = {
 };
 
 const AdminPanel: React.FC<Props> = (props: Props) => (
-    <div
-        className={'AdminPanel clearfix ' + props.className}
-        id={props.id}
-    >
-        <div
-            className='header'
-            onClick={props.onHeaderClick}
-        >
+    <div className={"AdminPanel clearfix " + props.className} id={props.id}>
+        <div className="header" onClick={props.onHeaderClick}>
             <div>
                 <h3>
                     <FormattedMessage
@@ -35,7 +29,7 @@ const AdminPanel: React.FC<Props> = (props: Props) => (
                         defaultMessage={props.titleDefault}
                     />
                 </h3>
-                <div className='mt-2'>
+                <div className="mt-2">
                     <FormattedMessage
                         id={props.subtitleId}
                         defaultMessage={props.subtitleDefault}
@@ -43,18 +37,14 @@ const AdminPanel: React.FC<Props> = (props: Props) => (
                     />
                 </div>
             </div>
-            {props.button &&
-                <div className='button'>
-                    {props.button}
-                </div>
-            }
+            {props.button && <div className="button">{props.button}</div>}
         </div>
         {props.children}
     </div>
 );
 
 AdminPanel.defaultProps = {
-    className: '',
+    className: "",
 };
 
 export default AdminPanel;

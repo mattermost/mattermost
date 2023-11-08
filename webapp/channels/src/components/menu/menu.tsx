@@ -1,36 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import MuiMenuList from '@mui/material/MenuList';
-import React, {
-    useState,
-    useEffect,
-    useCallback,
-} from 'react';
+import MuiMenuList from "@mui/material/MenuList";
+import React, { useState, useEffect, useCallback } from "react";
 import type {
     ReactNode,
     MouseEvent,
     KeyboardEvent,
     SyntheticEvent,
-} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+} from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-import {GenericModal} from '@mattermost/components';
+import { GenericModal } from "@mattermost/components";
 
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import { getTheme } from "mattermost-redux/selectors/entities/preferences";
 
-import {openModal, closeModal} from 'actions/views/modals';
-import {getIsMobileView} from 'selectors/views/browser';
+import { openModal, closeModal } from "actions/views/modals";
+import { getIsMobileView } from "selectors/views/browser";
 
-import CompassDesignProvider from 'components/compass_design_provider';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import CompassDesignProvider from "components/compass_design_provider";
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
 
-import Constants, {A11yClassNames} from 'utils/constants';
-import {isKeyPressed} from 'utils/keyboard';
+import Constants, { A11yClassNames } from "utils/constants";
+import { isKeyPressed } from "utils/keyboard";
 
-import {MenuContext, useMenuContextValue} from './menu_context';
-import {MuiMenuStyled} from './menu_styled';
+import { MenuContext, useMenuContextValue } from "./menu_context";
+import { MuiMenuStyled } from "./menu_styled";
 
 const OVERLAY_TIME_DELAY = 500;
 const MENU_OPEN_ANIMATION_DURATION = 150;
@@ -39,29 +35,32 @@ const MENU_CLOSE_ANIMATION_DURATION = 100;
 type MenuButtonProps = {
     id: string;
     dateTestId?: string;
-    'aria-label'?: string;
+    "aria-label"?: string;
     class?: string;
     children: ReactNode;
-}
+};
 
 type MenuButtonTooltipProps = {
     id: string;
-    placement?: 'top' | 'bottom' | 'left' | 'right';
+    placement?: "top" | "bottom" | "left" | "right";
     class?: string;
     text: string;
-}
+};
 
 type MenuProps = {
     id: string;
-    'aria-label'?: string;
+    "aria-label"?: string;
 
     /**
      * @warning Make the styling of your components such a way that they dont need this handler
      */
     onToggle?: (isOpen: boolean) => void;
-    onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
+    onKeyDown?: (
+        event: KeyboardEvent<HTMLDivElement>,
+        forceCloseMenu?: () => void,
+    ) => void;
     width?: string;
-}
+};
 
 interface Props {
     menuButton: MenuButtonProps;
@@ -87,7 +86,9 @@ export function Menu(props: Props) {
 
     const dispatch = useDispatch();
 
-    const [anchorElement, setAnchorElement] = useState<null | HTMLElement>(null);
+    const [anchorElement, setAnchorElement] = useState<null | HTMLElement>(
+        null,
+    );
     const [disableAutoFocusItem, setDisableAutoFocusItem] = useState(false);
     const isMenuOpen = Boolean(anchorElement);
 
@@ -104,22 +105,29 @@ export function Menu(props: Props) {
         setDisableAutoFocusItem(false);
     }, []);
 
-    function handleMenuModalClose(modalId: MenuProps['id']) {
+    function handleMenuModalClose(modalId: MenuProps["id"]) {
         dispatch(closeModal(modalId));
         setAnchorElement(null);
     }
 
     // Stop sythetic events from bubbling up to the parent
     // @see https://github.com/mui/material-ui/issues/32064
-    function handleMenuClick(e: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
+    function handleMenuClick(
+        e: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>,
+    ) {
         e.stopPropagation();
     }
 
     function handleMenuKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-        if (isKeyPressed(event, Constants.KeyCodes.ENTER) || isKeyPressed(event, Constants.KeyCodes.SPACE)) {
+        if (
+            isKeyPressed(event, Constants.KeyCodes.ENTER) ||
+            isKeyPressed(event, Constants.KeyCodes.SPACE)
+        ) {
             const target = event.target as HTMLElement;
-            const ariaHasPopupAttribute = target?.getAttribute('aria-haspopup') === 'true';
-            const ariaHasExpandedAttribute = target?.getAttribute('aria-expanded') !== null ?? false;
+            const ariaHasPopupAttribute =
+                target?.getAttribute("aria-haspopup") === "true";
+            const ariaHasExpandedAttribute =
+                target?.getAttribute("aria-expanded") !== null ?? false;
 
             if (ariaHasPopupAttribute && ariaHasExpandedAttribute) {
                 // Avoid closing the sub menu item on enter
@@ -148,7 +156,7 @@ export function Menu(props: Props) {
                     dialogProps: {
                         menuButtonId: props.menuButton.id,
                         menuId: props.menu.id,
-                        menuAriaLabel: props.menu?.['aria-label'] ?? '',
+                        menuAriaLabel: props.menu?.["aria-label"] ?? "",
                         onModalClose: handleMenuModalClose,
                         children: props.children,
                         onKeyDown: props.menu.onKeyDown,
@@ -174,8 +182,8 @@ export function Menu(props: Props) {
                 aria-controls={props.menu.id}
                 aria-haspopup={true}
                 aria-expanded={isMenuOpen}
-                aria-label={props.menuButton?.['aria-label'] ?? ''}
-                className={props.menuButton?.class ?? ''}
+                aria-label={props.menuButton?.["aria-label"] ?? ""}
+                className={props.menuButton?.class ?? ""}
                 onClick={handleMenuButtonClick}
                 onMouseDown={handleMenuButtonMouseDown}
             >
@@ -183,15 +191,19 @@ export function Menu(props: Props) {
             </button>
         );
 
-        if (props.menuButtonTooltip && props.menuButtonTooltip.text && !isMobileView) {
+        if (
+            props.menuButtonTooltip &&
+            props.menuButtonTooltip.text &&
+            !isMobileView
+        ) {
             return (
                 <OverlayTrigger
                     delayShow={OVERLAY_TIME_DELAY}
-                    placement={props?.menuButtonTooltip?.placement ?? 'top'}
+                    placement={props?.menuButtonTooltip?.placement ?? "top"}
                     overlay={
                         <Tooltip
                             id={props.menuButtonTooltip.id}
-                            className={props.menuButtonTooltip?.class ?? ''}
+                            className={props.menuButtonTooltip?.class ?? ""}
                         >
                             {props.menuButtonTooltip.text}
                         </Tooltip>
@@ -212,7 +224,10 @@ export function Menu(props: Props) {
         }
     }, [isMenuOpen]);
 
-    const providerValue = useMenuContextValue(closeMenu, Boolean(anchorElement));
+    const providerValue = useMenuContextValue(
+        closeMenu,
+        Boolean(anchorElement),
+    );
 
     if (isMobileView) {
         // In mobile view, the menu is rendered as a modal
@@ -235,7 +250,7 @@ export function Menu(props: Props) {
                     disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
                     MenuListProps={{
                         id: props.menu.id,
-                        'aria-label': props.menu?.['aria-label'] ?? '',
+                        "aria-label": props.menu?.["aria-label"] ?? "",
                     }}
                     TransitionProps={{
                         mountOnEnter: true,
@@ -254,12 +269,12 @@ export function Menu(props: Props) {
 }
 
 interface MenuModalProps {
-    menuButtonId: MenuButtonProps['id'];
-    menuId: MenuProps['id'];
-    menuAriaLabel: MenuProps['aria-label'];
-    onModalClose: (modalId: MenuProps['id']) => void;
-    children: Props['children'];
-    onKeyDown?: MenuProps['onKeyDown'];
+    menuButtonId: MenuButtonProps["id"];
+    menuId: MenuProps["id"];
+    menuAriaLabel: MenuProps["aria-label"];
+    onModalClose: (modalId: MenuProps["id"]) => void;
+    children: Props["children"];
+    onKeyDown?: MenuProps["onKeyDown"];
 }
 
 function MenuModal(props: MenuModalProps) {
@@ -272,7 +287,10 @@ function MenuModal(props: MenuModalProps) {
     function handleModalClickCapture(event: MouseEvent<HTMLDivElement>) {
         if (event && event.currentTarget.contains(event.target as Node)) {
             for (const currentElement of event.currentTarget.children) {
-                if (currentElement.contains(event.target as Node) && !currentElement.ariaHasPopup) {
+                if (
+                    currentElement.contains(event.target as Node) &&
+                    !currentElement.ariaHasPopup
+                ) {
                     // We check for property ariaHasPopup because we don't want to close the menu
                     // if the user clicks on a submenu item or menu item which open modal. And let submenu component handle the click.
                     closeMenuModal();
@@ -292,7 +310,7 @@ function MenuModal(props: MenuModalProps) {
         <CompassDesignProvider theme={theme}>
             <GenericModal
                 id={props.menuId}
-                className='menuModal'
+                className="menuModal"
                 backdrop={true}
                 ariaLabel={props.menuAriaLabel}
                 onExited={closeMenuModal}
@@ -300,7 +318,7 @@ function MenuModal(props: MenuModalProps) {
                 handleKeydown={handleKeydown}
             >
                 <MuiMenuList // serves as backdrop for modals
-                    component='div'
+                    component="div"
                     aria-labelledby={props.menuButtonId}
                     onClick={handleModalClickCapture}
                 >

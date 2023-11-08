@@ -13,31 +13,37 @@ import {
     useId,
     useInteractions,
     useRole,
-} from '@floating-ui/react-dom-interactions';
-import classNames from 'classnames';
-import React, {memo, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
+} from "@floating-ui/react-dom-interactions";
+import classNames from "classnames";
+import React, { memo, useState } from "react";
+import { FormattedMessage } from "react-intl";
+import { useDispatch } from "react-redux";
 
-import {CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
-import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
-import type {UserProfile} from '@mattermost/types/users';
+import { CheckCircleOutlineIcon } from "@mattermost/compass-icons/components";
+import type { Post, PostAcknowledgement } from "@mattermost/types/posts";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {acknowledgePost, unacknowledgePost} from 'mattermost-redux/actions/posts';
+import {
+    acknowledgePost,
+    unacknowledgePost,
+} from "mattermost-redux/actions/posts";
 
-import PostAcknowledgementsUserPopover from './post_acknowledgements_users_popover';
+import PostAcknowledgementsUserPopover from "./post_acknowledgements_users_popover";
 
-import './post_acknowledgements.scss';
+import "./post_acknowledgements.scss";
 
 type Props = {
-    authorId: UserProfile['id'];
-    currentUserId: UserProfile['id'];
+    authorId: UserProfile["id"];
+    currentUserId: UserProfile["id"];
     hasReactions: boolean;
     isDeleted: boolean;
-    list?: Array<{user: UserProfile; acknowledgedAt: PostAcknowledgement['acknowledged_at']}>;
-    postId: Post['id'];
+    list?: Array<{
+        user: UserProfile;
+        acknowledgedAt: PostAcknowledgement["acknowledged_at"];
+    }>;
+    postId: Post["id"];
     showDivider?: boolean;
-}
+};
 
 function moreThan5minAgo(time: number) {
     const now = new Date().getTime();
@@ -65,17 +71,19 @@ function PostAcknowledgements({
             acknowledgedAt = ack.acknowledgedAt;
         }
     }
-    const buttonDisabled = (Boolean(acknowledgedAt) && moreThan5minAgo(acknowledgedAt)) || isCurrentAuthor;
+    const buttonDisabled =
+        (Boolean(acknowledgedAt) && moreThan5minAgo(acknowledgedAt)) ||
+        isCurrentAuthor;
 
-    const {x, y, reference, floating, strategy, context} = useFloating({
+    const { x, y, reference, floating, strategy, context } = useFloating({
         open,
         onOpenChange: setOpen,
-        placement: 'top-start',
+        placement: "top-start",
         whileElementsMounted: autoUpdate,
         middleware: [
             offset(5),
             flip({
-                fallbackPlacements: ['bottom-start', 'right'],
+                fallbackPlacements: ["bottom-start", "right"],
                 padding: 12,
             }),
             shift({
@@ -84,7 +92,7 @@ function PostAcknowledgements({
         ],
     });
 
-    const {getReferenceProps, getFloatingProps} = useInteractions([
+    const { getReferenceProps, getFloatingProps } = useInteractions([
         useHover(context, {
             enabled: list && list.length > 0,
             mouseOnly: true,
@@ -119,8 +127,8 @@ function PostAcknowledgements({
 
     let buttonText: React.ReactNode = (
         <FormattedMessage
-            id={'post_priority.button.acknowledge'}
-            defaultMessage={'Acknowledge'}
+            id={"post_priority.button.acknowledge"}
+            defaultMessage={"Acknowledge"}
         />
     );
 
@@ -135,16 +143,19 @@ function PostAcknowledgements({
                 onClick={handleClick}
                 className={classNames({
                     AcknowledgementButton: true,
-                    'AcknowledgementButton--acked': Boolean(acknowledgedAt),
-                    'AcknowledgementButton--disabled': buttonDisabled,
-                    'AcknowledgementButton--default': !list || list.length === 0,
+                    "AcknowledgementButton--acked": Boolean(acknowledgedAt),
+                    "AcknowledgementButton--disabled": buttonDisabled,
+                    "AcknowledgementButton--default":
+                        !list || list.length === 0,
                 })}
                 {...getReferenceProps()}
             >
-                <CheckCircleOutlineIcon size={16}/>
+                <CheckCircleOutlineIcon size={16} />
                 {buttonText}
             </button>
-            {showDivider && hasReactions && <div className='AcknowledgementButton__divider'/>}
+            {showDivider && hasReactions && (
+                <div className="AcknowledgementButton__divider" />
+            )}
         </>
     );
 
@@ -156,10 +167,7 @@ function PostAcknowledgements({
         <>
             {button}
             {open && (
-                <FloatingFocusManager
-                    context={context}
-                    modal={false}
-                >
+                <FloatingFocusManager context={context} modal={false}>
                     <div
                         ref={floating}
                         style={{

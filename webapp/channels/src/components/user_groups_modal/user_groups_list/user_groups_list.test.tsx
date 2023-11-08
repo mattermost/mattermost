@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import type {Group, GroupPermissions} from '@mattermost/types/groups';
+import type { Group, GroupPermissions } from "@mattermost/types/groups";
 
-import UserGroupsList from './user_groups_list';
+import UserGroupsList from "./user_groups_list";
 
-describe('component/user_groups_modal', () => {
+describe("component/user_groups_modal", () => {
     const baseProps = {
         onExited: jest.fn(),
         onScroll: jest.fn(),
         groups: [],
-        searchTerm: '',
+        searchTerm: "",
         backButtonAction: jest.fn(),
         groupPermissionsMap: {},
         loading: false,
@@ -34,7 +34,7 @@ describe('component/user_groups_modal', () => {
                 name: `group${i}`,
                 display_name: `Group ${i}`,
                 description: `Group ${i} description`,
-                source: 'custom',
+                source: "custom",
                 remote_id: null,
                 create_at: 1637349374137,
                 update_at: 1637349374137,
@@ -62,16 +62,12 @@ describe('component/user_groups_modal', () => {
         return groupPermissionsMap;
     }
 
-    test('should match snapshot without groups', () => {
-        const wrapper = shallow(
-            <UserGroupsList
-                {...baseProps}
-            />,
-        );
+    test("should match snapshot without groups", () => {
+        const wrapper = shallow(<UserGroupsList {...baseProps} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with groups', () => {
+    test("should match snapshot with groups", () => {
         const groups = getGroups(3);
         const permissions = getPermissions(groups);
 

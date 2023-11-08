@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import icon50 from 'images/icon50x50.png';
-import iconWS from 'images/icon_WS.png';
-import Constants from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
+import icon50 from "images/icon50x50.png";
+import iconWS from "images/icon_WS.png";
+import Constants from "utils/constants";
+import * as UserAgent from "utils/user_agent";
 
 let requestedNotificationPermission = false;
 
@@ -32,8 +32,8 @@ export async function showNotification(
         silent,
         onClick,
     }: ShowNotificationParams = {
-        title: '',
-        body: '',
+        title: "",
+        body: "",
         requireInteraction: false,
         silent: false,
     },
@@ -43,15 +43,18 @@ export async function showNotification(
         icon = iconWS;
     }
 
-    if (!('Notification' in window)) {
-        throw new Error('Notification not supported');
+    if (!("Notification" in window)) {
+        throw new Error("Notification not supported");
     }
 
-    if (typeof Notification.requestPermission !== 'function') {
-        throw new Error('Notification.requestPermission not supported');
+    if (typeof Notification.requestPermission !== "function") {
+        throw new Error("Notification.requestPermission not supported");
     }
 
-    if (Notification.permission !== 'granted' && requestedNotificationPermission) {
+    if (
+        Notification.permission !== "granted" &&
+        requestedNotificationPermission
+    ) {
         // User didn't allow notifications
         return () => {};
     }
@@ -59,14 +62,14 @@ export async function showNotification(
     requestedNotificationPermission = true;
 
     let permission = await Notification.requestPermission();
-    if (typeof permission === 'undefined') {
+    if (typeof permission === "undefined") {
         // Handle browsers that don't support the promise-based syntax.
         permission = await new Promise((resolve) => {
             Notification.requestPermission(resolve);
         });
     }
 
-    if (permission !== 'granted') {
+    if (permission !== "granted") {
         // User has denied notification for the site
         return () => {};
     }
@@ -84,7 +87,7 @@ export async function showNotification(
     }
 
     notification.onerror = () => {
-        throw new Error('Notification failed to show.');
+        throw new Error("Notification failed to show.");
     };
 
     // Mac desktop app notification dismissal is handled by the OS

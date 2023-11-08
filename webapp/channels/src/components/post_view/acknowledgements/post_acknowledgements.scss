@@ -1,7 +1,7 @@
 @charset "UTF-8";
 
-@import 'utils/mixins';
-@import 'utils/variables';
+@import "utils/mixins";
+@import "utils/variables";
 
 .AcknowledgementButton {
     @include button-xsmall;

@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React, {useState} from 'react';
-import type {AnimationEvent, ReactNode} from 'react';
-import {Draggable} from 'react-beautiful-dnd';
-import {FormattedMessage} from 'react-intl';
+import classNames from "classnames";
+import React, { useState } from "react";
+import type { AnimationEvent, ReactNode } from "react";
+import { Draggable } from "react-beautiful-dnd";
+import { FormattedMessage } from "react-intl";
 
-import Constants from 'utils/constants';
+import Constants from "utils/constants";
 
-import SidebarBaseChannel from './sidebar_base_channel';
-import SidebarDirectChannel from './sidebar_direct_channel';
-import SidebarGroupChannel from './sidebar_group_channel';
+import SidebarBaseChannel from "./sidebar_base_channel";
+import SidebarDirectChannel from "./sidebar_direct_channel";
+import SidebarGroupChannel from "./sidebar_group_channel";
 
-import type {Props} from './index';
+import type { Props } from "./index";
 
 function SidebarChannel({
     isCategoryCollapsed,
@@ -34,7 +34,10 @@ function SidebarChannel({
     const [show, setShow] = useState(true);
 
     function isCollapsed() {
-        return isCategoryDragged || (isCategoryCollapsed && !isUnread && !isCurrentChannel);
+        return (
+            isCategoryDragged ||
+            (isCategoryCollapsed && !isUnread && !isCurrentChannel)
+        );
     }
 
     function setRef(refMethod?: (element: HTMLLIElement) => void) {
@@ -45,13 +48,21 @@ function SidebarChannel({
     }
 
     function handleAnimationStart(event: AnimationEvent) {
-        if (event && event.animationName === 'toOpaqueAnimation' && !isCollapsed()) {
+        if (
+            event &&
+            event.animationName === "toOpaqueAnimation" &&
+            !isCollapsed()
+        ) {
             setShow(true);
         }
     }
 
     function handleAnimationEnd(event: AnimationEvent) {
-        if (event && event.animationName === 'toTransparentAnimation' && isCollapsed()) {
+        if (
+            event &&
+            event.animationName === "toTransparentAnimation" &&
+            isCollapsed()
+        ) {
             setShow(false);
         }
     }
@@ -84,43 +95,55 @@ function SidebarChannel({
 
     if (isDraggable) {
         let selectedCount: React.ReactNode;
-        if (isChannelSelected && draggingState.state && draggingState.id === channel.id && multiSelectedChannelIds.length > 1) {
+        if (
+            isChannelSelected &&
+            draggingState.state &&
+            draggingState.id === channel.id &&
+            multiSelectedChannelIds.length > 1
+        ) {
             selectedCount = show ? (
-                <div className='SidebarChannel__selectedCount'>
+                <div className="SidebarChannel__selectedCount">
                     <FormattedMessage
-                        id='sidebar_left.sidebar_channel.selectedCount'
-                        defaultMessage='{count} selected'
-                        values={{count: multiSelectedChannelIds.length}}
+                        id="sidebar_left.sidebar_channel.selectedCount"
+                        defaultMessage="{count} selected"
+                        values={{ count: multiSelectedChannelIds.length }}
                     />
                 </div>
             ) : null;
         }
 
         return (
-            <Draggable
-                draggableId={channel.id}
-                index={channelIndex}
-            >
+            <Draggable draggableId={channel.id} index={channelIndex}>
                 {(provided, snapshot) => {
                     return (
                         <li
-                            draggable='false'
+                            draggable="false"
                             ref={setRef(provided.innerRef)}
-                            className={classNames('SidebarChannel', {
+                            className={classNames("SidebarChannel", {
                                 collapsed: isCollapsed(),
                                 expanded: !isCollapsed(),
                                 unread: isUnread,
                                 active: isCurrentChannel,
                                 dragging: snapshot.isDragging,
-                                selectedDragging: isChannelSelected && draggingState.state && draggingState.id !== channel.id,
-                                fadeOnDrop: snapshot.isDropAnimating && snapshot.draggingOver && autoSortedCategoryIds.has(snapshot.draggingOver),
-                                noFloat: isAutoSortedCategory && !snapshot.isDragging,
+                                selectedDragging:
+                                    isChannelSelected &&
+                                    draggingState.state &&
+                                    draggingState.id !== channel.id,
+                                fadeOnDrop:
+                                    snapshot.isDropAnimating &&
+                                    snapshot.draggingOver &&
+                                    autoSortedCategoryIds.has(
+                                        snapshot.draggingOver,
+                                    ),
+                                noFloat:
+                                    isAutoSortedCategory &&
+                                    !snapshot.isDragging,
                             })}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
                             onAnimationStart={handleAnimationStart}
                             onAnimationEnd={handleAnimationEnd}
-                            role='listitem'
+                            role="listitem"
                             tabIndex={-1}
                         >
                             {component}
@@ -135,7 +158,7 @@ function SidebarChannel({
     return (
         <li
             ref={setRef()}
-            className={classNames('SidebarChannel', {
+            className={classNames("SidebarChannel", {
                 collapsed: isCollapsed(),
                 expanded: !isCollapsed(),
                 unread: isUnread,
@@ -143,7 +166,7 @@ function SidebarChannel({
             })}
             onAnimationStart={handleAnimationStart}
             onAnimationEnd={handleAnimationEnd}
-            role='listitem'
+            role="listitem"
         >
             {component}
         </li>

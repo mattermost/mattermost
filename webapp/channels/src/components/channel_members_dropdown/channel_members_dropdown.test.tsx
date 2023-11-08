@@ -1,46 +1,46 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Channel, ChannelMembership } from "@mattermost/types/channels";
+import type { UserProfile } from "@mattermost/types/users";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import ChannelMembersDropdown from 'components/channel_members_dropdown/channel_members_dropdown';
+import ChannelMembersDropdown from "components/channel_members_dropdown/channel_members_dropdown";
 
-import {mockDispatch} from 'packages/mattermost-redux/test/test_store';
-import {ModalIdentifiers} from 'utils/constants';
+import { mockDispatch } from "packages/mattermost-redux/test/test_store";
+import { ModalIdentifiers } from "utils/constants";
 
-jest.mock('react-redux', () => ({
-    ...jest.requireActual('react-redux') as typeof import('react-redux'),
+jest.mock("react-redux", () => ({
+    ...(jest.requireActual("react-redux") as typeof import("react-redux")),
     useDispatch: () => mockDispatch,
 }));
 
-describe('components/channel_members_dropdown', () => {
+describe("components/channel_members_dropdown", () => {
     const user = {
-        id: 'user-1',
+        id: "user-1",
     } as UserProfile;
 
     const channel = {
         create_at: 1508265709607,
-        creator_id: 'zaktnt8bpbgu8mb6ez9k64r7sa',
+        creator_id: "zaktnt8bpbgu8mb6ez9k64r7sa",
         delete_at: 0,
-        display_name: 'testing',
-        header: 'test',
-        id: 'owsyt8n43jfxjpzh9np93mx1wa',
+        display_name: "testing",
+        header: "test",
+        id: "owsyt8n43jfxjpzh9np93mx1wa",
         last_post_at: 1508265709635,
-        name: 'testing',
-        purpose: 'test',
-        team_id: 'eatxocwc3bg9ffo9xyybnj4omr',
-        type: 'O',
+        name: "testing",
+        purpose: "test",
+        team_id: "eatxocwc3bg9ffo9xyybnj4omr",
+        type: "O",
         update_at: 1508265709607,
     } as Channel;
 
     const channelMember = {
-        roles: 'channel_admin',
+        roles: "channel_admin",
         scheme_admin: true,
     } as ChannelMembership;
 
@@ -48,7 +48,7 @@ describe('components/channel_members_dropdown', () => {
         channel,
         user,
         channelMember,
-        currentUserId: 'current-user-id',
+        currentUserId: "current-user-id",
         canChangeMemberRoles: false,
         canRemoveMember: true,
         index: 0,
@@ -56,10 +56,10 @@ describe('components/channel_members_dropdown', () => {
         actions: {
             removeChannelMember: jest.fn().mockImplementation(() => {
                 const error = {
-                    message: 'Failed',
+                    message: "Failed",
                 };
 
-                return Promise.resolve({error});
+                return Promise.resolve({ error });
             }),
             getChannelStats: jest.fn(),
             updateChannelMemberSchemeRoles: jest.fn(),
@@ -68,82 +68,70 @@ describe('components/channel_members_dropdown', () => {
         },
     };
 
-    test('should match snapshot for dropdown with guest user', () => {
+    test("should match snapshot for dropdown with guest user", () => {
         const props = {
             ...baseProps,
             user: {
                 ...baseProps.user,
-                roles: 'system_guest',
+                roles: "system_guest",
             },
             channelMember: {
                 ...baseProps.channelMember,
-                roles: 'channel_guest',
+                roles: "channel_guest",
             },
             canChangeMemberRoles: true,
         };
-        const wrapper = shallow(
-            <ChannelMembersDropdown {...props}/>,
-        );
+        const wrapper = shallow(<ChannelMembersDropdown {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot for dropdown with shared user', () => {
+    test("should match snapshot for dropdown with shared user", () => {
         const props = {
             ...baseProps,
             user: {
                 ...baseProps.user,
-                roles: 'system_user',
-                remote_id: 'fakeid',
+                roles: "system_user",
+                remote_id: "fakeid",
             },
         };
-        const wrapper = shallow(
-            <ChannelMembersDropdown {...props}/>,
-        );
+        const wrapper = shallow(<ChannelMembersDropdown {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot for not dropdown with guest user', () => {
+    test("should match snapshot for not dropdown with guest user", () => {
         const props = {
             ...baseProps,
             user: {
                 ...baseProps.user,
-                roles: 'system_guest',
+                roles: "system_guest",
             },
             channelMember: {
                 ...baseProps.channelMember,
-                roles: 'channel_guest',
+                roles: "channel_guest",
             },
             canChangeMemberRoles: false,
         };
+        const wrapper = shallow(<ChannelMembersDropdown {...props} />);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test("should match snapshot for channel_members_dropdown", () => {
+        const wrapper = shallow(<ChannelMembersDropdown {...baseProps} />);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test("should match snapshot opening dropdown upwards", () => {
         const wrapper = shallow(
-            <ChannelMembersDropdown {...props}/>,
+            <ChannelMembersDropdown {...baseProps} index={4} totalUsers={5} />,
         );
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot for channel_members_dropdown', () => {
-        const wrapper = shallow(
-            <ChannelMembersDropdown {...baseProps}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot opening dropdown upwards', () => {
-        const wrapper = shallow(
-            <ChannelMembersDropdown
-                {...baseProps}
-                index={4}
-                totalUsers={5}
-            />,
-        );
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('If a removal is in progress do not execute another removal', () => {
+    test("If a removal is in progress do not execute another removal", () => {
         const removeMock = jest.fn().mockImplementation(() => {
             const myPromise = new Promise<ActionResult>((resolve) => {
                 setTimeout(() => {
-                    resolve({data: {}});
+                    resolve({ data: {} });
                 }, 3000);
             });
             return myPromise;
@@ -157,18 +145,16 @@ describe('components/channel_members_dropdown', () => {
             },
         };
 
-        const wrapper = shallow(
-            <ChannelMembersDropdown {...props}/>,
-        );
+        const wrapper = shallow(<ChannelMembersDropdown {...props} />);
 
-        wrapper.find('[data-testid="removeFromChannel"]').simulate('click');
-        wrapper.find('[data-testid="removeFromChannel"]').simulate('click');
+        wrapper.find('[data-testid="removeFromChannel"]').simulate("click");
+        wrapper.find('[data-testid="removeFromChannel"]').simulate("click");
         expect(removeMock).toHaveBeenCalledTimes(1);
     });
 
-    test('should fail to remove channel member', (done) => {
+    test("should fail to remove channel member", (done) => {
         const removeMock = jest.fn().mockImplementation(() => {
-            return Promise.resolve({error: {message: 'Failed'}});
+            return Promise.resolve({ error: { message: "Failed" } });
         });
 
         const props = {
@@ -179,21 +165,21 @@ describe('components/channel_members_dropdown', () => {
             },
         };
 
-        const wrapper = shallow(
-            <ChannelMembersDropdown {...props}/>,
-        );
+        const wrapper = shallow(<ChannelMembersDropdown {...props} />);
 
-        wrapper.find('[data-testid="removeFromChannel"]').simulate('click');
+        wrapper.find('[data-testid="removeFromChannel"]').simulate("click");
         process.nextTick(() => {
             expect(removeMock).toHaveBeenCalledTimes(1);
-            expect(wrapper.find('.has-error.control-label').text()).toEqual('Failed');
+            expect(wrapper.find(".has-error.control-label").text()).toEqual(
+                "Failed",
+            );
             done();
         });
     });
 
-    test('should remove the channel member', (done) => {
+    test("should remove the channel member", (done) => {
         const removeMock = jest.fn().mockImplementation(() => {
-            return Promise.resolve({data: true});
+            return Promise.resolve({ data: true });
         });
 
         const props = {
@@ -204,26 +190,22 @@ describe('components/channel_members_dropdown', () => {
             },
         };
 
-        const wrapper = shallow(
-            <ChannelMembersDropdown {...props}/>,
-        );
+        const wrapper = shallow(<ChannelMembersDropdown {...props} />);
 
-        wrapper.find('[data-testid="removeFromChannel"]').simulate('click');
+        wrapper.find('[data-testid="removeFromChannel"]').simulate("click");
         process.nextTick(() => {
             expect(removeMock).toHaveBeenCalledTimes(1);
             done();
         });
     });
 
-    test('should match snapshot for group_constrained channel', () => {
+    test("should match snapshot for group_constrained channel", () => {
         baseProps.channel.group_constrained = true;
-        const wrapper = shallow(
-            <ChannelMembersDropdown {...baseProps}/>,
-        );
+        const wrapper = shallow(<ChannelMembersDropdown {...baseProps} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with role change possible', () => {
+    test("should match snapshot with role change possible", () => {
         const wrapper = shallow(
             <ChannelMembersDropdown
                 {...baseProps}
@@ -233,22 +215,20 @@ describe('components/channel_members_dropdown', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when user is current user', () => {
+    test("should match snapshot when user is current user", () => {
         const props = {
             ...baseProps,
-            currentUserId: 'user-1',
+            currentUserId: "user-1",
         };
-        const wrapper = shallow(
-            <ChannelMembersDropdown {...props}/>,
-        );
+        const wrapper = shallow(<ChannelMembersDropdown {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should open a confirmation modal when current user tries to remove themselves from a channel', () => {
+    test("should open a confirmation modal when current user tries to remove themselves from a channel", () => {
         const removeMock = jest.fn().mockImplementation(() => {
             const myPromise = new Promise<ActionResult>((resolve) => {
                 setTimeout(() => {
-                    resolve({data: {}});
+                    resolve({ data: {} });
                 }, 3000);
             });
             return myPromise;
@@ -256,7 +236,7 @@ describe('components/channel_members_dropdown', () => {
 
         const props = {
             ...baseProps,
-            currentUserId: 'user-1',
+            currentUserId: "user-1",
             channel: {
                 ...baseProps.channel,
                 group_constrained: false,
@@ -266,20 +246,21 @@ describe('components/channel_members_dropdown', () => {
                 removeChannelMember: removeMock,
             },
         };
-        const wrapper = shallow(
-            <ChannelMembersDropdown {...props}/>,
-        );
+        const wrapper = shallow(<ChannelMembersDropdown {...props} />);
 
-        expect(wrapper.find('[data-testid="leaveChannel"]').exists()).toBe(true);
-        wrapper.find('[data-testid="leaveChannel"]').simulate('click');
+        expect(wrapper.find('[data-testid="leaveChannel"]').exists()).toBe(
+            true,
+        );
+        wrapper.find('[data-testid="leaveChannel"]').simulate("click");
 
         expect(removeMock).not.toHaveBeenCalled();
         expect(props.actions.openModal).toHaveBeenCalledWith(
             expect.objectContaining({
                 modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL,
                 dialogProps: expect.objectContaining({
-                    channel: expect.objectContaining({id: props.channel.id}),
+                    channel: expect.objectContaining({ id: props.channel.id }),
                 }),
-            }));
+            }),
+        );
     });
 });

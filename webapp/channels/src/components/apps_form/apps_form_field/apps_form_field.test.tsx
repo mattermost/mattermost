@@ -1,109 +1,105 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import type {AppField} from '@mattermost/types/apps';
+import type { AppField } from "@mattermost/types/apps";
 
-import TextSetting from 'components/widgets/settings/text_setting';
+import TextSetting from "components/widgets/settings/text_setting";
 
-import AppsFormField from './apps_form_field';
-import type {Props} from './apps_form_field';
-import AppsFormSelectField from './apps_form_select_field';
+import AppsFormField from "./apps_form_field";
+import type { Props } from "./apps_form_field";
+import AppsFormSelectField from "./apps_form_select_field";
 
-describe('components/apps_form/apps_form_field/AppsFormField', () => {
-    describe('Text elements', () => {
+describe("components/apps_form/apps_form_field/AppsFormField", () => {
+    describe("Text elements", () => {
         const textField: AppField = {
-            name: 'field1',
-            type: 'text',
+            name: "field1",
+            type: "text",
             max_length: 100,
-            modal_label: 'The Field',
-            hint: 'The hint',
-            description: 'The description',
+            modal_label: "The Field",
+            hint: "The hint",
+            description: "The description",
             is_required: true,
         };
 
         const baseDialogTextProps: Props = {
-            name: 'testing',
+            name: "testing",
             actions: {
                 autocompleteChannels: jest.fn(),
                 autocompleteUsers: jest.fn(),
             },
             field: textField,
-            value: '',
+            value: "",
             onChange: () => {},
             performLookup: jest.fn(),
         };
 
-        it('subtype blank - optional field', () => {
+        it("subtype blank - optional field", () => {
             const wrapper = shallow(
                 <AppsFormField
                     {...baseDialogTextProps}
                     field={{
                         ...textField,
-                        label: '',
+                        label: "",
                         is_required: false,
                     }}
                 />,
             );
 
-            expect(wrapper.find(TextSetting).props().type).toEqual('text');
+            expect(wrapper.find(TextSetting).props().type).toEqual("text");
         });
 
-        it('subtype blank', () => {
-            const wrapper = shallow(
-                <AppsFormField
-                    {...baseDialogTextProps}
-                />,
-            );
+        it("subtype blank", () => {
+            const wrapper = shallow(<AppsFormField {...baseDialogTextProps} />);
 
-            expect(wrapper.find(TextSetting).props().type).toEqual('text');
+            expect(wrapper.find(TextSetting).props().type).toEqual("text");
         });
 
-        it('subtype email', () => {
+        it("subtype email", () => {
             const wrapper = shallow(
                 <AppsFormField
                     {...baseDialogTextProps}
                     field={{
                         ...textField,
-                        subtype: 'email',
+                        subtype: "email",
                     }}
                 />,
             );
 
-            expect(wrapper.find(TextSetting).props().type).toEqual('email');
+            expect(wrapper.find(TextSetting).props().type).toEqual("email");
         });
 
-        it('subtype password', () => {
+        it("subtype password", () => {
             const wrapper = shallow(
                 <AppsFormField
                     {...baseDialogTextProps}
                     field={{
                         ...textField,
-                        subtype: 'password',
+                        subtype: "password",
                     }}
                 />,
             );
 
-            expect(wrapper.find(TextSetting).props().type).toEqual('password');
+            expect(wrapper.find(TextSetting).props().type).toEqual("password");
         });
     });
 
-    describe('Select elements', () => {
+    describe("Select elements", () => {
         const selectField: AppField = {
-            name: 'field1',
-            type: 'static_select',
+            name: "field1",
+            type: "static_select",
             max_length: 100,
-            modal_label: 'The Field',
-            hint: 'The hint',
-            description: 'The description',
+            modal_label: "The Field",
+            hint: "The hint",
+            description: "The description",
             is_required: true,
             options: [],
         };
 
         const baseDialogSelectProps: Props = {
-            name: 'testing',
+            name: "testing",
             actions: {
                 autocompleteChannels: jest.fn(),
                 autocompleteUsers: jest.fn(),
@@ -115,17 +111,17 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
         };
 
         const options = [
-            {value: 'foo', label: 'foo-text'},
-            {value: 'bar', label: 'bar-text'},
+            { value: "foo", label: "foo-text" },
+            { value: "bar", label: "bar-text" },
         ];
 
-        test('AppsFormSelectField is rendered when type is static_select', () => {
+        test("AppsFormSelectField is rendered when type is static_select", () => {
             const wrapper = shallow(
                 <AppsFormField
                     {...baseDialogSelectProps}
                     field={{
                         ...selectField,
-                        type: 'static_select',
+                        type: "static_select",
                         options,
                     }}
                     onChange={jest.fn()}
@@ -135,13 +131,13 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(wrapper.find(AppsFormSelectField).exists()).toBe(true);
         });
 
-        test('AppsFormSelectField is rendered when type is dynamic_select', () => {
+        test("AppsFormSelectField is rendered when type is dynamic_select", () => {
             const wrapper = shallow(
                 <AppsFormField
                     {...baseDialogSelectProps}
                     field={{
                         ...selectField,
-                        type: 'dynamic_select',
+                        type: "dynamic_select",
                         options,
                     }}
                     onChange={jest.fn()}
@@ -151,13 +147,13 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(wrapper.find(AppsFormSelectField).exists()).toBe(true);
         });
 
-        test('AppsFormSelectField is used when field type is user', () => {
+        test("AppsFormSelectField is used when field type is user", () => {
             const wrapper = shallow(
                 <AppsFormField
                     {...baseDialogSelectProps}
                     field={{
                         ...selectField,
-                        type: 'user',
+                        type: "user",
                     }}
                     onChange={jest.fn()}
                 />,
@@ -166,13 +162,13 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(wrapper.find(AppsFormSelectField).exists()).toBe(true);
         });
 
-        test('AppsFormSelectField is used when field type is channel', () => {
+        test("AppsFormSelectField is used when field type is channel", () => {
             const wrapper = shallow(
                 <AppsFormField
                     {...baseDialogSelectProps}
                     field={{
                         ...selectField,
-                        type: 'channel',
+                        type: "channel",
                     }}
                     onChange={jest.fn()}
                 />,
@@ -181,13 +177,13 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(wrapper.find(AppsFormSelectField).exists()).toBe(true);
         });
 
-        test('AppSelectForm is rendered when options are undefined', () => {
+        test("AppSelectForm is rendered when options are undefined", () => {
             const wrapper = shallow(
                 <AppsFormField
                     {...baseDialogSelectProps}
                     field={{
                         ...selectField,
-                        type: 'static_select',
+                        type: "static_select",
                         options: undefined,
                     }}
                     onChange={jest.fn()}
@@ -197,13 +193,13 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(wrapper.find(AppsFormSelectField).exists()).toBe(true);
         });
 
-        test('AppsFormSelectField is rendered when options are null and value is null', () => {
+        test("AppsFormSelectField is rendered when options are null and value is null", () => {
             const wrapper = shallow(
                 <AppsFormField
                     {...baseDialogSelectProps}
                     field={{
                         ...selectField,
-                        type: 'static_select',
+                        type: "static_select",
                         options: undefined,
                     }}
                     value={null}
@@ -214,13 +210,13 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(wrapper.find(AppsFormSelectField).exists()).toBe(true);
         });
 
-        test('AppsFormSelectField is rendered when options are null and value is not null', () => {
+        test("AppsFormSelectField is rendered when options are null and value is not null", () => {
             const wrapper = shallow(
                 <AppsFormField
                     {...baseDialogSelectProps}
                     field={{
                         ...selectField,
-                        type: 'static_select',
+                        type: "static_select",
                         options: undefined,
                     }}
                     value={options[0]}
@@ -231,16 +227,16 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(wrapper.find(AppsFormSelectField).exists()).toBe(true);
         });
 
-        test('AppsFormSelectField is rendered when value is not one of the options', () => {
+        test("AppsFormSelectField is rendered when value is not one of the options", () => {
             const wrapper = shallow(
                 <AppsFormField
                     {...baseDialogSelectProps}
                     field={{
                         ...selectField,
-                        type: 'static_select',
+                        type: "static_select",
                         options,
                     }}
-                    value={{label: 'Other', value: 'other'}}
+                    value={{ label: "Other", value: "other" }}
                     onChange={jest.fn()}
                 />,
             );
@@ -248,35 +244,37 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(wrapper.find(AppsFormSelectField).exists()).toBe(true);
         });
 
-        test('No default value is selected from the options list', () => {
+        test("No default value is selected from the options list", () => {
             const wrapper = shallow(
                 <AppsFormField
                     {...baseDialogSelectProps}
                     field={{
                         ...selectField,
-                        type: 'static_select',
+                        type: "static_select",
                         options,
                     }}
                     onChange={jest.fn()}
                 />,
             );
-            expect(wrapper.find(AppsFormSelectField).prop('value')).toBeNull();
+            expect(wrapper.find(AppsFormSelectField).prop("value")).toBeNull();
         });
 
-        test('The default value can be specified from the list', () => {
+        test("The default value can be specified from the list", () => {
             const wrapper = shallow(
                 <AppsFormField
                     {...baseDialogSelectProps}
                     field={{
                         ...selectField,
-                        type: 'static_select',
+                        type: "static_select",
                         options,
                     }}
                     value={options[1]}
                     onChange={jest.fn()}
                 />,
             );
-            expect(wrapper.find(AppsFormSelectField).prop('value')).toBe(options[1]);
+            expect(wrapper.find(AppsFormSelectField).prop("value")).toBe(
+                options[1],
+            );
         });
     });
 });

@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled from "styled-components";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-import CustomStatusModal from 'components/custom_status/custom_status_modal';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import CustomStatusEmoji from "components/custom_status/custom_status_emoji";
+import CustomStatusModal from "components/custom_status/custom_status_modal";
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
+import Constants, { ModalIdentifiers } from "utils/constants";
 
-import type {ModalData} from 'types/actions';
+import type { ModalData } from "types/actions";
 
 const HeaderLine = styled.div`
     display: flex;
@@ -58,8 +58,8 @@ export default class Contents extends React.PureComponent<Props> {
 
         let teamNameWithToolTip = (
             <h1
-                id='headerTeamName'
-                className='team__name'
+                id="headerTeamName"
+                className="team__name"
                 data-teamid={this.props.teamId}
             >
                 {this.props.teamDisplayName}
@@ -70,8 +70,12 @@ export default class Contents extends React.PureComponent<Props> {
             teamNameWithToolTip = (
                 <OverlayTrigger
                     delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='bottom'
-                    overlay={<Tooltip id='team-name__tooltip'>{this.props.teamDescription}</Tooltip>}
+                    placement="bottom"
+                    overlay={
+                        <Tooltip id="team-name__tooltip">
+                            {this.props.teamDescription}
+                        </Tooltip>
+                    }
                 >
                     {teamNameWithToolTip}
                 </OverlayTrigger>
@@ -80,33 +84,30 @@ export default class Contents extends React.PureComponent<Props> {
 
         return (
             <div
-                className='SidebarHeaderDropdownButton'
-                id='sidebarHeaderDropdownButton'
+                className="SidebarHeaderDropdownButton"
+                id="sidebarHeaderDropdownButton"
             >
-                <HeaderLine
-                    id='headerInfo'
-                    className='header__info'
-                >
+                <HeaderLine id="headerInfo" className="header__info">
                     <VerticalStack>
                         {teamNameWithToolTip}
                         <div
-                            id='headerInfoContent'
-                            className='header__info__content'
+                            id="headerInfoContent"
+                            className="header__info__content"
                         >
-                            <div
-                                id='headerUsername'
-                                className='user__name'
-                            >
-                                {'@' + this.props.currentUser.username}
+                            <div id="headerUsername" className="user__name">
+                                {"@" + this.props.currentUser.username}
                             </div>
                             <CustomStatusEmoji
                                 showTooltip={true}
-                                tooltipDirection='bottom'
+                                tooltipDirection="bottom"
                                 emojiStyle={{
-                                    verticalAlign: 'top',
+                                    verticalAlign: "top",
                                     marginLeft: 2,
                                 }}
-                                onClick={this.handleCustomStatusEmojiClick as unknown as () => void}
+                                onClick={
+                                    this
+                                        .handleCustomStatusEmojiClick as unknown as () => void
+                                }
                             />
                         </div>
                     </VerticalStack>

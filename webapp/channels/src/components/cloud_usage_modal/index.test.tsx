@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import * as redux from 'react-redux';
-import {Provider} from 'react-redux';
+import React from "react";
+import * as redux from "react-redux";
+import { Provider } from "react-redux";
 
-import type {Subscription} from '@mattermost/types/cloud';
-import type {GlobalState} from '@mattermost/types/store';
+import type { Subscription } from "@mattermost/types/cloud";
+import type { GlobalState } from "@mattermost/types/store";
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
-import {Constants} from 'utils/constants';
-import {FileSizes} from 'utils/file_utils';
+import { renderWithIntl, screen } from "tests/react_testing_utils";
+import mockStore from "tests/test_store";
+import { Constants } from "utils/constants";
+import { FileSizes } from "utils/file_utils";
 
-import CloudUsageModal from './index';
-import type {Props} from './index';
+import CloudUsageModal from "./index";
+import type { Props } from "./index";
 
 const freeLimits = {
     messages: {
@@ -57,25 +57,24 @@ function setupStore(hasLimits: boolean) {
             admin: {
                 analytics: {
                     [Constants.StatTypes.TOTAL_POSTS]: 1234,
-                } as GlobalState['entities']['admin']['analytics'],
+                } as GlobalState["entities"]["admin"]["analytics"],
             },
             teams: {
-                currentTeamId: '',
+                currentTeamId: "",
             },
             preferences: {
-                myPreferences: {
-                },
+                myPreferences: {},
             },
             general: {
                 license: {},
                 config: {},
             },
             users: {
-                currentUserId: 'uid',
+                currentUserId: "uid",
                 profiles: {
                     uid: {},
                 },
-            } as unknown as GlobalState['entities']['users'],
+            } as unknown as GlobalState["entities"]["users"],
         },
     } as GlobalState;
     const store = mockStore(state);
@@ -84,49 +83,47 @@ function setupStore(hasLimits: boolean) {
 }
 
 let props: Props = {
-    title: '',
+    title: "",
     onClose: jest.fn(),
 };
-describe('CloudUsageModal', () => {
+describe("CloudUsageModal", () => {
     beforeEach(() => {
-        jest.spyOn(redux, 'useDispatch').mockImplementation(jest.fn(() => jest.fn()));
+        jest.spyOn(redux, "useDispatch").mockImplementation(
+            jest.fn(() => jest.fn()),
+        );
         props = {
-            title: '',
+            title: "",
             onClose: jest.fn(),
             needsTheme: false,
         };
     });
 
-    test('renders text elements', () => {
+    test("renders text elements", () => {
         const store = setupStore(true);
 
-        props.title = 'very important title';
-        props.description = 'very important description';
+        props.title = "very important title";
+        props.description = "very important description";
 
         renderWithIntl(
             <Provider store={store}>
-                <CloudUsageModal
-                    {...props}
-                />
+                <CloudUsageModal {...props} />
             </Provider>,
         );
         screen.getByText(props.title as string);
         screen.getByText(props.description as string);
     });
 
-    test('renders primary modal action', () => {
+    test("renders primary modal action", () => {
         const store = setupStore(true);
 
         props.primaryAction = {
-            message: 'primary action',
+            message: "primary action",
             onClick: jest.fn(),
         };
 
         renderWithIntl(
             <Provider store={store}>
-                <CloudUsageModal
-                    {...props}
-                />
+                <CloudUsageModal {...props} />
             </Provider>,
         );
         expect(props.primaryAction.onClick).not.toHaveBeenCalled();
@@ -134,18 +131,16 @@ describe('CloudUsageModal', () => {
         expect(props.primaryAction.onClick).toHaveBeenCalled();
     });
 
-    test('renders secondary modal action', () => {
+    test("renders secondary modal action", () => {
         const store = setupStore(true);
 
         props.secondaryAction = {
-            message: 'secondary action',
+            message: "secondary action",
         };
 
         renderWithIntl(
             <Provider store={store}>
-                <CloudUsageModal
-                    {...props}
-                />
+                <CloudUsageModal {...props} />
             </Provider>,
         );
         expect(props.onClose).not.toHaveBeenCalled();
@@ -153,16 +148,16 @@ describe('CloudUsageModal', () => {
         expect(props.onClose).toHaveBeenCalled();
     });
 
-    test('hides footer when there are no actions', () => {
+    test("hides footer when there are no actions", () => {
         const store = setupStore(true);
 
         renderWithIntl(
             <Provider store={store}>
-                <CloudUsageModal
-                    {...props}
-                />
+                <CloudUsageModal {...props} />
             </Provider>,
         );
-        expect(screen.queryByTestId('limits-modal-footer')).not.toBeInTheDocument();
+        expect(
+            screen.queryByTestId("limits-modal-footer"),
+        ).not.toBeInTheDocument();
     });
 });

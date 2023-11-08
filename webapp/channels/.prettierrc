@@ -1,0 +1,6 @@
+{
+  "singleQuote": true,
+  "trailingComma": "all",
+  "semi": false,
+  "object-curly-spacing": ["error", "never"]
+}

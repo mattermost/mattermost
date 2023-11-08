@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
-import type {GlobalState} from '@mattermost/types/store';
+import { SelfHostedSignupProgress } from "@mattermost/types/hosted_customer";
+import type { GlobalState } from "@mattermost/types/store";
 
-import {zeroStateLimitedViews} from '../reducers/entities/posts';
+import { zeroStateLimitedViews } from "../reducers/entities/posts";
 
 const state: GlobalState = {
     entities: {
@@ -12,13 +12,13 @@ const state: GlobalState = {
             config: {},
             dataRetentionPolicy: {},
             license: {},
-            serverVersion: '',
+            serverVersion: "",
             warnMetricsStatus: {},
             firstAdminVisitMarketplaceStatus: false,
             firstAdminCompleteSetup: false,
         },
         users: {
-            currentUserId: '',
+            currentUserId: "",
             isManualStatus: {},
             mySessions: [],
             myAudits: [],
@@ -36,7 +36,7 @@ const state: GlobalState = {
             lastActivity: {},
         },
         teams: {
-            currentTeamId: '',
+            currentTeamId: "",
             teams: {},
             myMembers: {},
             membersInTeam: {},
@@ -45,7 +45,7 @@ const state: GlobalState = {
             totalCount: 0,
         },
         channels: {
-            currentChannelId: '',
+            currentChannelId: "",
             channels: {},
             channelsInTeam: {},
             myMembers: {},
@@ -69,8 +69,8 @@ const state: GlobalState = {
             postEditHistory: [],
             reactions: {},
             openGraph: {},
-            selectedPostId: '',
-            currentFocusedPostId: '',
+            selectedPostId: "",
+            currentFocusedPostId: "",
             messagesHistory: {
                 messages: [],
                 index: {
@@ -195,13 +195,13 @@ const state: GlobalState = {
                 invoicesLoaded: false,
             },
             trueUpReviewProfile: {
-                content: '',
-                getRequestState: 'IDLE',
+                content: "",
+                getRequestState: "IDLE",
             },
             trueUpReviewStatus: {
                 complete: false,
                 due_date: 0,
-                getRequestState: 'IDLE',
+                getRequestState: "IDLE",
             },
         },
         usage: {
@@ -224,105 +224,105 @@ const state: GlobalState = {
     requests: {
         channels: {
             getAllChannels: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
             getChannels: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
             myChannels: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
             createChannel: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
             updateChannel: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
         },
         general: {
             websocket: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
         },
         posts: {
             createPost: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
             editPost: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
             getPostThread: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
         },
         teams: {
             getMyTeams: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
             getTeams: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
             joinTeam: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
         },
         users: {
             login: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
             logout: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
             autocompleteUsers: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
             updateMe: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
         },
         admin: {
             createCompliance: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
         },
         files: {
             uploadFiles: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
         },
         roles: {
             getRolesByNames: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
             getRoleByName: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
             getRole: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
             editRole: {
-                status: 'not_started',
+                status: "not_started",
                 error: null,
             },
         },
@@ -331,7 +331,7 @@ const state: GlobalState = {
         connected: false,
         lastConnectAt: 0,
         lastDisconnectAt: 0,
-        connectionId: '',
+        connectionId: "",
     },
 };
 export default state;

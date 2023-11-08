@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import Menu from 'components/widgets/menu/menu';
+import Menu from "components/widgets/menu/menu";
 
-import ViewPinnedPosts from './view_pinned_posts';
+import ViewPinnedPosts from "./view_pinned_posts";
 
-describe('components/ChannelHeaderDropdown/MenuItem.ViewPinnedPosts', () => {
+describe("components/ChannelHeaderDropdown/MenuItem.ViewPinnedPosts", () => {
     const baseProps = {
         channel: {
-            id: 'channel_id',
+            id: "channel_id",
         },
         hasPinnedPosts: true,
         actions: {
@@ -20,29 +20,35 @@ describe('components/ChannelHeaderDropdown/MenuItem.ViewPinnedPosts', () => {
         },
     };
 
-    it('should match snapshot', () => {
-        const wrapper = shallow<ViewPinnedPosts>(<ViewPinnedPosts {...baseProps}/>);
+    it("should match snapshot", () => {
+        const wrapper = shallow<ViewPinnedPosts>(
+            <ViewPinnedPosts {...baseProps} />,
+        );
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should runs closeRightHandSide function if has any pinned posts', () => {
-        const wrapper = shallow<ViewPinnedPosts>(<ViewPinnedPosts {...baseProps}/>);
+    it("should runs closeRightHandSide function if has any pinned posts", () => {
+        const wrapper = shallow<ViewPinnedPosts>(
+            <ViewPinnedPosts {...baseProps} />,
+        );
 
-        wrapper.find(Menu.ItemAction).simulate('click', {
+        wrapper.find(Menu.ItemAction).simulate("click", {
             preventDefault: jest.fn(),
         });
 
         expect(baseProps.actions.closeRightHandSide).toHaveBeenCalled();
     });
 
-    it('should runs showPinnedPosts function if has not pinned posts', () => {
+    it("should runs showPinnedPosts function if has not pinned posts", () => {
         const props = {
             ...baseProps,
             hasPinnedPosts: false,
         };
-        const wrapper = shallow<ViewPinnedPosts>(<ViewPinnedPosts {...props}/>);
+        const wrapper = shallow<ViewPinnedPosts>(
+            <ViewPinnedPosts {...props} />,
+        );
 
-        wrapper.find(Menu.ItemAction).simulate('click', {
+        wrapper.find(Menu.ItemAction).simulate("click", {
             preventDefault: jest.fn(),
         });
 

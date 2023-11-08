@@ -1,34 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {useDispatch} from 'react-redux';
+import React from "react";
+import { useDispatch } from "react-redux";
 
-import {openModal} from 'actions/views/modals';
+import { openModal } from "actions/views/modals";
 
-import {ModalIdentifiers} from 'utils/constants';
+import { ModalIdentifiers } from "utils/constants";
 
-import NotificationFromMembersModal from './notification_from_members_modal';
+import NotificationFromMembersModal from "./notification_from_members_modal";
 
 type Props = {
     postId: string;
     text: string;
     userIds: string[];
     messageMetadata: Record<string, string>;
-}
+};
 
 function AtSumOfMembersMention(props: Props) {
     const dispatch = useDispatch();
     const handleOpen = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         e.preventDefault();
-        dispatch(openModal({
-            modalId: ModalIdentifiers.SUM_OF_MEMBERS_MODAL,
-            dialogType: NotificationFromMembersModal,
-            dialogProps: {
-                userIds: props.userIds,
-                feature: props.messageMetadata.requestedFeature,
-            },
-        }));
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.SUM_OF_MEMBERS_MODAL,
+                dialogType: NotificationFromMembersModal,
+                dialogProps: {
+                    userIds: props.userIds,
+                    feature: props.messageMetadata.requestedFeature,
+                },
+            }),
+        );
     };
 
     return (
@@ -40,7 +42,6 @@ function AtSumOfMembersMention(props: Props) {
                 {props.text}
             </a>
         </>
-
     );
 }
 

@@ -1,19 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
+import type {
+    GroupSearchOpts,
+    MixedUnlinkedGroupRedux,
+} from "@mattermost/types/groups";
 
-import GroupRow from 'components/admin_console/group_settings/group_row';
-import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
-import SearchIcon from 'components/widgets/icons/search_icon';
+import GroupRow from "components/admin_console/group_settings/group_row";
+import CheckboxCheckedIcon from "components/widgets/icons/checkbox_checked_icon";
+import NextIcon from "components/widgets/icons/fa_next_icon";
+import PreviousIcon from "components/widgets/icons/fa_previous_icon";
+import SearchIcon from "components/widgets/icons/search_icon";
 
-import {Constants} from 'utils/constants';
-import * as Utils from 'utils/utils';
+import { Constants } from "utils/constants";
+import * as Utils from "utils/utils";
 
 const LDAP_GROUPS_PAGE_SIZE = 200;
 
@@ -22,28 +25,32 @@ type Props = {
     total: number;
     readOnly?: boolean;
     actions: {
-        getLdapGroups: (page?: number, perPage?: number, opts?: GroupSearchOpts) => Promise<any>;
+        getLdapGroups: (
+            page?: number,
+            perPage?: number,
+            opts?: GroupSearchOpts,
+        ) => Promise<any>;
         link: (key: string) => Promise<any>;
         unlink: (key: string) => Promise<any>;
     };
-}
+};
 
 type FilterOption = {
     is_configured?: boolean;
     is_linked?: boolean;
-}
+};
 
 type FilterConfig = {
     filter: string;
     option: FilterOption;
-}
+};
 
 type FilterSearchMap = {
     filterIsConfigured: FilterConfig;
     filterIsUnconfigured: FilterConfig;
     filterIsLinked: FilterConfig;
     filterIsUnlinked: FilterConfig;
-}
+};
 
 type State = {
     checked?: any;
@@ -56,15 +63,21 @@ type State = {
     filterIsUnconfigured?: boolean;
     filterIsLinked?: boolean;
     filterIsUnlinked?: boolean;
-}
+};
 
 type FilterUpdates = [string, boolean];
 
 const FILTER_STATE_SEARCH_KEY_MAPPING: FilterSearchMap = {
-    filterIsConfigured: {filter: 'is:configured', option: {is_configured: true}},
-    filterIsUnconfigured: {filter: 'is:notconfigured', option: {is_configured: false}},
-    filterIsLinked: {filter: 'is:linked', option: {is_linked: true}},
-    filterIsUnlinked: {filter: 'is:notlinked', option: {is_linked: false}},
+    filterIsConfigured: {
+        filter: "is:configured",
+        option: { is_configured: true },
+    },
+    filterIsUnconfigured: {
+        filter: "is:notconfigured",
+        option: { is_configured: false },
+    },
+    filterIsLinked: { filter: "is:linked", option: { is_linked: true } },
+    filterIsUnlinked: { filter: "is:notlinked", option: { is_linked: false } },
 };
 
 export default class GroupsList extends React.PureComponent<Props, State> {
@@ -80,7 +93,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
             loading: true,
             page: 0,
             showFilters: false,
-            searchString: '',
+            searchString: "",
             filterIsConfigured: false,
             filterIsUnconfigured: false,
             filterIsLinked: false,
@@ -89,17 +102,19 @@ export default class GroupsList extends React.PureComponent<Props, State> {
     }
 
     public closeFilters = () => {
-        this.setState({showFilters: false});
+        this.setState({ showFilters: false });
     };
 
     public componentDidMount() {
-        this.props.actions.getLdapGroups(this.state.page, LDAP_GROUPS_PAGE_SIZE).then(this.handleGetGroupsResponse);
+        this.props.actions
+            .getLdapGroups(this.state.page, LDAP_GROUPS_PAGE_SIZE)
+            .then(this.handleGetGroupsResponse);
     }
 
     public async previousPage(e: any): Promise<void> {
         e.preventDefault();
         const page = this.state.page < 1 ? 0 : this.state.page - 1;
-        this.setState({checked: {}, page, loading: true}, () => {
+        this.setState({ checked: {}, page, loading: true }, () => {
             this.searchGroups(page);
         });
     }
@@ -107,20 +122,23 @@ export default class GroupsList extends React.PureComponent<Props, State> {
     public async nextPage(e: any): Promise<void> {
         e.preventDefault();
         const page = this.state.page + 1;
-        this.setState({checked: {}, page, loading: true}, () => {
+        this.setState({ checked: {}, page, loading: true }, () => {
             this.searchGroups(page);
         });
     }
 
     public onCheckToggle(key: string) {
-        const newChecked = {...this.state.checked};
+        const newChecked = { ...this.state.checked };
         newChecked[key] = !newChecked[key];
-        this.setState({checked: newChecked});
+        this.setState({ checked: newChecked });
     }
 
     public linkSelectedGroups() {
         for (const group of this.props.groups) {
-            if (this.state.checked[group.primary_key] && !group.mattermost_group_id) {
+            if (
+                this.state.checked[group.primary_key] &&
+                !group.mattermost_group_id
+            ) {
                 this.props.actions.link(group.primary_key);
             }
         }
@@ -128,7 +146,10 @@ export default class GroupsList extends React.PureComponent<Props, State> {
 
     public unlinkSelectedGroups() {
         for (const group of this.props.groups) {
-            if (this.state.checked[group.primary_key] && group.mattermost_group_id) {
+            if (
+                this.state.checked[group.primary_key] &&
+                group.mattermost_group_id
+            ) {
                 this.props.actions.unlink(group.primary_key);
             }
         }
@@ -139,64 +160,64 @@ export default class GroupsList extends React.PureComponent<Props, State> {
         for (const group of this.props.groups) {
             if (this.state.checked[group.primary_key]) {
                 if (!group.mattermost_group_id) {
-                    return 'link';
+                    return "link";
                 }
                 hasSelectedLinked = true;
             }
         }
         if (hasSelectedLinked) {
-            return 'unlink';
+            return "unlink";
         }
 
-        return 'disabled';
+        return "disabled";
     }
 
     public renderSelectionActionButton(): JSX.Element {
         switch (this.selectionActionButtonType()) {
-        case 'link':
-            return (
-                <button
-                    type='button'
-                    className='btn btn-primary'
-                    onClick={() => this.linkSelectedGroups()}
-                    disabled={this.props.readOnly}
-                >
-                    <i className='icon fa fa-link'/>
-                    <FormattedMessage
-                        id='admin.group_settings.groups_list.link_selected'
-                        defaultMessage='Link Selected Groups'
-                    />
-                </button>
-            );
-        case 'unlink':
-            return (
-                <button
-                    type='button'
-                    className='btn btn-primary'
-                    onClick={() => this.unlinkSelectedGroups()}
-                    disabled={this.props.readOnly}
-                >
-                    <i className='icon fa fa-unlink'/>
-                    <FormattedMessage
-                        id='admin.group_settings.groups_list.unlink_selected'
-                        defaultMessage='Unlink Selected Groups'
-                    />
-                </button>
-            );
-        default:
-            return (
-                <button
-                    type='button'
-                    className='btn btn-primary'
-                    disabled={this.props.readOnly}
-                >
-                    <i className='icon icon-link-variant'/>
-                    <FormattedMessage
-                        id='admin.group_settings.groups_list.link_selected'
-                        defaultMessage='Link Selected Groups'
-                    />
-                </button>
-            );
+            case "link":
+                return (
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => this.linkSelectedGroups()}
+                        disabled={this.props.readOnly}
+                    >
+                        <i className="icon fa fa-link" />
+                        <FormattedMessage
+                            id="admin.group_settings.groups_list.link_selected"
+                            defaultMessage="Link Selected Groups"
+                        />
+                    </button>
+                );
+            case "unlink":
+                return (
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => this.unlinkSelectedGroups()}
+                        disabled={this.props.readOnly}
+                    >
+                        <i className="icon fa fa-unlink" />
+                        <FormattedMessage
+                            id="admin.group_settings.groups_list.unlink_selected"
+                            defaultMessage="Unlink Selected Groups"
+                        />
+                    </button>
+                );
+            default:
+                return (
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        disabled={this.props.readOnly}
+                    >
+                        <i className="icon icon-link-variant" />
+                        <FormattedMessage
+                            id="admin.group_settings.groups_list.link_selected"
+                            defaultMessage="Link Selected Groups"
+                        />
+                    </button>
+                );
         }
     }
     renderHeader = () => {
@@ -204,21 +225,21 @@ export default class GroupsList extends React.PureComponent<Props, State> {
             return null;
         }
         return (
-            <div className='groups-list--header'>
-                <div className='group-name'>
+            <div className="groups-list--header">
+                <div className="group-name">
                     <FormattedMessage
-                        id='admin.group_settings.groups_list.nameHeader'
-                        defaultMessage='Name'
+                        id="admin.group_settings.groups_list.nameHeader"
+                        defaultMessage="Name"
                     />
                 </div>
-                <div className='group-content'>
-                    <div className='group-description'>
+                <div className="group-content">
+                    <div className="group-description">
                         <FormattedMessage
-                            id='admin.group_settings.groups_list.mappingHeader'
-                            defaultMessage='Mattermost Linking'
+                            id="admin.group_settings.groups_list.mappingHeader"
+                            defaultMessage="Mattermost Linking"
                         />
                     </div>
-                    <div className='group-actions'/>
+                    <div className="group-actions" />
                 </div>
             </div>
         );
@@ -227,27 +248,27 @@ export default class GroupsList extends React.PureComponent<Props, State> {
     public renderRows(): JSX.Element | JSX.Element[] {
         if (this.state.loading) {
             return (
-                <div className='groups-list-loading'>
-                    <i className='fa fa-spinner fa-pulse fa-2x'/>
+                <div className="groups-list-loading">
+                    <i className="fa fa-spinner fa-pulse fa-2x" />
                 </div>
             );
         }
         if (this.state.fetchError) {
             return (
-                <div className='groups-list-empty'>
+                <div className="groups-list-empty">
                     <FormattedMessage
-                        id='admin.group_settings.groups_list.groups_list_error'
-                        defaultMessage='Failed to retrieve LDAP groups. Please check your logs for details.'
+                        id="admin.group_settings.groups_list.groups_list_error"
+                        defaultMessage="Failed to retrieve LDAP groups. Please check your logs for details."
                     />
                 </div>
             );
         }
         if (this.props.groups.length === 0) {
             return (
-                <div className='groups-list-empty'>
+                <div className="groups-list-empty">
                     <FormattedMessage
-                        id='admin.group_settings.groups_list.no_groups_found'
-                        defaultMessage='No groups found'
+                        id="admin.group_settings.groups_list.no_groups_found"
+                        defaultMessage="No groups found"
                     />
                 </div>
             );
@@ -274,27 +295,29 @@ export default class GroupsList extends React.PureComponent<Props, State> {
     }
 
     public regex(str: string): RegExp {
-        return new RegExp(`(${str})`, 'i');
+        return new RegExp(`(${str})`, "i");
     }
 
     public searchGroups(page?: number) {
-        let {searchString} = this.state;
+        let { searchString } = this.state;
 
-        const newState = {...this.state};
+        const newState = { ...this.state };
 
         let q = searchString;
-        let opts = {q: ''};
+        let opts = { q: "" };
 
-        Object.entries(FILTER_STATE_SEARCH_KEY_MAPPING).forEach(([key, value]) => {
-            const re = this.regex(value.filter);
-            if (re.test(searchString)) {
-                (newState as any)[key] = true;
-                q = q.replace(re, '');
-                opts = Object.assign(opts, value.option);
-            } else if ((this.state as any)[key]) {
-                searchString += ' ' + value.filter;
-            }
-        });
+        Object.entries(FILTER_STATE_SEARCH_KEY_MAPPING).forEach(
+            ([key, value]) => {
+                const re = this.regex(value.filter);
+                if (re.test(searchString)) {
+                    (newState as any)[key] = true;
+                    q = q.replace(re, "");
+                    opts = Object.assign(opts, value.option);
+                } else if ((this.state as any)[key]) {
+                    searchString += " " + value.filter;
+                }
+            },
+        );
 
         opts.q = q.trim();
 
@@ -304,126 +327,179 @@ export default class GroupsList extends React.PureComponent<Props, State> {
         newState.showFilters = false;
         this.setState(newState);
 
-        this.props.actions.getLdapGroups(page, LDAP_GROUPS_PAGE_SIZE, opts).then(this.handleGetGroupsResponse);
+        this.props.actions
+            .getLdapGroups(page, LDAP_GROUPS_PAGE_SIZE, opts)
+            .then(this.handleGetGroupsResponse);
     }
 
     public handleGroupSearchKeyUp(e: any) {
-        const {key} = e;
-        const {searchString} = this.state;
+        const { key } = e;
+        const { searchString } = this.state;
         if (key === Constants.KeyCodes.ENTER[0]) {
-            this.setState({page: 0});
+            this.setState({ page: 0 });
             this.searchGroups();
         }
         const newState = {};
-        Object.entries(FILTER_STATE_SEARCH_KEY_MAPPING).forEach(([k, value]) => {
-            if (!this.regex(value.filter).test(searchString)) {
-                (newState as any)[k] = false;
-            }
-        });
+        Object.entries(FILTER_STATE_SEARCH_KEY_MAPPING).forEach(
+            ([k, value]) => {
+                if (!this.regex(value.filter).test(searchString)) {
+                    (newState as any)[k] = false;
+                }
+            },
+        );
         this.setState(newState);
     }
 
-    public newSearchString(searchString: string, stateKey: string, checked: boolean): string {
+    public newSearchString(
+        searchString: string,
+        stateKey: string,
+        checked: boolean,
+    ): string {
         let newSearchString = searchString;
-        const {filter} = (FILTER_STATE_SEARCH_KEY_MAPPING as any)[stateKey];
+        const { filter } = (FILTER_STATE_SEARCH_KEY_MAPPING as any)[stateKey];
         const re = this.regex(filter);
         const stringFilterPresent = re.test(searchString);
 
         if (stringFilterPresent && !checked) {
-            newSearchString = searchString.replace(re, '').trim();
+            newSearchString = searchString.replace(re, "").trim();
         }
 
         if (!stringFilterPresent && checked) {
-            newSearchString += ' ' + filter;
+            newSearchString += " " + filter;
         }
 
-        return newSearchString.replace(/\s{2,}/g, ' ');
+        return newSearchString.replace(/\s{2,}/g, " ");
     }
 
     public handleFilterCheck(updates: FilterUpdates[]) {
-        let {searchString} = this.state;
+        let { searchString } = this.state;
         updates.forEach((item: FilterUpdates) => {
             searchString = this.newSearchString(searchString, item[0], item[1]);
-            this.setState({[item[0]]: item[1]} as any);
+            this.setState({ [item[0]]: item[1] } as any);
         });
-        this.setState({searchString});
+        this.setState({ searchString });
     }
 
     public renderSearchFilters(): JSX.Element {
         return (
             <div
-                id='group-filters'
-                className='group-search-filters'
+                id="group-filters"
+                className="group-search-filters"
                 onClick={(e) => {
                     e.nativeEvent.stopImmediatePropagation();
                 }}
             >
-                <div className='filter-row'>
+                <div className="filter-row">
                     <span
-                        className={'filter-check ' + (this.state.filterIsLinked ? 'checked' : '')}
-                        onClick={() => this.handleFilterCheck([['filterIsLinked', !this.state.filterIsLinked], ['filterIsUnlinked', false]])}
+                        className={
+                            "filter-check " +
+                            (this.state.filterIsLinked ? "checked" : "")
+                        }
+                        onClick={() =>
+                            this.handleFilterCheck([
+                                ["filterIsLinked", !this.state.filterIsLinked],
+                                ["filterIsUnlinked", false],
+                            ])
+                        }
                     >
-                        {this.state.filterIsLinked && <CheckboxCheckedIcon/>}
+                        {this.state.filterIsLinked && <CheckboxCheckedIcon />}
                     </span>
                     <span>
                         <FormattedMessage
-                            id='admin.group_settings.filters.isLinked'
-                            defaultMessage='Is Linked'
+                            id="admin.group_settings.filters.isLinked"
+                            defaultMessage="Is Linked"
                         />
                     </span>
                 </div>
-                <div className='filter-row'>
+                <div className="filter-row">
                     <span
-                        className={'filter-check ' + (this.state.filterIsUnlinked ? 'checked' : '')}
-                        onClick={() => this.handleFilterCheck([['filterIsUnlinked', !this.state.filterIsUnlinked], ['filterIsLinked', false]])}
+                        className={
+                            "filter-check " +
+                            (this.state.filterIsUnlinked ? "checked" : "")
+                        }
+                        onClick={() =>
+                            this.handleFilterCheck([
+                                [
+                                    "filterIsUnlinked",
+                                    !this.state.filterIsUnlinked,
+                                ],
+                                ["filterIsLinked", false],
+                            ])
+                        }
                     >
-                        {this.state.filterIsUnlinked && <CheckboxCheckedIcon/>}
+                        {this.state.filterIsUnlinked && <CheckboxCheckedIcon />}
                     </span>
                     <span>
                         <FormattedMessage
-                            id='admin.group_settings.filters.isUnlinked'
-                            defaultMessage='Is Not Linked'
+                            id="admin.group_settings.filters.isUnlinked"
+                            defaultMessage="Is Not Linked"
                         />
                     </span>
                 </div>
-                <div className='filter-row'>
+                <div className="filter-row">
                     <span
-                        className={'filter-check ' + (this.state.filterIsConfigured ? 'checked' : '')}
-                        onClick={() => this.handleFilterCheck([['filterIsConfigured', !this.state.filterIsConfigured], ['filterIsUnconfigured', false]])}
+                        className={
+                            "filter-check " +
+                            (this.state.filterIsConfigured ? "checked" : "")
+                        }
+                        onClick={() =>
+                            this.handleFilterCheck([
+                                [
+                                    "filterIsConfigured",
+                                    !this.state.filterIsConfigured,
+                                ],
+                                ["filterIsUnconfigured", false],
+                            ])
+                        }
                     >
-                        {this.state.filterIsConfigured && <CheckboxCheckedIcon/>}
+                        {this.state.filterIsConfigured && (
+                            <CheckboxCheckedIcon />
+                        )}
                     </span>
                     <span>
                         <FormattedMessage
-                            id='admin.group_settings.filters.isConfigured'
-                            defaultMessage='Is Configured'
+                            id="admin.group_settings.filters.isConfigured"
+                            defaultMessage="Is Configured"
                         />
                     </span>
                 </div>
-                <div className='filter-row'>
+                <div className="filter-row">
                     <span
-                        className={'filter-check ' + (this.state.filterIsUnconfigured ? 'checked' : '')}
-                        onClick={() => this.handleFilterCheck([['filterIsUnconfigured', !this.state.filterIsUnconfigured], ['filterIsConfigured', false]])}
+                        className={
+                            "filter-check " +
+                            (this.state.filterIsUnconfigured ? "checked" : "")
+                        }
+                        onClick={() =>
+                            this.handleFilterCheck([
+                                [
+                                    "filterIsUnconfigured",
+                                    !this.state.filterIsUnconfigured,
+                                ],
+                                ["filterIsConfigured", false],
+                            ])
+                        }
                     >
-                        {this.state.filterIsUnconfigured && <CheckboxCheckedIcon/>}
+                        {this.state.filterIsUnconfigured && (
+                            <CheckboxCheckedIcon />
+                        )}
                     </span>
                     <span>
                         <FormattedMessage
-                            id='admin.group_settings.filters.isUnconfigured'
-                            defaultMessage='Is Not Configured'
+                            id="admin.group_settings.filters.isUnconfigured"
+                            defaultMessage="Is Not Configured"
                         />
                     </span>
                 </div>
                 <a
                     onClick={() => {
-                        this.setState({page: 0});
+                        this.setState({ page: 0 });
                         this.searchGroups(0);
                     }}
-                    className='btn btn-primary search-groups-btn'
+                    className="btn btn-primary search-groups-btn"
                 >
                     <FormattedMessage
-                        id='search_bar.search'
-                        defaultMessage='Search'
+                        id="search_bar.search"
+                        defaultMessage="Search"
                     />
                 </a>
             </div>
@@ -433,7 +509,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
     resetFiltersAndSearch = () => {
         const newState: Partial<State> = {
             showFilters: false,
-            searchString: '',
+            searchString: "",
             loading: true,
             page: 0,
             filterIsConfigured: false,
@@ -442,21 +518,24 @@ export default class GroupsList extends React.PureComponent<Props, State> {
             filterIsUnlinked: false,
         };
         this.setState(newState as any);
-        this.props.actions.getLdapGroups(this.state.page, LDAP_GROUPS_PAGE_SIZE, {q: ''}).then(this.handleGetGroupsResponse);
+        this.props.actions
+            .getLdapGroups(this.state.page, LDAP_GROUPS_PAGE_SIZE, { q: "" })
+            .then(this.handleGetGroupsResponse);
     };
 
     handleGetGroupsResponse = (response: any) => {
         if (response?.error) {
-            this.setState({fetchError: true});
+            this.setState({ fetchError: true });
         } else {
-            this.setState({fetchError: false});
+            this.setState({ fetchError: false });
         }
-        this.setState({loading: false});
+        this.setState({ loading: false });
     };
 
     public render(): JSX.Element {
-        const startCount = (this.state.page * LDAP_GROUPS_PAGE_SIZE) + 1;
-        let endCount = (this.state.page * LDAP_GROUPS_PAGE_SIZE) + LDAP_GROUPS_PAGE_SIZE;
+        const startCount = this.state.page * LDAP_GROUPS_PAGE_SIZE + 1;
+        let endCount =
+            this.state.page * LDAP_GROUPS_PAGE_SIZE + LDAP_GROUPS_PAGE_SIZE;
         const total = this.props.total;
         if (endCount > total) {
             endCount = total;
@@ -464,50 +543,62 @@ export default class GroupsList extends React.PureComponent<Props, State> {
         const lastPage = endCount === total;
         const firstPage = this.state.page === 0;
         return (
-            <div className='groups-list'>
-                <div className='groups-list--global-actions'>
-                    <div className='group-list-search'>
+            <div className="groups-list">
+                <div className="groups-list--global-actions">
+                    <div className="group-list-search">
                         <input
-                            type='text'
-                            placeholder={Utils.localizeMessage('search_bar.search', 'Search')}
+                            type="text"
+                            placeholder={Utils.localizeMessage(
+                                "search_bar.search",
+                                "Search",
+                            )}
                             onKeyUp={(e: any) => this.handleGroupSearchKeyUp(e)}
-                            onChange={(e) => this.setState({searchString: e.target.value})}
+                            onChange={(e) =>
+                                this.setState({ searchString: e.target.value })
+                            }
                             value={this.state.searchString}
                         />
                         <SearchIcon
-                            className='search__icon'
-                            aria-hidden='true'
+                            className="search__icon"
+                            aria-hidden="true"
                         />
                         <i
-                            className={'fa fa-times-circle group-filter-action ' + (this.state.searchString.length ? '' : 'hidden')}
+                            className={
+                                "fa fa-times-circle group-filter-action " +
+                                (this.state.searchString.length ? "" : "hidden")
+                            }
                             onClick={() => this.resetFiltersAndSearch()}
                         />
                         <i
-                            className={'fa fa-caret-down group-filter-action ' + (this.state.showFilters ? 'hidden' : '')}
+                            className={
+                                "fa fa-caret-down group-filter-action " +
+                                (this.state.showFilters ? "hidden" : "")
+                            }
                             onClick={() => {
-                                document.addEventListener('click', this.closeFilters, {once: true});
-                                this.setState({showFilters: true});
+                                document.addEventListener(
+                                    "click",
+                                    this.closeFilters,
+                                    { once: true },
+                                );
+                                this.setState({ showFilters: true });
                             }}
                         />
                     </div>
                     {this.state.showFilters && this.renderSearchFilters()}
-                    <div className='group-list-link-unlink'>
+                    <div className="group-list-link-unlink">
                         {this.renderSelectionActionButton()}
                     </div>
                 </div>
                 {this.renderHeader()}
-                <div
-                    id='groups-list--body'
-                    className='groups-list--body'
-                >
+                <div id="groups-list--body" className="groups-list--body">
                     {this.renderRows()}
                 </div>
-                {total > 0 &&
-                    <div className='groups-list--footer'>
-                        <div className='counter'>
+                {total > 0 && (
+                    <div className="groups-list--footer">
+                        <div className="counter">
                             <FormattedMessage
-                                id='admin.group_settings.groups_list.paginatorCount'
-                                defaultMessage='{startCount, number} - {endCount, number} of {total, number}'
+                                id="admin.group_settings.groups_list.paginatorCount"
+                                defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
                                 values={{
                                     startCount,
                                     endCount,
@@ -516,25 +607,30 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                             />
                         </div>
                         <button
-                            type='button'
-                            className={'btn btn-tertiary prev ' + (firstPage ? 'disabled' : '')}
+                            type="button"
+                            className={
+                                "btn btn-tertiary prev " +
+                                (firstPage ? "disabled" : "")
+                            }
                             onClick={(e: any) => this.previousPage(e)}
                             disabled={firstPage}
                         >
-                            <PreviousIcon/>
+                            <PreviousIcon />
                         </button>
                         <button
-                            type='button'
-                            className={'btn btn-tertiary next ' + (lastPage ? 'disabled' : '')}
+                            type="button"
+                            className={
+                                "btn btn-tertiary next " +
+                                (lastPage ? "disabled" : "")
+                            }
                             onClick={(e: any) => this.nextPage(e)}
                             disabled={lastPage}
                         >
-                            <NextIcon/>
+                            <NextIcon />
                         </button>
                     </div>
-                }
+                )}
             </div>
         );
     }
 }
-

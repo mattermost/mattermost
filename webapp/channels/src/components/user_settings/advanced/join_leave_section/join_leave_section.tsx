@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ReactNode, RefObject} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import type { ReactNode, RefObject } from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type { PreferenceType } from "@mattermost/types/preferences";
 
-import {Preferences} from 'mattermost-redux/constants';
+import { Preferences } from "mattermost-redux/constants";
 
-import SettingItemMax from 'components/setting_item_max';
-import SettingItemMin from 'components/setting_item_min';
-import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+import SettingItemMax from "components/setting_item_max";
+import SettingItemMin from "components/setting_item_min";
+import type SettingItemMinComponent from "components/setting_item_min/setting_item_min";
 
-import {AdvancedSections} from 'utils/constants';
-import {a11yFocus} from 'utils/utils';
+import { AdvancedSections } from "utils/constants";
+import { a11yFocus } from "utils/utils";
 
 type Props = {
     active: boolean;
@@ -24,17 +24,23 @@ type Props = {
     onUpdateSection: (section?: string) => void;
     renderOnOffLabel: (label: string) => ReactNode;
     actions: {
-        savePreferences: (userId: string, preferences: PreferenceType[]) => void;
+        savePreferences: (
+            userId: string,
+            preferences: PreferenceType[],
+        ) => void;
     };
-}
+};
 
 type State = {
     joinLeaveState?: string;
     isSaving?: boolean;
     serverError?: string;
-}
+};
 
-export default class JoinLeaveSection extends React.PureComponent<Props, State> {
+export default class JoinLeaveSection extends React.PureComponent<
+    Props,
+    State
+> {
     minRef: RefObject<SettingItemMinComponent>;
 
     constructor(props: Props) {
@@ -52,7 +58,11 @@ export default class JoinLeaveSection extends React.PureComponent<Props, State> 
     }
 
     componentDidUpdate(prevProps: Props) {
-        if (prevProps.active && !this.props.active && this.props.areAllSectionsInactive) {
+        if (
+            prevProps.active &&
+            !this.props.active &&
+            this.props.areAllSectionsInactive
+        ) {
             this.focusEditButton();
         }
     }
@@ -60,82 +70,87 @@ export default class JoinLeaveSection extends React.PureComponent<Props, State> 
     public handleOnChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const value = e.currentTarget.value;
 
-        this.setState({joinLeaveState: value});
+        this.setState({ joinLeaveState: value });
         a11yFocus(e.currentTarget);
     };
 
     public handleUpdateSection = (section?: string): void => {
         if (!section) {
-            this.setState({joinLeaveState: this.props.joinLeave});
+            this.setState({ joinLeaveState: this.props.joinLeave });
         }
 
         this.props.onUpdateSection(section);
     };
 
     public handleSubmit = (): void => {
-        const {actions, currentUserId, onUpdateSection} = this.props;
-        const joinLeavePreference = {category: Preferences.CATEGORY_ADVANCED_SETTINGS, user_id: currentUserId, name: Preferences.ADVANCED_FILTER_JOIN_LEAVE, value: this.state.joinLeaveState};
+        const { actions, currentUserId, onUpdateSection } = this.props;
+        const joinLeavePreference = {
+            category: Preferences.CATEGORY_ADVANCED_SETTINGS,
+            user_id: currentUserId,
+            name: Preferences.ADVANCED_FILTER_JOIN_LEAVE,
+            value: this.state.joinLeaveState,
+        };
         actions.savePreferences(currentUserId, [joinLeavePreference]);
 
         onUpdateSection();
     };
 
     public render(): React.ReactNode {
-        const {joinLeaveState} = this.state;
+        const { joinLeaveState } = this.state;
         if (this.props.active) {
             return (
                 <SettingItemMax
                     title={
                         <FormattedMessage
-                            id='user.settings.advance.joinLeaveTitle'
-                            defaultMessage='Enable Join/Leave Messages'
+                            id="user.settings.advance.joinLeaveTitle"
+                            defaultMessage="Enable Join/Leave Messages"
                         />
                     }
                     inputs={[
-                        <fieldset key='joinLeaveSetting'>
-                            <legend className='form-legend hidden-label'>
+                        <fieldset key="joinLeaveSetting">
+                            <legend className="form-legend hidden-label">
                                 <FormattedMessage
-                                    id='user.settings.advance.joinLeaveTitle'
-                                    defaultMessage='Enable Join/Leave Messages'
+                                    id="user.settings.advance.joinLeaveTitle"
+                                    defaultMessage="Enable Join/Leave Messages"
                                 />
                             </legend>
-                            <div className='radio'>
+                            <div className="radio">
                                 <label>
                                     <input
-                                        id='joinLeaveOn'
-                                        type='radio'
-                                        value={'true'}
+                                        id="joinLeaveOn"
+                                        type="radio"
+                                        value={"true"}
                                         name={AdvancedSections.JOIN_LEAVE}
-                                        checked={joinLeaveState === 'true'}
+                                        checked={joinLeaveState === "true"}
                                         onChange={this.handleOnChange}
                                     />
                                     <FormattedMessage
-                                        id='user.settings.advance.on'
-                                        defaultMessage='On'
+                                        id="user.settings.advance.on"
+                                        defaultMessage="On"
                                     />
                                 </label>
-                                <br/>
+                                <br />
                             </div>
-                            <div className='radio'>
+                            <div className="radio">
                                 <label>
                                     <input
-                                        id='joinLeaveOff'
-                                        type='radio'
-                                        value={'false'}
+                                        id="joinLeaveOff"
+                                        type="radio"
+                                        value={"false"}
                                         name={AdvancedSections.JOIN_LEAVE}
-                                        checked={joinLeaveState === 'false'}
+                                        checked={joinLeaveState === "false"}
                                         onChange={this.handleOnChange}
                                     />
                                     <FormattedMessage
-                                        id='user.settings.advance.off'
-                                        defaultMessage='Off'
+                                        id="user.settings.advance.off"
+                                        defaultMessage="Off"
                                     />
                                 </label>
-                                <br/>
+                                <br />
                             </div>
-                            <div className='mt-5'>
+                            <div className="mt-5">
                                 <FormattedMessage
-                                    id='user.settings.advance.joinLeaveDesc'
+                                    id="user.settings.advance.joinLeaveDesc"
                                     defaultMessage='When "On", System Messages saying a user has joined or left a channel will be visible. When "Off", the System Messages about joining or leaving a channel will be hidden. A message will still show up when you are added to a channel, so you can receive a notification.'
                                 />
                             </div>
@@ -154,8 +169,8 @@ export default class JoinLeaveSection extends React.PureComponent<Props, State> 
             <SettingItemMin
                 title={
                     <FormattedMessage
-                        id='user.settings.advance.joinLeaveTitle'
-                        defaultMessage='Enable Join/Leave Messages'
+                        id="user.settings.advance.joinLeaveTitle"
+                        defaultMessage="Enable Join/Leave Messages"
                     />
                 }
                 describe={this.props.renderOnOffLabel(joinLeaveState!)}

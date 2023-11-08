@@ -5,13 +5,17 @@
 // If the input contains dimensions, the returned href will have them removed and they will be returned as strings,
 // otherwise, the returned dimensions will both be the empty string. If only one dimension is provided, the other will
 // be the string "auto".
-export function parseImageDimensions(input: string): {href: string; height: string; width: string} {
-    const match = (/ =(\d*)(?:x(\d+))?$/).exec(input);
+export function parseImageDimensions(input: string): {
+    href: string;
+    height: string;
+    width: string;
+} {
+    const match = / =(\d*)(?:x(\d+))?$/.exec(input);
     if (!match) {
         return {
             href: input,
-            height: '',
-            width: '',
+            height: "",
+            width: "",
         };
     }
 
@@ -20,15 +24,15 @@ export function parseImageDimensions(input: string): {href: string; height: stri
     if (!width && !height) {
         return {
             href: input,
-            height: '',
-            width: '',
+            height: "",
+            width: "",
         };
     }
 
     if (width && !height) {
-        height = 'auto';
+        height = "auto";
     } else if (height && !width) {
-        width = 'auto';
+        width = "auto";
     }
 
     return {

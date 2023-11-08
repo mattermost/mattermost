@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
-import {Link} from 'react-router-dom';
+import React, { useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
+import { Link } from "react-router-dom";
 
-import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import CheckboxCheckedIcon from "components/widgets/icons/checkbox_checked_icon";
+import LoadingSpinner from "components/widgets/loading/loading_spinner";
 
 type Props = {
     checked: boolean;
@@ -21,11 +21,11 @@ type Props = {
         link: (group_id: string) => void;
         unlink: (group_id: string) => void;
     };
-}
+};
 
 const GroupRow = (props: Props) => {
     const [loading, setLoading] = useState(false);
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
 
     const onRowClick = () => {
         if (props.readOnly) {
@@ -63,24 +63,30 @@ const GroupRow = (props: Props) => {
         if (props.has_syncables) {
             return (
                 <Link
-                    to={'/admin_console/user_management/groups/' + props.mattermost_group_id}
+                    to={
+                        "/admin_console/user_management/groups/" +
+                        props.mattermost_group_id
+                    }
                     id={`${props.name}_edit`}
                 >
                     <FormattedMessage
-                        id='admin.group_settings.group_row.edit'
-                        defaultMessage='Edit'
+                        id="admin.group_settings.group_row.edit"
+                        defaultMessage="Edit"
                     />
                 </Link>
             );
         }
         return (
             <Link
-                to={'/admin_console/user_management/groups/' + props.mattermost_group_id}
+                to={
+                    "/admin_console/user_management/groups/" +
+                    props.mattermost_group_id
+                }
                 id={`${props.name}_configure`}
             >
                 <FormattedMessage
-                    id='admin.group_settings.group_row.configure'
-                    defaultMessage='Configure'
+                    id="admin.group_settings.group_row.configure"
+                    defaultMessage="Configure"
                 />
             </Link>
         );
@@ -89,9 +95,19 @@ const GroupRow = (props: Props) => {
     const renderLinked = () => {
         if (loading) {
             return (
-                <a href='#'>
+                <a href="#">
                     <LoadingSpinner
-                        text={props.mattermost_group_id ? formatMessage({id: 'admin.group_settings.group_row.unlinking', defaultMessage: 'Unlinking'}) : formatMessage({id: 'admin.group_settings.group_row.linking', defaultMessage: 'Linking'})}
+                        text={
+                            props.mattermost_group_id
+                                ? formatMessage({
+                                      id: "admin.group_settings.group_row.unlinking",
+                                      defaultMessage: "Unlinking",
+                                  })
+                                : formatMessage({
+                                      id: "admin.group_settings.group_row.linking",
+                                      defaultMessage: "Linking",
+                                  })
+                        }
                     />
                 </a>
             );
@@ -99,58 +115,50 @@ const GroupRow = (props: Props) => {
         if (props.mattermost_group_id) {
             if (props.failed) {
                 return (
-                    <a
-                        href='#'
-                        onClick={unlinkHandler}
-                        className='warning'
-                    >
-                        <i className='icon fa fa-exclamation-triangle'/>
+                    <a href="#" onClick={unlinkHandler} className="warning">
+                        <i className="icon fa fa-exclamation-triangle" />
                         <FormattedMessage
-                            id='admin.group_settings.group_row.unlink_failed'
-                            defaultMessage='Unlink failed'
+                            id="admin.group_settings.group_row.unlink_failed"
+                            defaultMessage="Unlink failed"
                         />
                     </a>
                 );
             }
             return (
                 <a
-                    href='#'
+                    href="#"
                     onClick={unlinkHandler}
-                    className={props.readOnly ? 'disabled' : ''}
+                    className={props.readOnly ? "disabled" : ""}
                 >
-                    <i className='icon fa fa-link'/>
+                    <i className="icon fa fa-link" />
                     <FormattedMessage
-                        id='admin.group_settings.group_row.linked'
-                        defaultMessage='Linked'
+                        id="admin.group_settings.group_row.linked"
+                        defaultMessage="Linked"
                     />
                 </a>
             );
         }
         if (props.failed) {
             return (
-                <a
-                    href='#'
-                    onClick={linkHandler}
-                    className='warning'
-                >
-                    <i className='icon fa fa-exclamation-triangle'/>
+                <a href="#" onClick={linkHandler} className="warning">
+                    <i className="icon fa fa-exclamation-triangle" />
                     <FormattedMessage
-                        id='admin.group_settings.group_row.link_failed'
-                        defaultMessage='Link failed'
+                        id="admin.group_settings.group_row.link_failed"
+                        defaultMessage="Link failed"
                     />
                 </a>
             );
         }
         return (
             <a
-                href='#'
+                href="#"
                 onClick={linkHandler}
-                className={props.readOnly ? 'disabled' : ''}
+                className={props.readOnly ? "disabled" : ""}
             >
-                <i className='icon fa fa-unlink'/>
+                <i className="icon fa fa-unlink" />
                 <FormattedMessage
-                    id='admin.group_settings.group_row.not_linked'
-                    defaultMessage='Not Linked'
+                    id="admin.group_settings.group_row.not_linked"
+                    defaultMessage="Not Linked"
                 />
             </a>
         );
@@ -159,27 +167,23 @@ const GroupRow = (props: Props) => {
     return (
         <div
             id={`${props.name}_group`}
-            className={'group ' + (props.checked ? 'checked' : '')}
+            className={"group " + (props.checked ? "checked" : "")}
             onClick={onRowClick}
         >
-            <div className='group-row'>
-                <div className='group-name'>
+            <div className="group-row">
+                <div className="group-name">
                     <div
-                        className={'group-check ' + (props.checked ? 'checked' : '')}
+                        className={
+                            "group-check " + (props.checked ? "checked" : "")
+                        }
                     >
-                        {props.checked && <CheckboxCheckedIcon/>}
+                        {props.checked && <CheckboxCheckedIcon />}
                     </div>
-                    <span>
-                        {props.name}
-                    </span>
+                    <span>{props.name}</span>
                 </div>
-                <div className='group-content'>
-                    <span className='group-description'>
-                        {renderLinked()}
-                    </span>
-                    <span className='group-actions'>
-                        {renderActions()}
-                    </span>
+                <div className="group-content">
+                    <span className="group-description">{renderLinked()}</span>
+                    <span className="group-actions">{renderActions()}</span>
                 </div>
             </div>
         </div>

@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import {Client4} from 'mattermost-redux/client';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
+import { Client4 } from "mattermost-redux/client";
+import { isGuest } from "mattermost-redux/utils/user_utils";
 
-import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-import ProfilePicture from 'components/profile_picture';
-import BotTag from 'components/widgets/tag/bot_tag';
-import GuestTag from 'components/widgets/tag/guest_tag';
+import CustomStatusEmoji from "components/custom_status/custom_status_emoji";
+import ProfilePicture from "components/profile_picture";
+import BotTag from "components/widgets/tag/bot_tag";
+import GuestTag from "components/widgets/tag/guest_tag";
 
-import {displayEntireNameForUser} from 'utils/utils';
+import { displayEntireNameForUser } from "utils/utils";
 
 type Props = {
     currentUserId: string;
@@ -23,7 +23,7 @@ type Props = {
 };
 
 export default function UserDetails(props: Props): JSX.Element {
-    const {currentUserId, option, status} = props;
+    const { currentUserId, option, status } = props;
     const {
         id,
         delete_at: deleteAt,
@@ -37,8 +37,8 @@ export default function UserDetails(props: Props): JSX.Element {
     if (option.id === currentUserId) {
         modalName = (
             <FormattedMessage
-                id='more_direct_channels.directchannel.you'
-                defaultMessage='{displayname} (you)'
+                id="more_direct_channels.directchannel.you"
+                defaultMessage="{displayname} (you)"
                 values={{
                     displayname: displayName,
                 }}
@@ -47,8 +47,8 @@ export default function UserDetails(props: Props): JSX.Element {
     } else if (option.delete_at) {
         modalName = (
             <FormattedMessage
-                id='more_direct_channels.directchannel.deactivated'
-                defaultMessage='{displayname} - Deactivated'
+                id="more_direct_channels.directchannel.deactivated"
+                defaultMessage="{displayname} - Deactivated"
                 values={{
                     displayname: displayName,
                 }}
@@ -61,26 +61,26 @@ export default function UserDetails(props: Props): JSX.Element {
             <ProfilePicture
                 src={Client4.getProfilePictureUrl(id, lastPictureUpdate)}
                 status={!deleteAt && !isBot ? status : undefined}
-                size='md'
+                size="md"
             />
-            <div className='more-modal__details'>
-                <div className='more-modal__name'>
+            <div className="more-modal__details">
+                <div className="more-modal__name">
                     {modalName}
-                    {isBot && <BotTag/>}
-                    {isGuest(option.roles) && <GuestTag/>}
+                    {isBot && <BotTag />}
+                    {isGuest(option.roles) && <GuestTag />}
                     <CustomStatusEmoji
                         userID={option.id}
                         showTooltip={true}
                         emojiSize={15}
                         spanStyle={{
-                            display: 'flex',
-                            flex: '0 0 auto',
-                            alignItems: 'center',
+                            display: "flex",
+                            flex: "0 0 auto",
+                            alignItems: "center",
                         }}
                     />
                 </div>
                 {!isBot && (
-                    <div className='more-modal__description'>
+                    <div className="more-modal__description">
                         {option.email}
                     </div>
                 )}

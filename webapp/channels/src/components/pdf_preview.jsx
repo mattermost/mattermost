@@ -1,30 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import debounce from 'lodash/debounce';
-import PropTypes from 'prop-types';
-import React from 'react';
+import debounce from "lodash/debounce";
+import PropTypes from "prop-types";
+import React from "react";
 
-import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
+import { getFileDownloadUrl } from "mattermost-redux/utils/file_utils";
 
-import FileInfoPreview from 'components/file_info_preview';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import FileInfoPreview from "components/file_info_preview";
+import LoadingSpinner from "components/widgets/loading/loading_spinner";
 
-import {getSiteURL} from 'utils/url';
+import { getSiteURL } from "utils/url";
 
 const INITIAL_RENDERED_PAGES = 3;
 
 export default class PDFPreview extends React.PureComponent {
     static propTypes = {
-
         /**
-        * Compare file types
-        */
+         * Compare file types
+         */
         fileInfo: PropTypes.object.isRequired,
 
         /**
-        *  URL of pdf file to output and compare to update props url
-        */
+         *  URL of pdf file to output and compare to update props url
+         */
         fileUrl: PropTypes.string.isRequired,
         scale: PropTypes.number.isRequired,
         handleBgClose: PropTypes.func.isRequired,
@@ -50,13 +49,13 @@ export default class PDFPreview extends React.PureComponent {
         this.getPdfDocument();
         if (this.container.current) {
             this.parentNode = this.container.current.parentElement;
-            this.parentNode.addEventListener('scroll', this.handleScroll);
+            this.parentNode.addEventListener("scroll", this.handleScroll);
         }
     }
 
     componentWillUnmount() {
         if (this.parentNode) {
-            this.parentNode.removeEventListener('scroll', this.handleScroll);
+            this.parentNode.removeEventListener("scroll", this.handleScroll);
         }
     }
 
@@ -97,7 +96,9 @@ export default class PDFPreview extends React.PureComponent {
     }
 
     downloadFile = (e) => {
-        const fileDownloadUrl = this.props.fileInfo.link || getFileDownloadUrl(this.props.fileInfo.id);
+        const fileDownloadUrl =
+            this.props.fileInfo.link ||
+            getFileDownloadUrl(this.props.fileInfo.id);
         e.preventDefault();
         window.location.href = fileDownloadUrl;
     };
@@ -105,10 +106,12 @@ export default class PDFPreview extends React.PureComponent {
     isInViewport = (page) => {
         const bounding = page.getBoundingClientRect();
         const viewportTop = this.container.current.scrollTop;
-        const viewportBottom = viewportTop + this.container.current.parentElement.clientHeight;
+        const viewportBottom =
+            viewportTop + this.container.current.parentElement.clientHeight;
         return (
             (bounding.top >= viewportTop && bounding.top <= viewportBottom) ||
-            (bounding.bottom >= viewportTop && bounding.bottom <= viewportBottom) ||
+            (bounding.bottom >= viewportTop &&
+                bounding.bottom <= viewportBottom) ||
             (bounding.top <= viewportTop && bounding.bottom >= viewportBottom)
         );
     };
@@ -131,8 +134,8 @@ export default class PDFPreview extends React.PureComponent {
         }
 
         const page = await this.loadPage(this.state.pdf, pageIndex);
-        const context = canvas.getContext('2d');
-        const viewport = page.getViewport({scale: this.props.scale});
+        const context = canvas.getContext("2d");
+        const viewport = page.getViewport({ scale: this.props.scale });
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
@@ -147,13 +150,13 @@ export default class PDFPreview extends React.PureComponent {
 
     getPdfDocument = async () => {
         try {
-            const PDFJS = await import('pdfjs-dist');
-            const worker = await import('pdfjs-dist/build/pdf.worker.entry.js');
+            const PDFJS = await import("pdfjs-dist");
+            const worker = await import("pdfjs-dist/build/pdf.worker.entry.js");
             PDFJS.GlobalWorkerOptions.workerSrc = worker;
 
             const pdf = await PDFJS.getDocument({
                 url: this.props.fileUrl,
-                cMapUrl: getSiteURL() + '/static/cmaps/',
+                cMapUrl: getSiteURL() + "/static/cmaps/",
                 cMapPacked: true,
             }).promise;
             this.onDocumentLoad(pdf);
@@ -163,16 +166,16 @@ export default class PDFPreview extends React.PureComponent {
     };
 
     onDocumentLoad = (pdf) => {
-        this.setState({pdf, numPages: pdf.numPages});
+        this.setState({ pdf, numPages: pdf.numPages });
         for (let i = 0; i < pdf.numPages; i++) {
             this[`pdfCanvasRef-${i}`] = React.createRef();
         }
-        this.setState({loading: false, success: true});
+        this.setState({ loading: false, success: true });
     };
 
     onDocumentLoadError = (reason) => {
-        console.log('Unable to load PDF preview: ' + reason); //eslint-disable-line no-console
-        this.setState({loading: false, success: false});
+        console.log("Unable to load PDF preview: " + reason); //eslint-disable-line no-console
+        this.setState({ loading: false, success: false });
     };
 
     loadPage = async (pdf, pageIndex) => {
@@ -187,7 +190,7 @@ export default class PDFPreview extends React.PureComponent {
 
         const pdfPagesLoaded = Object.assign({}, this.state.pdfPagesLoaded);
         pdfPagesLoaded[pageIndex] = true;
-        this.setState({pdfPages, pdfPagesLoaded});
+        this.setState({ pdfPages, pdfPagesLoaded });
 
         return page;
     };
@@ -203,11 +206,8 @@ export default class PDFPreview extends React.PureComponent {
     render() {
         if (this.state.loading) {
             return (
-                <div
-                    ref={this.container}
-                    className='view-image__loading'
-                >
-                    <LoadingSpinner/>
+                <div ref={this.container} className="view-image__loading">
+                    <LoadingSpinner />
                 </div>
             );
         }
@@ -226,15 +226,15 @@ export default class PDFPreview extends React.PureComponent {
             pdfCanvases.push(
                 <canvas
                     ref={this[`pdfCanvasRef-${i}`]}
-                    key={'previewpdfcanvas' + i}
+                    key={"previewpdfcanvas" + i}
                 />,
             );
 
             if (i < this.state.numPages - 1 && this.state.numPages > 1) {
                 pdfCanvases.push(
                     <div
-                        key={'previewpdfspacer' + i}
-                        className='pdf-preview-spacer'
+                        key={"previewpdfspacer" + i}
+                        className="pdf-preview-spacer"
                     />,
                 );
             }
@@ -243,7 +243,7 @@ export default class PDFPreview extends React.PureComponent {
         return (
             <div
                 ref={this.container}
-                className='post-code'
+                className="post-code"
                 onClick={this.props.handleBgClose}
             >
                 {pdfCanvases}

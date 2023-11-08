@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, { useCallback } from "react";
 
-import ColorInput from 'components/color_input';
+import ColorInput from "components/color_input";
 
-import Setting from './setting';
+import Setting from "./setting";
 
 type Props = {
     id: string;
@@ -14,14 +14,17 @@ type Props = {
     value: string;
     onChange?: (id: string, color: string) => void;
     disabled?: boolean;
-}
+};
 
 const ColorSetting = (props: Props) => {
-    const handleChange = useCallback((color: string) => {
-        if (props.onChange) {
-            props.onChange(props.id, color);
-        }
-    }, [props.id, props.onChange]);
+    const handleChange = useCallback(
+        (color: string) => {
+            if (props.onChange) {
+                props.onChange(props.id, color);
+            }
+        },
+        [props.id, props.onChange],
+    );
 
     return (
         <Setting

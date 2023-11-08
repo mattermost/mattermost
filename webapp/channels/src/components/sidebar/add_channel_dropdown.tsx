@@ -1,16 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import React from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 
-import {trackEvent} from 'actions/telemetry_actions';
+import { trackEvent } from "actions/telemetry_actions";
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import {CreateAndJoinChannelsTour, InvitePeopleTour} from 'components/tours/onboarding_tour';
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
+import {
+    CreateAndJoinChannelsTour,
+    InvitePeopleTour,
+} from "components/tours/onboarding_tour";
+import Menu from "components/widgets/menu/menu";
+import MenuWrapper from "components/widgets/menu/menu_wrapper";
 
 type Props = {
     canCreateChannel: boolean;
@@ -52,13 +55,19 @@ const AddChannelDropdown = ({
         const invitePeople = (
             <Menu.Group>
                 <Menu.ItemAction
-                    id='invitePeople'
+                    id="invitePeople"
                     onClick={invitePeopleModal}
-                    icon={<i className='icon-account-plus-outline'/>}
-                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.invitePeople', defaultMessage: 'Invite people'})}
-                    extraText={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.invitePeopleExtraText', defaultMessage: 'Add people to the team'})}
+                    icon={<i className="icon-account-plus-outline" />}
+                    text={intl.formatMessage({
+                        id: "sidebar_left.add_channel_dropdown.invitePeople",
+                        defaultMessage: "Invite people",
+                    })}
+                    extraText={intl.formatMessage({
+                        id: "sidebar_left.add_channel_dropdown.invitePeopleExtraText",
+                        defaultMessage: "Add people to the team",
+                    })}
                 />
-                {showInviteTutorialTip && <InvitePeopleTour/>}
+                {showInviteTutorialTip && <InvitePeopleTour />}
             </Menu.Group>
         );
 
@@ -66,10 +75,13 @@ const AddChannelDropdown = ({
         if (canJoinPublicChannel) {
             joinPublicChannel = (
                 <Menu.ItemAction
-                    id='showMoreChannels'
+                    id="showMoreChannels"
                     onClick={showMoreChannelsModal}
-                    icon={<i className='icon-globe'/>}
-                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.browseChannels', defaultMessage: 'Browse channels'})}
+                    icon={<i className="icon-globe" />}
+                    text={intl.formatMessage({
+                        id: "sidebar_left.add_channel_dropdown.browseChannels",
+                        defaultMessage: "Browse channels",
+                    })}
                 />
             );
         }
@@ -78,10 +90,13 @@ const AddChannelDropdown = ({
         if (canCreateChannel) {
             createChannel = (
                 <Menu.ItemAction
-                    id='showNewChannel'
+                    id="showNewChannel"
                     onClick={showNewChannelModal}
-                    icon={<i className='icon-plus'/>}
-                    text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.createNewChannel', defaultMessage: 'Create new channel'})}
+                    icon={<i className="icon-plus" />}
+                    text={intl.formatMessage({
+                        id: "sidebar_left.add_channel_dropdown.createNewChannel",
+                        defaultMessage: "Create new channel",
+                    })}
                 />
             );
         }
@@ -91,20 +106,27 @@ const AddChannelDropdown = ({
             createCategory = (
                 <Menu.Group>
                     <Menu.ItemAction
-                        id='createCategory'
+                        id="createCategory"
                         onClick={showCreateCategoryModal}
-                        icon={<i className='icon-folder-plus-outline'/>}
-                        text={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.createCategory', defaultMessage: 'Create new category'})}
+                        icon={<i className="icon-folder-plus-outline" />}
+                        text={intl.formatMessage({
+                            id: "sidebar_left.add_channel_dropdown.createCategory",
+                            defaultMessage: "Create new category",
+                        })}
                     />
-                </Menu.Group>);
+                </Menu.Group>
+            );
         }
 
         const createDirectMessage = (
             <Menu.ItemAction
-                id={'openDirectMessageMenuItem'}
+                id={"openDirectMessageMenuItem"}
                 onClick={handleOpenDirectMessagesModal}
-                icon={<i className='icon-account-outline'/>}
-                text={intl.formatMessage({id: 'sidebar.openDirectMessage', defaultMessage: 'Open a direct message'})}
+                icon={<i className="icon-account-outline" />}
+                text={intl.formatMessage({
+                    id: "sidebar.openDirectMessage",
+                    defaultMessage: "Open a direct message",
+                })}
             />
         );
 
@@ -112,10 +134,13 @@ const AddChannelDropdown = ({
         if (canCreateCustomGroups) {
             createUserGroup = (
                 <Menu.ItemAction
-                    id={'createUserGroup'}
+                    id={"createUserGroup"}
                     onClick={showCreateUserGroupModal}
-                    icon={<i className='icon-account-multiple-plus-outline'/>}
-                    text={intl.formatMessage({id: 'sidebar.createUserGroup', defaultMessage: 'Create New User Group'})}
+                    icon={<i className="icon-account-multiple-plus-outline" />}
+                    text={intl.formatMessage({
+                        id: "sidebar.createUserGroup",
+                        defaultMessage: "Create New User Group",
+                    })}
                 />
             );
         }
@@ -126,7 +151,7 @@ const AddChannelDropdown = ({
                     {createChannel}
                     {joinPublicChannel}
                     {createDirectMessage}
-                    {showCreateTutorialTip && <CreateAndJoinChannelsTour/>}
+                    {showCreateTutorialTip && <CreateAndJoinChannelsTour />}
                     {createUserGroup}
                 </Menu.Group>
                 {createCategory}
@@ -138,7 +163,7 @@ const AddChannelDropdown = ({
     const trackOpen = (opened: boolean) => {
         openAddChannelOpen(opened);
         if (opened) {
-            trackEvent('ui', 'ui_add_channel_dropdown_opened');
+            trackEvent("ui", "ui_add_channel_dropdown_opened");
         }
     };
 
@@ -147,38 +172,37 @@ const AddChannelDropdown = ({
     }
 
     const tooltip = (
-        <Tooltip
-            id='new-group-tooltip'
-            className='hidden-xs'
-        >
+        <Tooltip id="new-group-tooltip" className="hidden-xs">
             <FormattedMessage
-                id={'sidebar_left.add_channel_dropdown.browseOrCreateChannels'}
-                defaultMessage='Browse or create channels'
+                id={"sidebar_left.add_channel_dropdown.browseOrCreateChannels"}
+                defaultMessage="Browse or create channels"
             />
         </Tooltip>
     );
 
     return (
         <MenuWrapper
-            className='AddChannelDropdown'
+            className="AddChannelDropdown"
             onToggle={trackOpen}
             open={isAddChannelOpen}
         >
-            <OverlayTrigger
-                delayShow={500}
-                placement='top'
-                overlay={tooltip}
-            >
+            <OverlayTrigger delayShow={500} placement="top" overlay={tooltip}>
                 <button
-                    className={'AddChannelDropdown_dropdownButton'}
-                    aria-label={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
+                    className={"AddChannelDropdown_dropdownButton"}
+                    aria-label={intl.formatMessage({
+                        id: "sidebar_left.add_channel_dropdown.dropdownAriaLabel",
+                        defaultMessage: "Add Channel Dropdown",
+                    })}
                 >
-                    <i className='icon-plus'/>
+                    <i className="icon-plus" />
                 </button>
             </OverlayTrigger>
             <Menu
-                id='AddChannelDropdown'
-                ariaLabel={intl.formatMessage({id: 'sidebar_left.add_channel_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
+                id="AddChannelDropdown"
+                ariaLabel={intl.formatMessage({
+                    id: "sidebar_left.add_channel_dropdown.dropdownAriaLabel",
+                    defaultMessage: "Add Channel Dropdown",
+                })}
             >
                 {renderDropdownItems()}
             </Menu>

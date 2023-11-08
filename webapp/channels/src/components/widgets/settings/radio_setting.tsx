@@ -1,26 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import Setting from './setting';
+import Setting from "./setting";
 
 type Props = {
     id: string;
-    options: Array<{text: string; value: string}>;
+    options: Array<{ text: string; value: string }>;
     label: React.ReactNode;
     onChange(name: string, value: any): void;
     value?: string;
     labelClassName?: string;
     inputClassName?: string;
     helpText?: React.ReactNode;
-
-}
+};
 
 export default class RadioSetting extends React.PureComponent<Props> {
     public static defaultProps: Partial<Props> = {
-        labelClassName: '',
-        inputClassName: '',
+        labelClassName: "",
+        inputClassName: "",
         options: [],
     };
 
@@ -37,27 +36,22 @@ export default class RadioSetting extends React.PureComponent<Props> {
                 helpText={this.props.helpText}
                 inputId={this.props.id}
             >
-                {
-                    this.props.options.map(({value, text}) => {
-                        return (
-                            <div
-                                className='radio'
-                                key={value}
-                            >
-                                <label>
-                                    <input
-                                        type='radio'
-                                        value={value}
-                                        name={this.props.id}
-                                        checked={value === this.props.value}
-                                        onChange={this.handleChange}
-                                    />
-                                    {text}
-                                </label>
-                            </div>
-                        );
-                    })
-                }
+                {this.props.options.map(({ value, text }) => {
+                    return (
+                        <div className="radio" key={value}>
+                            <label>
+                                <input
+                                    type="radio"
+                                    value={value}
+                                    name={this.props.id}
+                                    checked={value === this.props.value}
+                                    onChange={this.handleChange}
+                                />
+                                {text}
+                            </label>
+                        </div>
+                    );
+                })}
             </Setting>
         );
     }

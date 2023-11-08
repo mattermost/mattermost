@@ -1,22 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import type { Dispatch, ActionCreatorsMapObject } from "redux";
 
-import type {GlobalState} from '@mattermost/types/store';
-import type {UserProfile} from '@mattermost/types/users';
+import type { GlobalState } from "@mattermost/types/store";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {getProfiles, searchProfiles} from 'mattermost-redux/actions/users';
-import {getProfiles as selectProfiles} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
+import { getProfiles, searchProfiles } from "mattermost-redux/actions/users";
+import { getProfiles as selectProfiles } from "mattermost-redux/selectors/entities/users";
+import type { GenericAction, ActionFunc } from "mattermost-redux/types/actions";
 
-import AddUsersToRoleModal from './add_users_to_role_modal';
-import type {Props} from './add_users_to_role_modal';
+import AddUsersToRoleModal from "./add_users_to_role_modal";
+import type { Props } from "./add_users_to_role_modal";
 
 function mapStateToProps(state: GlobalState, props: Props) {
-    const filterOptions: {[key: string]: any} = {active: true, exclude_roles: [props.role.name], exclude_bots: true};
+    const filterOptions: { [key: string]: any } = {
+        active: true,
+        exclude_roles: [props.role.name],
+        exclude_bots: true,
+    };
     const users: UserProfile[] = selectProfiles(state, filterOptions);
 
     return {
@@ -26,11 +30,20 @@ function mapStateToProps(state: GlobalState, props: Props) {
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Props['actions']>({
-            getProfiles,
-            searchProfiles,
-        }, dispatch),
+        actions: bindActionCreators<
+            ActionCreatorsMapObject<ActionFunc>,
+            Props["actions"]
+        >(
+            {
+                getProfiles,
+                searchProfiles,
+            },
+            dispatch,
+        ),
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(AddUsersToRoleModal);
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps,
+)(AddUsersToRoleModal);

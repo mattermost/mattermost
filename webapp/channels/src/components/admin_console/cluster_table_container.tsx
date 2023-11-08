@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {PureComponent} from 'react';
-import type {MouseEvent} from 'react';
+import React, { PureComponent } from "react";
+import type { MouseEvent } from "react";
 
-import type {ClusterInfo} from '@mattermost/types/admin';
+import type { ClusterInfo } from "@mattermost/types/admin";
 
-import {getClusterStatus} from 'actions/admin_actions.jsx';
+import { getClusterStatus } from "actions/admin_actions.jsx";
 
-import ClusterTable from './cluster_table';
+import ClusterTable from "./cluster_table";
 
-import LoadingScreen from '../loading_screen';
+import LoadingScreen from "../loading_screen";
 
 interface State {
     clusterInfos: ClusterInfo[] | null;
@@ -30,14 +30,11 @@ export default class ClusterTableContainer extends PureComponent<null, State> {
     }
 
     load = () => {
-        getClusterStatus(
-            (data: ClusterInfo[]) => {
-                this.setState({
-                    clusterInfos: data,
-                });
-            },
-            null,
-        );
+        getClusterStatus((data: ClusterInfo[]) => {
+            this.setState({
+                clusterInfos: data,
+            });
+        }, null);
     };
 
     componentDidMount() {
@@ -67,7 +64,7 @@ export default class ClusterTableContainer extends PureComponent<null, State> {
 
     render() {
         if (this.state.clusterInfos == null) {
-            return (<LoadingScreen/>);
+            return <LoadingScreen />;
         }
 
         return (

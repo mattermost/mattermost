@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from "react";
 
-import CarouselButton, {BtnStyle} from './carousel_button';
-import './carousel.scss';
+import CarouselButton, { BtnStyle } from "./carousel_button";
+import "./carousel.scss";
 
 type Props = {
     dataSlides: React.ReactNode[];
@@ -15,7 +15,7 @@ type Props = {
     disableNextButton?: boolean;
     btnsStyle?: BtnStyle; // chevron or bottom buttons
     actionButton?: JSX.Element;
-}
+};
 const Carousel = ({
     dataSlides,
     id,
@@ -27,14 +27,19 @@ const Carousel = ({
     actionButton,
 }: Props): JSX.Element | null => {
     const [slideIndex, setSlideIndex] = useState(1);
-    const [prevButtonDisabled, setPrevButtonDisabled] = useState(!infiniteSlide);
+    const [prevButtonDisabled, setPrevButtonDisabled] = useState(
+        !infiniteSlide,
+    );
     const [nextButtonDisabled, setNextButtonDisabled] = useState(false);
 
     const nextSlide = () => {
         setPrevButtonDisabled(false);
 
         const isLastIndex = slideIndex === dataSlides.length;
-        const newSlideIndex = isLastIndex && infiniteSlide ? 1 : (!isLastIndex && slideIndex + 1) || undefined;
+        const newSlideIndex =
+            isLastIndex && infiniteSlide
+                ? 1
+                : (!isLastIndex && slideIndex + 1) || undefined;
 
         if (newSlideIndex) {
             setSlideIndex(newSlideIndex);
@@ -49,7 +54,10 @@ const Carousel = ({
         setNextButtonDisabled(false);
 
         const isFirstSlide = slideIndex === 1;
-        const newSlideIndex = isFirstSlide && infiniteSlide ? dataSlides.length : (!isFirstSlide && slideIndex - 1) || undefined;
+        const newSlideIndex =
+            isFirstSlide && infiniteSlide
+                ? dataSlides.length
+                : (!isFirstSlide && slideIndex - 1) || undefined;
 
         if (newSlideIndex) {
             setSlideIndex(newSlideIndex);
@@ -77,60 +85,69 @@ const Carousel = ({
     };
 
     return (
-        <div
-            className='container-slider'
-            id={id}
-        >
-            {btnsStyle === BtnStyle.CHEVRON && <>
-                <CarouselButton
-                    moveSlide={prevSlide}
-                    direction={'prev'}
-                    disabled={prevButtonDisabled}
-                    btnsStyle={BtnStyle.CHEVRON}
-                />
-                <CarouselButton
-                    moveSlide={nextSlide}
-                    direction={'next'}
-                    disabled={nextButtonDisabled || disableNextButton}
-                    btnsStyle={BtnStyle.CHEVRON}
-                />
-            </>}
+        <div className="container-slider" id={id}>
+            {btnsStyle === BtnStyle.CHEVRON && (
+                <>
+                    <CarouselButton
+                        moveSlide={prevSlide}
+                        direction={"prev"}
+                        disabled={prevButtonDisabled}
+                        btnsStyle={BtnStyle.CHEVRON}
+                    />
+                    <CarouselButton
+                        moveSlide={nextSlide}
+                        direction={"next"}
+                        disabled={nextButtonDisabled || disableNextButton}
+                        btnsStyle={BtnStyle.CHEVRON}
+                    />
+                </>
+            )}
             {dataSlides.map((obj: any, index: number) => {
                 return (
                     <div
                         key={`${index.toString()}`}
-                        className={slideIndex === index + 1 ? 'slide active-anim' : 'slide'}
+                        className={
+                            slideIndex === index + 1
+                                ? "slide active-anim"
+                                : "slide"
+                        }
                     >
                         {obj}
                     </div>
                 );
             })}
 
-            <div className='container-footer'>
-                <div className='container-dots'>
+            <div className="container-footer">
+                <div className="container-dots">
                     {dataSlides.map((item, index) => (
                         <div
                             key={index.toString()}
                             onClick={() => moveDot(index + 1)}
-                            className={slideIndex === index + 1 ? 'dot active' : 'dot'}
+                            className={
+                                slideIndex === index + 1 ? "dot active" : "dot"
+                            }
                         />
                     ))}
                 </div>
-                {btnsStyle === BtnStyle.BUTTON && <div className=' buttons container-buttons'>
-                    <CarouselButton
-                        moveSlide={prevSlide}
-                        direction={'prev'}
-                        disabled={prevButtonDisabled}
-                    />
-                    <CarouselButton
-                        moveSlide={nextSlide}
-                        direction={'next'}
-                        disabled={nextButtonDisabled || disableNextButton}
-                    />
-                </div>}
-                {actionButton && <div className=' buttons container-buttons'>
-                    {actionButton}
-                </div>}
+                {btnsStyle === BtnStyle.BUTTON && (
+                    <div className=" buttons container-buttons">
+                        <CarouselButton
+                            moveSlide={prevSlide}
+                            direction={"prev"}
+                            disabled={prevButtonDisabled}
+                        />
+                        <CarouselButton
+                            moveSlide={nextSlide}
+                            direction={"next"}
+                            disabled={nextButtonDisabled || disableNextButton}
+                        />
+                    </div>
+                )}
+                {actionButton && (
+                    <div className=" buttons container-buttons">
+                        {actionButton}
+                    </div>
+                )}
             </div>
         </div>
     );

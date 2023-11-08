@@ -1,31 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {Emoji} from '@mattermost/types/emojis';
-import type {Post} from '@mattermost/types/posts';
-import type {Reaction as ReactionType} from '@mattermost/types/reactions';
+import type { Emoji } from "@mattermost/types/emojis";
+import type { Post } from "@mattermost/types/posts";
+import type { Reaction as ReactionType } from "@mattermost/types/reactions";
 
-import Permissions from 'mattermost-redux/constants/permissions';
-import {isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
+import Permissions from "mattermost-redux/constants/permissions";
+import { isSystemEmoji } from "mattermost-redux/utils/emoji_utils";
 
-import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
-import OverlayTrigger from 'components/overlay_trigger';
-import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import Reaction from 'components/post_view/reaction';
-import Tooltip from 'components/tooltip';
-import AddReactionIcon from 'components/widgets/icons/add_reaction_icon';
+import EmojiPickerOverlay from "components/emoji_picker/emoji_picker_overlay";
+import OverlayTrigger from "components/overlay_trigger";
+import ChannelPermissionGate from "components/permissions_gates/channel_permission_gate";
+import Reaction from "components/post_view/reaction";
+import Tooltip from "components/tooltip";
+import AddReactionIcon from "components/widgets/icons/add_reaction_icon";
 
-import Constants from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
+import Constants from "utils/constants";
+import { localizeMessage } from "utils/utils";
 
 const DEFAULT_EMOJI_PICKER_RIGHT_OFFSET = 15;
 const EMOJI_PICKER_WIDTH_OFFSET = 260;
 
 type Props = {
-
     /**
      * The post to render reactions for
      */
@@ -47,7 +46,6 @@ type Props = {
     canAddReactions: boolean;
 
     actions: {
-
         /**
          * Function to add a reaction to the post
          */
@@ -72,16 +70,21 @@ export default class ReactionList extends React.PureComponent<Props, State> {
         };
     }
 
-    static getDerivedStateFromProps(props: Props, state: State): Partial<State> | null {
+    static getDerivedStateFromProps(
+        props: Props,
+        state: State,
+    ): Partial<State> | null {
         let emojiNames = state.emojiNames;
 
-        for (const {emoji_name: emojiName} of Object.values(props.reactions ?? {})) {
+        for (const { emoji_name: emojiName } of Object.values(
+            props.reactions ?? {},
+        )) {
             if (!emojiNames.includes(emojiName)) {
                 emojiNames = [...emojiNames, emojiName];
             }
         }
 
-        return (emojiNames === state.emojiNames) ? null : {emojiNames};
+        return emojiNames === state.emojiNames ? null : { emojiNames };
     }
 
     getTarget = (): HTMLButtonElement | null => {
@@ -89,18 +92,22 @@ export default class ReactionList extends React.PureComponent<Props, State> {
     };
 
     handleEmojiClick = (emoji: Emoji): void => {
-        this.setState({showEmojiPicker: false});
-        const emojiName = isSystemEmoji(emoji) ? emoji.short_names[0] : emoji.name;
+        this.setState({ showEmojiPicker: false });
+        const emojiName = isSystemEmoji(emoji)
+            ? emoji.short_names[0]
+            : emoji.name;
         this.props.actions.addReaction(this.props.post.id, emojiName);
     };
 
     hideEmojiPicker = (): void => {
-        this.setState({showEmojiPicker: false});
+        this.setState({ showEmojiPicker: false });
     };
 
-    toggleEmojiPicker = (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
+    toggleEmojiPicker = (
+        e?: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    ): void => {
         e?.stopPropagation();
-        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+        this.setState({ showEmojiPicker: !this.state.showEmojiPicker });
     };
 
     render(): React.ReactNode {
@@ -139,7 +146,10 @@ export default class ReactionList extends React.PureComponent<Props, State> {
         const addReactionButton = this.getTarget();
         let rightOffset = DEFAULT_EMOJI_PICKER_RIGHT_OFFSET;
         if (addReactionButton) {
-            rightOffset = window.innerWidth - addReactionButton.getBoundingClientRect().right - EMOJI_PICKER_WIDTH_OFFSET;
+            rightOffset =
+                window.innerWidth -
+                addReactionButton.getBoundingClientRect().right -
+                EMOJI_PICKER_WIDTH_OFFSET;
 
             if (rightOffset < 0) {
                 rightOffset = DEFAULT_EMOJI_PICKER_RIGHT_OFFSET;
@@ -149,16 +159,16 @@ export default class ReactionList extends React.PureComponent<Props, State> {
         let emojiPicker = null;
         if (this.props.canAddReactions) {
             const addReactionTooltip = (
-                <Tooltip id='addReactionTooltip'>
+                <Tooltip id="addReactionTooltip">
                     <FormattedMessage
-                        id='reaction_list.addReactionTooltip'
-                        defaultMessage='Add a reaction'
+                        id="reaction_list.addReactionTooltip"
+                        defaultMessage="Add a reaction"
                     />
                 </Tooltip>
             );
 
             emojiPicker = (
-                <span className='emoji-picker__container'>
+                <span className="emoji-picker__container">
                     <EmojiPickerOverlay
                         show={this.state.showEmojiPicker}
                         target={this.getTarget}
@@ -173,21 +183,24 @@ export default class ReactionList extends React.PureComponent<Props, State> {
                         permissions={[Permissions.ADD_REACTION]}
                     >
                         <OverlayTrigger
-                            placement='top'
+                            placement="top"
                             delayShow={Constants.OVERLAY_TIME_DELAY}
                             overlay={addReactionTooltip}
                         >
                             <button
-                                aria-label={localizeMessage('reaction.add.ariaLabel', 'Add a reaction')}
-                                className='Reaction'
+                                aria-label={localizeMessage(
+                                    "reaction.add.ariaLabel",
+                                    "Add a reaction",
+                                )}
+                                className="Reaction"
                                 onClick={this.toggleEmojiPicker}
                             >
                                 <span
                                     id={`addReaction-${this.props.post.id}`}
-                                    className='Reaction__add'
+                                    className="Reaction__add"
                                     ref={this.addReactionButtonRef}
                                 >
-                                    <AddReactionIcon/>
+                                    <AddReactionIcon />
                                 </span>
                             </button>
                         </OverlayTrigger>
@@ -196,20 +209,21 @@ export default class ReactionList extends React.PureComponent<Props, State> {
             );
         }
 
-        let addReactionClassName = 'post-add-reaction';
+        let addReactionClassName = "post-add-reaction";
         if (this.state.showEmojiPicker) {
-            addReactionClassName += ' post-add-reaction-emoji-picker-open';
+            addReactionClassName += " post-add-reaction-emoji-picker-open";
         }
 
         return (
             <div
-                aria-label={localizeMessage('reaction.container.ariaLabel', 'reactions')}
-                className='post-reaction-list'
+                aria-label={localizeMessage(
+                    "reaction.container.ariaLabel",
+                    "reactions",
+                )}
+                className="post-reaction-list"
             >
                 {reactions}
-                <div className={addReactionClassName}>
-                    {emojiPicker}
-                </div>
+                <div className={addReactionClassName}>{emojiPicker}</div>
             </div>
         );
     }

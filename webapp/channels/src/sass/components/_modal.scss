@@ -305,7 +305,7 @@
             }
 
             span {
-                font-family: 'Open Sans', sans-serif;
+                font-family: "Open Sans", sans-serif;
                 line-height: 10px;
             }
         }
@@ -487,7 +487,7 @@
                 color: gray;
             }
 
-            >div {
+            > div {
                 position: relative;
                 display: inline-block;
                 min-width: 300px;
@@ -624,7 +624,7 @@
     }
 
     .Select-input {
-        >input {
+        > input {
             padding: 8px 0;
         }
     }
@@ -729,7 +729,7 @@
         flex: 20;
     }
 
-    >div {
+    > div {
         overflow: auto;
         min-height: 100%;
     }
@@ -955,7 +955,7 @@
     height: calc(90vh - 120px);
     flex-direction: column;
 
-    >div {
+    > div {
         flex: 1 1 auto;
     }
 
@@ -1096,12 +1096,18 @@
                 float: left;
 
                 &:hover {
-                    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                    background-color: rgba(
+                        var(--center-channel-color-rgb),
+                        0.08
+                    );
                     color: rgba(var(--center-channel-color-rgb), 0.72);
                 }
 
                 &:active {
-                    background-color: rgba(var(--center-channel-color-rgb), 0.12);
+                    background-color: rgba(
+                        var(--center-channel-color-rgb),
+                        0.12
+                    );
                     background-color: rgba(var(--button-bg-rgb), 0.08);
                     color: var(--button-bg);
                 }

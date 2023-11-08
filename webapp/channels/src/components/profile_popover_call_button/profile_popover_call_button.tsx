@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useRef} from 'react';
-import {useDispatch} from 'react-redux';
+import React, { useState, useEffect, useRef } from "react";
+import { useDispatch } from "react-redux";
 
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type { Channel, ChannelMembership } from "@mattermost/types/channels";
 
-import {createDirectChannel} from 'mattermost-redux/actions/channels';
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import { createDirectChannel } from "mattermost-redux/actions/channels";
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import {Constants} from 'utils/constants';
+import { Constants } from "utils/constants";
 
-import type {PluginComponent} from 'types/store/plugins';
+import type { PluginComponent } from "types/store/plugins";
 
 type Props = {
     channelMember?: ChannelMembership;
@@ -21,9 +21,17 @@ type Props = {
     userId: string;
     customButton?: JSX.Element;
     dmChannel?: Channel | null;
-}
+};
 
-export default function ProfilePopoverCallButton({pluginCallComponents, channelMember, sidebarOpen, customButton, dmChannel, currentUserId, userId}: Props) {
+export default function ProfilePopoverCallButton({
+    pluginCallComponents,
+    channelMember,
+    sidebarOpen,
+    customButton,
+    dmChannel,
+    currentUserId,
+    userId,
+}: Props) {
     const [clickEnabled, setClickEnabled] = useState(true);
     const prevSidebarOpen = useRef(sidebarOpen);
     const dispatch = useDispatch();
@@ -44,7 +52,9 @@ export default function ProfilePopoverCallButton({pluginCallComponents, channelM
 
     const getDmChannel = async () => {
         if (!dmChannel) {
-            const {data} = await dispatch(createDirectChannel(currentUserId, userId)) as ActionResult;
+            const { data } = (await dispatch(
+                createDirectChannel(currentUserId, userId),
+            )) as ActionResult;
             if (data) {
                 return data;
             }
@@ -65,7 +75,7 @@ export default function ProfilePopoverCallButton({pluginCallComponents, channelM
 
     return (
         <div
-            className='callButtonContainer flex-child'
+            className="callButtonContainer flex-child"
             onClick={clickHandler}
             onTouchEnd={clickHandler}
         >

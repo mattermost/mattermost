@@ -1,22 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {debounce} from 'lodash';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import { debounce } from "lodash";
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
+import type { Team, TeamSearchOpts } from "@mattermost/types/teams";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import DataGrid from 'components/admin_console/data_grid/data_grid';
-import type {Column, Row} from 'components/admin_console/data_grid/data_grid';
-import TeamIcon from 'components/widgets/team_icon/team_icon';
+import DataGrid from "components/admin_console/data_grid/data_grid";
+import type { Column, Row } from "components/admin_console/data_grid/data_grid";
+import TeamIcon from "components/widgets/team_icon/team_icon";
 
-import Constants from 'utils/constants';
-import * as Utils from 'utils/utils';
+import Constants from "utils/constants";
+import * as Utils from "utils/utils";
 
-import './team_list.scss';
+import "./team_list.scss";
 
 type Props = {
     teams: Team[];
@@ -31,16 +31,24 @@ type Props = {
     teamsToAdd: Record<string, Team>;
 
     actions: {
-        searchTeams: (id: string, term: string, opts: TeamSearchOpts) => Promise<{ data: Team[] }>;
-        getDataRetentionCustomPolicyTeams: (id: string, page: number, perPage: number) => Promise<{ data: Team[] }>;
+        searchTeams: (
+            id: string,
+            term: string,
+            opts: TeamSearchOpts,
+        ) => Promise<{ data: Team[] }>;
+        getDataRetentionCustomPolicyTeams: (
+            id: string,
+            page: number,
+            perPage: number,
+        ) => Promise<{ data: Team[] }>;
         setTeamListSearch: (term: string) => ActionResult;
     };
-}
+};
 
 type State = {
     loading: boolean;
     page: number;
-}
+};
 const PAGE_SIZE = 10;
 export default class TeamList extends React.PureComponent<Props, State> {
     private pageLoaded = 0;
@@ -57,16 +65,20 @@ export default class TeamList extends React.PureComponent<Props, State> {
     };
 
     private setStateLoading = (loading: boolean) => {
-        this.setState({loading});
+        this.setState({ loading });
     };
     private setStatePage = (page: number) => {
-        this.setState({page});
+        this.setState({ page });
     };
 
     private loadPage = async (page: number, pageSize = PAGE_SIZE) => {
         if (this.props.policyId) {
             this.setStateLoading(true);
-            await this.props.actions.getDataRetentionCustomPolicyTeams(this.props.policyId, page, pageSize);
+            await this.props.actions.getDataRetentionCustomPolicyTeams(
+                this.props.policyId,
+                page,
+                pageSize,
+            );
             this.setStateLoading(false);
         }
     };
@@ -84,35 +96,43 @@ export default class TeamList extends React.PureComponent<Props, State> {
     };
 
     private getVisibleTotalCount = (): number => {
-        const {teamsToAdd, teamsToRemove, totalCount} = this.props;
+        const { teamsToAdd, teamsToRemove, totalCount } = this.props;
         const teamsToAddCount = Object.keys(teamsToAdd).length;
         const teamsToRemoveCount = Object.keys(teamsToRemove).length;
         return totalCount + (teamsToAddCount - teamsToRemoveCount);
     };
 
-    public getPaginationProps = (): {startCount: number; endCount: number; total: number} => {
-        const {page} = this.state;
-        const startCount = (page * PAGE_SIZE) + 1;
+    public getPaginationProps = (): {
+        startCount: number;
+        endCount: number;
+        total: number;
+    } => {
+        const { page } = this.state;
+        const startCount = page * PAGE_SIZE + 1;
         const total = this.getVisibleTotalCount();
         let endCount = 0;
 
         endCount = (page + 1) * PAGE_SIZE;
         endCount = endCount > total ? total : endCount;
 
-        return {startCount, endCount, total};
+        return { startCount, endCount, total };
     };
 
     private removeTeam = (team: Team) => {
-        const {teamsToRemove} = this.props;
+        const { teamsToRemove } = this.props;
         if (teamsToRemove[team.id] === team) {
             return;
         }
 
-        let {page} = this.state;
-        const {endCount} = this.getPaginationProps();
+        let { page } = this.state;
+        const { endCount } = this.getPaginationProps();
 
         this.props.onRemoveCallback(team);
-        if (endCount > this.getVisibleTotalCount() && (endCount % PAGE_SIZE) === 1 && page > 0) {
+        if (
+            endCount > this.getVisibleTotalCount() &&
+            endCount % PAGE_SIZE === 1 &&
+            page > 0
+        ) {
             page--;
         }
 
@@ -122,42 +142,46 @@ export default class TeamList extends React.PureComponent<Props, State> {
     getColumns = (): Column[] => {
         const name = (
             <FormattedMessage
-                id='admin.team_settings.team_list.nameHeader'
-                defaultMessage='Name'
+                id="admin.team_settings.team_list.nameHeader"
+                defaultMessage="Name"
             />
         );
 
         return [
             {
                 name,
-                field: 'name',
+                field: "name",
                 fixed: true,
             },
             {
-                name: '',
-                field: 'remove',
-                textAlign: 'right',
+                name: "",
+                field: "remove",
+                textAlign: "right",
                 fixed: true,
-                className: 'TeamList__actionColumn',
+                className: "TeamList__actionColumn",
             },
         ];
     };
 
     getRows = () => {
-        const {page} = this.state;
-        const {teams, teamsToRemove, teamsToAdd, totalCount} = this.props;
-        const {startCount, endCount} = this.getPaginationProps();
+        const { page } = this.state;
+        const { teams, teamsToRemove, teamsToAdd, totalCount } = this.props;
+        const { startCount, endCount } = this.getPaginationProps();
         let teamsToDisplay = teams;
         const includeTeamsList = Object.values(teamsToAdd);
 
         // Remove teams to remove and add teams to add
-        teamsToDisplay = teamsToDisplay.filter((user) => !teamsToRemove[user.id]);
+        teamsToDisplay = teamsToDisplay.filter(
+            (user) => !teamsToRemove[user.id],
+        );
         teamsToDisplay = [...includeTeamsList, ...teamsToDisplay];
         teamsToDisplay = teamsToDisplay.slice(startCount - 1, endCount);
 
         if (teamsToDisplay.length < PAGE_SIZE && teams.length < totalCount) {
             const numberOfTeamsRemoved = Object.keys(teamsToRemove).length;
-            const pagesOfTeamsRemoved = Math.floor(numberOfTeamsRemoved / PAGE_SIZE);
+            const pagesOfTeamsRemoved = Math.floor(
+                numberOfTeamsRemoved / PAGE_SIZE,
+            );
             const pageToLoad = page + pagesOfTeamsRemoved + 1;
 
             if (pageToLoad > this.pageLoaded) {
@@ -172,18 +196,18 @@ export default class TeamList extends React.PureComponent<Props, State> {
                     id: team.id,
                     name: (
                         <div
-                            className='TeamList__nameColumn'
+                            className="TeamList__nameColumn"
                             id={`team-name-${team.id}`}
                         >
-                            <div className='TeamList__lowerOpacity'>
+                            <div className="TeamList__lowerOpacity">
                                 <TeamIcon
-                                    size='sm'
+                                    size="sm"
                                     url={Utils.imageURLForTeam(team)}
                                     content={team.display_name}
                                 />
                             </div>
-                            <div className='TeamList__nameText'>
-                                <b data-testid='team-display-name'>
+                            <div className="TeamList__nameText">
+                                <b data-testid="team-display-name">
                                     {team.display_name}
                                 </b>
                             </div>
@@ -192,14 +216,17 @@ export default class TeamList extends React.PureComponent<Props, State> {
                     remove: (
                         <a
                             id={`remove-team-${team.id}`}
-                            className='group-actions TeamList_editText'
+                            className="group-actions TeamList_editText"
                             onClick={(e) => {
                                 e.preventDefault();
                                 this.removeTeam(team);
                             }}
-                            href='#'
+                            href="#"
                         >
-                            {Utils.localizeMessage('admin.data_retention.custom_policy.teams.remove', 'Remove')}
+                            {Utils.localizeMessage(
+                                "admin.data_retention.custom_policy.teams.remove",
+                                "Remove",
+                            )}
                         </a>
                     ),
                 },
@@ -211,11 +238,12 @@ export default class TeamList extends React.PureComponent<Props, State> {
         this.props.actions.setTeamListSearch(searchTerm);
     };
     public async componentDidUpdate(prevProps: Props) {
-        const {searchTerm} = this.props;
-        const searchTermModified = prevProps.searchTerm !== this.props.searchTerm;
+        const { searchTerm } = this.props;
+        const searchTermModified =
+            prevProps.searchTerm !== this.props.searchTerm;
         if (searchTermModified) {
             this.setStateLoading(true);
-            if (searchTerm === '') {
+            if (searchTerm === "") {
                 await this.loadPage(1);
                 this.setStateLoading(false);
                 return;
@@ -224,24 +252,21 @@ export default class TeamList extends React.PureComponent<Props, State> {
         }
     }
 
-    searchDebounced = debounce(
-        async () => {
-            const {policyId, searchTerm, actions} = this.props;
+    searchDebounced = debounce(async () => {
+        const { policyId, searchTerm, actions } = this.props;
 
-            if (policyId) {
-                await actions.searchTeams(policyId, searchTerm, {});
-            }
+        if (policyId) {
+            await actions.searchTeams(policyId, searchTerm, {});
+        }
 
-            this.setStateLoading(false);
-        },
-        Constants.SEARCH_TIMEOUT_MILLISECONDS,
-    );
+        this.setStateLoading(false);
+    }, Constants.SEARCH_TIMEOUT_MILLISECONDS);
     render() {
         const rows: Row[] = this.getRows();
         const columns: Column[] = this.getColumns();
-        const {startCount, endCount, total} = this.getPaginationProps();
+        const { startCount, endCount, total } = this.getPaginationProps();
         return (
-            <div className='PolicyTeamsList'>
+            <div className="PolicyTeamsList">
                 <DataGrid
                     columns={columns}
                     rows={rows}
@@ -252,7 +277,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
                     startCount={startCount}
                     endCount={endCount}
                     total={total}
-                    className={'customTable'}
+                    className={"customTable"}
                     onSearch={this.onSearch}
                     term={this.props.searchTerm}
                 />
@@ -260,4 +285,3 @@ export default class TeamList extends React.PureComponent<Props, State> {
         );
     }
 }
-

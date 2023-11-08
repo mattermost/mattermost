@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { Modal } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-import * as UserUtils from 'mattermost-redux/utils/user_utils';
+import type { ActionFunc } from "mattermost-redux/types/actions";
+import * as UserUtils from "mattermost-redux/utils/user_utils";
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import FormattedMarkdownMessage from "components/formatted_markdown_message";
 
-import Constants from 'utils/constants';
-import {isKeyPressed} from 'utils/keyboard';
+import Constants from "utils/constants";
+import { isKeyPressed } from "utils/keyboard";
 
 type Props = {
     currentUser: UserProfile;
@@ -42,11 +42,11 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        document.addEventListener('keypress', this.handleKeyPress);
+        document.addEventListener("keypress", this.handleKeyPress);
     }
 
     componentWillUnmount() {
-        document.removeEventListener('keypress', this.handleKeyPress);
+        document.removeEventListener("keypress", this.handleKeyPress);
     }
 
     handleHide = () => {
@@ -72,11 +72,8 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {
-            currentUser,
-            numOfPrivateChannels,
-            numOfPublicChannels,
-        } = this.props;
+        const { currentUser, numOfPrivateChannels, numOfPublicChannels } =
+            this.props;
 
         const isGuest = UserUtils.isGuest(currentUser.roles);
 
@@ -85,7 +82,7 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
             if (numOfPublicChannels !== 0 && numOfPrivateChannels !== 0) {
                 modalMessage = (
                     <FormattedMarkdownMessage
-                        id='leave_team_modal_guest.desc'
+                        id="leave_team_modal_guest.desc"
                         defaultMessage="** You will be removed from {num_of_public_channels} public { num_of_public_channels,plural,one {channel} other {channels}} and {num_of_private_channels} private { num_of_private_channels,plural,one {channel} other {channels}} on this team.** You won't be able to rejoin it without an invitation from another team member. Are you sure?"
                         values={{
                             num_of_public_channels: numOfPublicChannels,
@@ -96,7 +93,7 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
             } else if (numOfPublicChannels === 0) {
                 modalMessage = (
                     <FormattedMarkdownMessage
-                        id='leave_team_modal_guest_only_private.desc'
+                        id="leave_team_modal_guest_only_private.desc"
                         defaultMessage="** You will be removed from {num_of_private_channels} private { num_of_private_channels,plural,one {channel} other {channels}} on this team.** You won't be able to rejoin it without an invitation from another team member. Are you sure?"
                         values={{
                             num_of_public_channels: numOfPublicChannels,
@@ -107,40 +104,42 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
             } else {
                 modalMessage = (
                     <FormattedMarkdownMessage
-                        id='leave_team_modal_guest_only_public.desc'
+                        id="leave_team_modal_guest_only_public.desc"
                         defaultMessage="** You will be removed from {num_of_public_channels} public { num_of_public_channels,plural,one {channel} other {channels}} on this team.** You won't be able to rejoin it without an invitation from another team member. Are you sure?"
                         values={{
                             num_of_public_channels: numOfPublicChannels,
                             num_of_private_channels: numOfPrivateChannels,
                         }}
-                    />);
+                    />
+                );
             }
         } else if (numOfPublicChannels !== 0 && numOfPrivateChannels !== 0) {
             modalMessage = (
                 <FormattedMarkdownMessage
-                    id='leave_team_modal.desc'
+                    id="leave_team_modal.desc"
                     defaultMessage="**You will be removed from {num_of_public_channels} public { num_of_public_channels,plural,one {channel} other {channels} } and {num_of_private_channels} private {num_of_private_channels,one {channel} other {channels}} on this team.** If the team is private you won't be able to rejoin it without an invitation from another team member. Are you sure?"
-
                     values={{
                         num_of_public_channels: numOfPublicChannels,
                         num_of_private_channels: numOfPrivateChannels,
                     }}
-                />);
+                />
+            );
         } else if (numOfPublicChannels === 0) {
             modalMessage = (
                 <FormattedMarkdownMessage
-                    id='leave_team_modal_private.desc'
+                    id="leave_team_modal_private.desc"
                     defaultMessage="**You will be removed from {num_of_private_channels} private {num_of_private_channels,one {channel} other {channels}} on this team.** If the team is private you won't be able to rejoin it without an invitation from another team member. Are you sure?"
                     values={{
                         num_of_public_channels: numOfPublicChannels,
                         num_of_private_channels: numOfPrivateChannels,
                     }}
-                />);
+                />
+            );
         } else {
             modalMessage = (
                 <FormattedMarkdownMessage
-                    id='leave_team_modal_public.desc'
-                    defaultMessage='**You will be removed from {num_of_public_channels} public { num_of_public_channels,plural,one {channel} other {channels} } on this team.** Are you sure?'
+                    id="leave_team_modal_public.desc"
+                    defaultMessage="**You will be removed from {num_of_public_channels} public { num_of_public_channels,plural,one {channel} other {channels} } on this team.** Are you sure?"
                     values={{
                         num_of_public_channels: numOfPublicChannels,
                         num_of_private_channels: numOfPrivateChannels,
@@ -151,50 +150,45 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
 
         return (
             <Modal
-                dialogClassName='a11y__modal'
-                className='modal-confirm'
+                dialogClassName="a11y__modal"
+                className="modal-confirm"
                 show={this.state.show}
                 onExited={this.props.onExited}
                 onHide={this.handleHide}
-                id='leaveTeamModal'
-                role='dialog'
-                aria-labelledby='leaveTeamModalLabel'
+                id="leaveTeamModal"
+                role="dialog"
+                aria-labelledby="leaveTeamModalLabel"
             >
                 <Modal.Header closeButton={false}>
-                    <Modal.Title
-                        componentClass='h1'
-                        id='leaveTeamModalLabel'
-                    >
+                    <Modal.Title componentClass="h1" id="leaveTeamModalLabel">
                         <FormattedMessage
-                            id='leave_team_modal.title'
-                            defaultMessage='Leave the team?'
+                            id="leave_team_modal.title"
+                            defaultMessage="Leave the team?"
                         />
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
-                    {modalMessage}
-                </Modal.Body>
+                <Modal.Body>{modalMessage}</Modal.Body>
                 <Modal.Footer>
                     <button
-                        type='button'
-                        className='btn btn-tertiary'
+                        type="button"
+                        className="btn btn-tertiary"
                         onClick={this.handleHide}
-                        id='leaveTeamNo'
+                        id="leaveTeamNo"
                     >
                         <FormattedMessage
-                            id='leave_team_modal.no'
-                            defaultMessage='No'
+                            id="leave_team_modal.no"
+                            defaultMessage="No"
                         />
                     </button>
                     <button
-                        type='button'
-                        className='btn btn-danger'
+                        type="button"
+                        className="btn btn-danger"
                         onClick={this.handleSubmit}
-                        id='leaveTeamYes'
+                        id="leaveTeamYes"
                     >
                         <FormattedMessage
-                            id='leave_team_modal.yes'
-                            defaultMessage='Yes'
+                            id="leave_team_modal.yes"
+                            defaultMessage="Yes"
                         />
                     </button>
                 </Modal.Footer>

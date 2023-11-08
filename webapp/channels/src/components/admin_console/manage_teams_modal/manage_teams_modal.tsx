@@ -1,25 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import React, { useEffect } from "react";
+import { Modal } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
 
-import type {Team, TeamMembership} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Team, TeamMembership } from "@mattermost/types/teams";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {Client4} from 'mattermost-redux/client';
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import {isAdmin} from 'mattermost-redux/utils/user_utils';
+import { Client4 } from "mattermost-redux/client";
+import type { ActionResult } from "mattermost-redux/types/actions";
+import { isAdmin } from "mattermost-redux/utils/user_utils";
 
-import LoadingScreen from 'components/loading_screen';
-import Avatar from 'components/widgets/users/avatar';
+import LoadingScreen from "components/loading_screen";
+import Avatar from "components/widgets/users/avatar";
 
-import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
-import * as Utils from 'utils/utils';
+import { filterAndSortTeamsByDisplayName } from "utils/team_utils";
+import * as Utils from "utils/utils";
 
-import ManageTeamsDropdown from './manage_teams_dropdown';
-import RemoveFromTeamButton from './remove_from_team_button';
+import ManageTeamsDropdown from "./manage_teams_dropdown";
+import RemoveFromTeamButton from "./remove_from_team_button";
 
 export type Props = {
     locale: string;
@@ -29,15 +29,31 @@ export type Props = {
     actions: {
         getTeamMembersForUser: (userId: string) => Promise<ActionResult>;
         getTeamsForUser: (userId: string) => Promise<ActionResult>;
-        updateTeamMemberSchemeRoles: (teamId: string, userId: string, isSchemeUser: boolean, isSchemeAdmin: boolean) => Promise<ActionResult>;
-        removeUserFromTeam: (teamId: string, userId: string) => Promise<ActionResult>;
+        updateTeamMemberSchemeRoles: (
+            teamId: string,
+            userId: string,
+            isSchemeUser: boolean,
+            isSchemeAdmin: boolean,
+        ) => Promise<ActionResult>;
+        removeUserFromTeam: (
+            teamId: string,
+            userId: string,
+        ) => Promise<ActionResult>;
     };
-}
+};
 
-const ManageTeamsModal = ({locale, onModalDismissed, show, user, actions}: Props) => {
+const ManageTeamsModal = ({
+    locale,
+    onModalDismissed,
+    show,
+    user,
+    actions,
+}: Props) => {
     const [error, setError] = React.useState<JSX.Element | null>(null);
     const [teams, setTeams] = React.useState<Team[] | null>(null);
-    const [teamMembers, setTeamMembers] = React.useState<TeamMembership[] | null>(null);
+    const [teamMembers, setTeamMembers] = React.useState<
+        TeamMembership[] | null
+    >(null);
 
     useEffect(() => {
         if (user) {
@@ -54,14 +70,14 @@ const ManageTeamsModal = ({locale, onModalDismissed, show, user, actions}: Props
 
     const loadTeamsAndTeamMembers = async (user: UserProfile) => {
         await getTeamMembers(user.id);
-        const {data} = await actions.getTeamsForUser(user.id);
+        const { data } = await actions.getTeamsForUser(user.id);
         setTeams(filterAndSortTeamsByDisplayName(data, locale));
     };
 
     const handleError = (error: JSX.Element) => setError(error);
 
     const getTeamMembers = async (userId: string) => {
-        const {data} = await actions.getTeamMembersForUser(userId);
+        const { data } = await actions.getTeamMembersForUser(userId);
         if (data) {
             setTeamMembers(data);
         }
@@ -69,27 +85,35 @@ const ManageTeamsModal = ({locale, onModalDismissed, show, user, actions}: Props
 
     const handleMemberRemove = (teamId: string) => {
         setTeams(teams!.filter((team) => team.id !== teamId));
-        setTeamMembers(teamMembers!.filter((teamMember: TeamMembership) => teamMember.team_id !== teamId));
+        setTeamMembers(
+            teamMembers!.filter(
+                (teamMember: TeamMembership) => teamMember.team_id !== teamId,
+            ),
+        );
     };
 
     const handleRemoveUserFromTeam = async (teamId: string) => {
-        const {error} = await actions.removeUserFromTeam(teamId, user ? user.id : '');
+        const { error } = await actions.removeUserFromTeam(
+            teamId,
+            user ? user.id : "",
+        );
         if (error) {
             handleError(
                 <FormattedMessage
-                    id='admin.manage_teams.removeError'
-                    defaultMessage='Unable to remove user from team.'
-                />);
+                    id="admin.manage_teams.removeError"
+                    defaultMessage="Unable to remove user from team."
+                />,
+            );
         } else {
             handleMemberRemove(teamId);
         }
     };
 
-    const handleMemberChange = () => getTeamMembers(user ? user.id : '');
+    const handleMemberChange = () => getTeamMembers(user ? user.id : "");
 
     const renderContents = () => {
         if (!user) {
-            return <LoadingScreen/>;
+            return <LoadingScreen />;
         }
 
         const isSystemAdmin = isAdmin(user.roles);
@@ -104,7 +128,9 @@ const ManageTeamsModal = ({locale, onModalDismissed, show, user, actions}: Props
         let teamList;
         if (teams && teamMembers) {
             teamList = teams.map((team) => {
-                const teamMember = teamMembers.find((member: TeamMembership) => member.team_id === team.id);
+                const teamMember = teamMembers.find(
+                    (member: TeamMembership) => member.team_id === team.id,
+                );
                 if (!teamMember) {
                     return null;
                 }
@@ -121,36 +147,35 @@ const ManageTeamsModal = ({locale, onModalDismissed, show, user, actions}: Props
                         teamMember={teamMember}
                         onError={handleError}
                         onMemberChange={handleMemberChange}
-                        updateTeamMemberSchemeRoles={actions.updateTeamMemberSchemeRoles}
+                        updateTeamMemberSchemeRoles={
+                            actions.updateTeamMemberSchemeRoles
+                        }
                         handleRemoveUserFromTeam={handleRemoveUserFromTeam}
                     />
                 );
 
                 return (
-                    <div
-                        key={team.id}
-                        className='manage-teams__team'
-                    >
-                        <div className='manage-teams__team-name'>
+                    <div key={team.id} className="manage-teams__team">
+                        <div className="manage-teams__team-name">
                             {team.display_name}
                         </div>
-                        <div className='manage-teams__team-actions'>
+                        <div className="manage-teams__team-actions">
                             {action}
                         </div>
                     </div>
                 );
             });
         } else {
-            teamList = <LoadingScreen/>;
+            teamList = <LoadingScreen />;
         }
 
         let systemAdminIndicator = null;
         if (isSystemAdmin) {
             systemAdminIndicator = (
-                <div className='manage-teams__system-admin'>
+                <div className="manage-teams__system-admin">
                     <FormattedMessage
-                        id='admin.user_item.sysAdmin'
-                        defaultMessage='System Admin'
+                        id="admin.user_item.sysAdmin"
+                        defaultMessage="System Admin"
                     />
                 </div>
             );
@@ -158,25 +183,22 @@ const ManageTeamsModal = ({locale, onModalDismissed, show, user, actions}: Props
 
         return (
             <div>
-                <div className='manage-teams__user'>
+                <div className="manage-teams__user">
                     <Avatar
                         username={user.username}
-                        url={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
-                        size='lg'
+                        url={Client4.getProfilePictureUrl(
+                            user.id,
+                            user.last_picture_update,
+                        )}
+                        size="lg"
                     />
-                    <div className='manage-teams__info'>
-                        <div className='manage-teams__name'>
-                            {name}
-                        </div>
-                        <div className='manage-teams__email'>
-                            {user.email}
-                        </div>
+                    <div className="manage-teams__info">
+                        <div className="manage-teams__name">{name}</div>
+                        <div className="manage-teams__email">{user.email}</div>
                     </div>
                     {systemAdminIndicator}
                 </div>
-                <div className='manage-teams__teams'>
-                    {teamList}
-                </div>
+                <div className="manage-teams__teams">{teamList}</div>
             </div>
         );
     };
@@ -185,18 +207,15 @@ const ManageTeamsModal = ({locale, onModalDismissed, show, user, actions}: Props
         <Modal
             show={show}
             onHide={onModalDismissed}
-            dialogClassName='a11y__modal manage-teams modal--overflow-visible'
-            role='dialog'
-            aria-labelledby='manageTeamsModalLabel'
+            dialogClassName="a11y__modal manage-teams modal--overflow-visible"
+            role="dialog"
+            aria-labelledby="manageTeamsModalLabel"
         >
             <Modal.Header closeButton={true}>
-                <Modal.Title
-                    componentClass='h1'
-                    id='manageTeamsModalLabel'
-                >
+                <Modal.Title componentClass="h1" id="manageTeamsModalLabel">
                     <FormattedMessage
-                        id='admin.user_item.manageTeams'
-                        defaultMessage='Manage Teams'
+                        id="admin.user_item.manageTeams"
+                        defaultMessage="Manage Teams"
                     />
                 </Modal.Title>
             </Modal.Header>

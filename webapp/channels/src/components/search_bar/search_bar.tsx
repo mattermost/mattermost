@@ -1,30 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React, {useEffect, useRef} from 'react';
-import type {ChangeEvent, CSSProperties, FormEvent} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import classNames from "classnames";
+import React, { useEffect, useRef } from "react";
+import type { ChangeEvent, CSSProperties, FormEvent } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 
-import type Provider from 'components/suggestion/provider';
-import SearchSuggestionList from 'components/suggestion/search_suggestion_list';
-import SuggestionBox from 'components/suggestion/suggestion_box';
-import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
-import SuggestionDate from 'components/suggestion/suggestion_date';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import type Provider from "components/suggestion/provider";
+import SearchSuggestionList from "components/suggestion/search_suggestion_list";
+import SuggestionBox from "components/suggestion/suggestion_box";
+import type SuggestionBoxComponent from "components/suggestion/suggestion_box/suggestion_box";
+import SuggestionDate from "components/suggestion/suggestion_date";
+import LoadingSpinner from "components/widgets/loading/loading_spinner";
 
-import Constants from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
+import Constants from "utils/constants";
+import * as Keyboard from "utils/keyboard";
 
-const {KeyCodes} = Constants;
+const { KeyCodes } = Constants;
 
 const style: Record<string, CSSProperties> = {
-    searchForm: {overflow: 'visible'},
+    searchForm: { overflow: "visible" },
 };
 
 type Props = {
     searchTerms: string;
-    updateHighlightedSearchHint: (indexDelta: number, changedViaKeyPress?: boolean) => void;
+    updateHighlightedSearchHint: (
+        indexDelta: number,
+        changedViaKeyPress?: boolean,
+    ) => void;
     handleChange: (e: ChangeEvent<HTMLInputElement>) => void;
     handleSubmit: (e: FormEvent<HTMLFormElement>) => void;
     handleEnterKey: (e: ChangeEvent<HTMLInputElement>) => void;
@@ -41,7 +44,7 @@ type Props = {
     clearSearchType?: () => void;
     getFocus?: (searchBarFocus: () => void) => void;
     children?: React.ReactNode;
-}
+};
 
 const defaultProps: Partial<Props> = {
     isSideBarRight: false,
@@ -49,8 +52,10 @@ const defaultProps: Partial<Props> = {
     children: null,
 };
 
-const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element => {
-    const {isFocused, keepFocused, searchTerms, suggestionProviders} = props;
+const SearchBar: React.FunctionComponent<Props> = (
+    props: Props,
+): JSX.Element => {
+    const { isFocused, keepFocused, searchTerms, suggestionProviders } = props;
 
     const searchRef = useRef<SuggestionBoxComponent>();
     const intl = useIntl();
@@ -92,7 +97,10 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
             props.handleEnterKey(e);
         }
 
-        if (Keyboard.isKeyPressed(e as any, KeyCodes.BACKSPACE) && !searchTerms) {
+        if (
+            Keyboard.isKeyPressed(e as any, KeyCodes.BACKSPACE) &&
+            !searchTerms
+        ) {
             if (props.clearSearchType) {
                 props.clearSearchType();
             }
@@ -108,44 +116,53 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
 
     return (
         <div
-            id={props.isSideBarRight ? 'sbrSearchFormContainer' : 'searchFormContainer'}
-            className='search-form__container'
+            id={
+                props.isSideBarRight
+                    ? "sbrSearchFormContainer"
+                    : "searchFormContainer"
+            }
+            className="search-form__container"
         >
             <form
-                role='search'
-                className={classNames(['search__form', {'search__form--focused': isFocused}])}
+                role="search"
+                className={classNames([
+                    "search__form",
+                    { "search__form--focused": isFocused },
+                ])}
                 onSubmit={props.handleSubmit}
                 style={style.searchForm}
-                autoComplete='off'
-                aria-labelledby='searchBox'
+                autoComplete="off"
+                aria-labelledby="searchBox"
             >
-                <div className='search__font-icon'>
-                    <i className='icon icon-magnify icon-16'/>
+                <div className="search__font-icon">
+                    <i className="icon icon-magnify icon-16" />
                 </div>
 
-                {props.searchType !== '' && (
+                {props.searchType !== "" && (
                     <div
-                        className='searchTypeBadge'
+                        className="searchTypeBadge"
                         onMouseDown={props.handleFocus}
                     >
-                        {props.searchType === 'messages' && (
+                        {props.searchType === "messages" && (
                             <FormattedMessage
-                                id='search_bar.search_types.messages'
-                                defaultMessage='MESSAGES'
+                                id="search_bar.search_types.messages"
+                                defaultMessage="MESSAGES"
                             />
                         )}
-                        {props.searchType === 'files' && (
+                        {props.searchType === "files" && (
                             <FormattedMessage
-                                id='search_bar.search_types.files'
-                                defaultMessage='FILES'
+                                id="search_bar.search_types.files"
+                                defaultMessage="FILES"
                             />
                         )}
                         <i
-                            className='icon icon-close icon-12'
+                            className="icon icon-close icon-12"
                             onMouseDown={() => {
                                 props.setKeepFocused(true);
                             }}
-                            onClick={() => props.clearSearchType && props.clearSearchType()}
+                            onClick={() =>
+                                props.clearSearchType && props.clearSearchType()
+                            }
                         />
                     </div>
                 )}
@@ -153,14 +170,24 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
                     ref={getSearch}
-                    id={props.isSideBarRight ? 'sbrSearchBox' : 'searchBox'}
-                    tabIndex='0'
-                    className={'search-bar form-control a11y__region'}
-                    containerClass='w-full'
-                    data-a11y-sort-order='9'
-                    aria-describedby={props.isSideBarRight ? 'sbr-searchbar-help-popup' : 'searchbar-help-popup'}
-                    aria-label={intl.formatMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
-                    placeholder={intl.formatMessage({id: 'search_bar.search', defaultMessage: 'Search'})}
+                    id={props.isSideBarRight ? "sbrSearchBox" : "searchBox"}
+                    tabIndex="0"
+                    className={"search-bar form-control a11y__region"}
+                    containerClass="w-full"
+                    data-a11y-sort-order="9"
+                    aria-describedby={
+                        props.isSideBarRight
+                            ? "sbr-searchbar-help-popup"
+                            : "searchbar-help-popup"
+                    }
+                    aria-label={intl.formatMessage({
+                        id: "search_bar.search",
+                        defaultMessage: "Search",
+                    })}
+                    placeholder={intl.formatMessage({
+                        id: "search_bar.search",
+                        defaultMessage: "Search",
+                    })}
                     value={props.searchTerms}
                     onFocus={props.handleFocus}
                     onBlur={props.handleBlur}
@@ -169,13 +196,13 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
                     listComponent={SearchSuggestionList}
                     dateComponent={SuggestionDate}
                     providers={suggestionProviders}
-                    type='search'
+                    type="search"
                     delayInputUpdate={true}
-                    renderDividers={['all']}
+                    renderDividers={["all"]}
                     clearable={true}
                     onClear={props.handleClear}
                 />
-                {props.isSearchingTerm && <LoadingSpinner/>}
+                {props.isSearchingTerm && <LoadingSpinner />}
                 {props.children}
             </form>
         </div>

@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {useIntl, FormattedMessage} from 'react-intl';
-import styled from 'styled-components';
+import React from "react";
+import { useIntl, FormattedMessage } from "react-intl";
+import styled from "styled-components";
 
-import useCopyText from 'components/common/hooks/useCopyText';
+import useCopyText from "components/common/hooks/useCopyText";
 
-import Constants from 'utils/constants';
+import Constants from "utils/constants";
 
 const ChannelInfoRhsTopButtons = styled.div`
     display: flex;
@@ -25,8 +25,8 @@ const Button = styled.button`
     margin: 0 6px;
 
     &:hover {
-       background: rgba(var(--center-channel-color-rgb), 0.08);
-       color: rgba(var(--center-channel-color-rgb), 0.72);
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
     }
 
     &:active,
@@ -87,61 +87,95 @@ export default function TopButtons({
     canAddPeople: propsCanAddPeople,
     actions,
 }: Props) {
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
 
     const copyLink = useCopyText({
-        text: channelURL || '',
+        text: channelURL || "",
         successCopyTimeout: 1000,
     });
 
-    const canAddPeople = ([Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType) && propsCanAddPeople) || channelType === Constants.GM_CHANNEL;
+    const canAddPeople =
+        ([Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(
+            channelType,
+        ) &&
+            propsCanAddPeople) ||
+        channelType === Constants.GM_CHANNEL;
 
-    const canCopyLink = [Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType);
+    const canCopyLink = [
+        Constants.OPEN_CHANNEL,
+        Constants.PRIVATE_CHANNEL,
+    ].includes(channelType);
 
     // Favorite Button State
-    const favoriteIcon = isFavorite ? 'icon-star' : 'icon-star-outline';
-    const favoriteText = isFavorite ? formatMessage({id: 'channel_info_rhs.top_buttons.favorited', defaultMessage: 'Favorited'}) : formatMessage({id: 'channel_info_rhs.top_buttons.favorite', defaultMessage: 'Favorite'});
+    const favoriteIcon = isFavorite ? "icon-star" : "icon-star-outline";
+    const favoriteText = isFavorite
+        ? formatMessage({
+              id: "channel_info_rhs.top_buttons.favorited",
+              defaultMessage: "Favorited",
+          })
+        : formatMessage({
+              id: "channel_info_rhs.top_buttons.favorite",
+              defaultMessage: "Favorite",
+          });
 
     // Mute Button State
-    const mutedIcon = isMuted ? 'icon-bell-off-outline' : 'icon-bell-outline';
-    const mutedText = isMuted ? formatMessage({id: 'channel_info_rhs.top_buttons.muted', defaultMessage: 'Muted'}) : formatMessage({id: 'channel_info_rhs.top_buttons.mute', defaultMessage: 'Mute'});
+    const mutedIcon = isMuted ? "icon-bell-off-outline" : "icon-bell-outline";
+    const mutedText = isMuted
+        ? formatMessage({
+              id: "channel_info_rhs.top_buttons.muted",
+              defaultMessage: "Muted",
+          })
+        : formatMessage({
+              id: "channel_info_rhs.top_buttons.mute",
+              defaultMessage: "Mute",
+          });
 
     // Copy Button State
-    const copyIcon = copyLink.copiedRecently ? 'icon-check' : 'icon-link-variant';
-    const copyText = copyLink.copiedRecently ? formatMessage({id: 'channel_info_rhs.top_buttons.copied', defaultMessage: 'Copied'}) : formatMessage({id: 'channel_info_rhs.top_buttons.copy', defaultMessage: 'Copy Link'});
+    const copyIcon = copyLink.copiedRecently
+        ? "icon-check"
+        : "icon-link-variant";
+    const copyText = copyLink.copiedRecently
+        ? formatMessage({
+              id: "channel_info_rhs.top_buttons.copied",
+              defaultMessage: "Copied",
+          })
+        : formatMessage({
+              id: "channel_info_rhs.top_buttons.copy",
+              defaultMessage: "Copy Link",
+          });
 
     return (
         <ChannelInfoRhsTopButtons>
             <Button
                 onClick={actions.toggleFavorite}
-                className={isFavorite ? 'active' : ''}
+                className={isFavorite ? "active" : ""}
             >
                 <div>
-                    <i className={'icon ' + favoriteIcon}/>
+                    <i className={"icon " + favoriteIcon} />
                 </div>
                 <span>{favoriteText}</span>
             </Button>
             <Button
                 onClick={actions.toggleMute}
-                className={isMuted ? 'active' : ''}
+                className={isMuted ? "active" : ""}
             >
                 <div>
-                    <i className={'icon ' + mutedIcon}/>
+                    <i className={"icon " + mutedIcon} />
                 </div>
                 <span>{mutedText}</span>
             </Button>
             {canAddPeople && (
                 <Button
                     onClick={actions.addPeople}
-                    className={isInvitingPeople ? 'active' : ''}
+                    className={isInvitingPeople ? "active" : ""}
                 >
                     <div>
-                        <i className='icon icon-account-plus-outline'/>
+                        <i className="icon icon-account-plus-outline" />
                     </div>
                     <span>
                         <FormattedMessage
-                            id='channel_info_rhs.top_buttons.add_people'
-                            defaultMessage='Add People'
+                            id="channel_info_rhs.top_buttons.add_people"
+                            defaultMessage="Add People"
                         />
                     </span>
                 </Button>
@@ -149,10 +183,10 @@ export default function TopButtons({
             {canCopyLink && (
                 <CopyButton
                     onClick={copyLink.onClick}
-                    className={copyLink.copiedRecently ? 'success' : ''}
+                    className={copyLink.copiedRecently ? "success" : ""}
                 >
                     <div>
-                        <i className={'icon ' + copyIcon}/>
+                        <i className={"icon " + copyIcon} />
                     </div>
                     <span>{copyText}</span>
                 </CopyButton>

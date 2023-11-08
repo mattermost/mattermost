@@ -1,9 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {CustomEmoji, Emoji, SystemEmoji} from '@mattermost/types/emojis';
+import type { CustomEmoji, Emoji, SystemEmoji } from "@mattermost/types/emojis";
 
-import {EmojiIndicesByAlias, EmojiIndicesByUnicode, Emojis} from 'utils/emoji';
+import {
+    EmojiIndicesByAlias,
+    EmojiIndicesByUnicode,
+    Emojis,
+} from "utils/emoji";
 
 // Wrap the contents of the store so that we don't need to construct an ES6 map where most of the content
 // (the system emojis) will never change. It provides the get/has functions of a map and an iterator so
@@ -57,20 +61,22 @@ export default class EmojiMap {
 
                     systemIndex += 1;
 
-                    return {value: [systemEmoji.short_names[0], systemEmoji]};
+                    return { value: [systemEmoji.short_names[0], systemEmoji] };
                 }
 
                 // Then we loop through custom emojis
                 if (customIndex < customEmojisArray.length) {
-                    const customEmoji = customEmojisArray[customIndex][1] as CustomEmoji;
+                    const customEmoji = customEmojisArray[
+                        customIndex
+                    ][1] as CustomEmoji;
 
                     customIndex += 1;
 
-                    return {value: [customEmoji.name, customEmoji]};
+                    return { value: [customEmoji.name, customEmoji] };
                 }
 
                 // When we have looped through all, we return done
-                return {done: true, value: undefined};
+                return { done: true, value: undefined };
             },
         };
     }

@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import styled from 'styled-components';
+import React from "react";
+import { FormattedMessage } from "react-intl";
+import styled from "styled-components";
 
 type Props = {
     children: React.ReactNode;
     pluginId?: string;
-}
+};
 
 type State = {
     hasError: boolean;
-}
+};
 
 const WrapperDiv = styled.div`
     align-items: center;
@@ -33,7 +33,10 @@ const WrapperDiv = styled.div`
     }
 `;
 
-export default class PluggableErrorBoundary extends React.PureComponent<Props, State> {
+export default class PluggableErrorBoundary extends React.PureComponent<
+    Props,
+    State
+> {
     state = {
         hasError: false,
     };
@@ -48,7 +51,7 @@ export default class PluggableErrorBoundary extends React.PureComponent<Props, S
         e.preventDefault();
         e.stopPropagation();
 
-        this.setState({hasError: false});
+        this.setState({ hasError: false });
     };
 
     render() {
@@ -56,20 +59,17 @@ export default class PluggableErrorBoundary extends React.PureComponent<Props, S
             return (
                 <WrapperDiv>
                     <FormattedMessage
-                        id='pluggable.errorOccurred'
-                        defaultMessage='An error occurred in the {pluginId} plugin.'
+                        id="pluggable.errorOccurred"
+                        defaultMessage="An error occurred in the {pluginId} plugin."
                         values={{
                             pluginId: this.props.pluginId,
                         }}
                     />
-                    <br/>
-                    <a
-                        href='#'
-                        onClick={this.clearErrorState}
-                    >
+                    <br />
+                    <a href="#" onClick={this.clearErrorState}>
                         <FormattedMessage
-                            id='pluggable.errorRefresh'
-                            defaultMessage='Refresh?'
+                            id="pluggable.errorRefresh"
+                            defaultMessage="Refresh?"
                             values={{
                                 pluginId: this.props.pluginId,
                             }}

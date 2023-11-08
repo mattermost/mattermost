@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import SuccessIcon from 'components/widgets/icons/fa_success_icon';
-import WarningIcon from 'components/widgets/icons/fa_warning_icon';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+import SuccessIcon from "components/widgets/icons/fa_success_icon";
+import WarningIcon from "components/widgets/icons/fa_warning_icon";
+import LoadingWrapper from "components/widgets/loading/loading_wrapper";
 
-import {t} from 'utils/i18n';
-import * as Utils from 'utils/utils';
+import { t } from "utils/i18n";
+import * as Utils from "utils/utils";
 
 /**
  * A button which, when clicked, performs an action and displays
@@ -17,7 +17,6 @@ import * as Utils from 'utils/utils';
  * `message` property of the `err` object.
  */
 type Props = {
-
     /**
      * ID to assign to the form
      */
@@ -28,7 +27,7 @@ type Props = {
      */
     requestAction: (
         success: (data?: any) => void,
-        error: (error: any) => void
+        error: (error: any) => void,
     ) => void;
 
     /**
@@ -88,7 +87,6 @@ type Props = {
      * The message to show when the request completes successfully.
      */
     successMessage: {
-
         /**
          * The i18n string ID for the success message.
          */
@@ -104,7 +102,6 @@ type Props = {
      * The message to show when the request returns an error.
      */
     errorMessage: {
-
         /**
          * The i18n string ID for the error message.
          */
@@ -136,7 +133,7 @@ type State = {
     busy: boolean;
     fail: string;
     success: boolean;
-}
+};
 
 export default class RequestButton extends React.PureComponent<Props, State> {
     static defaultProps: Partial<Props> = {
@@ -145,12 +142,12 @@ export default class RequestButton extends React.PureComponent<Props, State> {
         showSuccessMessage: true,
         includeDetailedError: false,
         successMessage: {
-            id: t('admin.requestButton.requestSuccess'),
-            defaultMessage: 'Test Successful',
+            id: t("admin.requestButton.requestSuccess"),
+            defaultMessage: "Test Successful",
         },
         errorMessage: {
-            id: t('admin.requestButton.requestFailure'),
-            defaultMessage: 'Test Failure: {error}',
+            id: t("admin.requestButton.requestFailure"),
+            defaultMessage: "Test Failure: {error}",
         },
     };
 
@@ -159,7 +156,7 @@ export default class RequestButton extends React.PureComponent<Props, State> {
 
         this.state = {
             busy: false,
-            fail: '',
+            fail: "",
             success: false,
         };
     }
@@ -169,29 +166,30 @@ export default class RequestButton extends React.PureComponent<Props, State> {
 
         this.setState({
             busy: true,
-            fail: '',
+            fail: "",
             success: false,
         });
 
-        const doRequest = () => this.props.requestAction(
-            () => {
-                this.setState({
-                    busy: false,
-                    success: true,
-                });
-            },
-            (err) => {
-                let errMsg = err.message;
-                if (this.props.includeDetailedError && err.detailed_error) {
-                    errMsg += ' - ' + err.detailed_error;
-                }
+        const doRequest = () =>
+            this.props.requestAction(
+                () => {
+                    this.setState({
+                        busy: false,
+                        success: true,
+                    });
+                },
+                (err) => {
+                    let errMsg = err.message;
+                    if (this.props.includeDetailedError && err.detailed_error) {
+                        errMsg += " - " + err.detailed_error;
+                    }
 
-                this.setState({
-                    busy: false,
-                    fail: errMsg,
-                });
-            },
-        );
+                    this.setState({
+                        busy: false,
+                        fail: errMsg,
+                    });
+                },
+            );
 
         if (this.props.saveNeeded && this.props.saveConfigAction) {
             this.props.saveConfigAction(doRequest);
@@ -205,8 +203,8 @@ export default class RequestButton extends React.PureComponent<Props, State> {
         if (this.state.fail) {
             message = (
                 <div>
-                    <div className='alert alert-warning'>
-                        <WarningIcon/>
+                    <div className="alert alert-warning">
+                        <WarningIcon />
                         <FormattedMessage
                             id={this.props.errorMessage.id}
                             defaultMessage={
@@ -222,8 +220,8 @@ export default class RequestButton extends React.PureComponent<Props, State> {
         } else if (this.state.success && this.props.showSuccessMessage) {
             message = (
                 <div>
-                    <div className='alert alert-success'>
-                        <SuccessIcon/>
+                    <div className="alert alert-success">
+                        <SuccessIcon />
                         <FormattedMessage
                             id={this.props.successMessage.id}
                             defaultMessage={
@@ -235,29 +233,26 @@ export default class RequestButton extends React.PureComponent<Props, State> {
             );
         }
 
-        let widgetClassNames = 'col-sm-8';
+        let widgetClassNames = "col-sm-8";
         let label = null;
         if (this.props.label) {
             label = (
-                <label className='control-label col-sm-4'>
+                <label className="control-label col-sm-4">
                     {this.props.label}
                 </label>
             );
         } else {
-            widgetClassNames = 'col-sm-offset-4 ' + widgetClassNames;
+            widgetClassNames = "col-sm-offset-4 " + widgetClassNames;
         }
 
         return (
-            <div
-                className='form-group'
-                id={this.props.id}
-            >
+            <div className="form-group" id={this.props.id}>
                 {label}
                 <div className={widgetClassNames}>
                     <div>
                         <button
-                            type='button'
-                            className='btn btn-tertiary'
+                            type="button"
+                            className="btn btn-tertiary"
                             onClick={this.handleRequest}
                             disabled={this.props.disabled}
                         >
@@ -266,8 +261,8 @@ export default class RequestButton extends React.PureComponent<Props, State> {
                                 text={
                                     this.props.loadingText ||
                                     Utils.localizeMessage(
-                                        'admin.requestButton.loading',
-                                        'Loading...',
+                                        "admin.requestButton.loading",
+                                        "Loading...",
                                     )
                                 }
                             >
@@ -277,7 +272,7 @@ export default class RequestButton extends React.PureComponent<Props, State> {
                         {this.props.alternativeActionElement}
                         {message}
                     </div>
-                    <div className='help-text'>{this.props.helpText}</div>
+                    <div className="help-text">{this.props.helpText}</div>
                 </div>
             </div>
         );

@@ -1,74 +1,74 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import type {AppBinding} from '@mattermost/types/apps';
-import type {MessageAttachment as MessageAttachmentType} from '@mattermost/types/message_attachments';
-import type {Post} from '@mattermost/types/posts';
+import type { AppBinding } from "@mattermost/types/apps";
+import type { MessageAttachment as MessageAttachmentType } from "@mattermost/types/message_attachments";
+import type { Post } from "@mattermost/types/posts";
 
-import EmbeddedBinding from './embedded_binding';
+import EmbeddedBinding from "./embedded_binding";
 
-describe('components/post_view/embedded_bindings/embedded_binding', () => {
+describe("components/post_view/embedded_bindings/embedded_binding", () => {
     const post = {
-        id: 'post_id',
-        channel_id: 'channel_id',
+        id: "post_id",
+        channel_id: "channel_id",
     } as Post;
 
     const embed = {
-        app_id: 'app_id',
+        app_id: "app_id",
         bindings: [] as AppBinding[],
-        label: 'some text',
-        description: 'some title',
+        label: "some text",
+        description: "some title",
     } as AppBinding;
 
     const baseProps = {
         post,
         embed,
-        currentRelativeTeamUrl: 'dummy_team',
+        currentRelativeTeamUrl: "dummy_team",
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(<EmbeddedBinding {...baseProps}/>);
+    test("should match snapshot", () => {
+        const wrapper = shallow(<EmbeddedBinding {...baseProps} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when the attachment has an emoji in the title', () => {
+    test("should match snapshot when the attachment has an emoji in the title", () => {
         const props = {
             ...baseProps,
             attachment: {
-                title: 'Do you like :pizza:?',
+                title: "Do you like :pizza:?",
             } as MessageAttachmentType,
         };
 
-        const wrapper = shallow(<EmbeddedBinding {...props}/>);
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot when the attachment hasn\'t any emojis in the title', () => {
-        const props = {
-            ...baseProps,
-            attachment: {
-                title: 'Don\'t you like emojis?',
-            } as MessageAttachmentType,
-        };
-
-        const wrapper = shallow(<EmbeddedBinding {...props}/>);
+        const wrapper = shallow(<EmbeddedBinding {...props} />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when the attachment has a link in the title', () => {
+    test("should match snapshot when the attachment hasn't any emojis in the title", () => {
         const props = {
             ...baseProps,
             attachment: {
-                title: 'Do you like https://mattermost.com?',
+                title: "Don't you like emojis?",
             } as MessageAttachmentType,
         };
 
-        const wrapper = shallow(<EmbeddedBinding {...props}/>);
+        const wrapper = shallow(<EmbeddedBinding {...props} />);
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test("should match snapshot when the attachment has a link in the title", () => {
+        const props = {
+            ...baseProps,
+            attachment: {
+                title: "Do you like https://mattermost.com?",
+            } as MessageAttachmentType,
+        };
+
+        const wrapper = shallow(<EmbeddedBinding {...props} />);
 
         expect(wrapper).toMatchSnapshot();
     });

@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {Channel} from '@mattermost/types/channels';
+import type { Channel } from "@mattermost/types/channels";
 
-import Menu from 'components/widgets/menu/menu';
+import Menu from "components/widgets/menu/menu";
 
-import {localizeMessage} from 'utils/utils';
+import { localizeMessage } from "utils/utils";
 
 type Action = {
     closeRightHandSide: () => void;
@@ -21,7 +21,7 @@ type Props = {
     actions: Action;
 };
 
-const ToggleInfo = ({show, channel, rhsOpen, actions}: Props) => {
+const ToggleInfo = ({ show, channel, rhsOpen, actions }: Props) => {
     const toggleRHS = () => {
         if (rhsOpen) {
             actions.closeRightHandSide();
@@ -30,15 +30,11 @@ const ToggleInfo = ({show, channel, rhsOpen, actions}: Props) => {
         actions.showChannelInfo(channel.id);
     };
 
-    const text = rhsOpen ? localizeMessage('channelHeader.hideInfo', 'Close Info') : localizeMessage('channelHeader.viewInfo', 'View Info');
+    const text = rhsOpen
+        ? localizeMessage("channelHeader.hideInfo", "Close Info")
+        : localizeMessage("channelHeader.viewInfo", "View Info");
 
-    return (
-        <Menu.ItemAction
-            show={show}
-            onClick={toggleRHS}
-            text={text}
-        />
-    );
+    return <Menu.ItemAction show={show} onClick={toggleRHS} text={text} />;
 };
 
 export default ToggleInfo;

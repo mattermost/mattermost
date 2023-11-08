@@ -1,19 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React, {memo} from 'react';
-import {useIntl} from 'react-intl';
+import classNames from "classnames";
+import React, { memo } from "react";
+import { useIntl } from "react-intl";
 
-import {EyeOutlineIcon} from '@mattermost/compass-icons/components';
+import { EyeOutlineIcon } from "@mattermost/compass-icons/components";
 
-import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import KeyboardShortcutSequence, {
+    KEYBOARD_SHORTCUTS,
+} from "components/keyboard_shortcuts/keyboard_shortcuts_sequence";
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
 
-import Constants from 'utils/constants';
+import Constants from "utils/constants";
 
-import {IconContainer} from '../formatting_bar/formatting_icon';
+import { IconContainer } from "../formatting_bar/formatting_icon";
 
 interface ShowFormatProps {
     onClick: (event: React.MouseEvent) => void;
@@ -21,13 +23,19 @@ interface ShowFormatProps {
 }
 
 const ShowFormatting = (props: ShowFormatProps): JSX.Element => {
-    const {formatMessage} = useIntl();
-    const {onClick, active} = props;
-    const buttonAriaLabel = formatMessage({id: 'accessibility.button.preview', defaultMessage: 'preview'});
-    const iconAriaLabel = formatMessage({id: 'generic_icons.preview', defaultMessage: 'Eye Icon'});
+    const { formatMessage } = useIntl();
+    const { onClick, active } = props;
+    const buttonAriaLabel = formatMessage({
+        id: "accessibility.button.preview",
+        defaultMessage: "preview",
+    });
+    const iconAriaLabel = formatMessage({
+        id: "generic_icons.preview",
+        defaultMessage: "Eye Icon",
+    });
 
     const tooltip = (
-        <Tooltip id='PreviewInputTextButtonTooltip'>
+        <Tooltip id="PreviewInputTextButtonTooltip">
             <KeyboardShortcutSequence
                 shortcut={KEYBOARD_SHORTCUTS.msgMarkdownPreview}
                 hoistDescription={true}
@@ -38,21 +46,21 @@ const ShowFormatting = (props: ShowFormatProps): JSX.Element => {
 
     return (
         <OverlayTrigger
-            placement='left'
+            placement="left"
             delayShow={Constants.OVERLAY_TIME_DELAY}
             trigger={Constants.OVERLAY_DEFAULT_TRIGGER}
             overlay={tooltip}
         >
             <IconContainer
-                type='button'
-                id='PreviewInputTextButton'
+                type="button"
+                id="PreviewInputTextButton"
                 onClick={onClick}
                 aria-label={buttonAriaLabel}
-                className={classNames({active})}
+                className={classNames({ active })}
             >
                 <EyeOutlineIcon
                     size={18}
-                    color={'currentColor'}
+                    color={"currentColor"}
                     aria-label={iconAriaLabel}
                 />
             </IconContainer>

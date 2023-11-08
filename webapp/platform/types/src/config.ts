@@ -198,7 +198,7 @@ export type ClientConfig = {
     PersistentNotificationMaxRecipients: string;
     PersistentNotificationIntervalMinutes: string;
     AllowPersistentNotificationsForGuests: string;
-    DelayChannelAutocomplete: 'true' | 'false';
+    DelayChannelAutocomplete: "true" | "false";
     ServiceEnvironment: string;
 };
 
@@ -259,7 +259,7 @@ export type RequestLicenseBody = {
     company_name: string;
     company_size: string;
     company_country: string;
-}
+};
 
 export type DataRetentionPolicy = {
     message_deletion_enabled: boolean;
@@ -544,8 +544,8 @@ export type EmailSettings = {
     ConnectionSecurity: string;
     SendPushNotifications: boolean;
     PushNotificationServer: string;
-    PushNotificationServerType: 'off' | 'mhpns' | 'mtpns' | 'custom';
-    PushNotificationServerLocation: 'us' | 'de';
+    PushNotificationServerType: "off" | "mhpns" | "mtpns" | "custom";
+    PushNotificationServerLocation: "us" | "de";
     PushNotificationContents: string;
     PushNotificationBuffer: number;
     EnableEmailBatching: boolean;
@@ -811,7 +811,7 @@ export type DataRetentionSettings = {
     FileRetentionDays: number;
     DeletionJobStartTime: string;
     BatchSize: number;
-    EnableBoardsDeletion: boolean,
+    EnableBoardsDeletion: boolean;
     BoardsRetentionDays: number;
     TimeBetweenBatchesMilliseconds: number;
     RetentionIdsBatchSize: number;
@@ -840,8 +840,7 @@ export type JobSettings = {
     CleanupConfigThresholdDays: number;
 };
 
-export type ProductSettings = {
-};
+export type ProductSettings = {};
 
 export type PluginSettings = {
     Enable: boolean;
@@ -948,15 +947,15 @@ export type ReplicaLagSetting = {
     DataSource: string;
     QueryAbsoluteLag: string;
     QueryTimeLag: string;
-}
+};
 
 export type EnvironmentConfigSettings<T> = {
     [P in keyof T]: boolean;
-}
+};
 
 export type EnvironmentConfig = {
     [P in keyof AdminConfig]: EnvironmentConfigSettings<AdminConfig[P]>;
-}
+};
 
 export type WarnMetricStatus = {
     id: string;
@@ -966,14 +965,14 @@ export type WarnMetricStatus = {
 };
 
 export enum CollapsedThreads {
-    DISABLED = 'disabled',
-    DEFAULT_ON = 'default_on',
-    DEFAULT_OFF = 'default_off',
-    ALWAYS_ON = 'always_on',
+    DISABLED = "disabled",
+    DEFAULT_ON = "default_on",
+    DEFAULT_OFF = "default_off",
+    ALWAYS_ON = "always_on",
 }
 
 export enum ServiceEnvironment {
-    PRODUCTION = 'production',
-    TEST = 'test',
-    DEV = 'dev',
+    PRODUCTION = "production",
+    TEST = "test",
+    DEV = "dev",
 }

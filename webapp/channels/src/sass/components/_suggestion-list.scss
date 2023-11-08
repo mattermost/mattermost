@@ -77,7 +77,10 @@
 
     &::-webkit-scrollbar-thumb {
         border: 1px solid v(center-channel-bg);
-        background-color: rgba(var(--center-channel-color-rgb), 0.24) !important;
+        background-color: rgba(
+            var(--center-channel-color-rgb),
+            0.24
+        ) !important;
         border-radius: 4px;
     }
 
@@ -162,7 +165,7 @@
         width: 100%;
         height: 1px;
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        content: '';
+        content: "";
     }
 }
 
@@ -171,7 +174,7 @@
     margin: 7px 10px 2px;
     line-height: 21px;
 
-    >span {
+    > span {
         position: relative;
         z-index: 5;
         display: inline-block;

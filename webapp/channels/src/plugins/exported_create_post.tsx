@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import AdvancedCreateComment from 'components/advanced_create_comment';
+import AdvancedCreateComment from "components/advanced_create_comment";
 
-import type {PostDraft} from 'types/store/draft';
+import type { PostDraft } from "types/store/draft";
 
 type Props = {
     placeholder?: string;
     onSubmit: (draft: PostDraft) => void;
-}
+};
 
-const ExportedCreatePost = ({placeholder, onSubmit}: Props) => {
+const ExportedCreatePost = ({ placeholder, onSubmit }: Props) => {
     const Component = AdvancedCreateComment as any;
 
     return (
@@ -27,7 +27,7 @@ const ExportedCreatePost = ({placeholder, onSubmit}: Props) => {
             updateCommentDraftWithRootId={() => null}
             onMoveHistoryIndexBack={() => null}
             onMoveHistoryIndexForward={() => null}
-            onEditLatestPost={() => ({data: true})}
+            onEditLatestPost={() => ({ data: true })}
         />
     );
 };

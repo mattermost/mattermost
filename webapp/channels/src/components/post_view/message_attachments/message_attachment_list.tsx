@@ -1,17 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {MessageAttachment as MessageAttachmentType} from '@mattermost/types/message_attachments';
-import type {PostImage} from '@mattermost/types/posts';
+import type { MessageAttachment as MessageAttachmentType } from "@mattermost/types/message_attachments";
+import type { PostImage } from "@mattermost/types/posts";
 
-import type {TextFormattingOptions} from 'utils/text_formatting';
+import type { TextFormattingOptions } from "utils/text_formatting";
 
-import MessageAttachment from './message_attachment';
+import MessageAttachment from "./message_attachment";
 
 type Props = {
-
     /**
      * The post id
      */
@@ -31,7 +30,7 @@ type Props = {
      * Images object used for creating placeholders to prevent scroll popup
      */
     imagesMetadata?: Record<string, PostImage>;
-}
+};
 
 export default class MessageAttachmentList extends React.PureComponent<Props> {
     static defaultProps = {
@@ -45,7 +44,7 @@ export default class MessageAttachmentList extends React.PureComponent<Props> {
                 <MessageAttachment
                     attachment={attachment}
                     postId={this.props.postId}
-                    key={'att_' + i}
+                    key={"att_" + i}
                     options={this.props.options}
                     imagesMetadata={this.props.imagesMetadata}
                 />,
@@ -55,7 +54,7 @@ export default class MessageAttachmentList extends React.PureComponent<Props> {
         return (
             <div
                 id={`messageAttachmentList_${this.props.postId}`}
-                className='attachment__list'
+                className="attachment__list"
             >
                 {content}
             </div>

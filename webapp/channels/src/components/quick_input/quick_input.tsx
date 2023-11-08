@@ -1,20 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import type {ReactComponentLike} from 'prop-types';
-import React from 'react';
-import type {ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import classNames from "classnames";
+import type { ReactComponentLike } from "prop-types";
+import React from "react";
+import type { ReactNode } from "react";
+import { FormattedMessage } from "react-intl";
 
-import AutosizeTextarea from 'components/autosize_textarea';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import AutosizeTextarea from "components/autosize_textarea";
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
 
-import Constants from 'utils/constants';
+import Constants from "utils/constants";
 
 export type Props = {
-
     /**
      * Whether to delay updating the value of the textbox from props. Should only be used
      * on textboxes that to properly compose CJK characters as the user types.
@@ -56,7 +55,7 @@ export type Props = {
     /**
      * Position in which the tooltip will be displayed
      */
-    tooltipPosition?: 'top' | 'bottom';
+    tooltipPosition?: "top" | "bottom";
 
     /**
      * Callback to handle the change event of the input
@@ -74,7 +73,10 @@ export type Props = {
      */
     clearableWithoutValue?: boolean;
 
-    forwardedRef?: ((instance: HTMLInputElement | HTMLTextAreaElement | null) => void) | React.MutableRefObject<HTMLInputElement | HTMLTextAreaElement | null> | null;
+    forwardedRef?:
+        | ((instance: HTMLInputElement | HTMLTextAreaElement | null) => void)
+        | React.MutableRefObject<HTMLInputElement | HTMLTextAreaElement | null>
+        | null;
 
     maxLength?: number;
     className?: string;
@@ -83,7 +85,7 @@ export type Props = {
     type?: string;
     id?: string;
     onInput?: (e?: React.FormEvent<HTMLInputElement>) => void;
-}
+};
 
 // A component that can be used to make controlled inputs that function properly in certain
 // environments (ie. IE11) where typing quickly would sometimes miss inputs
@@ -92,9 +94,9 @@ export class QuickInput extends React.PureComponent<Props> {
 
     static defaultProps = {
         delayInputUpdate: false,
-        value: '',
+        value: "",
         clearable: false,
-        tooltipPosition: 'bottom',
+        tooltipPosition: "bottom",
     };
 
     componentDidMount() {
@@ -125,7 +127,7 @@ export class QuickInput extends React.PureComponent<Props> {
 
     private setInputRef = (input: HTMLInputElement) => {
         if (this.props.forwardedRef) {
-            if (typeof this.props.forwardedRef === 'function') {
+            if (typeof this.props.forwardedRef === "function") {
                 this.props.forwardedRef(input);
             } else {
                 this.props.forwardedRef.current = input;
@@ -135,7 +137,9 @@ export class QuickInput extends React.PureComponent<Props> {
         this.input = input;
     };
 
-    private onClear = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent) => {
+    private onClear = (
+        e: React.MouseEvent<HTMLDivElement> | React.TouchEvent,
+    ) => {
         e.preventDefault();
         e.stopPropagation();
 
@@ -150,17 +154,12 @@ export class QuickInput extends React.PureComponent<Props> {
         let clearableTooltipText = this.props.clearableTooltipText;
         if (!clearableTooltipText) {
             clearableTooltipText = (
-                <FormattedMessage
-                    id={'input.clear'}
-                    defaultMessage='Clear'
-                />
+                <FormattedMessage id={"input.clear"} defaultMessage="Clear" />
             );
         }
 
         const clearableTooltip = (
-            <Tooltip id={'InputClearTooltip'}>
-                {clearableTooltipText}
-            </Tooltip>
+            <Tooltip id={"InputClearTooltip"}>{clearableTooltipText}</Tooltip>
         );
 
         const {
@@ -173,63 +172,65 @@ export class QuickInput extends React.PureComponent<Props> {
             ...props
         } = this.props;
 
-        Reflect.deleteProperty(props, 'delayInputUpdate');
-        Reflect.deleteProperty(props, 'onClear');
-        Reflect.deleteProperty(props, 'clearableTooltipText');
-        Reflect.deleteProperty(props, 'channelId');
-        Reflect.deleteProperty(props, 'clearClassName');
-        Reflect.deleteProperty(props, 'tooltipPosition');
-        Reflect.deleteProperty(props, 'forwardedRef');
+        Reflect.deleteProperty(props, "delayInputUpdate");
+        Reflect.deleteProperty(props, "onClear");
+        Reflect.deleteProperty(props, "clearableTooltipText");
+        Reflect.deleteProperty(props, "channelId");
+        Reflect.deleteProperty(props, "clearClassName");
+        Reflect.deleteProperty(props, "tooltipPosition");
+        Reflect.deleteProperty(props, "forwardedRef");
 
         if (inputComponent !== AutosizeTextarea) {
-            Reflect.deleteProperty(props, 'onHeightChange');
-            Reflect.deleteProperty(props, 'onWidthChange');
+            Reflect.deleteProperty(props, "onHeightChange");
+            Reflect.deleteProperty(props, "onWidthChange");
         }
 
-        const inputElement = React.createElement(
-            inputComponent || 'input',
-            {
-                ...props,
-                ref: this.setInputRef,
-                defaultValue: value, // Only set the defaultValue since the real one will be updated using componentDidUpdate
-            },
-        );
+        const inputElement = React.createElement(inputComponent || "input", {
+            ...props,
+            ref: this.setInputRef,
+            defaultValue: value, // Only set the defaultValue since the real one will be updated using componentDidUpdate
+        });
 
-        const showClearButton = this.props.onClear && (clearableWithoutValue || (clearable && value));
-        return (<div>
-            {inputElement}
-            {showClearButton &&
-            <div
-                className={classNames(clearClassName, 'input-clear visible')}
-                onMouseDown={this.onClear}
-                onTouchEnd={this.onClear}
-            >
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement={tooltipPosition}
-                    overlay={clearableTooltip}
-                >
-                    <span
-                        className='input-clear-x'
-                        aria-hidden='true'
+        const showClearButton =
+            this.props.onClear &&
+            (clearableWithoutValue || (clearable && value));
+        return (
+            <div>
+                {inputElement}
+                {showClearButton && (
+                    <div
+                        className={classNames(
+                            clearClassName,
+                            "input-clear visible",
+                        )}
+                        onMouseDown={this.onClear}
+                        onTouchEnd={this.onClear}
                     >
-                        <i className='icon icon-close-circle'/>
-                    </span>
-                </OverlayTrigger>
+                        <OverlayTrigger
+                            delayShow={Constants.OVERLAY_TIME_DELAY}
+                            placement={tooltipPosition}
+                            overlay={clearableTooltip}
+                        >
+                            <span className="input-clear-x" aria-hidden="true">
+                                <i className="icon icon-close-circle" />
+                            </span>
+                        </OverlayTrigger>
+                    </div>
+                )}
             </div>
-            }
-        </div>);
+        );
     }
 }
 
-type ForwardedProps = Omit<React.ComponentPropsWithoutRef<typeof QuickInput>, 'forwardedRef'>;
+type ForwardedProps = Omit<
+    React.ComponentPropsWithoutRef<typeof QuickInput>,
+    "forwardedRef"
+>;
 
-const forwarded = React.forwardRef<HTMLInputElement | HTMLTextAreaElement, ForwardedProps>((props, ref) => (
-    <QuickInput
-        forwardedRef={ref}
-        {...props}
-    />
-));
-forwarded.displayName = 'QuickInput';
+const forwarded = React.forwardRef<
+    HTMLInputElement | HTMLTextAreaElement,
+    ForwardedProps
+>((props, ref) => <QuickInput forwardedRef={ref} {...props} />);
+forwarded.displayName = "QuickInput";
 
 export default forwarded;

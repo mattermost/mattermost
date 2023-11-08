@@ -1,38 +1,42 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
+import classNames from "classnames";
+import React from "react";
 
-import type {MarketplaceLabel} from '@mattermost/types/marketplace';
+import type { MarketplaceLabel } from "@mattermost/types/marketplace";
 
-import ExternalLink from 'components/external_link';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import PluginIcon from 'components/widgets/icons/plugin_icon';
-import Tag from 'components/widgets/tag/tag';
+import ExternalLink from "components/external_link";
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
+import PluginIcon from "components/widgets/icons/plugin_icon";
+import Tag from "components/widgets/tag/tag";
 
-import {Constants} from 'utils/constants';
+import { Constants } from "utils/constants";
 
 // Label renders a tag showing a name and a description in a tooltip.
 // If a URL is provided, clicking on the tag will open the URL in a new tab.
-export const Label = ({name, description, url}: MarketplaceLabel): JSX.Element => {
-    const tag = (
-        <Tag
-            text={name}
-            uppercase={true}
-            size={'sm'}
-        />
-    );
+export const Label = ({
+    name,
+    description,
+    url,
+}: MarketplaceLabel): JSX.Element => {
+    const tag = <Tag text={name} uppercase={true} size={"sm"} />;
 
     let label;
     if (description) {
         label = (
             <OverlayTrigger
                 delayShow={Constants.OVERLAY_TIME_DELAY}
-                placement='top'
+                placement="top"
                 overlay={
-                    <Tooltip id={'plugin-marketplace_label_' + name.toLowerCase() + '-tooltip'}>
+                    <Tooltip
+                        id={
+                            "plugin-marketplace_label_" +
+                            name.toLowerCase() +
+                            "-tooltip"
+                        }
+                    >
                         {description}
                     </Tooltip>
                 }
@@ -48,9 +52,9 @@ export const Label = ({name, description, url}: MarketplaceLabel): JSX.Element =
         return (
             <ExternalLink
                 aria-label={name.toLowerCase()}
-                className='style--none more-modal__row--link marketplace__tag'
+                className="style--none more-modal__row--link marketplace__tag"
                 href={url}
-                location='marketplace_item'
+                location="marketplace_item"
             >
                 {label}
             </ExternalLink>
@@ -72,14 +76,17 @@ export type MarketplaceItemProps = {
 
     button: JSX.Element;
     updateDetails: JSX.Element | null;
-    versionLabel: JSX.Element| null;
+    versionLabel: JSX.Element | null;
 };
 
 type MarketplaceItemState = {
     showTooltip: boolean;
 };
 
-export default class MarketplaceItem extends React.PureComponent <MarketplaceItemProps, MarketplaceItemState> {
+export default class MarketplaceItem extends React.PureComponent<
+    MarketplaceItemProps,
+    MarketplaceItemState
+> {
     descriptionRef: React.RefObject<HTMLParagraphElement>;
 
     constructor(props: MarketplaceItemProps) {
@@ -98,21 +105,24 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
 
     enableToolTipIfNeeded = (): void => {
         const element = this.descriptionRef.current;
-        const showTooltip = element && element.offsetWidth < element.scrollWidth;
-        this.setState({showTooltip: Boolean(showTooltip)});
+        const showTooltip =
+            element && element.offsetWidth < element.scrollWidth;
+        this.setState({ showTooltip: Boolean(showTooltip) });
     };
 
     render(): JSX.Element {
-        const {labels = null} = this.props;
+        const { labels = null } = this.props;
         let icon;
         if (this.props.iconSource) {
             icon = (
-                <div className='icon__plugin icon__plugin--background'>
-                    <img src={this.props.iconSource}/>
+                <div className="icon__plugin icon__plugin--background">
+                    <img src={this.props.iconSource} />
                 </div>
             );
         } else {
-            icon = <PluginIcon className='icon__plugin icon__plugin--background'/>;
+            icon = (
+                <PluginIcon className="icon__plugin icon__plugin--background" />
+            );
         }
 
         const labelComponents = labels?.map((label) => (
@@ -134,7 +144,9 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
         const descriptionText = this.props.error || this.props.description;
         let description = (
             <p
-                className={classNames('more-modal__description', {error_text: this.props.error})}
+                className={classNames("more-modal__description", {
+                    error_text: this.props.error,
+                })}
                 ref={this.descriptionRef}
             >
                 {descriptionText}
@@ -144,8 +156,8 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
         if (this.state.showTooltip) {
             const displayNameToolTip = (
                 <Tooltip
-                    id='marketplace-item-description__tooltip'
-                    className='more-modal__description-tooltip'
+                    id="marketplace-item-description__tooltip"
+                    className="more-modal__description-tooltip"
                 >
                     {descriptionText}
                 </Tooltip>
@@ -154,7 +166,7 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
             description = (
                 <OverlayTrigger
                     delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='top'
+                    placement="top"
                     overlay={displayNameToolTip}
                 >
                     {description}
@@ -168,18 +180,18 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
                 <>
                     <ExternalLink
                         aria-label={this.props.name.toLowerCase()}
-                        className='style--none more-modal__row--link'
+                        className="style--none more-modal__row--link"
                         href={this.props.homepageUrl}
-                        location='marketplace_item'
+                        location="marketplace_item"
                     >
                         {pluginDetailsInner}
                     </ExternalLink>
                     {labelComponents}
                     <ExternalLink
                         aria-label="Plugin's website"
-                        className='style--none more-modal__row--link'
+                        className="style--none more-modal__row--link"
                         href={this.props.homepageUrl}
-                        location='marketplace_item'
+                        location="marketplace_item"
                     >
                         {description}
                     </ExternalLink>
@@ -190,14 +202,14 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
                 <>
                     <span
                         aria-label={this.props.name.toLowerCase()}
-                        className='style--none'
+                        className="style--none"
                     >
                         {pluginDetailsInner}
                     </span>
                     {labelComponents}
                     <span
                         aria-label="Plugin\'s website"
-                        className='style--none'
+                        className="style--none"
                     >
                         {description}
                     </span>
@@ -208,16 +220,20 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
         return (
             <>
                 <div
-                    className={classNames('more-modal__row', 'more-modal__row--link', {item_error: this.props.error})}
+                    className={classNames(
+                        "more-modal__row",
+                        "more-modal__row--link",
+                        { item_error: this.props.error },
+                    )}
                     key={this.props.id}
-                    id={'marketplace-plugin-' + this.props.id}
+                    id={"marketplace-plugin-" + this.props.id}
                 >
                     {icon}
-                    <div className='more-modal__details'>
+                    <div className="more-modal__details">
                         {pluginDetails}
                         {this.props.updateDetails}
                     </div>
-                    <div className='more-modal__actions'>
+                    <div className="more-modal__actions">
                         {this.props.button}
                     </div>
                 </div>

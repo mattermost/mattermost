@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback} from 'react';
-import {Route} from 'react-router-dom';
+import React, { useState, useCallback } from "react";
+import { Route } from "react-router-dom";
 
-import AnnouncementBar from 'components/announcement_bar';
+import AnnouncementBar from "components/announcement_bar";
 
-import type {HeaderProps} from './header';
+import type { HeaderProps } from "./header";
 
-import './header_footer_route.scss';
+import "./header_footer_route.scss";
 
-const Header = React.lazy(() => import('./header'));
-const Footer = React.lazy(() => import('./footer'));
+const Header = React.lazy(() => import("./header"));
+const Footer = React.lazy(() => import("./footer"));
 
 export type CustomizeHeaderType = (props: HeaderProps) => void;
 
 export type HFRouteProps = {
     path: string;
-    component: React.ComponentType<{onCustomizeHeader?: CustomizeHeaderType}>;
+    component: React.ComponentType<{ onCustomizeHeader?: CustomizeHeaderType }>;
 };
 
-export const HFRoute = ({path, component: Component}: HFRouteProps) => {
+export const HFRoute = ({ path, component: Component }: HFRouteProps) => {
     const [headerProps, setHeaderProps] = useState<HeaderProps>({});
 
     const customizeHeader: CustomizeHeaderType = useCallback((props) => {
@@ -33,18 +33,20 @@ export const HFRoute = ({path, component: Component}: HFRouteProps) => {
             render={() => (
                 <>
                     <React.Suspense fallback={null}>
-                        <AnnouncementBar/>
+                        <AnnouncementBar />
                     </React.Suspense>
-                    <div className='header-footer-route'>
-                        <div className='header-footer-route-container'>
+                    <div className="header-footer-route">
+                        <div className="header-footer-route-container">
                             <React.Suspense fallback={null}>
-                                <Header {...headerProps}/>
+                                <Header {...headerProps} />
                             </React.Suspense>
                             <React.Suspense fallback={null}>
-                                <Component onCustomizeHeader={customizeHeader}/>
+                                <Component
+                                    onCustomizeHeader={customizeHeader}
+                                />
                             </React.Suspense>
                             <React.Suspense fallback={null}>
-                                <Footer/>
+                                <Footer />
                             </React.Suspense>
                         </div>
                     </div>

@@ -1,30 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
-import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import React, { useCallback } from "react";
+import { useIntl } from "react-intl";
+import { useDispatch, useSelector } from "react-redux";
 
-import {readMultipleChannels} from 'mattermost-redux/actions/channels';
+import { readMultipleChannels } from "mattermost-redux/actions/channels";
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {getUnreadChannels} from 'selectors/views/channel_sidebar';
+import { trackEvent } from "actions/telemetry_actions";
+import { getUnreadChannels } from "selectors/views/channel_sidebar";
 
-import * as Menu from 'components/menu';
+import * as Menu from "components/menu";
 
-import CreateNewCategoryMenuItem from './sidebar_category/sidebar_category_menu/create_new_category_menu_item';
-import MarkAsReadMenuItem from './sidebar_category/sidebar_category_menu/mark_as_read_menu_item';
-import SidebarCategoryGenericMenu from './sidebar_category/sidebar_category_menu/sidebar_category_generic_menu';
-import {SidebarCategoryHeaderStatic} from './sidebar_category_header';
-import SidebarChannel from './sidebar_channel';
+import CreateNewCategoryMenuItem from "./sidebar_category/sidebar_category_menu/create_new_category_menu_item";
+import MarkAsReadMenuItem from "./sidebar_category/sidebar_category_menu/mark_as_read_menu_item";
+import SidebarCategoryGenericMenu from "./sidebar_category/sidebar_category_menu/sidebar_category_generic_menu";
+import { SidebarCategoryHeaderStatic } from "./sidebar_category_header";
+import SidebarChannel from "./sidebar_channel";
 
 type Props = {
     setChannelRef: (channelId: string, ref: HTMLLIElement) => void;
 };
 
-export default function UnreadChannels({
-    setChannelRef,
-}: Props) {
+export default function UnreadChannels({ setChannelRef }: Props) {
     const intl = useIntl();
     const unreadChannels = useSelector(getUnreadChannels);
     const dispatch = useDispatch();
@@ -35,7 +33,7 @@ export default function UnreadChannels({
         }
 
         dispatch(readMultipleChannels(unreadChannels.map((v) => v.id)));
-        trackEvent('ui', 'ui_sidebar_category_menu_viewUnreadCategory');
+        trackEvent("ui", "ui_sidebar_category_menu_viewUnreadCategory");
     }, [unreadChannels, dispatch]);
 
     if (unreadChannels.length === 0) {
@@ -43,23 +41,25 @@ export default function UnreadChannels({
     }
 
     return (
-        <div className='SidebarChannelGroup dropDisabled a11y__section'>
-            <SidebarCategoryHeaderStatic displayName={intl.formatMessage({id: 'sidebar.types.unreads', defaultMessage: 'UNREADS'})}>
-                <SidebarCategoryGenericMenu id='unreads'>
+        <div className="SidebarChannelGroup dropDisabled a11y__section">
+            <SidebarCategoryHeaderStatic
+                displayName={intl.formatMessage({
+                    id: "sidebar.types.unreads",
+                    defaultMessage: "UNREADS",
+                })}
+            >
+                <SidebarCategoryGenericMenu id="unreads">
                     <MarkAsReadMenuItem
-                        id={'unreads'}
+                        id={"unreads"}
                         handleViewCategory={handleViewCategory}
                         numChannels={unreadChannels.length}
                     />
-                    <Menu.Separator/>
-                    <CreateNewCategoryMenuItem id={'unreads'}/>
+                    <Menu.Separator />
+                    <CreateNewCategoryMenuItem id={"unreads"} />
                 </SidebarCategoryGenericMenu>
             </SidebarCategoryHeaderStatic>
-            <div className='SidebarChannelGroup_content'>
-                <ul
-                    role='list'
-                    className='NavGroupContent'
-                >
+            <div className="SidebarChannelGroup_content">
+                <ul role="list" className="NavGroupContent">
                     {unreadChannels.map((channel, index) => {
                         return (
                             <SidebarChannel

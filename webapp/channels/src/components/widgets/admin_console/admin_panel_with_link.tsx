@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router-dom';
+import classNames from "classnames";
+import React from "react";
+import { FormattedMessage } from "react-intl";
+import { Link } from "react-router-dom";
 
-import AdminPanel from './admin_panel';
+import AdminPanel from "./admin_panel";
 
 type Props = {
     children?: React.ReactNode;
@@ -21,13 +21,17 @@ type Props = {
     disabled?: boolean;
     linkTextId: string;
     linkTextDefault: string;
-}
+};
 
 const AdminPanelWithLink = (props: Props) => {
     const button = (
         <Link
             data-testid={`${props.id}-link`}
-            className={classNames(['btn', 'btn-primary', {disabled: props.disabled}])}
+            className={classNames([
+                "btn",
+                "btn-primary",
+                { disabled: props.disabled },
+            ])}
             to={props.url}
             onClick={props.disabled ? (e) => e.preventDefault() : () => null}
         >
@@ -40,7 +44,7 @@ const AdminPanelWithLink = (props: Props) => {
 
     return (
         <AdminPanel
-            className={'AdminPanelWithLink ' + props.className}
+            className={"AdminPanelWithLink " + props.className}
             id={props.id}
             data-testid={props.id}
             titleId={props.titleId}
@@ -56,7 +60,7 @@ const AdminPanelWithLink = (props: Props) => {
 };
 
 AdminPanelWithLink.defaultProps = {
-    className: '',
+    className: "",
 };
 
 export default AdminPanelWithLink;

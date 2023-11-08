@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, { memo } from "react";
 
-import type {FileInfo} from '@mattermost/types/files';
-import type {Post} from '@mattermost/types/posts';
+import type { FileInfo } from "@mattermost/types/files";
+import type { Post } from "@mattermost/types/posts";
 
-import FilePreviewModalInfo from '../file_preview_modal_info/file_preview_modal_info';
-import FilePreviewModalMainActions from '../file_preview_modal_main_actions/file_preview_modal_main_actions';
-import type {LinkInfo} from '../types';
+import FilePreviewModalInfo from "../file_preview_modal_info/file_preview_modal_info";
+import FilePreviewModalMainActions from "../file_preview_modal_main_actions/file_preview_modal_main_actions";
+import type { LinkInfo } from "../types";
 
-import './file_preview_modal_footer.scss';
+import "./file_preview_modal_footer.scss";
 
 interface Props {
     fileInfo: FileInfo | LinkInfo;
@@ -26,9 +26,12 @@ interface Props {
     content: string;
 }
 
-const FilePreviewModalFooter: React.FC<Props> = ({post, ...actionProps}: Props) => {
+const FilePreviewModalFooter: React.FC<Props> = ({
+    post,
+    ...actionProps
+}: Props) => {
     return (
-        <div className='file-preview-modal-footer'>
+        <div className="file-preview-modal-footer">
             <FilePreviewModalInfo
                 showFileName={false}
                 post={post}
@@ -37,7 +40,7 @@ const FilePreviewModalFooter: React.FC<Props> = ({post, ...actionProps}: Props) 
             <FilePreviewModalMainActions
                 {...actionProps}
                 showClose={false}
-                usedInside='Footer'
+                usedInside="Footer"
                 showOnlyClose={false}
             />
         </div>

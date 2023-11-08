@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from "react-redux";
 
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+import { isCurrentLicenseCloud } from "mattermost-redux/selectors/entities/cloud";
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {openModal} from 'actions/views/modals';
+import { trackEvent } from "actions/telemetry_actions";
+import { openModal } from "actions/views/modals";
 
-import PricingModal from 'components/pricing_modal';
+import PricingModal from "components/pricing_modal";
 
-import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import { ModalIdentifiers, TELEMETRY_CATEGORIES } from "utils/constants";
 
 export type TelemetryProps = {
     trackingLocation: string;
-}
+};
 
 export default function useOpenPricingModal() {
     const dispatch = useDispatch();
@@ -24,17 +24,19 @@ export default function useOpenPricingModal() {
         if (isCloud) {
             category = TELEMETRY_CATEGORIES.CLOUD_PRICING;
         } else {
-            category = 'self_hosted_pricing';
+            category = "self_hosted_pricing";
         }
-        trackEvent(category, 'click_open_pricing_modal', {
+        trackEvent(category, "click_open_pricing_modal", {
             callerInfo: telemetryProps?.trackingLocation,
         });
-        dispatch(openModal({
-            modalId: ModalIdentifiers.PRICING_MODAL,
-            dialogType: PricingModal,
-            dialogProps: {
-                callerCTA: telemetryProps?.trackingLocation,
-            },
-        }));
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.PRICING_MODAL,
+                dialogType: PricingModal,
+                dialogProps: {
+                    callerCTA: telemetryProps?.trackingLocation,
+                },
+            }),
+        );
     };
 }

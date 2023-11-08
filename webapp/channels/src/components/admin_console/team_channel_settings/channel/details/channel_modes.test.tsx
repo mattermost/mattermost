@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import {ChannelModes} from './channel_modes';
+import { ChannelModes } from "./channel_modes";
 
-describe('admin_console/team_channel_settings/channel/ChannelModes', () => {
-    test('should match snapshot', () => {
+describe("admin_console/team_channel_settings/channel/ChannelModes", () => {
+    test("should match snapshot", () => {
         const wrapper = shallow(
             <ChannelModes
                 onToggle={jest.fn()}
@@ -21,7 +21,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModes', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot - not licensed for Group', () => {
+    test("should match snapshot - not licensed for Group", () => {
         const wrapper = shallow(
             <ChannelModes
                 onToggle={jest.fn()}

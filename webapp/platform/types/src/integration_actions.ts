@@ -22,7 +22,7 @@ export type PostActionOption = {
 export type PostActionIntegration = {
     url?: string;
     context?: Record<string, any>;
-}
+};
 
 export type PostActionResponse = {
     status: string;

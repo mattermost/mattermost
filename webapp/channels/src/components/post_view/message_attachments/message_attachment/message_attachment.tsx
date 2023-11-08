@@ -1,41 +1,43 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import truncate from 'lodash/truncate';
-import React from 'react';
-import type {CSSProperties} from 'react';
+import truncate from "lodash/truncate";
+import React from "react";
+import type { CSSProperties } from "react";
 
-import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
+import type {
+    PostAction,
+    PostActionOption,
+} from "@mattermost/types/integration_actions";
 import type {
     MessageAttachment as MessageAttachmentType,
     MessageAttachmentField,
-} from '@mattermost/types/message_attachments';
-import type {PostImage} from '@mattermost/types/posts';
+} from "@mattermost/types/message_attachments";
+import type { PostImage } from "@mattermost/types/posts";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import {trackEvent} from 'actions/telemetry_actions';
+import { trackEvent } from "actions/telemetry_actions";
 
-import ExternalImage from 'components/external_image';
-import ExternalLink from 'components/external_link';
-import FilePreviewModal from 'components/file_preview_modal';
-import Markdown from 'components/markdown';
-import ShowMore from 'components/post_view/show_more';
-import SizeAwareImage from 'components/size_aware_image';
+import ExternalImage from "components/external_image";
+import ExternalLink from "components/external_link";
+import FilePreviewModal from "components/file_preview_modal";
+import Markdown from "components/markdown";
+import ShowMore from "components/post_view/show_more";
+import SizeAwareImage from "components/size_aware_image";
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
-import LinkOnlyRenderer from 'utils/markdown/link_only_renderer';
-import type {TextFormattingOptions} from 'utils/text_formatting';
-import {isUrlSafe} from 'utils/url';
-import * as Utils from 'utils/utils';
+import { Constants, ModalIdentifiers } from "utils/constants";
+import LinkOnlyRenderer from "utils/markdown/link_only_renderer";
+import type { TextFormattingOptions } from "utils/text_formatting";
+import { isUrlSafe } from "utils/url";
+import * as Utils from "utils/utils";
 
-import type {ModalData} from 'types/actions';
+import type { ModalData } from "types/actions";
 
-import ActionButton from '../action_button';
-import ActionMenu from '../action_menu';
+import ActionButton from "../action_button";
+import ActionMenu from "../action_menu";
 
 type Props = {
-
     /**
      * The post id
      */
@@ -57,20 +59,28 @@ type Props = {
     imagesMetadata?: Record<string, PostImage>;
 
     actions: {
-        doPostActionWithCookie: (postId: string, actionId: string, actionCookie: string, selectedOption?: string) => Promise<ActionResult>;
+        doPostActionWithCookie: (
+            postId: string,
+            actionId: string,
+            actionCookie: string,
+            selectedOption?: string,
+        ) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
 
     currentRelativeTeamUrl: string;
-}
+};
 
 type State = {
     checkOverflow: number;
     actionExecuting: boolean;
     actionExecutingMessage: string | null;
-}
+};
 
-export default class MessageAttachment extends React.PureComponent<Props, State> {
+export default class MessageAttachment extends React.PureComponent<
+    Props,
+    State
+> {
     private mounted = false;
     private imageProps = {};
 
@@ -97,16 +107,24 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         this.mounted = false;
     }
 
-    handleHeightReceivedForThumbUrl = ({height}: {height: number}) => {
-        const {attachment} = this.props;
-        if (!this.props.imagesMetadata || (this.props.imagesMetadata && !this.props.imagesMetadata[attachment.thumb_url])) {
+    handleHeightReceivedForThumbUrl = ({ height }: { height: number }) => {
+        const { attachment } = this.props;
+        if (
+            !this.props.imagesMetadata ||
+            (this.props.imagesMetadata &&
+                !this.props.imagesMetadata[attachment.thumb_url])
+        ) {
             this.handleHeightReceived(height);
         }
     };
 
-    handleHeightReceivedForImageUrl = ({height}: {height: number}) => {
-        const {attachment} = this.props;
-        if (!this.props.imagesMetadata || (this.props.imagesMetadata && !this.props.imagesMetadata[attachment.image_url])) {
+    handleHeightReceivedForImageUrl = ({ height }: { height: number }) => {
+        const { attachment } = this.props;
+        if (
+            !this.props.imagesMetadata ||
+            (this.props.imagesMetadata &&
+                !this.props.imagesMetadata[attachment.image_url])
+        ) {
             this.handleHeightReceived(height);
         }
     };
@@ -126,14 +144,14 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         // and recompute textContainer height at ShowMore component
         // and see whether overflow text of show more/less is necessary or not.
         this.setState((prevState) => {
-            return {checkOverflow: prevState.checkOverflow + 1};
+            return { checkOverflow: prevState.checkOverflow + 1 };
         });
     };
 
     renderPostActions = () => {
         const actions = this.props.attachment.actions;
         if (!actions || !actions.length) {
-            return '';
+            return "";
         }
 
         const content = [] as JSX.Element[];
@@ -144,74 +162,101 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             }
 
             switch (action.type) {
-            case 'select':
-                content.push(
-                    <ActionMenu
-                        key={action.id}
-                        postId={this.props.postId}
-                        action={action}
-                        disabled={action.disabled}
-                    />,
-                );
-                break;
-            case 'button':
-            default:
-                content.push(
-                    <ActionButton
-                        key={action.id}
-                        action={action}
-                        disabled={action.disabled}
-                        handleAction={this.handleAction}
-                        actionExecuting={this.state.actionExecuting}
-                        actionExecutingMessage={this.state.actionExecutingMessage || undefined}
-                    />,
-                );
-                break;
+                case "select":
+                    content.push(
+                        <ActionMenu
+                            key={action.id}
+                            postId={this.props.postId}
+                            action={action}
+                            disabled={action.disabled}
+                        />,
+                    );
+                    break;
+                case "button":
+                default:
+                    content.push(
+                        <ActionButton
+                            key={action.id}
+                            action={action}
+                            disabled={action.disabled}
+                            handleAction={this.handleAction}
+                            actionExecuting={this.state.actionExecuting}
+                            actionExecutingMessage={
+                                this.state.actionExecutingMessage || undefined
+                            }
+                        />,
+                    );
+                    break;
             }
         });
 
-        return (
-            <div
-                className='attachment-actions'
-            >
-                {content}
-            </div>
-        );
+        return <div className="attachment-actions">{content}</div>;
     };
 
-    handleAction = (e: React.MouseEvent, actionOptions?: PostActionOption[]) => {
+    handleAction = (
+        e: React.MouseEvent,
+        actionOptions?: PostActionOption[],
+    ) => {
         e.preventDefault();
 
-        const actionExecutingMessage = this.getActionOption(actionOptions, 'ActionExecutingMessage');
+        const actionExecutingMessage = this.getActionOption(
+            actionOptions,
+            "ActionExecutingMessage",
+        );
         if (actionExecutingMessage) {
-            this.setState({actionExecuting: true, actionExecutingMessage: actionExecutingMessage.value});
+            this.setState({
+                actionExecuting: true,
+                actionExecutingMessage: actionExecutingMessage.value,
+            });
         }
 
-        const trackOption = this.getActionOption(actionOptions, 'TrackEventId');
+        const trackOption = this.getActionOption(actionOptions, "TrackEventId");
         if (trackOption) {
-            trackEvent('admin', 'click_warn_metric_bot_id', {metric: trackOption.value});
+            trackEvent("admin", "click_warn_metric_bot_id", {
+                metric: trackOption.value,
+            });
         }
 
-        const actionId = e.currentTarget.getAttribute('data-action-id') || '';
-        const actionCookie = e.currentTarget.getAttribute('data-action-cookie') || '';
+        const actionId = e.currentTarget.getAttribute("data-action-id") || "";
+        const actionCookie =
+            e.currentTarget.getAttribute("data-action-cookie") || "";
 
-        this.props.actions.doPostActionWithCookie(this.props.postId, actionId, actionCookie).then(() => {
-            this.handleCustomActions(actionOptions);
-            if (actionExecutingMessage) {
-                this.setState({actionExecuting: false, actionExecutingMessage: null});
-            }
-        });
+        this.props.actions
+            .doPostActionWithCookie(this.props.postId, actionId, actionCookie)
+            .then(() => {
+                this.handleCustomActions(actionOptions);
+                if (actionExecutingMessage) {
+                    this.setState({
+                        actionExecuting: false,
+                        actionExecutingMessage: null,
+                    });
+                }
+            });
     };
 
     handleCustomActions = (actionOptions?: PostActionOption[]) => {
-        const extUrlOption = this.getActionOption(actionOptions, 'WarnMetricMailtoUrl');
+        const extUrlOption = this.getActionOption(
+            actionOptions,
+            "WarnMetricMailtoUrl",
+        );
         if (extUrlOption) {
             const mailtoPayload = JSON.parse(extUrlOption.value);
-            window.location.href = 'mailto:' + mailtoPayload.mail_recipient + '?cc=' + mailtoPayload.mail_cc + '&subject=' + encodeURIComponent(mailtoPayload.mail_subject) + '&body=' + encodeURIComponent(mailtoPayload.mail_body);
+            window.location.href =
+                "mailto:" +
+                mailtoPayload.mail_recipient +
+                "?cc=" +
+                mailtoPayload.mail_cc +
+                "&subject=" +
+                encodeURIComponent(mailtoPayload.mail_subject) +
+                "&body=" +
+                encodeURIComponent(mailtoPayload.mail_body);
         }
     };
 
-    getActionOption = (actionOptions: PostActionOption[] | undefined, optionName: string) => {
+    getActionOption = (
+        actionOptions: PostActionOption[] | undefined,
+        optionName: string,
+    ) => {
         let opt = null;
         if (actionOptions) {
             opt = actionOptions.find((option) => option.text === optionName);
@@ -222,7 +267,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
     getFieldsTable = () => {
         const fields = this.props.attachment.fields;
         if (!fields || !fields.length) {
-            return '';
+            return "";
         }
 
         const fieldTables = [];
@@ -232,24 +277,20 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         let rowPos = 0;
         let lastWasLong = false;
         let nrTables = 0;
-        const markdown = {markdown: false, mentionHighlight: false};
+        const markdown = { markdown: false, mentionHighlight: false };
 
         fields.forEach((field: MessageAttachmentField, i: number) => {
             if (rowPos === 2 || !(field.short === true) || lastWasLong) {
                 fieldTables.push(
                     <table
-                        className='attachment-fields'
-                        key={'attachment__table__' + nrTables}
+                        className="attachment-fields"
+                        key={"attachment__table__" + nrTables}
                     >
                         <thead>
-                            <tr>
-                                {headerCols}
-                            </tr>
+                            <tr>{headerCols}</tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                {bodyCols}
-                            </tr>
+                            <tr>{bodyCols}</tr>
                         </tbody>
                     </table>,
                 );
@@ -261,8 +302,8 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             }
             headerCols.push(
                 <th
-                    className='attachment-field__caption'
-                    key={'attachment__field-caption-' + i + '__' + nrTables}
+                    className="attachment-field__caption"
+                    key={"attachment__field-caption-" + i + "__" + nrTables}
                 >
                     <Markdown
                         message={field.title}
@@ -274,8 +315,8 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
 
             bodyCols.push(
                 <td
-                    className='attachment-field'
-                    key={'attachment__field-' + i + '__' + nrTables}
+                    className="attachment-field"
+                    key={"attachment__field-" + i + "__" + nrTables}
                 >
                     <Markdown
                         message={String(field.value)}
@@ -286,40 +327,34 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             rowPos += 1;
             lastWasLong = !(field.short === true);
         });
-        if (headerCols.length > 0) { // Flush last fields
+        if (headerCols.length > 0) {
+            // Flush last fields
             fieldTables.push(
                 <table
-                    className='attachment-fields'
-                    key={'attachment__table__' + nrTables}
+                    className="attachment-fields"
+                    key={"attachment__table__" + nrTables}
                 >
                     <thead>
-                        <tr>
-                            {headerCols}
-                        </tr>
+                        <tr>{headerCols}</tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            {bodyCols}
-                        </tr>
+                        <tr>{bodyCols}</tr>
                     </tbody>
                 </table>,
             );
         }
-        return (
-            <div>
-                {fieldTables}
-            </div>
-        );
+        return <div>{fieldTables}</div>;
     };
 
-    handleFormattedTextClick = (e: React.MouseEvent) => Utils.handleFormattedTextClick(e, this.props.currentRelativeTeamUrl);
+    handleFormattedTextClick = (e: React.MouseEvent) =>
+        Utils.handleFormattedTextClick(e, this.props.currentRelativeTeamUrl);
 
     getFileExtensionFromUrl = (url: string) => {
-        const index = url.lastIndexOf('.');
+        const index = url.lastIndexOf(".");
         return index > 0 ? url.substring(index + 1) : null;
     };
 
-    showModal = (e: {preventDefault: () => void}, link: string) => {
+    showModal = (e: { preventDefault: () => void }, link: string) => {
         e.preventDefault();
 
         const extension = this.getFileExtensionFromUrl(link);
@@ -329,26 +364,28 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             dialogType: FilePreviewModal,
             dialogProps: {
                 postId: this.props.postId,
-                fileInfos: [{
-                    has_preview_image: false,
-                    link,
-                    extension: extension ?? '',
-                    name: link,
-                }],
+                fileInfos: [
+                    {
+                        has_preview_image: false,
+                        link,
+                        extension: extension ?? "",
+                        name: link,
+                    },
+                ],
                 startIndex: 0,
             },
         });
     };
 
     render() {
-        const {attachment, options} = this.props;
-        let preTextClass = '';
+        const { attachment, options } = this.props;
+        let preTextClass = "";
 
         let preText;
         if (attachment.pretext) {
-            preTextClass = 'attachment--pretext';
+            preTextClass = "attachment--pretext";
             preText = (
-                <div className='attachment__thumb-pretext'>
+                <div className="attachment__thumb-pretext">
                     <Markdown
                         message={attachment.pretext}
                         postId={this.props.postId}
@@ -362,17 +399,20 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             if (attachment.author_icon) {
                 author.push(
                     <ExternalImage
-                        key={'attachment__author-icon'}
+                        key={"attachment__author-icon"}
                         src={attachment.author_icon}
-                        imageMetadata={this.props.imagesMetadata && this.props.imagesMetadata[attachment.author_icon]}
+                        imageMetadata={
+                            this.props.imagesMetadata &&
+                            this.props.imagesMetadata[attachment.author_icon]
+                        }
                     >
                         {(iconUrl) => (
                             <img
-                                alt={'attachment author icon'}
-                                className='attachment__author-icon'
+                                alt={"attachment author icon"}
+                                className="attachment__author-icon"
                                 src={iconUrl}
-                                height='14'
-                                width='14'
+                                height="14"
+                                width="14"
                             />
                         )}
                     </ExternalImage>,
@@ -381,8 +421,8 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             if (attachment.author_name) {
                 author.push(
                     <span
-                        className='attachment__author-name'
-                        key={'attachment__author-name'}
+                        className="attachment__author-name"
+                        key={"attachment__author-name"}
                     >
                         {attachment.author_name}
                     </span>,
@@ -390,26 +430,26 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             }
         }
         if (attachment.author_link && isUrlSafe(attachment.author_link)) {
-            author = [(
+            author = [
                 <ExternalLink
                     href={attachment.author_link}
-                    key={'attachment__author-name'}
-                    location='message_attachment'
+                    key={"attachment__author-name"}
+                    location="message_attachment"
                 >
                     {author}
-                </ExternalLink>
-            )];
+                </ExternalLink>,
+            ];
         }
 
         let title;
         if (attachment.title) {
             if (attachment.title_link && isUrlSafe(attachment.title_link)) {
                 title = (
-                    <h1 className='attachment__title'>
+                    <h1 className="attachment__title">
                         <ExternalLink
-                            className='attachment__title-link'
+                            className="attachment__title-link"
                             href={attachment.title_link}
-                            location='message_attachment'
+                            location="message_attachment"
                         >
                             {attachment.title}
                         </ExternalLink>
@@ -417,7 +457,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                 );
             } else {
                 title = (
-                    <h1 className='attachment__title'>
+                    <h1 className="attachment__title">
                         <Markdown
                             message={attachment.title}
                             options={{
@@ -442,7 +482,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                     maxHeight={200}
                 >
                     <Markdown
-                        message={attachment.text || ''}
+                        message={attachment.text || ""}
                         options={options}
                         postId={this.props.postId}
                         imageProps={this.imageProps}
@@ -453,18 +493,22 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
 
         let image;
         if (attachment.image_url) {
-            const imageMetadata = this.props.imagesMetadata && this.props.imagesMetadata[attachment.image_url];
+            const imageMetadata =
+                this.props.imagesMetadata &&
+                this.props.imagesMetadata[attachment.image_url];
 
             image = (
-                <div className='attachment__image-container'>
+                <div className="attachment__image-container">
                     <ExternalImage
                         src={attachment.image_url}
                         imageMetadata={imageMetadata}
                     >
                         {(imageUrl) => (
                             <SizeAwareImage
-                                className='attachment__image'
-                                onImageLoaded={this.handleHeightReceivedForImageUrl}
+                                className="attachment__image"
+                                onImageLoaded={
+                                    this.handleHeightReceivedForImageUrl
+                                }
                                 src={imageUrl}
                                 dimensions={imageMetadata}
                                 onClick={this.showModal}
@@ -479,7 +523,9 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         if (attachment.footer) {
             let footerIcon;
             if (attachment.footer_icon) {
-                const footerIconMetadata = this.props.imagesMetadata && this.props.imagesMetadata[attachment.footer_icon];
+                const footerIconMetadata =
+                    this.props.imagesMetadata &&
+                    this.props.imagesMetadata[attachment.footer_icon];
 
                 footerIcon = (
                     <ExternalImage
@@ -488,11 +534,11 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                     >
                         {(footerIconUrl) => (
                             <img
-                                alt={'attachment footer icon'}
-                                className='attachment__footer-icon'
+                                alt={"attachment footer icon"}
+                                className="attachment__footer-icon"
                                 src={footerIconUrl}
-                                height='16'
-                                width='16'
+                                height="16"
+                                width="16"
                             />
                         )}
                     </ExternalImage>
@@ -500,26 +546,35 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             }
 
             footer = (
-                <div className='attachment__footer-container'>
+                <div className="attachment__footer-container">
                     {footerIcon}
-                    <span>{truncate(attachment.footer, {length: Constants.MAX_ATTACHMENT_FOOTER_LENGTH, omission: '…'})}</span>
+                    <span>
+                        {truncate(attachment.footer, {
+                            length: Constants.MAX_ATTACHMENT_FOOTER_LENGTH,
+                            omission: "…",
+                        })}
+                    </span>
                 </div>
             );
         }
 
         let thumb;
         if (attachment.thumb_url) {
-            const thumbMetadata = this.props.imagesMetadata && this.props.imagesMetadata[attachment.thumb_url];
+            const thumbMetadata =
+                this.props.imagesMetadata &&
+                this.props.imagesMetadata[attachment.thumb_url];
 
             thumb = (
-                <div className='attachment__thumb-container'>
+                <div className="attachment__thumb-container">
                     <ExternalImage
                         src={attachment.thumb_url}
                         imageMetadata={thumbMetadata}
                     >
                         {(thumbUrl) => (
                             <SizeAwareImage
-                                onImageLoaded={this.handleHeightReceivedForThumbUrl}
+                                onImageLoaded={
+                                    this.handleHeightReceivedForThumbUrl
+                                }
                                 src={thumbUrl}
                                 dimensions={thumbMetadata}
                             />
@@ -533,30 +588,46 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         const actions = this.renderPostActions();
 
         let useBorderStyle;
-        if (attachment.color && attachment.color[0] === '#') {
-            useBorderStyle = {borderLeftColor: attachment.color};
+        if (attachment.color && attachment.color[0] === "#") {
+            useBorderStyle = { borderLeftColor: attachment.color };
         }
 
-        const hasContent = author.length > 0 || Boolean(title) || Boolean(thumb) || Boolean(attachmentText) || Boolean(image) || Boolean(fields) || Boolean(footer) || Boolean(actions);
+        const hasContent =
+            author.length > 0 ||
+            Boolean(title) ||
+            Boolean(thumb) ||
+            Boolean(attachmentText) ||
+            Boolean(image) ||
+            Boolean(fields) ||
+            Boolean(footer) ||
+            Boolean(actions);
 
         return (
             <div
-                className={'attachment ' + preTextClass}
+                className={"attachment " + preTextClass}
                 onClick={this.handleFormattedTextClick}
             >
                 {preText}
-                {
-                    hasContent &&
-                    <div className='attachment__content'>
+                {hasContent && (
+                    <div className="attachment__content">
                         <div
-                            className={useBorderStyle ? 'clearfix attachment__container' : 'clearfix attachment__container attachment__container--' + attachment.color}
+                            className={
+                                useBorderStyle
+                                    ? "clearfix attachment__container"
+                                    : "clearfix attachment__container attachment__container--" +
+                                      attachment.color
+                            }
                             style={useBorderStyle}
                         >
                             {author}
                             {title}
                             <div>
                                 <div
-                                    className={thumb ? 'attachment__body' : 'attachment__body attachment__body--no_thumb'}
+                                    className={
+                                        thumb
+                                            ? "attachment__body"
+                                            : "attachment__body attachment__body--no_thumb"
+                                    }
                                 >
                                     {attachmentText}
                                     {image}
@@ -565,16 +636,16 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                                     {actions}
                                 </div>
                                 {thumb}
-                                <div style={style.footer}/>
+                                <div style={style.footer} />
                             </div>
                         </div>
                     </div>
-                }
+                )}
             </div>
         );
     }
 }
 
 const style = {
-    footer: {clear: 'both'} as CSSProperties,
+    footer: { clear: "both" } as CSSProperties,
 };

@@ -1,38 +1,44 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelType} from './channels';
-import {CustomEmoji} from './emojis';
-import {FileInfo} from './files';
-import {Reaction} from './reactions';
-import {UserProfile} from './users';
+import { Channel, ChannelType } from "./channels";
+import { CustomEmoji } from "./emojis";
+import { FileInfo } from "./files";
+import { Reaction } from "./reactions";
+import { UserProfile } from "./users";
 import {
     RelationOneToOne,
     RelationOneToMany,
     IDMappedObjects,
-} from './utilities';
+} from "./utilities";
 
-export type PostType = 'system_add_remove' |
-'system_add_to_channel' |
-'system_add_to_team' |
-'system_channel_deleted' |
-'system_channel_restored' |
-'system_displayname_change' |
-'system_convert_channel' |
-'system_ephemeral' |
-'system_header_change' |
-'system_join_channel' |
-'system_join_leave' |
-'system_leave_channel' |
-'system_purpose_change' |
-'system_remove_from_channel' |
-'system_combined_user_activity' |
-'system_fake_parent_deleted' |
-'system_generic' |
-'reminder' |
-'';
+export type PostType =
+    | "system_add_remove"
+    | "system_add_to_channel"
+    | "system_add_to_team"
+    | "system_channel_deleted"
+    | "system_channel_restored"
+    | "system_displayname_change"
+    | "system_convert_channel"
+    | "system_ephemeral"
+    | "system_header_change"
+    | "system_join_channel"
+    | "system_join_leave"
+    | "system_leave_channel"
+    | "system_purpose_change"
+    | "system_remove_from_channel"
+    | "system_combined_user_activity"
+    | "system_fake_parent_deleted"
+    | "system_generic"
+    | "reminder"
+    | "";
 
-export type PostEmbedType = 'image' | 'link' | 'message_attachment' | 'opengraph' | 'permalink';
+export type PostEmbedType =
+    | "image"
+    | "link"
+    | "message_attachment"
+    | "opengraph"
+    | "permalink";
 
 export type PostEmbed = {
     type: PostEmbedType;
@@ -48,16 +54,16 @@ export type PostImage = {
 };
 
 export type PostAcknowledgement = {
-    post_id: Post['id'];
-    user_id: UserProfile['id'];
+    post_id: Post["id"];
+    user_id: UserProfile["id"];
     acknowledged_at: number;
-}
+};
 
 export type PostPriorityMetadata = {
-    priority: PostPriority|'';
+    priority: PostPriority | "";
     requested_ack?: boolean;
     persistent_notifications?: boolean;
-}
+};
 
 export type PostMetadata = {
     embeds: PostEmbed[];
@@ -99,15 +105,15 @@ export type Post = {
     exists?: boolean;
 };
 
-export type PostState = 'DELETED';
+export type PostState = "DELETED";
 
 export enum PostPriority {
-    URGENT = 'urgent',
-    IMPORTANT = 'important',
+    URGENT = "urgent",
+    IMPORTANT = "important",
 }
 
 export type PostList = {
-    order: Array<Post['id']>;
+    order: Array<Post["id"]>;
     posts: Record<string, Post>;
     next_post_id: string;
     prev_post_id: string;
@@ -116,7 +122,7 @@ export type PostList = {
 
 export type PaginatedPostList = PostList & {
     has_next: boolean;
-}
+};
 
 export type PostSearchResults = PostList & {
     matches: RelationOneToOne<Post, string[]>;
@@ -138,7 +144,7 @@ export type MessageHistory = {
 
 export type PostsState = {
     posts: IDMappedObjects<Post>;
-    postsReplies: {[x in Post['id']]: number};
+    postsReplies: { [x in Post["id"]]: number };
     postsInChannel: Record<string, PostOrderBlock[]>;
     postsInThread: RelationOneToMany<Post, Post>;
     reactions: RelationOneToOne<Post, Record<string, Reaction>>;
@@ -149,10 +155,10 @@ export type PostsState = {
     currentFocusedPostId: string;
     messagesHistory: MessageHistory;
     limitedViews: {
-        channels: Record<Channel['id'], number>;
-        threads: Record<Post['root_id'], number>;
+        channels: Record<Channel["id"], number>;
+        threads: Record<Post["root_id"], number>;
     };
-    acknowledgements: RelationOneToOne<Post, Record<UserProfile['id'], number>>;
+    acknowledgements: RelationOneToOne<Post, Record<UserProfile["id"], number>>;
 };
 
 export declare type OpenGraphMetadataImage = {
@@ -161,7 +167,7 @@ export declare type OpenGraphMetadataImage = {
     type?: string;
     height?: number;
     width?: number;
-}
+};
 
 export declare type OpenGraphMetadata = {
     type?: string;
@@ -199,13 +205,13 @@ export type PostAnalytics = {
     post_id: string;
     user_actual_id: string;
     root_id: string;
-    priority?: PostPriority|'';
+    priority?: PostPriority | "";
     requested_ack?: boolean;
     persistent_notifications?: boolean;
-}
+};
 export type ActivityEntry = {
-    postType: Post['type'];
+    postType: Post["type"];
     actorId: string[];
     userIds: string[];
     usernames: string[];
-}
+};

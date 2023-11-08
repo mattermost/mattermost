@@ -1,27 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef} from 'react';
-import type {MouseEvent} from 'react';
-import {Overlay} from 'react-bootstrap';
-import {FormattedMessage, useIntl} from 'react-intl';
+import React, { useState, useRef } from "react";
+import type { MouseEvent } from "react";
+import { Overlay } from "react-bootstrap";
+import { FormattedMessage, useIntl } from "react-intl";
 
-import type {Role} from '@mattermost/types/roles';
+import type { Role } from "@mattermost/types/roles";
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import Tooltip from 'components/tooltip';
+import FormattedMarkdownMessage from "components/formatted_markdown_message";
+import Tooltip from "components/tooltip";
 
-import {generateId} from 'utils/utils';
+import { generateId } from "utils/utils";
 
-import type {AdditionalValues} from './permissions_tree/types';
+import type { AdditionalValues } from "./permissions_tree/types";
 
 type Props = {
     id: string;
     rowType: string;
     inherited?: Partial<Role>;
     selectRow: (id: string) => void;
-    additionalValues?: AdditionalValues | AdditionalValues['edit_post'];
-}
+    additionalValues?: AdditionalValues | AdditionalValues["edit_post"];
+};
 
 const PermissionDescription = (props: Props): JSX.Element => {
     const [open, setOpen] = useState(false);
@@ -32,15 +32,16 @@ const PermissionDescription = (props: Props): JSX.Element => {
     const closeTooltip = () => setOpen(false);
 
     const openTooltip = (e: MouseEvent) => {
-        const elm = e.currentTarget.querySelector('span');
+        const elm = e.currentTarget.querySelector("span");
         const isElipsis = elm ? elm.offsetWidth < elm.scrollWidth : false;
         setOpen(isElipsis);
     };
 
     const parentPermissionClicked = (e: MouseEvent) => {
         const parent = (e.target as HTMLSpanElement).parentElement;
-        const isInheritLink = parent?.parentElement?.className === 'inherit-link-wrapper';
-        if (parent?.className !== 'permission-description' && !isInheritLink) {
+        const isInheritLink =
+            parent?.parentElement?.className === "inherit-link-wrapper";
+        if (parent?.className !== "permission-description" && !isInheritLink) {
             e.stopPropagation();
         } else if (isInheritLink) {
             props.selectRow(props.id);
@@ -48,17 +49,20 @@ const PermissionDescription = (props: Props): JSX.Element => {
         }
     };
 
-    const {inherited, id, rowType} = props;
+    const { inherited, id, rowType } = props;
 
-    let content: string | JSX.Element = '';
+    let content: string | JSX.Element = "";
     if (inherited) {
         content = (
-            <span className='inherit-link-wrapper'>
+            <span className="inherit-link-wrapper">
                 <FormattedMarkdownMessage
-                    id='admin.permissions.inherited_from'
+                    id="admin.permissions.inherited_from"
                     values={{
                         name: intl.formatMessage({
-                            id: 'admin.permissions.roles.' + inherited.name + '.name',
+                            id:
+                                "admin.permissions.roles." +
+                                inherited.name +
+                                ".name",
                             defaultMessage: inherited.display_name,
                         }),
                     }}
@@ -68,7 +72,7 @@ const PermissionDescription = (props: Props): JSX.Element => {
     } else {
         content = (
             <FormattedMessage
-                id={'admin.permissions.' + rowType + '.' + id + '.description'}
+                id={"admin.permissions." + rowType + "." + id + ".description"}
                 values={props.additionalValues}
             />
         );
@@ -76,12 +80,10 @@ const PermissionDescription = (props: Props): JSX.Element => {
     let tooltip: JSX.Element | null = (
         <Overlay
             show={open}
-            placement='top'
-            target={(contentRef.current as HTMLSpanElement)}
+            placement="top"
+            target={contentRef.current as HTMLSpanElement}
         >
-            <Tooltip id={randomId}>
-                {content}
-            </Tooltip>
+            <Tooltip id={randomId}>{content}</Tooltip>
         </Overlay>
     );
     if (content.props.values && Object.keys(content.props.values).length > 0) {
@@ -89,7 +91,7 @@ const PermissionDescription = (props: Props): JSX.Element => {
     }
     content = (
         <span
-            className='permission-description'
+            className="permission-description"
             onClick={parentPermissionClicked}
             ref={contentRef}
             onMouseOver={openTooltip}

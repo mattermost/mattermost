@@ -1,25 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import ManageTimezones from './manage_timezones';
+import ManageTimezones from "./manage_timezones";
 
-describe('components/user_settings/display/manage_timezones/manage_timezones', () => {
+describe("components/user_settings/display/manage_timezones/manage_timezones", () => {
     const user = {
-        id: 'user_id',
+        id: "user_id",
     };
 
     const requiredProps = {
         user: user as UserProfile,
-        locale: '',
+        locale: "",
         useAutomaticTimezone: true,
-        automaticTimezone: '',
-        manualTimezone: '',
-        timezoneLabel: '',
+        automaticTimezone: "",
+        manualTimezone: "",
+        timezoneLabel: "",
         timezones: [],
         updateSection: jest.fn(),
         actions: {
@@ -27,24 +27,29 @@ describe('components/user_settings/display/manage_timezones/manage_timezones', (
         },
     };
 
-    test('submitUser() should have called [updateMe, updateSection]', async () => {
-        const updateMe = jest.fn(() => Promise.resolve({data: true}));
-        const props = {...requiredProps, actions: {...requiredProps.actions, updateMe}};
-        const wrapper = shallow(<ManageTimezones {...props}/>);
+    test("submitUser() should have called [updateMe, updateSection]", async () => {
+        const updateMe = jest.fn(() => Promise.resolve({ data: true }));
+        const props = {
+            ...requiredProps,
+            actions: { ...requiredProps.actions, updateMe },
+        };
+        const wrapper = shallow(<ManageTimezones {...props} />);
 
         await (wrapper.instance() as ManageTimezones).submitUser();
 
-        const expected = {...props.user,
+        const expected = {
+            ...props.user,
             timezone: {
                 useAutomaticTimezone: props.useAutomaticTimezone.toString(),
                 manualTimezone: props.manualTimezone,
                 automaticTimezone: props.automaticTimezone,
-            }};
+            },
+        };
 
         expect(props.actions.updateMe).toHaveBeenCalled();
         expect(props.actions.updateMe).toHaveBeenCalledWith(expected);
 
         expect(props.updateSection).toHaveBeenCalled();
-        expect(props.updateSection).toHaveBeenCalledWith('');
+        expect(props.updateSection).toHaveBeenCalledWith("");
     });
 });

@@ -1,25 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {Channel, ChannelStats} from '@mattermost/types/channels';
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Channel, ChannelStats } from "@mattermost/types/channels";
+import type { Team } from "@mattermost/types/teams";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {act, renderWithIntl} from 'tests/react_testing_utils';
+import { act, renderWithIntl } from "tests/react_testing_utils";
 
-import ChannelInfoRHS from './channel_info_rhs';
+import ChannelInfoRHS from "./channel_info_rhs";
 
 const mockAboutArea = jest.fn();
-jest.mock('./about_area', () => (props: any) => {
+jest.mock("./about_area", () => (props: any) => {
     mockAboutArea(props);
-    return <div>{'test-about-area'}</div>;
+    return <div>{"test-about-area"}</div>;
 });
 
-describe('channel_info_rhs', () => {
+describe("channel_info_rhs", () => {
     const OriginalProps = {
-        channel: {display_name: 'my channel title', type: 'O'} as Channel,
+        channel: { display_name: "my channel title", type: "O" } as Channel,
         isArchived: false,
         channelStats: {} as ChannelStats,
         currentUser: {} as UserProfile,
@@ -41,22 +41,20 @@ describe('channel_info_rhs', () => {
             showChannelFiles: jest.fn(),
             showPinnedPosts: jest.fn(),
             showChannelMembers: jest.fn(),
-            getChannelStats: jest.fn().mockImplementation(() => Promise.resolve({data: {}})),
+            getChannelStats: jest
+                .fn()
+                .mockImplementation(() => Promise.resolve({ data: {} })),
         },
     };
-    let props = {...OriginalProps};
+    let props = { ...OriginalProps };
 
     beforeEach(() => {
-        props = {...OriginalProps};
+        props = { ...OriginalProps };
     });
 
-    describe('about area', () => {
-        test('should be editable', async () => {
-            renderWithIntl(
-                <ChannelInfoRHS
-                    {...props}
-                />,
-            );
+    describe("about area", () => {
+        test("should be editable", async () => {
+            renderWithIntl(<ChannelInfoRHS {...props} />);
 
             await act(async () => {
                 props.actions.getChannelStats();
@@ -68,14 +66,10 @@ describe('channel_info_rhs', () => {
                 }),
             );
         });
-        test('should not be editable in archived channel', async () => {
+        test("should not be editable in archived channel", async () => {
             props.isArchived = true;
 
-            renderWithIntl(
-                <ChannelInfoRHS
-                    {...props}
-                />,
-            );
+            renderWithIntl(<ChannelInfoRHS {...props} />);
 
             await act(async () => {
                 props.actions.getChannelStats();

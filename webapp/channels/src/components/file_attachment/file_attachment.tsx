@@ -1,57 +1,59 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React, {useRef, useState, useEffect} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import classNames from "classnames";
+import React, { useRef, useState, useEffect } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
 
-import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
-import type {FileInfo} from '@mattermost/types/files';
+import { ArchiveOutlineIcon } from "@mattermost/compass-icons/components";
+import type { FileInfo } from "@mattermost/types/files";
 
-import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
+import {
+    getFileThumbnailUrl,
+    getFileUrl,
+} from "mattermost-redux/utils/file_utils";
 
-import useTooltip from 'components/common/hooks/useTooltip';
-import GetPublicModal from 'components/get_public_link_modal';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import useTooltip from "components/common/hooks/useTooltip";
+import GetPublicModal from "components/get_public_link_modal";
+import OverlayTrigger from "components/overlay_trigger";
+import Tooltip from "components/tooltip";
+import Menu from "components/widgets/menu/menu";
+import MenuWrapper from "components/widgets/menu/menu_wrapper";
 
-import {Constants, FileTypes, ModalIdentifiers} from 'utils/constants';
-import {trimFilename} from 'utils/file_utils';
+import { Constants, FileTypes, ModalIdentifiers } from "utils/constants";
+import { trimFilename } from "utils/file_utils";
 import {
     fileSizeToString,
     getFileType,
     loadImage,
     localizeMessage,
-} from 'utils/utils';
+} from "utils/utils";
 
-import ArchivedTooltip from './archived_tooltip';
-import FileThumbnail from './file_thumbnail';
-import FilenameOverlay from './filename_overlay';
+import ArchivedTooltip from "./archived_tooltip";
+import FileThumbnail from "./file_thumbnail";
+import FilenameOverlay from "./filename_overlay";
 
-import type {PropsFromRedux} from './index';
+import type { PropsFromRedux } from "./index";
 
 interface Props extends PropsFromRedux {
-
     /*
-    * File detailed information
-    */
+     * File detailed information
+     */
     fileInfo: FileInfo;
 
     /*
-    * The index of this attachment preview in the parent FileAttachmentList
-    */
+     * The index of this attachment preview in the parent FileAttachmentList
+     */
     index: number;
 
     /*
-    * Handler for when the thumbnail is clicked passed the index above
-    */
+     * Handler for when the thumbnail is clicked passed the index above
+     */
     handleImageClick?: (index: number) => void;
 
     /*
-    * Display in compact format
-    */
+     * Display in compact format
+     */
     compactDisplay?: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
 }
@@ -59,7 +61,9 @@ interface Props extends PropsFromRedux {
 export default function FileAttachment(props: Props) {
     const mounted = useRef(true);
     const intl = useIntl();
-    const [loaded, setLoaded] = useState(getFileType(props.fileInfo.extension) !== FileTypes.IMAGE);
+    const [loaded, setLoaded] = useState(
+        getFileType(props.fileInfo.extension) !== FileTypes.IMAGE,
+    );
     const [loadFilesCalled, setLoadFilesCalled] = useState(false);
     const [keepOpen, setKeepOpen] = useState(false);
     const [openUp, setOpenUp] = useState(false);
@@ -69,9 +73,9 @@ export default function FileAttachment(props: Props) {
         getReferenceProps,
         tooltip: archivedTooltip,
     } = useTooltip({
-        message: <ArchivedTooltip/>,
-        placement: 'right',
-        allowedPlacements: ['right', 'top'],
+        message: <ArchivedTooltip />,
+        placement: "right",
+        allowedPlacements: ["right", "top"],
     });
 
     const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -121,17 +125,25 @@ export default function FileAttachment(props: Props) {
 
     useEffect(() => {
         if (props.fileInfo.id) {
-            setLoaded(getFileType(props.fileInfo.extension) !== FileTypes.IMAGE && !(props.enableSVGs && props.fileInfo.extension === FileTypes.SVG));
+            setLoaded(
+                getFileType(props.fileInfo.extension) !== FileTypes.IMAGE &&
+                    !(
+                        props.enableSVGs &&
+                        props.fileInfo.extension === FileTypes.SVG
+                    ),
+            );
         }
     }, [props.fileInfo.extension, props.fileInfo.id, props.enableSVGs]);
 
-    const onAttachmentClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+    const onAttachmentClick = (
+        e: React.MouseEvent<HTMLElement, MouseEvent>,
+    ) => {
         if (props.fileInfo.archived) {
             return;
         }
         e.preventDefault();
 
-        if ('blur' in e.target) {
+        if ("blur" in e.target) {
             (e.target as HTMLElement).blur();
         }
 
@@ -156,8 +168,8 @@ export default function FileAttachment(props: Props) {
 
         const anchorRect = buttonRef.current?.getBoundingClientRect();
         let y;
-        if (typeof anchorRect?.y === 'undefined') {
-            y = typeof anchorRect?.top === 'undefined' ? 0 : anchorRect?.top;
+        if (typeof anchorRect?.y === "undefined") {
+            y = typeof anchorRect?.top === "undefined" ? 0 : anchorRect?.top;
         } else {
             y = anchorRect?.y;
         }
@@ -165,7 +177,8 @@ export default function FileAttachment(props: Props) {
 
         const totalSpace = windowHeight - 80;
         const spaceOnTop = y - Constants.CHANNEL_HEADER_HEIGHT;
-        const spaceOnBottom = (totalSpace - (spaceOnTop + Constants.POST_AREA_HEIGHT));
+        const spaceOnBottom =
+            totalSpace - (spaceOnTop + Constants.POST_AREA_HEIGHT);
 
         setOpenUp(spaceOnTop > spaceOnBottom);
     };
@@ -181,31 +194,39 @@ export default function FileAttachment(props: Props) {
     };
 
     const renderFileMenuItems = () => {
-        const {enablePublicLink, fileInfo, pluginMenuItems} = props;
+        const { enablePublicLink, fileInfo, pluginMenuItems } = props;
 
         let divider;
         const defaultItems = [];
         if (enablePublicLink) {
             defaultItems.push(
                 <Menu.ItemAction
-                    data-title='Public Image'
+                    data-title="Public Image"
                     onClick={handleGetPublicLink}
-                    ariaLabel={localizeMessage('view_image_popover.publicLink', 'Get a public link')}
-                    text={localizeMessage('view_image_popover.publicLink', 'Get a public link')}
+                    ariaLabel={localizeMessage(
+                        "view_image_popover.publicLink",
+                        "Get a public link",
+                    )}
+                    text={localizeMessage(
+                        "view_image_popover.publicLink",
+                        "Get a public link",
+                    )}
                 />,
             );
         }
 
-        const pluginItems = pluginMenuItems?.filter((item) => item?.match(fileInfo)).map((item) => {
-            return (
-                <Menu.ItemAction
-                    id={item.id + '_pluginmenuitem'}
-                    key={item.id + '_pluginmenuitem'}
-                    onClick={() => item?.action(fileInfo)}
-                    text={item.text}
-                />
-            );
-        });
+        const pluginItems = pluginMenuItems
+            ?.filter((item) => item?.match(fileInfo))
+            .map((item) => {
+                return (
+                    <Menu.ItemAction
+                        id={item.id + "_pluginmenuitem"}
+                        key={item.id + "_pluginmenuitem"}
+                        onClick={() => item?.action(fileInfo)}
+                        text={item.text}
+                    />
+                );
+            });
 
         const isMenuVisible = defaultItems?.length || pluginItems?.length;
         if (!isMenuVisible) {
@@ -217,15 +238,18 @@ export default function FileAttachment(props: Props) {
             divider = (
                 <li
                     id={`divider_file_${fileInfo.id}_plugins`}
-                    className='MenuItem__divider'
-                    role='menuitem'
+                    className="MenuItem__divider"
+                    role="menuitem"
                 />
             );
         }
 
         const tooltip = (
-            <Tooltip id='file-name__tooltip'>
-                {localizeMessage('file_search_result_item.more_actions', 'More Actions')}
+            <Tooltip id="file-name__tooltip">
+                {localizeMessage(
+                    "file_search_result_item.more_actions",
+                    "More Actions",
+                )}
             </Tooltip>
         );
 
@@ -235,27 +259,31 @@ export default function FileAttachment(props: Props) {
                 stopPropagationOnToggle={true}
             >
                 <OverlayTrigger
-                    className='hidden-xs'
+                    className="hidden-xs"
                     delayShow={1000}
-                    placement='top'
+                    placement="top"
                     overlay={tooltip}
                 >
                     <button
                         ref={buttonRef}
                         id={`file_action_button_${props.fileInfo.id}`}
-                        aria-label={localizeMessage('file_search_result_item.more_actions', 'More Actions').toLowerCase()}
+                        aria-label={localizeMessage(
+                            "file_search_result_item.more_actions",
+                            "More Actions",
+                        ).toLowerCase()}
                         className={classNames(
-                            'file-dropdown-icon', 'dots-icon',
-                            {'a11y--active': keepOpen},
+                            "file-dropdown-icon",
+                            "dots-icon",
+                            { "a11y--active": keepOpen },
                         )}
                         aria-expanded={keepOpen}
                     >
-                        <i className='icon icon-dots-vertical'/>
+                        <i className="icon icon-dots-vertical" />
                     </button>
                 </OverlayTrigger>
                 <Menu
                     id={`file_dropdown_${props.fileInfo.id}`}
-                    ariaLabel={'file menu'}
+                    ariaLabel={"file menu"}
                     openLeft={true}
                     openUp={openUp}
                 >
@@ -267,25 +295,28 @@ export default function FileAttachment(props: Props) {
         );
     };
 
-    const {compactDisplay, fileInfo} = props;
+    const { compactDisplay, fileInfo } = props;
 
     let fileThumbnail;
     let fileDetail;
     let fileActions;
-    const ariaLabelImage = `${localizeMessage('file_attachment.thumbnail', 'file thumbnail')} ${fileInfo.name}`.toLowerCase();
+    const ariaLabelImage = `${localizeMessage(
+        "file_attachment.thumbnail",
+        "file thumbnail",
+    )} ${fileInfo.name}`.toLowerCase();
 
     if (!compactDisplay) {
         fileThumbnail = (
             <a
                 aria-label={ariaLabelImage}
-                className='post-image__thumbnail'
-                href='#'
+                className="post-image__thumbnail"
+                href="#"
                 onClick={onAttachmentClick}
             >
                 {loaded ? (
-                    <FileThumbnail fileInfo={fileInfo}/>
+                    <FileThumbnail fileInfo={fileInfo} />
                 ) : (
-                    <div className='post-image__load'/>
+                    <div className="post-image__load" />
                 )}
             </a>
         );
@@ -294,36 +325,42 @@ export default function FileAttachment(props: Props) {
             fileThumbnail = (
                 <ArchiveOutlineIcon
                     size={48}
-                    color={'rgba(var(--center-channel-color-rgb), 0.48)'}
-                    data-testid='archived-file-icon'
+                    color={"rgba(var(--center-channel-color-rgb), 0.48)"}
+                    data-testid="archived-file-icon"
                 />
             );
         }
 
         fileDetail = (
             <div
-                className='post-image__detail_wrapper'
+                className="post-image__detail_wrapper"
                 onClick={onAttachmentClick}
             >
-                <div className='post-image__detail'>
+                <div className="post-image__detail">
                     <span
-                        className={classNames('post-image__name', {
-                            'post-image__name--archived': fileInfo.archived,
+                        className={classNames("post-image__name", {
+                            "post-image__name--archived": fileInfo.archived,
                         })}
                     >
                         {fileInfo.name}
                     </span>
-                    {fileInfo.archived ? <span className={'post-image__archived'}>
-
-                        <FormattedMessage
-                            id='workspace_limits.archived_file.archived'
-                            defaultMessage='This file is archived'
-                        />
-                    </span> : <>
-                        <span className='post-image__type'>{fileInfo.extension.toUpperCase()}</span>
-                        <span className='post-image__size'>{fileSizeToString(fileInfo.size)}</span>
-                    </>
-                    }
+                    {fileInfo.archived ? (
+                        <span className={"post-image__archived"}>
+                            <FormattedMessage
+                                id="workspace_limits.archived_file.archived"
+                                defaultMessage="This file is archived"
+                            />
+                        </span>
+                    ) : (
+                        <>
+                            <span className="post-image__type">
+                                {fileInfo.extension.toUpperCase()}
+                            </span>
+                            <span className="post-image__size">
+                                {fileSizeToString(fileInfo.size)}
+                            </span>
+                        </>
+                    )}
                 </div>
             </div>
         );
@@ -341,9 +378,9 @@ export default function FileAttachment(props: Props) {
                 compactDisplay={compactDisplay}
                 canDownload={props.canDownloadFiles}
                 handleImageClick={onAttachmentClick}
-                iconClass={'post-image__download'}
+                iconClass={"post-image__download"}
             >
-                <i className='icon icon-download-outline'/>
+                <i className="icon icon-download-outline" />
             </FilenameOverlay>
         );
     } else if (fileInfo.archived && compactDisplay) {
@@ -352,45 +389,43 @@ export default function FileAttachment(props: Props) {
         fileThumbnail = (
             <ArchiveOutlineIcon
                 size={16}
-                color={'rgba(var(--center-channel-color-rgb), 0.48)'}
-                data-testid='archived-file-icon'
+                color={"rgba(var(--center-channel-color-rgb), 0.48)"}
+                data-testid="archived-file-icon"
             />
         );
-        filenameOverlay =
-            (<span className='post-image__archived-name'>
-                <span className='post-image__archived-filename'>
+        filenameOverlay = (
+            <span className="post-image__archived-name">
+                <span className="post-image__archived-filename">
                     {trimmedFilename}
                 </span>
-                <span className='post-image__archived-label'>
+                <span className="post-image__archived-label">
                     {intl.formatMessage({
-                        id: 'workspace_limits.archived_file.archived_compact',
-                        defaultMessage: '(archived)',
+                        id: "workspace_limits.archived_file.archived_compact",
+                        defaultMessage: "(archived)",
                     })}
                 </span>
-            </span>);
+            </span>
+        );
     }
 
-    const content =
-        (
-            <div
-                ref={fileInfo.archived ? reference : undefined}
-                {...(fileInfo.archived ? getReferenceProps() : {})}
-                className={
-                    classNames([
-                        'post-image__column',
-                        {'keep-open': keepOpen},
-                        {'post-image__column--archived': fileInfo.archived},
-                    ])
-                }
-            >
-                {fileThumbnail}
-                <div className='post-image__details'>
-                    {fileDetail}
-                    {fileActions}
-                    {filenameOverlay}
-                </div>
+    const content = (
+        <div
+            ref={fileInfo.archived ? reference : undefined}
+            {...(fileInfo.archived ? getReferenceProps() : {})}
+            className={classNames([
+                "post-image__column",
+                { "keep-open": keepOpen },
+                { "post-image__column--archived": fileInfo.archived },
+            ])}
+        >
+            {fileThumbnail}
+            <div className="post-image__details">
+                {fileDetail}
+                {fileActions}
+                {filenameOverlay}
             </div>
-        );
+        </div>
+    );
 
     if (fileInfo.archived) {
         return (

@@ -1,29 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import {CategorySorting} from '@mattermost/types/channel_categories';
+import { CategorySorting } from "@mattermost/types/channel_categories";
 
-import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
+import { CategoryTypes } from "mattermost-redux/constants/channel_categories";
 
-import SidebarCategory from 'components/sidebar/sidebar_category/sidebar_category';
+import SidebarCategory from "components/sidebar/sidebar_category/sidebar_category";
 
-describe('components/sidebar/sidebar_category', () => {
+describe("components/sidebar/sidebar_category", () => {
     const baseProps = {
         category: {
-            id: 'category1',
-            team_id: 'team1',
-            user_id: '',
+            id: "category1",
+            team_id: "team1",
+            user_id: "",
             type: CategoryTypes.CUSTOM,
-            display_name: 'custom_category_1',
-            channel_ids: ['channel_id'],
+            display_name: "custom_category_1",
+            channel_ids: ["channel_id"],
             sorting: CategorySorting.Alphabetical,
             muted: false,
             collapsed: false,
         },
-        channelIds: ['channel_id'],
+        channelIds: ["channel_id"],
         categoryIndex: 0,
         draggingState: {},
         setChannelRef: jest.fn(),
@@ -32,7 +32,7 @@ describe('components/sidebar/sidebar_category', () => {
         isDisabled: false,
         limitVisibleDMsGMs: 10000,
         touchedInviteMembersButton: false,
-        currentUserId: '',
+        currentUserId: "",
         isAdmin: false,
         actions: {
             setCategoryCollapsed: jest.fn(),
@@ -41,27 +41,21 @@ describe('components/sidebar/sidebar_category', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <SidebarCategory {...baseProps}/>,
-        );
+    test("should match snapshot", () => {
+        const wrapper = shallow(<SidebarCategory {...baseProps} />);
 
-        const draggable = wrapper.dive().find('PrivateDraggable').first();
-        const children: any = draggable.prop('children')!;
-        const inner = shallow(
-            children({}, {}),
-        );
+        const draggable = wrapper.dive().find("PrivateDraggable").first();
+        const children: any = draggable.prop("children")!;
+        const inner = shallow(children({}, {}));
         expect(inner).toMatchSnapshot();
 
-        const droppable = inner.find('Connect(Droppable)').first();
-        const droppableChildren: any = droppable.prop('children')!;
-        const droppableInner = shallow(
-            droppableChildren({}, {}),
-        );
+        const droppable = inner.find("Connect(Droppable)").first();
+        const droppableChildren: any = droppable.prop("children")!;
+        const droppableInner = shallow(droppableChildren({}, {}));
         expect(droppableInner).toMatchSnapshot();
     });
 
-    test('should match snapshot when isNewCategory', () => {
+    test("should match snapshot when isNewCategory", () => {
         const props = {
             ...baseProps,
             isNewCategory: true,
@@ -72,28 +66,26 @@ describe('components/sidebar/sidebar_category', () => {
             channelIds: [],
         };
 
-        const wrapper = shallow(
-            <SidebarCategory {...props}/>,
-        );
+        const wrapper = shallow(<SidebarCategory {...props} />);
 
-        const draggable = wrapper.dive().find('PrivateDraggable').first();
-        const children: any = draggable.prop('children')!;
-        const inner = shallow(
-            children({}, {}),
-        );
+        const draggable = wrapper.dive().find("PrivateDraggable").first();
+        const children: any = draggable.prop("children")!;
+        const inner = shallow(children({}, {}));
         expect(inner).toMatchSnapshot();
 
-        const droppable = inner.find('Connect(Droppable)').first();
-        const droppableChildren: any = droppable.prop('children')!;
-        const droppableInner = shallow(
-            droppableChildren({}, {}),
-        );
+        const droppable = inner.find("Connect(Droppable)").first();
+        const droppableChildren: any = droppable.prop("children")!;
+        const droppableInner = shallow(droppableChildren({}, {}));
         expect(droppableInner).toMatchSnapshot();
-        expect(droppableInner.find('.SidebarCategory_newLabel')).toHaveLength(1);
-        expect(droppableInner.find('.SidebarCategory_newDropBox')).toHaveLength(1);
+        expect(droppableInner.find(".SidebarCategory_newLabel")).toHaveLength(
+            1,
+        );
+        expect(droppableInner.find(".SidebarCategory_newDropBox")).toHaveLength(
+            1,
+        );
     });
 
-    test('should match snapshot when collapsed', () => {
+    test("should match snapshot when collapsed", () => {
         const props = {
             ...baseProps,
             category: {
@@ -102,26 +94,20 @@ describe('components/sidebar/sidebar_category', () => {
             },
         };
 
-        const wrapper = shallow(
-            <SidebarCategory {...props}/>,
-        );
+        const wrapper = shallow(<SidebarCategory {...props} />);
 
-        const draggable = wrapper.dive().find('PrivateDraggable').first();
-        const children: any = draggable.prop('children')!;
-        const inner = shallow(
-            children({}, {}),
-        );
+        const draggable = wrapper.dive().find("PrivateDraggable").first();
+        const children: any = draggable.prop("children")!;
+        const inner = shallow(children({}, {}));
         expect(inner).toMatchSnapshot();
 
-        const droppable = inner.find('Connect(Droppable)').first();
-        const droppableChildren: any = droppable.prop('children')!;
-        const droppableInner = shallow(
-            droppableChildren({}, {}),
-        );
+        const droppable = inner.find("Connect(Droppable)").first();
+        const droppableChildren: any = droppable.prop("children")!;
+        const droppableInner = shallow(droppableChildren({}, {}));
         expect(droppableInner).toMatchSnapshot();
     });
 
-    test('should match snapshot when the category is DM and there are no DMs to display', () => {
+    test("should match snapshot when the category is DM and there are no DMs to display", () => {
         const props = {
             ...baseProps,
             category: {
@@ -132,39 +118,31 @@ describe('components/sidebar/sidebar_category', () => {
             channelIds: [],
         };
 
-        const wrapper = shallow(
-            <SidebarCategory {...props}/>,
-        );
+        const wrapper = shallow(<SidebarCategory {...props} />);
 
-        const draggable = wrapper.dive().find('PrivateDraggable').first();
-        const children: any = draggable.prop('children')!;
-        const inner = shallow(
-            children({}, {}),
-        );
+        const draggable = wrapper.dive().find("PrivateDraggable").first();
+        const children: any = draggable.prop("children")!;
+        const inner = shallow(children({}, {}));
         expect(inner).toMatchSnapshot();
 
-        const droppable = inner.find('Connect(Droppable)').first();
-        const droppableChildren: any = droppable.prop('children')!;
-        const droppableInner = shallow(
-            droppableChildren({}, {}),
-        );
+        const droppable = inner.find("Connect(Droppable)").first();
+        const droppableChildren: any = droppable.prop("children")!;
+        const droppableInner = shallow(droppableChildren({}, {}));
         expect(droppableInner).toMatchSnapshot();
     });
 
-    test('should match snapshot when there are no channels to display', () => {
+    test("should match snapshot when there are no channels to display", () => {
         const props = {
             ...baseProps,
             channelIds: [],
         };
 
-        const wrapper = shallow(
-            <SidebarCategory {...props}/>,
-        );
+        const wrapper = shallow(<SidebarCategory {...props} />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when sorting is set to by recency', () => {
+    test("should match snapshot when sorting is set to by recency", () => {
         const props = {
             ...baseProps,
             category: {
@@ -174,35 +152,32 @@ describe('components/sidebar/sidebar_category', () => {
             },
         };
 
-        const wrapper = shallow(
-            <SidebarCategory {...props}/>,
-        );
+        const wrapper = shallow(<SidebarCategory {...props} />);
 
-        const draggable = wrapper.dive().find('PrivateDraggable').first();
-        const children: any = draggable.prop('children')!;
-        const inner = shallow(
-            children({}, {}),
-        );
+        const draggable = wrapper.dive().find("PrivateDraggable").first();
+        const children: any = draggable.prop("children")!;
+        const inner = shallow(children({}, {}));
         expect(inner).toMatchSnapshot();
 
-        const droppable = inner.find('Connect(Droppable)').first();
-        const droppableChildren: any = droppable.prop('children')!;
-        const droppableInner = shallow(
-            droppableChildren({}, {}),
-        );
+        const droppable = inner.find("Connect(Droppable)").first();
+        const droppableChildren: any = droppable.prop("children")!;
+        const droppableInner = shallow(droppableChildren({}, {}));
         expect(droppableInner).toMatchSnapshot();
     });
 
-    test('should collapse the channel on toggle when it is not collapsed', () => {
+    test("should collapse the channel on toggle when it is not collapsed", () => {
         const wrapper = shallow<SidebarCategory>(
-            <SidebarCategory {...baseProps}/>,
+            <SidebarCategory {...baseProps} />,
         );
 
         wrapper.instance().handleCollapse();
-        expect(baseProps.actions.setCategoryCollapsed).toHaveBeenCalledWith(baseProps.category.id, true);
+        expect(baseProps.actions.setCategoryCollapsed).toHaveBeenCalledWith(
+            baseProps.category.id,
+            true,
+        );
     });
 
-    test('should un-collapse the channel on toggle when it is collapsed', () => {
+    test("should un-collapse the channel on toggle when it is collapsed", () => {
         const props = {
             ...baseProps,
             category: {
@@ -212,10 +187,13 @@ describe('components/sidebar/sidebar_category', () => {
         };
 
         const wrapper = shallow<SidebarCategory>(
-            <SidebarCategory {...props}/>,
+            <SidebarCategory {...props} />,
         );
 
         wrapper.instance().handleCollapse();
-        expect(baseProps.actions.setCategoryCollapsed).toHaveBeenCalledWith(props.category.id, false);
+        expect(baseProps.actions.setCategoryCollapsed).toHaveBeenCalledWith(
+            props.category.id,
+            false,
+        );
     });
 });

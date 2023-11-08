@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import searchReducer from 'reducers/views/search';
+import searchReducer from "reducers/views/search";
 
-import {SearchTypes} from 'utils/constants';
+import { SearchTypes } from "utils/constants";
 
-describe('Reducers.Search', () => {
+describe("Reducers.Search", () => {
     const initialState = {
-        modalSearch: '',
-        popoverSearch: '',
-        channelMembersRhsSearch: '',
+        modalSearch: "",
+        popoverSearch: "",
+        channelMembersRhsSearch: "",
         modalFilters: {},
         systemUsersSearch: {},
         userGridSearch: {},
-        teamListSearch: '',
+        teamListSearch: "",
         channelListSearch: {},
     };
 
-    test('Initial state', () => {
+    test("Initial state", () => {
         const nextState = searchReducer(
             {
-                modalSearch: '',
+                modalSearch: "",
                 systemUsersSearch: {},
             },
             {},
@@ -32,69 +32,75 @@ describe('Reducers.Search', () => {
     test(`should trim the search term for ${SearchTypes.SET_MODAL_SEARCH}`, () => {
         const nextState = searchReducer(
             {
-                modalSearch: '',
+                modalSearch: "",
             },
             {
                 type: SearchTypes.SET_MODAL_SEARCH,
-                data: ' something ',
+                data: " something ",
             },
         );
 
         expect(nextState).toEqual({
             ...initialState,
-            modalSearch: 'something',
+            modalSearch: "something",
         });
     });
 
-    test('should set user grid search', () => {
-        const filters = {team_id: '123456789'};
+    test("should set user grid search", () => {
+        const filters = { team_id: "123456789" };
         const nextState = searchReducer(
             {
-                userGridSearch: {filters},
+                userGridSearch: { filters },
             },
             {
                 type: SearchTypes.SET_USER_GRID_SEARCH,
-                data: 'something',
+                data: "something",
             },
         );
 
         expect(nextState).toEqual({
             ...initialState,
-            userGridSearch: {term: 'something', filters},
+            userGridSearch: { term: "something", filters },
         });
     });
 
-    test('should set user grid filters', () => {
+    test("should set user grid filters", () => {
         const nextState = searchReducer(
             {
-                userGridSearch: {term: 'something', filters: {team_id: '123456789'}},
+                userGridSearch: {
+                    term: "something",
+                    filters: { team_id: "123456789" },
+                },
             },
             {
                 type: SearchTypes.SET_USER_GRID_FILTERS,
-                data: {team_id: '1', channel_roles: ['channel_admin']},
+                data: { team_id: "1", channel_roles: ["channel_admin"] },
             },
         );
 
         expect(nextState).toEqual({
             ...initialState,
-            userGridSearch: {term: 'something', filters: {team_id: '1', channel_roles: ['channel_admin']}},
+            userGridSearch: {
+                term: "something",
+                filters: { team_id: "1", channel_roles: ["channel_admin"] },
+            },
         });
     });
 
-    test('should set and trim channel member rhs search', () => {
+    test("should set and trim channel member rhs search", () => {
         const nextState = searchReducer(
             {
-                channelMembersRhsSearch: '',
+                channelMembersRhsSearch: "",
             },
             {
                 type: SearchTypes.SET_CHANNEL_MEMBERS_RHS_SEARCH,
-                data: 'data',
+                data: "data",
             },
         );
 
         expect(nextState).toEqual({
             ...initialState,
-            channelMembersRhsSearch: 'data',
+            channelMembersRhsSearch: "data",
         });
     });
 });

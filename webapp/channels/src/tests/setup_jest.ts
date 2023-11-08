@@ -3,47 +3,47 @@
 
 /* eslint-disable no-console */
 
-import {configure} from 'enzyme';
-import Adapter from 'enzyme-adapter-react-17-updated';
+import { configure } from "enzyme";
+import Adapter from "enzyme-adapter-react-17-updated";
 
-import '@testing-library/jest-dom';
-import 'isomorphic-fetch';
+import "@testing-library/jest-dom";
+import "isomorphic-fetch";
 
-import './redux-persist_mock';
-import './react-intl_mock';
-import './react-router-dom_mock';
-import './react-tippy_mock';
+import "./redux-persist_mock";
+import "./react-intl_mock";
+import "./react-router-dom_mock";
+import "./react-tippy_mock";
 
 global.performance = {} as any;
 
-configure({adapter: new (Adapter as any)()});
+configure({ adapter: new (Adapter as any)() });
 
 global.window = Object.create(window);
-Object.defineProperty(window, 'location', {
+Object.defineProperty(window, "location", {
     value: {
-        href: 'http://localhost:8065',
-        origin: 'http://localhost:8065',
-        port: '8065',
-        protocol: 'http:',
-        search: '',
+        href: "http://localhost:8065",
+        origin: "http://localhost:8065",
+        port: "8065",
+        protocol: "http:",
+        search: "",
     },
 });
 
-const supportedCommands = ['copy', 'insertText'];
+const supportedCommands = ["copy", "insertText"];
 
-Object.defineProperty(document, 'queryCommandSupported', {
+Object.defineProperty(document, "queryCommandSupported", {
     value: (cmd: string) => supportedCommands.includes(cmd),
 });
 
-Object.defineProperty(document, 'execCommand', {
+Object.defineProperty(document, "execCommand", {
     value: (cmd: string) => supportedCommands.includes(cmd),
 });
 
-document.documentElement.style.fontSize = '12px';
+document.documentElement.style.fontSize = "12px";
 
 // https://mui.com/material-ui/guides/styled-engine/
-jest.mock('@mui/styled-engine', () => {
-    const styledEngineSc = require('@mui/styled-engine-sc');
+jest.mock("@mui/styled-engine", () => {
+    const styledEngineSc = require("@mui/styled-engine-sc");
     return styledEngineSc;
 });
 
@@ -54,16 +54,15 @@ function isDependencyWarning(params: string[]) {
         return params.some((param) => param.includes(name));
     }
 
-    return params[0].includes('Please update the following components:') && (
-
+    return (
+        params[0].includes("Please update the following components:") &&
         // React Bootstrap
-        paramsHasComponent('Modal') ||
-        paramsHasComponent('Portal') ||
-        paramsHasComponent('Overlay') ||
-        paramsHasComponent('Position') ||
-
-        // React-Select
-        paramsHasComponent('Select')
+        (paramsHasComponent("Modal") ||
+            paramsHasComponent("Portal") ||
+            paramsHasComponent("Overlay") ||
+            paramsHasComponent("Position") ||
+            // React-Select
+            paramsHasComponent("Select"))
     );
 }
 
@@ -95,14 +94,14 @@ beforeEach(() => {
 
 afterEach(() => {
     if (warns.length > 0 || errors.length > 0) {
-        const message = 'Unexpected console logs' + warns + errors;
+        const message = "Unexpected console logs" + warns + errors;
         throw new Error(message);
     }
 });
 
 expect.extend({
     arrayContainingExactly(received, actual) {
-        const pass = received.sort().join(',') === actual.sort().join(',');
+        const pass = received.sort().join(",") === actual.sort().join(",");
         if (pass) {
             return {
                 message: () =>

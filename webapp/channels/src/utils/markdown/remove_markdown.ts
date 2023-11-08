@@ -1,23 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import marked from 'marked';
+import marked from "marked";
 
 export default class RemoveMarkdown extends marked.Renderer {
     public code(text: string) {
-        return text.replace(/\n/g, ' ');
+        return text.replace(/\n/g, " ");
     }
 
     public blockquote(text: string) {
-        return text.replace(/\n/g, ' ');
+        return text.replace(/\n/g, " ");
     }
 
     public heading(text: string) {
-        return text + ' ';
+        return text + " ";
     }
 
     public hr() {
-        return '';
+        return "";
     }
 
     public list(body: string) {
@@ -25,23 +25,23 @@ export default class RemoveMarkdown extends marked.Renderer {
     }
 
     public listitem(text: string) {
-        return text + ' ';
+        return text + " ";
     }
 
     public paragraph(text: string) {
-        return text + ' ';
+        return text + " ";
     }
 
     public table() {
-        return '';
+        return "";
     }
 
     public tablerow() {
-        return '';
+        return "";
     }
 
     public tablecell() {
-        return '';
+        return "";
     }
 
     public strong(text: string) {
@@ -53,11 +53,11 @@ export default class RemoveMarkdown extends marked.Renderer {
     }
 
     public codespan(text: string) {
-        return text.replace(/\n/g, ' ');
+        return text.replace(/\n/g, " ");
     }
 
     public br() {
-        return ' ';
+        return " ";
     }
 
     public del(text: string) {
@@ -73,6 +73,6 @@ export default class RemoveMarkdown extends marked.Renderer {
     }
 
     public text(text: string) {
-        return text.replace('\n', ' ');
+        return text.replace("\n", " ");
     }
 }

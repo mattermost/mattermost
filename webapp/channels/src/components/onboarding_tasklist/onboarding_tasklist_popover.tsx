@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Placement} from 'popper.js';
-import React from 'react';
-import type {RefObject} from 'react';
-import {usePopper} from 'react-popper';
-import {CSSTransition} from 'react-transition-group';
-import styled from 'styled-components';
+import type { Placement } from "popper.js";
+import React from "react";
+import type { RefObject } from "react";
+import { usePopper } from "react-popper";
+import { CSSTransition } from "react-transition-group";
+import styled from "styled-components";
 
 const Overlay = styled.div`
     background-color: rgba(0, 0, 0, 0.5);
@@ -59,7 +59,7 @@ interface TaskListPopoverProps {
 
 export const TaskListPopover = ({
     trigger,
-    placement = 'top-start',
+    placement = "top-start",
     isVisible,
     offset = [0, 5],
     children,
@@ -69,13 +69,13 @@ export const TaskListPopover = ({
         React.useState<HTMLDivElement | null>(null);
 
     const {
-        styles: {popper},
+        styles: { popper },
         attributes,
     } = usePopper(trigger.current, popperElement, {
         placement,
         modifiers: [
             {
-                name: 'offset',
+                name: "offset",
                 options: {
                     offset,
                 },
@@ -90,23 +90,18 @@ export const TaskListPopover = ({
         <>
             <CSSTransition
                 timeout={150}
-                classNames='fade'
+                classNames="fade"
                 in={isVisible}
                 unmountOnExit={true}
             >
                 <Overlay
                     onClick={onClick}
-                    data-cy='onboarding-task-list-overlay'
+                    data-cy="onboarding-task-list-overlay"
                 />
             </CSSTransition>
-            <div
-                ref={setPopperElement}
-                style={style}
-                {...attributes.popper}
-            >
+            <div ref={setPopperElement} style={style} {...attributes.popper}>
                 {children}
             </div>
         </>
     );
 };
-

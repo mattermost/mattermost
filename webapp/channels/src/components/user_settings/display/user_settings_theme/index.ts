@@ -1,21 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {Dispatch} from 'redux';
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import type { Dispatch } from "redux";
 
-import {saveTheme, deleteTeamSpecificThemes} from 'mattermost-redux/actions/preferences';
-import {getTheme, makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTeamId, getMyTeamsCount} from 'mattermost-redux/selectors/entities/teams';
+import {
+    saveTheme,
+    deleteTeamSpecificThemes,
+} from "mattermost-redux/actions/preferences";
+import {
+    getTheme,
+    makeGetCategory,
+} from "mattermost-redux/selectors/entities/preferences";
+import {
+    getCurrentTeamId,
+    getMyTeamsCount,
+} from "mattermost-redux/selectors/entities/teams";
 
-import {openModal} from 'actions/views/modals';
+import { openModal } from "actions/views/modals";
 
-import {Preferences} from 'utils/constants';
+import { Preferences } from "utils/constants";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import UserSettingsTheme from './user_settings_theme';
+import UserSettingsTheme from "./user_settings_theme";
 
 function makeMapStateToProps() {
     const getThemeCategory = makeGetCategory();
@@ -24,7 +33,8 @@ function makeMapStateToProps() {
         return {
             currentTeamId: getCurrentTeamId(state),
             theme: getTheme(state),
-            applyToAllTeams: getThemeCategory(state, Preferences.CATEGORY_THEME).length <= 1,
+            applyToAllTeams:
+                getThemeCategory(state, Preferences.CATEGORY_THEME).length <= 1,
             showAllTeamsCheckbox: getMyTeamsCount(state) > 1,
         };
     };
@@ -32,12 +42,18 @@ function makeMapStateToProps() {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators({
-            saveTheme,
-            deleteTeamSpecificThemes,
-            openModal,
-        }, dispatch),
+        actions: bindActionCreators(
+            {
+                saveTheme,
+                deleteTeamSpecificThemes,
+                openModal,
+            },
+            dispatch,
+        ),
     };
 }
 
-export default connect(makeMapStateToProps, mapDispatchToProps)(UserSettingsTheme);
+export default connect(
+    makeMapStateToProps,
+    mapDispatchToProps,
+)(UserSettingsTheme);

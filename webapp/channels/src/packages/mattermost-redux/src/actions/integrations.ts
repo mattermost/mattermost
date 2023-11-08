@@ -1,29 +1,38 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {batchActions} from 'redux-batched-actions';
+import { batchActions } from "redux-batched-actions";
 
-import type {Command, CommandArgs, DialogSubmission, IncomingWebhook, OAuthApp, OutgoingWebhook} from '@mattermost/types/integrations';
+import type {
+    Command,
+    CommandArgs,
+    DialogSubmission,
+    IncomingWebhook,
+    OAuthApp,
+    OutgoingWebhook,
+} from "@mattermost/types/integrations";
 
-import {IntegrationTypes} from 'mattermost-redux/action_types';
-import {Client4} from 'mattermost-redux/client';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc, ActionFunc} from 'mattermost-redux/types/actions';
+import { IntegrationTypes } from "mattermost-redux/action_types";
+import { Client4 } from "mattermost-redux/client";
+import { getCurrentChannelId } from "mattermost-redux/selectors/entities/channels";
+import { getCurrentTeamId } from "mattermost-redux/selectors/entities/teams";
+import { getCurrentUserId } from "mattermost-redux/selectors/entities/users";
+import type {
+    DispatchFunc,
+    GetStateFunc,
+    ActionFunc,
+} from "mattermost-redux/types/actions";
 
-import {logError} from './errors';
-import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
+import { logError } from "./errors";
+import { bindClientFunc, forceLogoutIfNecessary } from "./helpers";
 
-import {General} from '../constants';
+import { General } from "../constants";
 
 export function createIncomingHook(hook: IncomingWebhook): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.createIncomingWebhook,
         onSuccess: [IntegrationTypes.RECEIVED_INCOMING_HOOK],
-        params: [
-            hook,
-        ],
+        params: [hook],
     });
 }
 
@@ -31,21 +40,19 @@ export function getIncomingHook(hookId: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getIncomingWebhook,
         onSuccess: [IntegrationTypes.RECEIVED_INCOMING_HOOK],
-        params: [
-            hookId,
-        ],
+        params: [hookId],
     });
 }
 
-export function getIncomingHooks(teamId = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): ActionFunc {
+export function getIncomingHooks(
+    teamId = "",
+    page = 0,
+    perPage: number = General.PAGE_SIZE_DEFAULT,
+): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getIncomingWebhooks,
         onSuccess: [IntegrationTypes.RECEIVED_INCOMING_HOOKS],
-        params: [
-            teamId,
-            page,
-            perPage,
-        ],
+        params: [teamId, page, perPage],
     });
 }
 
@@ -57,17 +64,19 @@ export function removeIncomingHook(hookId: string): ActionFunc {
             forceLogoutIfNecessary(error, dispatch, getState);
 
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        dispatch(batchActions([
-            {
-                type: IntegrationTypes.DELETED_INCOMING_HOOK,
-                data: {id: hookId},
-            },
-        ]));
+        dispatch(
+            batchActions([
+                {
+                    type: IntegrationTypes.DELETED_INCOMING_HOOK,
+                    data: { id: hookId },
+                },
+            ]),
+        );
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -75,9 +84,7 @@ export function updateIncomingHook(hook: IncomingWebhook): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.updateIncomingWebhook,
         onSuccess: [IntegrationTypes.RECEIVED_INCOMING_HOOK],
-        params: [
-            hook,
-        ],
+        params: [hook],
     });
 }
 
@@ -85,9 +92,7 @@ export function createOutgoingHook(hook: OutgoingWebhook): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.createOutgoingWebhook,
         onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_HOOK],
-        params: [
-            hook,
-        ],
+        params: [hook],
     });
 }
 
@@ -95,22 +100,20 @@ export function getOutgoingHook(hookId: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getOutgoingWebhook,
         onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_HOOK],
-        params: [
-            hookId,
-        ],
+        params: [hookId],
     });
 }
 
-export function getOutgoingHooks(channelId = '', teamId = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): ActionFunc {
+export function getOutgoingHooks(
+    channelId = "",
+    teamId = "",
+    page = 0,
+    perPage: number = General.PAGE_SIZE_DEFAULT,
+): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getOutgoingWebhooks,
         onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_HOOKS],
-        params: [
-            channelId,
-            teamId,
-            page,
-            perPage,
-        ],
+        params: [channelId, teamId, page, perPage],
     });
 }
 
@@ -122,17 +125,19 @@ export function removeOutgoingHook(hookId: string): ActionFunc {
             forceLogoutIfNecessary(error, dispatch, getState);
 
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        dispatch(batchActions([
-            {
-                type: IntegrationTypes.DELETED_OUTGOING_HOOK,
-                data: {id: hookId},
-            },
-        ]));
+        dispatch(
+            batchActions([
+                {
+                    type: IntegrationTypes.DELETED_OUTGOING_HOOK,
+                    data: { id: hookId },
+                },
+            ]),
+        );
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -140,9 +145,7 @@ export function updateOutgoingHook(hook: OutgoingWebhook): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.updateOutgoingWebhook,
         onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_HOOK],
-        params: [
-            hook,
-        ],
+        params: [hook],
     });
 }
 
@@ -150,9 +153,7 @@ export function regenOutgoingHookToken(hookId: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.regenOutgoingHookToken,
         onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_HOOK],
-        params: [
-            hookId,
-        ],
+        params: [hookId],
     });
 }
 
@@ -160,21 +161,19 @@ export function getCommands(teamId: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getCommandsList,
         onSuccess: [IntegrationTypes.RECEIVED_COMMANDS],
-        params: [
-            teamId,
-        ],
+        params: [teamId],
     });
 }
 
-export function getAutocompleteCommands(teamId: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): ActionFunc {
+export function getAutocompleteCommands(
+    teamId: string,
+    page = 0,
+    perPage: number = General.PAGE_SIZE_DEFAULT,
+): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getAutocompleteCommandsList,
         onSuccess: [IntegrationTypes.RECEIVED_COMMANDS],
-        params: [
-            teamId,
-            page,
-            perPage,
-        ],
+        params: [teamId, page, perPage],
     });
 }
 
@@ -182,9 +181,7 @@ export function getCustomTeamCommands(teamId: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getCustomTeamCommands,
         onSuccess: [IntegrationTypes.RECEIVED_CUSTOM_TEAM_COMMANDS],
-        params: [
-            teamId,
-        ],
+        params: [teamId],
     });
 }
 
@@ -192,9 +189,7 @@ export function addCommand(command: Command): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.addCommand,
         onSuccess: [IntegrationTypes.RECEIVED_COMMAND],
-        params: [
-            command,
-        ],
+        params: [command],
     });
 }
 
@@ -202,19 +197,14 @@ export function editCommand(command: Command): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.editCommand,
         onSuccess: [IntegrationTypes.RECEIVED_COMMAND],
-        params: [
-            command,
-        ],
+        params: [command],
     });
 }
 
 export function executeCommand(command: string, args: CommandArgs): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.executeCommand,
-        params: [
-            command,
-            args,
-        ],
+        params: [command, args],
     });
 }
 
@@ -227,20 +217,22 @@ export function regenCommandToken(id: string): ActionFunc {
             forceLogoutIfNecessary(error, dispatch, getState);
 
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        dispatch(batchActions([
-            {
-                type: IntegrationTypes.RECEIVED_COMMAND_TOKEN,
-                data: {
-                    id,
-                    token: res.token,
+        dispatch(
+            batchActions([
+                {
+                    type: IntegrationTypes.RECEIVED_COMMAND_TOKEN,
+                    data: {
+                        id,
+                        token: res.token,
+                    },
                 },
-            },
-        ]));
+            ]),
+        );
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -252,17 +244,19 @@ export function deleteCommand(id: string): ActionFunc {
             forceLogoutIfNecessary(error, dispatch, getState);
 
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        dispatch(batchActions([
-            {
-                type: IntegrationTypes.DELETED_COMMAND,
-                data: {id},
-            },
-        ]));
+        dispatch(
+            batchActions([
+                {
+                    type: IntegrationTypes.DELETED_COMMAND,
+                    data: { id },
+                },
+            ]),
+        );
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -270,9 +264,7 @@ export function addOAuthApp(app: OAuthApp): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.createOAuthApp,
         onSuccess: [IntegrationTypes.RECEIVED_OAUTH_APP],
-        params: [
-            app,
-        ],
+        params: [app],
     });
 }
 
@@ -280,20 +272,18 @@ export function editOAuthApp(app: OAuthApp): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.editOAuthApp,
         onSuccess: IntegrationTypes.RECEIVED_OAUTH_APP,
-        params: [
-            app,
-        ],
+        params: [app],
     });
 }
 
-export function getOAuthApps(page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): ActionFunc {
+export function getOAuthApps(
+    page = 0,
+    perPage: number = General.PAGE_SIZE_DEFAULT,
+): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getOAuthApps,
         onSuccess: [IntegrationTypes.RECEIVED_OAUTH_APPS],
-        params: [
-            page,
-            perPage,
-        ],
+        params: [page, perPage],
     });
 }
 
@@ -315,9 +305,7 @@ export function getOAuthApp(appId: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getOAuthApp,
         onSuccess: [IntegrationTypes.RECEIVED_OAUTH_APP],
-        params: [
-            appId,
-        ],
+        params: [appId],
     });
 }
 
@@ -334,10 +322,10 @@ export function getAuthorizedOAuthApps(): ActionFunc {
 
             dispatch(logError(error));
 
-            return {error};
+            return { error };
         }
 
-        return {data};
+        return { data };
     };
 }
 
@@ -356,17 +344,19 @@ export function deleteOAuthApp(id: string): ActionFunc {
             forceLogoutIfNecessary(error, dispatch, getState);
 
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        dispatch(batchActions([
-            {
-                type: IntegrationTypes.DELETED_OAUTH_APP,
-                data: {id},
-            },
-        ]));
+        dispatch(
+            batchActions([
+                {
+                    type: IntegrationTypes.DELETED_OAUTH_APP,
+                    data: { id },
+                },
+            ]),
+        );
 
-        return {data: true};
+        return { data: true };
     };
 }
 
@@ -374,13 +364,13 @@ export function regenOAuthAppSecret(appId: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.regenOAuthAppSecret,
         onSuccess: [IntegrationTypes.RECEIVED_OAUTH_APP],
-        params: [
-            appId,
-        ],
+        params: [appId],
     });
 }
 
-export function submitInteractiveDialog(submission: DialogSubmission): ActionFunc {
+export function submitInteractiveDialog(
+    submission: DialogSubmission,
+): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
         submission.channel_id = getCurrentChannelId(state);
@@ -393,9 +383,9 @@ export function submitInteractiveDialog(submission: DialogSubmission): ActionFun
             forceLogoutIfNecessary(error, dispatch, getState);
 
             dispatch(logError(error));
-            return {error};
+            return { error };
         }
 
-        return {data};
+        return { data };
     };
 }

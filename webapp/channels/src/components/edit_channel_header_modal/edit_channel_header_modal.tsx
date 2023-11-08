@@ -1,30 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { Modal } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
 
-import type {Channel} from '@mattermost/types/channels';
-import type {ServerError} from '@mattermost/types/errors';
+import type { Channel } from "@mattermost/types/channels";
+import type { ServerError } from "@mattermost/types/errors";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import Textbox, {TextboxLinks} from 'components/textbox';
-import type {TextboxElement} from 'components/textbox';
-import type TextboxClass from 'components/textbox/textbox';
+import Textbox, { TextboxLinks } from "components/textbox";
+import type { TextboxElement } from "components/textbox";
+import type TextboxClass from "components/textbox/textbox";
 
-import Constants from 'utils/constants';
-import {isKeyPressed} from 'utils/keyboard';
-import {isMobile} from 'utils/user_agent';
-import {insertLineBreakFromKeyEvent, isUnhandledLineBreakKeyCombo, localizeMessage} from 'utils/utils';
+import Constants from "utils/constants";
+import { isKeyPressed } from "utils/keyboard";
+import { isMobile } from "utils/user_agent";
+import {
+    insertLineBreakFromKeyEvent,
+    isUnhandledLineBreakKeyCombo,
+    localizeMessage,
+} from "utils/utils";
 
 const KeyCodes = Constants.KeyCodes;
 
 const headerMaxLength = 1024;
 
 type Props = {
-
     /*
      * Object with info about current channel ,
      */
@@ -51,18 +54,20 @@ type Props = {
      * Collection of redux actions
      */
     actions: {
-
         /*
          * patch channel redux-action
          */
-        patchChannel: (channelId: string, patch: Partial<Channel>) => Promise<ActionResult>;
+        patchChannel: (
+            channelId: string,
+            patch: Partial<Channel>,
+        ) => Promise<ActionResult>;
 
         /*
          * Set show preview for textbox
          */
         setShowPreview: (showPreview: boolean) => void;
     };
-}
+};
 
 type State = {
     header?: string;
@@ -70,9 +75,12 @@ type State = {
     show: boolean;
     serverError?: ServerError | null;
     postError?: React.ReactNode;
-}
+};
 
-export default class EditChannelHeaderModal extends React.PureComponent<Props, State> {
+export default class EditChannelHeaderModal extends React.PureComponent<
+    Props,
+    State
+> {
     private editChannelHeaderTextboxRef: React.RefObject<TextboxClass>;
 
     constructor(props: Props) {
@@ -87,7 +95,9 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
     }
 
     private handleModalKeyDown = (e: React.KeyboardEvent<Modal>): void => {
-        if (isKeyPressed(e as unknown as React.KeyboardEvent, KeyCodes.ESCAPE)) {
+        if (
+            isKeyPressed(e as unknown as React.KeyboardEvent, KeyCodes.ESCAPE)
+        ) {
             this.hideModal();
         }
     };
@@ -102,8 +112,8 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
             this.setState({
                 header: e.target.value,
                 serverError: {
-                    server_error_id: 'model.channel.is_valid.header.app_error',
-                    message: 'Invalid header length',
+                    server_error_id: "model.channel.is_valid.header.app_error",
+                    message: "Invalid header length",
                 },
             });
         } else {
@@ -115,15 +125,17 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
     };
 
     public handleSave = async (): Promise<void> => {
-        const header = this.state.header?.trim() ?? '';
+        const header = this.state.header?.trim() ?? "";
         if (header === this.props.channel.header) {
             this.hideModal();
         } else {
-            this.setState({saving: true});
-            const {channel, actions} = this.props;
-            const {error} = await actions.patchChannel(channel.id!, {header});
+            this.setState({ saving: true });
+            const { channel, actions } = this.props;
+            const { error } = await actions.patchChannel(channel.id!, {
+                header,
+            });
             if (error) {
-                this.setState({serverError: error, saving: false});
+                this.setState({ serverError: error, saving: false });
             } else {
                 this.hideModal();
             }
@@ -153,18 +165,24 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
     };
 
     private handleKeyDown = (e: React.KeyboardEvent<Element>): void => {
-        const {ctrlSend} = this.props;
+        const { ctrlSend } = this.props;
 
         // listen for line break key combo and insert new line character
         if (isUnhandledLineBreakKeyCombo(e)) {
-            this.setState({header: insertLineBreakFromKeyEvent(e.nativeEvent)});
-        } else if (ctrlSend && isKeyPressed(e, KeyCodes.ENTER) && e.ctrlKey === true) {
+            this.setState({
+                header: insertLineBreakFromKeyEvent(e.nativeEvent),
+            });
+        } else if (
+            ctrlSend &&
+            isKeyPressed(e, KeyCodes.ENTER) &&
+            e.ctrlKey === true
+        ) {
             this.handleKeyPress(e);
         }
     };
 
     private handleKeyPress = (e: React.KeyboardEvent<Element>): void => {
-        const {ctrlSend} = this.props;
+        const { ctrlSend } = this.props;
         if (!isMobile() && ((ctrlSend && e.ctrlKey) || !ctrlSend)) {
             if (isKeyPressed(e, KeyCodes.ENTER) && !e.shiftKey && !e.altKey) {
                 e.preventDefault();
@@ -175,21 +193,24 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
     };
 
     private handlePostError = (postError: React.ReactNode) => {
-        this.setState({postError});
+        this.setState({ postError });
     };
 
-    private renderError = (): (JSX.Element | null) => {
-        const {serverError} = this.state;
+    private renderError = (): JSX.Element | null => {
+        const { serverError } = this.state;
         if (!serverError) {
             return null;
         }
 
         let errorMsg;
-        if (serverError.server_error_id === 'model.channel.is_valid.header.app_error') {
+        if (
+            serverError.server_error_id ===
+            "model.channel.is_valid.header.app_error"
+        ) {
             errorMsg = (
                 <FormattedMessage
-                    id='edit_channel_header_modal.error'
-                    defaultMessage='The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.'
+                    id="edit_channel_header_modal.error"
+                    defaultMessage="The text entered exceeds the character limit. The channel header is limited to {maxLength} characters."
                     values={{
                         maxLength: headerMaxLength,
                     }}
@@ -200,11 +221,9 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
         }
 
         return (
-            <div className='form-group has-error'>
-                <br/>
-                <label className='control-label'>
-                    {errorMsg}
-                </label>
+            <div className="form-group has-error">
+                <br />
+                <label className="control-label">{errorMsg}</label>
             </div>
         );
     };
@@ -214,15 +233,15 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
         if (this.props.channel.type === Constants.DM_CHANNEL) {
             headerTitle = (
                 <FormattedMessage
-                    id='edit_channel_header_modal.title_dm'
-                    defaultMessage='Edit Header'
+                    id="edit_channel_header_modal.title_dm"
+                    defaultMessage="Edit Header"
                 />
             );
         } else {
             headerTitle = (
                 <FormattedMessage
-                    id='edit_channel_header_modal.title'
-                    defaultMessage='Edit Header for {channel}'
+                    id="edit_channel_header_modal.title"
+                    defaultMessage="Edit Header for {channel}"
                     values={{
                         channel: this.props.channel.display_name,
                     }}
@@ -232,84 +251,101 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
 
         return (
             <Modal
-                dialogClassName='a11y__modal'
+                dialogClassName="a11y__modal"
                 show={this.state.show}
                 keyboard={false}
                 onKeyDown={this.handleModalKeyDown}
                 onHide={this.hideModal}
                 onEntering={this.handleEntering}
                 onExited={this.props.onExited}
-                role='dialog'
-                aria-labelledby='editChannelHeaderModalLabel'
+                role="dialog"
+                aria-labelledby="editChannelHeaderModalLabel"
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title
-                        componentClass='h1'
-                        id='editChannelHeaderModalLabel'
+                        componentClass="h1"
+                        id="editChannelHeaderModalLabel"
                     >
                         {headerTitle}
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body bsClass='modal-body edit-modal-body'>
+                <Modal.Body bsClass="modal-body edit-modal-body">
                     <div>
                         <p>
                             <FormattedMessage
-                                id='edit_channel_header_modal.description'
-                                defaultMessage='Edit the text appearing next to the channel name in the header.'
+                                id="edit_channel_header_modal.description"
+                                defaultMessage="Edit the text appearing next to the channel name in the header."
                             />
                         </p>
-                        <div className='textarea-wrapper'>
+                        <div className="textarea-wrapper">
                             <Textbox
                                 value={this.state.header!}
                                 onChange={this.handleChange}
                                 onKeyPress={this.handleKeyPress}
                                 onKeyDown={this.handleKeyDown}
                                 supportsCommands={false}
-                                suggestionListPosition='bottom'
-                                createMessage={localizeMessage('edit_channel_header.editHeader', 'Edit the Channel Header...')}
+                                suggestionListPosition="bottom"
+                                createMessage={localizeMessage(
+                                    "edit_channel_header.editHeader",
+                                    "Edit the Channel Header...",
+                                )}
                                 handlePostError={this.handlePostError}
                                 channelId={this.props.channel.id!}
-                                id='edit_textbox'
+                                id="edit_textbox"
                                 ref={this.editChannelHeaderTextboxRef}
                                 characterLimit={headerMaxLength}
                                 preview={this.props.shouldShowPreview}
                                 useChannelMentions={false}
                             />
                         </div>
-                        <div className='post-create-footer'>
+                        <div className="post-create-footer">
                             <TextboxLinks
-                                isMarkdownPreviewEnabled={this.props.markdownPreviewFeatureIsEnabled}
+                                isMarkdownPreviewEnabled={
+                                    this.props.markdownPreviewFeatureIsEnabled
+                                }
                                 showPreview={this.props.shouldShowPreview}
                                 updatePreview={this.setShowPreview}
-                                hasText={this.state.header ? this.state.header.length > 0 : false}
-                                hasExceededCharacterLimit={this.state.header ? this.state.header.length > headerMaxLength : false}
-                                previewMessageLink={localizeMessage('edit_channel_header.previewHeader', 'Edit Header')}
+                                hasText={
+                                    this.state.header
+                                        ? this.state.header.length > 0
+                                        : false
+                                }
+                                hasExceededCharacterLimit={
+                                    this.state.header
+                                        ? this.state.header.length >
+                                          headerMaxLength
+                                        : false
+                                }
+                                previewMessageLink={localizeMessage(
+                                    "edit_channel_header.previewHeader",
+                                    "Edit Header",
+                                )}
                             />
                         </div>
-                        <br/>
+                        <br />
                         {this.renderError()}
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
                     <button
-                        type='button'
-                        className='btn btn-tertiary cancel-button'
+                        type="button"
+                        className="btn btn-tertiary cancel-button"
                         onClick={this.hideModal}
                     >
                         <FormattedMessage
-                            id='edit_channel_header_modal.cancel'
-                            defaultMessage='Cancel'
+                            id="edit_channel_header_modal.cancel"
+                            defaultMessage="Cancel"
                         />
                     </button>
                     <button
                         disabled={this.state.saving}
-                        type='button'
-                        className='btn btn-primary save-button'
+                        type="button"
+                        className="btn btn-primary save-button"
                         onClick={this.handleSave}
                     >
                         <FormattedMessage
-                            id='edit_channel_header_modal.save'
-                            defaultMessage='Save'
+                            id="edit_channel_header_modal.save"
+                            defaultMessage="Save"
                         />
                     </button>
                 </Modal.Footer>

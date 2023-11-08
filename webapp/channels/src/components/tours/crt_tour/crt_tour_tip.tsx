@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import {ChannelsTourTip, TutorialTourName} from 'components/tours';
-import type {ChannelsTourTipProps} from 'components/tours';
+import { ChannelsTourTip, TutorialTourName } from "components/tours";
+import type { ChannelsTourTipProps } from "components/tours";
 
-const CRTTourTip = (props: Omit<ChannelsTourTipProps, 'tourCategory'>) => {
+const CRTTourTip = (props: Omit<ChannelsTourTipProps, "tourCategory">) => {
     return (
         <ChannelsTourTip
             {...props}

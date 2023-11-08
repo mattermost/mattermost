@@ -1,31 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import type {ChannelMemberCountsByGroup} from '@mattermost/types/channels';
-import type {CommandArgs} from '@mattermost/types/integrations';
-import type {Post} from '@mattermost/types/posts';
-import {PostPriority} from '@mattermost/types/posts';
+import type { ChannelMemberCountsByGroup } from "@mattermost/types/channels";
+import type { CommandArgs } from "@mattermost/types/integrations";
+import type { Post } from "@mattermost/types/posts";
+import { PostPriority } from "@mattermost/types/posts";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import AdvancedCreatePost from 'components/advanced_create_post/advanced_create_post';
-import type {Props} from 'components/advanced_create_post/advanced_create_post';
-import type {TextboxElement} from 'components/textbox';
+import AdvancedCreatePost from "components/advanced_create_post/advanced_create_post";
+import type { Props } from "components/advanced_create_post/advanced_create_post";
+import type { TextboxElement } from "components/textbox";
 
-import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
-import Constants, {StoragePrefixes, ModalIdentifiers} from 'utils/constants';
-import EmojiMap from 'utils/emoji_map';
-import {TestHelper} from 'utils/test_helper';
+import { testComponentForLineBreak } from "tests/helpers/line_break_helpers";
+import Constants, { StoragePrefixes, ModalIdentifiers } from "utils/constants";
+import EmojiMap from "utils/emoji_map";
+import { TestHelper } from "utils/test_helper";
 
-jest.mock('actions/global_actions', () => ({
+jest.mock("actions/global_actions", () => ({
     emitLocalUserTypingEvent: jest.fn(),
     emitUserPostedEvent: jest.fn(),
 }));
 
-jest.mock('actions/post_actions', () => ({
+jest.mock("actions/post_actions", () => ({
     createPost: jest.fn(() => {
         return new Promise<void>((resolve) => {
             process.nextTick(() => resolve());
@@ -33,33 +33,37 @@ jest.mock('actions/post_actions', () => ({
     }),
 }));
 
-jest.mock('utils/exec_commands', () => ({
+jest.mock("utils/exec_commands", () => ({
     execCommandInsertText: jest.fn(),
 }));
 
-const currentTeamIdProp = 'r7rws4y7ppgszym3pdd5kaibfa';
-const currentUserIdProp = 'zaktnt8bpbgu8mb6ez9k64r7sa';
+const currentTeamIdProp = "r7rws4y7ppgszym3pdd5kaibfa";
+const currentUserIdProp = "zaktnt8bpbgu8mb6ez9k64r7sa";
 const showSendTutorialTipProp = false;
 const fullWidthTextBoxProp = true;
-const latestReplyablePostIdProp = 'a';
-const localeProp = 'en';
+const latestReplyablePostIdProp = "a";
+const localeProp = "en";
 
 const currentChannelProp = TestHelper.getChannelMock({
-    id: 'owsyt8n43jfxjpzh9np93mx1wa',
-    type: 'O',
+    id: "owsyt8n43jfxjpzh9np93mx1wa",
+    type: "O",
 });
 
 const currentChannelMembersCountProp = 9;
 
 const draftProp = TestHelper.getPostDraftMock({
     fileInfos: [],
-    message: '',
+    message: "",
     uploadsInProgress: [],
 });
 
 const ctrlSendProp = false;
 
-const currentUsersLatestPostProp = TestHelper.getPostMock({id: 'b', root_id: 'a', channel_id: currentChannelProp.id});
+const currentUsersLatestPostProp = TestHelper.getPostMock({
+    id: "b",
+    root_id: "a",
+    channel_id: currentChannelProp.id,
+});
 
 const baseProp: Props = {
     currentTeamId: currentTeamIdProp,
@@ -87,16 +91,19 @@ const baseProp: Props = {
         setShowPreview: jest.fn(),
         savePreferences: jest.fn(),
         executeCommand: () => {
-            return {data: true};
+            return { data: true };
         },
         getChannelTimezones: jest.fn(() => {
-            return {data: '', error: ''};
+            return { data: "", error: "" };
         }),
         runMessageWillBePostedHooks: (post: Post) => {
-            return {data: post};
+            return { data: post };
         },
-        runSlashCommandWillBePostedHooks: (message: string, args: CommandArgs) => {
-            return {data: {message, args}};
+        runSlashCommandWillBePostedHooks: (
+            message: string,
+            args: CommandArgs,
+        ) => {
+            return { data: { message, args } };
         },
         scrollPostListToBottom: jest.fn(),
         getChannelMemberCountsByGroup: jest.fn(),
@@ -132,147 +139,151 @@ const submitEvent = {
 } as unknown as React.FormEvent;
 
 function advancedCreatePost(props?: Partial<Props>) {
-    const allProps: Props = {...baseProp, ...props};
+    const allProps: Props = { ...baseProp, ...props };
 
-    return (
-        <AdvancedCreatePost {...allProps}/>
-    );
+    return <AdvancedCreatePost {...allProps} />;
 }
 
-describe('components/advanced_create_post', () => {
-    jest.useFakeTimers({legacyFakeTimers: true});
+describe("components/advanced_create_post", () => {
+    jest.useFakeTimers({ legacyFakeTimers: true });
     let spy: jest.SpyInstance;
 
     beforeEach(() => {
-        spy = jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => setTimeout(cb, 16));
+        spy = jest
+            .spyOn(window, "requestAnimationFrame")
+            .mockImplementation((cb) => setTimeout(cb, 16));
     });
 
     afterEach(() => {
         spy.mockRestore();
     });
 
-    it('should match snapshot, init', () => {
+    it("should match snapshot, init", () => {
         const wrapper = shallow(advancedCreatePost({}));
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should match snapshot for center textbox', () => {
-        const wrapper = shallow(advancedCreatePost({fullWidthTextBox: false}));
+    it("should match snapshot for center textbox", () => {
+        const wrapper = shallow(
+            advancedCreatePost({ fullWidthTextBox: false }),
+        );
 
-        expect(wrapper.find('#create_post').hasClass('center')).toBe(true);
+        expect(wrapper.find("#create_post").hasClass("center")).toBe(true);
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should call clearDraftUploads on mount', () => {
+    it("should call clearDraftUploads on mount", () => {
         const clearDraftUploads = jest.fn();
         const actions = {
             ...baseProp.actions,
             clearDraftUploads,
         };
 
-        shallow(advancedCreatePost({actions}));
+        shallow(advancedCreatePost({ actions }));
 
         expect(clearDraftUploads).toHaveBeenCalled();
     });
 
-    it('Check for state change on channelId change with useLDAPGroupMentions = true', () => {
+    it("Check for state change on channelId change with useLDAPGroupMentions = true", () => {
         const wrapper = shallow(advancedCreatePost({}));
         const draft = {
             ...draftProp,
-            message: 'test',
+            message: "test",
         };
 
-        expect(wrapper.state('message')).toBe('');
+        expect(wrapper.state("message")).toBe("");
 
-        wrapper.setProps({draft});
-        expect(wrapper.state('message')).toBe('');
+        wrapper.setProps({ draft });
+        expect(wrapper.state("message")).toBe("");
 
         wrapper.setProps({
             currentChannel: {
                 ...currentChannelProp,
-                id: 'owsyt8n43jfxjpzh9np93mx1wb',
+                id: "owsyt8n43jfxjpzh9np93mx1wb",
             },
         });
-        expect(wrapper.state('message')).toBe('test');
+        expect(wrapper.state("message")).toBe("test");
     });
 
-    it('Check for searchAssociatedGroupsForReference not called on mount when no mentions in the draft', () => {
+    it("Check for searchAssociatedGroupsForReference not called on mount when no mentions in the draft", () => {
         const searchAssociatedGroupsForReference = jest.fn();
         const draft = {
             ...draftProp,
-            message: 'hello',
+            message: "hello",
         };
         const actions = {
             ...baseProp.actions,
             searchAssociatedGroupsForReference,
         };
-        const wrapper = shallow(advancedCreatePost({draft, actions}));
+        const wrapper = shallow(advancedCreatePost({ draft, actions }));
         expect(searchAssociatedGroupsForReference).not.toHaveBeenCalled();
         wrapper.setProps({
             currentChannel: {
                 ...currentChannelProp,
-                id: 'owsyt8n43jfxjpzh9np93mx1wb',
+                id: "owsyt8n43jfxjpzh9np93mx1wb",
             },
         });
         expect(searchAssociatedGroupsForReference).not.toHaveBeenCalled();
     });
 
-    it('Check for searchAssociatedGroupsForReference called on mount when one @ mention in the draft', () => {
+    it("Check for searchAssociatedGroupsForReference called on mount when one @ mention in the draft", () => {
         const searchAssociatedGroupsForReference = jest.fn();
         const draft = {
             ...draftProp,
-            message: '@group1 hello',
+            message: "@group1 hello",
         };
         const actions = {
             ...baseProp.actions,
             searchAssociatedGroupsForReference,
         };
-        const wrapper = shallow(advancedCreatePost({draft, actions}));
+        const wrapper = shallow(advancedCreatePost({ draft, actions }));
         expect(searchAssociatedGroupsForReference).toHaveBeenCalled();
         wrapper.setProps({
             currentChannel: {
                 ...currentChannelProp,
-                id: 'owsyt8n43jfxjpzh9np93mx1wb',
+                id: "owsyt8n43jfxjpzh9np93mx1wb",
             },
         });
         expect(searchAssociatedGroupsForReference).toHaveBeenCalled();
     });
 
-    it('Check for getChannelMemberCountsByGroup called on mount when more than one @ mention in the draft', () => {
+    it("Check for getChannelMemberCountsByGroup called on mount when more than one @ mention in the draft", () => {
         const getChannelMemberCountsByGroup = jest.fn();
         const draft = {
             ...draftProp,
-            message: '@group1 @group2 hello',
+            message: "@group1 @group2 hello",
         };
         const actions = {
             ...baseProp.actions,
             getChannelMemberCountsByGroup,
         };
-        const wrapper = shallow(advancedCreatePost({draft, actions}));
+        const wrapper = shallow(advancedCreatePost({ draft, actions }));
         expect(getChannelMemberCountsByGroup).toHaveBeenCalled();
         wrapper.setProps({
             currentChannel: {
                 ...currentChannelProp,
-                id: 'owsyt8n43jfxjpzh9np93mx1wb',
+                id: "owsyt8n43jfxjpzh9np93mx1wb",
             },
         });
         expect(getChannelMemberCountsByGroup).toHaveBeenCalled();
     });
 
-    it('Check for getChannelMemberCountsByGroup not called on mount and when channel changed with useLDAPGroupMentions = false', () => {
+    it("Check for getChannelMemberCountsByGroup not called on mount and when channel changed with useLDAPGroupMentions = false", () => {
         const getChannelMemberCountsByGroup = jest.fn();
         const useLDAPGroupMentions = false;
         const actions = {
             ...baseProp.actions,
             getChannelMemberCountsByGroup,
         };
-        const wrapper = shallow(advancedCreatePost({actions, useLDAPGroupMentions}));
+        const wrapper = shallow(
+            advancedCreatePost({ actions, useLDAPGroupMentions }),
+        );
         expect(getChannelMemberCountsByGroup).not.toHaveBeenCalled();
         wrapper.setProps({
             currentChannel: {
                 ...currentChannelProp,
-                id: 'owsyt8n43jfxjpzh9np93mx1wb',
+                id: "owsyt8n43jfxjpzh9np93mx1wb",
             },
         });
         expect(getChannelMemberCountsByGroup).not.toHaveBeenCalled();
@@ -380,7 +391,7 @@ describe('components/advanced_create_post', () => {
     //     expect(GlobalActions.emitLocalUserTypingEvent).toHaveBeenCalledWith(currentChannelProp.id, '');
     // });
 
-    it('onSubmit test for @all', async () => {
+    it("onSubmit test for @all", async () => {
         const result: ActionResult = {
             data: [1, 2, 3, 4],
         };
@@ -395,29 +406,40 @@ describe('components/advanced_create_post', () => {
         );
 
         wrapper.setState({
-            message: 'test @all',
+            message: "test @all",
         });
 
         const instance = wrapper.instance() as AdvancedCreatePost;
 
         const showNotifyAllModal = instance.showNotifyAllModal;
-        instance.showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
+        instance.showNotifyAllModal = jest.fn(
+            (mentions, channelTimezoneCount, memberNotifyCount) =>
+                showNotifyAllModal(
+                    mentions,
+                    channelTimezoneCount,
+                    memberNotifyCount,
+                ),
+        );
 
-        const form = wrapper.find('#create_post');
-        await form.simulate('Submit', {preventDefault: jest.fn()});
+        const form = wrapper.find("#create_post");
+        await form.simulate("Submit", { preventDefault: jest.fn() });
 
         expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
-        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(['@all'], 4, 8);
+        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(
+            ["@all"],
+            4,
+            8,
+        );
 
         wrapper.setProps({
             currentChannelMembersCount: 2,
         });
 
-        form.simulate('Submit', {preventDefault: jest.fn()});
+        form.simulate("Submit", { preventDefault: jest.fn() });
         expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
     });
 
-    it('onSubmit test for @here', async () => {
+    it("onSubmit test for @here", async () => {
         const result: ActionResult = {
             data: [1, 2, 3, 4],
         };
@@ -432,37 +454,51 @@ describe('components/advanced_create_post', () => {
         );
 
         wrapper.setState({
-            message: 'test @here',
+            message: "test @here",
         });
 
         const instance = wrapper.instance() as AdvancedCreatePost;
 
         const showNotifyAllModal = instance.showNotifyAllModal;
-        instance.showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
+        instance.showNotifyAllModal = jest.fn(
+            (mentions, channelTimezoneCount, memberNotifyCount) =>
+                showNotifyAllModal(
+                    mentions,
+                    channelTimezoneCount,
+                    memberNotifyCount,
+                ),
+        );
 
-        const form = wrapper.find('#create_post');
-        await form.simulate('Submit', {preventDefault: jest.fn()});
+        const form = wrapper.find("#create_post");
+        await form.simulate("Submit", { preventDefault: jest.fn() });
 
         expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
-        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(['@here'], 4, 8);
+        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(
+            ["@here"],
+            4,
+            8,
+        );
 
         wrapper.setProps({
             currentChannelMembersCount: 2,
         });
 
-        form.simulate('Submit', {preventDefault: jest.fn()});
+        form.simulate("Submit", { preventDefault: jest.fn() });
         expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
     });
 
-    it('onSubmit test for @groups', () => {
+    it("onSubmit test for @groups", () => {
         const wrapper = shallow(advancedCreatePost());
 
         wrapper.setProps({
             groupsWithAllowReference: new Map([
-                ['@developers', {
-                    id: 'developers',
-                    name: 'developers',
-                }],
+                [
+                    "@developers",
+                    {
+                        id: "developers",
+                        name: "developers",
+                    },
+                ],
             ]),
             channelMemberCountsByGroup: {
                 developers: {
@@ -472,45 +508,71 @@ describe('components/advanced_create_post', () => {
             },
         });
         wrapper.setState({
-            message: '@developers',
+            message: "@developers",
         });
 
         const instance = wrapper.instance() as AdvancedCreatePost;
 
-        const showNotifyAllModal = (instance).showNotifyAllModal;
-        instance.showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
+        const showNotifyAllModal = instance.showNotifyAllModal;
+        instance.showNotifyAllModal = jest.fn(
+            (mentions, channelTimezoneCount, memberNotifyCount) =>
+                showNotifyAllModal(
+                    mentions,
+                    channelTimezoneCount,
+                    memberNotifyCount,
+                ),
+        );
 
-        const form = wrapper.find('#create_post');
-        form.simulate('Submit', {preventDefault: jest.fn()});
+        const form = wrapper.find("#create_post");
+        form.simulate("Submit", { preventDefault: jest.fn() });
         expect(instance.props.actions.openModal).toHaveBeenCalled();
-        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(['@developers'], 0, 10);
+        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(
+            ["@developers"],
+            0,
+            10,
+        );
     });
 
-    it('onSubmit test for several @groups', () => {
+    it("onSubmit test for several @groups", () => {
         const wrapper = shallow(advancedCreatePost());
 
         wrapper.setProps({
             groupsWithAllowReference: new Map([
-                ['@developers', {
-                    id: 'developers',
-                    name: 'developers',
-                }],
-                ['@boss', {
-                    id: 'boss',
-                    name: 'boss',
-                }],
-                ['@love', {
-                    id: 'love',
-                    name: 'love',
-                }],
-                ['@you', {
-                    id: 'you',
-                    name: 'you',
-                }],
-                ['@software-developers', {
-                    id: 'softwareDevelopers',
-                    name: 'software-developers',
-                }],
+                [
+                    "@developers",
+                    {
+                        id: "developers",
+                        name: "developers",
+                    },
+                ],
+                [
+                    "@boss",
+                    {
+                        id: "boss",
+                        name: "boss",
+                    },
+                ],
+                [
+                    "@love",
+                    {
+                        id: "love",
+                        name: "love",
+                    },
+                ],
+                [
+                    "@you",
+                    {
+                        id: "you",
+                        name: "you",
+                    },
+                ],
+                [
+                    "@software-developers",
+                    {
+                        id: "softwareDevelopers",
+                        name: "software-developers",
+                    },
+                ],
             ]),
             channelMemberCountsByGroup: {
                 developers: {
@@ -536,41 +598,64 @@ describe('components/advanced_create_post', () => {
             },
         });
         wrapper.setState({
-            message: '@developers @boss @love @you @software-developers',
+            message: "@developers @boss @love @you @software-developers",
         });
 
         const instance = wrapper.instance() as AdvancedCreatePost;
 
         const showNotifyAllModal = instance.showNotifyAllModal;
-        instance.showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
+        instance.showNotifyAllModal = jest.fn(
+            (mentions, channelTimezoneCount, memberNotifyCount) =>
+                showNotifyAllModal(
+                    mentions,
+                    channelTimezoneCount,
+                    memberNotifyCount,
+                ),
+        );
 
-        const form = wrapper.find('#create_post');
-        form.simulate('Submit', {preventDefault: jest.fn()});
+        const form = wrapper.find("#create_post");
+        form.simulate("Submit", { preventDefault: jest.fn() });
         expect(instance.props.actions.openModal).toHaveBeenCalled();
-        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(['@developers', '@boss', '@love', '@you', '@software-developers'], 0, 40);
+        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(
+            ["@developers", "@boss", "@love", "@you", "@software-developers"],
+            0,
+            40,
+        );
     });
 
-    it('onSubmit test for several @groups with timezone', () => {
+    it("onSubmit test for several @groups with timezone", () => {
         const wrapper = shallow(advancedCreatePost());
 
         wrapper.setProps({
             groupsWithAllowReference: new Map([
-                ['@developers', {
-                    id: 'developers',
-                    name: 'developers',
-                }],
-                ['@boss', {
-                    id: 'boss',
-                    name: 'boss',
-                }],
-                ['@love', {
-                    id: 'love',
-                    name: 'love',
-                }],
-                ['@you', {
-                    id: 'you',
-                    name: 'you',
-                }],
+                [
+                    "@developers",
+                    {
+                        id: "developers",
+                        name: "developers",
+                    },
+                ],
+                [
+                    "@boss",
+                    {
+                        id: "boss",
+                        name: "boss",
+                    },
+                ],
+                [
+                    "@love",
+                    {
+                        id: "love",
+                        name: "love",
+                    },
+                ],
+                [
+                    "@you",
+                    {
+                        id: "you",
+                        name: "you",
+                    },
+                ],
             ]),
             channelMemberCountsByGroup: {
                 developers: {
@@ -592,74 +677,100 @@ describe('components/advanced_create_post', () => {
             },
         });
         wrapper.setState({
-            message: '@developers @boss @love @you',
+            message: "@developers @boss @love @you",
         });
 
         const instance = wrapper.instance() as AdvancedCreatePost;
 
         const showNotifyAllModal = instance.showNotifyAllModal;
-        instance.showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
+        instance.showNotifyAllModal = jest.fn(
+            (mentions, channelTimezoneCount, memberNotifyCount) =>
+                showNotifyAllModal(
+                    mentions,
+                    channelTimezoneCount,
+                    memberNotifyCount,
+                ),
+        );
 
-        const form = wrapper.find('#create_post');
-        form.simulate('Submit', {preventDefault: jest.fn()});
+        const form = wrapper.find("#create_post");
+        form.simulate("Submit", { preventDefault: jest.fn() });
         expect(instance.props.actions.openModal).toHaveBeenCalled();
-        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(['@developers', '@boss', '@love', '@you'], 5, 40);
+        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(
+            ["@developers", "@boss", "@love", "@you"],
+            5,
+            40,
+        );
     });
 
-    it('Should set mentionHighlightDisabled prop when useChannelMentions disabled before calling actions.onSubmitPost', async () => {
+    it("Should set mentionHighlightDisabled prop when useChannelMentions disabled before calling actions.onSubmitPost", async () => {
         const onSubmitPost = jest.fn();
-        const wrapper = shallow(advancedCreatePost({
-            actions: {
-                ...baseProp.actions,
-                onSubmitPost,
-            },
-        }));
+        const wrapper = shallow(
+            advancedCreatePost({
+                actions: {
+                    ...baseProp.actions,
+                    onSubmitPost,
+                },
+            }),
+        );
 
         wrapper.setProps({
             useChannelMentions: false,
         });
 
-        const post = TestHelper.getPostMock({message: 'message with @here mention'});
+        const post = TestHelper.getPostMock({
+            message: "message with @here mention",
+        });
         await (wrapper.instance() as AdvancedCreatePost).sendMessage(post);
 
         expect(onSubmitPost).toHaveBeenCalledTimes(1);
-        expect(onSubmitPost.mock.calls[0][0]).toEqual({...post, props: {mentionHighlightDisabled: true}});
+        expect(onSubmitPost.mock.calls[0][0]).toEqual({
+            ...post,
+            props: { mentionHighlightDisabled: true },
+        });
     });
 
-    it('Should not set mentionHighlightDisabled prop when useChannelMentions enabled before calling actions.onSubmitPost', async () => {
+    it("Should not set mentionHighlightDisabled prop when useChannelMentions enabled before calling actions.onSubmitPost", async () => {
         const onSubmitPost = jest.fn();
-        const wrapper = shallow(advancedCreatePost({
-            actions: {
-                ...baseProp.actions,
-                onSubmitPost,
-            },
-        }));
+        const wrapper = shallow(
+            advancedCreatePost({
+                actions: {
+                    ...baseProp.actions,
+                    onSubmitPost,
+                },
+            }),
+        );
 
         wrapper.setProps({
             useChannelMentions: true,
         });
 
-        const post = TestHelper.getPostMock({message: 'message with @here mention'});
+        const post = TestHelper.getPostMock({
+            message: "message with @here mention",
+        });
         await (wrapper.instance() as AdvancedCreatePost).sendMessage(post);
 
         expect(onSubmitPost).toHaveBeenCalledTimes(1);
         expect(onSubmitPost.mock.calls[0][0]).toEqual(post);
     });
 
-    it('Should not set mentionHighlightDisabled prop when useChannelMentions disabled but message does not contain channel metion before calling actions.onSubmitPost', async () => {
+    it("Should not set mentionHighlightDisabled prop when useChannelMentions disabled but message does not contain channel metion before calling actions.onSubmitPost", async () => {
         const onSubmitPost = jest.fn();
-        const wrapper = shallow(advancedCreatePost({
-            actions: {
-                ...baseProp.actions,
-                onSubmitPost,
-            },
-        }));
+        const wrapper = shallow(
+            advancedCreatePost({
+                actions: {
+                    ...baseProp.actions,
+                    onSubmitPost,
+                },
+            }),
+        );
 
         wrapper.setProps({
             useChannelMentions: false,
         });
 
-        const post = TestHelper.getPostMock({message: 'message with @here mention'});
+        const post = TestHelper.getPostMock({
+            message: "message with @here mention",
+        });
         await (wrapper.instance() as AdvancedCreatePost).sendMessage(post);
 
         expect(onSubmitPost).toHaveBeenCalledTimes(1);
@@ -679,14 +790,18 @@ describe('components/advanced_create_post', () => {
         );
 
         wrapper.setState({
-            message: '/header',
+            message: "/header",
         });
 
-        const form = wrapper.find('#create_post');
-        form.simulate('Submit', {preventDefault: jest.fn()});
+        const form = wrapper.find("#create_post");
+        form.simulate("Submit", { preventDefault: jest.fn() });
         expect(openModal).toHaveBeenCalledTimes(1);
-        expect(openModal.mock.calls[0][0].modalId).toEqual(ModalIdentifiers.EDIT_CHANNEL_HEADER);
-        expect(openModal.mock.calls[0][0].dialogProps.channel).toEqual(currentChannelProp);
+        expect(openModal.mock.calls[0][0].modalId).toEqual(
+            ModalIdentifiers.EDIT_CHANNEL_HEADER,
+        );
+        expect(openModal.mock.calls[0][0].dialogProps.channel).toEqual(
+            currentChannelProp,
+        );
     });
 
     it('onSubmit test for "/purpose" message', () => {
@@ -702,32 +817,38 @@ describe('components/advanced_create_post', () => {
         );
 
         wrapper.setState({
-            message: '/purpose',
+            message: "/purpose",
         });
 
-        const form = wrapper.find('#create_post');
-        form.simulate('Submit', {preventDefault: jest.fn()});
+        const form = wrapper.find("#create_post");
+        form.simulate("Submit", { preventDefault: jest.fn() });
         expect(openModal).toHaveBeenCalledTimes(1);
-        expect(openModal.mock.calls[0][0].modalId).toEqual(ModalIdentifiers.EDIT_CHANNEL_PURPOSE);
-        expect(openModal.mock.calls[0][0].dialogProps.channel).toEqual(currentChannelProp);
+        expect(openModal.mock.calls[0][0].modalId).toEqual(
+            ModalIdentifiers.EDIT_CHANNEL_PURPOSE,
+        );
+        expect(openModal.mock.calls[0][0].dialogProps.channel).toEqual(
+            currentChannelProp,
+        );
     });
 
     it('onSubmit test for "/unknown" message ', async () => {
-        jest.mock('actions/channel_actions', () => ({
+        jest.mock("actions/channel_actions", () => ({
             executeCommand: jest.fn((message, _args, resolve) => resolve()),
         }));
 
         const wrapper = shallow(advancedCreatePost());
 
         wrapper.setState({
-            message: '/unknown',
+            message: "/unknown",
         });
 
-        await (wrapper.instance() as AdvancedCreatePost).handleSubmit(submitEvent);
-        expect(wrapper.state('submitting')).toBe(false);
+        await (wrapper.instance() as AdvancedCreatePost).handleSubmit(
+            submitEvent,
+        );
+        expect(wrapper.state("submitting")).toBe(false);
     });
 
-    it('onSubmit test for addReaction message', async () => {
+    it("onSubmit test for addReaction message", async () => {
         const addReaction = jest.fn();
 
         const wrapper = shallow(
@@ -740,14 +861,16 @@ describe('components/advanced_create_post', () => {
         );
 
         wrapper.setState({
-            message: '+:smile:',
+            message: "+:smile:",
         });
 
-        await (wrapper.instance() as AdvancedCreatePost).handleSubmit(submitEvent);
-        expect(addReaction).toHaveBeenCalledWith('a', 'smile');
+        await (wrapper.instance() as AdvancedCreatePost).handleSubmit(
+            submitEvent,
+        );
+        expect(addReaction).toHaveBeenCalledWith("a", "smile");
     });
 
-    it('onSubmit test for removeReaction message', () => {
+    it("onSubmit test for removeReaction message", () => {
         const removeReaction = jest.fn();
 
         const wrapper = shallow(
@@ -760,12 +883,12 @@ describe('components/advanced_create_post', () => {
         );
 
         wrapper.setState({
-            message: '-:smile:',
+            message: "-:smile:",
         });
 
-        const form = wrapper.find('#create_post');
-        form.simulate('Submit', {preventDefault: jest.fn()});
-        expect(removeReaction).toHaveBeenCalledWith('a', 'smile');
+        const form = wrapper.find("#create_post");
+        form.simulate("Submit", { preventDefault: jest.fn() });
+        expect(removeReaction).toHaveBeenCalledWith("a", "smile");
     });
 
     /*it('check for postError state on handlePostError callback', () => {
@@ -786,7 +909,7 @@ describe('components/advanced_create_post', () => {
         expect(wrapper.find('#postCreateFooter').hasClass('post-create-footer has-error')).toBe(true);
     });*/
 
-    it('check for handleFileUploadChange callback for focus', () => {
+    it("check for handleFileUploadChange callback for focus", () => {
         const wrapper = shallow(advancedCreatePost());
         const instance: any = wrapper.instance();
         const mockImpl = () => {
@@ -795,14 +918,18 @@ describe('components/advanced_create_post', () => {
                 focus: jest.fn(),
             };
         };
-        instance.textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
+        instance.textboxRef.current = {
+            getInputBox: jest.fn(mockImpl),
+            focus: jest.fn(),
+            blur: jest.fn(),
+        };
         instance.focusTextbox = jest.fn();
 
         instance.handleFileUploadChange();
         expect(instance.focusTextbox).toHaveBeenCalledTimes(1);
     });
 
-    it('check for handleFileUploadStart callback', () => {
+    it("check for handleFileUploadStart callback", () => {
         const setDraft = jest.fn();
 
         const wrapper = shallow(
@@ -815,20 +942,21 @@ describe('components/advanced_create_post', () => {
         );
 
         const instance = wrapper.instance() as AdvancedCreatePost;
-        const clientIds = ['a'];
+        const clientIds = ["a"];
         const draft = {
             ...draftProp,
-            uploadsInProgress: [
-                ...draftProp.uploadsInProgress,
-                ...clientIds,
-            ],
+            uploadsInProgress: [...draftProp.uploadsInProgress, ...clientIds],
         };
 
         instance.handleUploadStart(clientIds, currentChannelProp.id);
-        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + currentChannelProp.id, draft, currentChannelProp.id);
+        expect(setDraft).toHaveBeenCalledWith(
+            StoragePrefixes.DRAFT + currentChannelProp.id,
+            draft,
+            currentChannelProp.id,
+        );
     });
 
-    it('check for handleFileUploadComplete callback', () => {
+    it("check for handleFileUploadComplete callback", () => {
         const setDraft = jest.fn();
 
         const wrapper = shallow(
@@ -841,34 +969,37 @@ describe('components/advanced_create_post', () => {
         );
 
         const instance: any = wrapper.instance();
-        const clientIds = ['a'];
+        const clientIds = ["a"];
         const uploadsInProgressDraft = {
             ...draftProp,
-            uploadsInProgress: [
-                ...draftProp.uploadsInProgress,
-                'a',
-            ],
+            uploadsInProgress: [...draftProp.uploadsInProgress, "a"],
         };
 
-        instance.draftsForChannel[currentChannelProp.id] = uploadsInProgressDraft;
+        instance.draftsForChannel[currentChannelProp.id] =
+            uploadsInProgressDraft;
 
-        wrapper.setProps({draft: uploadsInProgressDraft});
-        const fileInfos = [TestHelper.getFileInfoMock({id: 'a'})];
+        wrapper.setProps({ draft: uploadsInProgressDraft });
+        const fileInfos = [TestHelper.getFileInfoMock({ id: "a" })];
         const expectedDraft = {
             ...draftProp,
-            fileInfos: [
-                ...draftProp.fileInfos,
-                ...fileInfos,
-            ],
+            fileInfos: [...draftProp.fileInfos, ...fileInfos],
         };
 
-        instance.handleFileUploadComplete(fileInfos, clientIds, currentChannelProp.id);
+        instance.handleFileUploadComplete(
+            fileInfos,
+            clientIds,
+            currentChannelProp.id,
+        );
 
         jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT);
-        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + currentChannelProp.id, expectedDraft, currentChannelProp.id);
+        expect(setDraft).toHaveBeenCalledWith(
+            StoragePrefixes.DRAFT + currentChannelProp.id,
+            expectedDraft,
+            currentChannelProp.id,
+        );
     });
 
-    it('check for handleUploadError callback', () => {
+    it("check for handleUploadError callback", () => {
         const setDraft = jest.fn();
 
         const wrapper = shallow(
@@ -883,18 +1014,20 @@ describe('components/advanced_create_post', () => {
         const instance: any = wrapper.instance();
         const uploadsInProgressDraft = {
             ...draftProp,
-            uploadsInProgress: [
-                ...draftProp.uploadsInProgress,
-                'a',
-            ],
+            uploadsInProgress: [...draftProp.uploadsInProgress, "a"],
         };
 
-        wrapper.setProps({draft: uploadsInProgressDraft});
+        wrapper.setProps({ draft: uploadsInProgressDraft });
 
-        instance.draftsForChannel[currentChannelProp.id] = uploadsInProgressDraft;
-        instance.handleUploadError('error message', 'a', currentChannelProp.id);
+        instance.draftsForChannel[currentChannelProp.id] =
+            uploadsInProgressDraft;
+        instance.handleUploadError("error message", "a", currentChannelProp.id);
 
-        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + currentChannelProp.id, draftProp, currentChannelProp.id);
+        expect(setDraft).toHaveBeenCalledWith(
+            StoragePrefixes.DRAFT + currentChannelProp.id,
+            draftProp,
+            currentChannelProp.id,
+        );
     });
 
     /**
@@ -911,19 +1044,16 @@ describe('components/advanced_create_post', () => {
     //     expect(wrapper.state('uploadsProgressPercent')).toEqual({clientId: {clientId: 'clientId', percent: 10, name: 'name', type: 'type'}});
     // });
 
-    it('Remove preview from fileInfos', () => {
+    it("Remove preview from fileInfos", () => {
         const setDraft = jest.fn();
         const fileInfos = TestHelper.getFileInfoMock({
-            id: 'a',
-            extension: 'jpg',
-            name: 'trimmedFilename',
+            id: "a",
+            extension: "jpg",
+            name: "trimmedFilename",
         });
         const uploadsInProgressDraft = {
             ...draftProp,
-            fileInfos: [
-                ...draftProp.fileInfos,
-                fileInfos,
-            ],
+            fileInfos: [...draftProp.fileInfos, fileInfos],
         };
 
         const wrapper = shallow(
@@ -941,30 +1071,42 @@ describe('components/advanced_create_post', () => {
 
         const instance = wrapper.instance() as AdvancedCreatePost;
         instance.handleFileUploadChange = jest.fn();
-        instance.removePreview('a');
+        instance.removePreview("a");
 
         jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT);
         expect(setDraft).toHaveBeenCalledTimes(1);
-        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + currentChannelProp.id, draftProp, currentChannelProp.id, false);
+        expect(setDraft).toHaveBeenCalledWith(
+            StoragePrefixes.DRAFT + currentChannelProp.id,
+            draftProp,
+            currentChannelProp.id,
+            false,
+        );
         expect(instance.handleFileUploadChange).toHaveBeenCalledTimes(1);
     });
 
-    it('Show tutorial', () => {
-        const wrapper = shallow(advancedCreatePost({
-            showSendTutorialTip: true,
-        }));
+    it("Show tutorial", () => {
+        const wrapper = shallow(
+            advancedCreatePost({
+                showSendTutorialTip: true,
+            }),
+        );
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('Should have called actions.onSubmitPost on sendMessage', async () => {
+    it("Should have called actions.onSubmitPost on sendMessage", async () => {
         const onSubmitPost = jest.fn();
-        const wrapper = shallow(advancedCreatePost({
-            actions: {
-                ...baseProp.actions,
-                onSubmitPost,
-            },
-        }));
-        const post = TestHelper.getPostMock({message: 'message', file_ids: []});
+        const wrapper = shallow(
+            advancedCreatePost({
+                actions: {
+                    ...baseProp.actions,
+                    onSubmitPost,
+                },
+            }),
+        );
+        const post = TestHelper.getPostMock({
+            message: "message",
+            file_ids: [],
+        });
         await (wrapper.instance() as AdvancedCreatePost).sendMessage(post);
 
         expect(onSubmitPost).toHaveBeenCalledTimes(1);
@@ -972,43 +1114,51 @@ describe('components/advanced_create_post', () => {
         expect(onSubmitPost.mock.calls[0][1]).toEqual([]);
     });
 
-    it('Should have called actions.selectPostFromRightHandSideSearchByPostId on replyToLastPost', () => {
+    it("Should have called actions.selectPostFromRightHandSideSearchByPostId on replyToLastPost", () => {
         const selectPostFromRightHandSideSearchByPostId = jest.fn();
-        let latestReplyablePostId = '';
-        const wrapper = shallow(advancedCreatePost({
-            actions: {
-                ...baseProp.actions,
-                selectPostFromRightHandSideSearchByPostId,
-            },
-            latestReplyablePostId,
-        }));
+        let latestReplyablePostId = "";
+        const wrapper = shallow(
+            advancedCreatePost({
+                actions: {
+                    ...baseProp.actions,
+                    selectPostFromRightHandSideSearchByPostId,
+                },
+                latestReplyablePostId,
+            }),
+        );
 
-        const event = {preventDefault: jest.fn()} as unknown as React.KeyboardEvent<Element>;
+        const event = {
+            preventDefault: jest.fn(),
+        } as unknown as React.KeyboardEvent<Element>;
 
         (wrapper.instance() as AdvancedCreatePost).replyToLastPost(event);
         expect(selectPostFromRightHandSideSearchByPostId).not.toBeCalled();
 
-        latestReplyablePostId = 'latest_replyablePost_id';
-        wrapper.setProps({latestReplyablePostId});
+        latestReplyablePostId = "latest_replyablePost_id";
+        wrapper.setProps({ latestReplyablePostId });
         (wrapper.instance() as AdvancedCreatePost).replyToLastPost(event);
-        expect(selectPostFromRightHandSideSearchByPostId).toHaveBeenCalledTimes(1);
-        expect(selectPostFromRightHandSideSearchByPostId.mock.calls[0][0]).toEqual(latestReplyablePostId);
+        expect(selectPostFromRightHandSideSearchByPostId).toHaveBeenCalledTimes(
+            1,
+        );
+        expect(
+            selectPostFromRightHandSideSearchByPostId.mock.calls[0][0],
+        ).toEqual(latestReplyablePostId);
     });
 
-    it('should match snapshot when cannot post', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: false}));
+    it("should match snapshot when cannot post", () => {
+        const wrapper = shallow(advancedCreatePost({ canPost: false }));
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should match snapshot when file upload disabled', () => {
-        const wrapper = shallow(advancedCreatePost({canUploadFiles: false}));
+    it("should match snapshot when file upload disabled", () => {
+        const wrapper = shallow(advancedCreatePost({ canUploadFiles: false }));
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should allow to force send invalid slash command as a message', async () => {
+    it("should allow to force send invalid slash command as a message", async () => {
         const error = {
-            message: 'No command found',
-            server_error_id: 'api.command.execute_command.not_found.app_error',
+            message: "No command found",
+            server_error_id: "api.command.execute_command.not_found.app_error",
         };
         const result: ActionResult = {
             error,
@@ -1027,30 +1177,34 @@ describe('components/advanced_create_post', () => {
         );
 
         wrapper.setState({
-            message: '/fakecommand some text',
+            message: "/fakecommand some text",
         });
 
-        await (wrapper.instance() as AdvancedCreatePost).handleSubmit(submitEvent);
+        await (wrapper.instance() as AdvancedCreatePost).handleSubmit(
+            submitEvent,
+        );
         expect(executeCommand).toHaveBeenCalled();
         expect(onSubmitPost).not.toHaveBeenCalled();
 
-        await (wrapper.instance() as AdvancedCreatePost).handleSubmit(submitEvent);
+        await (wrapper.instance() as AdvancedCreatePost).handleSubmit(
+            submitEvent,
+        );
 
         expect(onSubmitPost).toHaveBeenCalledWith(
             expect.objectContaining({
-                message: '/fakecommand some text',
+                message: "/fakecommand some text",
             }),
             expect.anything(),
         );
     });
 
-    it('should throw away invalid command error if user resumes typing', async () => {
+    it("should throw away invalid command error if user resumes typing", async () => {
         const error = {
-            message: 'No command found',
-            server_error_id: 'api.command.execute_command.not_found.app_error',
+            message: "No command found",
+            server_error_id: "api.command.execute_command.not_found.app_error",
         };
 
-        const executeCommand = jest.fn().mockResolvedValue({error});
+        const executeCommand = jest.fn().mockResolvedValue({ error });
         const onSubmitPost = jest.fn();
 
         const wrapper = shallow(
@@ -1064,7 +1218,7 @@ describe('components/advanced_create_post', () => {
         );
 
         wrapper.setState({
-            message: '/fakecommand some text',
+            message: "/fakecommand some text",
         });
 
         const instance = wrapper.instance() as AdvancedCreatePost;
@@ -1075,7 +1229,7 @@ describe('components/advanced_create_post', () => {
 
         const event = {
             target: {
-                value: 'some valid text',
+                value: "some valid text",
             },
         } as unknown as React.ChangeEvent<TextboxElement>;
 
@@ -1085,7 +1239,7 @@ describe('components/advanced_create_post', () => {
 
         expect(onSubmitPost).toHaveBeenCalledWith(
             expect.objectContaining({
-                message: 'some valid text',
+                message: "some valid text",
             }),
             expect.anything(),
         );
@@ -1134,49 +1288,72 @@ describe('components/advanced_create_post', () => {
     // });
 
     testComponentForLineBreak(
-        (value: string) => advancedCreatePost({draft: {...draftProp, message: value}}),
+        (value: string) =>
+            advancedCreatePost({ draft: { ...draftProp, message: value } }),
         (instance: any) => instance.state.message,
         false,
     );
 
-    it('should match snapshot, can post; preview enabled', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: true}));
+    it("should match snapshot, can post; preview enabled", () => {
+        const wrapper = shallow(advancedCreatePost({ canPost: true }));
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should match snapshot, can post; preview disabled', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: true}));
+    it("should match snapshot, can post; preview disabled", () => {
+        const wrapper = shallow(advancedCreatePost({ canPost: true }));
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should match snapshot, cannot post; preview enabled', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: false}));
+    it("should match snapshot, cannot post; preview enabled", () => {
+        const wrapper = shallow(advancedCreatePost({ canPost: false }));
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should match snapshot, cannot post; preview disabled', () => {
-        const wrapper = shallow(advancedCreatePost({canPost: false}));
+    it("should match snapshot, cannot post; preview disabled", () => {
+        const wrapper = shallow(advancedCreatePost({ canPost: false }));
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should match snapshot, post priority enabled', () => {
-        const wrapper = shallow(advancedCreatePost({isPostPriorityEnabled: true}));
+    it("should match snapshot, post priority enabled", () => {
+        const wrapper = shallow(
+            advancedCreatePost({ isPostPriorityEnabled: true }),
+        );
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should match snapshot, post priority enabled, with priority important', () => {
-        const wrapper = shallow(advancedCreatePost({isPostPriorityEnabled: true, draft: {...draftProp, metadata: {priority: {priority: PostPriority.IMPORTANT}}}}));
+    it("should match snapshot, post priority enabled, with priority important", () => {
+        const wrapper = shallow(
+            advancedCreatePost({
+                isPostPriorityEnabled: true,
+                draft: {
+                    ...draftProp,
+                    metadata: {
+                        priority: { priority: PostPriority.IMPORTANT },
+                    },
+                },
+            }),
+        );
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should match snapshot, post priority disabled, with priority important', () => {
-        const wrapper = shallow(advancedCreatePost({isPostPriorityEnabled: false, draft: {...draftProp, metadata: {priority: {priority: PostPriority.IMPORTANT}}}}));
+    it("should match snapshot, post priority disabled, with priority important", () => {
+        const wrapper = shallow(
+            advancedCreatePost({
+                isPostPriorityEnabled: false,
+                draft: {
+                    ...draftProp,
+                    metadata: {
+                        priority: { priority: PostPriority.IMPORTANT },
+                    },
+                },
+            }),
+        );
 
         expect(wrapper).toMatchSnapshot();
     });

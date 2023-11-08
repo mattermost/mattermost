@@ -1,32 +1,39 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import cn from 'classnames';
-import React, {useMemo, memo} from 'react';
+import cn from "classnames";
+import React, { useMemo, memo } from "react";
 
-import type {FileInfo} from '@mattermost/types/files';
+import type { FileInfo } from "@mattermost/types/files";
 
-import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
+import {
+    getFileThumbnailUrl,
+    getFileUrl,
+} from "mattermost-redux/utils/file_utils";
 
-import {FileTypes} from 'utils/constants';
-import {fileSizeToString, getCompassIconClassName, getFileType} from 'utils/utils';
+import { FileTypes } from "utils/constants";
+import {
+    fileSizeToString,
+    getCompassIconClassName,
+    getFileType,
+} from "utils/utils";
 
-import './file_card.scss';
+import "./file_card.scss";
 
 type Props = {
     file?: FileInfo;
     enableSVGs: boolean;
-}
+};
 
 type FileProps = FileInfo & {
     enableSVGs: boolean;
-}
+};
 
 type CardProps = {
     children?: React.ReactElement<typeof Image>;
     title: string;
     size?: number;
-}
+};
 
 function File({
     id,
@@ -49,81 +56,68 @@ function File({
     const fileType = getFileType(extension);
 
     switch (fileType) {
-    case FileTypes.SVG:
-        if (enableSVGs) {
+        case FileTypes.SVG:
+            if (enableSVGs) {
+                return (
+                    <img
+                        alt="file preview"
+                        className="file_card__image post-image small"
+                        src={getFileUrl(id)}
+                    />
+                );
+            }
             return (
-                <img
-                    alt='file preview'
-                    className='file_card__image post-image small'
-                    src={getFileUrl(id)}
+                <div
+                    className={cn(
+                        "icon",
+                        "icon-20",
+                        getCompassIconClassName(fileType),
+                        "file_card__attachment",
+                    )}
                 />
             );
-        }
-        return (
-            <div
-                className={cn(
-                    'icon',
-                    'icon-20',
-                    getCompassIconClassName(fileType),
-                    'file_card__attachment',
-                )}
-            />
-        );
-    case FileTypes.IMAGE:
-        return (
-            <img
-                alt='file preview'
-                className='file_card__image post-image small'
-                src={imgSrc}
-            />
-        );
-    default:
-        return (
-            <i
-                className={cn(
-                    'icon',
-                    'icon-20',
-                    getCompassIconClassName(fileType),
-                    'file_card__attachment',
-                )}
-            />
-        );
+        case FileTypes.IMAGE:
+            return (
+                <img
+                    alt="file preview"
+                    className="file_card__image post-image small"
+                    src={imgSrc}
+                />
+            );
+        default:
+            return (
+                <i
+                    className={cn(
+                        "icon",
+                        "icon-20",
+                        getCompassIconClassName(fileType),
+                        "file_card__attachment",
+                    )}
+                />
+            );
     }
 }
 
-function Card({children, title, size}: CardProps) {
+function Card({ children, title, size }: CardProps) {
     return (
-        <div
-            className='file_card'
-            title={title}
-        >
+        <div className="file_card" title={title}>
             {children}
-            <div className='file_card__name'>
-                {title}
-            </div>
+            <div className="file_card__name">{title}</div>
             {size != null && (
-                <div className='file_card__size'>
-                    {fileSizeToString(size)}
-                </div>
+                <div className="file_card__size">{fileSizeToString(size)}</div>
             )}
         </div>
     );
 }
 
-function FileCard({file, enableSVGs}: Props) {
+function FileCard({ file, enableSVGs }: Props) {
     if (!file) {
         return null;
     }
 
     return (
-        <Card
-            title={file.name}
-            size={file.size}
-        >
-            <File
-                enableSVGs={enableSVGs}
-                {...file}
-            />
+        <Card title={file.name} size={file.size}>
+            <File enableSVGs={enableSVGs} {...file} />
         </Card>
     );
 }

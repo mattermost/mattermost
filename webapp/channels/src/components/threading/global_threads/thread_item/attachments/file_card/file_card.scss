@@ -39,27 +39,27 @@
         margin-right: 4px;
         color: rgba(var(--center-channel-color-rgb), 0.5);
 
-        &[class*='text'] {
+        &[class*="text"] {
             color: rgba(var(--center-channel-color-rgb), 0.5);
         }
 
-        &[class*='excel'] {
+        &[class*="excel"] {
             color: #1ca660;
         }
 
-        &[class*='pdf'],
-        &[class*='powerpoint'] {
+        &[class*="pdf"],
+        &[class*="powerpoint"] {
             color: #ed522a;
         }
 
-        &[class*='generic'],
-        &[class*='code'],
-        &[class*='image'],
-        &[class*='audio'],
-        &[class*='video'],
-        &[class*='word'],
-        &[class*='patch'],
-        &[class*='svg'] {
+        &[class*="generic"],
+        &[class*="code"],
+        &[class*="image"],
+        &[class*="audio"],
+        &[class*="video"],
+        &[class*="word"],
+        &[class*="patch"],
+        &[class*="svg"] {
             color: #338aff;
         }
     }

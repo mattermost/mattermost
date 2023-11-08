@@ -1,41 +1,48 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {useIntl} from 'react-intl';
-import styled from 'styled-components';
+import React from "react";
+import { useIntl } from "react-intl";
+import styled from "styled-components";
 
-import {ArrowRightIcon} from '@mattermost/compass-icons/components';
+import { ArrowRightIcon } from "@mattermost/compass-icons/components";
 
-import pluginIconConfluence from 'images/icons/confluence.svg';
-import pluginIconGiphy from 'images/icons/giphy.svg';
-import pluginIconPagerDuty from 'images/icons/pager-duty.svg';
-import webMarketplaceBannerBackground from 'images/marketplace-notice-background.jpg';
+import pluginIconConfluence from "images/icons/confluence.svg";
+import pluginIconGiphy from "images/icons/giphy.svg";
+import pluginIconPagerDuty from "images/icons/pager-duty.svg";
+import webMarketplaceBannerBackground from "images/marketplace-notice-background.jpg";
 
-import ExternalLink from '../external_link';
+import ExternalLink from "../external_link";
 
-const WEB_MARKETPLACE_LINK = 'https://mattermost.com/marketplace';
+const WEB_MARKETPLACE_LINK = "https://mattermost.com/marketplace";
 
 const WebMarketplaceBanner = () => {
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
 
     return (
-        <WebMarketplaceBannerRoot className='WebMarketplaceBanner'>
+        <WebMarketplaceBannerRoot className="WebMarketplaceBanner">
             <ExternalBannerLink
                 href={WEB_MARKETPLACE_LINK}
-                location='marketplace_modal'
+                location="marketplace_modal"
             >
                 <Title>
-                    {formatMessage({id: 'marketplace_modal.web_marketplace_link.title', defaultMessage: 'Discover community integrations'})}
-                    <ArrowRightIcon size={24}/>
+                    {formatMessage({
+                        id: "marketplace_modal.web_marketplace_link.title",
+                        defaultMessage: "Discover community integrations",
+                    })}
+                    <ArrowRightIcon size={24} />
                 </Title>
                 <Description>
-                    {formatMessage({id: 'marketplace_modal.web_marketplace_link.desc', defaultMessage: 'Connect the tools you use most to Mattermost'})}
+                    {formatMessage({
+                        id: "marketplace_modal.web_marketplace_link.desc",
+                        defaultMessage:
+                            "Connect the tools you use most to Mattermost",
+                    })}
                 </Description>
                 <IconsContainer>
-                    <PluginIcon src={pluginIconConfluence}/>
-                    <PluginIcon src={pluginIconGiphy}/>
-                    <PluginIcon src={pluginIconPagerDuty}/>
+                    <PluginIcon src={pluginIconConfluence} />
+                    <PluginIcon src={pluginIconGiphy} />
+                    <PluginIcon src={pluginIconPagerDuty} />
                 </IconsContainer>
             </ExternalBannerLink>
         </WebMarketplaceBannerRoot>
@@ -46,7 +53,7 @@ const ExternalBannerLink = styled(ExternalLink)`
     &&,
     &&:hover,
     &&:focus {
-        color: var(--denim-center-channel-bg, #FFF);
+        color: var(--denim-center-channel-bg, #fff);
         text-decoration: none;
     }
     && {
@@ -59,12 +66,12 @@ const ExternalBannerLink = styled(ExternalLink)`
 `;
 
 const WebMarketplaceBannerRoot = styled.section`
-        background-image: url(${webMarketplaceBannerBackground});
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: cover;
-        border-radius: 0 0 12px 12px !important;
-        margin: -1px;
+    background-image: url(${webMarketplaceBannerBackground});
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-radius: 0 0 12px 12px !important;
+    margin: -1px;
 `;
 
 const Title = styled.div`
@@ -103,7 +110,7 @@ const IconsContainer = styled.div`
     grid-column: 2;
     grid-row: span 2/2;
     ${PluginIcon}:nth-child(n+2) {
-        margin-left: calc(-54px / 1/4);
+        margin-left: calc(-54px / 1 / 4);
     }
 `;
 

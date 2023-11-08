@@ -1,4 +1,4 @@
-@import 'utils/variables';
+@import "utils/variables";
 
 .AdvancedTextEditor {
     &__ctr {
@@ -27,7 +27,10 @@
     .custom-textarea {
         // fix for a miscalculation due to the heavily overwritten custom-textarea class
         height: 0;
-        padding-right: calc(16px + var(--right-padding-for-scrollbar) + var(--right-padding-for-preview-button));
+        padding-right: calc(
+            16px + var(--right-padding-for-scrollbar) +
+                var(--right-padding-for-preview-button)
+        );
         box-shadow: none;
 
         &:focus {

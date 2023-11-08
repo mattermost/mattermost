@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, { memo } from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {Post} from '@mattermost/types/posts';
-import type {UserProfile as UserProfileType} from '@mattermost/types/users';
+import type { Post } from "@mattermost/types/posts";
+import type { UserProfile as UserProfileType } from "@mattermost/types/users";
 
-import CommentedOnFilesMessage from 'components/post_view/commented_on_files_message';
-import UserProfile from 'components/user_profile';
+import CommentedOnFilesMessage from "components/post_view/commented_on_files_message";
+import UserProfile from "components/user_profile";
 
-import {stripMarkdown} from 'utils/markdown';
-import * as Utils from 'utils/utils';
+import { stripMarkdown } from "utils/markdown";
+import * as Utils from "utils/utils";
 
 type Props = {
     enablePostUsernameOverride?: boolean;
@@ -20,18 +20,21 @@ type Props = {
     post: Post;
 };
 
-function CommentedOn({post, parentPostUser, onCommentClick}: Props) {
+function CommentedOn({ post, parentPostUser, onCommentClick }: Props) {
     const makeCommentedOnMessage = () => {
-        let message: React.ReactNode = '';
+        let message: React.ReactNode = "";
         if (post.message) {
             message = Utils.replaceHtmlEntities(post.message);
         } else if (post.file_ids && post.file_ids.length > 0) {
-            message = (
-                <CommentedOnFilesMessage parentPostId={post.id}/>
-            );
+            message = <CommentedOnFilesMessage parentPostId={post.id} />;
         } else if (post.props?.attachments?.length > 0) {
             const attachment = post.props.attachments[0];
-            const webhookMessage = attachment.pretext || attachment.title || attachment.text || attachment.fallback || '';
+            const webhookMessage =
+                attachment.pretext ||
+                attachment.title ||
+                attachment.text ||
+                attachment.fallback ||
+                "";
             message = Utils.replaceHtmlEntities(webhookMessage);
         }
 
@@ -39,7 +42,7 @@ function CommentedOn({post, parentPostUser, onCommentClick}: Props) {
     };
 
     const message = makeCommentedOnMessage();
-    const parentPostUserId = parentPostUser?.id ?? '';
+    const parentPostUserId = parentPostUser?.id ?? "";
 
     const parentUserProfile = (
         <UserProfile
@@ -50,23 +53,23 @@ function CommentedOn({post, parentPostUser, onCommentClick}: Props) {
     );
 
     return (
-        <div
-            data-testid='post-link'
-            className='post__link'
-        >
+        <div data-testid="post-link" className="post__link">
             <span>
                 <FormattedMessage
-                    id='post_body.commentedOn'
+                    id="post_body.commentedOn"
                     defaultMessage="Commented on {name}'s message: "
                     values={{
-                        name: <a className='theme user_name'>{parentUserProfile}</a>,
+                        name: (
+                            <a className="theme user_name">
+                                {parentUserProfile}
+                            </a>
+                        ),
                     }}
                 />
-                <a
-                    className='theme'
-                    onClick={onCommentClick}
-                >
-                    {typeof message === 'string' ? stripMarkdown(message) : message}
+                <a className="theme" onClick={onCommentClick}>
+                    {typeof message === "string"
+                        ? stripMarkdown(message)
+                        : message}
                 </a>
             </span>
         </div>

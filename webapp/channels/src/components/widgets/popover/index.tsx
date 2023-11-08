@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {Popover as BSPopover} from 'react-bootstrap';
-import type {Sizes as BSSizes} from 'react-bootstrap';
+import React from "react";
+import { Popover as BSPopover } from "react-bootstrap";
+import type { Sizes as BSSizes } from "react-bootstrap";
 
-const SizeMap = {xs: 'xsmall', sm: 'small', md: 'medium', lg: 'large'};
-export type Sizes = 'xs' | 'sm' | 'md' | 'lg';
+const SizeMap = { xs: "xsmall", sm: "small", md: "medium", lg: "large" };
+export type Sizes = "xs" | "sm" | "md" | "lg";
 
 interface Props {
     id?: string;
     children?: React.ReactNode;
-    popoverStyle?: 'info';
+    popoverStyle?: "info";
     popoverSize?: Sizes;
     title?: React.ReactNode;
-    placement?: 'bottom' | 'top' | 'right' | 'left';
+    placement?: "bottom" | "top" | "right" | "left";
     className?: string;
     style?: React.CSSProperties;
     onMouseOut?: React.MouseEventHandler<BSPopover>; // didn't find a better way to satisfy typing, so for now we have a slight 'bootstrap leakage'
@@ -23,13 +23,23 @@ interface Props {
 
 export default class Popover extends React.PureComponent<Props> {
     static defaultProps = {
-        placement: 'right',
-        popoverStyle: 'info',
-        popoverSize: 'sm',
-
+        placement: "right",
+        popoverStyle: "info",
+        popoverSize: "sm",
     };
     render() {
-        const {placement, popoverSize, children, popoverStyle, title, id, onMouseOut, onMouseOver, className, style} = this.props;
+        const {
+            placement,
+            popoverSize,
+            children,
+            popoverStyle,
+            title,
+            id,
+            onMouseOut,
+            onMouseOver,
+            className,
+            style,
+        } = this.props;
         return (
             <BSPopover
                 id={id}
@@ -37,9 +47,9 @@ export default class Popover extends React.PureComponent<Props> {
                 className={className}
                 bsStyle={popoverStyle}
                 placement={placement}
-                bsClass='popover'
+                bsClass="popover"
                 title={title}
-                bsSize={popoverSize && SizeMap[popoverSize] as BSSizes} // map our sizes to bootstrap
+                bsSize={popoverSize && (SizeMap[popoverSize] as BSSizes)} // map our sizes to bootstrap
                 onMouseOut={onMouseOut!}
                 onMouseOver={onMouseOver}
             >

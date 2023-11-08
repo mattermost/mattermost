@@ -1,28 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ChangeEvent, ChangeEventHandler} from 'react';
-import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
+import React from "react";
+import type { ChangeEvent, ChangeEventHandler } from "react";
+import { FormattedMessage, injectIntl, type IntlShape } from "react-intl";
 
-import type {CustomEmoji} from '@mattermost/types/emojis';
-import type {ServerError} from '@mattermost/types/errors';
+import type { CustomEmoji } from "@mattermost/types/emojis";
+import type { ServerError } from "@mattermost/types/errors";
 
-import {deleteCustomEmoji} from 'mattermost-redux/actions/emojis';
-import {Emoji} from 'mattermost-redux/constants';
+import { deleteCustomEmoji } from "mattermost-redux/actions/emojis";
+import { Emoji } from "mattermost-redux/constants";
 
-import EmojiListItem from 'components/emoji/emoji_list_item';
-import LoadingScreen from 'components/loading_screen';
-import SaveButton from 'components/save_button';
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
-import SearchIcon from 'components/widgets/icons/fa_search_icon';
+import EmojiListItem from "components/emoji/emoji_list_item";
+import LoadingScreen from "components/loading_screen";
+import SaveButton from "components/save_button";
+import NextIcon from "components/widgets/icons/fa_next_icon";
+import PreviousIcon from "components/widgets/icons/fa_previous_icon";
+import SearchIcon from "components/widgets/icons/fa_search_icon";
 
 const EMOJI_PER_PAGE = 50;
 const EMOJI_SEARCH_DELAY_MILLISECONDS = 200;
 
 interface Props {
-
     /**
      * Custom emojis on the system.
      */
@@ -34,18 +33,25 @@ interface Props {
     scrollToTop: () => void;
     intl: IntlShape;
     actions: {
-
         /**
          * Get pages of custom emojis.
          */
-        getCustomEmojis: (page?: number, perPage?: number, sort?: string, loadUsers?: boolean) => Promise<{ data: CustomEmoji[]; error: ServerError }>;
+        getCustomEmojis: (
+            page?: number,
+            perPage?: number,
+            sort?: string,
+            loadUsers?: boolean,
+        ) => Promise<{ data: CustomEmoji[]; error: ServerError }>;
 
         /**
          * Search custom emojis.
          */
-        searchCustomEmojis: (term: string, options: any, loadUsers: boolean) => Promise<{ data: CustomEmoji[]; error: ServerError }>;
+        searchCustomEmojis: (
+            term: string,
+            options: any,
+            loadUsers: boolean,
+        ) => Promise<{ data: CustomEmoji[]; error: ServerError }>;
     };
-
 }
 
 interface State {
@@ -72,11 +78,12 @@ class EmojiList extends React.PureComponent<Props, State> {
     }
 
     async componentDidMount(): Promise<void> {
-        this.props.actions.getCustomEmojis(0, EMOJI_PER_PAGE + 1, Emoji.SORT_BY_NAME, true).
-            then(({data}: { data: CustomEmoji[] }) => {
-                this.setState({loading: false});
+        this.props.actions
+            .getCustomEmojis(0, EMOJI_PER_PAGE + 1, Emoji.SORT_BY_NAME, true)
+            .then(({ data }: { data: CustomEmoji[] }) => {
+                this.setState({ loading: false });
                 if (data && data.length < EMOJI_PER_PAGE) {
-                    this.setState({missingPages: false});
+                    this.setState({ missingPages: false });
                 }
             });
     }
@@ -87,18 +94,21 @@ class EmojiList extends React.PureComponent<Props, State> {
         }
 
         const next = this.state.page + 1;
-        this.setState({nextLoading: true});
-        this.props.actions.getCustomEmojis(next, EMOJI_PER_PAGE, Emoji.SORT_BY_NAME, true).
-            then(({data}: { data: CustomEmoji[] }) => {
-                this.setState({page: next, nextLoading: false});
+        this.setState({ nextLoading: true });
+        this.props.actions
+            .getCustomEmojis(next, EMOJI_PER_PAGE, Emoji.SORT_BY_NAME, true)
+            .then(({ data }: { data: CustomEmoji[] }) => {
+                this.setState({ page: next, nextLoading: false });
                 if (data && data.length < EMOJI_PER_PAGE) {
-                    this.setState({missingPages: false});
+                    this.setState({ missingPages: false });
                 }
 
                 this.props.scrollToTop();
             });
     };
-    previousPage = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
+    previousPage = (
+        e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    ): void => {
         if (e) {
             e.preventDefault();
         }
@@ -117,23 +127,20 @@ class EmojiList extends React.PureComponent<Props, State> {
             return;
         }
 
-        const term = (e.target as HTMLInputElement).value || '';
+        const term = (e.target as HTMLInputElement).value || "";
 
         clearTimeout(this.searchTimeout!);
 
         this.searchTimeout = setTimeout(async () => {
-            if (term.trim() === '') {
-                this.setState({searchEmojis: null, page: 0});
+            if (term.trim() === "") {
+                this.setState({ searchEmojis: null, page: 0 });
                 return;
             }
 
-            this.setState({loading: true});
+            this.setState({ loading: true });
 
-            const {data}: { data: CustomEmoji[] } = await this.props.actions.searchCustomEmojis(
-                term,
-                {},
-                true,
-            );
+            const { data }: { data: CustomEmoji[] } =
+                await this.props.actions.searchCustomEmojis(term, {}, true);
 
             if (data) {
                 this.setState({
@@ -141,7 +148,7 @@ class EmojiList extends React.PureComponent<Props, State> {
                     loading: false,
                 });
             } else {
-                this.setState({searchEmojis: [], loading: false});
+                this.setState({ searchEmojis: [], loading: false });
             }
         }, EMOJI_SEARCH_DELAY_MILLISECONDS);
     };
@@ -159,7 +166,7 @@ class EmojiList extends React.PureComponent<Props, State> {
 
         const newSearchEmojis = [...this.state.searchEmojis];
         newSearchEmojis.splice(index, 1);
-        this.setState({searchEmojis: newSearchEmojis});
+        this.setState({ searchEmojis: newSearchEmojis });
     };
 
     render(): JSX.Element {
@@ -171,11 +178,11 @@ class EmojiList extends React.PureComponent<Props, State> {
         if (this.state.loading) {
             emojis.push(
                 <tr
-                    key='loading'
-                    className='backstage-list__item backstage-list__empty'
+                    key="loading"
+                    className="backstage-list__item backstage-list__empty"
                 >
                     <td colSpan={4}>
-                        <LoadingScreen key='loading'/>
+                        <LoadingScreen key="loading" />
                     </td>
                 </tr>,
             );
@@ -185,13 +192,13 @@ class EmojiList extends React.PureComponent<Props, State> {
         ) {
             emojis.push(
                 <tr
-                    key='empty'
-                    className='backstage-list__item backstage-list__empty'
+                    key="empty"
+                    className="backstage-list__item backstage-list__empty"
                 >
                     <td colSpan={4}>
                         <FormattedMessage
-                            id='emoji_list.empty'
-                            defaultMessage='No custom emoji found'
+                            id="emoji_list.empty"
+                            defaultMessage="No custom emoji found"
                         />
                     </td>
                 </tr>,
@@ -200,24 +207,27 @@ class EmojiList extends React.PureComponent<Props, State> {
             searchEmojis.forEach((emojiId: string) => {
                 emojis.push(
                     <EmojiListItem
-                        key={'emoji_search_item' + emojiId}
+                        key={"emoji_search_item" + emojiId}
                         emojiId={emojiId}
                         onDelete={this.deleteFromSearch}
-                        actions={{deleteCustomEmoji}}
+                        actions={{ deleteCustomEmoji }}
                     />,
                 );
             });
         } else {
             const pageStart = this.state.page * EMOJI_PER_PAGE;
             const pageEnd = pageStart + EMOJI_PER_PAGE;
-            const emojisToDisplay = this.props.emojiIds.slice(pageStart, pageEnd);
+            const emojisToDisplay = this.props.emojiIds.slice(
+                pageStart,
+                pageEnd,
+            );
 
             emojisToDisplay.forEach((emojiId: string) => {
                 emojis.push(
                     <EmojiListItem
-                        key={'emoji_list_item' + emojiId}
+                        key={"emoji_list_item" + emojiId}
                         emojiId={emojiId}
-                        actions={{deleteCustomEmoji}}
+                        actions={{ deleteCustomEmoji }}
                     />,
                 );
             });
@@ -226,17 +236,17 @@ class EmojiList extends React.PureComponent<Props, State> {
                 const buttonContents = (
                     <span>
                         <FormattedMessage
-                            id='filtered_user_list.next'
-                            defaultMessage='Next'
+                            id="filtered_user_list.next"
+                            defaultMessage="Next"
                         />
-                        <NextIcon additionalClassName='ml-2'/>
+                        <NextIcon additionalClassName="ml-2" />
                     </span>
                 );
 
                 nextButton = (
                     <SaveButton
-                        btnClass='btn-tertiary'
-                        extraClasses='pull-right'
+                        btnClass="btn-tertiary"
+                        extraClasses="pull-right"
                         onClick={this.nextPage}
                         saving={this.state.nextLoading}
                         disabled={this.state.nextLoading}
@@ -249,13 +259,13 @@ class EmojiList extends React.PureComponent<Props, State> {
             if (this.state.page > 0) {
                 previousButton = (
                     <button
-                        className='btn btn-tertiary'
+                        className="btn btn-tertiary"
                         onClick={this.previousPage}
                     >
-                        <PreviousIcon additionalClassName='mr-2'/>
+                        <PreviousIcon additionalClassName="mr-2" />
                         <FormattedMessage
-                            id='filtered_user_list.prev'
-                            defaultMessage='Previous'
+                            id="filtered_user_list.prev"
+                            defaultMessage="Previous"
                         />
                     </button>
                 );
@@ -264,58 +274,61 @@ class EmojiList extends React.PureComponent<Props, State> {
 
         return (
             <div>
-                <div className='backstage-filters'>
-                    <div className='backstage-filter__search'>
-                        <SearchIcon/>
+                <div className="backstage-filters">
+                    <div className="backstage-filter__search">
+                        <SearchIcon />
                         <input
-                            type='search'
-                            className='form-control'
-                            placeholder={this.props.intl.formatMessage({id: 'emoji_list.search', defaultMessage: 'Search Custom Emoji'})}
+                            type="search"
+                            className="form-control"
+                            placeholder={this.props.intl.formatMessage({
+                                id: "emoji_list.search",
+                                defaultMessage: "Search Custom Emoji",
+                            })}
                             onChange={this.onSearchChange}
                             style={style.search}
                         />
                     </div>
                 </div>
-                <span className='backstage-list__help'>
+                <span className="backstage-list__help">
                     <p>
                         <FormattedMessage
-                            id='emoji_list.help'
+                            id="emoji_list.help"
                             defaultMessage="Custom emoji are available to everyone on your server. Type ':' followed by two characters in a message box to bring up the emoji selection menu."
                         />
                     </p>
                     <p>
                         <FormattedMessage
-                            id='emoji_list.help2'
+                            id="emoji_list.help2"
                             defaultMessage="Tip: If you add #, ##, or ### as the first character on a new line containing emoji, you can use larger sized emoji. To try it out, send a message such as: '# :smile:'."
                         />
                     </p>
                 </span>
-                <div className='backstage-list'>
-                    <table className='emoji-list__table'>
+                <div className="backstage-list">
+                    <table className="emoji-list__table">
                         <thead>
-                            <tr className='backstage-list__item emoji-list__table-header'>
-                                <th className='emoji-list__name'>
+                            <tr className="backstage-list__item emoji-list__table-header">
+                                <th className="emoji-list__name">
                                     <FormattedMessage
-                                        id='emoji_list.name'
-                                        defaultMessage='Name'
+                                        id="emoji_list.name"
+                                        defaultMessage="Name"
                                     />
                                 </th>
-                                <th className='emoji-list__image'>
+                                <th className="emoji-list__image">
                                     <FormattedMessage
-                                        id='emoji_list.image'
-                                        defaultMessage='Image'
+                                        id="emoji_list.image"
+                                        defaultMessage="Image"
                                     />
                                 </th>
-                                <th className='emoji-list__creator'>
+                                <th className="emoji-list__creator">
                                     <FormattedMessage
-                                        id='emoji_list.creator'
-                                        defaultMessage='Creator'
+                                        id="emoji_list.creator"
+                                        defaultMessage="Creator"
                                     />
                                 </th>
-                                <th className='emoji-list_actions'>
+                                <th className="emoji-list_actions">
                                     <FormattedMessage
-                                        id='emoji_list.actions'
-                                        defaultMessage='Actions'
+                                        id="emoji_list.actions"
+                                        defaultMessage="Actions"
                                     />
                                 </th>
                             </tr>
@@ -323,7 +336,7 @@ class EmojiList extends React.PureComponent<Props, State> {
                         <tbody>{emojis}</tbody>
                     </table>
                 </div>
-                <div className='filter-controls pt-3'>
+                <div className="filter-controls pt-3">
                     {previousButton}
                     {nextButton}
                 </div>
@@ -333,7 +346,7 @@ class EmojiList extends React.PureComponent<Props, State> {
 }
 
 const style = {
-    search: {flexGrow: 0, flexShrink: 0},
+    search: { flexGrow: 0, flexShrink: 0 },
 };
 
 export default injectIntl(EmojiList);

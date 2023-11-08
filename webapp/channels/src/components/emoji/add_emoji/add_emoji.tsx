@@ -1,29 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ChangeEvent, FormEvent, SyntheticEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router-dom';
+import React from "react";
+import type { ChangeEvent, FormEvent, SyntheticEvent } from "react";
+import { FormattedMessage } from "react-intl";
+import { Link } from "react-router-dom";
 
-import type {CustomEmoji} from '@mattermost/types/emojis';
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
+import type { CustomEmoji } from "@mattermost/types/emojis";
+import type { Team } from "@mattermost/types/teams";
+import type { UserProfile } from "@mattermost/types/users";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import BackstageHeader from 'components/backstage/components/backstage_header';
-import FormError from 'components/form_error';
-import SpinnerButton from 'components/spinner_button';
+import BackstageHeader from "components/backstage/components/backstage_header";
+import FormError from "components/form_error";
+import SpinnerButton from "components/spinner_button";
 
-import {getHistory} from 'utils/browser_history';
-import {Constants} from 'utils/constants';
-import type EmojiMap from 'utils/emoji_map';
-import {localizeMessage} from 'utils/utils';
+import { getHistory } from "utils/browser_history";
+import { Constants } from "utils/constants";
+import type EmojiMap from "utils/emoji_map";
+import { localizeMessage } from "utils/utils";
 
 export interface AddEmojiProps {
     actions: {
-        createCustomEmoji: (term: CustomEmoji, imageData: File) => Promise<ActionResult>;
+        createCustomEmoji: (
+            term: CustomEmoji,
+            imageData: File,
+        ) => Promise<ActionResult>;
     };
     emojiMap: EmojiMap;
     user: UserProfile;
@@ -51,14 +54,17 @@ interface AddEmojiResponse {
     data: CustomEmoji;
 }
 
-export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmojiState> {
+export default class AddEmoji extends React.PureComponent<
+    AddEmojiProps,
+    AddEmojiState
+> {
     constructor(props: AddEmojiProps) {
         super(props);
 
         this.state = {
-            name: '',
+            name: "",
             image: null,
-            imageUrl: '',
+            imageUrl: "",
             saving: false,
             error: null,
         };
@@ -68,13 +74,15 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
         return this.handleSubmit(e);
     };
 
-    handleSaveButtonClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): Promise<void> => {
+    handleSaveButtonClick = async (
+        e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    ): Promise<void> => {
         return this.handleSubmit(e);
     };
 
     handleSubmit = async (e: SyntheticEvent<unknown>): Promise<void> => {
-        const {actions, emojiMap, user, team} = this.props;
-        const {image, name, saving} = this.state;
+        const { actions, emojiMap, user, team } = this.props;
+        const { image, name, saving } = this.state;
 
         e.preventDefault();
 
@@ -93,7 +101,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
         };
 
         // trim surrounding colons if the user accidentally included them in the name
-        if (emoji.name.startsWith(':') && emoji.name.endsWith(':')) {
+        if (emoji.name.startsWith(":") && emoji.name.endsWith(":")) {
             emoji.name = emoji.name.substring(1, emoji.name.length - 1);
         }
 
@@ -102,8 +110,8 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                 saving: false,
                 error: (
                     <FormattedMessage
-                        id='add_emoji.nameRequired'
-                        defaultMessage='A name is required for the emoji'
+                        id="add_emoji.nameRequired"
+                        defaultMessage="A name is required for the emoji"
                     />
                 ),
             });
@@ -111,12 +119,12 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
             return;
         }
 
-        if ((/[^a-z0-9+_-]/).test(emoji.name)) {
+        if (/[^a-z0-9+_-]/.test(emoji.name)) {
             this.setState({
                 saving: false,
                 error: (
                     <FormattedMessage
-                        id='add_emoji.nameInvalid'
+                        id="add_emoji.nameInvalid"
                         defaultMessage="An emoji's name can only contain lowercase letters, numbers, and the symbols '-', '+' and '_'."
                     />
                 ),
@@ -130,8 +138,8 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                 saving: false,
                 error: (
                     <FormattedMessage
-                        id='add_emoji.nameTaken'
-                        defaultMessage='This name is already in use by a system emoji. Please choose another name.'
+                        id="add_emoji.nameTaken"
+                        defaultMessage="This name is already in use by a system emoji. Please choose another name."
                     />
                 ),
             });
@@ -144,8 +152,8 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                 saving: false,
                 error: (
                     <FormattedMessage
-                        id='add_emoji.customNameTaken'
-                        defaultMessage='This name is already in use by a custom emoji. Please choose another name.'
+                        id="add_emoji.customNameTaken"
+                        defaultMessage="This name is already in use by a custom emoji. Please choose another name."
                     />
                 ),
             });
@@ -158,8 +166,8 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                 saving: false,
                 error: (
                     <FormattedMessage
-                        id='add_emoji.imageRequired'
-                        defaultMessage='An image is required for the emoji'
+                        id="add_emoji.imageRequired"
+                        defaultMessage="An image is required for the emoji"
                     />
                 ),
             });
@@ -173,8 +181,8 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                 saving: false,
                 error: (
                     <FormattedMessage
-                        id='add_emoji.imageTooLarge'
-                        defaultMessage='Unable to create emoji. Image must be less than 1 MB in size.'
+                        id="add_emoji.imageTooLarge"
+                        defaultMessage="Unable to create emoji. Image must be less than 1 MB in size."
                     />
                 ),
             });
@@ -182,17 +190,20 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
             return;
         }
 
-        const response = await actions.createCustomEmoji(emoji as CustomEmoji, image);
+        const response = await actions.createCustomEmoji(
+            emoji as CustomEmoji,
+            image,
+        );
 
-        if ('data' in response) {
+        if ("data" in response) {
             const savedEmoji = response as AddEmojiResponse;
             if (savedEmoji && savedEmoji.data.name === emoji.name) {
-                getHistory().push('/' + team.name + '/emoji');
+                getHistory().push("/" + team.name + "/emoji");
                 return;
             }
         }
 
-        if ('error' in response) {
+        if ("error" in response) {
             const responseError = response as AddErrorResponse;
             if (responseError) {
                 this.setState({
@@ -206,14 +217,14 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
 
         const genericError = (
             <FormattedMessage
-                id='add_emoji.failedToAdd'
-                defaultMessage='Something went wrong when adding the custom emoji.'
+                id="add_emoji.failedToAdd"
+                defaultMessage="Something went wrong when adding the custom emoji."
             />
         );
 
         this.setState({
             saving: false,
-            error: (genericError),
+            error: genericError,
         });
     };
 
@@ -227,7 +238,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
         if (e.target.files == null || e.target.files.length === 0) {
             this.setState({
                 image: null,
-                imageUrl: '',
+                imageUrl: "",
             });
 
             return;
@@ -249,7 +260,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
         let filename = null;
         if (this.state.image) {
             filename = (
-                <span className='add-emoji__filename'>
+                <span className="add-emoji__filename">
                     {this.state.image.name}
                 </span>
             );
@@ -258,25 +269,27 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
         let preview = null;
         if (this.state.imageUrl) {
             preview = (
-                <div className='form-group'>
-                    <label
-                        className='control-label col-sm-4'
-                        htmlFor='preview'
-                    >
+                <div className="form-group">
+                    <label className="control-label col-sm-4" htmlFor="preview">
                         <FormattedMessage
-                            id='add_emoji.preview'
-                            defaultMessage='Preview'
+                            id="add_emoji.preview"
+                            defaultMessage="Preview"
                         />
                     </label>
-                    <div className='col-md-5 col-sm-8 add-emoji__preview'>
+                    <div className="col-md-5 col-sm-8 add-emoji__preview">
                         <FormattedMessage
-                            id='add_emoji.preview.sentence'
-                            defaultMessage='This is a sentence with {image} in it.'
+                            id="add_emoji.preview.sentence"
+                            defaultMessage="This is a sentence with {image} in it."
                             values={{
                                 image: (
                                     <span
-                                        className='emoticon'
-                                        style={{backgroundImage: 'url(' + this.state.imageUrl + ')'}}
+                                        className="emoticon"
+                                        style={{
+                                            backgroundImage:
+                                                "url(" +
+                                                this.state.imageUrl +
+                                                ")",
+                                        }}
                                     />
                                 ),
                             }}
@@ -287,114 +300,119 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
         }
 
         return (
-            <div className='backstage-content row'>
+            <div className="backstage-content row">
                 <BackstageHeader>
-                    <Link to={'/' + this.props.team.name + '/emoji'}>
+                    <Link to={"/" + this.props.team.name + "/emoji"}>
                         <FormattedMessage
-                            id='emoji_list.header'
-                            defaultMessage='Custom Emoji'
+                            id="emoji_list.header"
+                            defaultMessage="Custom Emoji"
                         />
                     </Link>
                     <FormattedMessage
-                        id='add_emoji.header'
-                        defaultMessage='Add'
+                        id="add_emoji.header"
+                        defaultMessage="Add"
                     />
                 </BackstageHeader>
-                <div className='backstage-form'>
+                <div className="backstage-form">
                     <form
-                        className='form-horizontal'
+                        className="form-horizontal"
                         onSubmit={this.handleFormSubmit}
                     >
-                        <div className='form-group'>
+                        <div className="form-group">
                             <label
-                                className='control-label col-sm-4'
-                                htmlFor='name'
+                                className="control-label col-sm-4"
+                                htmlFor="name"
                             >
                                 <FormattedMessage
-                                    id='add_emoji.name'
-                                    defaultMessage='Name'
+                                    id="add_emoji.name"
+                                    defaultMessage="Name"
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-8'>
+                            <div className="col-md-5 col-sm-8">
                                 <input
-                                    id='name'
-                                    type='text'
+                                    id="name"
+                                    type="text"
                                     maxLength={64}
-                                    className='form-control'
+                                    className="form-control"
                                     value={this.state.name}
                                     onChange={this.updateName}
                                 />
-                                <div className='form__help'>
+                                <div className="form__help">
                                     <FormattedMessage
-                                        id='add_emoji.name.help'
+                                        id="add_emoji.name.help"
                                         defaultMessage="Name your emoji. The name can be up to 64 characters, and can contain lowercase letters, numbers, and the symbols '-' and '_'."
                                     />
                                 </div>
                             </div>
                         </div>
-                        <div className='form-group'>
+                        <div className="form-group">
                             <label
-                                className='control-label col-sm-4'
-                                htmlFor='image'
+                                className="control-label col-sm-4"
+                                htmlFor="image"
                             >
                                 <FormattedMessage
-                                    id='add_emoji.image'
-                                    defaultMessage='Image'
+                                    id="add_emoji.image"
+                                    defaultMessage="Image"
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-8'>
+                            <div className="col-md-5 col-sm-8">
                                 <div>
-                                    <div className='add-emoji__upload'>
-                                        <button className='btn btn-primary'>
+                                    <div className="add-emoji__upload">
+                                        <button className="btn btn-primary">
                                             <FormattedMessage
-                                                id='add_emoji.image.button'
-                                                defaultMessage='Select'
+                                                id="add_emoji.image.button"
+                                                defaultMessage="Select"
                                             />
                                         </button>
                                         <input
-                                            id='select-emoji'
-                                            type='file'
-                                            accept={Constants.ACCEPT_EMOJI_IMAGE}
+                                            id="select-emoji"
+                                            type="file"
+                                            accept={
+                                                Constants.ACCEPT_EMOJI_IMAGE
+                                            }
                                             multiple={false}
                                             onChange={this.updateImage}
                                         />
                                     </div>
                                     {filename}
-                                    <div className='form__help'>
+                                    <div className="form__help">
                                         <FormattedMessage
-                                            id='add_emoji.image.help'
-                                            defaultMessage='Specify a .gif, .png, or .jpg file of up to 64 KB for your emoji. The dimensions can be up to 128 pixels by 128 pixels.'
+                                            id="add_emoji.image.help"
+                                            defaultMessage="Specify a .gif, .png, or .jpg file of up to 64 KB for your emoji. The dimensions can be up to 128 pixels by 128 pixels."
                                         />
                                     </div>
                                 </div>
                             </div>
                         </div>
                         {preview}
-                        <div className='backstage-form__footer'>
+                        <div className="backstage-form__footer">
                             <FormError
-                                type='backstage'
+                                type="backstage"
                                 error={this.state.error}
                             />
                             <Link
-                                className='btn btn-tertiary'
-                                to={'/' + this.props.team.name + '/emoji'}
+                                className="btn btn-tertiary"
+                                to={"/" + this.props.team.name + "/emoji"}
                             >
                                 <FormattedMessage
-                                    id='add_emoji.cancel'
-                                    defaultMessage='Cancel'
+                                    id="add_emoji.cancel"
+                                    defaultMessage="Cancel"
                                 />
                             </Link>
                             <SpinnerButton
-                                data-testid='save-button'
-                                className='btn btn-primary'
-                                type='submit'
+                                data-testid="save-button"
+                                className="btn btn-primary"
+                                type="submit"
                                 spinning={this.state.saving}
-                                spinningText={localizeMessage('add_emoji.saving', 'Saving...')}
+                                spinningText={localizeMessage(
+                                    "add_emoji.saving",
+                                    "Saving...",
+                                )}
                                 onClick={this.handleSaveButtonClick}
                             >
                                 <FormattedMessage
-                                    id='add_emoji.save'
-                                    defaultMessage='Save'
+                                    id="add_emoji.save"
+                                    defaultMessage="Save"
                                 />
                             </SpinnerButton>
                         </div>

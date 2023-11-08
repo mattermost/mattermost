@@ -68,7 +68,7 @@
         }
 
         &.Avatar-plain {
-            &[data-content^='+']::before {
+            &[data-content^="+"]::before {
                 text-indent: -4%;
             }
         }

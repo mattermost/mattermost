@@ -2,5 +2,5 @@
 // See LICENSE.txt for license information.
 
 export default {
-    SORT_BY_NAME: 'name',
+    SORT_BY_NAME: "name",
 };

@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import {localizeMessage} from 'utils/utils';
+import { localizeMessage } from "utils/utils";
 
-export type AttachmentTextOverflowType = 'ellipsis';
+export type AttachmentTextOverflowType = "ellipsis";
 
 const MAX_POST_HEIGHT = 600;
 const MARGIN_CHANGE_FOR_COMPACT_POST = 22;
@@ -20,12 +20,12 @@ type Props = {
     compactDisplay: boolean;
     overflowType?: AttachmentTextOverflowType;
     maxHeight?: number;
-}
+};
 
 type State = {
     isCollapsed: boolean;
     isOverflow: boolean;
-}
+};
 
 export default class ShowMore extends React.PureComponent<Props, State> {
     private maxHeight: number;
@@ -45,7 +45,7 @@ export default class ShowMore extends React.PureComponent<Props, State> {
     componentDidMount() {
         this.checkTextOverflow();
 
-        window.addEventListener('resize', this.handleResize);
+        window.addEventListener("resize", this.handleResize);
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -60,7 +60,7 @@ export default class ShowMore extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
-        window.removeEventListener('resize', this.handleResize);
+        window.removeEventListener("resize", this.handleResize);
         if (this.overflowRef) {
             window.cancelAnimationFrame(this.overflowRef);
         }
@@ -83,7 +83,10 @@ export default class ShowMore extends React.PureComponent<Props, State> {
         this.overflowRef = window.requestAnimationFrame(() => {
             let isOverflow = false;
 
-            if (this.textContainer.current && this.textContainer.current.scrollHeight > this.maxHeight) {
+            if (
+                this.textContainer.current &&
+                this.textContainer.current.scrollHeight > this.maxHeight
+            ) {
                 isOverflow = true;
             }
 
@@ -100,28 +103,23 @@ export default class ShowMore extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {
-            isCollapsed,
-            isOverflow,
-        } = this.state;
+        const { isCollapsed, isOverflow } = this.state;
 
-        const {
-            children,
-            isAttachmentText,
-            compactDisplay,
-            overflowType,
-        } = this.props;
+        const { children, isAttachmentText, compactDisplay, overflowType } =
+            this.props;
 
-        let className = 'post-message';
+        let className = "post-message";
         let collapsedMaxHeightStyle: number | undefined;
         if (isCollapsed) {
             collapsedMaxHeightStyle = this.maxHeight;
-            className += ' post-message--collapsed';
+            className += " post-message--collapsed";
         } else {
-            className += ' post-message--expanded';
+            className += " post-message--expanded";
         }
 
-        const collapseShowMoreClass = isAttachmentText ? 'post-attachment-collapse__show-more' : 'post-collapse__show-more';
+        const collapseShowMoreClass = isAttachmentText
+            ? "post-attachment-collapse__show-more"
+            : "post-collapse__show-more";
 
         let attachmentTextOverflow = null;
         if (isOverflow) {
@@ -131,53 +129,59 @@ export default class ShowMore extends React.PureComponent<Props, State> {
                 }
             }
 
-            let showIcon = 'fa fa-angle-up';
-            let showText = localizeMessage('post_info.message.show_less', 'Show less');
+            let showIcon = "fa fa-angle-up";
+            let showText = localizeMessage(
+                "post_info.message.show_less",
+                "Show less",
+            );
             if (isCollapsed) {
-                showIcon = 'fa fa-angle-down';
-                showText = localizeMessage('post_info.message.show_more', 'Show more');
+                showIcon = "fa fa-angle-down";
+                showText = localizeMessage(
+                    "post_info.message.show_more",
+                    "Show more",
+                );
             }
             switch (overflowType) {
-            case 'ellipsis':
-                attachmentTextOverflow = (
-                    <button
-                        id='showMoreButton'
-                        className='post-preview-collapse__show-more-button color--link'
-                        onClick={this.toggleCollapse}
-                    >
-                        {showText}
-                    </button>
-                );
-                className += ' post-message-preview--overflow';
-                break;
+                case "ellipsis":
+                    attachmentTextOverflow = (
+                        <button
+                            id="showMoreButton"
+                            className="post-preview-collapse__show-more-button color--link"
+                            onClick={this.toggleCollapse}
+                        >
+                            {showText}
+                        </button>
+                    );
+                    className += " post-message-preview--overflow";
+                    break;
 
-            default:
-                attachmentTextOverflow = (
-                    <div className='post-collapse'>
-                        <div className={collapseShowMoreClass}>
-                            <div className='post-collapse__show-more-line'/>
-                            <button
-                                id='showMoreButton'
-                                className='post-collapse__show-more-button'
-                                onClick={this.toggleCollapse}
-                            >
-                                <span className={showIcon}/>
-                                {showText}
-                            </button>
-                            <div className='post-collapse__show-more-line'/>
+                default:
+                    attachmentTextOverflow = (
+                        <div className="post-collapse">
+                            <div className={collapseShowMoreClass}>
+                                <div className="post-collapse__show-more-line" />
+                                <button
+                                    id="showMoreButton"
+                                    className="post-collapse__show-more-button"
+                                    onClick={this.toggleCollapse}
+                                >
+                                    <span className={showIcon} />
+                                    {showText}
+                                </button>
+                                <div className="post-collapse__show-more-line" />
+                            </div>
                         </div>
-                    </div>
-                );
-                className += ' post-message--overflow';
-                break;
+                    );
+                    className += " post-message--overflow";
+                    break;
             }
         }
 
         return (
             <div className={className}>
                 <div
-                    style={{maxHeight: collapsedMaxHeightStyle}}
-                    className='post-message__text-container'
+                    style={{ maxHeight: collapsedMaxHeightStyle }}
+                    className="post-message__text-container"
                     ref={this.textContainer}
                 >
                     {children}

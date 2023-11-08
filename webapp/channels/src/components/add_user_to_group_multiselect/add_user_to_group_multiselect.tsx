@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {UserProfile} from '@mattermost/types/users';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
+import type { UserProfile } from "@mattermost/types/users";
+import type { RelationOneToOne } from "@mattermost/types/utilities";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
-import {filterProfilesStartingWithTerm} from 'mattermost-redux/utils/user_utils';
+import type { ActionResult } from "mattermost-redux/types/actions";
+import { filterProfilesStartingWithTerm } from "mattermost-redux/utils/user_utils";
 
-import MultiSelect from 'components/multiselect/multiselect';
-import type {Value} from 'components/multiselect/multiselect';
+import MultiSelect from "components/multiselect/multiselect";
+import type { Value } from "components/multiselect/multiselect";
 
-import Constants from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
+import Constants from "utils/constants";
+import { localizeMessage } from "utils/utils";
 
-import MultiSelectOption from './multiselect_option/multiselect_option';
+import MultiSelectOption from "./multiselect_option/multiselect_option";
 
 const USERS_PER_PAGE = 50;
 const MAX_SELECTABLE_VALUES = 256;
@@ -54,19 +54,26 @@ export type Props = {
 
     actions: {
         getProfiles: (page?: number, perPage?: number) => Promise<ActionResult>;
-        getProfilesNotInGroup: (groupId: string, page?: number, perPage?: number) => Promise<ActionResult>;
+        getProfilesNotInGroup: (
+            groupId: string,
+            page?: number,
+            perPage?: number,
+        ) => Promise<ActionResult>;
         loadStatusesForProfilesList: (users: UserProfile[]) => void;
         searchProfiles: (term: string, options: any) => Promise<ActionResult>;
     };
-}
+};
 
 type State = {
     values: UserProfileValue[];
     term: string;
     loadingUsers: boolean;
-}
+};
 
-export default class AddUserToGroupMultiSelect extends React.PureComponent<Props, State> {
+export default class AddUserToGroupMultiSelect extends React.PureComponent<
+    Props,
+    State
+> {
     private searchTimeoutId = 0;
     selectedItemRef;
 
@@ -80,7 +87,7 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
 
         this.state = {
             values: [],
-            term: '',
+            term: "",
             loadingUsers: true,
         } as State;
 
@@ -97,14 +104,16 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
             this.props.addUserCallback(values);
         }
 
-        this.setState({values});
+        this.setState({ values });
     };
 
     public componentDidMount(): void {
         if (this.props.groupId) {
-            this.props.actions.getProfilesNotInGroup(this.props.groupId).then(() => {
-                this.setUsersLoadingState(false);
-            });
+            this.props.actions
+                .getProfilesNotInGroup(this.props.groupId)
+                .then(() => {
+                    this.setUsersLoadingState(false);
+                });
         } else {
             this.props.actions.getProfiles().then(() => {
                 this.setUsersLoadingState(false);
@@ -119,7 +128,7 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
             this.props.deleteUserCallback(values);
         }
 
-        this.setState({values});
+        this.setState({ values });
     };
 
     private setUsersLoadingState = (loadingState: boolean): void => {
@@ -132,13 +141,21 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
         if (page > prevPage) {
             this.setUsersLoadingState(true);
             if (this.props.groupId) {
-                this.props.actions.getProfilesNotInGroup(this.props.groupId, page + 1, USERS_PER_PAGE).then(() => {
-                    this.setUsersLoadingState(false);
-                });
+                this.props.actions
+                    .getProfilesNotInGroup(
+                        this.props.groupId,
+                        page + 1,
+                        USERS_PER_PAGE,
+                    )
+                    .then(() => {
+                        this.setUsersLoadingState(false);
+                    });
             } else {
-                this.props.actions.getProfiles(page + 1, USERS_PER_PAGE).then(() => {
-                    this.setUsersLoadingState(false);
-                });
+                this.props.actions
+                    .getProfiles(page + 1, USERS_PER_PAGE)
+                    .then(() => {
+                        this.setUsersLoadingState(false);
+                    });
             }
         }
     };
@@ -160,24 +177,29 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
 
         if (term) {
             this.setUsersLoadingState(true);
-            this.searchTimeoutId = window.setTimeout(
-                async () => {
-                    await this.props.actions.searchProfiles(term, this.props.searchOptions);
-                    this.setUsersLoadingState(false);
-                },
-                Constants.SEARCH_TIMEOUT_MILLISECONDS,
-            );
+            this.searchTimeoutId = window.setTimeout(async () => {
+                await this.props.actions.searchProfiles(
+                    term,
+                    this.props.searchOptions,
+                );
+                this.setUsersLoadingState(false);
+            }, Constants.SEARCH_TIMEOUT_MILLISECONDS);
         }
     };
 
     private renderAriaLabel = (option: UserProfileValue): string => {
         if (!option) {
-            return '';
+            return "";
         }
         return option.username;
     };
 
-    renderOption = (option: UserProfileValue, isSelected: boolean, onAdd: (user: UserProfileValue) => void, onMouseMove: (user: UserProfileValue) => void) => {
+    renderOption = (
+        option: UserProfileValue,
+        isSelected: boolean,
+        onAdd: (user: UserProfileValue) => void,
+        onMouseMove: (user: UserProfileValue) => void,
+    ) => {
         return (
             <MultiSelectOption
                 option={option}
@@ -192,13 +214,25 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
     };
 
     public render = (): JSX.Element => {
-        const buttonSubmitText = this.props.buttonSubmitText || localizeMessage('multiselect.createGroup', 'Create Group');
-        const buttonSubmitLoadingText = this.props.buttonSubmitLoadingText || localizeMessage('multiselect.creating', 'Creating...');
+        const buttonSubmitText =
+            this.props.buttonSubmitText ||
+            localizeMessage("multiselect.createGroup", "Create Group");
+        const buttonSubmitLoadingText =
+            this.props.buttonSubmitLoadingText ||
+            localizeMessage("multiselect.creating", "Creating...");
 
-        let users = filterProfilesStartingWithTerm(this.props.profiles, this.state.term).filter((user) => {
-            return user.delete_at === 0 &&
-                (this.props.excludeUsers !== undefined && !this.props.excludeUsers[user.id]);
-        }).map((user) => user as UserProfileValue);
+        let users = filterProfilesStartingWithTerm(
+            this.props.profiles,
+            this.state.term,
+        )
+            .filter((user) => {
+                return (
+                    user.delete_at === 0 &&
+                    this.props.excludeUsers !== undefined &&
+                    !this.props.excludeUsers[user.id]
+                );
+            })
+            .map((user) => user as UserProfileValue);
 
         if (this.props.includeUsers) {
             const includeUsers = Object.values(this.props.includeUsers);
@@ -210,7 +244,10 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
 
         if (this.state.values.length >= MAX_SELECTABLE_VALUES) {
             maxValues = MAX_SELECTABLE_VALUES;
-            numRemainingText = localizeMessage('multiselect.maxGroupMembers', 'No more than 256 members can be added to a group at once.');
+            numRemainingText = localizeMessage(
+                "multiselect.maxGroupMembers",
+                "No more than 256 members can be added to a group at once.",
+            );
         }
 
         return (
@@ -221,7 +258,7 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
                 selectedItemRef={this.selectedItemRef}
                 values={this.state.values}
                 ariaLabelRenderer={this.renderAriaLabel}
-                saveButtonPosition={'bottom'}
+                saveButtonPosition={"bottom"}
                 perPage={USERS_PER_PAGE}
                 handlePageChange={this.handlePageChange}
                 handleInput={this.search}
@@ -232,7 +269,10 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
                 buttonSubmitLoadingText={buttonSubmitLoadingText}
                 saving={this.props.saving}
                 loading={this.state.loadingUsers}
-                placeholderText={localizeMessage('multiselect.placeholder', 'Search for people')}
+                placeholderText={localizeMessage(
+                    "multiselect.placeholder",
+                    "Search for people",
+                )}
                 valueWithImage={true}
                 focusOnLoad={this.props.focusOnLoad}
                 savingEnabled={this.props.savingEnabled}

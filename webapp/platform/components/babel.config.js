@@ -3,43 +3,52 @@
 
 const config = {
     presets: [
-        ['@babel/preset-env', {
-            targets: {
-                chrome: 66,
-                firefox: 60,
-                edge: 42,
-                safari: 12,
+        [
+            "@babel/preset-env",
+            {
+                targets: {
+                    chrome: 66,
+                    firefox: 60,
+                    edge: 42,
+                    safari: 12,
+                },
+                modules: false,
+                corejs: {
+                    version: "3.26",
+                    proposals: true,
+                },
+                debug: false,
+                shippedProposals: true,
+                useBuiltIns: "usage",
             },
-            modules: false,
-            corejs: {
-                version: "3.26",
-                proposals: true,
+        ],
+        [
+            "@babel/preset-react",
+            {
+                useBuiltIns: true,
             },
-            debug: false,
-            shippedProposals: true,
-            useBuiltIns: 'usage',
-        }],
-        ['@babel/preset-react', {
-            useBuiltIns: true,
-        }],
-        ['@babel/typescript', {
-            allExtensions: true,
-            isTSX: true,
-        }],
+        ],
+        [
+            "@babel/typescript",
+            {
+                allExtensions: true,
+                isTSX: true,
+            },
+        ],
     ],
     plugins: [
-        '@babel/plugin-transform-runtime',
+        "@babel/plugin-transform-runtime",
         [
-            'babel-plugin-styled-components',
+            "babel-plugin-styled-components",
             {
                 ssr: false,
                 fileName: false,
             },
         ],
         [
-            'formatjs',
+            "formatjs",
             {
-                idInterpolationPattern: '[sha512:contenthash:base64:6]',
+                idInterpolationPattern: "[sha512:contenthash:base64:6]",
                 ast: true,
             },
         ],
@@ -52,6 +61,6 @@ config.env = {
         plugins: config.plugins,
     },
 };
-config.env.test.presets[0][1].modules = 'auto';
+config.env.test.presets[0][1].modules = "auto";
 
 module.exports = config;

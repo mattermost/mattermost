@@ -1,24 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {ServerError} from '@mattermost/types/errors';
-import type {Role} from '@mattermost/types/roles';
-import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
+import type { ServerError } from "@mattermost/types/errors";
+import type { Role } from "@mattermost/types/roles";
+import type {
+    UserProfile,
+    UsersStats,
+    GetFilteredUsersStatsOpts,
+} from "@mattermost/types/users";
 
-import DataGrid from 'components/admin_console/data_grid/data_grid';
-import UserGridName from 'components/admin_console/user_grid/user_grid_name';
-import UserGridRemove from 'components/admin_console/user_grid/user_grid_remove';
-import ToggleModalButton from 'components/toggle_modal_button';
-import AdminPanel from 'components/widgets/admin_console/admin_panel';
-import Tag from 'components/widgets/tag/tag';
+import DataGrid from "components/admin_console/data_grid/data_grid";
+import UserGridName from "components/admin_console/user_grid/user_grid_name";
+import UserGridRemove from "components/admin_console/user_grid/user_grid_remove";
+import ToggleModalButton from "components/toggle_modal_button";
+import AdminPanel from "components/widgets/admin_console/admin_panel";
+import Tag from "components/widgets/tag/tag";
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
+import Constants, { ModalIdentifiers } from "utils/constants";
+import { t } from "utils/i18n";
 
-import AddUsersToRoleModal from '../add_users_to_role_modal';
+import AddUsersToRoleModal from "../add_users_to_role_modal";
 
 export type Props = {
     users: UserProfile[];
@@ -34,19 +38,23 @@ export type Props = {
             data?: UsersStats;
             error?: ServerError;
         }>;
-        getProfiles: (page?: number | undefined, perPage?: number | undefined, options?: any) => Promise<any>;
+        getProfiles: (
+            page?: number | undefined,
+            perPage?: number | undefined,
+            options?: any,
+        ) => Promise<any>;
         searchProfiles: (term: string, options: any) => Promise<any>;
         setUserGridSearch: (term: string) => Promise<any>;
     };
     readOnly?: boolean;
-}
+};
 
 type State = {
     loading: boolean;
     page: number;
     includeUsers: Record<string, UserProfile>;
     excludeUsers: Record<string, UserProfile>;
-}
+};
 
 const USERS_PER_PAGE = 10;
 
@@ -67,11 +75,12 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
     }
 
     async componentDidMount() {
-        const {getProfiles, getFilteredUsersStats, setUserGridSearch} = this.props.actions;
+        const { getProfiles, getFilteredUsersStats, setUserGridSearch } =
+            this.props.actions;
         await Promise.all([
-            setUserGridSearch(''),
-            getProfiles(0, USERS_PER_PAGE, {role: this.props.role.name}),
-            getFilteredUsersStats({roles: [this.props.role.name]}),
+            setUserGridSearch(""),
+            getProfiles(0, USERS_PER_PAGE, { role: this.props.role.name }),
+            getFilteredUsersStats({ roles: [this.props.role.name] }),
         ]);
         this.setStateLoading(false);
     }
@@ -80,50 +89,53 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
         if (prevProps.term !== this.props.term) {
             this.setStateLoading(true);
             clearTimeout(this.searchTimeoutId);
-            const {term} = this.props;
+            const { term } = this.props;
 
-            if (term === '') {
+            if (term === "") {
                 this.searchTimeoutId = 0;
                 this.setStateLoading(false);
                 return;
             }
 
-            const searchTimeoutId = window.setTimeout(
-                async () => {
-                    await prevProps.actions.searchProfiles(term, {role: this.props.role.name});
+            const searchTimeoutId = window.setTimeout(async () => {
+                await prevProps.actions.searchProfiles(term, {
+                    role: this.props.role.name,
+                });
 
-                    if (searchTimeoutId !== this.searchTimeoutId) {
-                        return;
-                    }
-                    this.setStateLoading(false);
-                },
-                Constants.SEARCH_TIMEOUT_MILLISECONDS,
-            );
+                if (searchTimeoutId !== this.searchTimeoutId) {
+                    return;
+                }
+                this.setStateLoading(false);
+            }, Constants.SEARCH_TIMEOUT_MILLISECONDS);
 
             this.searchTimeoutId = searchTimeoutId;
         }
     }
 
     setStateLoading = (loading: boolean) => {
-        this.setState({loading});
+        this.setState({ loading });
     };
 
     getVisibleTotalCount = (): number => {
-        const {usersToRemove, usersToAdd, totalCount} = this.props;
+        const { usersToRemove, usersToAdd, totalCount } = this.props;
         const usersToAddCount = Object.keys(usersToAdd).length;
         const usersToRemoveCount = Object.keys(usersToRemove).length;
         return totalCount + (usersToAddCount - usersToRemoveCount);
     };
 
-    getPaginationProps = (): {startCount: number; endCount: number; total: number} => {
-        const {term, usersToRemove, usersToAdd} = this.props;
-        const {page} = this.state;
+    getPaginationProps = (): {
+        startCount: number;
+        endCount: number;
+        total: number;
+    } => {
+        const { term, usersToRemove, usersToAdd } = this.props;
+        const { page } = this.state;
 
         let total: number;
         let endCount = 0;
-        const startCount = (page * USERS_PER_PAGE) + 1;
+        const startCount = page * USERS_PER_PAGE + 1;
 
-        if (term === '') {
+        if (term === "") {
             total = this.getVisibleTotalCount();
         } else {
             total = this.props.users.length + Object.keys(usersToAdd).length;
@@ -137,7 +149,7 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
         endCount = (page + 1) * USERS_PER_PAGE;
         endCount = endCount > total ? total : endCount;
 
-        return {startCount, endCount, total};
+        return { startCount, endCount, total };
     };
 
     onSearch = async (term: string) => {
@@ -149,25 +161,29 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
             return;
         }
         const page = this.state.page + 1;
-        this.setState({loading: true});
-        await this.props.actions.getProfiles(page, USERS_PER_PAGE, {role: this.props.role.name});
-        this.setState({loading: false, page});
+        this.setState({ loading: true });
+        await this.props.actions.getProfiles(page, USERS_PER_PAGE, {
+            role: this.props.role.name,
+        });
+        this.setState({ loading: false, page });
     };
 
     previousPage = async () => {
         if (this.state.loading || this.state.page === 0) {
             return;
         }
-        this.setState({page: this.state.page - 1});
+        this.setState({ page: this.state.page - 1 });
     };
 
     getRows = () => {
-        const {users, readOnly, usersToAdd, usersToRemove} = this.props;
-        const {startCount, endCount} = this.getPaginationProps();
+        const { users, readOnly, usersToAdd, usersToRemove } = this.props;
+        const { startCount, endCount } = this.getPaginationProps();
 
         // Remove users to remove and add users to add
         let usersToDisplay = users;
-        usersToDisplay = usersToDisplay.filter((user) => !usersToRemove[user.id]);
+        usersToDisplay = usersToDisplay.filter(
+            (user) => !usersToRemove[user.id],
+        );
         usersToDisplay = [...Object.values(usersToAdd), ...usersToDisplay];
         usersToDisplay = usersToDisplay.slice(startCount - 1, endCount);
 
@@ -175,17 +191,17 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
             return {
                 cells: {
                     id: user.id,
-                    name: <UserGridName user={user}/>,
+                    name: <UserGridName user={user} />,
                     new: usersToAdd[user.id] ? (
                         <Tag
-                            variant={'info'}
+                            variant={"info"}
                             uppercase={true}
-                            text={(
+                            text={
                                 <FormattedMessage
-                                    id='admin.user_grid.new'
-                                    defaultMessage='New'
+                                    id="admin.user_grid.new"
+                                    defaultMessage="New"
                                 />
-                            )}
+                            }
                         />
                     ) : null,
                     remove: (
@@ -202,29 +218,26 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
 
     getColumns = () => {
         const name: JSX.Element = (
-            <FormattedMessage
-                id='admin.user_grid.name'
-                defaultMessage='Name'
-            />
+            <FormattedMessage id="admin.user_grid.name" defaultMessage="Name" />
         );
 
         return [
             {
                 name,
-                field: 'name',
+                field: "name",
                 width: 3,
                 fixed: true,
             },
             {
-                name: '',
-                field: 'new',
+                name: "",
+                field: "new",
                 width: 1,
                 fixed: true,
             },
             {
-                name: '',
-                field: 'remove',
-                textAlign: 'right' as const,
+                name: "",
+                field: "remove",
+                textAlign: "right" as const,
                 fixed: true,
             },
         ];
@@ -239,21 +252,22 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {page, loading} = this.state;
-        const {term, role, usersToAdd, usersToRemove, readOnly} = this.props;
-        const {startCount, endCount, total} = this.getPaginationProps();
+        const { page, loading } = this.state;
+        const { term, role, usersToAdd, usersToRemove, readOnly } = this.props;
+        const { startCount, endCount, total } = this.getPaginationProps();
         return (
-
             <AdminPanel
-                id='SystemRoleUsers'
-                titleId={t('admin.permissions.system_role_users.title')}
-                titleDefault='Assigned People'
-                subtitleId={t('admin.permissions.system_role_users.description')}
-                subtitleDefault='List of people assigned to this system role.'
+                id="SystemRoleUsers"
+                titleId={t("admin.permissions.system_role_users.title")}
+                titleDefault="Assigned People"
+                subtitleId={t(
+                    "admin.permissions.system_role_users.description",
+                )}
+                subtitleDefault="List of people assigned to this system role."
                 button={
                     <ToggleModalButton
-                        id='addRoleMembers'
-                        className='btn btn-primary'
+                        id="addRoleMembers"
+                        className="btn btn-primary"
                         modalId={ModalIdentifiers.ADD_USER_TO_ROLE}
                         dialogType={AddUsersToRoleModal}
                         disabled={readOnly}
@@ -266,8 +280,8 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
                         }}
                     >
                         <FormattedMessage
-                            id='admin.permissions.system_role_users.add_people'
-                            defaultMessage='Add People'
+                            id="admin.permissions.system_role_users.add_people"
+                            defaultMessage="Add People"
                         />
                     </ToggleModalButton>
                 }
@@ -289,4 +303,3 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
         );
     }
 }
-

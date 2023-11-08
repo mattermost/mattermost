@@ -1,27 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Team } from "@mattermost/types/teams";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {getUserAccessTokensForUser} from 'mattermost-redux/actions/users';
+import { getUserAccessTokensForUser } from "mattermost-redux/actions/users";
 
-import ManageRolesModal from 'components/admin_console/manage_roles_modal';
-import ManageTeamsModal from 'components/admin_console/manage_teams_modal';
-import ManageTokensModal from 'components/admin_console/manage_tokens_modal';
-import ResetEmailModal from 'components/admin_console/reset_email_modal';
-import ResetPasswordModal from 'components/admin_console/reset_password_modal';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import SearchableUserList from 'components/searchable_user_list/searchable_user_list';
-import UserListRowWithError from 'components/user_list_row_with_error';
+import ManageRolesModal from "components/admin_console/manage_roles_modal";
+import ManageTeamsModal from "components/admin_console/manage_teams_modal";
+import ManageTokensModal from "components/admin_console/manage_tokens_modal";
+import ResetEmailModal from "components/admin_console/reset_email_modal";
+import ResetPasswordModal from "components/admin_console/reset_password_modal";
+import FormattedMarkdownMessage from "components/formatted_markdown_message";
+import SearchableUserList from "components/searchable_user_list/searchable_user_list";
+import UserListRowWithError from "components/user_list_row_with_error";
 
-import {Constants} from 'utils/constants';
-import * as Utils from 'utils/utils';
+import { Constants } from "utils/constants";
+import * as Utils from "utils/utils";
 
-import SystemUsersDropdown from '../system_users_dropdown';
+import SystemUsersDropdown from "../system_users_dropdown";
 
 type Props = {
     users: UserProfile[];
@@ -31,7 +31,11 @@ type Props = {
     nextPage: (page: number) => void;
     search: (term: string) => void;
     focusOnMount?: boolean;
-    renderFilterRow: (doSearch: ((event: React.FormEvent<HTMLInputElement>) => void) | undefined) => JSX.Element;
+    renderFilterRow: (
+        doSearch:
+            | ((event: React.FormEvent<HTMLInputElement>) => void)
+            | undefined,
+    ) => JSX.Element;
 
     teamId: string;
     filter: string;
@@ -89,8 +93,14 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
         };
     }
 
-    static getDerivedStateFromProps(nextProps: Props, prevState: State): { page: number; teamId: string; filter: string } | null {
-        if (prevState.teamId !== nextProps.teamId || prevState.filter !== nextProps.filter) {
+    static getDerivedStateFromProps(
+        nextProps: Props,
+        prevState: State,
+    ): { page: number; teamId: string; filter: string } | null {
+        if (
+            prevState.teamId !== nextProps.teamId ||
+            prevState.filter !== nextProps.filter
+        ) {
             return {
                 page: 0,
                 teamId: nextProps.teamId,
@@ -101,20 +111,20 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
     }
 
     nextPage = () => {
-        this.setState({page: this.state.page + 1});
+        this.setState({ page: this.state.page + 1 });
 
         this.props.nextPage(this.state.page + 1);
     };
 
     previousPage = () => {
-        this.setState({page: this.state.page - 1});
+        this.setState({ page: this.state.page - 1 });
     };
 
     search = (term: string) => {
         this.props.search(term);
 
-        if (term !== '') {
-            this.setState({page: 0});
+        if (term !== "") {
+            this.setState({ page: 0 });
         }
     };
 
@@ -215,7 +225,10 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
 
         if (user.auth_service) {
             let service;
-            if (user.auth_service === Constants.LDAP_SERVICE || user.auth_service === Constants.SAML_SERVICE) {
+            if (
+                user.auth_service === Constants.LDAP_SERVICE ||
+                user.auth_service === Constants.SAML_SERVICE
+            ) {
                 service = user.auth_service.toUpperCase();
             } else {
                 service = Utils.toTitleCase(user.auth_service);
@@ -223,9 +236,9 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
 
             info.push(
                 <FormattedMarkdownMessage
-                    key='admin.user_item.authServiceNotEmail'
-                    id='admin.user_item.authServiceNotEmail'
-                    defaultMessage='**Sign-in Method:** {service}'
+                    key="admin.user_item.authServiceNotEmail"
+                    id="admin.user_item.authServiceNotEmail"
+                    defaultMessage="**Sign-in Method:** {service}"
                     values={{
                         service,
                     }}
@@ -234,20 +247,20 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
         } else {
             info.push(
                 <FormattedMarkdownMessage
-                    key='admin.user_item.authServiceEmail'
-                    id='admin.user_item.authServiceEmail'
-                    defaultMessage='**Sign-in Method:** Email'
+                    key="admin.user_item.authServiceEmail"
+                    id="admin.user_item.authServiceEmail"
+                    defaultMessage="**Sign-in Method:** Email"
                 />,
             );
         }
 
-        info.push(', ');
+        info.push(", ");
         const userID = user.id;
         info.push(
             <FormattedMarkdownMessage
-                key='admin.user_item.user_id'
-                id='admin.user_item.user_id'
-                defaultMessage='**User ID:** {userID}'
+                key="admin.user_item.user_id"
+                id="admin.user_item.user_id"
+                defaultMessage="**User ID:** {userID}"
                 values={{
                     userID,
                 }}
@@ -255,22 +268,22 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
         );
 
         if (this.props.mfaEnabled) {
-            info.push(', ');
+            info.push(", ");
 
             if (user.mfa_active) {
                 info.push(
                     <FormattedMarkdownMessage
-                        key='admin.user_item.mfaYes'
-                        id='admin.user_item.mfaYes'
-                        defaultMessage='**MFA**: Yes'
+                        key="admin.user_item.mfaYes"
+                        id="admin.user_item.mfaYes"
+                        defaultMessage="**MFA**: Yes"
                     />,
                 );
             } else {
                 info.push(
                     <FormattedMarkdownMessage
-                        key='admin.user_item.mfaNo'
-                        id='admin.user_item.mfaNo'
-                        defaultMessage='**MFA**: No'
+                        key="admin.user_item.mfaNo"
+                        id="admin.user_item.mfaNo"
+                        defaultMessage="**MFA**: No"
                     />,
                 );
             }
@@ -279,13 +292,19 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
         return info;
     }
 
-    renderCount(count: number, total: number, startCount: number, endCount: number, isSearch: boolean) {
+    renderCount(
+        count: number,
+        total: number,
+        startCount: number,
+        endCount: number,
+        isSearch: boolean,
+    ) {
         if (total) {
             if (isSearch) {
                 return (
                     <FormattedMessage
-                        id='system_users_list.countSearch'
-                        defaultMessage='{count, number} {count, plural, one {user} other {users}} of {total, number} total'
+                        id="system_users_list.countSearch"
+                        defaultMessage="{count, number} {count, plural, one {user} other {users}} of {total, number} total"
                         values={{
                             count,
                             total,
@@ -295,8 +314,8 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
             } else if (startCount !== 0 || endCount !== total) {
                 return (
                     <FormattedMessage
-                        id='system_users_list.countPage'
-                        defaultMessage='{startCount, number} - {endCount, number} {count, plural, one {user} other {users}} of {total, number} total'
+                        id="system_users_list.countPage"
+                        defaultMessage="{startCount, number} - {endCount, number} {count, plural, one {user} other {users}} of {total, number} total"
                         values={{
                             count,
                             startCount: startCount + 1,
@@ -309,8 +328,8 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
 
             return (
                 <FormattedMessage
-                    id='system_users_list.count'
-                    defaultMessage='{count, number} {count, plural, one {user} other {users}}'
+                    id="system_users_list.count"
+                    defaultMessage="{count, number} {count, plural, one {user} other {users}}"
                     values={{
                         count,
                     }}
@@ -322,7 +341,7 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
     }
 
     render() {
-        const extraInfo: {[key: string]: Array<string | JSX.Element>} = {};
+        const extraInfo: { [key: string]: Array<string | JSX.Element> } = {};
         if (this.props.users) {
             for (const user of this.props.users) {
                 extraInfo[user.id] = this.getInfoForUser(user);
@@ -338,8 +357,10 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
                     actions={[SystemUsersDropdown]}
                     actionProps={{
                         mfaEnabled: this.props.mfaEnabled,
-                        enableUserAccessTokens: this.props.enableUserAccessTokens,
-                        experimentalEnableAuthenticationTransfer: this.props.experimentalEnableAuthenticationTransfer,
+                        enableUserAccessTokens:
+                            this.props.enableUserAccessTokens,
+                        experimentalEnableAuthenticationTransfer:
+                            this.props.experimentalEnableAuthenticationTransfer,
                         doPasswordReset: this.doPasswordReset,
                         doEmailReset: this.doEmailReset,
                         doManageTeams: this.doManageTeams,
@@ -369,7 +390,7 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
                     user={this.state.user}
                     show={this.state.showManageTokensModal}
                     onModalDismissed={this.doManageTokensDismiss}
-                    actions={{getUserAccessTokensForUser}}
+                    actions={{ getUserAccessTokensForUser }}
                 />
                 <ResetPasswordModal
                     user={this.state.user}

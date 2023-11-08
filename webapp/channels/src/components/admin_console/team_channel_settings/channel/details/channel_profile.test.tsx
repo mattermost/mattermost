@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import type {Channel} from '@mattermost/types/channels';
-import type {Team} from '@mattermost/types/teams';
+import type { Channel } from "@mattermost/types/channels";
+import type { Team } from "@mattermost/types/teams";
 
-import {ChannelProfile} from './channel_profile';
+import { ChannelProfile } from "./channel_profile";
 
-describe('admin_console/team_channel_settings/channel/ChannelProfile', () => {
-    test('should match snapshot', () => {
-        const testTeam: Partial<Team> = {display_name: 'test'};
-        const testChannel: Partial<Channel> = {display_name: 'test'};
+describe("admin_console/team_channel_settings/channel/ChannelProfile", () => {
+    test("should match snapshot", () => {
+        const testTeam: Partial<Team> = { display_name: "test" };
+        const testChannel: Partial<Channel> = { display_name: "test" };
         const wrapper = shallow(
             <ChannelProfile
                 isArchived={false}
@@ -23,11 +23,11 @@ describe('admin_console/team_channel_settings/channel/ChannelProfile', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot for a shared channel', () => {
-        const testTeam: Partial<Team> = {display_name: 'test'};
+    test("should match snapshot for a shared channel", () => {
+        const testTeam: Partial<Team> = { display_name: "test" };
         const testChannel: Partial<Channel> = {
-            display_name: 'test',
-            type: 'O',
+            display_name: "test",
+            type: "O",
             shared: true,
         };
         const wrapper = shallow(

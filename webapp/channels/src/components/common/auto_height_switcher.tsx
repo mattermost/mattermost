@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState, useRef} from 'react';
-import type {CSSProperties} from 'react';
-import {Transition} from 'react-transition-group';
-import scrollIntoView from 'smooth-scroll-into-view-if-needed';
+import React, { useEffect, useState, useRef } from "react";
+import type { CSSProperties } from "react";
+import { Transition } from "react-transition-group";
+import scrollIntoView from "smooth-scroll-into-view-if-needed";
 
-import './auto_height_switcher.scss';
+import "./auto_height_switcher.scss";
 
 export enum AutoHeightSlots {
     SLOT1 = 1,
@@ -22,15 +22,24 @@ type AutoHeightProps = {
     onTransitionEnd?: (node?: HTMLElement) => void;
 };
 
-const AutoHeightSwitcher = ({showSlot, onTransitionEnd, slot1 = null, slot2 = null, duration = 250, shouldScrollIntoView = false}: AutoHeightProps) => {
+const AutoHeightSwitcher = ({
+    showSlot,
+    onTransitionEnd,
+    slot1 = null,
+    slot2 = null,
+    duration = 250,
+    shouldScrollIntoView = false,
+}: AutoHeightProps) => {
     const wrapperRef = useRef<HTMLDivElement>(null);
     const childRef = useRef<HTMLDivElement>(null);
-    const prevSlot = useRef<AutoHeightProps['showSlot']>(showSlot);
-    const prevHeight = useRef<number|null>(null);
+    const prevSlot = useRef<AutoHeightProps["showSlot"]>(showSlot);
+    const prevHeight = useRef<number | null>(null);
     const [animate, setAnimate] = useState<boolean>(false);
-    const [height, setHeight] = useState<string | number>('auto');
-    const [overflow, setOverflow] = useState<string>('visible');
-    const [child, setChild] = useState(showSlot === AutoHeightSlots.SLOT1 ? slot1 : slot2);
+    const [height, setHeight] = useState<string | number>("auto");
+    const [overflow, setOverflow] = useState<string>("visible");
+    const [child, setChild] = useState(
+        showSlot === AutoHeightSlots.SLOT1 ? slot1 : slot2,
+    );
 
     useEffect(() => {
         if (prevSlot.current === showSlot) {
@@ -45,11 +54,15 @@ const AutoHeightSwitcher = ({showSlot, onTransitionEnd, slot1 = null, slot2 = nu
 
     useEffect(() => {
         if (shouldScrollIntoView) {
-            const timeout = setTimeout(() => scrollIntoView(wrapperRef.current!, {
-                behavior: 'smooth',
-                scrollMode: 'if-needed',
-                block: 'center',
-            }), 200);
+            const timeout = setTimeout(
+                () =>
+                    scrollIntoView(wrapperRef.current!, {
+                        behavior: "smooth",
+                        scrollMode: "if-needed",
+                        block: "center",
+                    }),
+                200,
+            );
             return () => clearTimeout(timeout);
         }
         return () => {};
@@ -58,10 +71,10 @@ const AutoHeightSwitcher = ({showSlot, onTransitionEnd, slot1 = null, slot2 = nu
     // necessary to override this on element-level since a rule from _post.scss has a higher specificity
     // and would override the display property
     const fixedStyles: CSSProperties = {
-        transitionProperty: 'height',
+        transitionProperty: "height",
         transitionDuration: `${duration}ms`,
-        transitionTimingFunction: 'ease',
-        width: '100%',
+        transitionTimingFunction: "ease",
+        width: "100%",
     };
 
     /**
@@ -84,7 +97,7 @@ const AutoHeightSwitcher = ({showSlot, onTransitionEnd, slot1 = null, slot2 = nu
             timeout={duration}
             onEnter={() => {
                 setHeight(prevHeight.current ?? childRef.current!.offsetHeight);
-                setOverflow('hidden');
+                setOverflow("hidden");
                 setChild(showSlot === AutoHeightSlots.SLOT1 ? slot1 : slot2);
             }}
             onEntering={() => {
@@ -92,20 +105,18 @@ const AutoHeightSwitcher = ({showSlot, onTransitionEnd, slot1 = null, slot2 = nu
             }}
             onEntered={(node: HTMLElement) => {
                 prevHeight.current = childRef.current!.offsetHeight;
-                setHeight('auto');
-                setOverflow('visible');
+                setHeight("auto");
+                setOverflow("visible");
                 setAnimate(false);
                 onTransitionEnd?.(node);
             }}
         >
             <div
-                className='AutoHeight'
+                className="AutoHeight"
                 ref={wrapperRef}
-                style={{...fixedStyles, height, overflow}}
+                style={{ ...fixedStyles, height, overflow }}
             >
-                <div ref={childRef}>
-                    {child}
-                </div>
+                <div ref={childRef}>{child}</div>
             </div>
         </Transition>
     );

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PostAction} from './integration_actions';
+import { PostAction } from "./integration_actions";
 
 export type MessageAttachment = {
     id: number;
@@ -27,4 +27,4 @@ export type MessageAttachmentField = {
     title: string;
     value: any;
     short: boolean;
-}
+};

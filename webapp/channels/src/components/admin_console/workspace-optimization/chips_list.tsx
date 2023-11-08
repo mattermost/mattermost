@@ -1,16 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import Chip from 'components/common/chip/chip';
+import Chip from "components/common/chip/chip";
 
-import {ItemStatus} from './dashboard.type';
+import { ItemStatus } from "./dashboard.type";
 
-import './dashboard.scss';
+import "./dashboard.scss";
 
-export type ChipsInfoType = Record<ItemStatus.INFO | ItemStatus.WARNING | ItemStatus.ERROR, number>;
+export type ChipsInfoType = Record<
+    ItemStatus.INFO | ItemStatus.WARNING | ItemStatus.ERROR,
+    number
+>;
 
 type ChipsListProps = {
     chipsData: ChipsInfoType;
@@ -27,34 +30,40 @@ const ChipsList = ({
         }
         let chipLegend;
         switch (chipKey) {
-        case ItemStatus.INFO:
-            chipLegend = (
-                <FormattedMessage
-                    id={'admin.reporting.workspace_optimization.chip_suggestions'}
-                    defaultMessage={'Suggestions: {count}'}
-                    values={{count}}
-                />
-            );
-            break;
-        case ItemStatus.WARNING:
-            chipLegend = (
-                <FormattedMessage
-                    id={'admin.reporting.workspace_optimization.chip_warnings'}
-                    defaultMessage={'Warnings: {count}'}
-                    values={{count}}
-                />
-            );
-            break;
-        case ItemStatus.ERROR:
-        default:
-            chipLegend = (
-                <FormattedMessage
-                    id={'admin.reporting.workspace_optimization.chip_problems'}
-                    defaultMessage={'Problems: {count}'}
-                    values={{count}}
-                />
-            );
-            break;
+            case ItemStatus.INFO:
+                chipLegend = (
+                    <FormattedMessage
+                        id={
+                            "admin.reporting.workspace_optimization.chip_suggestions"
+                        }
+                        defaultMessage={"Suggestions: {count}"}
+                        values={{ count }}
+                    />
+                );
+                break;
+            case ItemStatus.WARNING:
+                chipLegend = (
+                    <FormattedMessage
+                        id={
+                            "admin.reporting.workspace_optimization.chip_warnings"
+                        }
+                        defaultMessage={"Warnings: {count}"}
+                        values={{ count }}
+                    />
+                );
+                break;
+            case ItemStatus.ERROR:
+            default:
+                chipLegend = (
+                    <FormattedMessage
+                        id={
+                            "admin.reporting.workspace_optimization.chip_problems"
+                        }
+                        defaultMessage={"Problems: {count}"}
+                        values={{ count }}
+                    />
+                );
+                break;
         }
 
         return (
@@ -70,11 +79,7 @@ const ChipsList = ({
         return null;
     }
 
-    return (
-        <>
-            {chipsList}
-        </>
-    );
+    return <>{chipsList}</>;
 };
 
 export default ChipsList;

@@ -1,26 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
+import NoResultsIndicator from "components/no_results_indicator/no_results_indicator";
 
-import {NoResultsVariant, NoResultsLayout} from './types';
+import { NoResultsVariant, NoResultsLayout } from "./types";
 
-describe('components/no_results_indicator', () => {
-    test('should match snapshot with default props', () => {
-        const wrapper = shallow(
-            <NoResultsIndicator/>,
-        );
+describe("components/no_results_indicator", () => {
+    test("should match snapshot with default props", () => {
+        const wrapper = shallow(<NoResultsIndicator />);
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with variant ChannelSearch', () => {
+    test("should match snapshot with variant ChannelSearch", () => {
         const wrapper = shallow(
             <NoResultsIndicator
-                iconGraphic={<div>{'Test'}</div>}
+                iconGraphic={<div>{"Test"}</div>}
                 variant={NoResultsVariant.ChannelSearch}
             />,
         );
@@ -28,10 +26,10 @@ describe('components/no_results_indicator', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with variant Mentions', () => {
+    test("should match snapshot with variant Mentions", () => {
         const wrapper = shallow(
             <NoResultsIndicator
-                iconGraphic={<div>{'Test'}</div>}
+                iconGraphic={<div>{"Test"}</div>}
                 variant={NoResultsVariant.Mentions}
             />,
         );
@@ -39,10 +37,10 @@ describe('components/no_results_indicator', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with variant FlaggedPosts', () => {
+    test("should match snapshot with variant FlaggedPosts", () => {
         const wrapper = shallow(
             <NoResultsIndicator
-                iconGraphic={<div>{'Test'}</div>}
+                iconGraphic={<div>{"Test"}</div>}
                 variant={NoResultsVariant.FlaggedPosts}
             />,
         );
@@ -50,10 +48,10 @@ describe('components/no_results_indicator', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with variant PinnedPosts', () => {
+    test("should match snapshot with variant PinnedPosts", () => {
         const wrapper = shallow(
             <NoResultsIndicator
-                iconGraphic={<div>{'Test'}</div>}
+                iconGraphic={<div>{"Test"}</div>}
                 variant={NoResultsVariant.PinnedPosts}
             />,
         );
@@ -61,10 +59,10 @@ describe('components/no_results_indicator', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with variant ChannelFiles', () => {
+    test("should match snapshot with variant ChannelFiles", () => {
         const wrapper = shallow(
             <NoResultsIndicator
-                iconGraphic={<div>{'Test'}</div>}
+                iconGraphic={<div>{"Test"}</div>}
                 variant={NoResultsVariant.ChannelFiles}
             />,
         );
@@ -72,10 +70,10 @@ describe('components/no_results_indicator', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with variant ChannelFilesFiltered', () => {
+    test("should match snapshot with variant ChannelFilesFiltered", () => {
         const wrapper = shallow(
             <NoResultsIndicator
-                iconGraphic={<div>{'Test'}</div>}
+                iconGraphic={<div>{"Test"}</div>}
                 variant={NoResultsVariant.ChannelFilesFiltered}
             />,
         );
@@ -83,7 +81,7 @@ describe('components/no_results_indicator', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when expanded', () => {
+    test("should match snapshot when expanded", () => {
         const wrapper = shallow(
             <NoResultsIndicator
                 variant={NoResultsVariant.ChannelSearch}
@@ -94,12 +92,12 @@ describe('components/no_results_indicator', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot with horizontal layout', () => {
+    test("should match snapshot with horizontal layout", () => {
         const wrapper = shallow(
             <NoResultsIndicator
-                iconGraphic={<div>{'Test'}</div>}
-                title={'Test'}
-                subtitle={'Subtitle'}
+                iconGraphic={<div>{"Test"}</div>}
+                title={"Test"}
+                subtitle={"Subtitle"}
                 layout={NoResultsLayout.Horizontal}
             />,
         );

@@ -1,30 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {debounce} from 'lodash';
-import React, {useCallback, useEffect, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
-import {useHistory} from 'react-router-dom';
-import styled from 'styled-components';
+import { debounce } from "lodash";
+import React, { useCallback, useEffect, useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
+import { useHistory } from "react-router-dom";
+import styled from "styled-components";
 
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Channel, ChannelMembership } from "@mattermost/types/channels";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {ProfilesInChannelSortBy} from 'mattermost-redux/actions/users';
+import { ProfilesInChannelSortBy } from "mattermost-redux/actions/users";
 
-import AlertBanner from 'components/alert_banner';
-import ChannelInviteModal from 'components/channel_invite_modal';
-import ExternalLink from 'components/external_link';
-import MoreDirectChannels from 'components/more_direct_channels';
+import AlertBanner from "components/alert_banner";
+import ChannelInviteModal from "components/channel_invite_modal";
+import ExternalLink from "components/external_link";
+import MoreDirectChannels from "components/more_direct_channels";
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
+import Constants, { ModalIdentifiers } from "utils/constants";
 
-import type {ModalData} from 'types/actions';
+import type { ModalData } from "types/actions";
 
-import ActionBar from './action_bar';
-import Header from './header';
-import MemberList from './member_list';
-import SearchBar from './search';
+import ActionBar from "./action_bar";
+import Header from "./header";
+import MemberList from "./member_list";
+import SearchBar from "./search";
 
 const USERS_PER_PAGE = 100;
 export interface ChannelMember {
@@ -52,21 +52,31 @@ export interface Props {
 
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
-        openDirectChannelToUserId: (userId: string) => Promise<{data: Channel}>;
+        openDirectChannelToUserId: (
+            userId: string,
+        ) => Promise<{ data: Channel }>;
         closeRightHandSide: () => void;
         goBack: () => void;
         setChannelMembersRhsSearchTerm: (terms: string) => void;
-        loadProfilesAndReloadChannelMembers: (page: number, perParge: number, channelId: string, sort: string) => void;
+        loadProfilesAndReloadChannelMembers: (
+            page: number,
+            perParge: number,
+            channelId: string,
+            sort: string,
+        ) => void;
         loadMyChannelMemberAndRole: (channelId: string) => void;
         setEditChannelMembers: (active: boolean) => void;
-        searchProfilesAndChannelMembers: (term: string, options: any) => Promise<{data: UserProfile[]}>;
+        searchProfilesAndChannelMembers: (
+            term: string,
+            options: any,
+        ) => Promise<{ data: UserProfile[] }>;
     };
 }
 
 export enum ListItemType {
-    Member = 'member',
-    FirstSeparator = 'first-separator',
-    Separator = 'separator',
+    Member = "member",
+    FirstSeparator = "first-separator",
+    Separator = "separator",
 }
 
 export interface ListItem {
@@ -92,9 +102,9 @@ export default function ChannelMembersRHS({
 
     const [page, setPage] = useState(0);
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
 
-    const searching = searchTerms !== '';
+    const searching = searchTerms !== "";
 
     const isDefaultChannel = channel.name === Constants.DEFAULT_CHANNEL;
 
@@ -103,7 +113,7 @@ export default function ChannelMembersRHS({
 
     useEffect(() => {
         return () => {
-            actions.setChannelMembersRhsSearchTerm('');
+            actions.setChannelMembersRhsSearchTerm("");
         };
     }, []);
 
@@ -118,15 +128,15 @@ export default function ChannelMembersRHS({
                 if (member.membership?.scheme_admin === true) {
                     text = (
                         <FormattedMessage
-                            id='channel_members_rhs.list.channel_admin_title'
-                            defaultMessage='CHANNEL ADMINS'
+                            id="channel_members_rhs.list.channel_admin_title"
+                            defaultMessage="CHANNEL ADMINS"
                         />
                     );
                 } else {
                     text = (
                         <FormattedMessage
-                            id='channel_members_rhs.list.channel_members_title'
-                            defaultMessage='MEMBERS'
+                            id="channel_members_rhs.list.channel_members_title"
+                            defaultMessage="MEMBERS"
                         />
                     );
                     memberDone = true;
@@ -134,22 +144,31 @@ export default function ChannelMembersRHS({
 
                 listcp.push({
                     type: ListItemType.FirstSeparator,
-                    data: <FirstMemberListSeparator>{text}</FirstMemberListSeparator>,
+                    data: (
+                        <FirstMemberListSeparator>
+                            {text}
+                        </FirstMemberListSeparator>
+                    ),
                 });
-            } else if (!memberDone && member.membership?.scheme_admin === false) {
+            } else if (
+                !memberDone &&
+                member.membership?.scheme_admin === false
+            ) {
                 listcp.push({
                     type: ListItemType.Separator,
-                    data: <MemberListSeparator>
-                        <FormattedMessage
-                            id='channel_members_rhs.list.channel_members_title'
-                            defaultMessage='MEMBERS'
-                        />
-                    </MemberListSeparator>,
+                    data: (
+                        <MemberListSeparator>
+                            <FormattedMessage
+                                id="channel_members_rhs.list.channel_members_title"
+                                defaultMessage="MEMBERS"
+                            />
+                        </MemberListSeparator>
+                    ),
                 });
                 memberDone = true;
             }
 
-            listcp.push({type: ListItemType.Member, data: member});
+            listcp.push({ type: ListItemType.Member, data: member });
         }
         if (JSON.stringify(list) !== JSON.stringify(listcp)) {
             setList(listcp);
@@ -168,8 +187,13 @@ export default function ChannelMembersRHS({
 
         setPage(0);
         setIsNextPageLoading(false);
-        actions.setChannelMembersRhsSearchTerm('');
-        actions.loadProfilesAndReloadChannelMembers(0, USERS_PER_PAGE, channel.id, ProfilesInChannelSortBy.Admin);
+        actions.setChannelMembersRhsSearchTerm("");
+        actions.loadProfilesAndReloadChannelMembers(
+            0,
+            USERS_PER_PAGE,
+            channel.id,
+            ProfilesInChannelSortBy.Admin,
+        );
         actions.loadMyChannelMemberAndRole(channel.id);
     }, [channel.id, channel.type]);
 
@@ -177,9 +201,15 @@ export default function ChannelMembersRHS({
         actions.setChannelMembersRhsSearchTerm(terms);
     };
 
-    const doSearch = useCallback(debounce(async (terms: string) => {
-        await actions.searchProfilesAndChannelMembers(terms, {in_team_id: channel.team_id, in_channel_id: channel.id});
-    }, Constants.SEARCH_TIMEOUT_MILLISECONDS), [actions.searchProfilesAndChannelMembers]);
+    const doSearch = useCallback(
+        debounce(async (terms: string) => {
+            await actions.searchProfilesAndChannelMembers(terms, {
+                in_team_id: channel.team_id,
+                in_channel_id: channel.id,
+            });
+        }, Constants.SEARCH_TIMEOUT_MILLISECONDS),
+        [actions.searchProfilesAndChannelMembers],
+    );
 
     useEffect(() => {
         if (searchTerms) {
@@ -192,43 +222,51 @@ export default function ChannelMembersRHS({
             return actions.openModal({
                 modalId: ModalIdentifiers.CREATE_DM_CHANNEL,
                 dialogType: MoreDirectChannels,
-                dialogProps: {isExistingChannel: true},
+                dialogProps: { isExistingChannel: true },
             });
         }
 
         return actions.openModal({
             modalId: ModalIdentifiers.CHANNEL_INVITE,
             dialogType: ChannelInviteModal,
-            dialogProps: {channel},
+            dialogProps: { channel },
         });
     };
 
-    const openDirectMessage = useCallback(async (user: UserProfile) => {
-        // we first prepare the DM channel...
-        await actions.openDirectChannelToUserId(user.id);
+    const openDirectMessage = useCallback(
+        async (user: UserProfile) => {
+            // we first prepare the DM channel...
+            await actions.openDirectChannelToUserId(user.id);
 
-        // ... and then redirect to it
-        history.push(teamUrl + '/messages/@' + user.username);
+            // ... and then redirect to it
+            history.push(teamUrl + "/messages/@" + user.username);
 
-        await actions.closeRightHandSide();
-    }, [actions.openDirectChannelToUserId, history, teamUrl, actions.closeRightHandSide]);
+            await actions.closeRightHandSide();
+        },
+        [
+            actions.openDirectChannelToUserId,
+            history,
+            teamUrl,
+            actions.closeRightHandSide,
+        ],
+    );
 
     const loadMore = useCallback(async () => {
         setIsNextPageLoading(true);
 
-        await actions.loadProfilesAndReloadChannelMembers(page + 1, USERS_PER_PAGE, channel.id, ProfilesInChannelSortBy.Admin);
+        await actions.loadProfilesAndReloadChannelMembers(
+            page + 1,
+            USERS_PER_PAGE,
+            channel.id,
+            ProfilesInChannelSortBy.Admin,
+        );
         setPage(page + 1);
 
         setIsNextPageLoading(false);
-    }, [actions.loadProfilesAndReloadChannelMembers, page, channel.id],
-    );
+    }, [actions.loadProfilesAndReloadChannelMembers, page, channel.id]);
 
     return (
-        <div
-            id='rhsContainer'
-            className='sidebar-right__body'
-        >
-
+        <div id="rhsContainer" className="sidebar-right__body">
             <Header
                 channel={channel}
                 canGoBack={canGoBack}
@@ -249,33 +287,34 @@ export default function ChannelMembersRHS({
             />
 
             {/* Users with user management permissions have special restrictions in the default channel */}
-            {(editing && isDefaultChannel && !currentUserIsChannelAdmin) && (
+            {editing && isDefaultChannel && !currentUserIsChannelAdmin && (
                 <AlertContainer>
                     <AlertBanner
-                        mode='info'
-                        variant='app'
-                        message={formatMessage({
-                            id: 'channel_members_rhs.default_channel_moderation_restrictions',
-                            defaultMessage: 'In this channel, you can only remove guests. Only <link>channel admins</link> can manage other members.',
-                        }, {
-                            link: (msg: React.ReactNode) => (
-                                <ExternalLink
-                                    href='https://docs.mattermost.com/welcome/about-user-roles.html#channel-admin'
-                                    location='channel_members_rhs'
-                                >
-                                    {msg}
-                                </ExternalLink>
-                            ),
-                        })}
+                        mode="info"
+                        variant="app"
+                        message={formatMessage(
+                            {
+                                id: "channel_members_rhs.default_channel_moderation_restrictions",
+                                defaultMessage:
+                                    "In this channel, you can only remove guests. Only <link>channel admins</link> can manage other members.",
+                            },
+                            {
+                                link: (msg: React.ReactNode) => (
+                                    <ExternalLink
+                                        href="https://docs.mattermost.com/welcome/about-user-roles.html#channel-admin"
+                                        location="channel_members_rhs"
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            },
+                        )}
                     />
                 </AlertContainer>
             )}
 
             {showSearch && (
-                <SearchBar
-                    terms={searchTerms}
-                    onInput={setSearchTerms}
-                />
+                <SearchBar terms={searchTerms} onInput={setSearchTerms} />
             )}
 
             <MembersContainer>

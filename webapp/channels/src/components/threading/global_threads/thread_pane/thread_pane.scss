@@ -1,10 +1,9 @@
-
 .ThreadPane {
     display: grid;
     overflow: hidden;
     grid-template-areas:
-        'header'
-        'pane';
+        "header"
+        "pane";
     grid-template-rows: 56px 1fr;
 
     .Header {

@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as UserActions from 'mattermost-redux/actions/users';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import * as UserActions from "mattermost-redux/actions/users";
+import { getCurrentUserId } from "mattermost-redux/selectors/entities/users";
 
 export function activateMfa(code) {
     return (dispatch, getState) => {
@@ -27,4 +27,3 @@ export function generateMfaSecret() {
         return dispatch(UserActions.generateMfaSecret(currentUserId));
     };
 }
-

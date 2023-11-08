@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {OutlinedInput as MUIOutlineInput} from '@mui/material';
-import type {OutlinedInputProps} from '@mui/material';
-import React from 'react';
+import { OutlinedInput as MUIOutlineInput } from "@mui/material";
+import type { OutlinedInputProps } from "@mui/material";
+import React from "react";
 
 /**
  * A horizontal separator for use in menus.
@@ -19,9 +19,5 @@ import React from 'react';
  */
 
 export function OutlinedInput(props: OutlinedInputProps) {
-    return (
-        <MUIOutlineInput
-            {...props}
-        />
-    );
+    return <MUIOutlineInput {...props} />;
 }

@@ -1,81 +1,122 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Post} from '@mattermost/types/posts';
+import type { Post } from "@mattermost/types/posts";
 
 import {
     removeReaction,
     addMessageIntoHistory,
     moveHistoryIndexBack,
     moveHistoryIndexForward,
-} from 'mattermost-redux/actions/posts';
-import {Posts} from 'mattermost-redux/constants';
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
+} from "mattermost-redux/actions/posts";
+import { Posts } from "mattermost-redux/constants";
+import { createSelector } from "mattermost-redux/selectors/create_selector";
+import { getCustomEmojisByName } from "mattermost-redux/selectors/entities/emojis";
 import {
     makeGetMessageInHistoryItem,
     getPost,
     makeGetPostIdsForThread,
-} from 'mattermost-redux/selectors/entities/posts';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
+} from "mattermost-redux/selectors/entities/posts";
+import { getCurrentTeamId } from "mattermost-redux/selectors/entities/teams";
+import { getCurrentUserId } from "mattermost-redux/selectors/entities/users";
+import type {
+    DispatchFunc,
+    GetStateFunc,
+} from "mattermost-redux/types/actions";
+import { isPostPendingOrFailed } from "mattermost-redux/utils/post_utils";
 
-import {executeCommand} from 'actions/command';
-import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
-import * as PostActions from 'actions/post_actions';
-import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
-import {updateDraft, removeDraft} from 'actions/views/drafts';
-import {getPostDraft} from 'selectors/rhs';
+import { executeCommand } from "actions/command";
+import {
+    runMessageWillBePostedHooks,
+    runSlashCommandWillBePostedHooks,
+} from "actions/hooks";
+import * as PostActions from "actions/post_actions";
+import { actionOnGlobalItemsWithPrefix } from "actions/storage";
+import { updateDraft, removeDraft } from "actions/views/drafts";
+import { getPostDraft } from "selectors/rhs";
 
-import {Constants, StoragePrefixes} from 'utils/constants';
-import EmojiMap from 'utils/emoji_map';
-import * as Utils from 'utils/utils';
+import { Constants, StoragePrefixes } from "utils/constants";
+import EmojiMap from "utils/emoji_map";
+import * as Utils from "utils/utils";
 
-import type {GlobalState} from 'types/store';
-import type {PostDraft} from 'types/store/draft';
+import type { GlobalState } from "types/store";
+import type { PostDraft } from "types/store/draft";
 
 export function clearCommentDraftUploads() {
-    return actionOnGlobalItemsWithPrefix(StoragePrefixes.COMMENT_DRAFT, (_key: string, draft: PostDraft) => {
-        if (!draft || !draft.uploadsInProgress || draft.uploadsInProgress.length === 0) {
-            return draft;
-        }
+    return actionOnGlobalItemsWithPrefix(
+        StoragePrefixes.COMMENT_DRAFT,
+        (_key: string, draft: PostDraft) => {
+            if (
+                !draft ||
+                !draft.uploadsInProgress ||
+                draft.uploadsInProgress.length === 0
+            ) {
+                return draft;
+            }
 
-        return {...draft, uploadsInProgress: []};
-    });
+            return { ...draft, uploadsInProgress: [] };
+        },
+    );
 }
 
 // Temporarily store draft manually in localStorage since the current version of redux-persist
 // we're on will not save the draft quickly enough on page unload.
-export function updateCommentDraft(rootId: string, draft?: PostDraft, save = false) {
+export function updateCommentDraft(
+    rootId: string,
+    draft?: PostDraft,
+    save = false,
+) {
     const key = `${StoragePrefixes.COMMENT_DRAFT}${rootId}`;
     return updateDraft(key, draft ?? null, rootId, save);
 }
 
 export function makeOnMoveHistoryIndex(rootId: string, direction: number) {
-    const getMessageInHistory = makeGetMessageInHistoryItem(Posts.MESSAGE_TYPES.COMMENT as 'comment');
+    const getMessageInHistory = makeGetMessageInHistoryItem(
+        Posts.MESSAGE_TYPES.COMMENT as "comment",
+    );
 
     return () => (dispatch: DispatchFunc, getState: () => GlobalState) => {
-        const draft = getPostDraft(getState(), StoragePrefixes.COMMENT_DRAFT, rootId);
-        if (draft.message !== '' && draft.message !== getMessageInHistory(getState())) {
-            return {data: true};
+        const draft = getPostDraft(
+            getState(),
+            StoragePrefixes.COMMENT_DRAFT,
+            rootId,
+        );
+        if (
+            draft.message !== "" &&
+            draft.message !== getMessageInHistory(getState())
+        ) {
+            return { data: true };
         }
 
         if (direction === -1) {
-            dispatch(moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT as 'comment'));
+            dispatch(
+                moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT as "comment"),
+            );
         } else if (direction === 1) {
-            dispatch(moveHistoryIndexForward(Posts.MESSAGE_TYPES.COMMENT as 'comment'));
+            dispatch(
+                moveHistoryIndexForward(
+                    Posts.MESSAGE_TYPES.COMMENT as "comment",
+                ),
+            );
         }
 
         const nextMessageInHistory = getMessageInHistory(getState());
 
-        dispatch(updateCommentDraft(rootId, {...draft, message: nextMessageInHistory}));
-        return {data: true};
+        dispatch(
+            updateCommentDraft(rootId, {
+                ...draft,
+                message: nextMessageInHistory,
+            }),
+        );
+        return { data: true };
     };
 }
 
-export function submitPost(channelId: string, rootId: string, draft: PostDraft) {
+export function submitPost(
+    channelId: string,
+    rootId: string,
+    draft: PostDraft,
+) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
 
@@ -92,12 +133,12 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft) 
             user_id: userId,
             create_at: time,
             metadata: {},
-            props: {...draft.props},
+            props: { ...draft.props },
         } as unknown as Post;
 
         const hookResult = await dispatch(runMessageWillBePostedHooks(post));
         if (hookResult.error) {
-            return {error: hookResult.error};
+            return { error: hookResult.error };
         }
 
         post = hookResult.data;
@@ -106,18 +147,26 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft) 
     };
 }
 
-export function submitReaction(postId: string, action: string, emojiName: string) {
+export function submitReaction(
+    postId: string,
+    action: string,
+    emojiName: string,
+) {
     return (dispatch: DispatchFunc) => {
-        if (action === '+') {
+        if (action === "+") {
             dispatch(PostActions.addReaction(postId, emojiName));
-        } else if (action === '-') {
+        } else if (action === "-") {
             dispatch(removeReaction(postId, emojiName));
         }
-        return {data: true};
+        return { data: true };
     };
 }
 
-export function submitCommand(channelId: string, rootId: string, draft: PostDraft) {
+export function submitCommand(
+    channelId: string,
+    rootId: string,
+    draft: PostDraft,
+) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
 
@@ -129,11 +178,13 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
             root_id: rootId,
         };
 
-        let {message} = draft;
+        let { message } = draft;
 
-        const hookResult = await dispatch(runSlashCommandWillBePostedHooks(message, args));
+        const hookResult = await dispatch(
+            runSlashCommandWillBePostedHooks(message, args),
+        );
         if (hookResult.error) {
-            return {error: hookResult.error};
+            return { error: hookResult.error };
         } else if (!hookResult.data.message && !hookResult.data.args) {
             // do nothing with an empty return from a hook
             return {};
@@ -142,53 +193,60 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
         message = hookResult.data.message;
         args = hookResult.data.args;
 
-        const {error} = await dispatch(executeCommand(message, args));
+        const { error } = await dispatch(executeCommand(message, args));
 
         if (error) {
             if (error.sendMessage) {
                 return dispatch(submitPost(channelId, rootId, draft));
             }
-            throw (error);
+            throw error;
         }
 
         return {};
     };
 }
 
-export function makeOnSubmit(channelId: string, rootId: string, latestPostId: string) {
-    return (draft: PostDraft, options: {ignoreSlash?: boolean} = {}) => async (dispatch: DispatchFunc, getState: () => GlobalState) => {
-        const {message} = draft;
+export function makeOnSubmit(
+    channelId: string,
+    rootId: string,
+    latestPostId: string,
+) {
+    return (draft: PostDraft, options: { ignoreSlash?: boolean } = {}) =>
+        async (dispatch: DispatchFunc, getState: () => GlobalState) => {
+            const { message } = draft;
 
-        dispatch(addMessageIntoHistory(message));
+            dispatch(addMessageIntoHistory(message));
 
-        const key = `${StoragePrefixes.COMMENT_DRAFT}${rootId}`;
-        dispatch(removeDraft(key, channelId, rootId));
+            const key = `${StoragePrefixes.COMMENT_DRAFT}${rootId}`;
+            dispatch(removeDraft(key, channelId, rootId));
 
-        const isReaction = Utils.REACTION_PATTERN.exec(message);
+            const isReaction = Utils.REACTION_PATTERN.exec(message);
 
-        const emojis = getCustomEmojisByName(getState());
-        const emojiMap = new EmojiMap(emojis);
+            const emojis = getCustomEmojisByName(getState());
+            const emojiMap = new EmojiMap(emojis);
 
-        if (isReaction && emojiMap.has(isReaction[2])) {
-            dispatch(submitReaction(latestPostId, isReaction[1], isReaction[2]));
-        } else if (message.indexOf('/') === 0 && !options.ignoreSlash) {
-            try {
-                await dispatch(submitCommand(channelId, rootId, draft));
-            } catch (err) {
-                dispatch(updateCommentDraft(rootId, draft, true));
-                throw err;
+            if (isReaction && emojiMap.has(isReaction[2])) {
+                dispatch(
+                    submitReaction(latestPostId, isReaction[1], isReaction[2]),
+                );
+            } else if (message.indexOf("/") === 0 && !options.ignoreSlash) {
+                try {
+                    await dispatch(submitCommand(channelId, rootId, draft));
+                } catch (err) {
+                    dispatch(updateCommentDraft(rootId, draft, true));
+                    throw err;
+                }
+            } else {
+                dispatch(submitPost(channelId, rootId, draft));
             }
-        } else {
-            dispatch(submitPost(channelId, rootId, draft));
-        }
-        return {data: true};
-    };
+            return { data: true };
+        };
 }
 
 function makeGetCurrentUsersLatestReply() {
     const getPostIdsInThread = makeGetPostIdsForThread();
     return createSelector(
-        'makeGetCurrentUsersLatestReply',
+        "makeGetCurrentUsersLatestReply",
         getCurrentUserId,
         getPostIdsInThread,
         (state) => (id: string) => getPost(state, id),
@@ -208,7 +266,10 @@ function makeGetCurrentUsersLatestReply() {
                     post.user_id !== userId ||
                     (post.props && post.props.from_webhook) ||
                     post.state === Constants.POST_DELETED ||
-                    (post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX)) ||
+                    (post.type &&
+                        post.type.startsWith(
+                            Constants.SYSTEM_MESSAGE_PREFIX,
+                        )) ||
                     isPostPendingOrFailed(post)
                 ) {
                     continue;
@@ -239,14 +300,16 @@ export function makeOnEditLatestPost(rootId: string) {
         const lastPost = getCurrentUsersLatestPost(state, rootId);
 
         if (!lastPost) {
-            return {data: false};
+            return { data: false };
         }
 
-        return dispatch(PostActions.setEditingPost(
-            lastPost.id,
-            'reply_textbox',
-            Utils.localizeMessage('create_comment.commentTitle', 'Comment'),
-            true,
-        ));
+        return dispatch(
+            PostActions.setEditingPost(
+                lastPost.id,
+                "reply_textbox",
+                Utils.localizeMessage("create_comment.commentTitle", "Comment"),
+                true,
+            ),
+        );
     };
 }

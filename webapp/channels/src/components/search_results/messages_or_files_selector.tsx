@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {SearchFilterType} from 'components/search/types';
+import type { SearchFilterType } from "components/search/types";
 
-import Constants from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
+import Constants from "utils/constants";
+import * as Keyboard from "utils/keyboard";
 
-import type {SearchType} from 'types/store/rhs';
+import type { SearchType } from "types/store/rhs";
 
-import FilesFilterMenu from './files_filter_menu';
+import FilesFilterMenu from "./files_filter_menu";
 
-const {KeyCodes} = Constants;
+const { KeyCodes } = Constants;
 
-import './messages_or_files_selector.scss';
+import "./messages_or_files_selector.scss";
 
 type Props = {
     selected: string;
@@ -29,38 +29,53 @@ type Props = {
 
 export default function MessagesOrFilesSelector(props: Props): JSX.Element {
     return (
-        <div className='MessagesOrFilesSelector'>
-            <div className='buttons-container'>
+        <div className="MessagesOrFilesSelector">
+            <div className="buttons-container">
                 <button
-                    onClick={() => props.onChange('messages')}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLSpanElement>) => Keyboard.isKeyPressed(e, KeyCodes.ENTER) && props.onChange('messages')}
-                    className={props.selected === 'messages' ? 'active tab messages-tab' : 'tab messages-tab'}
+                    onClick={() => props.onChange("messages")}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLSpanElement>) =>
+                        Keyboard.isKeyPressed(e, KeyCodes.ENTER) &&
+                        props.onChange("messages")
+                    }
+                    className={
+                        props.selected === "messages"
+                            ? "active tab messages-tab"
+                            : "tab messages-tab"
+                    }
                 >
                     <FormattedMessage
-                        id='search_bar.messages_tab'
-                        defaultMessage='Messages'
+                        id="search_bar.messages_tab"
+                        defaultMessage="Messages"
                     />
-                    <span className='counter'>{props.messagesCounter}</span>
+                    <span className="counter">{props.messagesCounter}</span>
                 </button>
-                {props.isFileAttachmentsEnabled &&
+                {props.isFileAttachmentsEnabled && (
                     <button
-                        onClick={() => props.onChange('files')}
-                        onKeyDown={(e: React.KeyboardEvent<HTMLSpanElement>) => Keyboard.isKeyPressed(e, KeyCodes.ENTER) && props.onChange('files')}
-                        className={props.selected === 'files' ? 'active tab files-tab' : 'tab files-tab'}
+                        onClick={() => props.onChange("files")}
+                        onKeyDown={(e: React.KeyboardEvent<HTMLSpanElement>) =>
+                            Keyboard.isKeyPressed(e, KeyCodes.ENTER) &&
+                            props.onChange("files")
+                        }
+                        className={
+                            props.selected === "files"
+                                ? "active tab files-tab"
+                                : "tab files-tab"
+                        }
                     >
                         <FormattedMessage
-                            id='search_bar.files_tab'
-                            defaultMessage='Files'
+                            id="search_bar.files_tab"
+                            defaultMessage="Files"
                         />
-                        <span className='counter'>{props.filesCounter}</span>
+                        <span className="counter">{props.filesCounter}</span>
                     </button>
-                }
+                )}
             </div>
-            {props.selected === 'files' &&
+            {props.selected === "files" && (
                 <FilesFilterMenu
                     selectedFilter={props.selectedFilter}
                     onFilter={props.onFilter}
-                />}
+                />
+            )}
         </div>
     );
 }

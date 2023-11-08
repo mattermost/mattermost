@@ -1,14 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import type {ShallowWrapper} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import type { ShallowWrapper } from "enzyme";
+import React from "react";
 
-import FilesFilterMenu from 'components/search_results/files_filter_menu';
+import FilesFilterMenu from "components/search_results/files_filter_menu";
 
-describe('components/search_results/FilesFilterMenu', () => {
-    const filters = ['all', 'documents', 'spreadsheets', 'presentations', 'code', 'images', 'audio', 'video'];
+describe("components/search_results/FilesFilterMenu", () => {
+    const filters = [
+        "all",
+        "documents",
+        "spreadsheets",
+        "presentations",
+        "code",
+        "images",
+        "audio",
+        "video",
+    ];
     for (const filter of filters) {
         test(`should match snapshot, on ${filter} filter selected`, () => {
             const wrapper: ShallowWrapper<any, any, any> = shallow(

@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-const {Writable} = require('stream');
+const { Writable } = require("stream");
 
-const blessed = require('blessed');
-const stripAnsi = require('strip-ansi');
+const blessed = require("blessed");
+const stripAnsi = require("strip-ansi");
 
 class Runner {
     commands;
-    filter = '';
+    filter = "";
     ui;
 
     scrollLocked = true;
 
     buffer = [];
-    partialBuffer = '';
+    partialBuffer = "";
 
     outputStream;
 
@@ -23,10 +23,14 @@ class Runner {
     constructor(commands) {
         this.commands = commands;
         this.outputStream = new Writable({
-            write: (chunk, encoding, callback) => this.writeToStream(chunk, encoding, callback),
+            write: (chunk, encoding, callback) =>
+                this.writeToStream(chunk, encoding, callback),
         });
 
-        this.makeUi(commands.map((command) => command.name), this.onFilter);
+        this.makeUi(
+            commands.map((command) => command.name),
+            this.onFilter,
+        );
         this.registerHotkeys();
     }
 
@@ -42,17 +46,17 @@ class Runner {
         const output = blessed.box({
             top: 0,
             left: 0,
-            width: '100%',
-            height: '100%-3',
-            content: 'THE END IS NEVER '.repeat(1000),
+            width: "100%",
+            height: "100%-3",
+            content: "THE END IS NEVER ".repeat(1000),
             tags: true,
             alwaysScroll: true,
             scrollable: true,
             scrollbar: {
-                ch: '#',
+                ch: "#",
                 style: {},
                 track: {
-                    ch: '|',
+                    ch: "|",
                 },
             },
             style: {},
@@ -62,22 +66,22 @@ class Runner {
 
         // Set up the menu bar
         const menu = blessed.listbar({
-            top: '100%-3',
+            top: "100%-3",
             left: 0,
-            width: '100%',
+            width: "100%",
             height: 3,
             border: {
-                type: 'line',
+                type: "line",
             },
             style: {
                 item: {
-                    bg: 'red',
+                    bg: "red",
                     hover: {
-                        bg: 'green',
+                        bg: "green",
                     },
                 },
                 selected: {
-                    bg: 'blue',
+                    bg: "blue",
                 },
             },
             tags: true,
@@ -85,7 +89,7 @@ class Runner {
             mouse: true,
         });
 
-        menu.add('All', () => this.onFilter(''));
+        menu.add("All", () => this.onFilter(""));
         for (const name of commandNames) {
             menu.add(name, () => this.onFilter(name));
         }
@@ -100,22 +104,22 @@ class Runner {
     }
 
     registerHotkeys() {
-        this.ui.screen.key(['escape', 'q', 'C-c'], () => {
+        this.ui.screen.key(["escape", "q", "C-c"], () => {
             for (const listener of this.closeListeners) {
                 listener();
             }
         });
 
-        this.ui.screen.key(['up', 'down'], (char, key) => {
-            this.scrollDelta(key.name === 'up' ? -1 : 1);
+        this.ui.screen.key(["up", "down"], (char, key) => {
+            this.scrollDelta(key.name === "up" ? -1 : 1);
         });
-        this.ui.screen.on('wheelup', () => {
+        this.ui.screen.on("wheelup", () => {
             this.scrollDelta(-3);
         });
-        this.ui.screen.on('wheeldown', () => {
+        this.ui.screen.on("wheeldown", () => {
             this.scrollDelta(3);
         });
-        this.ui.screen.key('end', () => {
+        this.ui.screen.key("end", () => {
             this.scrollToBottom();
         });
     }
@@ -123,9 +127,13 @@ class Runner {
     // Rendering and internal logic
 
     renderUi() {
-        const filtered = this.buffer.filter((line) => this.filter === '' || line.tag === this.filter);
+        const filtered = this.buffer.filter(
+            (line) => this.filter === "" || line.tag === this.filter,
+        );
 
-        this.ui.output.setContent(filtered.map((line) => this.formatLine(line)).join('\n'));
+        this.ui.output.setContent(
+            filtered.map((line) => this.formatLine(line)).join("\n"),
+        );
 
         if (this.scrollLocked) {
             this.ui.output.scrollbar.style.inverse = true;
@@ -138,9 +146,13 @@ class Runner {
     }
 
     formatLine(line) {
-        const color = this.commands.find((command) => command.name === line.tag)?.prefixColor;
+        const color = this.commands.find(
+            (command) => command.name === line.tag,
+        )?.prefixColor;
 
-        return color ? `{bold}{${color}-fg}[${line.tag}]{/} ${line.text}` : `[${line.tag}] ${line.text}`;
+        return color
+            ? `{bold}{${color}-fg}[${line.tag}]{/} ${line.text}`
+            : `[${line.tag}] ${line.text}`;
     }
 
     onFilter(newFilter) {
@@ -153,7 +165,10 @@ class Runner {
     scrollDelta(delta) {
         this.ui.output.scroll(delta);
 
-        if (this.ui.output.getScrollPerc() >= 100 || this.ui.output.getScrollHeight() <= this.ui.output.height) {
+        if (
+            this.ui.output.getScrollPerc() >= 100 ||
+            this.ui.output.getScrollHeight() <= this.ui.output.height
+        ) {
             this.scrollLocked = true;
         } else {
             this.scrollLocked = false;
@@ -176,8 +191,8 @@ class Runner {
     writeToStream(chunk, encoding, callback) {
         const str = String(chunk);
 
-        if (str.includes('\n')) {
-            const parts = str.split('\n');
+        if (str.includes("\n")) {
+            const parts = str.split("\n");
 
             // Add completed lines to buffer
             this.appendToBuffer(this.partialBuffer + parts[0]);
@@ -200,12 +215,15 @@ class Runner {
 
     appendToBuffer(line) {
         // This regex is more complicated than expected because it
-        const match = (/^\[([^\]]*)\]\s*(.*)$/).exec(stripAnsi(line));
+        const match = /^\[([^\]]*)\]\s*(.*)$/.exec(stripAnsi(line));
 
         if (match) {
-            this.buffer.push({tag: match[1], text: match[2]});
+            this.buffer.push({ tag: match[1], text: match[2] });
         } else {
-            this.buffer.push({tag: '', text: 'Line not recognized correctly: ' + line});
+            this.buffer.push({
+                tag: "",
+                text: "Line not recognized correctly: " + line,
+            });
         }
 
         // Keep the buffer from using too much memory by removing the oldest chunk of it every time it goes over 5000 lines
@@ -213,7 +231,9 @@ class Runner {
         const capacityReduction = 1000;
 
         if (this.buffer.length > bufferCapacity) {
-            this.buffer = this.buffer.slice(this.buffer.length - capacityReduction);
+            this.buffer = this.buffer.slice(
+                this.buffer.length - capacityReduction,
+            );
         }
     }
 

@@ -1,22 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import {General} from 'mattermost-redux/constants';
-import * as ChannelUtils from 'mattermost-redux/utils/channel_utils';
+import { General } from "mattermost-redux/constants";
+import * as ChannelUtils from "mattermost-redux/utils/channel_utils";
 
-import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import TestHelper from 'packages/mattermost-redux/test/test_helper';
+import mergeObjects from "packages/mattermost-redux/test/merge_objects";
+import TestHelper from "packages/mattermost-redux/test/test_helper";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import type {OptionValue} from '../types';
+import type { OptionValue } from "../types";
 
-import {makeGetOptions} from './index';
+import { makeGetOptions } from "./index";
 
-describe('makeGetOptions', () => {
-    const currentUserId = 'currentUserId';
+describe("makeGetOptions", () => {
+    const currentUserId = "currentUserId";
 
     const baseState = {
         entities: {
@@ -35,12 +35,12 @@ describe('makeGetOptions', () => {
         },
         views: {
             search: {
-                modalSearch: '',
+                modalSearch: "",
             },
         },
     } as unknown as GlobalState;
 
-    test('should return the same result when called with the same arguments', () => {
+    test("should return the same result when called with the same arguments", () => {
         const getOptions = makeGetOptions();
 
         const users = [
@@ -48,14 +48,14 @@ describe('makeGetOptions', () => {
             TestHelper.fakeUserWithId(),
             TestHelper.fakeUserWithId(),
         ];
-        const values = [
-            TestHelper.fakeUserWithId(),
-        ] as OptionValue[];
+        const values = [TestHelper.fakeUserWithId()] as OptionValue[];
 
-        expect(getOptions(baseState, users, values)).toBe(getOptions(baseState, users, values));
+        expect(getOptions(baseState, users, values)).toBe(
+            getOptions(baseState, users, values),
+        );
     });
 
-    test('should return recent DMs, even with deleted users', () => {
+    test("should return recent DMs, even with deleted users", () => {
         const getOptions = makeGetOptions();
 
         const user1 = TestHelper.fakeUserWithId();
@@ -66,21 +66,24 @@ describe('makeGetOptions', () => {
         };
 
         const dm1 = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.DM_CHANNEL,
             name: ChannelUtils.getDirectChannelName(currentUserId, user1.id),
             last_post_at: 2000,
         };
         const dm2 = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.DM_CHANNEL,
             name: ChannelUtils.getDirectChannelName(currentUserId, user2.id),
             last_post_at: 3000,
         };
         const deletedDM = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.DM_CHANNEL,
-            name: ChannelUtils.getDirectChannelName(currentUserId, deletedUser.id),
+            name: ChannelUtils.getDirectChannelName(
+                currentUserId,
+                deletedUser.id,
+            ),
             last_post_at: 4000,
         };
 
@@ -96,22 +99,18 @@ describe('makeGetOptions', () => {
             },
         });
 
-        const users = [
-            user1,
-            user2,
-            deletedUser,
-        ];
+        const users = [user1, user2, deletedUser];
         const values: OptionValue[] = [];
 
         // Results are sorted by last_post_at descending
         expect(getOptions(state, users, values)).toEqual([
-            {...deletedUser, last_post_at: deletedDM.last_post_at},
-            {...user2, last_post_at: dm2.last_post_at},
-            {...user1, last_post_at: dm1.last_post_at},
+            { ...deletedUser, last_post_at: deletedDM.last_post_at },
+            { ...user2, last_post_at: dm2.last_post_at },
+            { ...user1, last_post_at: dm1.last_post_at },
         ]);
     });
 
-    test('should only return DMs with users matching the search term', () => {
+    test("should only return DMs with users matching the search term", () => {
         const getOptions = makeGetOptions();
 
         const user1 = TestHelper.fakeUserWithId();
@@ -122,21 +121,24 @@ describe('makeGetOptions', () => {
         };
 
         const dm1 = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.DM_CHANNEL,
             name: ChannelUtils.getDirectChannelName(currentUserId, user1.id),
             last_post_at: 2000,
         };
         const dm2 = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.DM_CHANNEL,
             name: ChannelUtils.getDirectChannelName(currentUserId, user2.id),
             last_post_at: 3000,
         };
         const deletedDM = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.DM_CHANNEL,
-            name: ChannelUtils.getDirectChannelName(currentUserId, deletedUser.id),
+            name: ChannelUtils.getDirectChannelName(
+                currentUserId,
+                deletedUser.id,
+            ),
             last_post_at: 4000,
         };
 
@@ -152,58 +154,54 @@ describe('makeGetOptions', () => {
             },
             views: {
                 search: {
-                    searchTerm: 'asdf',
+                    searchTerm: "asdf",
                 },
             },
         });
 
-        const users = [
-            user1,
-            user2,
-            deletedUser,
-        ];
+        const users = [user1, user2, deletedUser];
         const values: OptionValue[] = [];
 
         // Results are sorted by last_post_at descending
         expect(getOptions(state, users, values)).toEqual([
-            {...deletedUser, last_post_at: deletedDM.last_post_at},
-            {...user2, last_post_at: dm2.last_post_at},
-            {...user1, last_post_at: dm1.last_post_at},
+            { ...deletedUser, last_post_at: deletedDM.last_post_at },
+            { ...user2, last_post_at: dm2.last_post_at },
+            { ...user1, last_post_at: dm1.last_post_at },
         ]);
     });
 
-    test('should return recent GMs', () => {
+    test("should return recent GMs", () => {
         const getOptions = makeGetOptions();
 
         const user1 = {
             ...TestHelper.fakeUserWithId(),
-            username: 'apple',
+            username: "apple",
         };
         const user2 = {
             ...TestHelper.fakeUserWithId(),
-            username: 'banana',
+            username: "banana",
         };
         const user3 = {
             ...TestHelper.fakeUserWithId(),
-            username: 'carrot',
+            username: "carrot",
         };
 
         const gmChannel1 = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.GM_CHANNEL,
-            display_name: 'apple, carrot',
+            display_name: "apple, carrot",
             last_post_at: 1000,
         };
         const gmChannel2 = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.GM_CHANNEL,
-            display_name: 'banana, carrot',
+            display_name: "banana, carrot",
             last_post_at: 2000,
         };
         const gmChannel3 = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.GM_CHANNEL,
-            display_name: 'apple, banana',
+            display_name: "apple, banana",
             last_post_at: 3000,
         };
 
@@ -216,7 +214,7 @@ describe('makeGetOptions', () => {
                         [gmChannel3.id]: gmChannel3,
                     },
                     channelsInTeam: {
-                        '': [gmChannel1.id, gmChannel2.id, gmChannel3.id],
+                        "": [gmChannel1.id, gmChannel2.id, gmChannel3.id],
                     },
                 },
                 users: {
@@ -254,32 +252,32 @@ describe('makeGetOptions', () => {
         ]);
     });
 
-    test('should not return GMs without any posts', () => {
+    test("should not return GMs without any posts", () => {
         const getOptions = makeGetOptions();
 
         const user1 = {
             ...TestHelper.fakeUserWithId(),
-            username: 'apple',
+            username: "apple",
         };
         const user2 = {
             ...TestHelper.fakeUserWithId(),
-            username: 'banana',
+            username: "banana",
         };
         const user3 = {
             ...TestHelper.fakeUserWithId(),
-            username: 'carrot',
+            username: "carrot",
         };
 
         const gmChannel1 = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.GM_CHANNEL,
-            display_name: 'apple, carrot',
+            display_name: "apple, carrot",
             last_post_at: 1000,
         };
         const gmChannel2 = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.GM_CHANNEL,
-            display_name: 'banana, carrot',
+            display_name: "banana, carrot",
             last_post_at: 0,
         };
 
@@ -291,7 +289,7 @@ describe('makeGetOptions', () => {
                         [gmChannel2.id]: gmChannel2,
                     },
                     channelsInTeam: {
-                        '': [gmChannel1.id, gmChannel2.id],
+                        "": [gmChannel1.id, gmChannel2.id],
                     },
                 },
                 users: {
@@ -320,52 +318,52 @@ describe('makeGetOptions', () => {
         ]);
     });
 
-    test('should only return GMs with users matching the search term', () => {
+    test("should only return GMs with users matching the search term", () => {
         const getOptions = makeGetOptions();
 
         const user1 = {
             ...TestHelper.fakeUserWithId(),
-            username: 'test_user',
+            username: "test_user",
         };
         const user2 = {
             ...TestHelper.fakeUserWithId(),
-            username: 'some_user',
-            first_name: 'Some',
-            last_name: 'Test',
+            username: "some_user",
+            first_name: "Some",
+            last_name: "Test",
         };
         const user3 = {
             ...TestHelper.fakeUserWithId(),
-            username: 'another_user',
+            username: "another_user",
         };
 
         const gmChannel1 = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.GM_CHANNEL,
             last_post_at: 1000,
         };
         const gmChannel1WithProfiles = {
             ...gmChannel1,
-            display_name: 'test_user',
+            display_name: "test_user",
             profiles: [user1],
         };
         const gmChannel2 = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.GM_CHANNEL,
             last_post_at: 2000,
         };
         const gmChannel2WithProfiles = {
             ...gmChannel2,
-            display_name: 'some_user',
+            display_name: "some_user",
             profiles: [user2],
         };
         const gmChannel3 = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.GM_CHANNEL,
             last_post_at: 3000,
         };
         const gmChannel3WithProfiles = {
             ...gmChannel3,
-            display_name: 'another_user',
+            display_name: "another_user",
             profiles: [user3],
         };
 
@@ -378,7 +376,7 @@ describe('makeGetOptions', () => {
                         [gmChannel3.id]: gmChannel3,
                     },
                     channelsInTeam: {
-                        '': [gmChannel1.id, gmChannel2.id, gmChannel3.id],
+                        "": [gmChannel1.id, gmChannel2.id, gmChannel3.id],
                     },
                 },
                 users: {
@@ -396,7 +394,7 @@ describe('makeGetOptions', () => {
             },
             views: {
                 search: {
-                    modalSearch: 'test',
+                    modalSearch: "test",
                 },
             },
         });
@@ -413,7 +411,7 @@ describe('makeGetOptions', () => {
         state = mergeObjects(state, {
             views: {
                 search: {
-                    modalSearch: 'user',
+                    modalSearch: "user",
                 },
             },
         });
@@ -427,7 +425,7 @@ describe('makeGetOptions', () => {
         state = mergeObjects(state, {
             views: {
                 search: {
-                    modalSearch: 'qwertyasdf',
+                    modalSearch: "qwertyasdf",
                 },
             },
         });
@@ -435,40 +433,40 @@ describe('makeGetOptions', () => {
         expect(getOptions(state, users, values)).toEqual([]);
     });
 
-    test('should only return GMs with users matching the selected items', () => {
+    test("should only return GMs with users matching the selected items", () => {
         const getOptions = makeGetOptions();
 
         const user1 = {
             ...TestHelper.fakeUserWithId(),
-            username: 'apple',
+            username: "apple",
         };
         const user2 = {
             ...TestHelper.fakeUserWithId(),
-            username: 'banana',
+            username: "banana",
         };
         const user3 = {
             ...TestHelper.fakeUserWithId(),
-            username: 'carrot',
+            username: "carrot",
         };
 
         const gmChannel1 = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.GM_CHANNEL,
             last_post_at: 1000,
         };
         const gmChannel1WithProfiles = {
             ...gmChannel1,
-            display_name: 'apple, carrot',
+            display_name: "apple, carrot",
             profiles: [user1, user3],
         };
         const gmChannel2 = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.GM_CHANNEL,
             last_post_at: 2000,
         };
         const gmChannel2WithProfiles = {
             ...gmChannel2,
-            display_name: 'banana, carrot',
+            display_name: "banana, carrot",
             profiles: [user2, user3],
         };
 
@@ -480,7 +478,7 @@ describe('makeGetOptions', () => {
                         [gmChannel2.id]: gmChannel2,
                     },
                     channelsInTeam: {
-                        '': [gmChannel1.id, gmChannel2.id],
+                        "": [gmChannel1.id, gmChannel2.id],
                     },
                 },
                 users: {
@@ -497,11 +495,7 @@ describe('makeGetOptions', () => {
             },
         });
 
-        const users = [
-            user1,
-            user2,
-            user3,
-        ];
+        const users = [user1, user2, user3];
 
         let values: OptionValue[] = [];
 
@@ -537,34 +531,30 @@ describe('makeGetOptions', () => {
         ]);
     });
 
-    test('should return users without DMs as long as either there are no recents or a search term is being used', () => {
+    test("should return users without DMs as long as either there are no recents or a search term is being used", () => {
         const getOptions = makeGetOptions();
 
         const user1 = {
             ...TestHelper.fakeUserWithId(),
-            username: 'apple',
+            username: "apple",
         };
         const user2 = {
             ...TestHelper.fakeUserWithId(),
-            username: 'banana',
+            username: "banana",
         };
         const user3 = {
             ...TestHelper.fakeUserWithId(),
-            username: 'carrot',
+            username: "carrot",
         };
 
         const dm1 = {
-            ...TestHelper.fakeChannelWithId(''),
+            ...TestHelper.fakeChannelWithId(""),
             type: General.DM_CHANNEL,
             name: ChannelUtils.getDirectChannelName(currentUserId, user1.id),
             last_post_at: 2000,
         };
 
-        const users = [
-            user1,
-            user2,
-            user3,
-        ];
+        const users = [user1, user2, user3];
         const values: OptionValue[] = [];
 
         let state = mergeObjects(baseState, {
@@ -579,9 +569,9 @@ describe('makeGetOptions', () => {
 
         // No recent DMs exist, so show all the users
         expect(getOptions(state, users, values)).toEqual([
-            {...user1, last_post_at: 0},
-            {...user2, last_post_at: 0},
-            {...user3, last_post_at: 0},
+            { ...user1, last_post_at: 0 },
+            { ...user2, last_post_at: 0 },
+            { ...user3, last_post_at: 0 },
         ]);
 
         state = mergeObjects(state, {
@@ -591,7 +581,7 @@ describe('makeGetOptions', () => {
                         [dm1.id]: dm1,
                     },
                     channelsInTeam: {
-                        '': [dm1.id],
+                        "": [dm1.id],
                     },
                 },
                 users: {
@@ -604,13 +594,13 @@ describe('makeGetOptions', () => {
 
         // Now a recent DM exists, so only show that
         expect(getOptions(state, users, values)).toEqual([
-            {...user1, last_post_at: 2000},
+            { ...user1, last_post_at: 2000 },
         ]);
 
         state = mergeObjects(state, {
             views: {
                 search: {
-                    modalSearch: 'asdfasdfasdf',
+                    modalSearch: "asdfasdfasdf",
                 },
             },
         });
@@ -618,9 +608,9 @@ describe('makeGetOptions', () => {
         // And now a search term has been entered, so show other users again. Note that users is expected to have been
         // filtered by the search term already even if it doesn't match at this point
         expect(getOptions(state, users, values)).toEqual([
-            {...user1, last_post_at: 2000},
-            {...user2, last_post_at: 0},
-            {...user3, last_post_at: 0},
+            { ...user1, last_post_at: 2000 },
+            { ...user2, last_post_at: 0 },
+            { ...user3, last_post_at: 0 },
         ]);
     });
 });

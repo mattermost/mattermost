@@ -1,24 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
+import React from "react";
+import {
+    FormattedMessage,
+    injectIntl,
+    type WrappedComponentProps,
+} from "react-intl";
 
-import type {Channel} from '@mattermost/types/channels';
+import type { Channel } from "@mattermost/types/channels";
 
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
-} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
-import FollowButton from 'components/threading/common/follow_button';
-import Tooltip from 'components/tooltip';
-import CRTThreadsPaneTutorialTip
-    from 'components/tours/crt_tour/crt_threads_pane_tutorial_tip';
+} from "components/keyboard_shortcuts/keyboard_shortcuts_sequence";
+import OverlayTrigger from "components/overlay_trigger";
+import FollowButton from "components/threading/common/follow_button";
+import Tooltip from "components/tooltip";
+import CRTThreadsPaneTutorialTip from "components/tours/crt_tour/crt_threads_pane_tutorial_tip";
 
-import {getHistory} from 'utils/browser_history';
-import Constants, {RHSStates} from 'utils/constants';
+import { getHistory } from "utils/browser_history";
+import Constants, { RHSStates } from "utils/constants";
 
-import type {RhsState} from 'types/store/rhs';
+import type { RhsState } from "types/store/rhs";
 
 interface Props extends WrappedComponentProps {
     isExpanded: boolean;
@@ -40,7 +43,12 @@ interface Props extends WrappedComponentProps {
     goBack: () => void;
     closeRightHandSide: (e?: React.MouseEvent) => void;
     toggleRhsExpanded: (e: React.MouseEvent) => void;
-    setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
+    setThreadFollow: (
+        userId: string,
+        teamId: string,
+        threadId: string,
+        newState: boolean,
+    ) => void;
 }
 
 class RhsHeaderPost extends React.PureComponent<Props> {
@@ -48,14 +56,14 @@ class RhsHeaderPost extends React.PureComponent<Props> {
         e.preventDefault();
 
         switch (this.props.previousRhsState) {
-        case RHSStates.SEARCH:
-        case RHSStates.MENTION:
-        case RHSStates.FLAG:
-        case RHSStates.PIN:
-            this.props.goBack();
-            break;
-        default:
-            break;
+            case RHSStates.SEARCH:
+            case RHSStates.MENTION:
+            case RHSStates.FLAG:
+            case RHSStates.PIN:
+                this.props.goBack();
+                break;
+            default:
+                break;
         }
     };
 
@@ -70,19 +78,25 @@ class RhsHeaderPost extends React.PureComponent<Props> {
     };
 
     handleFollowChange = () => {
-        const {currentTeamId, currentUserId, rootPostId, isFollowingThread} = this.props;
-        this.props.setThreadFollow(currentUserId, currentTeamId, rootPostId, !isFollowingThread);
+        const { currentTeamId, currentUserId, rootPostId, isFollowingThread } =
+            this.props;
+        this.props.setThreadFollow(
+            currentUserId,
+            currentTeamId,
+            rootPostId,
+            !isFollowingThread,
+        );
     };
 
     render() {
         let back;
-        const {isFollowingThread} = this.props;
-        const {formatMessage} = this.props.intl;
+        const { isFollowingThread } = this.props;
+        const { formatMessage } = this.props.intl;
         const closeSidebarTooltip = (
-            <Tooltip id='closeSidebarTooltip'>
+            <Tooltip id="closeSidebarTooltip">
                 <FormattedMessage
-                    id='rhs_header.closeSidebarTooltip'
-                    defaultMessage='Close'
+                    id="rhs_header.closeSidebarTooltip"
+                    defaultMessage="Close"
                 />
             </Tooltip>
         );
@@ -90,44 +104,44 @@ class RhsHeaderPost extends React.PureComponent<Props> {
         let backToResultsTooltip;
 
         switch (this.props.previousRhsState) {
-        case RHSStates.SEARCH:
-        case RHSStates.MENTION:
-            backToResultsTooltip = (
-                <Tooltip id='backToResultsTooltip'>
-                    <FormattedMessage
-                        id='rhs_header.backToResultsTooltip'
-                        defaultMessage='Back to search results'
-                    />
-                </Tooltip>
-            );
-            break;
-        case RHSStates.FLAG:
-            backToResultsTooltip = (
-                <Tooltip id='backToResultsTooltip'>
-                    <FormattedMessage
-                        id='rhs_header.backToFlaggedTooltip'
-                        defaultMessage='Back to saved posts'
-                    />
-                </Tooltip>
-            );
-            break;
-        case RHSStates.PIN:
-            backToResultsTooltip = (
-                <Tooltip id='backToResultsTooltip'>
-                    <FormattedMessage
-                        id='rhs_header.backToPinnedTooltip'
-                        defaultMessage='Back to pinned posts'
-                    />
-                </Tooltip>
-            );
-            break;
+            case RHSStates.SEARCH:
+            case RHSStates.MENTION:
+                backToResultsTooltip = (
+                    <Tooltip id="backToResultsTooltip">
+                        <FormattedMessage
+                            id="rhs_header.backToResultsTooltip"
+                            defaultMessage="Back to search results"
+                        />
+                    </Tooltip>
+                );
+                break;
+            case RHSStates.FLAG:
+                backToResultsTooltip = (
+                    <Tooltip id="backToResultsTooltip">
+                        <FormattedMessage
+                            id="rhs_header.backToFlaggedTooltip"
+                            defaultMessage="Back to saved posts"
+                        />
+                    </Tooltip>
+                );
+                break;
+            case RHSStates.PIN:
+                backToResultsTooltip = (
+                    <Tooltip id="backToResultsTooltip">
+                        <FormattedMessage
+                            id="rhs_header.backToPinnedTooltip"
+                            defaultMessage="Back to pinned posts"
+                        />
+                    </Tooltip>
+                );
+                break;
         }
 
         const expandSidebarTooltip = (
-            <Tooltip id='expandSidebarTooltip'>
+            <Tooltip id="expandSidebarTooltip">
                 <FormattedMessage
-                    id='rhs_header.expandSidebarTooltip'
-                    defaultMessage='Expand the right sidebar'
+                    id="rhs_header.expandSidebarTooltip"
+                    defaultMessage="Expand the right sidebar"
                 />
                 <KeyboardShortcutSequence
                     shortcut={KEYBOARD_SHORTCUTS.navExpandSidebar}
@@ -138,10 +152,10 @@ class RhsHeaderPost extends React.PureComponent<Props> {
         );
 
         const shrinkSidebarTooltip = (
-            <Tooltip id='shrinkSidebarTooltip'>
+            <Tooltip id="shrinkSidebarTooltip">
                 <FormattedMessage
-                    id='rhs_header.collapseSidebarTooltip'
-                    defaultMessage='Collapse the right sidebar'
+                    id="rhs_header.collapseSidebarTooltip"
+                    defaultMessage="Collapse the right sidebar"
                 />
                 <KeyboardShortcutSequence
                     shortcut={KEYBOARD_SHORTCUTS.navExpandSidebar}
@@ -157,17 +171,20 @@ class RhsHeaderPost extends React.PureComponent<Props> {
             back = (
                 <OverlayTrigger
                     delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='top'
+                    placement="top"
                     overlay={backToResultsTooltip}
                 >
                     <a
-                        href='#'
+                        href="#"
                         onClick={this.handleBack}
-                        className='sidebar--right__back'
+                        className="sidebar--right__back"
                     >
                         <i
-                            className='icon icon-arrow-back-ios'
-                            aria-label={formatMessage({id: 'generic_icons.back', defaultMessage: 'Back Icon'})}
+                            className="icon icon-arrow-back-ios"
+                            aria-label={formatMessage({
+                                id: "generic_icons.back",
+                                defaultMessage: "Back Icon",
+                            })}
                         />
                     </a>
                 </OverlayTrigger>
@@ -175,26 +192,26 @@ class RhsHeaderPost extends React.PureComponent<Props> {
         }
 
         return (
-            <div className='sidebar--right__header'>
-                <span className='sidebar--right__title'>
+            <div className="sidebar--right__header">
+                <span className="sidebar--right__title">
                     {back}
                     <FormattedMessage
-                        id='rhs_header.details'
-                        defaultMessage='Thread'
+                        id="rhs_header.details"
+                        defaultMessage="Thread"
                     />
-                    {channelName &&
+                    {channelName && (
                         <button
                             onClick={this.handleJumpClick}
-                            className='style--none sidebar--right__title__channel'
+                            className="style--none sidebar--right__title__channel"
                         >
                             {channelName}
                         </button>
-                    }
+                    )}
                 </span>
-                <div className='controls'>
+                <div className="controls">
                     {this.props.isCollapsedThreadsEnabled ? (
                         <FollowButton
-                            className='sidebar--right__follow__thread'
+                            className="sidebar--right__follow__thread"
                             isFollowing={isFollowingThread}
                             onClick={this.handleFollowChange}
                         />
@@ -202,46 +219,61 @@ class RhsHeaderPost extends React.PureComponent<Props> {
 
                     <OverlayTrigger
                         delayShow={Constants.OVERLAY_TIME_DELAY}
-                        placement='bottom'
-                        overlay={this.props.isExpanded ? shrinkSidebarTooltip : expandSidebarTooltip}
+                        placement="bottom"
+                        overlay={
+                            this.props.isExpanded
+                                ? shrinkSidebarTooltip
+                                : expandSidebarTooltip
+                        }
                     >
                         <button
-                            type='button'
-                            className='sidebar--right__expand btn btn-icon btn-sm'
-                            aria-label='Expand'
+                            type="button"
+                            className="sidebar--right__expand btn btn-icon btn-sm"
+                            aria-label="Expand"
                             onClick={this.props.toggleRhsExpanded}
                         >
                             <i
-                                className='icon icon-arrow-expand'
-                                aria-label={formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'})}
+                                className="icon icon-arrow-expand"
+                                aria-label={formatMessage({
+                                    id: "rhs_header.expandSidebarTooltip.icon",
+                                    defaultMessage: "Expand Sidebar Icon",
+                                })}
                             />
                             <i
-                                className='icon icon-arrow-collapse'
-                                aria-label={formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
+                                className="icon icon-arrow-collapse"
+                                aria-label={formatMessage({
+                                    id: "rhs_header.collapseSidebarTooltip.icon",
+                                    defaultMessage: "Collapse Sidebar Icon",
+                                })}
                             />
                         </button>
                     </OverlayTrigger>
 
                     <OverlayTrigger
                         delayShow={Constants.OVERLAY_TIME_DELAY}
-                        placement='top'
+                        placement="top"
                         overlay={closeSidebarTooltip}
                     >
                         <button
-                            id='rhsCloseButton'
-                            type='button'
-                            className='sidebar--right__close btn btn-icon btn-sm'
-                            aria-label='Close'
+                            id="rhsCloseButton"
+                            type="button"
+                            className="sidebar--right__close btn btn-icon btn-sm"
+                            aria-label="Close"
                             onClick={this.props.closeRightHandSide}
                         >
                             <i
-                                className='icon icon-close'
-                                aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
+                                className="icon icon-close"
+                                aria-label={formatMessage({
+                                    id: "rhs_header.closeTooltip.icon",
+                                    defaultMessage: "Close Sidebar Icon",
+                                })}
                             />
                         </button>
                     </OverlayTrigger>
                 </div>
-                {this.props.showThreadsTutorialTip && <CRTThreadsPaneTutorialTip/>}
+                {this.props.showThreadsTutorialTip && (
+                    <CRTThreadsPaneTutorialTip />
+                )}
             </div>
         );
     }

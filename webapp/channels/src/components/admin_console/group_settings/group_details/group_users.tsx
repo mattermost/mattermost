@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import GroupUsersRow from 'components/admin_console/group_settings/group_details/group_users_row';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
+import GroupUsersRow from "components/admin_console/group_settings/group_details/group_users_row";
+import FormattedMarkdownMessage from "components/formatted_markdown_message";
+import NextIcon from "components/widgets/icons/fa_next_icon";
+import PreviousIcon from "components/widgets/icons/fa_previous_icon";
 
-import {getSiteURL} from 'utils/url';
+import { getSiteURL } from "utils/url";
 
 const GROUP_MEMBERS_PAGE_SIZE = 20;
 
@@ -24,7 +24,7 @@ type Props = {
     getMembers: (
         id: string,
         page?: number,
-        perPage?: number
+        perPage?: number,
     ) => Promise<ActionResult>;
 };
 
@@ -43,45 +43,49 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        this.props.
-            getMembers(this.props.groupID, 0, GROUP_MEMBERS_PAGE_SIZE).
-            then(() => {
-                this.setState({loading: false});
+        this.props
+            .getMembers(this.props.groupID, 0, GROUP_MEMBERS_PAGE_SIZE)
+            .then(() => {
+                this.setState({ loading: false });
             });
     }
 
     previousPage = () => {
         const page = this.state.page < 1 ? 0 : this.state.page - 1;
-        this.setState({page});
+        this.setState({ page });
     };
 
     nextPage = async () => {
-        const {total, members, groupID, getMembers} = this.props;
+        const { total, members, groupID, getMembers } = this.props;
         const page =
-            (this.state.page + 1) * GROUP_MEMBERS_PAGE_SIZE >= total ? this.state.page : this.state.page + 1;
+            (this.state.page + 1) * GROUP_MEMBERS_PAGE_SIZE >= total
+                ? this.state.page
+                : this.state.page + 1;
         if (page === this.state.page) {
             return;
         }
 
         const numberOfMembersToLoad =
-            (page + 1) * GROUP_MEMBERS_PAGE_SIZE >= total ? total : (page + 1) * GROUP_MEMBERS_PAGE_SIZE;
+            (page + 1) * GROUP_MEMBERS_PAGE_SIZE >= total
+                ? total
+                : (page + 1) * GROUP_MEMBERS_PAGE_SIZE;
         if (members.length >= numberOfMembersToLoad) {
-            this.setState({page});
+            this.setState({ page });
             return;
         }
 
-        this.setState({page, loading: true});
+        this.setState({ page, loading: true });
         await getMembers(groupID, page, GROUP_MEMBERS_PAGE_SIZE);
-        this.setState({loading: false});
+        this.setState({ loading: false });
     };
 
     renderRows = () => {
         if (this.props.members.length === 0) {
             return (
-                <div className='group-users-empty'>
+                <div className="group-users-empty">
                     <FormattedMessage
-                        id='admin.group_settings.group_details.group_users.no-users-found'
-                        defaultMessage='No users found'
+                        id="admin.group_settings.group_details.group_users.no-users-found"
+                        defaultMessage="No users found"
                     />
                 </div>
             );
@@ -96,7 +100,7 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
                 <GroupUsersRow
                     key={member.id}
                     username={member.username}
-                    displayName={member.first_name + ' ' + member.last_name}
+                    displayName={member.first_name + " " + member.last_name}
                     email={member.email}
                     userId={member.id}
                     lastPictureUpdate={member.last_picture_update}
@@ -107,11 +111,12 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
 
     renderPagination = () => {
         if (this.props.members.length === 0) {
-            return <div className='group-users--footer empty'/>;
+            return <div className="group-users--footer empty" />;
         }
 
-        const startCount = (this.state.page * GROUP_MEMBERS_PAGE_SIZE) + 1;
-        let endCount = (this.state.page * GROUP_MEMBERS_PAGE_SIZE) + GROUP_MEMBERS_PAGE_SIZE;
+        const startCount = this.state.page * GROUP_MEMBERS_PAGE_SIZE + 1;
+        let endCount =
+            this.state.page * GROUP_MEMBERS_PAGE_SIZE + GROUP_MEMBERS_PAGE_SIZE;
         const total = this.props.total;
         if (endCount > total) {
             endCount = total;
@@ -120,11 +125,11 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
         const firstPage = this.state.page === 0;
 
         return (
-            <div className='group-users--footer'>
-                <div className='counter'>
+            <div className="group-users--footer">
+                <div className="counter">
                     <FormattedMessage
-                        id='admin.group_settings.groups_list.paginatorCount'
-                        defaultMessage='{startCount, number} - {endCount, number} of {total, number}'
+                        id="admin.group_settings.groups_list.paginatorCount"
+                        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
                         values={{
                             startCount,
                             endCount,
@@ -133,24 +138,24 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
                     />
                 </div>
                 <button
-                    type='button'
+                    type="button"
                     className={
-                        'btn btn-tertiary prev ' + (firstPage ? 'disabled' : '')
+                        "btn btn-tertiary prev " + (firstPage ? "disabled" : "")
                     }
                     onClick={this.previousPage}
                     disabled={firstPage}
                 >
-                    <PreviousIcon/>
+                    <PreviousIcon />
                 </button>
                 <button
-                    type='button'
+                    type="button"
                     className={
-                        'btn btn-tertiary next ' + (lastPage ? 'disabled' : '')
+                        "btn btn-tertiary next " + (lastPage ? "disabled" : "")
                     }
                     onClick={this.nextPage}
                     disabled={lastPage}
                 >
-                    <NextIcon/>
+                    <NextIcon />
                 </button>
             </div>
         );
@@ -158,24 +163,24 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
 
     render = () => {
         return (
-            <div className='group-users'>
-                <div className='group-users--header'>
+            <div className="group-users">
+                <div className="group-users--header">
                     <FormattedMarkdownMessage
-                        id='admin.group_settings.group_profile.group_users.ldapConnector'
+                        id="admin.group_settings.group_profile.group_users.ldapConnector"
                         defaultMessage={
-                            'AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)'
+                            "AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
                         }
-                        values={{siteURL: getSiteURL()}}
+                        values={{ siteURL: getSiteURL() }}
                     />
                 </div>
-                <div className='group-users--body'>
+                <div className="group-users--body">
                     <div
                         className={
-                            'group-users-loading ' +
-                            (this.state.loading ? 'active' : '')
+                            "group-users-loading " +
+                            (this.state.loading ? "active" : "")
                         }
                     >
-                        <i className='fa fa-spinner fa-pulse fa-2x'/>
+                        <i className="fa fa-spinner fa-pulse fa-2x" />
                     </div>
                     {this.renderRows()}
                 </div>

@@ -1,29 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
-import type {ListChildComponentProps} from 'react-window';
-import {VariableSizeList} from 'react-window';
-import InfiniteLoader from 'react-window-infinite-loader';
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { FormattedMessage } from "react-intl";
+import type { ListChildComponentProps } from "react-window";
+import { VariableSizeList } from "react-window";
+import InfiniteLoader from "react-window-infinite-loader";
 
-import type {Group, GroupPermissions} from '@mattermost/types/groups';
+import type { Group, GroupPermissions } from "@mattermost/types/groups";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import LoadingScreen from 'components/loading_screen';
-import NoResultsIndicator from 'components/no_results_indicator';
-import {NoResultsVariant} from 'components/no_results_indicator/types';
-import ViewUserGroupModal from 'components/view_user_group_modal';
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import LoadingScreen from "components/loading_screen";
+import NoResultsIndicator from "components/no_results_indicator";
+import { NoResultsVariant } from "components/no_results_indicator/types";
+import ViewUserGroupModal from "components/view_user_group_modal";
+import Menu from "components/widgets/menu/menu";
+import MenuWrapper from "components/widgets/menu/menu_wrapper";
 
-import {ModalIdentifiers} from 'utils/constants';
-import * as Utils from 'utils/utils';
+import { ModalIdentifiers } from "utils/constants";
+import * as Utils from "utils/utils";
 
-import type {ModalData} from 'types/actions';
+import type { ModalData } from "types/actions";
 
-import ADLDAPUpsellBanner from '../ad_ldap_upsell_banner';
+import ADLDAPUpsellBanner from "../ad_ldap_upsell_banner";
 
 export type Props = {
     groups: Group[];
@@ -39,7 +39,7 @@ export type Props = {
         restoreGroup: (groupId: string) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
-}
+};
 
 const UserGroupsList = (props: Props) => {
     const {
@@ -57,11 +57,11 @@ const UserGroupsList = (props: Props) => {
     const infiniteLoaderRef = useRef<InfiniteLoader | null>(null);
     const variableSizeListRef = useRef<VariableSizeList | null>(null);
     const [hasMounted, setHasMounted] = useState(false);
-    const [overflowState, setOverflowState] = useState('overlay');
+    const [overflowState, setOverflowState] = useState("overlay");
 
     useEffect(() => {
         if (groups.length === 1) {
-            setOverflowState('visible');
+            setOverflowState("visible");
         }
     }, [groups]);
 
@@ -85,28 +85,37 @@ const UserGroupsList = (props: Props) => {
         return !hasNextPage || index < groups.length;
     };
 
-    const archiveGroup = useCallback(async (groupId: string) => {
-        await actions.archiveGroup(groupId);
-    }, [actions.archiveGroup]);
+    const archiveGroup = useCallback(
+        async (groupId: string) => {
+            await actions.archiveGroup(groupId);
+        },
+        [actions.archiveGroup],
+    );
 
-    const restoreGroup = useCallback(async (groupId: string) => {
-        await actions.restoreGroup(groupId);
-    }, [actions.restoreGroup]);
+    const restoreGroup = useCallback(
+        async (groupId: string) => {
+            await actions.restoreGroup(groupId);
+        },
+        [actions.restoreGroup],
+    );
 
-    const goToViewGroupModal = useCallback((group: Group) => {
-        actions.openModal({
-            modalId: ModalIdentifiers.VIEW_USER_GROUP,
-            dialogType: ViewUserGroupModal,
-            dialogProps: {
-                groupId: group.id,
-                backButtonCallback: backButtonAction,
-                backButtonAction: () => {
-                    goToViewGroupModal(group);
+    const goToViewGroupModal = useCallback(
+        (group: Group) => {
+            actions.openModal({
+                modalId: ModalIdentifiers.VIEW_USER_GROUP,
+                dialogType: ViewUserGroupModal,
+                dialogProps: {
+                    groupId: group.id,
+                    backButtonCallback: backButtonAction,
+                    backButtonAction: () => {
+                        goToViewGroupModal(group);
+                    },
                 },
-            },
-        });
-        onExited();
-    }, [actions.openModal, onExited, backButtonAction]);
+            });
+            onExited();
+        },
+        [actions.openModal, onExited, backButtonAction],
+    );
 
     const groupListOpenUp = (groupListItemIndex: number): boolean => {
         if (groupListItemIndex === 0) {
@@ -115,12 +124,12 @@ const UserGroupsList = (props: Props) => {
         return true;
     };
 
-    const Item = ({index, style}: ListChildComponentProps) => {
+    const Item = ({ index, style }: ListChildComponentProps) => {
         if (groups.length === 0 && searchTerm) {
             return (
                 <NoResultsIndicator
                     variant={NoResultsVariant.ChannelSearch}
-                    titleValues={{channelName: `"${searchTerm}"`}}
+                    titleValues={{ channelName: `"${searchTerm}"` }}
                 />
             );
         }
@@ -132,75 +141,97 @@ const UserGroupsList = (props: Props) => {
 
             return (
                 <div
-                    className='group-row'
+                    className="group-row"
                     style={style}
                     key={group.id}
                     onClick={() => {
                         goToViewGroupModal(group);
                     }}
                 >
-                    <span className='group-display-name'>
-                        {
-                            group.delete_at > 0 &&
-                            <i className='icon icon-archive-outline'/>
-                        }
+                    <span className="group-display-name">
+                        {group.delete_at > 0 && (
+                            <i className="icon icon-archive-outline" />
+                        )}
                         {group.display_name}
                     </span>
-                    <span className='group-name'>
-                        {'@'}{group.name}
+                    <span className="group-name">
+                        {"@"}
+                        {group.name}
                     </span>
-                    <div className='group-member-count'>
+                    <div className="group-member-count">
                         <FormattedMessage
-                            id='user_groups_modal.memberCount'
-                            defaultMessage='{member_count} {member_count, plural, one {member} other {members}}'
+                            id="user_groups_modal.memberCount"
+                            defaultMessage="{member_count} {member_count, plural, one {member} other {members}}"
                             values={{
                                 member_count: group.member_count,
                             }}
                         />
                     </div>
-                    <div className='group-action'>
+                    <div className="group-action">
                         <MenuWrapper
                             isDisabled={false}
                             stopPropagationOnToggle={true}
                             id={`customWrapper-${group.id}`}
                         >
-                            <button className='btn btn-icon btn-xs'>
-                                <i className='icon icon-dots-vertical'/>
+                            <button className="btn btn-icon btn-xs">
+                                <i className="icon icon-dots-vertical" />
                             </button>
                             <Menu
                                 openLeft={true}
                                 openUp={groupListOpenUp(index)}
-                                className={'group-actions-menu'}
-                                ariaLabel={Utils.localizeMessage('admin.user_item.menuAriaLabel', 'User Actions Menu')}
+                                className={"group-actions-menu"}
+                                ariaLabel={Utils.localizeMessage(
+                                    "admin.user_item.menuAriaLabel",
+                                    "User Actions Menu",
+                                )}
                             >
                                 <Menu.Group>
                                     <Menu.ItemAction
                                         onClick={() => {
                                             goToViewGroupModal(group);
                                         }}
-                                        icon={<i className='icon-account-multiple-outline'/>}
-                                        text={Utils.localizeMessage('user_groups_modal.viewGroup', 'View Group')}
+                                        icon={
+                                            <i className="icon-account-multiple-outline" />
+                                        }
+                                        text={Utils.localizeMessage(
+                                            "user_groups_modal.viewGroup",
+                                            "View Group",
+                                        )}
                                         disabled={false}
                                     />
                                 </Menu.Group>
                                 <Menu.Group>
                                     <Menu.ItemAction
-                                        show={groupPermissionsMap[group.id].can_delete}
+                                        show={
+                                            groupPermissionsMap[group.id]
+                                                .can_delete
+                                        }
                                         onClick={() => {
                                             archiveGroup(group.id);
                                         }}
-                                        icon={<i className='icon-archive-outline'/>}
-                                        text={Utils.localizeMessage('user_groups_modal.archiveGroup', 'Archive Group')}
+                                        icon={
+                                            <i className="icon-archive-outline" />
+                                        }
+                                        text={Utils.localizeMessage(
+                                            "user_groups_modal.archiveGroup",
+                                            "Archive Group",
+                                        )}
                                         disabled={false}
                                         isDangerous={true}
                                     />
                                     <Menu.ItemAction
-                                        show={groupPermissionsMap[group.id].can_restore}
+                                        show={
+                                            groupPermissionsMap[group.id]
+                                                .can_restore
+                                        }
                                         onClick={() => {
                                             restoreGroup(group.id);
                                         }}
-                                        icon={<i className='icon-restore'/>}
-                                        text={Utils.localizeMessage('user_groups_modal.restoreGroup', 'Restore Group')}
+                                        icon={<i className="icon-restore" />}
+                                        text={Utils.localizeMessage(
+                                            "user_groups_modal.restoreGroup",
+                                            "Restore Group",
+                                        )}
                                         disabled={false}
                                     />
                                 </Menu.Group>
@@ -211,15 +242,15 @@ const UserGroupsList = (props: Props) => {
             );
         }
         if (loading) {
-            return <LoadingScreen/>;
+            return <LoadingScreen />;
         }
         return null;
     };
 
     return (
         <div
-            className='user-groups-modal__content user-groups-list'
-            style={{overflow: overflowState}}
+            className="user-groups-modal__content user-groups-list"
+            style={{ overflow: overflowState }}
         >
             <InfiniteLoader
                 ref={infiniteLoaderRef}
@@ -227,19 +258,24 @@ const UserGroupsList = (props: Props) => {
                 itemCount={100000}
                 loadMoreItems={loadMoreItems}
             >
-                {({onItemsRendered, ref}) => (
+                {({ onItemsRendered, ref }) => (
                     <VariableSizeList
                         itemCount={itemCount}
                         onItemsRendered={onItemsRendered}
                         ref={ref}
                         itemSize={() => 52}
-                        height={groups.length >= 8 ? 416 : Math.max(groups.length, 3) * 52}
-                        width={'100%'}
+                        height={
+                            groups.length >= 8
+                                ? 416
+                                : Math.max(groups.length, 3) * 52
+                        }
+                        width={"100%"}
                     >
                         {Item}
-                    </VariableSizeList>)}
+                    </VariableSizeList>
+                )}
             </InfiniteLoader>
-            <ADLDAPUpsellBanner/>
+            <ADLDAPUpsellBanner />
         </div>
     );
 };

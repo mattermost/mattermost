@@ -1,22 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
+import React from "react";
+import { FormattedMessage, injectIntl, type IntlShape } from "react-intl";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import ExternalLink from "components/external_link";
+import FormattedMarkdownMessage from "components/formatted_markdown_message";
 
-import * as Utils from 'utils/utils';
+import * as Utils from "utils/utils";
 
 type MFAControllerState = {
     enforceMultifactorAuthentication: boolean;
 };
 
 type Props = {
-
     /*
      * Object containing enforceMultifactorAuthentication
      */
@@ -51,14 +50,14 @@ type Props = {
     history: {
         push(path: string): void;
     };
-}
+};
 
 type State = {
     secret: string;
     qrCode: string;
     error?: any | null;
     serverError?: string;
-}
+};
 
 class Setup extends React.PureComponent<Props, State> {
     private input: React.RefObject<HTMLInputElement>;
@@ -66,7 +65,7 @@ class Setup extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
         super(props);
 
-        this.state = {secret: '', qrCode: ''};
+        this.state = { secret: "", qrCode: "" };
 
         this.input = React.createRef();
     }
@@ -74,11 +73,11 @@ class Setup extends React.PureComponent<Props, State> {
     public componentDidMount(): void {
         const user = this.props.currentUser;
         if (!user || user.mfa_active) {
-            this.props.history.push('/');
+            this.props.history.push("/");
             return;
         }
 
-        this.props.actions.generateMfaSecret().then(({data, error}) => {
+        this.props.actions.generateMfaSecret().then(({ data, error }) => {
             if (error) {
                 this.setState({
                     serverError: error.message,
@@ -95,19 +94,30 @@ class Setup extends React.PureComponent<Props, State> {
 
     submit = (e: React.FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
-        const code = this.input?.current?.value.replace(/\s/g, '');
+        const code = this.input?.current?.value.replace(/\s/g, "");
         if (!code || code.length === 0) {
-            this.setState({error: Utils.localizeMessage('mfa.setup.codeError', 'Please enter the code from Google Authenticator.')});
+            this.setState({
+                error: Utils.localizeMessage(
+                    "mfa.setup.codeError",
+                    "Please enter the code from Google Authenticator.",
+                ),
+            });
             return;
         }
 
-        this.setState({error: null});
+        this.setState({ error: null });
 
-        this.props.actions.activateMfa(code).then(({error}) => {
+        this.props.actions.activateMfa(code).then(({ error }) => {
             if (error) {
-                if (error.server_error_id === 'ent.mfa.activate.authenticate.app_error') {
+                if (
+                    error.server_error_id ===
+                    "ent.mfa.activate.authenticate.app_error"
+                ) {
                     this.setState({
-                        error: Utils.localizeMessage('mfa.setup.badCode', 'Invalid code. If this issue persists, contact your System Administrator.'),
+                        error: Utils.localizeMessage(
+                            "mfa.setup.badCode",
+                            "Invalid code. If this issue persists, contact your System Administrator.",
+                        ),
                     });
                 } else {
                     this.setState({
@@ -118,16 +128,20 @@ class Setup extends React.PureComponent<Props, State> {
                 return;
             }
 
-            this.props.history.push('/mfa/confirm');
+            this.props.history.push("/mfa/confirm");
         });
     };
 
     public render(): JSX.Element {
-        let formClass = 'form-group';
+        let formClass = "form-group";
         let errorContent;
         if (this.state.error) {
-            errorContent = <div className='form-group has-error'><label className='control-label'>{this.state.error}</label></div>;
-            formClass += ' has-error';
+            errorContent = (
+                <div className="form-group has-error">
+                    <label className="control-label">{this.state.error}</label>
+                </div>
+            );
+            formClass += " has-error";
         }
 
         let mfaRequired;
@@ -135,8 +149,8 @@ class Setup extends React.PureComponent<Props, State> {
             mfaRequired = (
                 <p>
                     <FormattedMarkdownMessage
-                        id='mfa.setup.required'
-                        defaultMessage='**Multi-factor authentication is required on {siteName}.**'
+                        id="mfa.setup.required"
+                        defaultMessage="**Multi-factor authentication is required on {siteName}.**"
                         values={{
                             siteName: this.props.siteName,
                         }}
@@ -147,29 +161,28 @@ class Setup extends React.PureComponent<Props, State> {
 
         return (
             <div>
-                <form
-                    onSubmit={this.submit}
-                    className={formClass}
-                >
+                <form onSubmit={this.submit} className={formClass}>
                     {mfaRequired}
                     <p>
                         <FormattedMessage
-                            id='mfa.setup.step1'
-                            defaultMessage='<strong>Step 1: </strong>On your phone, download Google Authenticator from <linkiTunes>iTunes</linkiTunes> or <linkGooglePlay>Google Play</linkGooglePlay>'
+                            id="mfa.setup.step1"
+                            defaultMessage="<strong>Step 1: </strong>On your phone, download Google Authenticator from <linkiTunes>iTunes</linkiTunes> or <linkGooglePlay>Google Play</linkGooglePlay>"
                             values={{
-                                strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                                strong: (msg: React.ReactNode) => (
+                                    <strong>{msg}</strong>
+                                ),
                                 linkiTunes: (msg: React.ReactNode) => (
                                     <ExternalLink
-                                        href='https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8'
-                                        location='mfa_setup'
+                                        href="https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8"
+                                        location="mfa_setup"
                                     >
                                         {msg}
                                     </ExternalLink>
                                 ),
                                 linkGooglePlay: (msg: React.ReactNode) => (
                                     <ExternalLink
-                                        href='https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en'
-                                        location='mfa_setup'
+                                        href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en"
+                                        location="mfa_setup"
                                     >
                                         {msg}
                                     </ExternalLink>
@@ -179,25 +192,27 @@ class Setup extends React.PureComponent<Props, State> {
                     </p>
                     <p>
                         <FormattedMarkdownMessage
-                            id='mfa.setup.step2'
-                            defaultMessage='**Step 2: **Use Google Authenticator to scan this QR code, or manually type in the secret key'
+                            id="mfa.setup.step2"
+                            defaultMessage="**Step 2: **Use Google Authenticator to scan this QR code, or manually type in the secret key"
                         />
                     </p>
-                    <div className='form-group'>
-                        <div className='col-sm-12'>
+                    <div className="form-group">
+                        <div className="col-sm-12">
                             <img
-                                alt={'qr code image'}
+                                alt={"qr code image"}
                                 style={style.qrCode}
-                                src={'data:image/png;base64,' + this.state.qrCode}
+                                src={
+                                    "data:image/png;base64," + this.state.qrCode
+                                }
                             />
                         </div>
                     </div>
-                    <br/>
-                    <div className='form-group'>
-                        <p className='col-sm-12'>
+                    <br />
+                    <div className="form-group">
+                        <p className="col-sm-12">
                             <FormattedMessage
-                                id='mfa.setup.secret'
-                                defaultMessage='Secret: {secret}'
+                                id="mfa.setup.secret"
+                                defaultMessage="Secret: {secret}"
                                 values={{
                                     secret: this.state.secret,
                                 }}
@@ -206,26 +221,26 @@ class Setup extends React.PureComponent<Props, State> {
                     </div>
                     <p>
                         <FormattedMarkdownMessage
-                            id='mfa.setup.step3'
-                            defaultMessage='**Step 3: **Enter the code generated by Google Authenticator'
+                            id="mfa.setup.step3"
+                            defaultMessage="**Step 3: **Enter the code generated by Google Authenticator"
                         />
                     </p>
                     <p>
                         <input
                             ref={this.input}
-                            className='form-control'
-                            placeholder={this.props.intl.formatMessage({id: 'mfa.setup.code', defaultMessage: 'MFA Code'})}
+                            className="form-control"
+                            placeholder={this.props.intl.formatMessage({
+                                id: "mfa.setup.code",
+                                defaultMessage: "MFA Code",
+                            })}
                             autoFocus={true}
                         />
                     </p>
                     {errorContent}
-                    <button
-                        type='submit'
-                        className='btn btn-primary'
-                    >
+                    <button type="submit" className="btn btn-primary">
                         <FormattedMessage
-                            id='mfa.setup.save'
-                            defaultMessage='Save'
+                            id="mfa.setup.save"
+                            defaultMessage="Save"
                         />
                     </button>
                 </form>
@@ -235,7 +250,7 @@ class Setup extends React.PureComponent<Props, State> {
 }
 
 const style = {
-    qrCode: {maxHeight: 170},
+    qrCode: { maxHeight: 170 },
 };
 
 export default injectIntl(Setup);

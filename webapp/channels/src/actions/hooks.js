@@ -5,7 +5,7 @@ export function runMessageWillBePostedHooks(originalPost) {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.MessageWillBePosted;
         if (!hooks || hooks.length === 0) {
-            return {data: originalPost};
+            return { data: originalPost };
         }
 
         let post = originalPost;
@@ -24,15 +24,18 @@ export function runMessageWillBePostedHooks(originalPost) {
             }
         }
 
-        return {data: post};
+        return { data: post };
     };
 }
 
-export function runSlashCommandWillBePostedHooks(originalMessage, originalArgs) {
+export function runSlashCommandWillBePostedHooks(
+    originalMessage,
+    originalArgs,
+) {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.SlashCommandWillBePosted;
         if (!hooks || hooks.length === 0) {
-            return {data: {message: originalMessage, args: originalArgs}};
+            return { data: { message: originalMessage, args: originalArgs } };
         }
 
         let message = originalMessage;
@@ -59,7 +62,7 @@ export function runSlashCommandWillBePostedHooks(originalMessage, originalArgs) 
             }
         }
 
-        return {data: {message, args}};
+        return { data: { message, args } };
     };
 }
 
@@ -67,7 +70,7 @@ export function runMessageWillBeUpdatedHooks(newPost, oldPost) {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.MessageWillBeUpdated;
         if (!hooks || hooks.length === 0) {
-            return {data: newPost};
+            return { data: newPost };
         }
 
         let post = newPost;
@@ -86,34 +89,46 @@ export function runMessageWillBeUpdatedHooks(newPost, oldPost) {
             }
         }
 
-        return {data: post};
+        return { data: post };
     };
 }
 
-export function runDesktopNotificationHooks(post, msgProps, channel, teamId, args) {
+export function runDesktopNotificationHooks(
+    post,
+    msgProps,
+    channel,
+    teamId,
+    args,
+) {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.DesktopNotificationHooks;
         if (!hooks || hooks.length === 0) {
-            return {args};
+            return { args };
         }
 
         let nextArgs = args;
         for (const hook of hooks) {
-            const result = await hook.hook(post, msgProps, channel, teamId, nextArgs); // eslint-disable-line no-await-in-loop
+            const result = await hook.hook(
+                post,
+                msgProps,
+                channel,
+                teamId,
+                nextArgs,
+            ); // eslint-disable-line no-await-in-loop
 
             if (result) {
                 if (result.error) {
-                    return {error: result.error};
+                    return { error: result.error };
                 }
 
                 if (!result.args) {
-                    return {error: 'returned empty args'};
+                    return { error: "returned empty args" };
                 }
 
                 nextArgs = result.args;
             }
         }
 
-        return {args: nextArgs};
+        return { args: nextArgs };
     };
 }

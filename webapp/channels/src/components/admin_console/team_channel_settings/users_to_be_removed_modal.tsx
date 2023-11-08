@@ -1,18 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import React, { useCallback, useState } from "react";
+import { Modal } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import FormattedMarkdownMessage from "components/formatted_markdown_message";
 
-import GroupsUsers from './group/group_users';
+import GroupsUsers from "./group/group_users";
 
 type Props = {
-
     /*
      * Number of users to be removed
      */
@@ -22,7 +21,7 @@ type Props = {
      * Scope that the users are to be removed from
      * can be either 'team' or 'channel'
      */
-    scope: 'team' | 'channel';
+    scope: "team" | "channel";
 
     /*
      * Id of the scope that the users are to be removed from
@@ -38,62 +37,67 @@ type Props = {
     onExited?: () => void;
 };
 
-const UsersToBeRemovedModal = ({total, scope, scopeId, users, onExited}: Props) => {
+const UsersToBeRemovedModal = ({
+    total,
+    scope,
+    scopeId,
+    users,
+    onExited,
+}: Props) => {
     const [show, setShow] = useState(true);
 
     const handleHide = useCallback(() => setShow(false), []);
 
     const title = (
         <FormattedMarkdownMessage
-            id='admin.team_channel_settings.usersToBeRemovedModal.title'
-            defaultMessage='**{total, number} {total, plural, one {User} other {Users}}** To Be Removed'
-            values={{total}}
+            id="admin.team_channel_settings.usersToBeRemovedModal.title"
+            defaultMessage="**{total, number} {total, plural, one {User} other {Users}}** To Be Removed"
+            values={{ total }}
         />
     );
 
     let message = (
         <FormattedMessage
-            id='admin.team_channel_settings.usersToBeRemovedModal.message'
-            defaultMessage='The members listed below are not in any of the groups currently linked to this team. Because this team is set to be managed by group sync they will all be removed once saved.'
+            id="admin.team_channel_settings.usersToBeRemovedModal.message"
+            defaultMessage="The members listed below are not in any of the groups currently linked to this team. Because this team is set to be managed by group sync they will all be removed once saved."
         />
     );
 
-    if (scope === 'channel') {
+    if (scope === "channel") {
         message = (
             <FormattedMessage
-                id='admin.team_channel_settings.usersToBeRemovedModal.channel_message'
-                defaultMessage='The members listed below are not in any of the groups currently linked to this channel. Because this channel is set to be managed by group sync they will all be removed once saved.'
+                id="admin.team_channel_settings.usersToBeRemovedModal.channel_message"
+                defaultMessage="The members listed below are not in any of the groups currently linked to this channel. Because this channel is set to be managed by group sync they will all be removed once saved."
             />
         );
     }
 
     const button = (
         <FormattedMessage
-            id='admin.team_channel_settings.usersToBeRemovedModal.close'
-            defaultMessage='Close'
+            id="admin.team_channel_settings.usersToBeRemovedModal.close"
+            defaultMessage="Close"
         />
     );
 
     return (
         <Modal
-            dialogClassName='a11y__modal settings-modal'
+            dialogClassName="a11y__modal settings-modal"
             show={show}
             onHide={handleHide}
             onExited={onExited}
-            id='confirmModal'
-            role='dialog'
-            aria-labelledby='confirmModalLabel'
+            id="confirmModal"
+            role="dialog"
+            aria-labelledby="confirmModalLabel"
         >
             <Modal.Header closeButton={true}>
-                <Modal.Title
-                    componentClass='h1'
-                    id='confirmModalLabel'
-                >
+                <Modal.Title componentClass="h1" id="confirmModalLabel">
                     {title}
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <div className='group-users-to-remove-modal-description'>{message}</div>
+                <div className="group-users-to-remove-modal-description">
+                    {message}
+                </div>
                 <GroupsUsers
                     members={users}
                     total={total}
@@ -103,11 +107,11 @@ const UsersToBeRemovedModal = ({total, scope, scopeId, users, onExited}: Props) 
             </Modal.Body>
             <Modal.Footer>
                 <button
-                    type='button'
+                    type="button"
                     autoFocus={true}
-                    className='btn btn-primary'
+                    className="btn btn-primary"
                     onClick={handleHide}
-                    id='closeModalButton'
+                    id="closeModalButton"
                 >
                     {button}
                 </button>

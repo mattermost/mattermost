@@ -1,29 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import type { ActionCreatorsMapObject, Dispatch } from "redux";
 
-import type {Compliance} from '@mattermost/types/compliance';
-import type {GlobalState} from '@mattermost/types/store';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Compliance } from "@mattermost/types/compliance";
+import type { GlobalState } from "@mattermost/types/store";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {createComplianceReport, getComplianceReports} from 'mattermost-redux/actions/admin';
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getComplianceReports as selectComplianceReports, getConfig} from 'mattermost-redux/selectors/entities/admin';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import {
+    createComplianceReport,
+    getComplianceReports,
+} from "mattermost-redux/actions/admin";
+import { createSelector } from "mattermost-redux/selectors/create_selector";
+import {
+    getComplianceReports as selectComplianceReports,
+    getConfig,
+} from "mattermost-redux/selectors/entities/admin";
+import { getLicense } from "mattermost-redux/selectors/entities/general";
+import type { ActionFunc, GenericAction } from "mattermost-redux/types/actions";
 
-import ComplianceReports from './compliance_reports';
+import ComplianceReports from "./compliance_reports";
 
 type Actions = {
-    getComplianceReports: () => Promise<{data: Compliance[]}>;
-    createComplianceReport: (job: Partial<Compliance>) => Promise<{data: Compliance; error?: Error}>;
-}
+    getComplianceReports: () => Promise<{ data: Compliance[] }>;
+    createComplianceReport: (
+        job: Partial<Compliance>,
+    ) => Promise<{ data: Compliance; error?: Error }>;
+};
 
 const getUsersForReports = createSelector(
-    'getUsersForReports',
+    "getUsersForReports",
     (state: GlobalState) => state.entities.users.profiles,
     (state: GlobalState) => state.entities.admin.complianceReports,
     (users, reports) => {
@@ -40,7 +48,7 @@ const getUsersForReports = createSelector(
 
 function mapStateToProps(state: GlobalState) {
     const license = getLicense(state);
-    const isLicensed = license.IsLicensed === 'true';
+    const isLicensed = license.IsLicensed === "true";
 
     let enabled = false;
     const config = getConfig(state);
@@ -54,9 +62,11 @@ function mapStateToProps(state: GlobalState) {
         serverError = error.message;
     }
 
-    const reports = Object.values(selectComplianceReports(state)).sort((a, b) => {
-        return b.create_at - a.create_at;
-    });
+    const reports = Object.values(selectComplianceReports(state)).sort(
+        (a, b) => {
+            return b.create_at - a.create_at;
+        },
+    );
 
     return {
         isLicensed,
@@ -69,10 +79,16 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
-            getComplianceReports,
-            createComplianceReport,
-        }, dispatch),
+        actions: bindActionCreators<
+            ActionCreatorsMapObject<ActionFunc>,
+            Actions
+        >(
+            {
+                getComplianceReports,
+                createComplianceReport,
+            },
+            dispatch,
+        ),
     };
 }
 

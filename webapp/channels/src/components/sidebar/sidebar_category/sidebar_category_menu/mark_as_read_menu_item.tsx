@@ -1,25 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import React, { useCallback } from "react";
+import { FormattedMessage } from "react-intl";
+import { useDispatch } from "react-redux";
 
-import {MarkAsUnreadIcon} from '@mattermost/compass-icons/components';
+import { MarkAsUnreadIcon } from "@mattermost/compass-icons/components";
 
-import {openModal} from 'actions/views/modals';
+import { openModal } from "actions/views/modals";
 
-import * as Menu from 'components/menu';
+import * as Menu from "components/menu";
 
-import {ModalIdentifiers} from 'utils/constants';
+import { ModalIdentifiers } from "utils/constants";
 
-import MarkAsReadConfirmModal from './mark_as_read_confirm_modal';
+import MarkAsReadConfirmModal from "./mark_as_read_confirm_modal";
 
 type Props = {
     id: string;
     handleViewCategory: () => void;
     numChannels: number;
-}
+};
 
 const MarkAsUnreadItem = ({
     id,
@@ -39,14 +39,16 @@ const MarkAsUnreadItem = ({
             return;
         }
 
-        dispatch(openModal({
-            modalId: ModalIdentifiers.DELETE_CATEGORY,
-            dialogType: MarkAsReadConfirmModal,
-            dialogProps: {
-                handleConfirm: handleViewCategory,
-                numChannels,
-            },
-        }));
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.DELETE_CATEGORY,
+                dialogType: MarkAsReadConfirmModal,
+                dialogProps: {
+                    handleConfirm: handleViewCategory,
+                    numChannels,
+                },
+            }),
+        );
     }, [dispatch, handleViewCategory, numChannels]);
 
     return (
@@ -54,13 +56,13 @@ const MarkAsUnreadItem = ({
             id={`view-${id}`}
             onClick={onClick}
             aria-haspopup={numChannels > 1}
-            leadingElement={<MarkAsUnreadIcon size={18}/>}
-            labels={(
+            leadingElement={<MarkAsUnreadIcon size={18} />}
+            labels={
                 <FormattedMessage
-                    id='sidebar_left.sidebar_category_menu.viewCategory'
-                    defaultMessage='Mark category as read'
+                    id="sidebar_left.sidebar_category_menu.viewCategory"
+                    defaultMessage="Mark category as read"
                 />
-            )}
+            }
             {...otherProps}
         />
     );

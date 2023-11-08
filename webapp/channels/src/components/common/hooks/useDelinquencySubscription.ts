@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import useGetSubscription from './useGetSubscription';
+import useGetSubscription from "./useGetSubscription";
 
 export const useDelinquencySubscription = () => {
     const subscription = useGetSubscription();
@@ -27,7 +27,9 @@ export const useDelinquencySubscription = () => {
             return false;
         }
 
-        const delinquencyDate = new Date((subscription.delinquent_since || 0) * 1000);
+        const delinquencyDate = new Date(
+            (subscription.delinquent_since || 0) * 1000,
+        );
 
         const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
         const today = new Date();
@@ -38,5 +40,9 @@ export const useDelinquencySubscription = () => {
         return diffDays > 90;
     };
 
-    return {isDelinquencySubscription, isDelinquencySubscriptionHigherThan90Days, subscription};
+    return {
+        isDelinquencySubscription,
+        isDelinquencySubscriptionHigherThan90Days,
+        subscription,
+    };
 };

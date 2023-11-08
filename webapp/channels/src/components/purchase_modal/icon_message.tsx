@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import classNames from "classnames";
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import './icon_message.scss';
-import ExternalLink from 'components/external_link';
+import "./icon_message.scss";
+import ExternalLink from "components/external_link";
 
 type Props = {
     icon: JSX.Element;
@@ -28,7 +28,7 @@ type Props = {
     footer?: JSX.Element;
     testId?: string;
     className?: string;
-}
+};
 
 export default function IconMessage(props: Props) {
     const {
@@ -56,26 +56,43 @@ export default function IconMessage(props: Props) {
     let button = null;
     if ((buttonText || formattedButtonText) && buttonHandler) {
         button = (
-            <div className={classNames('IconMessage-button', error ? 'error' : '')}>
+            <div
+                className={classNames(
+                    "IconMessage-button",
+                    error ? "error" : "",
+                )}
+            >
                 <button
-                    className='btn btn-primary Form-btn'
+                    className="btn btn-primary Form-btn"
                     onClick={buttonHandler}
                 >
-                    {formattedButtonText || <FormattedMessage id={buttonText}/>}
+                    {formattedButtonText || (
+                        <FormattedMessage id={buttonText} />
+                    )}
                 </button>
             </div>
         );
     }
 
     let tertiaryBtn = null;
-    if ((tertiaryBtnText || formattedTertiaryButonText) && tertiaryButtonHandler) {
+    if (
+        (tertiaryBtnText || formattedTertiaryButonText) &&
+        tertiaryButtonHandler
+    ) {
         tertiaryBtn = (
-            <div className={classNames('IconMessage-tertiary-button', error ? 'error' : '')}>
+            <div
+                className={classNames(
+                    "IconMessage-tertiary-button",
+                    error ? "error" : "",
+                )}
+            >
                 <button
-                    className='btn Form-btn'
+                    className="btn Form-btn"
                     onClick={tertiaryButtonHandler}
                 >
-                    {formattedTertiaryButonText || <FormattedMessage id={tertiaryBtnText}/>}
+                    {formattedTertiaryButonText || (
+                        <FormattedMessage id={tertiaryBtnText} />
+                    )}
                 </button>
             </div>
         );
@@ -83,54 +100,40 @@ export default function IconMessage(props: Props) {
 
     let link = null;
     if (formattedLinkText) {
-        link = (
-            <div className='IconMessage-link'>
-                {formattedLinkText}
-            </div>
-        );
+        link = <div className="IconMessage-link">{formattedLinkText}</div>;
     } else if (linkText && linkURL) {
         link = (
-            <div className='IconMessage-link'>
-                <ExternalLink
-                    href={linkURL}
-                    location='icon_message'
-                >
-                    <FormattedMessage
-                        id={linkText}
-                    />
+            <div className="IconMessage-link">
+                <ExternalLink href={linkURL} location="icon_message">
+                    <FormattedMessage id={linkText} />
                 </ExternalLink>
             </div>
         );
     }
-    const withTestId: {'data-testid'?: string} = {};
+    const withTestId: { "data-testid"?: string } = {};
     if (testId) {
-        withTestId['data-testid'] = testId;
+        withTestId["data-testid"] = testId;
     }
 
     return (
         <div
-            id='payment_complete_header'
-            className='IconMessage'
+            id="payment_complete_header"
+            className="IconMessage"
             {...withTestId}
         >
-            <div className={classNames('content', className || '')}>
-                <div className='IconMessage__svg-wrapper'>
-                    {icon}
-                </div>
-                <h3 className='IconMessage-h3'>
-                    {title ? <FormattedMessage id={title}/> : null}
+            <div className={classNames("content", className || "")}>
+                <div className="IconMessage__svg-wrapper">{icon}</div>
+                <h3 className="IconMessage-h3">
+                    {title ? <FormattedMessage id={title} /> : null}
                     {formattedTitle || null}
                 </h3>
-                <div className={classNames('IconMessage-sub', error || '')}>
+                <div className={classNames("IconMessage-sub", error || "")}>
                     {subtitle ? (
-                        <FormattedMessage
-                            id={subtitle}
-                            values={{date}}
-                        />
+                        <FormattedMessage id={subtitle} values={{ date }} />
                     ) : null}
                     {formattedSubtitle || null}
                 </div>
-                <div className='IconMessage-buttons'>
+                <div className="IconMessage-buttons">
                     {tertiaryBtn}
                     {button}
                 </div>
@@ -143,7 +146,7 @@ export default function IconMessage(props: Props) {
 
 IconMessage.defaultProps = {
     error: false,
-    subtitle: '',
-    date: '',
-    className: '',
+    subtitle: "",
+    date: "",
+    className: "",
 };

@@ -1,17 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
-import {clearMarks, mark, measure, trackEvent} from 'actions/telemetry_actions.jsx';
-import type {LoadPostsParameters, LoadPostsReturnValue, CanLoadMorePosts} from 'actions/views/channel';
+import type { updateNewMessagesAtInChannel } from "actions/global_actions";
+import {
+    clearMarks,
+    mark,
+    measure,
+    trackEvent,
+} from "actions/telemetry_actions.jsx";
+import type {
+    LoadPostsParameters,
+    LoadPostsReturnValue,
+    CanLoadMorePosts,
+} from "actions/views/channel";
 
-import LoadingScreen from 'components/loading_screen';
-import VirtPostList from 'components/post_view/post_list_virtualized/post_list_virtualized';
+import LoadingScreen from "components/loading_screen";
+import VirtPostList from "components/post_view/post_list_virtualized/post_list_virtualized";
 
-import {PostRequestTypes} from 'utils/constants';
-import {getOldestPostId, getLatestPostId} from 'utils/post_utils';
+import { PostRequestTypes } from "utils/constants";
+import { getOldestPostId, getLatestPostId } from "utils/post_utils";
 
 const MAX_NUMBER_OF_AUTO_RETRIES = 3;
 export const MAX_EXTRA_PAGES_LOADED = 10;
@@ -19,26 +28,32 @@ export const MAX_EXTRA_PAGES_LOADED = 10;
 // Measures the time between channel or team switch started and the post list component rendering posts.
 // Set "fresh" to true when the posts have not been loaded before.
 function markAndMeasureChannelSwitchEnd(fresh = false) {
-    mark('PostList#component');
+    mark("PostList#component");
 
-    const {duration: dur1, requestCount: requestCount1} = measure('SidebarChannelLink#click', 'PostList#component');
-    const {duration: dur2, requestCount: requestCount2} = measure('TeamLink#click', 'PostList#component');
+    const { duration: dur1, requestCount: requestCount1 } = measure(
+        "SidebarChannelLink#click",
+        "PostList#component",
+    );
+    const { duration: dur2, requestCount: requestCount2 } = measure(
+        "TeamLink#click",
+        "PostList#component",
+    );
 
     clearMarks([
-        'SidebarChannelLink#click',
-        'TeamLink#click',
-        'PostList#component',
+        "SidebarChannelLink#click",
+        "TeamLink#click",
+        "PostList#component",
     ]);
 
     if (dur1 !== -1) {
-        trackEvent('performance', 'channel_switch', {
+        trackEvent("performance", "channel_switch", {
             duration: Math.round(dur1),
             fresh,
             requestCount: requestCount1,
         });
     }
     if (dur2 !== -1) {
-        trackEvent('performance', 'team_switch', {
+        trackEvent("performance", "team_switch", {
             duration: Math.round(dur2),
             fresh,
             requestCount: requestCount2,
@@ -47,7 +62,6 @@ function markAndMeasureChannelSwitchEnd(fresh = false) {
 }
 
 export interface Props {
-
     /**
      *  Array of formatted post ids in the channel
      *  This will be different from postListIds because of grouping and filtering of posts
@@ -109,11 +123,13 @@ export interface Props {
     hasInaccessiblePosts: boolean;
 
     actions: {
-
         /*
          * Used for getting permalink view posts
          */
-        loadPostsAround: (channelId: string, focusedPostId: string) => Promise<void>;
+        loadPostsAround: (
+            channelId: string,
+            focusedPostId: string,
+        ) => Promise<void>;
 
         /*
          * Used for geting unreads posts
@@ -123,12 +139,18 @@ export interface Props {
         /*
          * Used for getting posts using BEFORE_ID and AFTER_ID
          */
-        loadPosts: (parameters: LoadPostsParameters) => Promise<LoadPostsReturnValue>;
+        loadPosts: (
+            parameters: LoadPostsParameters,
+        ) => Promise<LoadPostsReturnValue>;
 
         /*
          * Used to loading posts since a timestamp to sync the posts
          */
-        syncPostsInChannel: (channelId: string, since: number, prefetch: boolean) => Promise<void>;
+        syncPostsInChannel: (
+            channelId: string,
+            since: number,
+            prefetch: boolean,
+        ) => Promise<void>;
 
         /*
          * Used to loading posts if it not first visit, permalink or there exists any postListIds
@@ -178,8 +200,10 @@ export default class PostList extends React.PureComponent<Props, State> {
             loadNewerPosts: this.getPostsAfter,
             canLoadMorePosts: this.canLoadMorePosts,
             changeUnreadChunkTimeStamp: props.changeUnreadChunkTimeStamp,
-            toggleShouldStartFromBottomWhenUnread: props.toggleShouldStartFromBottomWhenUnread,
-            updateNewMessagesAtInChannel: this.props.actions.updateNewMessagesAtInChannel,
+            toggleShouldStartFromBottomWhenUnread:
+                props.toggleShouldStartFromBottomWhenUnread,
+            updateNewMessagesAtInChannel:
+                this.props.actions.updateNewMessagesAtInChannel,
         };
     }
 
@@ -207,7 +231,13 @@ export default class PostList extends React.PureComponent<Props, State> {
     }
 
     postsOnLoad = async (channelId: string) => {
-        const {focusedPostId, isFirstLoad, latestPostTimeStamp, isPrefetchingInProcess, actions} = this.props;
+        const {
+            focusedPostId,
+            isFirstLoad,
+            latestPostTimeStamp,
+            isPrefetchingInProcess,
+            actions,
+        } = this.props;
         if (focusedPostId) {
             await actions.loadPostsAround(channelId, focusedPostId);
         } else if (isFirstLoad) {
@@ -215,7 +245,11 @@ export default class PostList extends React.PureComponent<Props, State> {
                 await actions.loadUnreads(channelId);
             }
         } else if (latestPostTimeStamp) {
-            await actions.syncPostsInChannel(channelId, latestPostTimeStamp, false);
+            await actions.syncPostsInChannel(
+                channelId,
+                latestPostTimeStamp,
+                false,
+            );
         } else {
             await actions.loadLatestPosts(channelId);
         }
@@ -234,17 +268,21 @@ export default class PostList extends React.PureComponent<Props, State> {
         }
     };
 
-    callLoadPosts = async (channelId: string, postId: string, type: CanLoadMorePosts) => {
-        const {error} = await this.props.actions.loadPosts({
+    callLoadPosts = async (
+        channelId: string,
+        postId: string,
+        type: CanLoadMorePosts,
+    ) => {
+        const { error } = await this.props.actions.loadPosts({
             channelId,
             postId,
             type,
         });
 
         if (type === PostRequestTypes.BEFORE_ID) {
-            this.setState({loadingOlderPosts: false});
+            this.setState({ loadingOlderPosts: false });
         } else {
-            this.setState({loadingNewerPosts: false});
+            this.setState({ loadingNewerPosts: false });
         }
 
         if (error) {
@@ -252,11 +290,11 @@ export default class PostList extends React.PureComponent<Props, State> {
                 this.autoRetriesCount++;
                 await this.callLoadPosts(channelId, postId, type);
             } else if (this.mounted) {
-                this.setState({autoRetryEnable: false});
+                this.setState({ autoRetryEnable: false });
             }
         } else {
             if (this.mounted) {
-                this.setState({autoRetryEnable: true});
+                this.setState({ autoRetryEnable: true });
             }
 
             if (!this.state.autoRetryEnable) {
@@ -264,7 +302,7 @@ export default class PostList extends React.PureComponent<Props, State> {
             }
         }
 
-        return {error};
+        return { error };
     };
 
     getOldestVisiblePostId = () => {
@@ -275,7 +313,9 @@ export default class PostList extends React.PureComponent<Props, State> {
         return getLatestPostId(this.props.postListIds || []);
     };
 
-    canLoadMorePosts = async (type: CanLoadMorePosts = PostRequestTypes.BEFORE_ID) => {
+    canLoadMorePosts = async (
+        type: CanLoadMorePosts = PostRequestTypes.BEFORE_ID,
+    ) => {
         if (this.props.hasInaccessiblePosts) {
             return;
         }
@@ -292,7 +332,7 @@ export default class PostList extends React.PureComponent<Props, State> {
             // Prevent this from loading a lot of pages in a channel with only hidden messages
             // Enable load more messages manual link
             if (this.state.autoRetryEnable) {
-                this.setState({autoRetryEnable: false});
+                this.setState({ autoRetryEnable: false });
             }
             return;
         }
@@ -318,8 +358,12 @@ export default class PostList extends React.PureComponent<Props, State> {
         }
 
         const oldestPostId = this.getOldestVisiblePostId();
-        this.setState({loadingOlderPosts: true});
-        await this.callLoadPosts(this.props.channelId, oldestPostId, PostRequestTypes.BEFORE_ID);
+        this.setState({ loadingOlderPosts: true });
+        await this.callLoadPosts(
+            this.props.channelId,
+            oldestPostId,
+            PostRequestTypes.BEFORE_ID,
+        );
     };
 
     getPostsAfter = async () => {
@@ -333,26 +377,28 @@ export default class PostList extends React.PureComponent<Props, State> {
         }
 
         const latestPostId = this.getLatestVisiblePostId();
-        this.setState({loadingNewerPosts: true});
-        await this.callLoadPosts(this.props.channelId, latestPostId, PostRequestTypes.AFTER_ID);
+        this.setState({ loadingNewerPosts: true });
+        await this.callLoadPosts(
+            this.props.channelId,
+            latestPostId,
+            PostRequestTypes.AFTER_ID,
+        );
     };
 
     render() {
         if (!this.props.postListIds) {
-            return (
-                <LoadingScreen centered={true}/>
-            );
+            return <LoadingScreen centered={true} />;
         }
 
         return (
             <div
-                className='post-list-holder-by-time'
-                key={'postlist-' + this.props.channelId}
+                className="post-list-holder-by-time"
+                key={"postlist-" + this.props.channelId}
             >
-                <div className='post-list__table'>
+                <div className="post-list__table">
                     <div
-                        id='virtualizedPostListContent'
-                        className='post-list__content'
+                        id="virtualizedPostListContent"
+                        className="post-list__content"
                     >
                         <VirtPostList
                             loadingNewerPosts={this.state.loadingNewerPosts}
@@ -362,7 +408,9 @@ export default class PostList extends React.PureComponent<Props, State> {
                             focusedPostId={this.props.focusedPostId}
                             channelId={this.props.channelId}
                             autoRetryEnable={this.state.autoRetryEnable}
-                            shouldStartFromBottomWhenUnread={this.props.shouldStartFromBottomWhenUnread}
+                            shouldStartFromBottomWhenUnread={
+                                this.props.shouldStartFromBottomWhenUnread
+                            }
                             actions={this.actionsForPostList}
                             postListIds={this.props.formattedPostIds}
                             latestPostTimeStamp={this.props.latestPostTimeStamp}

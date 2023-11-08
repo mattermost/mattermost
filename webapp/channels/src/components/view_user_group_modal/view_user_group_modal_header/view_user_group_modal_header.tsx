@@ -1,23 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
-import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import React, { useCallback } from "react";
+import { Modal } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
 
-import type {Group} from '@mattermost/types/groups';
+import type { Group } from "@mattermost/types/groups";
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import type { ActionResult } from "mattermost-redux/types/actions";
 
-import AddUsersToGroupModal from 'components/add_users_to_group_modal';
-import LocalizedIcon from 'components/localized_icon';
+import AddUsersToGroupModal from "components/add_users_to_group_modal";
+import LocalizedIcon from "components/localized_icon";
 
-import {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
+import { ModalIdentifiers } from "utils/constants";
+import { t } from "utils/i18n";
 
-import type {ModalData} from 'types/actions';
+import type { ModalData } from "types/actions";
 
-import ViewUserGroupHeaderSubMenu from '../view_user_group_header_sub_menu';
+import ViewUserGroupHeaderSubMenu from "../view_user_group_header_sub_menu";
 
 export type Props = {
     groupId: string;
@@ -35,12 +35,18 @@ export type Props = {
     decrementMemberCount: () => void;
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
-        removeUsersFromGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
-        addUsersToGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
+        removeUsersFromGroup: (
+            groupId: string,
+            userIds: string[],
+        ) => Promise<ActionResult>;
+        addUsersToGroup: (
+            groupId: string,
+            userIds: string[],
+        ) => Promise<ActionResult>;
         archiveGroup: (groupId: string) => Promise<ActionResult>;
         restoreGroup: (groupId: string) => Promise<ActionResult>;
     };
-}
+};
 
 const ViewUserGroupModalHeader = ({
     groupId,
@@ -75,62 +81,65 @@ const ViewUserGroupModalHeader = ({
     }, [actions.restoreGroup, groupId]);
 
     const showSubMenu = useCallback(() => {
-        return permissionToEditGroup ||
-                permissionToJoinGroup ||
-                permissionToLeaveGroup ||
-                permissionToArchiveGroup;
-    }, [permissionToEditGroup, permissionToJoinGroup, permissionToLeaveGroup, permissionToArchiveGroup]);
+        return (
+            permissionToEditGroup ||
+            permissionToJoinGroup ||
+            permissionToLeaveGroup ||
+            permissionToArchiveGroup
+        );
+    }, [
+        permissionToEditGroup,
+        permissionToJoinGroup,
+        permissionToLeaveGroup,
+        permissionToArchiveGroup,
+    ]);
 
     const modalTitle = useCallback(() => {
         if (group) {
             return (
-                <Modal.Title
-                    componentClass='h1'
-                    id='userGroupsModalLabel'
-                >
+                <Modal.Title componentClass="h1" id="userGroupsModalLabel">
                     {group.display_name}
-                    {
-                        group.delete_at > 0 &&
-                        <i className='icon icon-archive-outline'/>
-                    }
+                    {group.delete_at > 0 && (
+                        <i className="icon icon-archive-outline" />
+                    )}
                 </Modal.Title>
             );
         }
-        return (<></>);
+        return <></>;
     }, [group]);
 
     const addPeopleButton = useCallback(() => {
         if (permissionToJoinGroup) {
             return (
                 <button
-                    className='mr-2 btn btn-secondary btn-sm'
+                    className="mr-2 btn btn-secondary btn-sm"
                     onClick={goToAddPeopleModal}
                 >
                     <FormattedMessage
-                        id='user_groups_modal.addPeople'
-                        defaultMessage='Add people'
+                        id="user_groups_modal.addPeople"
+                        defaultMessage="Add people"
                     />
                 </button>
             );
         }
-        return (<></>);
+        return <></>;
     }, [permissionToJoinGroup, goToAddPeopleModal]);
 
     const restoreGroupButton = useCallback(() => {
         if (permissionToRestoreGroup) {
             return (
                 <button
-                    className='user-groups-create btn btn-md btn-primary'
+                    className="user-groups-create btn btn-md btn-primary"
                     onClick={restoreGroup}
                 >
                     <FormattedMessage
-                        id='user_groups_modal.button.restoreGroup'
-                        defaultMessage='Restore Group'
+                        id="user_groups_modal.button.restoreGroup"
+                        defaultMessage="Restore Group"
                     />
                 </button>
             );
         }
-        return (<></>);
+        return <></>;
     }, [permissionToRestoreGroup, restoreGroup]);
 
     const subMenuButton = () => {
@@ -162,14 +171,17 @@ const ViewUserGroupModalHeader = ({
     return (
         <Modal.Header closeButton={true}>
             <button
-                type='button'
-                className='modal-header-back-button btn btn-icon'
-                aria-label='Close'
+                type="button"
+                className="modal-header-back-button btn btn-icon"
+                aria-label="Close"
                 onClick={goBack}
             >
                 <LocalizedIcon
-                    className='icon icon-arrow-left'
-                    ariaLabel={{id: t('user_groups_modal.goBackLabel'), defaultMessage: 'Back'}}
+                    className="icon icon-arrow-left"
+                    ariaLabel={{
+                        id: t("user_groups_modal.goBackLabel"),
+                        defaultMessage: "Back",
+                    }}
                 />
             </button>
             {modalTitle()}

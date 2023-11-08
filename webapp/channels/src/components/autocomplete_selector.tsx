@@ -1,22 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Channel } from "@mattermost/types/channels";
+import type { UserProfile } from "@mattermost/types/users";
 
-import SuggestionBox from 'components/suggestion/suggestion_box';
-import SuggestionList from 'components/suggestion/suggestion_list';
+import SuggestionBox from "components/suggestion/suggestion_box";
+import SuggestionList from "components/suggestion/suggestion_list";
 
-import type ModalSuggestionList from './suggestion/modal_suggestion_list';
-import type Provider from './suggestion/provider';
+import type ModalSuggestionList from "./suggestion/modal_suggestion_list";
+import type Provider from "./suggestion/provider";
 
 export type Option = {
     text: string;
     value: string;
 };
-export type Selected = Option | UserProfile | Channel
+export type Selected = Option | UserProfile | Channel;
 
 type Props = {
     id: string;
@@ -42,16 +42,19 @@ type State = {
 
 type ChangeEvent = {
     target: HTMLInputElement;
-}
+};
 
-export default class AutocompleteSelector extends React.PureComponent<Props, State> {
+export default class AutocompleteSelector extends React.PureComponent<
+    Props,
+    State
+> {
     static defaultProps = {
-        id: '',
-        value: '',
-        labelClassName: '',
-        inputClassName: '',
+        id: "",
+        value: "",
+        labelClassName: "",
+        inputClassName: "",
         listComponent: SuggestionList,
-        listPosition: 'top',
+        listPosition: "top",
     };
 
     suggestionRef?: HTMLElement;
@@ -60,7 +63,7 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
         super(props);
 
         this.state = {
-            input: '',
+            input: "",
         };
     }
 
@@ -69,11 +72,11 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
             return;
         }
 
-        this.setState({input: e.target.value});
+        this.setState({ input: e.target.value });
     };
 
     handleSelected = (selected: Selected) => {
-        this.setState({input: ''});
+        this.setState({ input: "" });
 
         if (this.props.onSelected) {
             this.props.onSelected(selected);
@@ -91,7 +94,7 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
     };
 
     onFocus = () => {
-        this.setState({focused: true});
+        this.setState({ focused: true });
 
         if (this.props.toggleFocus) {
             this.props.toggleFocus(true);
@@ -99,7 +102,7 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
     };
 
     onBlur = () => {
-        this.setState({focused: false});
+        this.setState({ focused: false });
 
         if (this.props.toggleFocus) {
             this.props.toggleFocus(false);
@@ -121,8 +124,8 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
             listPosition,
         } = this.props;
 
-        const {focused} = this.state;
-        let {input} = this.state;
+        const { focused } = this.state;
+        let { input } = this.state;
 
         if (!focused) {
             input = value;
@@ -131,9 +134,7 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
         let labelContent;
         if (label) {
             labelContent = (
-                <label
-                    className={'control-label ' + labelClassName}
-                >
+                <label className={"control-label " + labelClassName}>
                     {label}
                 </label>
             );
@@ -141,18 +142,11 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
 
         let helpTextContent;
         if (helpText) {
-            helpTextContent = (
-                <div className='help-text'>
-                    {helpText}
-                </div>
-            );
+            helpTextContent = <div className="help-text">{helpText}</div>;
         }
 
         return (
-            <div
-                data-testid='autoCompleteSelector'
-                className='form-group'
-            >
+            <div data-testid="autoCompleteSelector" className="form-group">
                 {labelContent}
                 <div className={inputClassName}>
                     <SuggestionBox
@@ -161,8 +155,8 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
                         ref={this.setSuggestionRef}
                         placeholder={placeholder}
                         listComponent={listComponent}
-                        className='form-control'
-                        containerClass='select-suggestion-container'
+                        className="form-control"
+                        containerClass="select-suggestion-container"
                         value={input}
                         onChange={this.onChange}
                         onItemSelected={this.handleSelected}

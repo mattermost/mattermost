@@ -1,33 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {AnalyticsRow, PluginAnalyticsRow, IndexedPluginAnalyticsRow} from '@mattermost/types/admin';
-import type {ClientLicense} from '@mattermost/types/config';
+import type {
+    AnalyticsRow,
+    PluginAnalyticsRow,
+    IndexedPluginAnalyticsRow,
+} from "@mattermost/types/admin";
+import type { ClientLicense } from "@mattermost/types/config";
 
-import * as AdminActions from 'actions/admin_actions.jsx';
+import * as AdminActions from "actions/admin_actions.jsx";
 
-import {ActivatedUserCard} from 'components/analytics/activated_users_card';
-import TrueUpReview from 'components/analytics/true_up_review';
-import ExternalLink from 'components/external_link';
-import AdminHeader from 'components/widgets/admin_console/admin_header';
+import { ActivatedUserCard } from "components/analytics/activated_users_card";
+import TrueUpReview from "components/analytics/true_up_review";
+import ExternalLink from "components/external_link";
+import AdminHeader from "components/widgets/admin_console/admin_header";
 
-import Constants from 'utils/constants';
+import Constants from "utils/constants";
 
-import type {GlobalState} from 'types/store';
+import type { GlobalState } from "types/store";
 
-import DoughnutChart from '../doughnut_chart';
+import DoughnutChart from "../doughnut_chart";
 import {
     formatPostsPerDayData,
     formatUsersWithPostsPerDayData,
     formatChannelDoughtnutData,
     formatPostDoughtnutData,
     synchronizeChartLabels,
-} from '../format';
-import LineChart from '../line_chart';
-import StatisticCount from '../statistic_count';
+} from "../format";
+import LineChart from "../line_chart";
+import StatisticCount from "../statistic_count";
 
 const StatTypes = Constants.StatTypes;
 
@@ -35,12 +39,12 @@ type Props = {
     isLicensed: boolean;
     stats?: Record<string, number | AnalyticsRow[]>;
     license: ClientLicense;
-    pluginStatHandlers: GlobalState['plugins']['siteStatsHandlers'];
-}
+    pluginStatHandlers: GlobalState["plugins"]["siteStatsHandlers"];
+};
 
 type State = {
     pluginSiteStats: Record<string, PluginAnalyticsRow>;
-}
+};
 
 export default class SystemAnalytics extends React.PureComponent<Props, State> {
     state = {
@@ -67,7 +71,9 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
             return;
         }
 
-        const allHandlers = Object.values(this.props.pluginStatHandlers).map((handler) => handler());
+        const allHandlers = Object.values(this.props.pluginStatHandlers).map(
+            (handler) => handler(),
+        );
         const allStats = await Promise.all(allHandlers);
 
         const allStatsIndexed: IndexedPluginAnalyticsRow = {};
@@ -78,11 +84,11 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
             });
         });
 
-        this.setState({pluginSiteStats: allStatsIndexed});
+        this.setState({ pluginSiteStats: allStatsIndexed });
     }
 
     private getStatValue(stat: number | AnalyticsRow[]): number | undefined {
-        if (typeof stat === 'number') {
+        if (typeof stat === "number") {
             return stat;
         }
         if (!stat || stat.length === 0) {
@@ -96,10 +102,23 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         const isLicensed = this.props.isLicensed;
         const skippedIntensiveQueries = stats[StatTypes.TOTAL_POSTS] === -1;
 
-        const labels = synchronizeChartLabels(stats[StatTypes.POST_PER_DAY], stats[StatTypes.BOT_POST_PER_DAY], stats[StatTypes.USERS_WITH_POSTS_PER_DAY]);
-        const postCountsDay = formatPostsPerDayData(labels, stats[StatTypes.POST_PER_DAY]);
-        const botPostCountsDay = formatPostsPerDayData(labels, stats[StatTypes.BOT_POST_PER_DAY]);
-        const userCountsWithPostsDay = formatUsersWithPostsPerDayData(labels, stats[StatTypes.USERS_WITH_POSTS_PER_DAY]);
+        const labels = synchronizeChartLabels(
+            stats[StatTypes.POST_PER_DAY],
+            stats[StatTypes.BOT_POST_PER_DAY],
+            stats[StatTypes.USERS_WITH_POSTS_PER_DAY],
+        );
+        const postCountsDay = formatPostsPerDayData(
+            labels,
+            stats[StatTypes.POST_PER_DAY],
+        );
+        const botPostCountsDay = formatPostsPerDayData(
+            labels,
+            stats[StatTypes.BOT_POST_PER_DAY],
+        );
+        const userCountsWithPostsDay = formatUsersWithPostsPerDayData(
+            labels,
+            stats[StatTypes.USERS_WITH_POSTS_PER_DAY],
+        );
 
         let banner;
         let postCount;
@@ -108,16 +127,16 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         let activeUserGraph;
         if (skippedIntensiveQueries) {
             banner = (
-                <div className='banner'>
-                    <div className='banner__content'>
+                <div className="banner">
+                    <div className="banner__content">
                         <FormattedMessage
-                            id='analytics.system.skippedIntensiveQueries'
-                            defaultMessage='To maximize performance, some statistics are disabled. You can <link>re-enable them in config.json</link>.'
+                            id="analytics.system.skippedIntensiveQueries"
+                            defaultMessage="To maximize performance, some statistics are disabled. You can <link>re-enable them in config.json</link>."
                             values={{
                                 link: (msg: React.ReactNode) => (
                                     <ExternalLink
-                                        href='https://docs.mattermost.com/administration/statistics.html'
-                                        location='system_analytics'
+                                        href="https://docs.mattermost.com/administration/statistics.html"
+                                        location="system_analytics"
                                     >
                                         {msg}
                                     </ExternalLink>
@@ -130,29 +149,29 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         } else {
             postCount = (
                 <StatisticCount
-                    id='totalPosts'
+                    id="totalPosts"
                     title={
                         <FormattedMessage
-                            id='analytics.system.totalPosts'
-                            defaultMessage='Total Posts'
+                            id="analytics.system.totalPosts"
+                            defaultMessage="Total Posts"
                         />
                     }
-                    icon='fa-comment'
+                    icon="fa-comment"
                     count={this.getStatValue(stats[StatTypes.TOTAL_POSTS])}
                 />
             );
 
             botPostTotalGraph = (
-                <div className='row'>
+                <div className="row">
                     <LineChart
                         title={
                             <FormattedMessage
-                                id='analytics.system.totalBotPosts'
-                                defaultMessage='Total Posts from Bots'
+                                id="analytics.system.totalBotPosts"
+                                defaultMessage="Total Posts from Bots"
                             />
                         }
                         data={botPostCountsDay}
-                        id='totalPostsFromBotsLineChart'
+                        id="totalPostsFromBotsLineChart"
                         width={740}
                         height={225}
                     />
@@ -160,15 +179,15 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
             );
 
             postTotalGraph = (
-                <div className='row'>
+                <div className="row">
                     <LineChart
                         title={
                             <FormattedMessage
-                                id='analytics.system.totalPosts'
-                                defaultMessage='Total Posts'
+                                id="analytics.system.totalPosts"
+                                defaultMessage="Total Posts"
                             />
                         }
-                        id='totalPostsLineChart'
+                        id="totalPostsLineChart"
                         data={postCountsDay}
                         width={740}
                         height={225}
@@ -177,15 +196,15 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
             );
 
             activeUserGraph = (
-                <div className='row'>
+                <div className="row">
                     <LineChart
                         title={
                             <FormattedMessage
-                                id='analytics.system.activeUsers'
-                                defaultMessage='Active Users With Posts'
+                                id="analytics.system.activeUsers"
+                                defaultMessage="Active Users With Posts"
                             />
                         }
-                        id='activeUsersWithPostsLineChart'
+                        id="activeUsersWithPostsLineChart"
                         data={userCountsWithPostsDay}
                         width={740}
                         height={225}
@@ -203,56 +222,56 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         if (this.props.isLicensed) {
             sessionCount = (
                 <StatisticCount
-                    id='totalSessions'
+                    id="totalSessions"
                     title={
                         <FormattedMessage
-                            id='analytics.system.totalSessions'
-                            defaultMessage='Total Sessions'
+                            id="analytics.system.totalSessions"
+                            defaultMessage="Total Sessions"
                         />
                     }
-                    icon='fa-signal'
+                    icon="fa-signal"
                     count={this.getStatValue(stats[StatTypes.TOTAL_SESSIONS])}
                 />
             );
 
             commandCount = (
                 <StatisticCount
-                    id='totalCommands'
+                    id="totalCommands"
                     title={
                         <FormattedMessage
-                            id='analytics.system.totalCommands'
-                            defaultMessage='Total Commands'
+                            id="analytics.system.totalCommands"
+                            defaultMessage="Total Commands"
                         />
                     }
-                    icon='fa-terminal'
+                    icon="fa-terminal"
                     count={this.getStatValue(stats[StatTypes.TOTAL_COMMANDS])}
                 />
             );
 
             incomingCount = (
                 <StatisticCount
-                    id='incomingWebhooks'
+                    id="incomingWebhooks"
                     title={
                         <FormattedMessage
-                            id='analytics.system.totalIncomingWebhooks'
-                            defaultMessage='Incoming Webhooks'
+                            id="analytics.system.totalIncomingWebhooks"
+                            defaultMessage="Incoming Webhooks"
                         />
                     }
-                    icon='fa-arrow-down'
+                    icon="fa-arrow-down"
                     count={this.getStatValue(stats[StatTypes.TOTAL_IHOOKS])}
                 />
             );
 
             outgoingCount = (
                 <StatisticCount
-                    id='outgoingWebhooks'
+                    id="outgoingWebhooks"
                     title={
                         <FormattedMessage
-                            id='analytics.system.totalOutgoingWebhooks'
-                            defaultMessage='Outgoing Webhooks'
+                            id="analytics.system.totalOutgoingWebhooks"
+                            defaultMessage="Outgoing Webhooks"
                         />
                     }
-                    icon='fa-arrow-up'
+                    icon="fa-arrow-up"
                     count={this.getStatValue(stats[StatTypes.TOTAL_OHOOKS])}
                 />
             );
@@ -260,43 +279,56 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
             advancedStats = (
                 <>
                     <StatisticCount
-                        id='websocketConns'
+                        id="websocketConns"
                         title={
                             <FormattedMessage
-                                id='analytics.system.totalWebsockets'
-                                defaultMessage='WebSocket Conns'
+                                id="analytics.system.totalWebsockets"
+                                defaultMessage="WebSocket Conns"
                             />
                         }
-                        icon='fa-user'
-                        count={this.getStatValue(stats[StatTypes.TOTAL_WEBSOCKET_CONNECTIONS])}
+                        icon="fa-user"
+                        count={this.getStatValue(
+                            stats[StatTypes.TOTAL_WEBSOCKET_CONNECTIONS],
+                        )}
                     />
                     <StatisticCount
-                        id='masterDbConns'
+                        id="masterDbConns"
                         title={
                             <FormattedMessage
-                                id='analytics.system.totalMasterDbConnections'
-                                defaultMessage='Master DB Conns'
+                                id="analytics.system.totalMasterDbConnections"
+                                defaultMessage="Master DB Conns"
                             />
                         }
-                        icon='fa-terminal'
-                        count={this.getStatValue(stats[StatTypes.TOTAL_MASTER_DB_CONNECTIONS])}
+                        icon="fa-terminal"
+                        count={this.getStatValue(
+                            stats[StatTypes.TOTAL_MASTER_DB_CONNECTIONS],
+                        )}
                     />
                     <StatisticCount
-                        id='replicaDbConns'
+                        id="replicaDbConns"
                         title={
                             <FormattedMessage
-                                id='analytics.system.totalReadDbConnections'
-                                defaultMessage='Replica DB Conns'
+                                id="analytics.system.totalReadDbConnections"
+                                defaultMessage="Replica DB Conns"
                             />
                         }
-                        icon='fa-terminal'
-                        count={this.getStatValue(stats[StatTypes.TOTAL_READ_DB_CONNECTIONS])}
+                        icon="fa-terminal"
+                        count={this.getStatValue(
+                            stats[StatTypes.TOTAL_READ_DB_CONNECTIONS],
+                        )}
                     />
                 </>
             );
 
-            const channelTypeData = formatChannelDoughtnutData(stats[StatTypes.TOTAL_PUBLIC_CHANNELS], stats[StatTypes.TOTAL_PRIVATE_GROUPS]);
-            const postTypeData = formatPostDoughtnutData(stats[StatTypes.TOTAL_FILE_POSTS], stats[StatTypes.TOTAL_HASHTAG_POSTS], stats[StatTypes.TOTAL_POSTS]);
+            const channelTypeData = formatChannelDoughtnutData(
+                stats[StatTypes.TOTAL_PUBLIC_CHANNELS],
+                stats[StatTypes.TOTAL_PRIVATE_GROUPS],
+            );
+            const postTypeData = formatPostDoughtnutData(
+                stats[StatTypes.TOTAL_FILE_POSTS],
+                stats[StatTypes.TOTAL_HASHTAG_POSTS],
+                stats[StatTypes.TOTAL_POSTS],
+            );
 
             let postTypeGraph;
             if (stats[StatTypes.TOTAL_POSTS] !== -1) {
@@ -304,8 +336,8 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                     <DoughnutChart
                         title={
                             <FormattedMessage
-                                id='analytics.system.postTypes'
-                                defaultMessage='Posts, Files and Hashtags'
+                                id="analytics.system.postTypes"
+                                defaultMessage="Posts, Files and Hashtags"
                             />
                         }
                         data={postTypeData}
@@ -316,12 +348,12 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
             }
 
             advancedGraphs = (
-                <div className='row'>
+                <div className="row">
                     <DoughnutChart
                         title={
                             <FormattedMessage
-                                id='analytics.system.channelTypes'
-                                defaultMessage='Channel Types'
+                                id="analytics.system.channelTypes"
+                                defaultMessage="Channel Types"
                             />
                         }
                         data={channelTypeData}
@@ -333,7 +365,7 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
             );
         }
 
-        const isCloud = this.props.license.Cloud === 'true';
+        const isCloud = this.props.license.Cloud === "true";
         const userCount = (
             <ActivatedUserCard
                 activatedUsers={this.getStatValue(stats[StatTypes.TOTAL_USERS])}
@@ -344,33 +376,37 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
 
         const seatsPurchased = (
             <StatisticCount
-                id='seatPurchased'
+                id="seatPurchased"
                 title={
                     <FormattedMessage
-                        id='analytics.system.seatsPurchased'
-                        defaultMessage='Licensed Seats'
+                        id="analytics.system.seatsPurchased"
+                        defaultMessage="Licensed Seats"
                     />
                 }
-                icon='fa-users'
+                icon="fa-users"
                 count={parseInt(this.props.license.Users, 10)}
             />
         );
 
         const teamCount = (
             <StatisticCount
-                id='totalTeams'
+                id="totalTeams"
                 title={
                     <FormattedMessage
-                        id='analytics.system.totalTeams'
-                        defaultMessage='Total Teams'
+                        id="analytics.system.totalTeams"
+                        defaultMessage="Total Teams"
                     />
                 }
-                icon='fa-users'
+                icon="fa-users"
                 count={this.getStatValue(stats[StatTypes.TOTAL_TEAMS])}
             />
         );
-        const totalPublicChannelsCount = this.getStatValue(stats[StatTypes.TOTAL_PUBLIC_CHANNELS]);
-        const totalPrivateGroupsCount = this.getStatValue(stats[StatTypes.TOTAL_PRIVATE_GROUPS]);
+        const totalPublicChannelsCount = this.getStatValue(
+            stats[StatTypes.TOTAL_PUBLIC_CHANNELS],
+        );
+        const totalPrivateGroupsCount = this.getStatValue(
+            stats[StatTypes.TOTAL_PRIVATE_GROUPS],
+        );
         const totalChannelCount = () => {
             if (totalPublicChannelsCount && totalPrivateGroupsCount) {
                 return totalPublicChannelsCount + totalPrivateGroupsCount;
@@ -383,42 +419,42 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         };
         const channelCount = (
             <StatisticCount
-                id='totalChannels'
+                id="totalChannels"
                 title={
                     <FormattedMessage
-                        id='analytics.system.totalChannels'
-                        defaultMessage='Total Channels'
+                        id="analytics.system.totalChannels"
+                        defaultMessage="Total Channels"
                     />
                 }
-                icon='fa-globe'
+                icon="fa-globe"
                 count={totalChannelCount()}
             />
         );
 
         const dailyActiveUsers = (
             <StatisticCount
-                id='dailyActiveUsers'
+                id="dailyActiveUsers"
                 title={
                     <FormattedMessage
-                        id='analytics.system.dailyActiveUsers'
-                        defaultMessage='Daily Active Users'
+                        id="analytics.system.dailyActiveUsers"
+                        defaultMessage="Daily Active Users"
                     />
                 }
-                icon='fa-users'
+                icon="fa-users"
                 count={this.getStatValue(stats[StatTypes.DAILY_ACTIVE_USERS])}
             />
         );
 
         const monthlyActiveUsers = (
             <StatisticCount
-                id='monthlyActiveUsers'
+                id="monthlyActiveUsers"
                 title={
                     <FormattedMessage
-                        id='analytics.system.monthlyActiveUsers'
-                        defaultMessage='Monthly Active Users'
+                        id="analytics.system.monthlyActiveUsers"
+                        defaultMessage="Monthly Active Users"
                     />
                 }
-                icon='fa-users'
+                icon="fa-users"
                 count={this.getStatValue(stats[StatTypes.MONTHLY_ACTIVE_USERS])}
             />
         );
@@ -426,11 +462,11 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         // Extract plugin stats that should be displayed and pass them to widget
         const pluginSiteStats = (
             <>
-                {Object.entries(this.state.pluginSiteStats).map(([key, stat]) =>
-                    (
+                {Object.entries(this.state.pluginSiteStats).map(
+                    ([key, stat]) => (
                         <StatisticCount
                             id={key}
-                            key={'pluginstat.' + key}
+                            key={"pluginstat." + key}
                             title={stat.name}
                             icon={stat.icon}
                             count={stat.value}
@@ -468,18 +504,18 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         }
 
         return (
-            <div className='wrapper--fixed team_statistics'>
+            <div className="wrapper--fixed team_statistics">
                 <AdminHeader>
                     <FormattedMessage
-                        id='analytics.system.title'
-                        defaultMessage='System Statistics'
+                        id="analytics.system.title"
+                        defaultMessage="System Statistics"
                     />
                 </AdminHeader>
-                <div className='admin-console__wrapper'>
-                    <div className='admin-console__content'>
+                <div className="admin-console__wrapper">
+                    <div className="admin-console__content">
                         {banner}
-                        <TrueUpReview/>
-                        <div className='grid-statistics'>
+                        <TrueUpReview />
+                        <div className="grid-statistics">
                             {systemCards}
                             {dailyActiveUsers}
                             {monthlyActiveUsers}

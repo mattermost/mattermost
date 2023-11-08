@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import LoadingScreen from 'components/loading_screen';
+import LoadingScreen from "components/loading_screen";
 
-import {Preferences} from 'utils/constants';
+import { Preferences } from "utils/constants";
 
-import PostList from './post_list';
+import PostList from "./post_list";
 
 interface Props {
     lastViewedAt?: number;
@@ -27,7 +27,9 @@ interface State {
 export default class PostView extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
-        const shouldStartFromBottomWhenUnread = this.props.unreadScrollPosition === Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST;
+        const shouldStartFromBottomWhenUnread =
+            this.props.unreadScrollPosition ===
+            Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST;
         this.state = {
             unreadChunkTimeStamp: props.lastViewedAt,
             shouldStartFromBottomWhenUnread,
@@ -53,51 +55,62 @@ export default class PostView extends React.PureComponent<Props, State> {
     }
 
     changeUnreadChunkTimeStamp = (unreadChunkTimeStamp: number) => {
-        this.setState({
-            unreadChunkTimeStamp,
-            loaderForChangeOfPostsChunk: true,
-        }, () => {
-            window.requestAnimationFrame(() => {
-                this.setState({
-                    loaderForChangeOfPostsChunk: false,
+        this.setState(
+            {
+                unreadChunkTimeStamp,
+                loaderForChangeOfPostsChunk: true,
+            },
+            () => {
+                window.requestAnimationFrame(() => {
+                    this.setState({
+                        loaderForChangeOfPostsChunk: false,
+                    });
                 });
-            });
-        });
+            },
+        );
     };
 
     toggleShouldStartFromBottomWhenUnread = () => {
-        this.setState((state) => ({
-            loaderForChangeOfPostsChunk: true,
-            shouldStartFromBottomWhenUnread: !state.shouldStartFromBottomWhenUnread,
-        }), () => {
-            window.requestAnimationFrame(() => {
-                this.setState({
-                    loaderForChangeOfPostsChunk: false,
+        this.setState(
+            (state) => ({
+                loaderForChangeOfPostsChunk: true,
+                shouldStartFromBottomWhenUnread:
+                    !state.shouldStartFromBottomWhenUnread,
+            }),
+            () => {
+                window.requestAnimationFrame(() => {
+                    this.setState({
+                        loaderForChangeOfPostsChunk: false,
+                    });
                 });
-            });
-        });
+            },
+        );
     };
 
     render() {
-        if (this.props.channelLoading || this.state.loaderForChangeOfPostsChunk) {
+        if (
+            this.props.channelLoading ||
+            this.state.loaderForChangeOfPostsChunk
+        ) {
             return (
-                <div id='post-list'>
-                    <LoadingScreen centered={true}/>
+                <div id="post-list">
+                    <LoadingScreen centered={true} />
                 </div>
             );
         }
 
         return (
-            <div
-                id='post-list'
-                role='main'
-            >
+            <div id="post-list" role="main">
                 <PostList
                     unreadChunkTimeStamp={this.state.unreadChunkTimeStamp}
                     channelId={this.props.channelId}
                     changeUnreadChunkTimeStamp={this.changeUnreadChunkTimeStamp}
-                    shouldStartFromBottomWhenUnread={this.state.shouldStartFromBottomWhenUnread}
-                    toggleShouldStartFromBottomWhenUnread={this.toggleShouldStartFromBottomWhenUnread}
+                    shouldStartFromBottomWhenUnread={
+                        this.state.shouldStartFromBottomWhenUnread
+                    }
+                    toggleShouldStartFromBottomWhenUnread={
+                        this.toggleShouldStartFromBottomWhenUnread
+                    }
                     focusedPostId={this.props.focusedPostId}
                 />
             </div>

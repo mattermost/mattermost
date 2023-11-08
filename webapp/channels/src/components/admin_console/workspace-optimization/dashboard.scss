@@ -26,8 +26,8 @@
 .WorkspaceOptimizationDashboard {
     background-color: #fff;
 
-    button[class*=' StyledChip'],
-    button[class^='StyledChip'] {
+    button[class*=" StyledChip"],
+    button[class^="StyledChip"] {
         width: 120px;
         height: 24px;
         justify-content: space-around;
@@ -50,7 +50,10 @@
         &.info {
             @extend .info;
 
-            background-color: rgba(var(--sys-sidebar-text-active-border-rgb), 0.16);
+            background-color: rgba(
+                var(--sys-sidebar-text-active-border-rgb),
+                0.16
+            );
         }
 
         &.warning {
@@ -164,8 +167,8 @@
                 display: flex;
                 flex-direction: row;
 
-                button[class*=' StyledChip'],
-                button[class^='StyledChip'] {
+                button[class*=" StyledChip"],
+                button[class^="StyledChip"] {
                     width: 180px;
                     height: 32px;
                     margin-right: 16px;
@@ -200,11 +203,17 @@
                         height: 44px;
                         align-items: center;
                         justify-content: center;
-                        background-color: rgba(var(--sys-denim-center-channel-text-rgb), 0.16);
+                        background-color: rgba(
+                            var(--sys-denim-center-channel-text-rgb),
+                            0.16
+                        );
                         border-radius: 50%;
 
                         &.success {
-                            background-color: rgba(var(--sys-online-indicator-rgb), 0.16);
+                            background-color: rgba(
+                                var(--sys-online-indicator-rgb),
+                                0.16
+                            );
 
                             svg {
                                 opacity: 1;
@@ -245,8 +254,8 @@
                     margin-top: 34px;
                     margin-left: auto;
 
-                    button[class*=' StyledChip'],
-                    button[class^='StyledChip'] {
+                    button[class*=" StyledChip"],
+                    button[class^="StyledChip"] {
                         margin-right: 24px;
                     }
                 }
@@ -264,8 +273,8 @@
                     border-top: 1px solid rgba(63, 67, 80, 0.06);
                     background-color: rgb(255, 255, 255);
 
-                    div[class*=' AccordionItem'],
-                    div[class^='AccordionItem'] {
+                    div[class*=" AccordionItem"],
+                    div[class^="AccordionItem"] {
                         padding: 16px 0;
 
                         h5 {

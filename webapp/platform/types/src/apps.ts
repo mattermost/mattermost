@@ -1,22 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ProductScope} from './products';
+import { ProductScope } from "./products";
 
 export enum Permission {
-    UserJoinedChannelNotification = 'user_joined_channel_notification',
-    ActAsBot = 'act_as_bot',
-    ActAsUser = 'act_as_user',
-    PermissionActAsAdmin = 'act_as_admin',
-    RemoteOAuth2 = 'remote_oauth2',
-    RemoteWebhooks = 'remote_webhooks',
+    UserJoinedChannelNotification = "user_joined_channel_notification",
+    ActAsBot = "act_as_bot",
+    ActAsUser = "act_as_user",
+    PermissionActAsAdmin = "act_as_admin",
+    RemoteOAuth2 = "remote_oauth2",
+    RemoteWebhooks = "remote_webhooks",
 }
 
 export enum Locations {
-    PostMenu = '/post_menu',
-    ChannelHeader = '/channel_header',
-    Command = '/command',
-    InPost = '/in_post',
+    PostMenu = "/post_menu",
+    ChannelHeader = "/channel_header",
+    Command = "/command",
+    InPost = "/in_post",
 }
 
 export type AppManifest = {
@@ -28,19 +28,19 @@ export type AppManifest = {
     description?: string;
     requested_permissions?: Permission[];
     requested_locations?: Locations[];
-}
+};
 
 export type AppModalState = {
     form: AppForm;
     call: AppCallRequest;
-}
+};
 
-export type AppCommandFormMap = { [location: string]: AppForm }
+export type AppCommandFormMap = { [location: string]: AppForm };
 
 export type BindingsInfo = {
     bindings: AppBinding[];
     forms: AppCommandFormMap;
-}
+};
 
 export type AppsState = {
     main: BindingsInfo;
@@ -116,7 +116,7 @@ export type AppCallResponse<Res = unknown> = {
 export type AppMetadataForClient = {
     bot_user_id: string;
     bot_username: string;
-}
+};
 
 export type AppContext = {
     app_id: string;
@@ -136,13 +136,14 @@ export type AppContextProps = {
     [name: string]: string;
 };
 
-export type AppExpandLevel = ''
-| 'none'
-| 'summary'
-| '+summary'
-| 'all'
-| '+all'
-| 'id';
+export type AppExpandLevel =
+    | ""
+    | "none"
+    | "summary"
+    | "+summary"
+    | "all"
+    | "+all"
+    | "id";
 
 export type AppExpand = {
     app?: AppExpandLevel;
@@ -196,7 +197,6 @@ export type AppFieldType = string;
 
 // This should go in mattermost-redux
 export type AppField = {
-
     // Name is the name of the JSON field to use.
     name: string;
     type: AppFieldType;
@@ -232,11 +232,11 @@ export type AutocompleteSuggestion = {
     description?: string;
     hint?: string;
     iconData?: string;
-}
+};
 
 export type AutocompleteSuggestionWithComplete = AutocompleteSuggestion & {
     complete: string;
-}
+};
 
 export type AutocompleteElement = AppField;
 export type AutocompleteStaticSelect = AutocompleteElement & {
@@ -253,8 +253,8 @@ export type FormResponseData = {
     errors?: {
         [field: string]: string;
     };
-}
+};
 
 export type AppLookupResponse = {
     items: AppSelectOption[];
-}
+};

@@ -1,49 +1,50 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import type {Value} from 'components/multiselect/multiselect';
+import type { Value } from "components/multiselect/multiselect";
 
-import CreateUserGroupsModal from './create_user_groups_modal';
+import CreateUserGroupsModal from "./create_user_groups_modal";
 
 type UserProfileValue = Value & UserProfile;
 
-describe('component/create_user_groups_modal', () => {
-    const users = [{
-        id: 'user-1',
-        label: 'user-1',
-        value: 'user-1',
-        delete_at: 0,
-    } as UserProfileValue, {
-        id: 'user-2',
-        label: 'user-2',
-        value: 'user-2',
-        delete_at: 0,
-    } as UserProfileValue];
+describe("component/create_user_groups_modal", () => {
+    const users = [
+        {
+            id: "user-1",
+            label: "user-1",
+            value: "user-1",
+            delete_at: 0,
+        } as UserProfileValue,
+        {
+            id: "user-2",
+            label: "user-2",
+            value: "user-2",
+            delete_at: 0,
+        } as UserProfileValue,
+    ];
 
     const baseProps = {
         onExited: jest.fn(),
         backButtonCallback: jest.fn(),
         actions: {
             openModal: jest.fn(),
-            createGroupWithUserIds: jest.fn().mockImplementation(() => Promise.resolve()),
+            createGroupWithUserIds: jest
+                .fn()
+                .mockImplementation(() => Promise.resolve()),
         },
     };
 
-    test('should match snapshot with back button', () => {
-        const wrapper = shallow(
-            <CreateUserGroupsModal
-                {...baseProps}
-            />,
-        );
+    test("should match snapshot with back button", () => {
+        const wrapper = shallow(<CreateUserGroupsModal {...baseProps} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot without back button', () => {
+    test("should match snapshot without back button", () => {
         const wrapper = shallow(
             <CreateUserGroupsModal
                 {...baseProps}
@@ -53,99 +54,114 @@ describe('component/create_user_groups_modal', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should create group', () => {
+    test("should create group", () => {
         const wrapper = shallow<CreateUserGroupsModal>(
-            <CreateUserGroupsModal
-                {...baseProps}
-            />,
+            <CreateUserGroupsModal {...baseProps} />,
         );
-        wrapper.setState({name: 'Ursa', mention: 'ursa', usersToAdd: users});
+        wrapper.setState({ name: "Ursa", mention: "ursa", usersToAdd: users });
         wrapper.instance().createGroup(users);
-        expect(wrapper.instance().props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(1);
+        expect(
+            wrapper.instance().props.actions.createGroupWithUserIds,
+        ).toHaveBeenCalledTimes(1);
         process.nextTick(() => {
-            expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('');
+            expect(wrapper.state("showUnknownError")).toEqual(false);
+            expect(wrapper.state("mentionInputErrorText")).toEqual("");
         });
     });
 
-    test('mention regex error', () => {
+    test("mention regex error", () => {
         const wrapper = shallow<CreateUserGroupsModal>(
-            <CreateUserGroupsModal
-                {...baseProps}
-            />,
+            <CreateUserGroupsModal {...baseProps} />,
         );
-        wrapper.setState({name: 'Ursa', mention: 'ursa!/'});
+        wrapper.setState({ name: "Ursa", mention: "ursa!/" });
         wrapper.instance().createGroup(users);
-        expect(wrapper.instance().props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(0);
+        expect(
+            wrapper.instance().props.actions.createGroupWithUserIds,
+        ).toHaveBeenCalledTimes(0);
         process.nextTick(() => {
-            expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('Invalid character in mention.');
+            expect(wrapper.state("showUnknownError")).toEqual(false);
+            expect(wrapper.state("mentionInputErrorText")).toEqual(
+                "Invalid character in mention.",
+            );
         });
     });
 
-    test('create a mention with special characters', () => {
+    test("create a mention with special characters", () => {
         const wrapper = shallow<CreateUserGroupsModal>(
-            <CreateUserGroupsModal
-                {...baseProps}
-            />,
+            <CreateUserGroupsModal {...baseProps} />,
         );
-        wrapper.setState({name: 'Ursa', mention: 'ursa.-_'});
+        wrapper.setState({ name: "Ursa", mention: "ursa.-_" });
         wrapper.instance().createGroup(users);
-        expect(wrapper.instance().props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(1);
+        expect(
+            wrapper.instance().props.actions.createGroupWithUserIds,
+        ).toHaveBeenCalledTimes(1);
         process.nextTick(() => {
-            expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('');
+            expect(wrapper.state("showUnknownError")).toEqual(false);
+            expect(wrapper.state("mentionInputErrorText")).toEqual("");
         });
     });
 
-    test('fail to create with empty name', () => {
+    test("fail to create with empty name", () => {
         const wrapper = shallow<CreateUserGroupsModal>(
-            <CreateUserGroupsModal
-                {...baseProps}
-            />,
+            <CreateUserGroupsModal {...baseProps} />,
         );
-        wrapper.setState({name: '', mention: 'ursa'});
+        wrapper.setState({ name: "", mention: "ursa" });
         wrapper.instance().createGroup(users);
-        expect(wrapper.instance().props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(0);
+        expect(
+            wrapper.instance().props.actions.createGroupWithUserIds,
+        ).toHaveBeenCalledTimes(0);
         process.nextTick(() => {
-            expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('nameInputErrorText')).toEqual('Name is a required field.');
+            expect(wrapper.state("showUnknownError")).toEqual(false);
+            expect(wrapper.state("nameInputErrorText")).toEqual(
+                "Name is a required field.",
+            );
         });
     });
 
-    test('fail to create with empty mention', () => {
+    test("fail to create with empty mention", () => {
         const wrapper = shallow<CreateUserGroupsModal>(
-            <CreateUserGroupsModal
-                {...baseProps}
-            />,
+            <CreateUserGroupsModal {...baseProps} />,
         );
-        wrapper.setState({name: 'Ursa', mention: ''});
+        wrapper.setState({ name: "Ursa", mention: "" });
         wrapper.instance().createGroup(users);
-        expect(wrapper.instance().props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(0);
+        expect(
+            wrapper.instance().props.actions.createGroupWithUserIds,
+        ).toHaveBeenCalledTimes(0);
         process.nextTick(() => {
-            expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('Mention is a required field.');
+            expect(wrapper.state("showUnknownError")).toEqual(false);
+            expect(wrapper.state("mentionInputErrorText")).toEqual(
+                "Mention is a required field.",
+            );
         });
     });
 
-    test('should create when mention begins with @', () => {
+    test("should create when mention begins with @", () => {
         const wrapper = shallow<CreateUserGroupsModal>(
-            <CreateUserGroupsModal
-                {...baseProps}
-            />,
+            <CreateUserGroupsModal {...baseProps} />,
         );
-        wrapper.setState({name: 'Ursa', mention: '@ursa', usersToAdd: users});
+        wrapper.setState({ name: "Ursa", mention: "@ursa", usersToAdd: users });
         wrapper.instance().createGroup(users);
-        expect(wrapper.instance().props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(1);
+        expect(
+            wrapper.instance().props.actions.createGroupWithUserIds,
+        ).toHaveBeenCalledTimes(1);
         process.nextTick(() => {
-            expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('');
-            expect(wrapper.state('nameInputErrorText')).toEqual('');
+            expect(wrapper.state("showUnknownError")).toEqual(false);
+            expect(wrapper.state("mentionInputErrorText")).toEqual("");
+            expect(wrapper.state("nameInputErrorText")).toEqual("");
         });
     });
 
-    test('should fail to create with unknown error', () => {
-        const createGroupWithUserIds = jest.fn().mockImplementation(() => Promise.resolve({error: {message: 'test error', server_error_id: 'insert_error'}}));
+    test("should fail to create with unknown error", () => {
+        const createGroupWithUserIds = jest
+            .fn()
+            .mockImplementation(() =>
+                Promise.resolve({
+                    error: {
+                        message: "test error",
+                        server_error_id: "insert_error",
+                    },
+                }),
+            );
 
         const wrapper = shallow<CreateUserGroupsModal>(
             <CreateUserGroupsModal
@@ -156,18 +172,29 @@ describe('component/create_user_groups_modal', () => {
                 }}
             />,
         );
-        wrapper.setState({name: 'Ursa', mention: '@ursa', usersToAdd: users});
+        wrapper.setState({ name: "Ursa", mention: "@ursa", usersToAdd: users });
         wrapper.instance().createGroup(users);
-        expect(wrapper.instance().props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(1);
+        expect(
+            wrapper.instance().props.actions.createGroupWithUserIds,
+        ).toHaveBeenCalledTimes(1);
         process.nextTick(() => {
-            expect(wrapper.state('showUnknownError')).toEqual(true);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('');
-            expect(wrapper.state('nameInputErrorText')).toEqual('');
+            expect(wrapper.state("showUnknownError")).toEqual(true);
+            expect(wrapper.state("mentionInputErrorText")).toEqual("");
+            expect(wrapper.state("nameInputErrorText")).toEqual("");
         });
     });
 
-    test('should fail to create with duplicate mention error', () => {
-        const createGroupWithUserIds = jest.fn().mockImplementation(() => Promise.resolve({error: {message: 'test error', server_error_id: 'app.custom_group.unique_name'}}));
+    test("should fail to create with duplicate mention error", () => {
+        const createGroupWithUserIds = jest
+            .fn()
+            .mockImplementation(() =>
+                Promise.resolve({
+                    error: {
+                        message: "test error",
+                        server_error_id: "app.custom_group.unique_name",
+                    },
+                }),
+            );
 
         const wrapper = shallow<CreateUserGroupsModal>(
             <CreateUserGroupsModal
@@ -178,48 +205,71 @@ describe('component/create_user_groups_modal', () => {
                 }}
             />,
         );
-        wrapper.setState({name: 'Ursa', mention: '@ursa', usersToAdd: users});
+        wrapper.setState({ name: "Ursa", mention: "@ursa", usersToAdd: users });
         wrapper.instance().createGroup(users);
-        expect(wrapper.instance().props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(1);
+        expect(
+            wrapper.instance().props.actions.createGroupWithUserIds,
+        ).toHaveBeenCalledTimes(1);
         process.nextTick(() => {
-            expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('Mention needs to be unique.');
-            expect(wrapper.state('nameInputErrorText')).toEqual('');
+            expect(wrapper.state("showUnknownError")).toEqual(false);
+            expect(wrapper.state("mentionInputErrorText")).toEqual(
+                "Mention needs to be unique.",
+            );
+            expect(wrapper.state("nameInputErrorText")).toEqual("");
         });
     });
 
-    test('fail to create with reserved word for mention', () => {
+    test("fail to create with reserved word for mention", () => {
         const wrapper = shallow<CreateUserGroupsModal>(
-            <CreateUserGroupsModal
-                {...baseProps}
-            />,
+            <CreateUserGroupsModal {...baseProps} />,
         );
-        wrapper.setState({name: 'Ursa', mention: 'all'});
+        wrapper.setState({ name: "Ursa", mention: "all" });
         wrapper.instance().createGroup(users);
-        expect(wrapper.instance().props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(0);
+        expect(
+            wrapper.instance().props.actions.createGroupWithUserIds,
+        ).toHaveBeenCalledTimes(0);
         process.nextTick(() => {
-            expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('Mention contains a reserved word.');
+            expect(wrapper.state("showUnknownError")).toEqual(false);
+            expect(wrapper.state("mentionInputErrorText")).toEqual(
+                "Mention contains a reserved word.",
+            );
         });
 
-        wrapper.setState({name: 'Ursa', mention: 'here'});
+        wrapper.setState({ name: "Ursa", mention: "here" });
         wrapper.instance().createGroup(users);
-        expect(wrapper.instance().props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(0);
+        expect(
+            wrapper.instance().props.actions.createGroupWithUserIds,
+        ).toHaveBeenCalledTimes(0);
         process.nextTick(() => {
-            expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('Mention contains a reserved word.');
+            expect(wrapper.state("showUnknownError")).toEqual(false);
+            expect(wrapper.state("mentionInputErrorText")).toEqual(
+                "Mention contains a reserved word.",
+            );
         });
 
-        wrapper.setState({name: 'Ursa', mention: 'channel'});
+        wrapper.setState({ name: "Ursa", mention: "channel" });
         wrapper.instance().createGroup(users);
-        expect(wrapper.instance().props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(0);
+        expect(
+            wrapper.instance().props.actions.createGroupWithUserIds,
+        ).toHaveBeenCalledTimes(0);
         process.nextTick(() => {
-            expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('Mention contains a reserved word.');
+            expect(wrapper.state("showUnknownError")).toEqual(false);
+            expect(wrapper.state("mentionInputErrorText")).toEqual(
+                "Mention contains a reserved word.",
+            );
         });
     });
-    test('should fail to create with duplicate mention error', () => {
-        const createGroupWithUserIds = jest.fn().mockImplementation(() => Promise.resolve({error: {message: 'test error', server_error_id: 'app.group.username_conflict'}}));
+    test("should fail to create with duplicate mention error", () => {
+        const createGroupWithUserIds = jest
+            .fn()
+            .mockImplementation(() =>
+                Promise.resolve({
+                    error: {
+                        message: "test error",
+                        server_error_id: "app.group.username_conflict",
+                    },
+                }),
+            );
 
         const wrapper = shallow<CreateUserGroupsModal>(
             <CreateUserGroupsModal
@@ -230,13 +280,17 @@ describe('component/create_user_groups_modal', () => {
                 }}
             />,
         );
-        wrapper.setState({name: 'Ursa', mention: '@ursa', usersToAdd: users});
+        wrapper.setState({ name: "Ursa", mention: "@ursa", usersToAdd: users });
         wrapper.instance().createGroup(users);
-        expect(wrapper.instance().props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(1);
+        expect(
+            wrapper.instance().props.actions.createGroupWithUserIds,
+        ).toHaveBeenCalledTimes(1);
         process.nextTick(() => {
-            expect(wrapper.state('showUnknownError')).toEqual(false);
-            expect(wrapper.state('mentionInputErrorText')).toEqual('A username already exists with this name. Mention must be unique.');
-            expect(wrapper.state('nameInputErrorText')).toEqual('');
+            expect(wrapper.state("showUnknownError")).toEqual(false);
+            expect(wrapper.state("mentionInputErrorText")).toEqual(
+                "A username already exists with this name. Mention must be unique.",
+            );
+            expect(wrapper.state("nameInputErrorText")).toEqual("");
         });
     });
 });

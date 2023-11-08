@@ -1,17 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {HTMLAttributes} from 'react';
-import React, {useEffect, useRef, useState} from 'react';
-import {useSelector} from 'react-redux';
+import type { HTMLAttributes } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
 
-import {getIsRhsExpanded, getRhsSize} from 'selectors/rhs';
+import { getIsRhsExpanded, getRhsSize } from "selectors/rhs";
 
-import {CssVarKeyForResizable, RHS_MIN_MAX_WIDTH, ResizeDirection} from '../constants';
-import ResizableDivider from '../resizable_divider';
-import {shouldRhsOverlapChannelView} from '../utils';
+import {
+    CssVarKeyForResizable,
+    RHS_MIN_MAX_WIDTH,
+    ResizeDirection,
+} from "../constants";
+import ResizableDivider from "../resizable_divider";
+import { shouldRhsOverlapChannelView } from "../utils";
 
-interface Props extends HTMLAttributes<'div'> {
+interface Props extends HTMLAttributes<"div"> {
     children: React.ReactNode;
     rightWidthHolderRef: React.RefObject<HTMLDivElement>;
 }
@@ -34,7 +38,11 @@ function ResizableRhs({
 
     const shouldRhsOverlap = shouldRhsOverlapChannelView(rhsSize);
 
-    const handleResize = (_: number, cssVarProp: string, cssVarValue: string) => {
+    const handleResize = (
+        _: number,
+        cssVarProp: string,
+        cssVarValue: string,
+    ) => {
         const rightWidthHolderRefElement = rightWidthHolderRef.current;
 
         if (!rightWidthHolderRefElement) {
@@ -42,7 +50,10 @@ function ResizableRhs({
         }
 
         if (!shouldRhsOverlap) {
-            rightWidthHolderRefElement.style.setProperty(cssVarProp, cssVarValue);
+            rightWidthHolderRefElement.style.setProperty(
+                cssVarProp,
+                cssVarValue,
+            );
         }
     };
 
@@ -59,10 +70,10 @@ function ResizableRhs({
     const handleDividerDoubleClick = (_: number, cssVarProp: string) => {
         handleResizeEnd(_, cssVarProp);
 
-        document.body.classList.add('layout-changing');
+        document.body.classList.add("layout-changing");
 
         setTimeout(() => {
-            document.body.classList.remove('layout-changing');
+            document.body.classList.remove("layout-changing");
         }, 1000);
     };
 
@@ -77,24 +88,19 @@ function ResizableRhs({
         setPreviousRhsExpanded(isRhsExpanded);
 
         if (previousRhsExpanded && !isRhsExpanded) {
-            containerRefElement.classList.add('resize-disabled');
+            containerRefElement.classList.add("resize-disabled");
 
             setTimeout(() => {
-                containerRefElement.classList.remove('resize-disabled');
+                containerRefElement.classList.remove("resize-disabled");
             }, 1000);
         }
     }, [isRhsExpanded]);
 
     return (
-        <div
-            id={id}
-            className={className}
-            role={role}
-            ref={containerRef}
-        >
+        <div id={id} className={className} role={role} ref={containerRef}>
             {children}
             <ResizableDivider
-                name='rhsResizeHandle'
+                name="rhsResizeHandle"
                 globalCssVar={CssVarKeyForResizable.RHS}
                 defaultWidth={defaultWidth}
                 dir={ResizeDirection.RIGHT}

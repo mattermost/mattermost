@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {useSelector} from 'react-redux';
+import React from "react";
+import { useSelector } from "react-redux";
 
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import { isCurrentLicenseCloud } from "mattermost-redux/selectors/entities/cloud";
+import { isCurrentUserSystemAdmin } from "mattermost-redux/selectors/entities/users";
 
-import AdminCloudEffects from './admin_cloud_effects';
+import AdminCloudEffects from "./admin_cloud_effects";
 
 export default function CloudEffectsWrapper() {
     const isCloud = useSelector(isCurrentLicenseCloud);
@@ -20,5 +20,5 @@ export default function CloudEffectsWrapper() {
 
     // This render can become more complex if need be, rendering multiple
     // effect components according to conditions.
-    return <AdminCloudEffects/>;
+    return <AdminCloudEffects />;
 }

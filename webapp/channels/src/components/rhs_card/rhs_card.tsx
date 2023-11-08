@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ReactNode} from 'react';
-import Scrollbars from 'react-custom-scrollbars';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router-dom';
+import React from "react";
+import type { ReactNode } from "react";
+import Scrollbars from "react-custom-scrollbars";
+import { FormattedMessage } from "react-intl";
+import { Link } from "react-router-dom";
 
-import type {Post} from '@mattermost/types/posts';
+import type { Post } from "@mattermost/types/posts";
 
-import {emitCloseRightHandSide} from 'actions/global_actions';
+import { emitCloseRightHandSide } from "actions/global_actions";
 
-import Markdown from 'components/markdown';
-import PostProfilePicture from 'components/post_profile_picture';
-import RhsCardHeader from 'components/rhs_card_header';
-import UserProfile from 'components/user_profile';
+import Markdown from "components/markdown";
+import PostProfilePicture from "components/post_profile_picture";
+import RhsCardHeader from "components/rhs_card_header";
+import UserProfile from "components/user_profile";
 
-import Constants from 'utils/constants';
-import DelayedAction from 'utils/delayed_action';
+import Constants from "utils/constants";
+import DelayedAction from "utils/delayed_action";
 
-import type {PostPluginComponent} from 'types/store/plugins';
-import type {RhsState} from 'types/store/rhs';
+import type { PostPluginComponent } from "types/store/plugins";
+import type { RhsState } from "types/store/rhs";
 
 type Props = {
     isMobileView: boolean;
@@ -36,30 +36,15 @@ type State = {
 };
 
 export function renderView(props: Props) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--view'
-        />
-    );
+    return <div {...props} className="scrollbar--view" />;
 }
 
 export function renderThumbHorizontal(props: Props) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--horizontal'
-        />
-    );
+    return <div {...props} className="scrollbar--horizontal" />;
 }
 
 export function renderThumbVertical(props: Props) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--vertical'
-        />
-    );
+    return <div {...props} className="scrollbar--vertical" />;
 }
 
 export default class RhsCard extends React.Component<Props, State> {
@@ -110,21 +95,21 @@ export default class RhsCard extends React.Component<Props, State> {
 
     render() {
         if (this.props.selected == null) {
-            return (<div/>);
+            return <div />;
         }
 
-        const {selected, pluginPostCardTypes, teamUrl} = this.props;
+        const { selected, pluginPostCardTypes, teamUrl } = this.props;
         const postType = selected.type;
         let content: ReactNode = null;
         if (pluginPostCardTypes?.hasOwnProperty(postType)) {
             const PluginComponent = pluginPostCardTypes[postType].component;
-            content = <PluginComponent post={selected}/>;
+            content = <PluginComponent post={selected} />;
         }
 
         if (!content) {
             content = (
-                <div className='info-card'>
-                    <Markdown message={selected.props && selected.props.card}/>
+                <div className="info-card">
+                    <Markdown message={selected.props && selected.props.card} />
                 </div>
             );
         }
@@ -136,7 +121,10 @@ export default class RhsCard extends React.Component<Props, State> {
                 disablePopover={true}
             />
         );
-        if (selected.props.override_username && this.props.enablePostUsernameOverride) {
+        if (
+            selected.props.override_username &&
+            this.props.enablePostUsernameOverride
+        ) {
             user = (
                 <UserProfile
                     userId={selected.user_id}
@@ -155,8 +143,8 @@ export default class RhsCard extends React.Component<Props, State> {
         );
 
         return (
-            <div className='sidebar-right__body sidebar-right__card'>
-                <RhsCardHeader previousRhsState={this.props.previousRhsState}/>
+            <div className="sidebar-right__body sidebar-right__card">
+                <RhsCardHeader previousRhsState={this.props.previousRhsState} />
                 <Scrollbars
                     autoHide={true}
                     autoHideTimeout={500}
@@ -166,25 +154,25 @@ export default class RhsCard extends React.Component<Props, State> {
                     renderView={renderView}
                     onScroll={this.handleScroll}
                 >
-                    <div className='post-right__scroll'>
+                    <div className="post-right__scroll">
                         {content}
-                        <div className='d-flex post-card--info'>
-                            <div className='post-card--post-by overflow--ellipsis'>
+                        <div className="d-flex post-card--info">
+                            <div className="post-card--post-by overflow--ellipsis">
                                 <FormattedMessage
-                                    id='rhs_card.message_by'
-                                    defaultMessage='Message by {avatar} {user}'
-                                    values={{user, avatar}}
+                                    id="rhs_card.message_by"
+                                    defaultMessage="Message by {avatar} {user}"
+                                    values={{ user, avatar }}
                                 />
                             </div>
-                            <div className='post-card--view-post'>
+                            <div className="post-card--view-post">
                                 <Link
                                     to={`${teamUrl}/pl/${selected.id}`}
-                                    className='post__permalink'
+                                    className="post__permalink"
                                     onClick={this.handleClick}
                                 >
                                     <FormattedMessage
-                                        id='rhs_card.jump'
-                                        defaultMessage='Jump'
+                                        id="rhs_card.jump"
+                                        defaultMessage="Jump"
                                     />
                                 </Link>
                             </div>

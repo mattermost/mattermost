@@ -475,7 +475,8 @@
 $emoji-picker-footer-margin: 12px;
 $emoji-footer-border-width: 1px;
 $emoji-half-height: 33px;
-$emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-picker-footer-margin * 2;
+$emoji-footer-height: $emoji-footer-border-width + $emoji-half-height +
+    $emoji-picker-footer-margin * 2;
 
 .emoji-picker__items {
     position: relative;

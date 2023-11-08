@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React, {useState} from 'react';
-import type {RefObject} from 'react';
+import classNames from "classnames";
+import React, { useState } from "react";
+import type { RefObject } from "react";
 
-import AccordionCard from './accordion_card';
+import AccordionCard from "./accordion_card";
 
-import './accordion.scss';
+import "./accordion.scss";
 
 export type AccordionItemType = {
     title: string;
@@ -35,7 +35,9 @@ const Accordion = ({
     onItemOpened,
     className,
 }: AccordionProps): JSX.Element => {
-    const [currentIndexes, setCurrentIndexes] = useState<number[]>(openFirstElement ? [0] : []);
+    const [currentIndexes, setCurrentIndexes] = useState<number[]>(
+        openFirstElement ? [0] : [],
+    );
 
     const onButtonClick = (index: number) => {
         if (currentIndexes.includes(index)) {
@@ -47,12 +49,14 @@ const Accordion = ({
             if (onItemOpened) {
                 onItemOpened(index);
             }
-            setCurrentIndexes(expandMultiple ? [...currentIndexes, index] : [index]);
+            setCurrentIndexes(
+                expandMultiple ? [...currentIndexes, index] : [index],
+            );
         }
     };
 
     return (
-        <ul className={classNames('Accordion', className)}>
+        <ul className={classNames("Accordion", className)}>
             {accordionItemsData.map((accordionItem, index) => {
                 return (
                     <AccordionCard

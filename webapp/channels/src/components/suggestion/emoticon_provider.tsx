@@ -1,69 +1,75 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {Emoji} from '@mattermost/types/emojis';
+import type { Emoji } from "@mattermost/types/emojis";
 
-import {autocompleteCustomEmojis} from 'mattermost-redux/actions/emojis';
-import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
+import { autocompleteCustomEmojis } from "mattermost-redux/actions/emojis";
+import {
+    getEmojiImageUrl,
+    isSystemEmoji,
+} from "mattermost-redux/utils/emoji_utils";
 
-import {getEmojiMap, getRecentEmojisNames} from 'selectors/emojis';
-import store from 'stores/redux_store';
+import { getEmojiMap, getRecentEmojisNames } from "selectors/emojis";
+import store from "stores/redux_store";
 
-import {Preferences} from 'utils/constants';
-import {compareEmojis, emojiMatchesSkin} from 'utils/emoji_utils';
-import * as Emoticons from 'utils/emoticons';
+import { Preferences } from "utils/constants";
+import { compareEmojis, emojiMatchesSkin } from "utils/emoji_utils";
+import * as Emoticons from "utils/emoticons";
 
-import Provider from './provider';
-import type {ResultsCallback} from './provider';
-import {SuggestionContainer} from './suggestion';
-import type {SuggestionProps} from './suggestion';
+import Provider from "./provider";
+import type { ResultsCallback } from "./provider";
+import { SuggestionContainer } from "./suggestion";
+import type { SuggestionProps } from "./suggestion";
 
 export const MIN_EMOTICON_LENGTH = 2;
-export const EMOJI_CATEGORY_SUGGESTION_BLOCKLIST = ['skintone'];
+export const EMOJI_CATEGORY_SUGGESTION_BLOCKLIST = ["skintone"];
 
 type EmojiItem = {
     name: string;
     emoji: Emoji;
     type: string;
-}
+};
 
-const EmoticonSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<EmojiItem>>((props, ref) => {
+const EmoticonSuggestion = React.forwardRef<
+    HTMLDivElement,
+    SuggestionProps<EmojiItem>
+>((props, ref) => {
     const text = props.term;
     const emoji = props.item.emoji;
 
     return (
-        <SuggestionContainer
-            ref={ref}
-            {...props}
-        >
-            <div className='pull-left emoticon-suggestion__image-container'>
+        <SuggestionContainer ref={ref} {...props}>
+            <div className="pull-left emoticon-suggestion__image-container">
                 <img
                     alt={text}
-                    className='emoticon-suggestion__image'
+                    className="emoticon-suggestion__image"
                     src={getEmojiImageUrl(emoji)}
                     title={text}
                 />
             </div>
-            <div className='pull-left'>
-                {text}
-            </div>
+            <div className="pull-left">{text}</div>
         </SuggestionContainer>
     );
 });
-EmoticonSuggestion.displayName = 'EmoticonSuggestion';
+EmoticonSuggestion.displayName = "EmoticonSuggestion";
 
 export default class EmoticonProvider extends Provider {
     constructor() {
         super();
 
-        this.triggerCharacter = ':';
+        this.triggerCharacter = ":";
     }
 
-    handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<EmojiItem>) {
+    handlePretextChanged(
+        pretext: string,
+        resultsCallback: ResultsCallback<EmojiItem>,
+    ) {
         // Look for the potential emoticons at the start of the text, after whitespace, and at the start of emoji reaction commands
-        const captured = (/(^|\s|^\+|^-)(:([^:\s]*))$/g).exec(pretext.toLowerCase());
+        const captured = /(^|\s|^\+|^-)(:([^:\s]*))$/g.exec(
+            pretext.toLowerCase(),
+        );
         if (!captured) {
             return false;
         }
@@ -77,7 +83,7 @@ export default class EmoticonProvider extends Provider {
         }
 
         // Check for text emoticons if this isn't for an emoji reaction
-        if (prefix !== '-' && prefix !== '+') {
+        if (prefix !== "-" && prefix !== "+") {
             for (const emoticon of Object.keys(Emoticons.emoticonPatterns)) {
                 if (Emoticons.emoticonPatterns[emoticon].test(text)) {
                     // Don't show the autocomplete for text emoticons
@@ -86,8 +92,19 @@ export default class EmoticonProvider extends Provider {
             }
         }
 
-        if (store.getState().entities.general.config.EnableCustomEmoji === 'true') {
-            store.dispatch(autocompleteCustomEmojis(partialName)).then(() => this.findAndSuggestEmojis(text, partialName, resultsCallback));
+        if (
+            store.getState().entities.general.config.EnableCustomEmoji ===
+            "true"
+        ) {
+            store
+                .dispatch(autocompleteCustomEmojis(partialName))
+                .then(() =>
+                    this.findAndSuggestEmojis(
+                        text,
+                        partialName,
+                        resultsCallback,
+                    ),
+                );
         } else {
             this.findAndSuggestEmojis(text, partialName, resultsCallback);
         }
@@ -96,7 +113,7 @@ export default class EmoticonProvider extends Provider {
     }
 
     formatEmojis(emojis: EmojiItem[]) {
-        return emojis.map((item) => ':' + item.name + ':');
+        return emojis.map((item) => ":" + item.name + ":");
     }
 
     // findAndSuggestEmojis uses the provided partialName to match anywhere inside an emoji name.
@@ -109,11 +126,17 @@ export default class EmoticonProvider extends Provider {
     //
     // For now, this behaviour and difference is by design.
     // See https://mattermost.atlassian.net/browse/MM-17320.
-    findAndSuggestEmojis(text: string, partialName: string, resultsCallback: ResultsCallback<EmojiItem>) {
+    findAndSuggestEmojis(
+        text: string,
+        partialName: string,
+        resultsCallback: ResultsCallback<EmojiItem>,
+    ) {
         const recentMatched: EmojiItem[] = [];
         const matched: EmojiItem[] = [];
         const state = store.getState();
-        const skintone = state.entities?.preferences?.myPreferences['emoji--emoji_skintone']?.value || 'default';
+        const skintone =
+            state.entities?.preferences?.myPreferences["emoji--emoji_skintone"]
+                ?.value || "default";
         const emojiMap = getEmojiMap(state);
         const recentEmojis = getRecentEmojisNames(state);
 
@@ -127,11 +150,19 @@ export default class EmoticonProvider extends Provider {
                 // This is a system emoji so it may have multiple names
                 for (const alias of emoji.short_names) {
                     if (alias.indexOf(partialName) !== -1) {
-                        const matchedArray = recentEmojis.includes(alias) || recentEmojis.includes(name) ? recentMatched : matched;
+                        const matchedArray =
+                            recentEmojis.includes(alias) ||
+                            recentEmojis.includes(name)
+                                ? recentMatched
+                                : matched;
 
                         // if the emoji has skin, only add those that match with the user selected skin.
                         if (emojiMatchesSkin(emoji, skintone)) {
-                            matchedArray.push({name: alias, emoji, type: Preferences.CATEGORY_EMOJI});
+                            matchedArray.push({
+                                name: alias,
+                                emoji,
+                                type: Preferences.CATEGORY_EMOJI,
+                            });
                         }
                         break;
                     }
@@ -143,9 +174,15 @@ export default class EmoticonProvider extends Provider {
                     continue;
                 }
 
-                const matchedArray = recentEmojis.includes(name) ? recentMatched : matched;
+                const matchedArray = recentEmojis.includes(name)
+                    ? recentMatched
+                    : matched;
 
-                matchedArray.push({name, emoji, type: Preferences.CATEGORY_EMOJI});
+                matchedArray.push({
+                    name,
+                    emoji,
+                    type: Preferences.CATEGORY_EMOJI,
+                });
             }
         }
 
@@ -162,10 +199,7 @@ export default class EmoticonProvider extends Provider {
             ...this.formatEmojis(matched),
         ];
 
-        const items = [
-            ...recentMatched,
-            ...matched,
-        ];
+        const items = [...recentMatched, ...matched];
 
         // Required to get past the dispatch during dispatch error
         resultsCallback({

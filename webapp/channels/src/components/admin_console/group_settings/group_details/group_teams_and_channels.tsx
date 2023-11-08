@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from "react";
+import { FormattedMessage } from "react-intl";
 
-import type {GroupChannel, GroupTeam} from '@mattermost/types/groups';
+import type { GroupChannel, GroupTeam } from "@mattermost/types/groups";
 
-import GroupTeamsAndChannelsRow from 'components/admin_console/group_settings/group_details/group_teams_and_channels_row';
+import GroupTeamsAndChannelsRow from "components/admin_console/group_settings/group_details/group_teams_and_channels_row";
 
 export type Props = {
     id: string;
@@ -22,7 +22,7 @@ export type State = {
     collapsed: Record<string, boolean>;
 };
 
-type TeamType = `${'public' | 'private'}-${'channel' | 'team'}`;
+type TeamType = `${"public" | "private"}-${"channel" | "team"}`;
 
 type Team = {
     type: TeamType;
@@ -33,8 +33,8 @@ type Team = {
     schemeAdmin?: boolean;
 };
 export default class GroupTeamsAndChannels extends React.PureComponent<
-Props,
-State
+    Props,
+    State
 > {
     constructor(props: Props) {
         super(props);
@@ -44,9 +44,9 @@ State
     }
 
     onToggleCollapse = (id: string) => {
-        const collapsed = {...this.state.collapsed};
+        const collapsed = { ...this.state.collapsed };
         collapsed[id] = !collapsed[id];
-        this.setState({collapsed});
+        this.setState({ collapsed });
     };
 
     onRemoveItem = (id: string, type: string) => {
@@ -68,7 +68,7 @@ State
         teams?.forEach((team) => {
             existingTeams.add(team.team_id);
             teamEntries.push({
-                type: team.team_type === 'O' ? 'public-team' : 'private-team',
+                type: team.team_type === "O" ? "public-team" : "private-team",
                 hasChildren: channels?.some(
                     (channel) => channel.team_id === team.team_id,
                 ),
@@ -85,7 +85,9 @@ State
                 channelEntriesByTeam[channel.team_id] || [];
             channelEntriesByTeam[channel.team_id].push({
                 type:
-                    channel.channel_type === 'O' ? 'public-channel' : 'private-channel',
+                    channel.channel_type === "O"
+                        ? "public-channel"
+                        : "private-channel",
                 name: channel.channel_display_name,
                 id: channel.channel_id,
                 schemeAdmin: channel.scheme_admin,
@@ -95,7 +97,9 @@ State
                 existingTeams.add(channel.team_id);
                 teamEntries.push({
                     type:
-                        channel.team_type === 'O' ? 'public-team' : 'private-team',
+                        channel.team_type === "O"
+                            ? "public-team"
+                            : "private-team",
                     hasChildren: true,
                     name: channel.team_display_name,
                     collapsed: this.state.collapsed[channel.team_id],
@@ -104,7 +108,7 @@ State
             }
         });
         teamEntries.sort((a, b) =>
-            (a.name && b.name ? a.name.localeCompare(b.name) : 0),
+            a.name && b.name ? a.name.localeCompare(b.name) : 0,
         );
         teamEntries.forEach((team) => {
             entries.push(team);
@@ -126,9 +130,9 @@ State
 
         if (this.props.loading) {
             return (
-                <div className='group-teams-and-channels'>
-                    <div className='group-teams-and-channels-loading'>
-                        <i className='fa fa-spinner fa-pulse fa-2x'/>
+                <div className="group-teams-and-channels">
+                    <div className="group-teams-and-channels-loading">
+                        <i className="fa fa-spinner fa-pulse fa-2x" />
                     </div>
                 </div>
             );
@@ -136,11 +140,11 @@ State
 
         if (entries.length === 0) {
             return (
-                <div className='group-teams-and-channels'>
-                    <div className='group-teams-and-channels-empty'>
+                <div className="group-teams-and-channels">
+                    <div className="group-teams-and-channels-empty">
                         <FormattedMessage
-                            id='admin.group_settings.group_details.group_teams_and_channels.no-teams-or-channels-speicified'
-                            defaultMessage='No teams or channels specified yet'
+                            id="admin.group_settings.group_details.group_teams_and_channels.no-teams-or-channels-speicified"
+                            defaultMessage="No teams or channels specified yet"
                         />
                     </div>
                 </div>
@@ -148,35 +152,35 @@ State
         }
 
         return (
-            <div className='AdminPanel__content'>
+            <div className="AdminPanel__content">
                 <table
-                    id='team_and_channel_membership_table'
-                    className='AdminPanel__table group-teams-and-channels'
+                    id="team_and_channel_membership_table"
+                    className="AdminPanel__table group-teams-and-channels"
                 >
-                    <thead className='group-teams-and-channels--header'>
+                    <thead className="group-teams-and-channels--header">
                         <tr>
-                            <th style={{width: '30%'}}>
+                            <th style={{ width: "30%" }}>
                                 <FormattedMessage
-                                    id='admin.group_settings.group_profile.group_teams_and_channels.name'
-                                    defaultMessage='Name'
+                                    id="admin.group_settings.group_profile.group_teams_and_channels.name"
+                                    defaultMessage="Name"
                                 />
                             </th>
-                            <th style={{width: '25%'}}>
+                            <th style={{ width: "25%" }}>
                                 <FormattedMessage
-                                    id='admin.group_settings.group_profile.group_teams_and_channels.type'
-                                    defaultMessage='Type'
+                                    id="admin.group_settings.group_profile.group_teams_and_channels.type"
+                                    defaultMessage="Type"
                                 />
                             </th>
-                            <th style={{width: '25%'}}>
+                            <th style={{ width: "25%" }}>
                                 <FormattedMessage
-                                    id='admin.group_settings.group_profile.group_teams_and_channels.assignedRoles'
-                                    defaultMessage='Assigned Roles'
+                                    id="admin.group_settings.group_profile.group_teams_and_channels.assignedRoles"
+                                    defaultMessage="Assigned Roles"
                                 />
                             </th>
-                            <th style={{width: '20%'}}/>
+                            <th style={{ width: "20%" }} />
                         </tr>
                     </thead>
-                    <tbody className='group-teams-and-channels--body'>
+                    <tbody className="group-teams-and-channels--body">
                         {entries.map((entry) => (
                             <GroupTeamsAndChannelsRow
                                 key={entry.id}

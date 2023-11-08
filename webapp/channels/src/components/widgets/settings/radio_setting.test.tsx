@@ -1,24 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import RadioSetting from './radio_setting';
+import RadioSetting from "./radio_setting";
 
-describe('components/widgets/settings/RadioSetting', () => {
-    test('render component with required props', () => {
+describe("components/widgets/settings/RadioSetting", () => {
+    test("render component with required props", () => {
         const onChange = jest.fn();
         const wrapper = shallow(
             <RadioSetting
-                id='string.id'
-                label='some label'
+                id="string.id"
+                label="some label"
                 options={[
-                    {text: 'this is engineering', value: 'Engineering'},
-                    {text: 'this is sales', value: 'Sales'},
-                    {text: 'this is administration', value: 'Administration'},
+                    { text: "this is engineering", value: "Engineering" },
+                    { text: "this is sales", value: "Sales" },
+                    { text: "this is administration", value: "Administration" },
                 ]}
-                value={'Sales'}
+                value={"Sales"}
                 onChange={onChange}
             />,
         );
@@ -78,25 +78,28 @@ describe('components/widgets/settings/RadioSetting', () => {
 `);
     });
 
-    test('onChange', () => {
+    test("onChange", () => {
         const onChange = jest.fn();
         const wrapper = shallow(
             <RadioSetting
-                id='string.id'
-                label='some label'
+                id="string.id"
+                label="some label"
                 options={[
-                    {text: 'this is engineering', value: 'Engineering'},
-                    {text: 'this is sales', value: 'Sales'},
-                    {text: 'this is administration', value: 'Administration'},
+                    { text: "this is engineering", value: "Engineering" },
+                    { text: "this is sales", value: "Sales" },
+                    { text: "this is administration", value: "Administration" },
                 ]}
-                value={'Sales'}
+                value={"Sales"}
                 onChange={onChange}
             />,
         );
 
-        wrapper.find('input').at(0).simulate('change', {target: {value: 'Administration'}});
+        wrapper
+            .find("input")
+            .at(0)
+            .simulate("change", { target: { value: "Administration" } });
 
         expect(onChange).toHaveBeenCalledTimes(1);
-        expect(onChange).toHaveBeenCalledWith('string.id', 'Administration');
+        expect(onChange).toHaveBeenCalledWith("string.id", "Administration");
     });
 });

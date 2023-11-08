@@ -1,40 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {
-    ShallowRendererProps,
-    MountRendererProps} from 'enzyme';
-import {
-    shallow,
-    mount,
-} from 'enzyme';
-import React from 'react';
+import type { ShallowRendererProps, MountRendererProps } from "enzyme";
+import { shallow, mount } from "enzyme";
+import React from "react";
 import type {
     ExoticComponent,
     ForwardRefExoticComponent,
     ReactElement,
-} from 'react';
-import {
-    createIntl,
-    IntlProvider,
-} from 'react-intl';
-import type {
-    injectIntl,
-    IntlShape} from 'react-intl';
+} from "react";
+import { createIntl, IntlProvider } from "react-intl";
+import type { injectIntl, IntlShape } from "react-intl";
 
-import defaultMessages from 'i18n/en.json';
+import defaultMessages from "i18n/en.json";
 
 export const defaultIntl = createIntl({
-    locale: 'en',
-    defaultLocale: 'en',
-    timeZone: 'Etc/UTC',
+    locale: "en",
+    defaultLocale: "en",
+    timeZone: "Etc/UTC",
     messages: defaultMessages,
-    textComponent: 'span',
+    textComponent: "span",
 });
 
-function unwrapForwardRef<WrappedComponentElement extends ReactElement>(element: ReactElement): WrappedComponentElement {
-    const {type, props} = element as ReactElement<any, ExoticComponent>;
-    if (type.$$typeof && type.$$typeof === Symbol.for('react.forward_ref')) {
+function unwrapForwardRef<WrappedComponentElement extends ReactElement>(
+    element: ReactElement,
+): WrappedComponentElement {
+    const { type, props } = element as ReactElement<any, ExoticComponent>;
+    if (type.$$typeof && type.$$typeof === Symbol.for("react.forward_ref")) {
         type ForwardRefComponent = ForwardRefExoticComponent<any> & {
             render: () => ReactElement;
         };
@@ -47,9 +39,11 @@ function unwrapForwardRef<WrappedComponentElement extends ReactElement>(element:
 }
 
 type IntlInjectedElement = ReactElement<any, ReturnType<typeof injectIntl>>;
-export function isIntlInjectedElement(element: ReactElement): element is IntlInjectedElement {
-    const {type} = element;
-    if (typeof type === 'function' && type.name === 'WithIntl') {
+export function isIntlInjectedElement(
+    element: ReactElement,
+): element is IntlInjectedElement {
+    const { type } = element;
+    if (typeof type === "function" && type.name === "WithIntl") {
         return true;
     }
     return false;
@@ -59,23 +53,24 @@ interface ShallowWithIntlOptions extends ShallowRendererProps {
     intl?: IntlShape;
 }
 
-export function shallowWithIntl<T extends IntlInjectedElement>(element: T, options?: ShallowWithIntlOptions) {
-    const {intl = defaultIntl, ...shallowOptions} = options || {};
+export function shallowWithIntl<T extends IntlInjectedElement>(
+    element: T,
+    options?: ShallowWithIntlOptions,
+) {
+    const { intl = defaultIntl, ...shallowOptions } = options || {};
 
     // eslint-disable-next-line no-param-reassign
     element = unwrapForwardRef<T>(element);
 
     if (!isIntlInjectedElement(element)) {
-        throw new Error('shallowWithIntl() allows only components wrapped by injectIntl() HOC. Use shallow() instead.');
+        throw new Error(
+            "shallowWithIntl() allows only components wrapped by injectIntl() HOC. Use shallow() instead.",
+        );
     }
 
     return shallow(
-
         // Unwrap injectIntl
-        <element.type.WrappedComponent
-            intl={intl}
-            {...element.props}
-        />,
+        <element.type.WrappedComponent intl={intl} {...element.props} />,
 
         // Override options
         shallowOptions,
@@ -90,16 +85,18 @@ export function withIntl(element: ReactElement) {
 interface MountWithIntlOptions extends MountRendererProps {
     intl?: IntlShape;
 }
-export function mountWithIntl<T extends ReactElement | IntlInjectedElement>(element: T, options?: MountWithIntlOptions) {
-    const {intl = defaultIntl, ...mountOptions} = options || {};
+export function mountWithIntl<T extends ReactElement | IntlInjectedElement>(
+    element: T,
+    options?: MountWithIntlOptions,
+) {
+    const { intl = defaultIntl, ...mountOptions } = options || {};
 
     // Unwrap injectIntl
     const newElement = isIntlInjectedElement(element) ? (
-        <element.type.WrappedComponent
-            intl={intl}
-            {...element.props}
-        />
-    ) : element;
+        <element.type.WrappedComponent intl={intl} {...element.props} />
+    ) : (
+        element
+    );
 
     return mount(
         newElement,
@@ -107,7 +104,7 @@ export function mountWithIntl<T extends ReactElement | IntlInjectedElement>(elem
         // For useIntl, <Formatted.../>
         {
             wrappingComponent: IntlProvider,
-            wrappingComponentProps: {...intl},
+            wrappingComponentProps: { ...intl },
 
             // Override options
             ...mountOptions,

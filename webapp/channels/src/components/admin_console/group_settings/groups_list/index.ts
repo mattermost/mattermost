@@ -1,21 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import type { Dispatch, ActionCreatorsMapObject } from "redux";
 
-import type {GlobalState} from '@mattermost/types/store';
+import type { GlobalState } from "@mattermost/types/store";
 
-import {linkLdapGroup, unlinkLdapGroup, getLdapGroups as fetchLdapGroups} from 'mattermost-redux/actions/admin';
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getLdapGroups, getLdapGroupsCount} from 'mattermost-redux/selectors/entities/admin';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import {
+    linkLdapGroup,
+    unlinkLdapGroup,
+    getLdapGroups as fetchLdapGroups,
+} from "mattermost-redux/actions/admin";
+import { createSelector } from "mattermost-redux/selectors/create_selector";
+import {
+    getLdapGroups,
+    getLdapGroupsCount,
+} from "mattermost-redux/selectors/entities/admin";
+import type { ActionFunc } from "mattermost-redux/types/actions";
 
-import GroupsList from './groups_list';
+import GroupsList from "./groups_list";
 
 const getSortedListOfLdapGroups = createSelector(
-    'getSortedListOfLdapGroups',
+    "getSortedListOfLdapGroups",
     getLdapGroups,
     (ldapGroups) => {
         const groups = Object.values(ldapGroups);
@@ -33,11 +40,14 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, any>({
-            getLdapGroups: fetchLdapGroups,
-            link: linkLdapGroup,
-            unlink: unlinkLdapGroup,
-        }, dispatch),
+        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, any>(
+            {
+                getLdapGroups: fetchLdapGroups,
+                link: linkLdapGroup,
+                unlink: unlinkLdapGroup,
+            },
+            dispatch,
+        ),
     };
 }
 

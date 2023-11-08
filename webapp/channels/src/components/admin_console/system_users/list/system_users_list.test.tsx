@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import { shallow } from "enzyme";
+import React from "react";
 
-import type {UserProfile} from '@mattermost/types/users';
+import type { UserProfile } from "@mattermost/types/users";
 
-import SystemUsersList from 'components/admin_console/system_users/list/system_users_list';
+import SystemUsersList from "components/admin_console/system_users/list/system_users_list";
 
-import {Constants} from 'utils/constants';
+import { Constants } from "utils/constants";
 
-describe('components/admin_console/system_users/list', () => {
+describe("components/admin_console/system_users/list", () => {
     const defaultProps = {
         users: [] as UserProfile[],
         usersPerPage: 0,
@@ -19,9 +19,9 @@ describe('components/admin_console/system_users/list', () => {
         search: jest.fn(),
         focusOnMount: false,
         renderFilterRow: jest.fn(),
-        teamId: '',
-        filter: '',
-        term: '',
+        teamId: "",
+        filter: "",
+        term: "",
         onTermChange: jest.fn(),
         mfaEnabled: false,
         enableUserAccessTokens: false,
@@ -36,82 +36,70 @@ describe('components/admin_console/system_users/list', () => {
         isDisabled: false,
     };
 
-    test('should match default snapshot', () => {
+    test("should match default snapshot", () => {
         const props = defaultProps;
-        const wrapper = shallow(<SystemUsersList {...props}/>);
+        const wrapper = shallow(<SystemUsersList {...props} />);
         expect(wrapper).toMatchSnapshot();
     });
 
-    describe('should match default snapshot, with users', () => {
+    describe("should match default snapshot, with users", () => {
         const props = {
             ...defaultProps,
             users: [
-                {id: 'id1'},
-                {id: 'id2'},
-                {id: 'id3', auth_service: Constants.LDAP_SERVICE},
-                {id: 'id4', auth_service: Constants.SAML_SERVICE},
-                {id: 'id5', auth_service: 'other service'},
+                { id: "id1" },
+                { id: "id2" },
+                { id: "id3", auth_service: Constants.LDAP_SERVICE },
+                { id: "id4", auth_service: Constants.SAML_SERVICE },
+                { id: "id5", auth_service: "other service" },
             ] as UserProfile[],
         };
 
-        it('and mfa enabled', () => {
+        it("and mfa enabled", () => {
             const wrapper = shallow(
-                <SystemUsersList
-                    {...props}
-                    mfaEnabled={true}
-                />,
+                <SystemUsersList {...props} mfaEnabled={true} />,
             );
             expect(wrapper).toMatchSnapshot();
         });
 
-        it('and mfa disabled', () => {
+        it("and mfa disabled", () => {
             const wrapper = shallow(
-                <SystemUsersList
-                    {...props}
-                    mfaEnabled={false}
-                />,
+                <SystemUsersList {...props} mfaEnabled={false} />,
             );
             expect(wrapper).toMatchSnapshot();
         });
     });
 
-    describe('should reset page', () => {
-        it('when team changes', () => {
-            const wrapper = shallow(
-                <SystemUsersList {...defaultProps}/>,
-            );
+    describe("should reset page", () => {
+        it("when team changes", () => {
+            const wrapper = shallow(<SystemUsersList {...defaultProps} />);
 
-            expect(wrapper.state('page')).toBe(0);
+            expect(wrapper.state("page")).toBe(0);
             (wrapper.instance() as SystemUsersList).nextPage();
-            expect(wrapper.state('page')).toBe(1);
-            wrapper.setProps({...defaultProps, teamId: 'new'});
-            expect(wrapper.state('page')).toBe(0);
+            expect(wrapper.state("page")).toBe(1);
+            wrapper.setProps({ ...defaultProps, teamId: "new" });
+            expect(wrapper.state("page")).toBe(0);
         });
 
-        it('when filter changes', () => {
-            const wrapper = shallow(
-                <SystemUsersList {...defaultProps}/>,
-            );
+        it("when filter changes", () => {
+            const wrapper = shallow(<SystemUsersList {...defaultProps} />);
 
-            expect(wrapper.state('page')).toBe(0);
+            expect(wrapper.state("page")).toBe(0);
             (wrapper.instance() as SystemUsersList).nextPage();
-            expect(wrapper.state('page')).toBe(1);
-            wrapper.setProps({...defaultProps, filter: 'new'});
-            expect(wrapper.state('page')).toBe(0);
+            expect(wrapper.state("page")).toBe(1);
+            wrapper.setProps({ ...defaultProps, filter: "new" });
+            expect(wrapper.state("page")).toBe(0);
         });
     });
 
-    describe('should not reset page', () => {
-        it('when term changes', () => {
-            const wrapper = shallow(
-                <SystemUsersList {...defaultProps}/>,
-            );
+    describe("should not reset page", () => {
+        it("when term changes", () => {
+            const wrapper = shallow(<SystemUsersList {...defaultProps} />);
 
-            expect(wrapper.state('page')).toBe(0);
+            expect(wrapper.state("page")).toBe(0);
             (wrapper.instance() as SystemUsersList).nextPage();
-            expect(wrapper.state('page')).toBe(1);
-            wrapper.setProps({...defaultProps, term: 'new term'});
-            expect(wrapper.state('page')).toBe(1);
+            expect(wrapper.state("page")).toBe(1);
+            wrapper.setProps({ ...defaultProps, term: "new term" });
+            expect(wrapper.state("page")).toBe(1);
         });
     });
 });

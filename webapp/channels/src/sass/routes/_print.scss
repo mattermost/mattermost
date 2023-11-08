@@ -18,8 +18,8 @@
         text-decoration: underline;
     }
 
-    a[href^=http]::after {
-        content: ' <' attr(href) '> ';
+    a[href^="http"]::after {
+        content: " <" attr(href) "> ";
     }
 
     tr,
@@ -83,7 +83,7 @@
 
     .post-image__columns > div:first-child::before {
         display: block;
-        content: 'Attachments:';
+        content: "Attachments:";
         font-weight: bold;
     }
 
@@ -102,11 +102,11 @@
         line-height: 98px;
 
         .post-image__name::before {
-            content: '[';
+            content: "[";
         }
 
         .post-image__name::after {
-            content: ': ' attr(href) ']';
+            content: ": " attr(href) "]";
         }
 
         .post-image__name + div {

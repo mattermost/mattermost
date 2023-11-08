@@ -1,29 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import styled from 'styled-components';
+import classNames from "classnames";
+import React from "react";
+import { FormattedMessage } from "react-intl";
+import styled from "styled-components";
 
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Channel } from "@mattermost/types/channels";
+import type { UserProfile } from "@mattermost/types/users";
 
-import {Client4} from 'mattermost-redux/client';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
+import { Client4 } from "mattermost-redux/client";
+import { isGuest } from "mattermost-redux/utils/user_utils";
 
-import ChannelMembersDropdown from 'components/channel_members_dropdown';
-import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-import OverlayTrigger from 'components/overlay_trigger';
-import type {BaseOverlayTrigger} from 'components/overlay_trigger';
-import ProfilePicture from 'components/profile_picture';
-import ProfilePopover from 'components/profile_popover';
-import Tooltip from 'components/tooltip';
-import GuestTag from 'components/widgets/tag/guest_tag';
+import ChannelMembersDropdown from "components/channel_members_dropdown";
+import CustomStatusEmoji from "components/custom_status/custom_status_emoji";
+import OverlayTrigger from "components/overlay_trigger";
+import type { BaseOverlayTrigger } from "components/overlay_trigger";
+import ProfilePicture from "components/profile_picture";
+import ProfilePopover from "components/profile_popover";
+import Tooltip from "components/tooltip";
+import GuestTag from "components/widgets/tag/guest_tag";
 
-import Constants from 'utils/constants';
+import Constants from "utils/constants";
 
-import type {ChannelMember} from './channel_members_rhs';
+import type { ChannelMember } from "./channel_members_rhs";
 
 const Avatar = styled.div`
     flex-basis: fit-content;
@@ -74,7 +74,7 @@ const SendMessage = styled.button`
     .icon {
         color: rgba(var(--center-channel-color-rgb), 0.56);
         font-size: 14.4px;
-    };
+    }
 `;
 
 const RoleChooser = styled.div`
@@ -114,9 +114,20 @@ interface MMOverlayTrigger extends BaseOverlayTrigger {
     hide: () => void;
 }
 
-const Member = ({className, channel, member, index, totalUsers, editing, actions}: Props) => {
+const Member = ({
+    className,
+    channel,
+    member,
+    index,
+    totalUsers,
+    editing,
+    actions,
+}: Props) => {
     const overlay = React.createRef<MMOverlayTrigger>();
-    const profileSrc = Client4.getProfilePictureUrl(member.user.id, member.user.last_picture_update);
+    const profileSrc = Client4.getProfilePictureUrl(
+        member.user.id,
+        member.user.last_picture_update,
+    );
 
     const hideProfilePopover = () => {
         if (overlay.current) {
@@ -127,18 +138,17 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
     return (
         <div
             className={className}
-            style={{height: '48px'}}
+            style={{ height: "48px" }}
             data-testid={`memberline-${member.user.id}`}
         >
-
             <OverlayTrigger
                 ref={overlay}
-                trigger={['click']}
-                placement={'left'}
+                trigger={["click"]}
+                placement={"left"}
                 rootClose={true}
                 overlay={
                     <ProfilePopover
-                        className='user-profile-popover'
+                        className="user-profile-popover"
                         userId={member.user.id}
                         src={profileSrc}
                         hide={hideProfilePopover}
@@ -146,38 +156,44 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                     />
                 }
             >
-                <span className='ProfileSpan'>
+                <span className="ProfileSpan">
                     <Avatar>
                         <ProfilePicture
-                            popoverPlacement='left'
-                            size='sm'
+                            popoverPlacement="left"
+                            size="sm"
                             status={member.status}
                             isBot={member.user.is_bot}
                             userId={member.user.id}
                             username={member.displayName}
-                            src={Client4.getProfilePictureUrl(member.user.id, member.user.last_picture_update)}
+                            src={Client4.getProfilePictureUrl(
+                                member.user.id,
+                                member.user.last_picture_update,
+                            )}
                         />
                     </Avatar>
                     <UserInfo>
                         <DisplayName>
                             {member.displayName}
-                            {isGuest(member.user.roles) && <GuestTag/>}
+                            {isGuest(member.user.roles) && <GuestTag />}
                         </DisplayName>
-                        {
-                            member.displayName === member.user.username ? null : <Username>{'@'}{member.user.username}</Username>
-                        }
+                        {member.displayName === member.user.username ? null : (
+                            <Username>
+                                {"@"}
+                                {member.user.username}
+                            </Username>
+                        )}
                         <CustomStatusEmoji
                             userID={member.user.id}
                             showTooltip={true}
                             emojiSize={16}
                             spanStyle={{
-                                display: 'flex',
-                                flex: '0 0 auto',
-                                alignItems: 'center',
+                                display: "flex",
+                                flex: "0 0 auto",
+                                alignItems: "center",
                             }}
                             emojiStyle={{
-                                marginLeft: '8px',
-                                alignItems: 'center',
+                                marginLeft: "8px",
+                                alignItems: "center",
                             }}
                         />
                     </UserInfo>
@@ -185,8 +201,8 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
             </OverlayTrigger>
 
             <RoleChooser
-                className={classNames({editing}, 'member-role-chooser')}
-                data-testid='rolechooser'
+                className={classNames({ editing }, "member-role-chooser")}
+                data-testid="rolechooser"
             >
                 {member.membership && (
                     <ChannelMembersDropdown
@@ -197,40 +213,42 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                         totalUsers={totalUsers}
                         channelAdminLabel={
                             <FormattedMessage
-                                id='channel_members_rhs.member.select_role_channel_admin'
-                                defaultMessage='Admin'
+                                id="channel_members_rhs.member.select_role_channel_admin"
+                                defaultMessage="Admin"
                             />
                         }
                         channelMemberLabel={
                             <FormattedMessage
-                                id='channel_members_rhs.member.select_role_channel_member'
-                                defaultMessage='Member'
+                                id="channel_members_rhs.member.select_role_channel_member"
+                                defaultMessage="Member"
                             />
                         }
                         guestLabel={
                             <FormattedMessage
-                                id='channel_members_rhs.member.select_role_guest'
-                                defaultMessage='Guest'
+                                id="channel_members_rhs.member.select_role_guest"
+                                defaultMessage="Guest"
                             />
                         }
                     />
                 )}
             </RoleChooser>
             {!editing && (
-                <SendMessage onClick={() => actions.openDirectMessage(member.user)}>
+                <SendMessage
+                    onClick={() => actions.openDirectMessage(member.user)}
+                >
                     <OverlayTrigger
                         delayShow={Constants.OVERLAY_TIME_DELAY}
-                        placement='left'
+                        placement="left"
                         overlay={
                             <Tooltip>
                                 <FormattedMessage
-                                    id='channel_members_rhs.member.send_message'
-                                    defaultMessage='Send message'
+                                    id="channel_members_rhs.member.send_message"
+                                    defaultMessage="Send message"
                                 />
                             </Tooltip>
                         }
                     >
-                        <i className='icon icon-send'/>
+                        <i className="icon icon-send" />
                     </OverlayTrigger>
                 </SendMessage>
             )}

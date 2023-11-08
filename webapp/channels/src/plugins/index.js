@@ -1,29 +1,35 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import regeneratorRuntime from 'regenerator-runtime';
+import regeneratorRuntime from "regenerator-runtime";
 
-import {Client4} from 'mattermost-redux/client';
-import {Preferences} from 'mattermost-redux/constants';
-import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import { Client4 } from "mattermost-redux/client";
+import { Preferences } from "mattermost-redux/constants";
+import {
+    getConfig,
+    isPerformanceDebuggingEnabled,
+} from "mattermost-redux/selectors/entities/general";
+import { getBool } from "mattermost-redux/selectors/entities/preferences";
 
-import {unregisterAdminConsolePlugin} from 'actions/admin_actions';
-import {trackPluginInitialization} from 'actions/telemetry_actions';
-import {unregisterPluginTranslationsSource} from 'actions/views/root';
-import {unregisterAllPluginWebSocketEvents, unregisterPluginReconnectHandler} from 'actions/websocket_actions';
-import store from 'stores/redux_store';
+import { unregisterAdminConsolePlugin } from "actions/admin_actions";
+import { trackPluginInitialization } from "actions/telemetry_actions";
+import { unregisterPluginTranslationsSource } from "actions/views/root";
+import {
+    unregisterAllPluginWebSocketEvents,
+    unregisterPluginReconnectHandler,
+} from "actions/websocket_actions";
+import store from "stores/redux_store";
 
-import PluginRegistry from 'plugins/registry';
-import {ActionTypes} from 'utils/constants';
-import {getSiteURL} from 'utils/url';
+import PluginRegistry from "plugins/registry";
+import { ActionTypes } from "utils/constants";
+import { getSiteURL } from "utils/url";
 
-import {removeWebappPlugin} from './actions';
+import { removeWebappPlugin } from "./actions";
 
 // Including the fullscreen modal css to make it available to the plugins
 // (without lazy loading). This should be removed in the future whenever we
 // have all plugins migrated to common components that can be reused there.
-import 'components/widgets/modals/full_screen_modal.scss';
+import "components/widgets/modals/full_screen_modal.scss";
 
 // Plugins may have been compiled with the regenerator runtime. Ensure this remains available
 // as a global export even though the webapp does not depend on same.
@@ -48,13 +54,17 @@ function registerPlugin(id, plugin) {
 window.registerPlugin = registerPlugin;
 
 function arePluginsEnabled(state) {
-    if (getConfig(state).PluginsEnabled !== 'true') {
+    if (getConfig(state).PluginsEnabled !== "true") {
         return false;
     }
 
     if (
         isPerformanceDebuggingEnabled(state) &&
-        getBool(state, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_CLIENT_PLUGINS)
+        getBool(
+            state,
+            Preferences.CATEGORY_PERFORMANCE_DEBUGGING,
+            Preferences.NAME_DISABLE_CLIENT_PLUGINS,
+        )
     ) {
         return false;
     }
@@ -68,7 +78,7 @@ export async function initializePlugins() {
         return;
     }
 
-    const {data, error} = await getPlugins()(store.dispatch);
+    const { data, error } = await getPlugins()(store.dispatch);
     if (error) {
         console.error(error); //eslint-disable-line no-console
         return;
@@ -78,11 +88,13 @@ export async function initializePlugins() {
         return;
     }
 
-    await Promise.all(data.map((m) => {
-        return loadPlugin(m).catch((loadErr) => {
-            console.error(loadErr.message); //eslint-disable-line no-console
-        });
-    }));
+    await Promise.all(
+        data.map((m) => {
+            return loadPlugin(m).catch((loadErr) => {
+                console.error(loadErr.message); //eslint-disable-line no-console
+            });
+        }),
+    );
 
     trackPluginInitialization(data);
 }
@@ -94,12 +106,12 @@ export function getPlugins() {
         try {
             plugins = await Client4.getWebappPlugins();
         } catch (error) {
-            return {error};
+            return { error };
         }
 
-        dispatch({type: ActionTypes.RECEIVED_WEBAPP_PLUGINS, data: plugins});
+        dispatch({ type: ActionTypes.RECEIVED_WEBAPP_PLUGINS, data: plugins });
 
-        return {data: plugins};
+        return { data: plugins };
     };
 }
 
@@ -107,9 +119,8 @@ export function getPlugins() {
 const loadedPlugins = {};
 
 // describePlugin takes a manifest and spits out a string suitable for console.log messages.
-const describePlugin = (manifest) => (
-    'plugin ' + manifest.id + ', version ' + manifest.version
-);
+const describePlugin = (manifest) =>
+    "plugin " + manifest.id + ", version " + manifest.version;
 
 // loadPlugin fetches the web app bundle described by the given manifest, waits for the bundle to
 // load, and then ensures the plugin has been initialized.
@@ -121,7 +132,10 @@ export function loadPlugin(manifest) {
 
         // Don't load it again if previously loaded
         const oldManifest = loadedPlugins[manifest.id];
-        if (oldManifest && oldManifest.webapp.bundle_path === manifest.webapp.bundle_path) {
+        if (
+            oldManifest &&
+            oldManifest.webapp.bundle_path === manifest.webapp.bundle_path
+        ) {
             resolve();
             return;
         }
@@ -133,30 +147,37 @@ export function loadPlugin(manifest) {
 
         function onLoad() {
             initializePlugin(manifest);
-            console.log('Loaded ' + describePlugin(manifest)); //eslint-disable-line no-console
+            console.log("Loaded " + describePlugin(manifest)); //eslint-disable-line no-console
             resolve();
         }
 
         function onError() {
-            reject(new Error('Unable to load bundle for ' + describePlugin(manifest)));
+            reject(
+                new Error(
+                    "Unable to load bundle for " + describePlugin(manifest),
+                ),
+            );
         }
 
         // Backwards compatibility for old plugins
         let bundlePath = manifest.webapp.bundle_path;
-        if (bundlePath.includes('/static/') && !bundlePath.includes('/static/plugins/')) {
-            bundlePath = bundlePath.replace('/static/', '/static/plugins/');
+        if (
+            bundlePath.includes("/static/") &&
+            !bundlePath.includes("/static/plugins/")
+        ) {
+            bundlePath = bundlePath.replace("/static/", "/static/plugins/");
         }
 
-        console.log('Loading ' + describePlugin(manifest)); //eslint-disable-line no-console
+        console.log("Loading " + describePlugin(manifest)); //eslint-disable-line no-console
 
-        const script = document.createElement('script');
-        script.id = 'plugin_' + manifest.id;
-        script.type = 'text/javascript';
+        const script = document.createElement("script");
+        script.id = "plugin_" + manifest.id;
+        script.type = "text/javascript";
         script.src = getSiteURL() + bundlePath;
         script.onload = onLoad;
         script.onerror = onError;
 
-        document.getElementsByTagName('head')[0].appendChild(script);
+        document.getElementsByTagName("head")[0].appendChild(script);
         loadedPlugins[manifest.id] = manifest;
     });
 }
@@ -179,7 +200,7 @@ export function removePlugin(manifest) {
     if (!loadedPlugins[manifest.id]) {
         return;
     }
-    console.log('Removing ' + describePlugin(manifest)); //eslint-disable-line no-console
+    console.log("Removing " + describePlugin(manifest)); //eslint-disable-line no-console
 
     delete loadedPlugins[manifest.id];
 
@@ -189,7 +210,7 @@ export function removePlugin(manifest) {
     if (plugin && plugin.uninitialize) {
         plugin.uninitialize();
 
-    // Support the deprecated deinitialize callback from the plugins beta.
+        // Support the deprecated deinitialize callback from the plugins beta.
     } else if (plugin && plugin.deinitialize) {
         plugin.deinitialize();
     }
@@ -197,12 +218,12 @@ export function removePlugin(manifest) {
     unregisterPluginReconnectHandler(manifest.id);
     store.dispatch(unregisterAdminConsolePlugin(manifest.id));
     unregisterPluginTranslationsSource(manifest.id);
-    const script = document.getElementById('plugin_' + manifest.id);
+    const script = document.getElementById("plugin_" + manifest.id);
     if (!script) {
         return;
     }
     script.parentNode.removeChild(script);
-    console.log('Removed ' + describePlugin(manifest)); //eslint-disable-line no-console
+    console.log("Removed " + describePlugin(manifest)); //eslint-disable-line no-console
 }
 
 // loadPluginsIfNecessary synchronizes the current state of loaded plugins with that of the server,
@@ -214,7 +235,7 @@ export async function loadPluginsIfNecessary() {
 
     const oldManifests = store.getState().plugins.plugins;
 
-    const {error} = await getPlugins()(store.dispatch);
+    const { error } = await getPlugins()(store.dispatch);
     if (error) {
         console.error(error); //eslint-disable-line no-console
         return;

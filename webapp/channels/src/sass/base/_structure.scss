@@ -18,7 +18,7 @@ body {
     }
 
     &.admin-onboarding {
-        background-image: url('images/admin-onboarding-background.jpg');
+        background-image: url("images/admin-onboarding-background.jpg");
         background-repeat: no-repeat;
         background-size: cover;
     }
@@ -92,20 +92,18 @@ body.app__body #root {
     display: grid;
     overflow: hidden;
 
-    --columns: min-content min-content minmax(385px, 1fr) minmax(0, auto) min-content;
+    --columns: min-content min-content minmax(385px, 1fr) minmax(0, auto)
+        min-content;
     grid-template:
-        'announcement announcement announcement announcement announcement' min-content
-        'header header header header header' min-content
-        'team-sidebar lhs center rhs app-sidebar'
-        'footer footer footer footer footer' min-content
+        "announcement announcement announcement announcement announcement" min-content
+        "header header header header header" min-content
+        "team-sidebar lhs center rhs app-sidebar"
+        "footer footer footer footer footer" min-content
         / var(--columns);
-    ;
-
     > :only-child {
         grid-area: center;
         width: 100%;
     }
-
 
     .announcement-bar {
         grid-area: announcement;
@@ -143,12 +141,11 @@ body.app__body #root {
     &:not(.console__root) {
         @media screen and (max-width: 768px) {
             grid-template:
-                'announcement' min-content
-                'header' min-content
-                'center'
-                'footer' min-content
-                / auto
-            ;
+                "announcement" min-content
+                "header" min-content
+                "center"
+                "footer" min-content
+                / auto;
             .team-sidebar,
             #SidebarContainer,
             #channel_view,

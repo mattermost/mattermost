@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import SearchIcon from 'components/widgets/icons/search_icon';
+import SearchIcon from "components/widgets/icons/search_icon";
 
-import {localizeMessage} from 'utils/utils';
+import { localizeMessage } from "utils/utils";
 
 type Actions = {
     openRHSSearch: () => void;
-}
+};
 
 type Props = {
     actions: Actions;
-}
+};
 
 export default class ShowSearchButton extends React.PureComponent<Props> {
     handleClick = () => {
@@ -23,15 +23,15 @@ export default class ShowSearchButton extends React.PureComponent<Props> {
     render() {
         return (
             <button
-                type='button'
-                className='navbar-toggle navbar-right__icon navbar-search pull-right'
+                type="button"
+                className="navbar-toggle navbar-right__icon navbar-search pull-right"
                 onClick={this.handleClick}
-                aria-label={localizeMessage('accessibility.button.Search', 'Search')}
+                aria-label={localizeMessage(
+                    "accessibility.button.Search",
+                    "Search",
+                )}
             >
-                <SearchIcon
-                    className='icon icon__search'
-                    aria-hidden='true'
-                />
+                <SearchIcon className="icon icon__search" aria-hidden="true" />
             </button>
         );
     }

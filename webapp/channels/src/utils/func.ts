@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {intersection, isPlainObject, zipObject} from 'lodash';
+import { intersection, isPlainObject, zipObject } from "lodash";
 
 /**
  * Transform a function with multiple args into one that receives a normalized args object.
@@ -20,15 +20,24 @@ import {intersection, isPlainObject, zipObject} from 'lodash';
  * // or:
  * wrappedMethod(a, b, c, d, e, f, g);
  */
-export function reArg<TArgs extends Record<string, unknown>, TResult>(keyOrder: Array<keyof TArgs>, func: (args: TArgs) => TResult) {
+export function reArg<TArgs extends Record<string, unknown>, TResult>(
+    keyOrder: Array<keyof TArgs>,
+    func: (args: TArgs) => TResult,
+) {
     // Ordered-argument typing (`| any[]` bellow) could possibly be improved to support type checking when not invoking with via TArgs
     return (...args: [TArgs] | any[]) => {
         const isConfigObjectArg = args.length === 1 && isPlainObject(args[0]);
 
         // validate against key-name clashes if arg is an object
         const objKeys = isConfigObjectArg && Object.keys(args[0]);
-        const keysMatch = objKeys && intersection(objKeys, keyOrder).length === objKeys.length;
+        const keysMatch =
+            objKeys &&
+            intersection(objKeys, keyOrder).length === objKeys.length;
 
-        return func(isConfigObjectArg && keysMatch ? args[0] : zipObject(keyOrder, args));
+        return func(
+            isConfigObjectArg && keysMatch
+                ? args[0]
+                : zipObject(keyOrder, args),
+        );
     };
 }

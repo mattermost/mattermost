@@ -1,44 +1,35 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect, useRef, useState} from 'react';
-import Scrollbars from 'react-custom-scrollbars';
-import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import React, { memo, useEffect, useRef, useState } from "react";
+import Scrollbars from "react-custom-scrollbars";
+import { useIntl } from "react-intl";
+import { useDispatch } from "react-redux";
 
-import type {Post} from '@mattermost/types/posts';
+import type { Post } from "@mattermost/types/posts";
 
-import {getPostEditHistory} from 'mattermost-redux/actions/posts';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import { getPostEditHistory } from "mattermost-redux/actions/posts";
+import type { DispatchFunc } from "mattermost-redux/types/actions";
 
-import AlertIcon from 'components/common/svg_images_components/alert_svg';
-import LoadingScreen from 'components/loading_screen';
-import SearchResultsHeader from 'components/search_results_header';
+import AlertIcon from "components/common/svg_images_components/alert_svg";
+import LoadingScreen from "components/loading_screen";
+import SearchResultsHeader from "components/search_results_header";
 
-import EditedPostItem from './edited_post_item';
+import EditedPostItem from "./edited_post_item";
 
-import type {PropsFromRedux} from './index';
-import './post_edit_history.scss';
+import type { PropsFromRedux } from "./index";
+import "./post_edit_history.scss";
 
 const renderView = (props: Record<string, unknown>): JSX.Element => (
-    <div
-        {...props}
-        className='scrollbar--view'
-    />
+    <div {...props} className="scrollbar--view" />
 );
 
 const renderThumbHorizontal = (props: Record<string, unknown>): JSX.Element => (
-    <div
-        {...props}
-        className='scrollbar--horizontal'
-    />
+    <div {...props} className="scrollbar--horizontal" />
 );
 
 const renderThumbVertical = (props: Record<string, unknown>): JSX.Element => (
-    <div
-        {...props}
-        className='scrollbar--vertical'
-    />
+    <div {...props} className="scrollbar--vertical" />
 );
 
 const PostEditHistory = ({
@@ -50,14 +41,15 @@ const PostEditHistory = ({
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const dispatch = useDispatch<DispatchFunc>();
     const scrollbars = useRef<Scrollbars | null>(null);
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
     const retrieveErrorHeading = formatMessage({
-        id: 'post_info.edit.history.retrieveError',
-        defaultMessage: 'Unable to load edit history',
+        id: "post_info.edit.history.retrieveError",
+        defaultMessage: "Unable to load edit history",
     });
     const retrieveErrorSubheading = formatMessage({
-        id: 'post_info.edit.history.retrieveErrorVerbose',
-        defaultMessage: 'There was an error loading the history for this message. Check your network connection or try again later.',
+        id: "post_info.edit.history.retrieveErrorVerbose",
+        defaultMessage:
+            "There was an error loading the history for this message. Check your network connection or try again later.",
     });
 
     useEffect(() => {
@@ -83,21 +75,18 @@ const PostEditHistory = ({
     }, [originalPost.id]);
 
     const title = formatMessage({
-        id: 'search_header.title_edit.history',
-        defaultMessage: 'Edit History',
+        id: "search_header.title_edit.history",
+        defaultMessage: "Edit History",
     });
 
     const errorContainer: JSX.Element = (
-        <div className='edit-post-history__error_container'>
-            <div className='edit-post-history__error_item'>
-                <AlertIcon
-                    width={127}
-                    height={127}
-                />
-                <p className='edit-post-history__error_heading'>
+        <div className="edit-post-history__error_container">
+            <div className="edit-post-history__error_item">
+                <AlertIcon width={127} height={127} />
+                <p className="edit-post-history__error_heading">
                     {retrieveErrorHeading}
                 </p>
-                <p className='edit-post-history__error_subheading'>
+                <p className="edit-post-history__error_subheading">
                     {retrieveErrorSubheading}
                 </p>
             </div>
@@ -107,14 +96,14 @@ const PostEditHistory = ({
     if (isLoading && postEditHistory.length === 0) {
         return (
             <div
-                id='rhsContainer'
-                className='sidebar-right__body sidebar-right__edit-post-history'
+                id="rhsContainer"
+                className="sidebar-right__body sidebar-right__edit-post-history"
             >
                 <LoadingScreen
                     style={{
-                        display: 'grid',
-                        placeContent: 'center',
-                        flex: '1',
+                        display: "grid",
+                        placeContent: "center",
+                        flex: "1",
                     }}
                 />
             </div>
@@ -129,17 +118,17 @@ const PostEditHistory = ({
         />
     );
 
-    const postEditItems = [currentItem, ...postEditHistory.map((postEdited) => (
-        <EditedPostItem
-            key={postEdited.id}
-            post={postEdited}
-        />
-    ))];
+    const postEditItems = [
+        currentItem,
+        ...postEditHistory.map((postEdited) => (
+            <EditedPostItem key={postEdited.id} post={postEdited} />
+        )),
+    ];
 
     return (
         <div
-            id='rhsContainer'
-            className='sidebar-right__body sidebar-right__edit-post-history'
+            id="rhsContainer"
+            className="sidebar-right__body sidebar-right__edit-post-history"
         >
             <Scrollbars
                 ref={scrollbars}
@@ -152,7 +141,9 @@ const PostEditHistory = ({
             >
                 <SearchResultsHeader>
                     {title}
-                    <div className='sidebar--right__title__channel'>{channelDisplayName}</div>
+                    <div className="sidebar--right__title__channel">
+                        {channelDisplayName}
+                    </div>
                 </SearchResultsHeader>
                 {hasError ? errorContainer : postEditItems}
             </Scrollbars>

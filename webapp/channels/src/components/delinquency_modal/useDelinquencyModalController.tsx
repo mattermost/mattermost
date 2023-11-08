@@ -1,23 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useState} from 'react';
-import {useSelector, useDispatch} from 'react-redux';
+import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 
-import type {Subscription} from '@mattermost/types/cloud';
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type { Subscription } from "@mattermost/types/cloud";
+import type { PreferenceType } from "@mattermost/types/preferences";
 
-import {getCloudProducts} from 'mattermost-redux/actions/cloud';
-import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import { getCloudProducts } from "mattermost-redux/actions/cloud";
+import { getSubscriptionProduct } from "mattermost-redux/selectors/entities/cloud";
 
-import {setItem} from 'actions/storage';
-import {makeGetItem} from 'selectors/storage';
+import { setItem } from "actions/storage";
+import { makeGetItem } from "selectors/storage";
 
-import {StoragePrefixes, ModalIdentifiers} from 'utils/constants';
+import { StoragePrefixes, ModalIdentifiers } from "utils/constants";
 
-import type {ModalData} from 'types/actions';
+import type { ModalData } from "types/actions";
 
-import DelinquencyModal from './delinquency_modal';
+import DelinquencyModal from "./delinquency_modal";
 
 const SESSION_MODAL_ITEM = `${StoragePrefixes.DELINQUENCY}hide_downgrade_modal`;
 
@@ -31,24 +31,37 @@ type UseDelinquencyModalController = {
         openModal: <P>(modalData: ModalData<P>) => void;
     };
     delinquencyModalPreferencesConfirmed: PreferenceType[];
-}
+};
 
-export const useDelinquencyModalController = (props: UseDelinquencyModalController) => {
-    const {isCloud, userIsAdmin, subscription, actions, delinquencyModalPreferencesConfirmed} = props;
+export const useDelinquencyModalController = (
+    props: UseDelinquencyModalController,
+) => {
+    const {
+        isCloud,
+        userIsAdmin,
+        subscription,
+        actions,
+        delinquencyModalPreferencesConfirmed,
+    } = props;
     const product = useSelector(getSubscriptionProduct);
-    const sessionModalItem = useSelector(makeGetItem(SESSION_MODAL_ITEM, ''));
+    const sessionModalItem = useSelector(makeGetItem(SESSION_MODAL_ITEM, ""));
     const dispatch = useDispatch();
     const [showModal, setShowModal] = useState(false);
-    const {openModal} = actions;
+    const { openModal } = actions;
     const [requestedProducts, setRequestedProducts] = useState(false);
 
     const handleOnExit = () => {
         setShowModal(() => false);
-        dispatch(setItem(SESSION_MODAL_ITEM, 'true'));
+        dispatch(setItem(SESSION_MODAL_ITEM, "true"));
     };
 
     useEffect(() => {
-        if (delinquencyModalPreferencesConfirmed.length === 0 && product === undefined && !requestedProducts && isCloud) {
+        if (
+            delinquencyModalPreferencesConfirmed.length === 0 &&
+            product === undefined &&
+            !requestedProducts &&
+            isCloud
+        ) {
             dispatch(getCloudProducts());
             setRequestedProducts(true);
         }
@@ -93,7 +106,14 @@ export const useDelinquencyModalController = (props: UseDelinquencyModalControll
         }
 
         setShowModal(true);
-    }, [delinquencyModalPreferencesConfirmed.length, isCloud, openModal, showModal, subscription, userIsAdmin]);
+    }, [
+        delinquencyModalPreferencesConfirmed.length,
+        isCloud,
+        openModal,
+        showModal,
+        subscription,
+        userIsAdmin,
+    ]);
 
     useEffect(() => {
         if (showModal && product != null) {

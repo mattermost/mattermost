@@ -1,6 +1,6 @@
 @charset 'UTF-8';
 
-@import 'utils/variables';
+@import "utils/variables";
 
 @media screen and (max-width: 768px) {
     #submenuModal {
@@ -68,7 +68,11 @@
                                         width: 100%;
                                         height: auto;
                                         padding: 15px 20px;
-                                        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+                                        border-top: 1px solid
+                                            rgba(
+                                                var(--center-channel-color-rgb),
+                                                0.08
+                                            );
                                         font-size: 14px;
                                         opacity: 1;
                                         text-align: left;

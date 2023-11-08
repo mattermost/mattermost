@@ -1,35 +1,51 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {logError} from 'mattermost-redux/actions/errors';
-import {getProfilesByIds} from 'mattermost-redux/actions/users';
-import {getCurrentChannel, getMyChannelMember, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import { logError } from "mattermost-redux/actions/errors";
+import { getProfilesByIds } from "mattermost-redux/actions/users";
+import {
+    getCurrentChannel,
+    getMyChannelMember,
+    makeGetChannel,
+} from "mattermost-redux/selectors/entities/channels";
+import { getConfig } from "mattermost-redux/selectors/entities/general";
 import {
     getTeammateNameDisplaySetting,
     isCollapsedThreadsEnabled,
-} from 'mattermost-redux/selectors/entities/preferences';
-import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
-import {getCurrentUserId, getCurrentUser, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
-import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
-import {isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
-import {displayUsername} from 'mattermost-redux/utils/user_utils';
+} from "mattermost-redux/selectors/entities/preferences";
+import { getAllUserMentionKeys } from "mattermost-redux/selectors/entities/search";
+import {
+    getCurrentUserId,
+    getCurrentUser,
+    getStatusForUserId,
+    getUser,
+} from "mattermost-redux/selectors/entities/users";
+import { isChannelMuted } from "mattermost-redux/utils/channel_utils";
+import {
+    isSystemMessage,
+    isUserAddedInChannel,
+} from "mattermost-redux/utils/post_utils";
+import { displayUsername } from "mattermost-redux/utils/user_utils";
 
-import {getChannelURL, getPermalinkURL} from 'selectors/urls';
-import {isThreadOpen} from 'selectors/views/threads';
+import { getChannelURL, getPermalinkURL } from "selectors/urls";
+import { isThreadOpen } from "selectors/views/threads";
 
-import {getHistory} from 'utils/browser_history';
-import Constants, {NotificationLevels, UserStatuses, IgnoreChannelMentions} from 'utils/constants';
-import {t} from 'utils/i18n';
-import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
-import MentionableRenderer from 'utils/markdown/mentionable_renderer';
-import * as NotificationSounds from 'utils/notification_sounds';
-import {showNotification} from 'utils/notifications';
-import {cjkrPattern, escapeRegex} from 'utils/text_formatting';
-import {isDesktopApp, isMobileApp, isWindowsApp} from 'utils/user_agent';
-import * as Utils from 'utils/utils';
+import { getHistory } from "utils/browser_history";
+import Constants, {
+    NotificationLevels,
+    UserStatuses,
+    IgnoreChannelMentions,
+} from "utils/constants";
+import { t } from "utils/i18n";
+import { stripMarkdown, formatWithRenderer } from "utils/markdown";
+import MentionableRenderer from "utils/markdown/mentionable_renderer";
+import * as NotificationSounds from "utils/notification_sounds";
+import { showNotification } from "utils/notifications";
+import { cjkrPattern, escapeRegex } from "utils/text_formatting";
+import { isDesktopApp, isMobileApp, isWindowsApp } from "utils/user_agent";
+import * as Utils from "utils/utils";
 
-import {runDesktopNotificationHooks} from './hooks';
+import { runDesktopNotificationHooks } from "./hooks";
 
 const NOTIFY_TEXT_MAX_LENGTH = 50;
 
@@ -38,10 +54,10 @@ const WINDOWS_NOTIFY_TEXT_MAX_LENGTH = 120;
 
 const getSoundFromChannelMemberAndUser = (member, user) => {
     if (member?.notify_props?.desktop_sound) {
-        return member.notify_props.desktop_sound === 'on';
+        return member.notify_props.desktop_sound === "on";
     }
 
-    return !user.notify_props || user.notify_props.desktop_sound === 'true';
+    return !user.notify_props || user.notify_props.desktop_sound === "true";
 };
 
 const getNotificationSoundFromChannelMemberAndUser = (member, user) => {
@@ -49,7 +65,9 @@ const getNotificationSoundFromChannelMemberAndUser = (member, user) => {
         return member.notify_props.desktop_notification_sound;
     }
 
-    return user.notify_props?.desktop_notification_sound ? user.notify_props.desktop_notification_sound : 'Bing';
+    return user.notify_props?.desktop_notification_sound
+        ? user.notify_props.desktop_notification_sound
+        : "Bing";
 };
 
 export function sendDesktopNotification(post, msgProps) {
@@ -57,18 +75,29 @@ export function sendDesktopNotification(post, msgProps) {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
 
-        if ((currentUserId === post.user_id && post.props.from_webhook !== 'true')) {
+        if (
+            currentUserId === post.user_id &&
+            post.props.from_webhook !== "true"
+        ) {
             return;
         }
 
-        if (isSystemMessage(post) && !isUserAddedInChannel(post, currentUserId)) {
+        if (
+            isSystemMessage(post) &&
+            !isUserAddedInChannel(post, currentUserId)
+        ) {
             return;
         }
 
         let userFromPost = getUser(state, post.user_id);
         if (!userFromPost) {
-            const missingProfileResponse = await dispatch(getProfilesByIds([post.user_id]));
-            if (missingProfileResponse.data && missingProfileResponse.data.length) {
+            const missingProfileResponse = await dispatch(
+                getProfilesByIds([post.user_id]),
+            );
+            if (
+                missingProfileResponse.data &&
+                missingProfileResponse.data.length
+            ) {
                 userFromPost = missingProfileResponse.data[0];
             }
         }
@@ -86,30 +115,44 @@ export function sendDesktopNotification(post, msgProps) {
 
         const teamId = msgProps.team_id;
 
-        let channel = makeGetChannel()(state, {id: post.channel_id});
+        let channel = makeGetChannel()(state, { id: post.channel_id });
         const user = getCurrentUser(state);
         const userStatus = getStatusForUserId(state, user.id);
         const member = getMyChannelMember(state, post.channel_id);
-        const isCrtReply = isCollapsedThreadsEnabled(state) && post.root_id !== '';
+        const isCrtReply =
+            isCollapsedThreadsEnabled(state) && post.root_id !== "";
 
-        if (!member || isChannelMuted(member) || userStatus === UserStatuses.DND || userStatus === UserStatuses.OUT_OF_OFFICE) {
+        if (
+            !member ||
+            isChannelMuted(member) ||
+            userStatus === UserStatuses.DND ||
+            userStatus === UserStatuses.OUT_OF_OFFICE
+        ) {
             return;
         }
 
-        const channelNotifyProp = member?.notify_props?.desktop || NotificationLevels.DEFAULT;
+        const channelNotifyProp =
+            member?.notify_props?.desktop || NotificationLevels.DEFAULT;
         let notifyLevel = channelNotifyProp;
 
         if (notifyLevel === NotificationLevels.DEFAULT) {
             notifyLevel = user?.notify_props?.desktop || NotificationLevels.ALL;
         }
 
-        if (channel.type === 'G' && channelNotifyProp === NotificationLevels.DEFAULT && user?.notify_props?.desktop === NotificationLevels.MENTION) {
+        if (
+            channel.type === "G" &&
+            channelNotifyProp === NotificationLevels.DEFAULT &&
+            user?.notify_props?.desktop === NotificationLevels.MENTION
+        ) {
             notifyLevel = NotificationLevels.ALL;
         }
 
         if (notifyLevel === NotificationLevels.NONE) {
             return;
-        } else if (channel.type === 'G' && notifyLevel === NotificationLevels.MENTION) {
+        } else if (
+            channel.type === "G" &&
+            notifyLevel === NotificationLevels.MENTION
+        ) {
             // Compose the whole text in the message, including interactive messages.
             let text = post.message;
 
@@ -137,37 +180,52 @@ export function sendDesktopNotification(post, msgProps) {
                 }
             } catch (e) {
                 // eslint-disable-next-line no-console
-                console.log('Could not process the whole attachment for mentions', e);
+                console.log(
+                    "Could not process the whole attachment for mentions",
+                    e,
+                );
             }
 
             const allMentions = getAllUserMentionKeys(state);
 
-            const ignoreChannelMentionProp = member?.notify_props?.ignore_channel_mentions || IgnoreChannelMentions.DEFAULT;
-            let ignoreChannelMention = ignoreChannelMentionProp === IgnoreChannelMentions.ON;
+            const ignoreChannelMentionProp =
+                member?.notify_props?.ignore_channel_mentions ||
+                IgnoreChannelMentions.DEFAULT;
+            let ignoreChannelMention =
+                ignoreChannelMentionProp === IgnoreChannelMentions.ON;
             if (ignoreChannelMentionProp === IgnoreChannelMentions.DEFAULT) {
-                ignoreChannelMention = user?.notify_props?.channel === 'false';
+                ignoreChannelMention = user?.notify_props?.channel === "false";
             }
 
-            const mentionableText = formatWithRenderer(text, new MentionableRenderer());
+            const mentionableText = formatWithRenderer(
+                text,
+                new MentionableRenderer(),
+            );
             let isExplicitlyMentioned = false;
             for (const mention of allMentions) {
                 if (!mention || !mention.key) {
                     continue;
                 }
 
-                if (ignoreChannelMention && ['@all', '@here', '@channel'].includes(mention.key)) {
+                if (
+                    ignoreChannelMention &&
+                    ["@all", "@here", "@channel"].includes(mention.key)
+                ) {
                     continue;
                 }
 
-                let flags = 'g';
+                let flags = "g";
                 if (!mention.caseSensitive) {
-                    flags += 'i';
+                    flags += "i";
                 }
 
                 let pattern;
                 if (cjkrPattern.test(mention.key)) {
                     // In the case of CJK mention key, even if there's no delimiters (such as spaces) at both ends of a word, it is recognized as a mention key
-                    pattern = new RegExp(`()(${escapeRegex(mention.key)})()`, flags);
+                    pattern = new RegExp(
+                        `()(${escapeRegex(mention.key)})()`,
+                        flags,
+                    );
                 } else {
                     pattern = new RegExp(
                         `(^|\\W)(${escapeRegex(mention.key)})(\\b|_+\\b)`,
@@ -184,24 +242,42 @@ export function sendDesktopNotification(post, msgProps) {
             if (!isExplicitlyMentioned) {
                 return;
             }
-        } else if (notifyLevel === NotificationLevels.MENTION && mentions.indexOf(user.id) === -1 && msgProps.channel_type !== Constants.DM_CHANNEL) {
+        } else if (
+            notifyLevel === NotificationLevels.MENTION &&
+            mentions.indexOf(user.id) === -1 &&
+            msgProps.channel_type !== Constants.DM_CHANNEL
+        ) {
             return;
-        } else if (isCrtReply && notifyLevel === NotificationLevels.ALL && followers.indexOf(currentUserId) === -1) {
+        } else if (
+            isCrtReply &&
+            notifyLevel === NotificationLevels.ALL &&
+            followers.indexOf(currentUserId) === -1
+        ) {
             // if user is not following the thread don't notify
             return;
         }
 
         const config = getConfig(state);
-        let username = '';
-        if (post.props.override_username && config.EnablePostUsernameOverride === 'true') {
+        let username = "";
+        if (
+            post.props.override_username &&
+            config.EnablePostUsernameOverride === "true"
+        ) {
             username = post.props.override_username;
         } else if (userFromPost) {
-            username = displayUsername(userFromPost, getTeammateNameDisplaySetting(state), false);
+            username = displayUsername(
+                userFromPost,
+                getTeammateNameDisplaySetting(state),
+                false,
+            );
         } else {
-            username = Utils.localizeMessage('channel_loader.someone', 'Someone');
+            username = Utils.localizeMessage(
+                "channel_loader.someone",
+                "Someone",
+            );
         }
 
-        let title = Utils.localizeMessage('channel_loader.posted', 'Posted');
+        let title = Utils.localizeMessage("channel_loader.posted", "Posted");
         if (!channel) {
             title = msgProps.channel_display_name;
             channel = {
@@ -209,31 +285,42 @@ export function sendDesktopNotification(post, msgProps) {
                 type: msgProps.channel_type,
             };
         } else if (channel.type === Constants.DM_CHANNEL) {
-            title = Utils.localizeMessage('notification.dm', 'Direct Message');
+            title = Utils.localizeMessage("notification.dm", "Direct Message");
         } else {
             title = channel.display_name;
         }
 
-        if (title === '') {
+        if (title === "") {
             if (msgProps.channel_type === Constants.DM_CHANNEL) {
-                title = Utils.localizeMessage('notification.dm', 'Direct Message');
+                title = Utils.localizeMessage(
+                    "notification.dm",
+                    "Direct Message",
+                );
             } else {
                 title = msgProps.channel_display_name;
             }
         }
 
         if (isCrtReply) {
-            title = Utils.localizeAndFormatMessage(t('notification.crt'), 'Reply in {title}', {title});
+            title = Utils.localizeAndFormatMessage(
+                t("notification.crt"),
+                "Reply in {title}",
+                { title },
+            );
         }
 
         let notifyText = post.message;
 
         const msgPropsPost = JSON.parse(msgProps.post);
-        const attachments = msgPropsPost && msgPropsPost.props && msgPropsPost.props.attachments ? msgPropsPost.props.attachments : [];
+        const attachments =
+            msgPropsPost && msgPropsPost.props && msgPropsPost.props.attachments
+                ? msgPropsPost.props.attachments
+                : [];
         let image = false;
         attachments.forEach((attachment) => {
             if (notifyText.length === 0) {
-                notifyText = attachment.fallback ||
+                notifyText =
+                    attachment.fallback ||
                     attachment.pretext ||
                     attachment.text;
             }
@@ -242,21 +329,39 @@ export function sendDesktopNotification(post, msgProps) {
 
         let strippedMarkdownNotifyText = stripMarkdown(notifyText);
 
-        const notifyTextMaxLength = isWindowsApp() ? WINDOWS_NOTIFY_TEXT_MAX_LENGTH : NOTIFY_TEXT_MAX_LENGTH;
+        const notifyTextMaxLength = isWindowsApp()
+            ? WINDOWS_NOTIFY_TEXT_MAX_LENGTH
+            : NOTIFY_TEXT_MAX_LENGTH;
         if (strippedMarkdownNotifyText.length > notifyTextMaxLength) {
-            strippedMarkdownNotifyText = strippedMarkdownNotifyText.substring(0, notifyTextMaxLength - 1) + '...';
+            strippedMarkdownNotifyText =
+                strippedMarkdownNotifyText.substring(
+                    0,
+                    notifyTextMaxLength - 1,
+                ) + "...";
         }
 
         let body = `@${username}`;
         if (strippedMarkdownNotifyText.length === 0) {
             if (msgProps.image) {
-                body += Utils.localizeMessage('channel_loader.uploadedImage', ' uploaded an image');
+                body += Utils.localizeMessage(
+                    "channel_loader.uploadedImage",
+                    " uploaded an image",
+                );
             } else if (msgProps.otherFile) {
-                body += Utils.localizeMessage('channel_loader.uploadedFile', ' uploaded a file');
+                body += Utils.localizeMessage(
+                    "channel_loader.uploadedFile",
+                    " uploaded a file",
+                );
             } else if (image) {
-                body += Utils.localizeMessage('channel_loader.postedImage', ' posted an image');
+                body += Utils.localizeMessage(
+                    "channel_loader.postedImage",
+                    " posted an image",
+                );
             } else {
-                body += Utils.localizeMessage('channel_loader.something', ' did something new');
+                body += Utils.localizeMessage(
+                    "channel_loader.something",
+                    " did something new",
+                );
             }
         } else {
             body += `: ${strippedMarkdownNotifyText}`;
@@ -278,7 +383,10 @@ export function sendDesktopNotification(post, msgProps) {
         }
         notify = notify || !state.views.browser.focused;
 
-        let soundName = getNotificationSoundFromChannelMemberAndUser(member, user);
+        let soundName = getNotificationSoundFromChannelMemberAndUser(
+            member,
+            user,
+        );
 
         const updatedState = getState();
         let url = getChannelURL(updatedState, channel, teamId);
@@ -288,18 +396,22 @@ export function sendDesktopNotification(post, msgProps) {
         }
 
         // Allow plugins to change the notification, or re-enable a notification
-        const args = {title, body, silent: !sound, soundName, url, notify};
-        const hookResult = await dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
+        const args = { title, body, silent: !sound, soundName, url, notify };
+        const hookResult = await dispatch(
+            runDesktopNotificationHooks(post, msgProps, channel, teamId, args),
+        );
         if (hookResult.error) {
             dispatch(logError(hookResult.error));
             return;
         }
 
         let silent = false;
-        ({title, body, silent, soundName, url, notify} = hookResult.args);
+        ({ title, body, silent, soundName, url, notify } = hookResult.args);
 
         if (notify) {
-            dispatch(notifyMe(title, body, channel, teamId, silent, soundName, url));
+            dispatch(
+                notifyMe(title, body, channel, teamId, silent, soundName, url),
+            );
 
             //Don't add extra sounds on native desktop clients
             if (sound && !isDesktopApp() && !isMobileApp()) {
@@ -309,39 +421,40 @@ export function sendDesktopNotification(post, msgProps) {
     };
 }
 
-export const notifyMe = (title, body, channel, teamId, silent, soundName, url) => (dispatch) => {
-    // handle notifications in desktop app
-    if (isDesktopApp()) {
-        const msg = {
-            title,
-            body,
-            channel,
-            teamId,
-            silent,
-        };
-        msg.data = {soundName};
-        msg.url = url;
+export const notifyMe =
+    (title, body, channel, teamId, silent, soundName, url) => (dispatch) => {
+        // handle notifications in desktop app
+        if (isDesktopApp()) {
+            const msg = {
+                title,
+                body,
+                channel,
+                teamId,
+                silent,
+            };
+            msg.data = { soundName };
+            msg.url = url;
 
-        // get the desktop app to trigger the notification
-        window.postMessage(
-            {
-                type: 'dispatch-notification',
-                message: msg,
-            },
-            window.location.origin,
-        );
-    } else {
-        showNotification({
-            title,
-            body,
-            requireInteraction: false,
-            silent,
-            onClick: () => {
-                window.focus();
-                getHistory().push(url);
-            },
-        }).catch((error) => {
-            dispatch(logError(error));
-        });
-    }
-};
+            // get the desktop app to trigger the notification
+            window.postMessage(
+                {
+                    type: "dispatch-notification",
+                    message: msg,
+                },
+                window.location.origin,
+            );
+        } else {
+            showNotification({
+                title,
+                body,
+                requireInteraction: false,
+                silent,
+                onClick: () => {
+                    window.focus();
+                    getHistory().push(url);
+                },
+            }).catch((error) => {
+                dispatch(logError(error));
+            });
+        }
+    };

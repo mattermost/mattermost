@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
-import {injectIntl} from 'react-intl';
-import type {WrappedComponentProps} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import React, { useState } from "react";
+import { injectIntl } from "react-intl";
+import type { WrappedComponentProps } from "react-intl";
+import { useDispatch } from "react-redux";
 
-import {GenericModal} from '@mattermost/components';
-import type {Feedback} from '@mattermost/types/cloud';
+import { GenericModal } from "@mattermost/components";
+import type { Feedback } from "@mattermost/types/cloud";
 
-import {closeModal} from 'actions/views/modals';
+import { closeModal } from "actions/views/modals";
 
-import RadioButtonGroup from 'components/common/radio_group';
+import RadioButtonGroup from "components/common/radio_group";
 
-import {ModalIdentifiers} from 'utils/constants';
+import { ModalIdentifiers } from "utils/constants";
 
-import './feedback.scss';
+import "./feedback.scss";
 
 export interface FeedbackOption {
     translatedMessage: string;
@@ -28,22 +28,29 @@ type Props = {
     submitText: string;
     feedbackOptions: FeedbackOption[];
     freeformTextPlaceholder: string;
-} & WrappedComponentProps
+} & WrappedComponentProps;
 
 function FeedbackModal(props: Props) {
     const maxFreeFormTextLength = 500;
-    const optionOther = {translatedMessage: props.intl.formatMessage({id: 'feedback.other', defaultMessage: 'Other'}), submissionValue: 'Other'};
+    const optionOther = {
+        translatedMessage: props.intl.formatMessage({
+            id: "feedback.other",
+            defaultMessage: "Other",
+        }),
+        submissionValue: "Other",
+    };
     const feedbackModalOptions: FeedbackOption[] = [
         ...props.feedbackOptions,
         optionOther,
     ];
 
-    const [reason, setReason] = useState('');
-    const [comments, setComments] = useState('');
-    const reasonNotSelected = reason === '';
+    const [reason, setReason] = useState("");
+    const [comments, setComments] = useState("");
+    const reasonNotSelected = reason === "";
     const reasonOther = reason === optionOther.submissionValue;
-    const commentsNotProvided = comments.trim() === '';
-    const submitDisabled = reasonNotSelected || (reasonOther && commentsNotProvided);
+    const commentsNotProvided = comments.trim() === "";
+    const submitDisabled =
+        reasonNotSelected || (reasonOther && commentsNotProvided);
 
     const dispatch = useDispatch();
 
@@ -52,7 +59,10 @@ function FeedbackModal(props: Props) {
             return;
         }
 
-        props.onSubmit({reason, comments: reasonOther ? comments.trim() : ''});
+        props.onSubmit({
+            reason,
+            comments: reasonOther ? comments.trim() : "",
+        });
         dispatch(closeModal(ModalIdentifiers.FEEDBACK));
     };
 
@@ -64,18 +74,21 @@ function FeedbackModal(props: Props) {
         <GenericModal
             compassDesign={true}
             onExited={handleCancel}
-            className='FeedbackModal__Container'
+            className="FeedbackModal__Container"
             isConfirmDisabled={submitDisabled}
             handleCancel={handleCancel}
             handleConfirm={handleSubmitFeedbackModal}
             confirmButtonText={props.submitText}
-            cancelButtonText={props.intl.formatMessage({id: 'feedback.cancelButton.text', defaultMessage: 'Cancel'})}
+            cancelButtonText={props.intl.formatMessage({
+                id: "feedback.cancelButton.text",
+                defaultMessage: "Cancel",
+            })}
             modalHeaderText={props.title}
             autoCloseOnConfirmButton={false}
         >
             <RadioButtonGroup
-                id='FeedbackModalRadioGroup'
-                testId='FeedbackModalRadioGroup'
+                id="FeedbackModalRadioGroup"
+                testId="FeedbackModalRadioGroup"
                 values={feedbackModalOptions.map((option) => {
                     return {
                         value: option.submissionValue,
@@ -86,11 +99,11 @@ function FeedbackModal(props: Props) {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
             />
-            {reasonOther &&
+            {reasonOther && (
                 <>
                     <textarea
-                        data-testid={'FeedbackModal__TextInput'}
-                        className='FeedbackModal__FreeFormText'
+                        data-testid={"FeedbackModal__TextInput"}
+                        className="FeedbackModal__FreeFormText"
                         placeholder={props.freeformTextPlaceholder}
                         rows={3}
                         value={comments}
@@ -99,11 +112,11 @@ function FeedbackModal(props: Props) {
                         }}
                         maxLength={maxFreeFormTextLength}
                     />
-                    <span className='FeedbackModal__FreeFormTextLimit'>
-                        {comments.length + '/' + maxFreeFormTextLength}
+                    <span className="FeedbackModal__FreeFormTextLimit">
+                        {comments.length + "/" + maxFreeFormTextLength}
                     </span>
                 </>
-            }
+            )}
         </GenericModal>
     );
 }

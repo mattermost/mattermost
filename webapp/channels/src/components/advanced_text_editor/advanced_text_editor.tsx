@@ -1,61 +1,71 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import classNames from "classnames";
+import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
+import { FormattedMessage, useIntl } from "react-intl";
+import { useDispatch } from "react-redux";
 
-import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
-import type {Channel} from '@mattermost/types/channels';
-import type {Emoji} from '@mattermost/types/emojis';
-import type {ServerError} from '@mattermost/types/errors';
-import type {FileInfo} from '@mattermost/types/files';
+import { EmoticonHappyOutlineIcon } from "@mattermost/compass-icons/components";
+import type { Channel } from "@mattermost/types/channels";
+import type { Emoji } from "@mattermost/types/emojis";
+import type { ServerError } from "@mattermost/types/errors";
+import type { FileInfo } from "@mattermost/types/files";
 
-import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
-import LocalStorageStore from 'stores/local_storage_store';
+import { emitShortcutReactToLastPostFrom } from "actions/post_actions";
+import LocalStorageStore from "stores/local_storage_store";
 
-import AutoHeightSwitcher from 'components/common/auto_height_switcher';
-import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
-import FilePreview from 'components/file_preview';
-import type {FilePreviewInfo} from 'components/file_preview/file_preview';
-import FileUpload from 'components/file_upload';
-import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
-import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import MessageSubmitError from 'components/message_submit_error';
-import MsgTyping from 'components/msg_typing';
-import OverlayTrigger from 'components/overlay_trigger';
-import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
-import Textbox from 'components/textbox';
-import type {TextboxElement} from 'components/textbox';
-import type TextboxClass from 'components/textbox/textbox';
-import Tooltip from 'components/tooltip';
-import {SendMessageTour} from 'components/tours/onboarding_tour';
+import AutoHeightSwitcher from "components/common/auto_height_switcher";
+import EmojiPickerOverlay from "components/emoji_picker/emoji_picker_overlay";
+import FilePreview from "components/file_preview";
+import type { FilePreviewInfo } from "components/file_preview/file_preview";
+import FileUpload from "components/file_upload";
+import type { FileUpload as FileUploadClass } from "components/file_upload/file_upload";
+import KeyboardShortcutSequence, {
+    KEYBOARD_SHORTCUTS,
+} from "components/keyboard_shortcuts/keyboard_shortcuts_sequence";
+import MessageSubmitError from "components/message_submit_error";
+import MsgTyping from "components/msg_typing";
+import OverlayTrigger from "components/overlay_trigger";
+import RhsSuggestionList from "components/suggestion/rhs_suggestion_list";
+import Textbox from "components/textbox";
+import type { TextboxElement } from "components/textbox";
+import type TextboxClass from "components/textbox/textbox";
+import Tooltip from "components/tooltip";
+import { SendMessageTour } from "components/tours/onboarding_tour";
 
-import Constants, {Locations} from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
-import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
-import {pasteHandler} from 'utils/paste';
-import {isWithinCodeBlock} from 'utils/post_utils';
-import * as UserAgent from 'utils/user_agent';
-import * as Utils from 'utils/utils';
+import Constants, { Locations } from "utils/constants";
+import * as Keyboard from "utils/keyboard";
+import type { ApplyMarkdownOptions } from "utils/markdown/apply_markdown";
+import { pasteHandler } from "utils/paste";
+import { isWithinCodeBlock } from "utils/post_utils";
+import * as UserAgent from "utils/user_agent";
+import * as Utils from "utils/utils";
 
-import type {PostDraft} from 'types/store/draft';
+import type { PostDraft } from "types/store/draft";
 
-import FormattingBar from './formatting_bar';
-import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
-import {IconContainer} from './formatting_bar/formatting_icon';
-import SendButton from './send_button';
-import ShowFormat from './show_formatting';
-import TexteditorActions from './texteditor_actions';
-import ToggleFormattingBar from './toggle_formatting_bar';
+import FormattingBar from "./formatting_bar";
+import {
+    FormattingBarSpacer,
+    Separator,
+} from "./formatting_bar/formatting_bar";
+import { IconContainer } from "./formatting_bar/formatting_icon";
+import SendButton from "./send_button";
+import ShowFormat from "./show_formatting";
+import TexteditorActions from "./texteditor_actions";
+import ToggleFormattingBar from "./toggle_formatting_bar";
 
-import './advanced_text_editor.scss';
+import "./advanced_text_editor.scss";
 
 const KeyCodes = Constants.KeyCodes;
 
 type Props = {
-
     /**
      * location of the advanced text editor in the UI (center channel / RHS)
      */
@@ -87,7 +97,11 @@ type Props = {
     handleBlur: () => void;
     handlePostError: (postError: React.ReactNode) => void;
     emitTypingEvent: () => void;
-    handleMouseUpKeyUp: (e: React.MouseEvent<TextboxElement> | React.KeyboardEvent<TextboxElement>) => void;
+    handleMouseUpKeyUp: (
+        e:
+            | React.MouseEvent<TextboxElement>
+            | React.KeyboardEvent<TextboxElement>,
+    ) => void;
     postMsgKeyPress: (e: React.KeyboardEvent<TextboxElement>) => void;
     handleChange: (e: React.ChangeEvent<TextboxElement>) => void;
     toggleEmojiPicker: () => void;
@@ -96,8 +110,17 @@ type Props = {
     hideEmojiPicker: () => void;
     toggleAdvanceTextEditor: () => void;
     handleUploadProgress: (filePreviewInfo: FilePreviewInfo) => void;
-    handleUploadError: (err: string | ServerError | null, clientId?: string, channelId?: string) => void;
-    handleFileUploadComplete: (fileInfos: FileInfo[], clientIds: string[], channelId: string, rootId?: string) => void;
+    handleUploadError: (
+        err: string | ServerError | null,
+        clientId?: string,
+        channelId?: string,
+    ) => void;
+    handleFileUploadComplete: (
+        fileInfos: FileInfo[],
+        clientIds: string[],
+        channelId: string,
+        rootId?: string,
+    ) => void;
     handleUploadStart: (clientIds: string[], channelId: string) => void;
     handleFileUploadChange: () => void;
     getFileUploadTarget: () => HTMLInputElement | null;
@@ -119,7 +142,7 @@ type Props = {
     replyToLastPost?: (e: React.KeyboardEvent) => void;
     caretPosition: number;
     placeholder?: string;
-}
+};
 
 const AdvanceTextEditor = ({
     location,
@@ -184,10 +207,10 @@ const AdvanceTextEditor = ({
     placeholder,
 }: Props) => {
     const readOnlyChannel = !canPost;
-    const {formatMessage} = useIntl();
+    const { formatMessage } = useIntl();
     const ariaLabelMessageInput = Utils.localizeMessage(
-        'accessibility.sections.centerFooter',
-        'message input complimentary region',
+        "accessibility.sections.centerFooter",
+        "message input complimentary region",
     );
     const emojiPickerRef = useRef<HTMLButtonElement>(null);
     const editorActionsRef = useRef<HTMLDivElement>(null);
@@ -195,7 +218,8 @@ const AdvanceTextEditor = ({
     const timeout = useRef<NodeJS.Timeout>();
 
     const [renderScrollbar, setRenderScrollbar] = useState(false);
-    const [showFormattingSpacer, setShowFormattingSpacer] = useState(shouldShowPreview);
+    const [showFormattingSpacer, setShowFormattingSpacer] =
+        useState(shouldShowPreview);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
 
     const isNonFormattedPaste = useRef(false);
@@ -205,9 +229,12 @@ const AdvanceTextEditor = ({
 
     const input = textboxRef.current?.getInputBox();
 
-    const handleHeightChange = useCallback((height: number, maxHeight: number) => {
-        setRenderScrollbar(height > maxHeight);
-    }, []);
+    const handleHeightChange = useCallback(
+        (height: number, maxHeight: number) => {
+            setRenderScrollbar(height > maxHeight);
+        },
+        [],
+    );
 
     const handleShowFormat = useCallback(() => {
         setShowPreview(!shouldShowPreview);
@@ -225,7 +252,10 @@ const AdvanceTextEditor = ({
     const isRHS = location === Locations.RHS_COMMENT;
 
     let attachmentPreview = null;
-    if (!readOnlyChannel && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0)) {
+    if (
+        !readOnlyChannel &&
+        (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0)
+    ) {
         attachmentPreview = (
             <FilePreview
                 fileInfos={draft.fileInfos}
@@ -240,9 +270,9 @@ const AdvanceTextEditor = ({
         return draft.fileInfos.length + draft.uploadsInProgress.length;
     };
 
-    let postType = 'post';
+    let postType = "post";
     if (postId) {
-        postType = isThreadView ? 'thread' : 'comment';
+        postType = isThreadView ? "thread" : "comment";
     }
 
     const fileUploadJSX = readOnlyChannel ? null : (
@@ -269,7 +299,7 @@ const AdvanceTextEditor = ({
 
     if (enableEmojiPicker && !readOnlyChannel) {
         const emojiPickerTooltip = (
-            <Tooltip id='upload-tooltip'>
+            <Tooltip id="upload-tooltip">
                 <KeyboardShortcutSequence
                     shortcut={KEYBOARD_SHORTCUTS.msgShowEmojiPicker}
                     hoistDescription={true}
@@ -289,22 +319,25 @@ const AdvanceTextEditor = ({
                     topOffset={-7}
                 />
                 <OverlayTrigger
-                    placement='top'
+                    placement="top"
                     delayShow={Constants.OVERLAY_TIME_DELAY}
                     trigger={Constants.OVERLAY_DEFAULT_TRIGGER}
                     overlay={emojiPickerTooltip}
                 >
                     <IconContainer
-                        id={'emojiPickerButton'}
+                        id={"emojiPickerButton"}
                         ref={emojiPickerRef}
                         onClick={toggleEmojiPicker}
-                        type='button'
-                        aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
+                        type="button"
+                        aria-label={formatMessage({
+                            id: "emoji_picker.emojiPicker.button.ariaLabel",
+                            defaultMessage: "select an emoji",
+                        })}
                         disabled={shouldShowPreview}
-                        className={classNames({active: showEmojiPicker})}
+                        className={classNames({ active: showEmojiPicker })}
                     >
                         <EmoticonHappyOutlineIcon
-                            color={'currentColor'}
+                            color={"currentColor"}
                             size={18}
                         />
                     </IconContainer>
@@ -313,19 +346,17 @@ const AdvanceTextEditor = ({
         );
     }
 
-    const disableSendButton = Boolean(readOnlyChannel || (!message.trim().length && !draft.fileInfos.length)) || disableSend;
+    const disableSendButton =
+        Boolean(
+            readOnlyChannel ||
+                (!message.trim().length && !draft.fileInfos.length),
+        ) || disableSend;
     const sendButton = readOnlyChannel ? null : (
-        <SendButton
-            disabled={disableSendButton}
-            handleSubmit={handleSubmit}
-        />
+        <SendButton disabled={disableSendButton} handleSubmit={handleSubmit} />
     );
 
     const showFormatJSX = disableSendButton ? null : (
-        <ShowFormat
-            onClick={handleShowFormat}
-            active={shouldShowPreview}
-        />
+        <ShowFormat onClick={handleShowFormat} active={shouldShowPreview} />
     );
 
     let createMessage;
@@ -334,21 +365,24 @@ const AdvanceTextEditor = ({
     } else if (currentChannel && !readOnlyChannel) {
         createMessage = formatMessage(
             {
-                id: 'create_post.write',
-                defaultMessage: 'Write to {channelDisplayName}',
+                id: "create_post.write",
+                defaultMessage: "Write to {channelDisplayName}",
             },
-            {channelDisplayName: currentChannel.display_name},
+            { channelDisplayName: currentChannel.display_name },
         );
     } else if (readOnlyChannel) {
         createMessage = Utils.localizeMessage(
-            'create_post.read_only',
-            'This channel is read-only. Only members with permission can post here.',
+            "create_post.read_only",
+            "This channel is read-only. Only members with permission can post here.",
         );
     } else {
-        createMessage = Utils.localizeMessage('create_comment.addComment', 'Reply to this thread...');
+        createMessage = Utils.localizeMessage(
+            "create_comment.addComment",
+            "Reply to this thread...",
+        );
     }
 
-    const messageValue = readOnlyChannel ? '' : message;
+    const messageValue = readOnlyChannel ? "" : message;
 
     /**
      * by getting the value directly from the textbox we eliminate all unnecessary
@@ -356,7 +390,10 @@ const AdvanceTextEditor = ({
      * down the current message value that came from the parents state was not optimal,
      * although still working as expected
      */
-    const getCurrentValue = useCallback(() => textboxRef.current?.getInputBox().value, [textboxRef]);
+    const getCurrentValue = useCallback(
+        () => textboxRef.current?.getInputBox().value,
+        [textboxRef],
+    );
     const getCurrentSelection = useCallback(() => {
         const input = textboxRef.current?.getInputBox();
 
@@ -366,51 +403,59 @@ const AdvanceTextEditor = ({
         };
     }, [textboxRef]);
 
-    let textboxId = 'textbox';
+    let textboxId = "textbox";
 
     switch (location) {
-    case Locations.CENTER:
-        textboxId = 'post_textbox';
-        break;
-    case Locations.RHS_COMMENT:
-        textboxId = 'reply_textbox';
-        break;
-    case Locations.MODAL:
-        textboxId = 'modal_textbox';
-        break;
+        case Locations.CENTER:
+            textboxId = "post_textbox";
+            break;
+        case Locations.RHS_COMMENT:
+            textboxId = "reply_textbox";
+            break;
+        case Locations.MODAL:
+            textboxId = "modal_textbox";
+            break;
     }
 
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
 
-    const handleWidthChange = useCallback((width: number) => {
-        if (!editorBodyRef.current || !editorActionsRef.current || !input) {
-            return;
-        }
+    const handleWidthChange = useCallback(
+        (width: number) => {
+            if (!editorBodyRef.current || !editorActionsRef.current || !input) {
+                return;
+            }
 
-        const maxWidth = editorBodyRef.current.offsetWidth - editorActionsRef.current.offsetWidth;
+            const maxWidth =
+                editorBodyRef.current.offsetWidth -
+                editorActionsRef.current.offsetWidth;
 
-        if (!message) {
-            // if we do not have a message we can just render the default state
-            setShowFormattingSpacer(false);
-            return;
-        }
+            if (!message) {
+                // if we do not have a message we can just render the default state
+                setShowFormattingSpacer(false);
+                return;
+            }
 
-        if (width >= maxWidth) {
-            setShowFormattingSpacer(true);
-        } else {
-            setShowFormattingSpacer(false);
-        }
-    }, [message, input]);
+            if (width >= maxWidth) {
+                setShowFormattingSpacer(true);
+            } else {
+                setShowFormattingSpacer(false);
+            }
+        },
+        [message, input],
+    );
 
     const handleKeyDown = (e: React.KeyboardEvent<TextboxElement>) => {
         const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
-        const ctrlEnterKeyCombo = (ctrlSend || codeBlockOnCtrlEnter) &&
+        const ctrlEnterKeyCombo =
+            (ctrlSend || codeBlockOnCtrlEnter) &&
             Keyboard.isKeyPressed(e, KeyCodes.ENTER) &&
             ctrlOrMetaKeyPressed;
 
-        const ctrlKeyCombo = Keyboard.cmdOrCtrlPressed(e) && !e.altKey && !e.shiftKey;
+        const ctrlKeyCombo =
+            Keyboard.cmdOrCtrlPressed(e) && !e.altKey && !e.shiftKey;
         const ctrlAltCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.altKey;
-        const shiftAltCombo = !Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && e.altKey;
+        const shiftAltCombo =
+            !Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && e.altKey;
         const ctrlShiftCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.shiftKey;
 
         // fix for FF not capturing the paste without formatting event when using ctrl|cmd + shift + v
@@ -439,10 +484,15 @@ const AdvanceTextEditor = ({
             textboxRef.current?.blur();
         }
 
-        const upKeyOnly = !ctrlOrMetaKeyPressed && !e.altKey && !e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.UP);
+        const upKeyOnly =
+            !ctrlOrMetaKeyPressed &&
+            !e.altKey &&
+            !e.shiftKey &&
+            Keyboard.isKeyPressed(e, KeyCodes.UP);
         const messageIsEmpty = message.length === 0;
         const draftMessageIsEmpty = draft.message.length === 0;
-        const caretIsWithinCodeBlock = caretPosition && isWithinCodeBlock(message, caretPosition);
+        const caretIsWithinCodeBlock =
+            caretPosition && isWithinCodeBlock(message, caretPosition);
 
         if (upKeyOnly && messageIsEmpty) {
             e.preventDefault();
@@ -453,18 +503,18 @@ const AdvanceTextEditor = ({
             onEditLatestPost(e);
         }
 
-        const {
-            selectionStart,
-            selectionEnd,
-            value,
-        } = e.target as TextboxElement;
+        const { selectionStart, selectionEnd, value } =
+            e.target as TextboxElement;
 
         if (ctrlKeyCombo && !caretIsWithinCodeBlock) {
             if (draftMessageIsEmpty && Keyboard.isKeyPressed(e, KeyCodes.UP)) {
                 e.stopPropagation();
                 e.preventDefault();
                 loadPrevMessage(e);
-            } else if (draftMessageIsEmpty && Keyboard.isKeyPressed(e, KeyCodes.DOWN)) {
+            } else if (
+                draftMessageIsEmpty &&
+                Keyboard.isKeyPressed(e, KeyCodes.DOWN)
+            ) {
                 e.stopPropagation();
                 e.preventDefault();
                 loadNextMessage(e);
@@ -472,7 +522,7 @@ const AdvanceTextEditor = ({
                 e.stopPropagation();
                 e.preventDefault();
                 applyMarkdown({
-                    markdownMode: 'bold',
+                    markdownMode: "bold",
                     selectionStart,
                     selectionEnd,
                     message: value,
@@ -481,16 +531,19 @@ const AdvanceTextEditor = ({
                 e.stopPropagation();
                 e.preventDefault();
                 applyMarkdown({
-                    markdownMode: 'italic',
+                    markdownMode: "italic",
                     selectionStart,
                     selectionEnd,
                     message: value,
                 });
-            } else if (Utils.isTextSelectedInPostOrReply(e) && Keyboard.isKeyPressed(e, KeyCodes.K)) {
+            } else if (
+                Utils.isTextSelectedInPostOrReply(e) &&
+                Keyboard.isKeyPressed(e, KeyCodes.K)
+            ) {
                 e.stopPropagation();
                 e.preventDefault();
                 applyMarkdown({
-                    markdownMode: 'link',
+                    markdownMode: "link",
                     selectionStart,
                     selectionEnd,
                     message: value,
@@ -501,7 +554,7 @@ const AdvanceTextEditor = ({
                 e.stopPropagation();
                 e.preventDefault();
                 applyMarkdown({
-                    markdownMode: 'link',
+                    markdownMode: "link",
                     selectionStart,
                     selectionEnd,
                     message: value,
@@ -510,7 +563,7 @@ const AdvanceTextEditor = ({
                 e.stopPropagation();
                 e.preventDefault();
                 applyMarkdown({
-                    markdownMode: 'code',
+                    markdownMode: "code",
                     selectionStart,
                     selectionEnd,
                     message: value,
@@ -523,7 +576,11 @@ const AdvanceTextEditor = ({
                 e.stopPropagation();
                 e.preventDefault();
                 toggleAdvanceTextEditor();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.P) && message.length && !UserAgent.isMac()) {
+            } else if (
+                Keyboard.isKeyPressed(e, KeyCodes.P) &&
+                message.length &&
+                !UserAgent.isMac()
+            ) {
                 e.stopPropagation();
                 e.preventDefault();
                 setShowPreview(!shouldShowPreview);
@@ -533,7 +590,7 @@ const AdvanceTextEditor = ({
                 e.stopPropagation();
                 e.preventDefault();
                 applyMarkdown({
-                    markdownMode: 'strike',
+                    markdownMode: "strike",
                     selectionStart,
                     selectionEnd,
                     message: value,
@@ -541,7 +598,7 @@ const AdvanceTextEditor = ({
             } else if (Keyboard.isKeyPressed(e, KeyCodes.SEVEN)) {
                 e.preventDefault();
                 applyMarkdown({
-                    markdownMode: 'ol',
+                    markdownMode: "ol",
                     selectionStart,
                     selectionEnd,
                     message: value,
@@ -549,7 +606,7 @@ const AdvanceTextEditor = ({
             } else if (Keyboard.isKeyPressed(e, KeyCodes.EIGHT)) {
                 e.preventDefault();
                 applyMarkdown({
-                    markdownMode: 'ul',
+                    markdownMode: "ul",
                     selectionStart,
                     selectionEnd,
                     message: value,
@@ -557,14 +614,18 @@ const AdvanceTextEditor = ({
             } else if (Keyboard.isKeyPressed(e, KeyCodes.NINE)) {
                 e.preventDefault();
                 applyMarkdown({
-                    markdownMode: 'quote',
+                    markdownMode: "quote",
                     selectionStart,
                     selectionEnd,
                     message: value,
                 });
             }
         } else if (ctrlShiftCombo && !caretIsWithinCodeBlock) {
-            if (Keyboard.isKeyPressed(e, KeyCodes.P) && message.length && UserAgent.isMac()) {
+            if (
+                Keyboard.isKeyPressed(e, KeyCodes.P) &&
+                message.length &&
+                UserAgent.isMac()
+            ) {
                 e.stopPropagation();
                 e.preventDefault();
                 setShowPreview(!shouldShowPreview);
@@ -576,14 +637,19 @@ const AdvanceTextEditor = ({
         }
 
         if (isRHS) {
-            const lastMessageReactionKeyCombo = ctrlShiftCombo && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
+            const lastMessageReactionKeyCombo =
+                ctrlShiftCombo && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
             if (lastMessageReactionKeyCombo) {
                 e.stopPropagation();
                 e.preventDefault();
                 dispatch(emitShortcutReactToLastPostFrom(Locations.RHS_ROOT));
             }
         } else {
-            const shiftUpKeyCombo = !ctrlOrMetaKeyPressed && !e.altKey && e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.UP);
+            const shiftUpKeyCombo =
+                !ctrlOrMetaKeyPressed &&
+                !e.altKey &&
+                e.shiftKey &&
+                Keyboard.isKeyPressed(e, KeyCodes.UP);
             if (shiftUpKeyCombo && messageIsEmpty) {
                 replyToLastPost?.(e);
             }
@@ -592,12 +658,18 @@ const AdvanceTextEditor = ({
 
     useEffect(() => {
         function onPaste(event: ClipboardEvent) {
-            pasteHandler(event, location, message, isNonFormattedPaste.current, caretPosition);
+            pasteHandler(
+                event,
+                location,
+                message,
+                isNonFormattedPaste.current,
+                caretPosition,
+            );
         }
 
-        document.addEventListener('paste', onPaste);
+        document.addEventListener("paste", onPaste);
         return () => {
-            document.removeEventListener('paste', onPaste);
+            document.removeEventListener("paste", onPaste);
         };
     }, [location, message, caretPosition]);
 
@@ -617,8 +689,8 @@ const AdvanceTextEditor = ({
         let label;
         if (!wasNotifiedOfLogIn) {
             label = Utils.localizeMessage(
-                'channelView.login.successfull',
-                'Login Successful',
+                "channelView.login.successfull",
+                "Login Successful",
             );
 
             // set timeout to make sure aria-label is read by a screen reader,
@@ -627,13 +699,15 @@ const AdvanceTextEditor = ({
                 LocalStorageStore.setWasNotifiedOfLogIn(true);
             }, 3000);
         }
-        return label ? `${label} ${ariaLabelMessageInput}` : ariaLabelMessageInput;
+        return label
+            ? `${label} ${ariaLabelMessageInput}`
+            : ariaLabelMessageInput;
     }, [ariaLabelMessageInput, wasNotifiedOfLogIn]);
 
     const formattingBar = (
         <AutoHeightSwitcher
             showSlot={showFormattingBar ? 1 : 2}
-            slot1={(
+            slot1={
                 <FormattingBar
                     applyMarkdown={applyMarkdown}
                     getCurrentMessage={getCurrentValue}
@@ -642,7 +716,7 @@ const AdvanceTextEditor = ({
                     additionalControls={additionalControls}
                     location={location}
                 />
-            )}
+            }
             slot2={null}
             shouldScrollIntoView={keepEditorInFocus}
         />
@@ -651,35 +725,32 @@ const AdvanceTextEditor = ({
     return (
         <>
             <div
-                className={classNames('AdvancedTextEditor', {
-                    'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
+                className={classNames("AdvancedTextEditor", {
+                    "AdvancedTextEditor__attachment-disabled": !canUploadFiles,
                     scroll: renderScrollbar,
-                    'formatting-bar': showFormattingBar,
+                    "formatting-bar": showFormattingBar,
                 })}
             >
                 {!wasNotifiedOfLogIn && (
-                    <div
-                        aria-live='assertive'
-                        className='sr-only'
-                    >
+                    <div aria-live="assertive" className="sr-only">
                         <FormattedMessage
-                            id='channelView.login.successfull'
-                            defaultMessage='Login Successful'
+                            id="channelView.login.successfull"
+                            defaultMessage="Login Successful"
                         />
                     </div>
                 )}
                 <div
-                    className={'AdvancedTextEditor__body'}
+                    className={"AdvancedTextEditor__body"}
                     disabled={readOnlyChannel}
                 >
                     <div
                         ref={editorBodyRef}
-                        role='application'
-                        id='advancedTextEditorCell'
-                        data-a11y-sort-order='2'
+                        role="application"
+                        id="advancedTextEditorCell"
+                        data-a11y-sort-order="2"
                         aria-label={ariaLabel}
                         tabIndex={-1}
-                        className='AdvancedTextEditor__cell a11y__region'
+                        className="AdvancedTextEditor__cell a11y__region"
                     >
                         {labels}
                         <Textbox
@@ -710,53 +781,65 @@ const AdvanceTextEditor = ({
                             onWidthChange={handleWidthChange}
                         />
                         {attachmentPreview}
-                        {!readOnlyChannel && (showFormattingBar || shouldShowPreview) && (
-                            <TexteditorActions
-                                placement='top'
-                                isScrollbarRendered={renderScrollbar}
-                            >
-                                {showFormatJSX}
-                            </TexteditorActions>
-                        )}
-                        {showFormattingSpacer || shouldShowPreview || attachmentPreview ? (
+                        {!readOnlyChannel &&
+                            (showFormattingBar || shouldShowPreview) && (
+                                <TexteditorActions
+                                    placement="top"
+                                    isScrollbarRendered={renderScrollbar}
+                                >
+                                    {showFormatJSX}
+                                </TexteditorActions>
+                            )}
+                        {showFormattingSpacer ||
+                        shouldShowPreview ||
+                        attachmentPreview ? (
                             <FormattingBarSpacer>
                                 {formattingBar}
                             </FormattingBarSpacer>
-                        ) : formattingBar}
+                        ) : (
+                            formattingBar
+                        )}
                         {!readOnlyChannel && (
                             <TexteditorActions
                                 ref={editorActionsRef}
-                                placement='bottom'
+                                placement="bottom"
                             >
                                 <ToggleFormattingBar
                                     onClick={toggleAdvanceTextEditor}
                                     active={showFormattingBar}
                                     disabled={shouldShowPreview}
                                 />
-                                <Separator/>
+                                <Separator />
                                 {fileUploadJSX}
                                 {emojiPicker}
                                 {sendButton}
                             </TexteditorActions>
                         )}
                     </div>
-                    {showSendTutorialTip && currentChannel && prefillMessage && (
-                        <SendMessageTour
-                            prefillMessage={prefillMessage}
-                            currentChannel={currentChannel}
-                            currentUserId={currentUserId}
-                            currentChannelTeammateUsername={currentChannelTeammateUsername}
-                        />
-                    )}
+                    {showSendTutorialTip &&
+                        currentChannel &&
+                        prefillMessage && (
+                            <SendMessageTour
+                                prefillMessage={prefillMessage}
+                                currentChannel={currentChannel}
+                                currentUserId={currentUserId}
+                                currentChannelTeammateUsername={
+                                    currentChannelTeammateUsername
+                                }
+                            />
+                        )}
                 </div>
             </div>
             <div
-                id='postCreateFooter'
-                role='form'
-                className={classNames('AdvancedTextEditor__footer', {'AdvancedTextEditor__footer--has-error': postError || serverError})}
+                id="postCreateFooter"
+                role="form"
+                className={classNames("AdvancedTextEditor__footer", {
+                    "AdvancedTextEditor__footer--has-error":
+                        postError || serverError,
+                })}
             >
                 {postError && (
-                    <label className={classNames('post-error', {errorClass})}>
+                    <label className={classNames("post-error", { errorClass })}>
                         {postError}
                     </label>
                 )}
@@ -767,10 +850,7 @@ const AdvanceTextEditor = ({
                         handleSubmit={handleSubmit}
                     />
                 )}
-                <MsgTyping
-                    channelId={channelId}
-                    postId={postId}
-                />
+                <MsgTyping channelId={channelId} postId={postId} />
             </div>
         </>
     );

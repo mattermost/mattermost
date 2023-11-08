@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import { renderWithIntlAndStore, screen } from "tests/react_testing_utils";
 
-import FloatingTimestamp from './floating_timestamp';
+import FloatingTimestamp from "./floating_timestamp";
 
-describe('components/post_view/FloatingTimestamp', () => {
+describe("components/post_view/FloatingTimestamp", () => {
     const baseProps = {
         isScrolling: true,
         createAt: 1234,
@@ -25,16 +25,21 @@ describe('components/post_view/FloatingTimestamp', () => {
         },
     };
 
-    test('should match component state with given props', () => {
-        renderWithIntlAndStore(<FloatingTimestamp {...baseProps}/>, initialState);
+    test("should match component state with given props", () => {
+        renderWithIntlAndStore(
+            <FloatingTimestamp {...baseProps} />,
+            initialState,
+        );
 
-        const floatingTimeStamp = screen.getByTestId('floatingTimestamp');
-        const time = screen.getByText('January 01, 1970');
+        const floatingTimeStamp = screen.getByTestId("floatingTimestamp");
+        const time = screen.getByText("January 01, 1970");
 
         expect(floatingTimeStamp).toBeInTheDocument();
-        expect(floatingTimeStamp).toHaveClass('post-list__timestamp scrolling toastAdjustment');
+        expect(floatingTimeStamp).toHaveClass(
+            "post-list__timestamp scrolling toastAdjustment",
+        );
 
         expect(time).toBeInTheDocument();
-        expect(time).toHaveAttribute('datetime', '1970-01-01T00:00:01.234');
+        expect(time).toHaveAttribute("datetime", "1970-01-01T00:00:01.234");
     });
 });

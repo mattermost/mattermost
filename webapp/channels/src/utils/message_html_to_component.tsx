@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Parser, ProcessNodeDefinitions} from 'html-to-react';
-import React from 'react';
+import { Parser, ProcessNodeDefinitions } from "html-to-react";
+import React from "react";
 
-import AtMention from 'components/at_mention';
-import AtPlanMention from 'components/at_plan_mention';
-import AtSumOfMembersMention from 'components/at_sum_members_mention';
-import CodeBlock from 'components/code_block/code_block';
-import LatexBlock from 'components/latex_block';
-import LatexInline from 'components/latex_inline';
-import LinkTooltip from 'components/link_tooltip/link_tooltip';
-import MarkdownImage from 'components/markdown_image';
-import PostEmoji from 'components/post_emoji';
-import PostEditedIndicator from 'components/post_view/post_edited_indicator';
+import AtMention from "components/at_mention";
+import AtPlanMention from "components/at_plan_mention";
+import AtSumOfMembersMention from "components/at_sum_members_mention";
+import CodeBlock from "components/code_block/code_block";
+import LatexBlock from "components/latex_block";
+import LatexInline from "components/latex_inline";
+import LinkTooltip from "components/link_tooltip/link_tooltip";
+import MarkdownImage from "components/markdown_image";
+import PostEmoji from "components/post_emoji";
+import PostEditedIndicator from "components/post_view/post_edited_indicator";
 
 export type Options = Partial<{
     postId: string;
@@ -26,7 +26,7 @@ export type Options = Partial<{
     latex: boolean;
     inlinelatex: boolean;
     postType: string;
-    imageProps: {[key: string]: any};
+    imageProps: { [key: string]: any };
     atSumOfMembersMentions: boolean;
     userIds: string[];
     imagesMetadata: any;
@@ -35,13 +35,13 @@ export type Options = Partial<{
     images: boolean;
     atPlanMentions: boolean;
     channelId: string;
-}>
+}>;
 
 type ProcessingInstruction = {
     replaceChildren: boolean;
     shouldProcessNode: (node: any) => boolean;
     processNode: (node: any, children?: any, index?: number) => any;
-}
+};
 
 /*
  * Converts HTML to React components using html-to-react.
@@ -70,25 +70,33 @@ export function messageHtmlToComponent(html: string, options: Options = {}) {
     }
 
     const processingInstructions: ProcessingInstruction[] = [
-
         // Workaround to fix MM-14931
         {
             replaceChildren: false,
-            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'input' && node.attribs.type === 'checkbox',
+            shouldProcessNode: (node: any) =>
+                node.type === "tag" &&
+                node.name === "input" &&
+                node.attribs.type === "checkbox",
             processNode: (node: any) => {
                 const attribs = node.attribs || {};
                 node.attribs.checked = Boolean(attribs.checked);
 
-                return React.createElement('input', {...node.attribs});
+                return React.createElement("input", { ...node.attribs });
             },
         },
         {
             replaceChildren: false,
-            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'span' && node.attribs['data-edited-post-id'] && node.attribs['data-edited-post-id'] === options.postId,
+            shouldProcessNode: (node: any) =>
+                node.type === "tag" &&
+                node.name === "span" &&
+                node.attribs["data-edited-post-id"] &&
+                node.attribs["data-edited-post-id"] === options.postId,
             processNode: () => {
-                return options.postId && options.editedAt && options.editedAt > 0 ? (
+                return options.postId &&
+                    options.editedAt &&
+                    options.editedAt > 0 ? (
                     <React.Fragment key={`edited-${options.postId}`}>
-                        {' '}
+                        {" "}
                         <PostEditedIndicator
                             postId={options.postId}
                             editedAt={options.editedAt}
@@ -100,10 +108,13 @@ export function messageHtmlToComponent(html: string, options: Options = {}) {
     ];
 
     if (options.hasPluginTooltips) {
-        const hrefAttrib = 'href';
+        const hrefAttrib = "href";
         processingInstructions.push({
             replaceChildren: true,
-            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'a' && node.attribs[hrefAttrib],
+            shouldProcessNode: (node: any) =>
+                node.type === "tag" &&
+                node.name === "a" &&
+                node.attribs[hrefAttrib],
             processNode: (node: any, children: any) => {
                 return (
                     <LinkTooltip
@@ -117,13 +128,18 @@ export function messageHtmlToComponent(html: string, options: Options = {}) {
         });
     }
 
-    if (!('mentions' in options) || options.mentions) {
-        const mentionHighlight = 'mentionHighlight' in options ? options.mentionHighlight : true;
-        const disableGroupHighlight = 'disableGroupHighlight' in options ? options.disableGroupHighlight === true : false;
-        const mentionAttrib = 'data-mention';
+    if (!("mentions" in options) || options.mentions) {
+        const mentionHighlight =
+            "mentionHighlight" in options ? options.mentionHighlight : true;
+        const disableGroupHighlight =
+            "disableGroupHighlight" in options
+                ? options.disableGroupHighlight === true
+                : false;
+        const mentionAttrib = "data-mention";
         processingInstructions.push({
             replaceChildren: true,
-            shouldProcessNode: (node) => node.attribs && node.attribs[mentionAttrib],
+            shouldProcessNode: (node) =>
+                node.attribs && node.attribs[mentionAttrib],
             processNode: (node: any, children: any) => {
                 const mentionName = node.attribs[mentionAttrib];
                 const callAtMention = (
@@ -143,67 +159,69 @@ export function messageHtmlToComponent(html: string, options: Options = {}) {
     }
 
     if (options.atSumOfMembersMentions) {
-        const mentionAttrib = 'data-sum-of-members-mention';
+        const mentionAttrib = "data-sum-of-members-mention";
         processingInstructions.push({
             replaceChildren: true,
-            shouldProcessNode: (node: any) => node.attribs && node.attribs[mentionAttrib],
+            shouldProcessNode: (node: any) =>
+                node.attribs && node.attribs[mentionAttrib],
             processNode: (node: any) => {
                 const mentionName = node.attribs[mentionAttrib];
                 const sumOfMembersMention = (
                     <AtSumOfMembersMention
-                        postId={options.postId || ''}
+                        postId={options.postId || ""}
                         userIds={options.userIds || []}
                         messageMetadata={options.messageMetadata}
                         text={mentionName}
-                    />);
+                    />
+                );
                 return sumOfMembersMention;
             },
         });
     }
 
     if (options.atPlanMentions) {
-        const mentionAttrib = 'data-plan-mention';
+        const mentionAttrib = "data-plan-mention";
         processingInstructions.push({
             replaceChildren: true,
-            shouldProcessNode: (node: any) => node.attribs && node.attribs[mentionAttrib],
+            shouldProcessNode: (node: any) =>
+                node.attribs && node.attribs[mentionAttrib],
             processNode: (node: any) => {
                 const mentionName = node.attribs[mentionAttrib];
                 const sumOfMembersMention = (
-                    <AtPlanMention
-                        plan={mentionName}
-                    />);
+                    <AtPlanMention plan={mentionName} />
+                );
                 return sumOfMembersMention;
             },
         });
     }
 
-    if (!('emoji' in options) || options.emoji) {
-        const emojiAttrib = 'data-emoticon';
+    if (!("emoji" in options) || options.emoji) {
+        const emojiAttrib = "data-emoticon";
         processingInstructions.push({
             replaceChildren: true,
-            shouldProcessNode: (node: any) => node.attribs && node.attribs[emojiAttrib],
+            shouldProcessNode: (node: any) =>
+                node.attribs && node.attribs[emojiAttrib],
             processNode: (node: any) => {
                 const emojiName = node.attribs[emojiAttrib];
 
-                return <PostEmoji name={emojiName}/>;
+                return <PostEmoji name={emojiName} />;
             },
         });
     }
 
-    if (!('images' in options) || options.images) {
+    if (!("images" in options) || options.images) {
         processingInstructions.push({
             replaceChildren: false,
-            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'img',
+            shouldProcessNode: (node: any) =>
+                node.type === "tag" && node.name === "img",
             processNode: (node: any) => {
-                const {
-                    class: className,
-                    ...attribs
-                } = node.attribs;
+                const { class: className, ...attribs } = node.attribs;
 
                 const imageIsLink = (parentNode: any) => {
-                    if (parentNode &&
-                        parentNode.type === 'tag' &&
-                        parentNode.name === 'a'
+                    if (
+                        parentNode &&
+                        parentNode.type === "tag" &&
+                        parentNode.name === "a"
                     ) {
                         return true;
                     }
@@ -213,7 +231,10 @@ export function messageHtmlToComponent(html: string, options: Options = {}) {
                 return (
                     <MarkdownImage
                         className={className}
-                        imageMetadata={options.imagesMetadata && options.imagesMetadata[attribs.src]}
+                        imageMetadata={
+                            options.imagesMetadata &&
+                            options.imagesMetadata[attribs.src]
+                        }
                         {...attribs}
                         {...options.imageProps}
                         postId={options.postId}
@@ -225,44 +246,49 @@ export function messageHtmlToComponent(html: string, options: Options = {}) {
         });
     }
 
-    if (!('latex' in options) || options.latex) {
+    if (!("latex" in options) || options.latex) {
         processingInstructions.push({
             replaceChildren: false,
-            shouldProcessNode: (node: any) => node.attribs && node.attribs['data-latex'],
+            shouldProcessNode: (node: any) =>
+                node.attribs && node.attribs["data-latex"],
             processNode: (node: any) => {
                 return (
                     <LatexBlock
-                        key={node.attribs['data-latex']}
-                        content={node.attribs['data-latex']}
+                        key={node.attribs["data-latex"]}
+                        content={node.attribs["data-latex"]}
                     />
                 );
             },
         });
     }
 
-    if (!('inlinelatex' in options) || options.inlinelatex) {
+    if (!("inlinelatex" in options) || options.inlinelatex) {
         processingInstructions.push({
             replaceChildren: false,
-            shouldProcessNode: (node) => node.attribs && node.attribs['data-inline-latex'],
+            shouldProcessNode: (node) =>
+                node.attribs && node.attribs["data-inline-latex"],
             processNode: (node: any) => {
                 return (
-                    <LatexInline content={node.attribs['data-inline-latex']}/>
+                    <LatexInline content={node.attribs["data-inline-latex"]} />
                 );
             },
         });
     }
 
-    if (!('markdown' in options) || options.markdown) {
+    if (!("markdown" in options) || options.markdown) {
         processingInstructions.push({
             replaceChildren: false,
-            shouldProcessNode: (node) => node.attribs && node.attribs['data-codeblock-code'],
+            shouldProcessNode: (node) =>
+                node.attribs && node.attribs["data-codeblock-code"],
             processNode: (node: any) => {
                 return (
                     <CodeBlock
-                        key={node.attribs['data-codeblock-code']}
-                        code={node.attribs['data-codeblock-code']}
-                        language={node.attribs['data-codeblock-language']}
-                        searchedContent={node.attribs['data-codeblock-searchedcontent']}
+                        key={node.attribs["data-codeblock-code"]}
+                        code={node.attribs["data-codeblock-code"]}
+                        language={node.attribs["data-codeblock-language"]}
+                        searchedContent={
+                            node.attribs["data-codeblock-searchedcontent"]
+                        }
                     />
                 );
             },
@@ -272,10 +298,18 @@ export function messageHtmlToComponent(html: string, options: Options = {}) {
     processingInstructions.push({
         replaceChildren: false,
         shouldProcessNode: () => true,
-        processNode: processNodeDefinitions.processDefaultNode as (node: any, children?: any, index?: number) => any,
+        processNode: processNodeDefinitions.processDefaultNode as (
+            node: any,
+            children?: any,
+            index?: number,
+        ) => any,
     });
 
-    return parser.parseWithInstructions(html, isValidNode, processingInstructions);
+    return parser.parseWithInstructions(
+        html,
+        isValidNode,
+        processingInstructions,
+    );
 }
 
 export default messageHtmlToComponent;

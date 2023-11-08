@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {NavLink} from 'react-router-dom';
+import React from "react";
+import { NavLink } from "react-router-dom";
 
-import {getHistory} from 'utils/browser_history';
+import { getHistory } from "utils/browser_history";
 
 type Props = {
     id?: string;
@@ -16,7 +16,6 @@ type Props = {
     // String Link destination
     to: string;
     actions: {
-
         // Function for deferring navigation while blocked
         deferNavigation: (func: () => void) => void;
     };
@@ -38,15 +37,10 @@ export default class BlockableLink extends React.PureComponent<Props> {
     };
 
     public render() {
-        const props = {...this.props};
-        Reflect.deleteProperty(props, 'blocked');
-        Reflect.deleteProperty(props, 'actions');
+        const props = { ...this.props };
+        Reflect.deleteProperty(props, "blocked");
+        Reflect.deleteProperty(props, "actions");
 
-        return (
-            <NavLink
-                {...props}
-                onClick={this.handleClick}
-            />
-        );
+        return <NavLink {...props} onClick={this.handleClick} />;
     }
 }

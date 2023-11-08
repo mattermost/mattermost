@@ -1,14 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Role} from '@mattermost/types/roles';
+import type { Role } from "@mattermost/types/roles";
 
-import {RoleTypes} from 'mattermost-redux/action_types';
-import {Client4} from 'mattermost-redux/client';
-import {getRoles} from 'mattermost-redux/selectors/entities/roles_helpers';
-import type {DispatchFunc, GetStateFunc, ActionFunc} from 'mattermost-redux/types/actions';
+import { RoleTypes } from "mattermost-redux/action_types";
+import { Client4 } from "mattermost-redux/client";
+import { getRoles } from "mattermost-redux/selectors/entities/roles_helpers";
+import type {
+    DispatchFunc,
+    GetStateFunc,
+    ActionFunc,
+} from "mattermost-redux/types/actions";
 
-import {bindClientFunc} from './helpers';
+import { bindClientFunc } from "./helpers";
 
 export function getRolesByNames(rolesNames: string[]) {
     return bindClientFunc({
@@ -16,9 +20,7 @@ export function getRolesByNames(rolesNames: string[]) {
         onRequest: RoleTypes.ROLES_BY_NAMES_REQUEST,
         onSuccess: [RoleTypes.RECEIVED_ROLES, RoleTypes.ROLES_BY_NAMES_SUCCESS],
         onFailure: RoleTypes.ROLES_BY_NAMES_FAILURE,
-        params: [
-            rolesNames,
-        ],
+        params: [rolesNames],
     });
 }
 
@@ -28,9 +30,7 @@ export function getRoleByName(roleName: string) {
         onRequest: RoleTypes.ROLE_BY_NAME_REQUEST,
         onSuccess: [RoleTypes.RECEIVED_ROLE, RoleTypes.ROLE_BY_NAME_SUCCESS],
         onFailure: RoleTypes.ROLE_BY_NAME_FAILURE,
-        params: [
-            roleName,
-        ],
+        params: [roleName],
     });
 }
 
@@ -40,9 +40,7 @@ export function getRole(roleId: string) {
         onRequest: RoleTypes.ROLE_BY_ID_REQUEST,
         onSuccess: [RoleTypes.RECEIVED_ROLE, RoleTypes.ROLE_BY_ID_SUCCESS],
         onFailure: RoleTypes.ROLE_BY_ID_FAILURE,
-        params: [
-            roleId,
-        ],
+        params: [roleId],
     });
 }
 
@@ -52,17 +50,14 @@ export function editRole(role: Role) {
         onRequest: RoleTypes.EDIT_ROLE_REQUEST,
         onSuccess: [RoleTypes.RECEIVED_ROLE, RoleTypes.EDIT_ROLE_SUCCESS],
         onFailure: RoleTypes.EDIT_ROLE_FAILURE,
-        params: [
-            role.id,
-            role,
-        ],
+        params: [role.id, role],
     });
 }
 
 export function setPendingRoles(roles: string[]) {
     return async (dispatch: DispatchFunc) => {
-        dispatch({type: RoleTypes.SET_PENDING_ROLES, data: roles});
-        return {data: roles};
+        dispatch({ type: RoleTypes.SET_PENDING_ROLES, data: roles });
+        return { data: roles };
     };
 }
 
@@ -83,14 +78,14 @@ export function loadRolesIfNeeded(roles: Iterable<string>): ActionFunc {
         if (!state.entities.general.serverVersion) {
             dispatch(setPendingRoles(Array.from(pendingRoles)));
             setTimeout(() => dispatch(loadRolesIfNeeded([])), 500);
-            return {data: []};
+            return { data: [] };
         }
 
         const loadedRoles = getRoles(state);
         const newRoles = new Set<string>();
 
         for (const role of pendingRoles) {
-            if (!loadedRoles[role] && role.trim() !== '') {
+            if (!loadedRoles[role] && role.trim() !== "") {
                 newRoles.add(role);
             }
         }
@@ -101,6 +96,6 @@ export function loadRolesIfNeeded(roles: Iterable<string>): ActionFunc {
         if (newRoles.size > 0) {
             return getRolesByNames(Array.from(newRoles))(dispatch, getState);
         }
-        return {data: state.entities.roles.roles};
+        return { data: state.entities.roles.roles };
     };
 }

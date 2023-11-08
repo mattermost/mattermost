@@ -1,13 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ChangeEvent, ReactNode} from 'react';
+import React from "react";
+import type { ChangeEvent, ReactNode } from "react";
 
-import Setting from './setting';
+import Setting from "./setting";
 
-const INPUT_TYPES = ['text', 'textarea', 'number', 'email', 'tel', 'url', 'password'] as const;
-export type InputTypes = typeof INPUT_TYPES[number];
+const INPUT_TYPES = [
+    "text",
+    "textarea",
+    "number",
+    "email",
+    "tel",
+    "url",
+    "password",
+] as const;
+export type InputTypes = (typeof INPUT_TYPES)[number];
 
 export type Props = {
     id: string;
@@ -26,13 +34,21 @@ export type Props = {
     // This is a custom prop that is not part of the HTML input element type
     type?: InputTypes;
     autoFocus?: boolean;
-}
+};
 
 function TextSetting(props: Props) {
-    const {labelClassName = '', inputClassName = '', maxLength = -1, resizable = true, type = 'text'} = props;
+    const {
+        labelClassName = "",
+        inputClassName = "",
+        maxLength = -1,
+        resizable = true,
+        type = "text",
+    } = props;
 
-    function handleChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-        if (props.type === 'number') {
+    function handleChange(
+        event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) {
+        if (props.type === "number") {
             props.onChange(props.id, parseInt(event.target.value, 10));
         } else {
             props.onChange(props.id, event.target.value);
@@ -40,17 +56,17 @@ function TextSetting(props: Props) {
     }
 
     let input = null;
-    if (type === 'textarea') {
+    if (type === "textarea") {
         input = (
             <textarea
                 id={props.id}
                 data-testid={`${props.id}input`} // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
-                className='form-control'
+                className="form-control"
                 autoFocus={props.autoFocus}
-                dir='auto'
+                dir="auto"
                 rows={5}
                 placeholder={props.placeholder}
-                style={resizable === false ? {resize: 'none'} : undefined}
+                style={resizable === false ? { resize: "none" } : undefined}
                 value={props.value}
                 maxLength={maxLength}
                 onChange={handleChange}
@@ -58,16 +74,19 @@ function TextSetting(props: Props) {
             />
         );
     } else {
-        const inputType = INPUT_TYPES.includes(type) ? type : 'text';
+        const inputType = INPUT_TYPES.includes(type) ? type : "text";
 
         // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
-        const testId = inputType === 'text' ? `${props.id}input` : `${props.id}${inputType}`;
+        const testId =
+            inputType === "text"
+                ? `${props.id}input`
+                : `${props.id}${inputType}`;
 
         input = (
             <input
                 id={props.id}
                 data-testid={testId}
-                className='form-control'
+                className="form-control"
                 autoFocus={props.autoFocus}
                 type={inputType}
                 placeholder={props.placeholder}

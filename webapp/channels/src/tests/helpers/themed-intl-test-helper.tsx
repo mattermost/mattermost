@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import type { Theme } from "mattermost-redux/selectors/entities/preferences";
 
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import CompassThemeProvider from "components/compass_theme_provider/compass_theme_provider";
 
-import {mountWithIntl} from './intl-test-helper';
+import { mountWithIntl } from "./intl-test-helper";
 
-const stubValue = '#fff';
+const stubValue = "#fff";
 const DEFAULT_THEME: Theme = {
-    type: 'custom',
+    type: "custom",
     sidebarBg: stubValue,
     sidebarText: stubValue,
     sidebarUnreadText: stubValue,
@@ -39,11 +39,12 @@ const DEFAULT_THEME: Theme = {
     codeTheme: stubValue,
 };
 
-export const mountWithThemedIntl = (children: React.ReactNode | React.ReactNodeArray, theme?: Theme) => {
+export const mountWithThemedIntl = (
+    children: React.ReactNode | React.ReactNodeArray,
+    theme?: Theme,
+) => {
     return mountWithIntl(
-        <CompassThemeProvider
-            theme={theme || DEFAULT_THEME}
-        >
+        <CompassThemeProvider theme={theme || DEFAULT_THEME}>
             {children}
         </CompassThemeProvider>,
     );

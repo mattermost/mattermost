@@ -197,7 +197,7 @@
                 visibility: hidden;
 
                 span {
-                    font-family: 'Open Sans', sans-serif;
+                    font-family: "Open Sans", sans-serif;
                     line-height: 10px;
                 }
 
@@ -379,7 +379,10 @@
                 outline: 0;
 
                 &:hover {
-                    background-color: rgba(var(--center-channel-color-rgb), 0.12);
+                    background-color: rgba(
+                        var(--center-channel-color-rgb),
+                        0.12
+                    );
                     text-decoration: none;
                 }
 

@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React from "react";
 
-import type {Channel} from '@mattermost/types/channels';
+import type { Channel } from "@mattermost/types/channels";
 
-import Menu from 'components/widgets/menu/menu';
+import Menu from "components/widgets/menu/menu";
 
-import {localizeMessage} from 'utils/utils';
+import { localizeMessage } from "utils/utils";
 
 type Action = {
     favoriteChannel: (channelId: string) => void;
@@ -29,13 +29,12 @@ export default class ToggleFavoriteChannel extends React.PureComponent<Props> {
     toggleFavoriteChannel = (channelId: string) => {
         const {
             isFavorite,
-            actions: {
-                favoriteChannel,
-                unfavoriteChannel,
-            },
+            actions: { favoriteChannel, unfavoriteChannel },
         } = this.props;
 
-        return isFavorite ? unfavoriteChannel(channelId) : favoriteChannel(channelId);
+        return isFavorite
+            ? unfavoriteChannel(channelId)
+            : favoriteChannel(channelId);
     };
 
     handleClick = (e: React.MouseEvent<HTMLButtonElement>): void => {
@@ -46,9 +45,15 @@ export default class ToggleFavoriteChannel extends React.PureComponent<Props> {
     render() {
         let text;
         if (this.props.isFavorite) {
-            text = localizeMessage('channelHeader.removeFromFavorites', 'Remove from Favorites');
+            text = localizeMessage(
+                "channelHeader.removeFromFavorites",
+                "Remove from Favorites",
+            );
         } else {
-            text = localizeMessage('channelHeader.addToFavorites', 'Add to Favorites');
+            text = localizeMessage(
+                "channelHeader.addToFavorites",
+                "Add to Favorites",
+            );
         }
         return (
             <Menu.ItemAction

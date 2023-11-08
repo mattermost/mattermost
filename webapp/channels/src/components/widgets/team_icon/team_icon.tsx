@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
-import {injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import classNames from "classnames";
+import React from "react";
+import { injectIntl } from "react-intl";
+import type { IntlShape } from "react-intl";
 
-import type {Team} from '@mattermost/types/teams';
+import type { Team } from "@mattermost/types/teams";
 
-import {imageURLForTeam} from 'utils/utils';
+import { imageURLForTeam } from "utils/utils";
 
-import './team_icon.scss';
+import "./team_icon.scss";
 
 type Props = {
-
     /** Team icon URL (when available) */
     url?: string | null;
 
@@ -25,7 +24,7 @@ type Props = {
      *
      * @default "regular"
      **/
-    size?: 'sm' | 'lg';
+    size?: "sm" | "lg";
 
     /** Whether to add hover effect to the icon */
     withHover?: boolean;
@@ -43,51 +42,56 @@ type Props = {
  */
 export class TeamIcon extends React.PureComponent<Props> {
     public static defaultProps = {
-        size: 'sm' as const,
+        size: "sm" as const,
     };
 
     public render() {
-        const {content, url, size, withHover, className} = this.props;
-        const hoverCss = withHover ? '' : 'no-hover';
-        const {formatMessage} = this.props.intl;
+        const { content, url, size, withHover, className } = this.props;
+        const hoverCss = withHover ? "" : "no-hover";
+        const { formatMessage } = this.props.intl;
 
         // FIXME Nowhere does imageURLForTeam seem to check for display_name.
-        const teamIconUrl = url || imageURLForTeam({display_name: content} as Team);
+        const teamIconUrl =
+            url || imageURLForTeam({ display_name: content } as Team);
         let icon;
-        if (typeof content === 'string') {
+        if (typeof content === "string") {
             if (teamIconUrl) {
                 icon = (
                     <div
-                        data-testid='teamIconImage'
+                        data-testid="teamIconImage"
                         className={`TeamIcon__image TeamIcon__${size}`}
-                        aria-label={
-                            formatMessage({
-                                id: 'sidebar.team_menu.button.teamImage',
-                                defaultMessage: '{teamName} Team Image',
-                            }, {
+                        aria-label={formatMessage(
+                            {
+                                id: "sidebar.team_menu.button.teamImage",
+                                defaultMessage: "{teamName} Team Image",
+                            },
+                            {
                                 teamName: content,
-                            })
-                        }
-                        style={{backgroundImage: `url('${teamIconUrl}')`}}
-                        role={'img'}
+                            },
+                        )}
+                        style={{ backgroundImage: `url('${teamIconUrl}')` }}
+                        role={"img"}
                     />
                 );
             } else {
                 icon = (
                     <div
-                        data-testid='teamIconInitial'
+                        data-testid="teamIconInitial"
                         className={`TeamIcon__initials TeamIcon__initials__${size}`}
-                        aria-label={
-                            formatMessage({
-                                id: 'sidebar.team_menu.button.teamInitials',
-                                defaultMessage: '{teamName} Team Initials',
-                            }, {
+                        aria-label={formatMessage(
+                            {
+                                id: "sidebar.team_menu.button.teamInitials",
+                                defaultMessage: "{teamName} Team Initials",
+                            },
+                            {
                                 teamName: content,
-                            })
-                        }
-                        role={'img'}
+                            },
+                        )}
+                        role={"img"}
                     >
-                        {content ? content.replace(/\s/g, '').substring(0, 2) : '??'}
+                        {content
+                            ? content.replace(/\s/g, "").substring(0, 2)
+                            : "??"}
                     </div>
                 );
             }
@@ -95,10 +99,15 @@ export class TeamIcon extends React.PureComponent<Props> {
             icon = content;
         }
         return (
-            <div className={classNames(`TeamIcon TeamIcon__${size}`, {withImage: teamIconUrl}, className, hoverCss)}>
-                <div className={`TeamIcon__content ${hoverCss}`}>
-                    {icon}
-                </div>
+            <div
+                className={classNames(
+                    `TeamIcon TeamIcon__${size}`,
+                    { withImage: teamIconUrl },
+                    className,
+                    hoverCss,
+                )}
+            >
+                <div className={`TeamIcon__content ${hoverCss}`}>{icon}</div>
             </div>
         );
     }
