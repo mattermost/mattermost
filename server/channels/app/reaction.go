@@ -20,6 +20,15 @@ func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*mod
 		return nil, err
 	}
 
+	count, cErr := a.Srv().Store().Reaction().GetUniqueCountForPost(reaction.PostId)
+	if err != nil {
+		return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(cErr)
+	}
+
+	if count > 25 {
+		return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.too_many_reactions", nil, "", http.StatusBadRequest)
+	}
+
 	channel, err := a.GetChannel(c, post.ChannelId)
 	if err != nil {
 		return nil, err

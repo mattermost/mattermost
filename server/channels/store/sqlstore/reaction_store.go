@@ -138,6 +138,25 @@ func (s *SqlReactionStore) GetForPostSince(postId string, since int64, excludeRe
 	return reactions, nil
 }
 
+func (s *SqlReactionStore) GetUniqueCountForPost(postId string) (int, error) {
+	query := s.getQueryBuilder().
+		Select("COUNT(DISTINCT EmojiName)").
+		From("Reactions").
+		Where(sq.Eq{"PostId": postId})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "reactions_getuniquecountforpost_tosql")
+	}
+
+	var count int64
+	err = s.GetReplicaX().Get(&count, queryString, args...)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to count Reactions")
+	}
+	return int(count), nil
+}
+
 func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
 	placeholder, values := constructArrayArgs(postIds)
 	var reactions []*model.Reaction
