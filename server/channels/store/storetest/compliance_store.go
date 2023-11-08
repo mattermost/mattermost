@@ -396,13 +396,11 @@ func testComplianceExportDirectMessages(t *testing.T, rctx request.CTX, ss store
 }
 
 func testMessageExportPublicChannel(t *testing.T, rctx request.CTX, ss store.Store) {
-	c := request.TestContext(t)
-
 	defer cleanupStoreState(t, rctx, ss)
 
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	messages, _, err := ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
+	messages, _, err := ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(messages))
 
@@ -472,7 +470,7 @@ func testMessageExportPublicChannel(t *testing.T, rctx request.CTX, ss store.Sto
 
 	// fetch the message exports for both posts that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
-	messages, _, err = ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
+	messages, _, err = ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(messages))
 
@@ -502,13 +500,11 @@ func testMessageExportPublicChannel(t *testing.T, rctx request.CTX, ss store.Sto
 }
 
 func testMessageExportPrivateChannel(t *testing.T, rctx request.CTX, ss store.Store) {
-	c := request.TestContext(t)
-
 	defer cleanupStoreState(t, rctx, ss)
 
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	messages, _, err := ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
+	messages, _, err := ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(messages))
 
@@ -578,7 +574,7 @@ func testMessageExportPrivateChannel(t *testing.T, rctx request.CTX, ss store.St
 
 	// fetch the message exports for both posts that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
-	messages, _, err = ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
+	messages, _, err = ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(messages))
 
@@ -610,13 +606,11 @@ func testMessageExportPrivateChannel(t *testing.T, rctx request.CTX, ss store.St
 }
 
 func testMessageExportDirectMessageChannel(t *testing.T, rctx request.CTX, ss store.Store) {
-	c := request.TestContext(t)
-
 	defer cleanupStoreState(t, rctx, ss)
 
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	messages, _, err := ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
+	messages, _, err := ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(messages))
 
@@ -671,7 +665,7 @@ func testMessageExportDirectMessageChannel(t *testing.T, rctx request.CTX, ss st
 
 	// fetch the message export for the post that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
-	messages, _, err = ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
+	messages, _, err = ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
 	require.NoError(t, err)
 
 	assert.Equal(t, 1, len(messages))
@@ -693,13 +687,11 @@ func testMessageExportDirectMessageChannel(t *testing.T, rctx request.CTX, ss st
 }
 
 func testMessageExportGroupMessageChannel(t *testing.T, rctx request.CTX, ss store.Store) {
-	c := request.TestContext(t)
-
 	defer cleanupStoreState(t, rctx, ss)
 
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	messages, _, err := ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
+	messages, _, err := ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(messages))
 
@@ -771,7 +763,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, rctx request.CTX, ss sto
 
 	// fetch the message export for the post that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
-	messages, _, err = ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
+	messages, _, err = ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(messages))
 
@@ -793,13 +785,11 @@ func testMessageExportGroupMessageChannel(t *testing.T, rctx request.CTX, ss sto
 
 // post,edit,export
 func testEditExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
-	c := request.TestContext(t)
-
 	defer cleanupStoreState(t, rctx, ss)
 
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	messages, _, err := ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
+	messages, _, err := ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(messages))
 
@@ -854,7 +844,7 @@ func testEditExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	// fetch the message exports from the start
-	messages, _, err = ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
+	messages, _, err = ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(messages))
 
@@ -888,12 +878,10 @@ func testEditExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
 
 // post, export, edit, export
 func testEditAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
-	c := request.TestContext(t)
-
 	defer cleanupStoreState(t, rctx, ss)
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	messages, _, err := ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
+	messages, _, err := ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(messages))
 
@@ -941,7 +929,7 @@ func testEditAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store) 
 	require.NoError(t, err)
 
 	// fetch the message exports from the start
-	messages, _, err = ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
+	messages, _, err = ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(messages))
 
@@ -967,7 +955,7 @@ func testEditAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store) 
 	require.NoError(t, err)
 
 	// fetch the message exports after edit
-	messages, _, err = ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: postEditTime - 1}, 10)
+	messages, _, err = ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: postEditTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(messages))
 
@@ -1001,12 +989,10 @@ func testEditAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store) 
 
 // post, delete, export
 func testDeleteExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
-	c := request.TestContext(t)
-
 	defer cleanupStoreState(t, rctx, ss)
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	messages, _, err := ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
+	messages, _, err := ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(messages))
 
@@ -1059,7 +1045,7 @@ func testDeleteExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	// fetch the message exports from the start
-	messages, _, err = ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
+	messages, _, err = ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(messages))
 
@@ -1088,12 +1074,10 @@ func testDeleteExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
 
 // post,export,delete,export
 func testDeleteAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
-	c := request.TestContext(t)
-
 	defer cleanupStoreState(t, rctx, ss)
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	messages, _, err := ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
+	messages, _, err := ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(messages))
 
@@ -1141,7 +1125,7 @@ func testDeleteAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store
 	require.NoError(t, err)
 
 	// fetch the message exports from the start
-	messages, _, err = ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
+	messages, _, err = ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(messages))
 
@@ -1164,7 +1148,7 @@ func testDeleteAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store
 	require.NoError(t, err)
 
 	// fetch the message exports after delete
-	messages, _, err = ss.Compliance().MessageExport(c, model.MessageExportCursor{LastPostUpdateAt: postDeleteTime - 1}, 10)
+	messages, _, err = ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: postDeleteTime - 1}, 10)
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(messages))
 

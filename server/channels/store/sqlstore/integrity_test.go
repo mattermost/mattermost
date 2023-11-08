@@ -763,7 +763,6 @@ func TestCheckSchemesTeamsIntegrity(t *testing.T) {
 
 func TestCheckSessionsAuditsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
-		c := request.TestContext(t)
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -776,7 +775,7 @@ func TestCheckSessionsAuditsIntegrity(t *testing.T) {
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			userId := model.NewId()
-			session := createSession(c, ss, model.NewId())
+			session := createSession(rctx, ss, model.NewId())
 			sessionId := session.Id
 			audit := createAudit(ss, userId, sessionId)
 			dbmap.Exec(`DELETE FROM Sessions WHERE Id=?`, session.Id)
@@ -1494,7 +1493,6 @@ func TestCheckUsersReactionsIntegrity(t *testing.T) {
 
 func TestCheckUsersSessionsIntegrity(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
-		c := request.TestContext(t)
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1507,7 +1505,7 @@ func TestCheckUsersSessionsIntegrity(t *testing.T) {
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			userId := model.NewId()
-			session := createSession(c, ss, userId)
+			session := createSession(rctx, ss, userId)
 			result := checkUsersSessionsIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
