@@ -1075,7 +1075,7 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 			return nil, appErr
 		}
 
-		message := model.NewWebSocketEvent(model.ChannelSchemeUpdated, "", channel.Id, "", nil, "")
+		message := model.NewWebSocketEvent(model.SchemeUpdated, "", channel.Id, "", nil, "")
 		a.Publish(message)
 		c.Logger().Info("Permission scheme created.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 	} else {
@@ -1133,7 +1133,7 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 			return nil, err
 		}
 
-		message := model.NewWebSocketEvent(model.ChannelSchemeUpdated, "", channel.Id, "", nil, "")
+		message := model.NewWebSocketEvent(model.SchemeUpdated, "", channel.Id, "", nil, "")
 		a.Publish(message)
 
 		memberRole = higherScopedMemberRole
@@ -1153,7 +1153,7 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 	cErr := a.forEachChannelMember(c, channel.Id, func(channelMember model.ChannelMember) error {
 		a.Srv().Store().Channel().InvalidateAllChannelMembersForUser(channelMember.UserId)
 
-		evt := model.NewWebSocketEvent(model.ChannelMemberUpdated, "", "", channelMember.UserId, nil, "")
+		evt := model.NewWebSocketEvent(model.MemberUpdated, "", "", channelMember.UserId, nil, "")
 		memberJSON, jsonErr := json.Marshal(channelMember)
 		if jsonErr != nil {
 			return jsonErr
@@ -1360,7 +1360,7 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 	a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
 
 	// Notify the clients that the member notify props changed
-	evt := model.NewWebSocketEvent(model.ChannelMemberUpdated, "", "", member.UserId, nil, "")
+	evt := model.NewWebSocketEvent(model.MemberUpdated, "", "", member.UserId, nil, "")
 	memberJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
 		return nil, model.NewAppError("UpdateChannelMemberNotifyProps", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -1389,7 +1389,7 @@ func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*
 	a.InvalidateCacheForUser(member.UserId)
 
 	// Notify the clients that the member notify props changed
-	evt := model.NewWebSocketEvent(model.ChannelMemberUpdated, "", "", member.UserId, nil, "")
+	evt := model.NewWebSocketEvent(model.MemberUpdated, "", "", member.UserId, nil, "")
 	memberJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
 		return nil, model.NewAppError("updateChannelMember", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -3335,7 +3335,7 @@ func (a *App) setChannelsMuted(c request.CTX, channelIDs []string, userID string
 	for _, member := range updated {
 		a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
 
-		evt := model.NewWebSocketEvent(model.ChannelMemberUpdated, "", "", member.UserId, nil, "")
+		evt := model.NewWebSocketEvent(model.MemberUpdated, "", "", member.UserId, nil, "")
 
 		memberJSON, jsonErr := json.Marshal(member)
 		if jsonErr != nil {
@@ -3443,7 +3443,7 @@ func (a *App) forEachChannelMember(c request.CTX, channelID string, f func(model
 func (a *App) ClearChannelMembersCache(c request.CTX, channelID string) error {
 	clearSessionCache := func(channelMember model.ChannelMember) error {
 		a.ClearSessionCacheForUser(channelMember.UserId)
-		message := model.NewWebSocketEvent(model.ChannelMemberUpdated, "", "", channelMember.UserId, nil, "")
+		message := model.NewWebSocketEvent(model.MemberUpdated, "", "", channelMember.UserId, nil, "")
 		memberJSON, jsonErr := json.Marshal(channelMember)
 		if jsonErr != nil {
 			return jsonErr

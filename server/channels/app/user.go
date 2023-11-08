@@ -2343,7 +2343,7 @@ func (a *App) PromoteGuestToUser(c request.CTX, user *model.User, requestorId st
 		for _, member := range channelMembers {
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
-			evt := model.NewWebSocketEvent(model.ChannelMemberUpdated, "", "", user.Id, nil, "")
+			evt := model.NewWebSocketEvent(model.MemberUpdated, "", "", user.Id, nil, "")
 			memberJSON, jsonErr := json.Marshal(member)
 			if jsonErr != nil {
 				return model.NewAppError("PromoteGuestToUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -2388,7 +2388,7 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 		for _, member := range channelMembers {
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
-			evt := model.NewWebSocketEvent(model.ChannelMemberUpdated, "", "", user.Id, nil, "")
+			evt := model.NewWebSocketEvent(model.MemberUpdated, "", "", user.Id, nil, "")
 			memberJSON, jsonErr := json.Marshal(member)
 			if jsonErr != nil {
 				return model.NewAppError("DemoteUserToGuest", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
