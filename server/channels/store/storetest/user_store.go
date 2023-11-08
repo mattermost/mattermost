@@ -6186,7 +6186,3 @@ func testUpdateLastLogin(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	require.Equal(t, int64(1234567890), user.LastLogin)
 }
-
-func testRefreshPostStatsForUser(t *testing.T, ss store.Store) {
-	// TODO
-}
