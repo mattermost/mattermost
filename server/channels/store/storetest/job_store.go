@@ -18,24 +18,24 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestJobStore(t *testing.T, ss store.Store) {
-	t.Run("JobSaveGet", func(t *testing.T) { testJobSaveGet(t, ss) })
-	t.Run("JobSaveOnce", func(t *testing.T) { testJobSaveOnce(t, ss) })
-	t.Run("JobGetAllByType", func(t *testing.T) { testJobGetAllByType(t, ss) })
-	t.Run("JobGetAllByTypeAndStatus", func(t *testing.T) { testJobGetAllByTypeAndStatus(t, ss) })
-	t.Run("JobGetAllByTypePage", func(t *testing.T) { testJobGetAllByTypePage(t, ss) })
-	t.Run("JobGetAllByTypesPage", func(t *testing.T) { testJobGetAllByTypesPage(t, ss) })
-	t.Run("JobGetAllByStatus", func(t *testing.T) { testJobGetAllByStatus(t, ss) })
-	t.Run("GetNewestJobByStatusAndType", func(t *testing.T) { testJobStoreGetNewestJobByStatusAndType(t, ss) })
-	t.Run("GetNewestJobByStatusesAndType", func(t *testing.T) { testJobStoreGetNewestJobByStatusesAndType(t, ss) })
-	t.Run("GetCountByStatusAndType", func(t *testing.T) { testJobStoreGetCountByStatusAndType(t, ss) })
-	t.Run("JobUpdateOptimistically", func(t *testing.T) { testJobUpdateOptimistically(t, ss) })
-	t.Run("JobUpdateStatusUpdateStatusOptimistically", func(t *testing.T) { testJobUpdateStatusUpdateStatusOptimistically(t, ss) })
-	t.Run("JobDelete", func(t *testing.T) { testJobDelete(t, ss) })
-	t.Run("JobCleanup", func(t *testing.T) { testJobCleanup(t, ss) })
+func TestJobStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("JobSaveGet", func(t *testing.T) { testJobSaveGet(t, rctx, ss) })
+	t.Run("JobSaveOnce", func(t *testing.T) { testJobSaveOnce(t, rctx, ss) })
+	t.Run("JobGetAllByType", func(t *testing.T) { testJobGetAllByType(t, rctx, ss) })
+	t.Run("JobGetAllByTypeAndStatus", func(t *testing.T) { testJobGetAllByTypeAndStatus(t, rctx, ss) })
+	t.Run("JobGetAllByTypePage", func(t *testing.T) { testJobGetAllByTypePage(t, rctx, ss) })
+	t.Run("JobGetAllByTypesPage", func(t *testing.T) { testJobGetAllByTypesPage(t, rctx, ss) })
+	t.Run("JobGetAllByStatus", func(t *testing.T) { testJobGetAllByStatus(t, rctx, ss) })
+	t.Run("GetNewestJobByStatusAndType", func(t *testing.T) { testJobStoreGetNewestJobByStatusAndType(t, rctx, ss) })
+	t.Run("GetNewestJobByStatusesAndType", func(t *testing.T) { testJobStoreGetNewestJobByStatusesAndType(t, rctx, ss) })
+	t.Run("GetCountByStatusAndType", func(t *testing.T) { testJobStoreGetCountByStatusAndType(t, rctx, ss) })
+	t.Run("JobUpdateOptimistically", func(t *testing.T) { testJobUpdateOptimistically(t, rctx, ss) })
+	t.Run("JobUpdateStatusUpdateStatusOptimistically", func(t *testing.T) { testJobUpdateStatusUpdateStatusOptimistically(t, rctx, ss) })
+	t.Run("JobDelete", func(t *testing.T) { testJobDelete(t, rctx, ss) })
+	t.Run("JobCleanup", func(t *testing.T) { testJobCleanup(t, rctx, ss) })
 }
 
-func testJobSaveGet(t *testing.T, ss store.Store) {
+func testJobSaveGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	job := &model.Job{
@@ -60,7 +60,7 @@ func testJobSaveGet(t *testing.T, ss store.Store) {
 	require.Equal(t, "12345", received.Data["Total"])
 }
 
-func testJobSaveOnce(t *testing.T, ss store.Store) {
+func testJobSaveOnce(t *testing.T, rctx request.CTX, ss store.Store) {
 	var wg sync.WaitGroup
 
 	ids := make([]string, 2)
@@ -105,7 +105,7 @@ func testJobSaveOnce(t *testing.T, ss store.Store) {
 	}
 }
 
-func testJobGetAllByType(t *testing.T, ss store.Store) {
+func testJobGetAllByType(t *testing.T, rctx request.CTX, ss store.Store) {
 	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	jobType := model.NewId()
@@ -137,7 +137,7 @@ func testJobGetAllByType(t *testing.T, ss store.Store) {
 	require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id}, []string{received[0].Id, received[1].Id})
 }
 
-func testJobGetAllByTypeAndStatus(t *testing.T, ss store.Store) {
+func testJobGetAllByTypeAndStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	jobType := model.NewId()
@@ -167,7 +167,7 @@ func testJobGetAllByTypeAndStatus(t *testing.T, ss store.Store) {
 	require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id}, []string{received[0].Id, received[1].Id})
 }
 
-func testJobGetAllByTypePage(t *testing.T, ss store.Store) {
+func testJobGetAllByTypePage(t *testing.T, rctx request.CTX, ss store.Store) {
 	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	jobType := model.NewId()
@@ -213,7 +213,7 @@ func testJobGetAllByTypePage(t *testing.T, ss store.Store) {
 	require.Equal(t, received[0].Id, jobs[1].Id, "should've received oldest job last")
 }
 
-func testJobGetAllByTypesPage(t *testing.T, ss store.Store) {
+func testJobGetAllByTypesPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	jobType := model.NewId()
@@ -270,7 +270,7 @@ func testJobGetAllByTypesPage(t *testing.T, ss store.Store) {
 	require.Equal(t, received[0].Id, jobs[1].Id, "should've received oldest job last")
 }
 
-func testJobGetAllByStatus(t *testing.T, ss store.Store) {
+func testJobGetAllByStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	jobType := model.NewId()
@@ -321,7 +321,7 @@ func testJobGetAllByStatus(t *testing.T, ss store.Store) {
 	require.Equal(t, "data", received[1].Data["test"], "should've received job data field back as saved")
 }
 
-func testJobStoreGetNewestJobByStatusAndType(t *testing.T, ss store.Store) {
+func testJobStoreGetNewestJobByStatusAndType(t *testing.T, rctx request.CTX, ss store.Store) {
 	jobType1 := model.NewId()
 	jobType2 := model.NewId()
 	status1 := model.NewId()
@@ -371,7 +371,7 @@ func testJobStoreGetNewestJobByStatusAndType(t *testing.T, ss store.Store) {
 	assert.Nil(t, received)
 }
 
-func testJobStoreGetNewestJobByStatusesAndType(t *testing.T, ss store.Store) {
+func testJobStoreGetNewestJobByStatusesAndType(t *testing.T, rctx request.CTX, ss store.Store) {
 	jobType1 := model.NewId()
 	jobType2 := model.NewId()
 	status1 := model.NewId()
@@ -435,7 +435,7 @@ func testJobStoreGetNewestJobByStatusesAndType(t *testing.T, ss store.Store) {
 	assert.Nil(t, received)
 }
 
-func testJobStoreGetCountByStatusAndType(t *testing.T, ss store.Store) {
+func testJobStoreGetCountByStatusAndType(t *testing.T, rctx request.CTX, ss store.Store) {
 	jobType1 := model.NewId()
 	jobType2 := model.NewId()
 	status1 := model.NewId()
@@ -491,7 +491,7 @@ func testJobStoreGetCountByStatusAndType(t *testing.T, ss store.Store) {
 	assert.EqualValues(t, 1, count)
 }
 
-func testJobUpdateOptimistically(t *testing.T, ss store.Store) {
+func testJobUpdateOptimistically(t *testing.T, rctx request.CTX, ss store.Store) {
 	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	job := &model.Job{
@@ -532,7 +532,7 @@ func testJobUpdateOptimistically(t *testing.T, ss store.Store) {
 	require.Equal(t, updatedJob.Data["Foo"], job.Data["Foo"])
 }
 
-func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store) {
+func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, rctx request.CTX, ss store.Store) {
 	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 	job := &model.Job{
 		Id:       model.NewId(),
@@ -597,7 +597,7 @@ func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store)
 	require.Greater(t, received.LastActivityAt, lastUpdateAt)
 }
 
-func testJobDelete(t *testing.T, ss store.Store) {
+func testJobDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	job, err := ss.Job().Save(&model.Job{Id: model.NewId()})
 	require.NoError(t, err)
 
@@ -605,7 +605,7 @@ func testJobDelete(t *testing.T, ss store.Store) {
 	assert.NoError(t, err)
 }
 
-func testJobCleanup(t *testing.T, ss store.Store) {
+func testJobCleanup(t *testing.T, rctx request.CTX, ss store.Store) {
 	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	now := model.GetMillis()

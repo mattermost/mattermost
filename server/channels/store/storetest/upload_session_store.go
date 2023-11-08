@@ -14,14 +14,14 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestUploadSessionStore(t *testing.T, ss store.Store) {
-	t.Run("UploadSessionStoreSaveGet", func(t *testing.T) { testUploadSessionStoreSaveGet(t, ss) })
-	t.Run("UploadSessionStoreUpdate", func(t *testing.T) { testUploadSessionStoreUpdate(t, ss) })
-	t.Run("UploadSessionStoreGetForUser", func(t *testing.T) { testUploadSessionStoreGetForUser(t, ss) })
-	t.Run("UploadSessionStoreDelete", func(t *testing.T) { testUploadSessionStoreDelete(t, ss) })
+func TestUploadSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("UploadSessionStoreSaveGet", func(t *testing.T) { testUploadSessionStoreSaveGet(t, rctx, ss) })
+	t.Run("UploadSessionStoreUpdate", func(t *testing.T) { testUploadSessionStoreUpdate(t, rctx, ss) })
+	t.Run("UploadSessionStoreGetForUser", func(t *testing.T) { testUploadSessionStoreGetForUser(t, rctx, ss) })
+	t.Run("UploadSessionStoreDelete", func(t *testing.T) { testUploadSessionStoreDelete(t, rctx, ss) })
 }
 
-func testUploadSessionStoreSaveGet(t *testing.T, ss store.Store) {
+func testUploadSessionStoreSaveGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	var session *model.UploadSession
@@ -68,7 +68,7 @@ func testUploadSessionStoreSaveGet(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUploadSessionStoreUpdate(t *testing.T, ss store.Store) {
+func testUploadSessionStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	session := &model.UploadSession{
@@ -112,7 +112,7 @@ func testUploadSessionStoreUpdate(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUploadSessionStoreGetForUser(t *testing.T, ss store.Store) {
+func testUploadSessionStoreGetForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 
 	sessions := []*model.UploadSession{
@@ -179,7 +179,7 @@ func testUploadSessionStoreGetForUser(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUploadSessionStoreDelete(t *testing.T, ss store.Store) {
+func testUploadSessionStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	session := &model.UploadSession{

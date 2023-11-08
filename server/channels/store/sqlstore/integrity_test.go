@@ -378,7 +378,7 @@ func createUserAccessToken(ss store.Store, userId string) *model.UserAccessToken
 }
 
 func TestCheckIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		ss.DropAllTables()
 		t.Run("generate reports with no records", func(t *testing.T) {
 			results := ss.CheckIntegrity()
@@ -396,7 +396,7 @@ func TestCheckIntegrity(t *testing.T) {
 }
 
 func TestCheckParentChildIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		t.Run("should receive an error", func(t *testing.T) {
 			config := relationalCheckConfig{
@@ -413,7 +413,7 @@ func TestCheckParentChildIntegrity(t *testing.T) {
 }
 
 func TestCheckChannelsCommandWebhooksIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -440,7 +440,7 @@ func TestCheckChannelsCommandWebhooksIntegrity(t *testing.T) {
 }
 
 func TestCheckChannelsChannelMemberHistoryIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -471,7 +471,7 @@ func TestCheckChannelsChannelMemberHistoryIntegrity(t *testing.T) {
 }
 
 func TestCheckChannelsChannelMembersIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -499,7 +499,7 @@ func TestCheckChannelsChannelMembersIntegrity(t *testing.T) {
 }
 
 func TestCheckChannelsIncomingWebhooksIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -527,7 +527,7 @@ func TestCheckChannelsIncomingWebhooksIntegrity(t *testing.T) {
 }
 
 func TestCheckChannelsOutgoingWebhooksIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -557,7 +557,7 @@ func TestCheckChannelsOutgoingWebhooksIntegrity(t *testing.T) {
 }
 
 func TestCheckChannelsPostsIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -584,7 +584,7 @@ func TestCheckChannelsPostsIntegrity(t *testing.T) {
 }
 
 func TestCheckCommandsCommandWebhooksIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -612,7 +612,7 @@ func TestCheckCommandsCommandWebhooksIntegrity(t *testing.T) {
 }
 
 func TestCheckPostsFileInfoIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -640,7 +640,7 @@ func TestCheckPostsFileInfoIntegrity(t *testing.T) {
 }
 
 func TestCheckPostsPostsRootIdIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -673,7 +673,7 @@ func TestCheckPostsPostsRootIdIntegrity(t *testing.T) {
 }
 
 func TestCheckPostsReactionsIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -700,7 +700,7 @@ func TestCheckPostsReactionsIntegrity(t *testing.T) {
 }
 
 func TestCheckSchemesChannelsIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -731,7 +731,7 @@ func TestCheckSchemesChannelsIntegrity(t *testing.T) {
 }
 
 func TestCheckSchemesTeamsIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -762,7 +762,7 @@ func TestCheckSchemesTeamsIntegrity(t *testing.T) {
 }
 
 func TestCheckSessionsAuditsIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		c := request.TestContext(t)
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
@@ -794,7 +794,7 @@ func TestCheckSessionsAuditsIntegrity(t *testing.T) {
 }
 
 func TestCheckTeamsChannelsIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -870,7 +870,7 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 }
 
 func TestCheckTeamsCommandsIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -898,7 +898,7 @@ func TestCheckTeamsCommandsIntegrity(t *testing.T) {
 }
 
 func TestCheckTeamsIncomingWebhooksIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -926,7 +926,7 @@ func TestCheckTeamsIncomingWebhooksIntegrity(t *testing.T) {
 }
 
 func TestCheckTeamsOutgoingWebhooksIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -954,7 +954,7 @@ func TestCheckTeamsOutgoingWebhooksIntegrity(t *testing.T) {
 }
 
 func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -982,7 +982,7 @@ func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersAuditsIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1012,7 +1012,7 @@ func TestCheckUsersAuditsIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersCommandWebhooksIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1040,7 +1040,7 @@ func TestCheckUsersCommandWebhooksIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersChannelsIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1067,7 +1067,7 @@ func TestCheckUsersChannelsIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersChannelMemberHistoryIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1097,7 +1097,7 @@ func TestCheckUsersChannelMemberHistoryIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersChannelMembersIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1127,7 +1127,7 @@ func TestCheckUsersChannelMembersIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersCommandsIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1155,7 +1155,7 @@ func TestCheckUsersCommandsIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersCompliancesIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1185,7 +1185,7 @@ func TestCheckUsersCompliancesIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersEmojiIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1215,7 +1215,7 @@ func TestCheckUsersEmojiIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersFileInfoIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1245,7 +1245,7 @@ func TestCheckUsersFileInfoIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersIncomingWebhooksIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1273,7 +1273,7 @@ func TestCheckUsersIncomingWebhooksIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersOAuthAccessDataIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1303,7 +1303,7 @@ func TestCheckUsersOAuthAccessDataIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersOAuthAppsIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1333,7 +1333,7 @@ func TestCheckUsersOAuthAppsIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersOAuthAuthDataIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1363,7 +1363,7 @@ func TestCheckUsersOAuthAuthDataIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersOutgoingWebhooksIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1391,7 +1391,7 @@ func TestCheckUsersOutgoingWebhooksIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersPostsIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1418,7 +1418,7 @@ func TestCheckUsersPostsIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersPreferencesIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1464,7 +1464,7 @@ func TestCheckUsersPreferencesIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersReactionsIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1493,7 +1493,7 @@ func TestCheckUsersReactionsIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersSessionsIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		c := request.TestContext(t)
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
@@ -1522,7 +1522,7 @@ func TestCheckUsersSessionsIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersStatusIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1551,7 +1551,7 @@ func TestCheckUsersStatusIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersTeamMembersIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1581,7 +1581,7 @@ func TestCheckUsersTeamMembersIntegrity(t *testing.T) {
 }
 
 func TestCheckUsersUserAccessTokensIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 
@@ -1611,7 +1611,7 @@ func TestCheckUsersUserAccessTokensIntegrity(t *testing.T) {
 }
 
 func TestCheckThreadsTeamsIntegrity(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		store := ss.(*SqlStore)
 		dbmap := store.GetMasterX()
 

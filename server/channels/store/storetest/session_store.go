@@ -18,27 +18,27 @@ const (
 	TenMinutes = 600000
 )
 
-func TestSessionStore(t *testing.T, ss store.Store) {
+func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Run serially to prevent interfering with other tests
-	testSessionCleanup(t, ss)
+	testSessionCleanup(t, rctx, ss)
 
-	t.Run("Save", func(t *testing.T) { testSessionStoreSave(t, ss) })
-	t.Run("SessionGet", func(t *testing.T) { testSessionGet(t, ss) })
-	t.Run("SessionGetWithDeviceId", func(t *testing.T) { testSessionGetWithDeviceId(t, ss) })
-	t.Run("SessionRemove", func(t *testing.T) { testSessionRemove(t, ss) })
-	t.Run("SessionRemoveAll", func(t *testing.T) { testSessionRemoveAll(t, ss) })
-	t.Run("SessionRemoveByUser", func(t *testing.T) { testSessionRemoveByUser(t, ss) })
-	t.Run("SessionRemoveToken", func(t *testing.T) { testSessionRemoveToken(t, ss) })
-	t.Run("SessionUpdateDeviceId", func(t *testing.T) { testSessionUpdateDeviceId(t, ss) })
-	t.Run("SessionUpdateDeviceId2", func(t *testing.T) { testSessionUpdateDeviceId2(t, ss) })
-	t.Run("UpdateExpiresAt", func(t *testing.T) { testSessionStoreUpdateExpiresAt(t, ss) })
-	t.Run("UpdateLastActivityAt", func(t *testing.T) { testSessionStoreUpdateLastActivityAt(t, ss) })
-	t.Run("SessionCount", func(t *testing.T) { testSessionCount(t, ss) })
-	t.Run("GetSessionsExpired", func(t *testing.T) { testGetSessionsExpired(t, ss) })
-	t.Run("UpdateExpiredNotify", func(t *testing.T) { testUpdateExpiredNotify(t, ss) })
+	t.Run("Save", func(t *testing.T) { testSessionStoreSave(t, rctx, ss) })
+	t.Run("SessionGet", func(t *testing.T) { testSessionGet(t, rctx, ss) })
+	t.Run("SessionGetWithDeviceId", func(t *testing.T) { testSessionGetWithDeviceId(t, rctx, ss) })
+	t.Run("SessionRemove", func(t *testing.T) { testSessionRemove(t, rctx, ss) })
+	t.Run("SessionRemoveAll", func(t *testing.T) { testSessionRemoveAll(t, rctx, ss) })
+	t.Run("SessionRemoveByUser", func(t *testing.T) { testSessionRemoveByUser(t, rctx, ss) })
+	t.Run("SessionRemoveToken", func(t *testing.T) { testSessionRemoveToken(t, rctx, ss) })
+	t.Run("SessionUpdateDeviceId", func(t *testing.T) { testSessionUpdateDeviceId(t, rctx, ss) })
+	t.Run("SessionUpdateDeviceId2", func(t *testing.T) { testSessionUpdateDeviceId2(t, rctx, ss) })
+	t.Run("UpdateExpiresAt", func(t *testing.T) { testSessionStoreUpdateExpiresAt(t, rctx, ss) })
+	t.Run("UpdateLastActivityAt", func(t *testing.T) { testSessionStoreUpdateLastActivityAt(t, rctx, ss) })
+	t.Run("SessionCount", func(t *testing.T) { testSessionCount(t, rctx, ss) })
+	t.Run("GetSessionsExpired", func(t *testing.T) { testGetSessionsExpired(t, rctx, ss) })
+	t.Run("UpdateExpiredNotify", func(t *testing.T) { testUpdateExpiredNotify(t, rctx, ss) })
 }
 
-func testSessionStoreSave(t *testing.T, ss store.Store) {
+func testSessionStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	s1 := &model.Session{}
@@ -48,7 +48,7 @@ func testSessionStoreSave(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testSessionGet(t *testing.T, ss store.Store) {
+func testSessionGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	s1 := &model.Session{}
@@ -88,7 +88,7 @@ func testSessionGet(t *testing.T, ss store.Store) {
 	require.Len(t, data, 3, "should match len")
 }
 
-func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
+func testSessionGetWithDeviceId(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	s1 := &model.Session{}
@@ -119,7 +119,7 @@ func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
 	require.Len(t, data, 1, "should match len")
 }
 
-func testSessionRemove(t *testing.T, ss store.Store) {
+func testSessionRemove(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	s1 := &model.Session{}
@@ -139,7 +139,7 @@ func testSessionRemove(t *testing.T, ss store.Store) {
 	require.Error(t, err, "should have been removed")
 }
 
-func testSessionRemoveAll(t *testing.T, ss store.Store) {
+func testSessionRemoveAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	s1 := &model.Session{}
@@ -159,7 +159,7 @@ func testSessionRemoveAll(t *testing.T, ss store.Store) {
 	require.Error(t, err, "should have been removed")
 }
 
-func testSessionRemoveByUser(t *testing.T, ss store.Store) {
+func testSessionRemoveByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	s1 := &model.Session{}
@@ -179,7 +179,7 @@ func testSessionRemoveByUser(t *testing.T, ss store.Store) {
 	require.Error(t, err, "should have been removed")
 }
 
-func testSessionRemoveToken(t *testing.T, ss store.Store) {
+func testSessionRemoveToken(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	s1 := &model.Session{}
@@ -203,7 +203,7 @@ func testSessionRemoveToken(t *testing.T, ss store.Store) {
 	require.Empty(t, data, "should match len")
 }
 
-func testSessionUpdateDeviceId(t *testing.T, ss store.Store) {
+func testSessionUpdateDeviceId(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	s1 := &model.Session{}
@@ -225,7 +225,7 @@ func testSessionUpdateDeviceId(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testSessionUpdateDeviceId2(t *testing.T, ss store.Store) {
+func testSessionUpdateDeviceId2(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	s1 := &model.Session{}
@@ -247,7 +247,7 @@ func testSessionUpdateDeviceId2(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testSessionStoreUpdateExpiresAt(t *testing.T, ss store.Store) {
+func testSessionStoreUpdateExpiresAt(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	s1 := &model.Session{}
@@ -264,7 +264,7 @@ func testSessionStoreUpdateExpiresAt(t *testing.T, ss store.Store) {
 	require.EqualValues(t, session.ExpiresAt, 1234567890, "ExpiresAt not updated correctly")
 }
 
-func testSessionStoreUpdateLastActivityAt(t *testing.T, ss store.Store) {
+func testSessionStoreUpdateLastActivityAt(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	s1 := &model.Session{}
@@ -281,7 +281,7 @@ func testSessionStoreUpdateLastActivityAt(t *testing.T, ss store.Store) {
 	require.EqualValues(t, session.LastActivityAt, 1234567890, "LastActivityAt not updated correctly")
 }
 
-func testSessionCount(t *testing.T, ss store.Store) {
+func testSessionCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	s1 := &model.Session{}
@@ -296,7 +296,7 @@ func testSessionCount(t *testing.T, ss store.Store) {
 	require.NotZero(t, count, "should have at least 1 session")
 }
 
-func testSessionCleanup(t *testing.T, ss store.Store) {
+func testSessionCleanup(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	now := model.GetMillis()
@@ -351,7 +351,7 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 	require.NoError(t, removeErr)
 }
 
-func testGetSessionsExpired(t *testing.T, ss store.Store) {
+func testGetSessionsExpired(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	now := model.GetMillis()
@@ -408,7 +408,7 @@ func testGetSessionsExpired(t *testing.T, ss store.Store) {
 	}
 }
 
-func testUpdateExpiredNotify(t *testing.T, ss store.Store) {
+func testUpdateExpiredNotify(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := request.TestContext(t)
 
 	s1 := &model.Session{}
