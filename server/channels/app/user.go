@@ -905,7 +905,7 @@ func (a *App) UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPa
 		return model.NewAppError("updatePassword", "api.user.update_password.oauth.app_error", nil, "auth_service="+user.AuthService, http.StatusBadRequest)
 	}
 
-	if err := a.DoubleCheckPassword(user, currentPassword); err != nil {
+	if err := a.DoubleCheckPassword(c, user, currentPassword); err != nil {
 		if err.Id == "api.user.check_user_password.invalid.app_error" {
 			err = model.NewAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -1366,8 +1366,8 @@ func (a *App) UpdatePasswordByUserIdSendEmail(c request.CTX, userID, newPassword
 	return a.UpdatePasswordSendEmail(c, user, newPassword, method)
 }
 
-func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppError {
-	if err := a.IsPasswordValid(newPassword); err != nil {
+func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword string) *model.AppError {
+	if err := a.IsPasswordValid(rctx, newPassword); err != nil {
 		return err
 	}
 
@@ -1383,7 +1383,7 @@ func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppErr
 }
 
 func (a *App) UpdatePasswordSendEmail(c request.CTX, user *model.User, newPassword, method string) *model.AppError {
-	if err := a.UpdatePassword(user, newPassword); err != nil {
+	if err := a.UpdatePassword(c, user, newPassword); err != nil {
 		return err
 	}
 
@@ -2474,7 +2474,7 @@ func (a *App) ConvertBotToUser(c request.CTX, bot *model.Bot, userPatch *model.U
 		return nil, err
 	}
 
-	err = a.UpdatePassword(user, *userPatch.Password)
+	err = a.UpdatePassword(c, user, *userPatch.Password)
 	if err != nil {
 		return nil, err
 	}
