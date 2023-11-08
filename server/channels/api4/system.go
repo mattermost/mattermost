@@ -281,7 +281,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "audits_per_page", c.Params.LogsPerPage)
 
 	if err := json.NewEncoder(w).Encode(audits); err != nil {
-		c.AppContext.Logger().Warn("Error while writing response")
+		c.Logger.Warn("Error while writing response")
 	}
 }
 

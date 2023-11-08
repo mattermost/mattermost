@@ -44,6 +44,8 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 
 	a.Srv().LoadLicense()
 
+	var rctx = request.EmptyContext(a.Log())
+
 	// Run jobs
 	mlog.Info("Starting Mattermost job server")
 	defer mlog.Info("Stopped Mattermost job server")
@@ -58,8 +60,8 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if !noJobs || !noSchedule {
-		auditRec := a.MakeAuditRecord(request.EmptyContext(a.Log()), "jobServer", audit.Success)
-		a.LogAuditRec(request.EmptyContext(a.Log()), auditRec, nil)
+		auditRec := a.MakeAuditRecord(rctx, "jobServer", audit.Success)
+		a.LogAuditRec(rctx, auditRec, nil)
 	}
 
 	signalChan := make(chan os.Signal, 1)

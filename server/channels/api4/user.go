@@ -2309,7 +2309,7 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("audits_per_page", c.Params.LogsPerPage)
 
 	if err := json.NewEncoder(w).Encode(audits); err != nil {
-		c.AppContext.Logger().Warn("Error while writing response")
+		c.Logger.Warn("Error while writing response")
 	}
 }
 
