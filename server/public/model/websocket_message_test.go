@@ -85,7 +85,7 @@ func TestWebSocketEventFromJSON(t *testing.T) {
 	ev, err = WebSocketEventFromJSON(bytes.NewReader(data))
 	require.NoError(t, err)
 	require.NotNil(t, ev, "should have parsed")
-	require.Equal(t, string(ev.EventType()), "test")
+	require.Equal(t, ev.EventType(), "test")
 	require.Equal(t, ev.GetSequence(), int64(45))
 	require.Equal(t, ev.data, map[string]any{"key": "val"})
 	require.Equal(t, ev.GetBroadcast(), &WebsocketBroadcast{UserId: "userid"})
