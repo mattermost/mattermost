@@ -96,7 +96,6 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, ss) })
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, ss) })
 	t.Run("UpdateLastLogin", func(t *testing.T) { testUpdateLastLogin(t, ss) })
-	t.Run("RefreshPostStatsForUser", func(t *testing.T) { testRefreshPostStatsForUser(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
