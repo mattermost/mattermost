@@ -5652,6 +5652,7 @@
   "webapp.mattermost.feature.create_multiple_teams": "Create Multiple Teams",
   "webapp.mattermost.feature.custom_user_groups": "Custom User groups",
   "webapp.mattermost.feature.guest_accounts": "Guest Accounts",
+  "webapp.mattermost.feature.highlight_without_notification": "Keywords Highlight Without Notification",
   "webapp.mattermost.feature.playbooks_retro": "Playbooks Retrospective",
   "webapp.mattermost.feature.start_call": "Start call",
   "webapp.mattermost.feature.unlimited_file_storage": "Unlimited File Storage",
