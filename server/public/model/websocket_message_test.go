@@ -34,14 +34,14 @@ func TestWebSocketEvent(t *testing.T) {
 }
 
 func TestWebSocketEventImmutable(t *testing.T) {
-	m := NewWebSocketEvent(PostEdited, NewId(), NewId(), NewId(), nil, "")
+	m := NewWebSocketEvent(WebsocketEventPostEdited, NewId(), NewId(), NewId(), nil, "")
 
-	newM := m.SetEvent(PostDeleted)
+	newM := m.SetEvent(WebsocketEventPostDeleted)
 	if newM == m {
 		require.Fail(t, "pointers should not be the same")
 	}
 	require.NotEqual(t, m.EventType(), newM.EventType())
-	require.Equal(t, newM.EventType(), PostDeleted)
+	require.Equal(t, newM.EventType(), WebsocketEventPostDeleted)
 
 	newM = m.SetSequence(45)
 	if newM == m {
