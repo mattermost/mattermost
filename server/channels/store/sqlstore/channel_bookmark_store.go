@@ -4,6 +4,9 @@
 package sqlstore
 
 import (
+	"fmt"
+	"strings"
+
 	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -212,11 +215,20 @@ func (s *SqlChannelBookmarkStore) Delete(bookmarkId string) error {
 }
 
 func (s *SqlChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
+	bookmarks, err := s.GetBookmarksForAllChannelByIdSince([]string{channelId}, since)
+	if err != nil {
+		return nil, err
+	}
+
+	return bookmarks[channelId], nil
+}
+
+func (s *SqlChannelBookmarkStore) GetBookmarksForAllChannelByIdSince(channelsId []string, since int64) (map[string][]*model.ChannelBookmarkWithFileInfo, error) {
 	query := s.getQueryBuilder().
 		Select(bookmarkWithFileInfoSliceColumns()...).
 		From("ChannelBookmarks cb").
 		LeftJoin("FileInfo fi ON cb.FileInfoId = fi.Id").
-		Where(sq.Eq{"cb.ChannelId": channelId, "cb.DeleteAt": 0})
+		Where(fmt.Sprintf("cb.ChannelId IN ('%s')", strings.Join(channelsId, "', '")))
 
 	if since > 0 {
 		query = query.Where(sq.Or{
@@ -224,9 +236,11 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, 
 			sq.GtOrEq{"cb.UpdateAt": since},
 			sq.GtOrEq{"cb.DeleteAt": since},
 		})
+	} else {
+		query = query.Where(sq.Eq{"cb.DeleteAt": 0})
 	}
 
-	query = query.OrderBy("SortOrder ASC")
+	query = query.OrderBy("cb.SortOrder ASC").OrderBy("cb.DeleteAt ASC")
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "channel_bookmark_getforchanneltsince_tosql")
@@ -237,7 +251,7 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, 
 		return nil, errors.Wrapf(queryErr, "failed to find bookmarks")
 	}
 
-	var bookmarks []*model.ChannelBookmarkWithFileInfo
+	retrievedRecords := make(map[string][]*model.ChannelBookmarkWithFileInfo)
 	defer rows.Close()
 	for rows.Next() {
 		var b model.ChannelBookmarkWithFileInfo
@@ -251,11 +265,13 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, 
 		if b.FileId != "" && f.Id != "" {
 			b.FileInfo = &f
 		}
-		bookmarks = append(bookmarks, &b)
+
+		bookmarks := retrievedRecords[b.ChannelId]
+		retrievedRecords[b.ChannelId] = append(bookmarks, &b)
 	}
 	if err = rows.Err(); err != nil {
 		return nil, errors.Wrap(err, "channel bookmarks failed while iterating over rows")
 	}
 
-	return bookmarks, nil
+	return retrievedRecords, nil
 }
