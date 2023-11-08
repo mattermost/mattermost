@@ -563,7 +563,7 @@ func (a *App) SendEphemeralPost(c request.CTX, userID string, post *model.Post) 
 	}
 
 	post.GenerateActionIds()
-	message := model.NewWebSocketEvent(model.EphemeralMessage, "", post.ChannelId, userID, nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", post.ChannelId, userID, nil, "")
 	post = a.PreparePostForClientWithEmbedsAndImages(c, post, true, false, true)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 
@@ -2130,7 +2130,7 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 		},
 	}
 
-	message := model.NewWebSocketEvent(model.EphemeralMessage, "", ephemeralPost.ChannelId, userID, nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", ephemeralPost.ChannelId, userID, nil, "")
 	ephemeralPost = a.PreparePostForClientWithEmbedsAndImages(request.EmptyContext(a.Log()), ephemeralPost, true, false, true)
 	ephemeralPost = model.AddPostActionCookies(ephemeralPost, a.PostActionCookieSecret())
 

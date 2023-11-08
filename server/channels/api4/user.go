@@ -1572,7 +1572,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	message := model.NewWebSocketEvent(model.UserActivationStatusChange, "", "", "", nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventUserActivationStatusChange, "", "", "", nil, "")
 	c.App.Publish(message)
 
 	ReturnStatusOK(w)

@@ -3314,7 +3314,7 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 		for {
 			select {
 			case ev := <-wsClient.EventChannel:
-				if ev.EventType() == model.ThreadUpdated {
+				if ev.EventType() == model.WebsocketEventThreadUpdated {
 					caught = true
 					var thread model.ThreadResponse
 					data := ev.GetData()
@@ -3331,7 +3331,7 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 			}
 		}
 	}()
-	require.Truef(t, caught, "User should have received %s event", model.ThreadUpdated)
+	require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadUpdated)
 }
 
 func TestAddChannelMemberAddMyself(t *testing.T) {
@@ -3466,7 +3466,7 @@ func TestRemoveChannelMember(t *testing.T) {
 		})
 
 		wsr := <-wsClient.EventChannel
-		require.Equal(t, model.Hello, wsr.EventType())
+		require.Equal(t, model.WebsocketEventHello, wsr.EventType())
 
 		// requirePost listens for websocket events and tries to find the post matching
 		// the expected post's channel and message.

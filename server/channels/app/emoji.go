@@ -77,7 +77,7 @@ func (a *App) CreateEmoji(c request.CTX, sessionUserId string, emoji *model.Emoj
 		return nil, model.NewAppError("CreateEmoji", "app.emoji.create.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	message := model.NewWebSocketEvent(model.EmojiAdded, "", "", "", nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventEmojiAdded, "", "", "", nil, "")
 	emojiJSON, jsonErr := json.Marshal(emoji)
 	if jsonErr != nil {
 		return nil, model.NewAppError("CreateEmoji", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)

@@ -352,7 +352,7 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 		}
 
 		for _, u := range desktopUsers {
-			message := model.NewWebSocketEvent(model.PersistentNotificationTriggered, team.Id, post.ChannelId, u, nil, "")
+			message := model.NewWebSocketEvent(model.WebsocketEventPersistentNotificationTriggered, team.Id, post.ChannelId, u, nil, "")
 
 			message.Add("post", postJSON)
 			message.Add("channel_type", channel.Type)

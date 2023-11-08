@@ -675,7 +675,7 @@ func (wc *WebConn) IsAuthenticated() bool {
 func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 	ee := wc.Platform.LicenseManager() != nil
 
-	msg := model.NewWebSocketEvent(model.Hello, "", "", wc.UserId, nil, "")
+	msg := model.NewWebSocketEvent(model.WebsocketEventHello, "", "", wc.UserId, nil, "")
 	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion,
 		model.BuildNumber,
 		wc.Platform.ClientConfigHash(),
@@ -689,7 +689,7 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	var canSee bool
 
 	switch msg.EventType() {
-	case model.UserUpdated:
+	case model.WebsocketEventUserUpdated:
 		user, ok := msg.GetData()["user"].(*model.User)
 		if !ok {
 			mlog.Debug("webhub.shouldSendEvent: user not found in message", mlog.Any("user", msg.GetData()["user"]))
@@ -728,8 +728,8 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	if len(wc.send) >= sendSlowWarn {
 		switch msg.EventType() {
 		case model.Typing,
-			model.StatusChange,
-			model.MultipleChannelsViewed:
+			model.WebsocketEventStatusChange,
+			model.WebsocketEventMultipleChannelsViewed:
 			if wc.active.Load() && time.Since(wc.lastLogTimeSlow) > websocketSuppressWarnThreshold {
 				mlog.Warn(
 					"websocket.slow: dropping message",

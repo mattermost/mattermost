@@ -136,7 +136,7 @@ func TestCreatePost(t *testing.T) {
 		for waiting {
 			select {
 			case event := <-WebSocketClient.EventChannel:
-				require.NotEqual(t, model.EphemeralMessage, event.EventType(), "should not have ephemeral message event")
+				require.NotEqual(t, model.WebsocketEventEphemeralMessage, event.EventType(), "should not have ephemeral message event")
 			case <-timeout:
 				waiting = false
 			}
@@ -162,8 +162,8 @@ func TestCreatePost(t *testing.T) {
 		for eventsToGo > 0 {
 			select {
 			case event := <-WebSocketClient.EventChannel:
-				if event.EventType() == model.EphemeralMessage {
-					require.Equal(t, model.EphemeralMessage, event.EventType())
+				if event.EventType() == model.WebsocketEventEphemeralMessage {
+					require.Equal(t, model.WebsocketEventEphemeralMessage, event.EventType())
 					eventsToGo = eventsToGo - 1
 				}
 			case <-timeout:
@@ -858,7 +858,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	for waiting {
 		select {
 		case event := <-WebSocketClient.EventChannel:
-			require.NotEqual(t, model.EphemeralMessage, event.EventType(), "should not have ephemeral message event")
+			require.NotEqual(t, model.WebsocketEventEphemeralMessage, event.EventType(), "should not have ephemeral message event")
 		case <-timeout:
 			waiting = false
 		}
@@ -877,7 +877,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	for waiting {
 		select {
 		case event := <-WebSocketClient.EventChannel:
-			if event.EventType() != model.EphemeralMessage {
+			if event.EventType() != model.WebsocketEventEphemeralMessage {
 				// Ignore any other events
 				continue
 			}
@@ -3731,7 +3731,7 @@ func TestPostReminder(t *testing.T) {
 		for {
 			select {
 			case ev := <-userWSClient.EventChannel:
-				if ev.EventType() == model.EphemeralMessage {
+				if ev.EventType() == model.WebsocketEventEphemeralMessage {
 					caught = true
 					data := ev.GetData()
 
@@ -3758,7 +3758,7 @@ func TestPostReminder(t *testing.T) {
 		}
 	}()
 
-	require.Truef(t, caught, "User should have received %s event", model.EphemeralMessage)
+	require.Truef(t, caught, "User should have received %s event", model.WebsocketEventEphemeralMessage)
 }
 
 func TestPostGetInfo(t *testing.T) {

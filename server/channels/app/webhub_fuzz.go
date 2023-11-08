@@ -108,14 +108,14 @@ func getActionData(data []byte, userIDs, teamIDs, channelIDs []string) *actionDa
 	events := []string{
 		model.ChannelCreated,
 		model.ChannelDeleted,
-		model.UserAdded,
-		model.UserUpdated,
-		model.StatusChange,
-		model.Hello,
+		model.WebsocketEventUserAdded,
+		model.WebsocketEventUserUpdated,
+		model.WebsocketEventStatusChange,
+		model.WebsocketEventHello,
 		model.WebsocketAuthenticationChallenge,
-		model.ReactionAdded,
-		model.ReactionRemoved,
-		model.Response,
+		model.WebsocketEventReactionAdded,
+		model.WebsocketEventReactionRemoved,
+		model.WebsocketEventResponse,
 	}
 	// We need atleast 10 bytes to get all the data we need
 	if len(data) < 10 {

@@ -150,7 +150,7 @@ func (ch *Channels) syncPluginsActiveState() {
 
 				deactivated := pluginsEnvironment.Deactivate(plugin.Manifest.Id)
 				if deactivated && plugin.Manifest.HasClient() {
-					message := model.NewWebSocketEvent(model.PluginDisabled, "", "", "", nil, "")
+					message := model.NewWebSocketEvent(model.WebsocketEventPluginDisabled, "", "", "", nil, "")
 					message.Add("manifest", plugin.Manifest.ClientManifest())
 					ch.srv.platform.Publish(message)
 				}
@@ -866,7 +866,7 @@ func (ch *Channels) notifyPluginEnabled(manifest *model.Manifest) error {
 	}
 
 	// Notify all cluster peer clients.
-	message := model.NewWebSocketEvent(model.PluginEnabled, "", "", "", nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventPluginEnabled, "", "", "", nil, "")
 	message.Add("manifest", manifest.ClientManifest())
 	ch.srv.platform.Publish(message)
 

@@ -289,7 +289,7 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 
 	a.Srv().Store().Channel().ClearMembersForUserCache()
 
-	if appErr := a.sendTeamEvent(oldTeam, model.UpdateTeamScheme); appErr != nil {
+	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeamScheme); appErr != nil {
 		return nil, appErr
 	}
 
@@ -544,7 +544,7 @@ func (a *App) UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID s
 }
 
 func (a *App) sendUpdatedMemberRoleEvent(userID string, member *model.TeamMember) *model.AppError {
-	message := model.NewWebSocketEvent(model.MemberroleUpdated, "", "", userID, nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", userID, nil, "")
 	tmJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
 		return model.NewAppError("sendUpdatedMemberRoleEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -1853,7 +1853,7 @@ func (a *App) RestoreTeam(teamID string) *model.AppError {
 		}
 	}
 
-	if appErr := a.sendTeamEvent(team, model.RestoreTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(team, model.WebsocketEventRestoreTeam); appErr != nil {
 		return appErr
 	}
 
@@ -2096,7 +2096,7 @@ func (a *App) ClearTeamMembersCache(teamID string) error {
 		for _, teamMember := range teamMembers {
 			a.ClearSessionCacheForUser(teamMember.UserId)
 
-			message := model.NewWebSocketEvent(model.MemberroleUpdated, "", "", teamMember.UserId, nil, "")
+			message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", teamMember.UserId, nil, "")
 			tmJSON, jsonErr := json.Marshal(teamMember)
 			if jsonErr != nil {
 				return jsonErr
