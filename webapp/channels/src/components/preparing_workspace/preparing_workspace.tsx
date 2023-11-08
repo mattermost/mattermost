@@ -270,7 +270,7 @@ const PreparingWorkspace = (props: Props) => {
 
         const goToChannels = () => {
             dispatch({type: GeneralTypes.SHOW_LAUNCHING_WORKSPACE, open: true});
-            props.history.push(`/${team.name}/channels${Constants.DEFAULT_CHANNEL}`);
+            props.history.push(`/${team.name}/channels/${Constants.DEFAULT_CHANNEL}`);
             trackEvent('first_admin_setup', 'admin_setup_complete');
         };
 
