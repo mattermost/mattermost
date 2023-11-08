@@ -1,7 +1,7 @@
 ALTER TABLE users ADD COLUMN IF NOT EXISTS lastlogin bigint NOT NULL DEFAULT 0;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS poststats AS
-SELECT UserId, FLOOR(CreateAt / 86400000) AS Day, COUNT(*) as NumPosts, MAX(CreateAt) as LastPostDate
-FROM Posts 
-GROUP BY UserId, Day
+SELECT userid, to_timestamp(createat/1000)::date as day, COUNT(*) as numposts, MAX(CreateAt) as lastpostdate
+FROM posts 
+GROUP BY userid, day
 ;
