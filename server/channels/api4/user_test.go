@@ -5928,7 +5928,7 @@ func TestPublishUserTyping(t *testing.T) {
 		_, err = th.SystemAdminClient.PublishUserTyping(context.Background(), th.BasicUser2.Id, tr)
 		require.NoError(t, err)
 
-		assertExpectedWebsocketEvent(t, webSocketClient, model.WebsocketEventTyping, func(resp *model.WebSocketEvent) {
+		assertExpectedWebsocketEvent(t, webSocketClient, model.Typing, func(resp *model.WebSocketEvent) {
 			assert.Equal(t, th.BasicChannel.Id, resp.GetBroadcast().ChannelId)
 
 			eventUserId, ok := resp.GetData()["user_id"].(string)
