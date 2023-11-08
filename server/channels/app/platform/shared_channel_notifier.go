@@ -15,9 +15,9 @@ import (
 )
 
 var sharedChannelEventsForSync model.WebsocketEventTypeArray = []model.WebsocketEventType{
-	model.Posted,
-	model.PostEdited,
-	model.PostDeleted,
+	model.WebsocketEventPosted,
+	model.WebsocketEventPostEdited,
+	model.WebsocketEventPostDeleted,
 	model.WebsocketEventReactionAdded,
 	model.WebsocketEventReactionRemoved,
 }

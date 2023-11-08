@@ -203,7 +203,7 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		ws.Listen()
 		for {
 			event := <-ws.EventChannel
-			if event.EventType() == model.Posted {
+			if event.EventType() == model.WebsocketEventPosted {
 				post, err := eventDataToPost(event.GetData())
 				if err != nil {
 					printer.PrintError("Error parsing incoming post: " + err.Error())

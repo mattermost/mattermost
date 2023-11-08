@@ -596,7 +596,7 @@ func (a *App) UpdateEphemeralPost(c request.CTX, userID string, post *model.Post
 	}
 
 	post.GenerateActionIds()
-	message := model.NewWebSocketEvent(model.PostEdited, "", post.ChannelId, userID, nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil, "")
 	post = a.PreparePostForClientWithEmbedsAndImages(c, post, true, false, true)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 	postJSON, jsonErr := post.ToJSON()
@@ -618,7 +618,7 @@ func (a *App) DeleteEphemeralPost(userID, postID string) {
 		UpdateAt: model.GetMillis(),
 	}
 
-	message := model.NewWebSocketEvent(model.PostDeleted, "", "", userID, nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", "", userID, nil, "")
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
@@ -743,7 +743,7 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 		return nil, model.NewAppError("UpdatePost", "app.post.update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	message := model.NewWebSocketEvent(model.PostEdited, "", rpost.ChannelId, "", nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
 	postJSON, jsonErr := rpost.ToJSON()
 	if jsonErr != nil {
 		return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -1345,12 +1345,12 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		return nil, model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	userMessage := model.NewWebSocketEvent(model.PostDeleted, "", post.ChannelId, "", nil, "")
+	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
 	userMessage.Add("post", string(postJSON))
 	userMessage.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(userMessage)
 
-	adminMessage := model.NewWebSocketEvent(model.PostDeleted, "", post.ChannelId, "", nil, "")
+	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
 	adminMessage.Add("post", string(postJSON))
 	adminMessage.Add("delete_by", deleteByID)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true

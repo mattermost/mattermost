@@ -377,7 +377,7 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 		// The first message is ClusterEventInvalidateCacheForChannelByName so we skip it
 		ev, err1 := model.WebSocketEventFromJSON(bytes.NewReader(msgs[1].Data))
 		require.NoError(t, err1)
-		require.Equal(t, model.Posted, ev.EventType())
+		require.Equal(t, model.WebsocketEventPosted, ev.EventType())
 		assert.Equal(t, false, ev.GetData()["set_online"])
 	})
 }

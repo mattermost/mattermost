@@ -727,7 +727,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// queued to wc.send buffered channel.
 	if len(wc.send) >= sendSlowWarn {
 		switch msg.EventType() {
-		case model.Typing,
+		case model.WebsocketEventTyping,
 			model.WebsocketEventStatusChange,
 			model.WebsocketEventMultipleChannelsViewed:
 			if wc.active.Load() && time.Since(wc.lastLogTimeSlow) > websocketSuppressWarnThreshold {
