@@ -225,6 +225,11 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     } else if (!searchTerms && noResults && noFileResults) {
         titleDescriptor.id = t('search_header.search');
         titleDescriptor.defaultMessage = 'Search';
+    } else if (searchType === DataSearchTypes.FILES_SEARCH_TYPE && !isChannelFiles){
+        noResultsProps.variant = NoResultsVariant.Files;
+        noResultsProps.titleValues = {searchTerm: `“${searchTerms}”`};
+        titleDescriptor.id = t('search_header.results');
+        titleDescriptor.defaultMessage = 'Search Results';
     } else {
         noResultsProps.titleValues = {channelName: `“${searchTerms}”`};
 
@@ -267,7 +272,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     {'sidebar-expanded': isSideBarExpanded},
                 ])}
             >
-                <NoResultsIndicator {...noResultsProps}/>
+                <NoResultsIndicator style={{padding: '48px'}} {...noResultsProps}/>
             </div>
         );
         break;
@@ -279,7 +284,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     {'sidebar-expanded': isSideBarExpanded},
                 ])}
             >
-                <NoResultsIndicator {...noResultsProps}/>
+                <NoResultsIndicator style={{padding: '48px'}} {...noResultsProps}/>
             </div>
         );
         break;

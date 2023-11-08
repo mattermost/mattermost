@@ -31,6 +31,7 @@ interface Props {
 const iconMap: {[key in NoResultsVariant]: React.ReactNode } = {
     [NoResultsVariant.Search]: <SearchSVG className='no-results__icon'/>,
     [NoResultsVariant.ChannelSearch]: <ChannelSearchSVG className='no-results__icon'/>,
+    [NoResultsVariant.Files]: <ChannelFilesSVG className='no-results__icon'/>,
     [NoResultsVariant.Mentions]: <MentionsSVG className='no-results__icon'/>,
     [NoResultsVariant.FlaggedPosts]: <SavedMessagesSVG className='no-results__icon'/>,
     [NoResultsVariant.PinnedPosts]: <PinSVG className='no-results__icon'/>,
@@ -44,6 +45,9 @@ const iconMap: {[key in NoResultsVariant]: React.ReactNode } = {
 const titleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
     [NoResultsVariant.Search]: {
         id: t('no_results.search.title'),
+    },
+    [NoResultsVariant.Files]: {
+        id: t('no_results.Files.title'),
     },
     [NoResultsVariant.ChannelSearch]: {
         id: t('no_results.channel_search.title'),
@@ -77,6 +81,9 @@ const titleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
 const subtitleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
     [NoResultsVariant.Search]: {
         id: t('no_results.search.subtitle'),
+    },
+    [NoResultsVariant.Files]: {
+        id: t('no_results.Files.subtitle'),
     },
     [NoResultsVariant.ChannelSearch]: {
         id: t('no_results.channel_search.subtitle'),

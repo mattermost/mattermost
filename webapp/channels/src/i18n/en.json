@@ -4157,6 +4157,8 @@
   "no_results.channel_files.title": "No files yet",
   "no_results.channel_search.subtitle": "Check the spelling or try another search.",
   "no_results.channel_search.title": "No results for {channelName}",
+  "no_results.Files.subtitle": "Check the spelling or try another search.",
+  "no_results.Files.title": "No Files results for {searchTerm}",
   "no_results.flagged_posts.subtitle": "To save something for later, open the context menu on a message and choose {buttonText}. Saved messages are only visible to you",
   "no_results.flagged_posts.title": "No saved messages yet",
   "no_results.mentions.subtitle": "Messages where someone mentions you or includes your trigger words are saved here.",
