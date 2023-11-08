@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
-var sharedChannelEventsForSync = []model.WebsocketEventType{
+var sharedChannelEventsForSync model.WebsocketEventTypeArray = []model.WebsocketEventType{
 	model.Posted,
 	model.PostEdited,
 	model.PostDeleted,
@@ -22,7 +22,7 @@ var sharedChannelEventsForSync = []model.WebsocketEventType{
 	model.ReactionRemoved,
 }
 
-var sharedChannelEventsForInvitation = []model.WebsocketEventType{
+var sharedChannelEventsForInvitation model.WebsocketEventTypeArray = []model.WebsocketEventType{
 	model.DirectAdded,
 }
 
@@ -34,7 +34,7 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 	if syncService == nil {
 		return
 	}
-	if isEligibleForEvents(syncService, event, model.ToStringArray(sharedChannelEventsForSync)) {
+	if isEligibleForEvents(syncService, event, sharedChannelEventsForSync.ToStringArray()) {
 		err := handleContentSync(ps, syncService, event)
 		if err != nil {
 			mlog.Warn(
@@ -43,7 +43,7 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 				mlog.String("action", "content_sync"),
 			)
 		}
-	} else if isEligibleForEvents(syncService, event, model.ToStringArray(sharedChannelEventsForInvitation)) {
+	} else if isEligibleForEvents(syncService, event, sharedChannelEventsForInvitation.ToStringArray()) {
 		err := handleInvitation(ps, syncService, event)
 		if err != nil {
 			mlog.Warn(

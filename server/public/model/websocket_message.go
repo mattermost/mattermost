@@ -10,8 +10,9 @@ import (
 )
 
 type WebsocketEventType string
+type WebsocketEventTypeArray []WebsocketEventType
 
-func ToStringArray(arr []WebsocketEventType) StringArray {
+func (arr WebsocketEventTypeArray) ToStringArray() StringArray {
 	stringArray := make([]string, len(arr))
 	for i, item := range arr {
 		stringArray[i] = string(item)
