@@ -24,29 +24,29 @@ type Props = {
     className?: string;
     onClick?: (e: React.MouseEvent) => void;
 };
-export default class BlockableLink extends React.PureComponent<Props> {
-    private handleClick = (e: React.MouseEvent) => {
-        if (this.props.onClick) {
-            this.props.onClick(e);
+
+const BlockableLink = (props: Props) => {
+    const {blocked, actions, ...restProps} = props;
+    const linkProps = {...restProps};
+
+    const handleClick = (e: React.MouseEvent) => {
+        if (props.onClick) {
+            props.onClick(e);
         }
-        if (this.props.blocked) {
+        if (blocked) {
             e.preventDefault();
-            this.props.actions.deferNavigation(() => {
-                getHistory().push(this.props.to);
+            actions.deferNavigation(() => {
+                getHistory().push(props.to);
             });
         }
     };
 
-    public render() {
-        const props = {...this.props};
-        Reflect.deleteProperty(props, 'blocked');
-        Reflect.deleteProperty(props, 'actions');
+    return (
+        <NavLink
+            {...linkProps}
+            onClick={handleClick}
+        />
+    );
+};
 
-        return (
-            <NavLink
-                {...props}
-                onClick={this.handleClick}
-            />
-        );
-    }
-}
+export default React.memo(BlockableLink);
