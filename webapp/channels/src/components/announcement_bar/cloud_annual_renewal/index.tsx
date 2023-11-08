@@ -112,11 +112,11 @@ const CloudAnnualRenewalAnnouncementBar = () => {
             };
         }
 
-        return <AnnouncementBar {...bannerProps}/>;
+        return <AnnouncementBar {...bannerProps}/> ;
     }, [daysUntilExpiration, hasDismissed60DayBanner, hasDismissed30DayBanner]);
 
     // Delinquent subscriptions will have a cancel_at time, but the banner is handled separately
-    if (!subscription || !subscription.cancel_at || isDelinquencySubscription() || !isAdmin) {
+    if (!subscription || !subscription.cancel_at || subscription.will_renew === "true" || isDelinquencySubscription() || !isAdmin || daysUntilExpiration > 60) {
         return null;
     }
 

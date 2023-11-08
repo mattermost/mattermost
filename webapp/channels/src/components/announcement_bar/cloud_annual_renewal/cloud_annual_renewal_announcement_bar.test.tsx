@@ -315,4 +315,37 @@ describe('components/announcement_bar/cloud_delinquency', () => {
 
         expect(queryByText('Your annual subscription expires in 26 days. Please renew to avoid any disruption.')).toBeInTheDocument();
     });
+
+    it('Should NOT show any banner if renewal date is more than 60 days away"', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.cloud.subscription = {
+            ...state.entities.cloud.subscription,
+            cancel_at: unixTimestampFromNow(69),
+            end_at: unixTimestampFromNow(75),
+        };
+
+        const {queryByText} = renderWithIntlAndStore(
+            <CloudAnnualRenewalAnnouncementBar/>,
+            state,
+        );
+
+        expect(queryByText('Your annual subscription expires in')).not.toBeInTheDocument();
+    })
+
+    it('Should NOT show any banner if within renewal period but will_renew is set to "true"', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.cloud.subscription = {
+            ...state.entities.cloud.subscription,
+            cancel_at: unixTimestampFromNow(69),
+            end_at: unixTimestampFromNow(25),
+            will_renew: 'true',
+        };
+
+        const {queryByText} = renderWithIntlAndStore(
+            <CloudAnnualRenewalAnnouncementBar/>,
+            state,
+        );
+
+        expect(queryByText('Your annual subscription expires in')).not.toBeInTheDocument();
+    })
 });

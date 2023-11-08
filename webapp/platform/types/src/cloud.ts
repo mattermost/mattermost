@@ -43,6 +43,7 @@ export type Subscription = {
     compliance_blocked?: string;
     billing_type?: string;
     cancel_at?: number;
+    will_renew?: string;
 }
 
 export type Product = {
