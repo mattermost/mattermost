@@ -10,8 +10,7 @@ import (
 // Based off the mobile app's emoji parsing from https://github.com/mattermost/commonmark.js
 
 var (
-	nonWordRegex = regexp.MustCompile(`^\W+$`)
-	emojiRegex   = regexp.MustCompile(`^:([a-z0-9_\-+]+):\B`)
+	emojiRegex = regexp.MustCompile(`^:([a-z0-9_\-+]+):\B`)
 )
 
 // parseEmoji attempts to parse a named emoji (eg. :taco:) starting at the current parser position. If an emoji is
