@@ -196,7 +196,17 @@ func (a *App) sanitizePostMetadataForUserAndChannel(c request.CTX, post *model.P
 	}
 
 	if previewedChannel != nil && !a.HasPermissionToReadChannel(c, userID, previewedChannel) {
-		post.Metadata.Embeds[0].Data = nil
+		// Remove all permalink embeds and only keep non-permalink embeds.
+		// We always have only one permalink embed even if the post
+		// contains multiple permalinks.
+		var newEmbeds []*model.PostEmbed
+		for _, embed := range post.Metadata.Embeds {
+			if embed.Type != model.PostEmbedPermalink {
+				newEmbeds = append(newEmbeds, embed)
+			}
+		}
+
+		post.Metadata.Embeds = newEmbeds
 	}
 
 	return post
@@ -615,7 +625,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews {
 		referencedPostID := requestURL[len(requestURL)-26:]
 
-		referencedPost, appErr := a.GetPostIfAuthorized(c, referencedPostID, c.Session(), false)
+		referencedPost, appErr := a.GetSinglePost(referencedPostID, false)
 		// TODO: Look into saving a value in the LinkMetadata.Data field to prevent perpetually re-querying for the deleted post.
 		if appErr != nil {
 			return nil, nil, nil, appErr
