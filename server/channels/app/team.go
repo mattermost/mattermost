@@ -211,7 +211,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 		}
 	}
 
-	if appErr := a.sendTeamEvent(oldTeam, model.UpdateTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam); appErr != nil {
 		return nil, appErr
 	}
 
@@ -324,7 +324,7 @@ func (a *App) UpdateTeamPrivacy(teamID string, teamType string, allowOpenInvite 
 		}
 	}
 
-	if appErr := a.sendTeamEvent(oldTeam, model.UpdateTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam); appErr != nil {
 		return appErr
 	}
 
@@ -352,7 +352,7 @@ func (a *App) PatchTeam(teamID string, patch *model.TeamPatch) (*model.Team, *mo
 		}
 	}
 
-	if appErr := a.sendTeamEvent(team, model.UpdateTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); appErr != nil {
 		return nil, appErr
 	}
 
@@ -381,7 +381,7 @@ func (a *App) RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppErro
 		}
 	}
 
-	if appErr := a.sendTeamEvent(updatedTeam, model.UpdateTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam); appErr != nil {
 		return nil, appErr
 	}
 
@@ -833,7 +833,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 		}, plugin.UserHasJoinedTeamID)
 	})
 
-	message := model.NewWebSocketEvent(model.AddedToTeam, "", "", user.Id, nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", user.Id, nil, "")
 	message.Add("team_id", team.Id)
 	message.Add("user_id", user.Id)
 	a.Publish(message)
@@ -1058,7 +1058,7 @@ func (a *App) AddTeamMember(c request.CTX, teamID, userID string) (*model.TeamMe
 		return nil, err
 	}
 
-	message := model.NewWebSocketEvent(model.AddedToTeam, "", "", userID, nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", userID, nil, "")
 	message.Add("team_id", teamID)
 	message.Add("user_id", userID)
 	a.Publish(message)
@@ -1087,7 +1087,7 @@ func (a *App) AddTeamMembers(c request.CTX, teamID string, userIDs []string, use
 			Member: teamMember,
 		})
 
-		message := model.NewWebSocketEvent(model.AddedToTeam, "", "", userID, nil, "")
+		message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", userID, nil, "")
 		message.Add("team_id", teamID)
 		message.Add("user_id", userID)
 		a.Publish(message)
@@ -1793,7 +1793,7 @@ func (a *App) PermanentDeleteTeam(c request.CTX, team *model.Team) *model.AppErr
 		return model.NewAppError("PermanentDeleteTeam", "app.team.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := a.sendTeamEvent(team, model.DeleteTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
 		return appErr
 	}
 
@@ -1825,7 +1825,7 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 		}
 	}
 
-	if appErr := a.sendTeamEvent(team, model.DeleteTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
 		return appErr
 	}
 
@@ -2029,7 +2029,7 @@ func (a *App) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppEr
 	// manually set time to avoid possible cluster inconsistencies
 	team.LastTeamIconUpdate = curTime
 
-	if appErr := a.sendTeamEvent(team, model.UpdateTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); appErr != nil {
 		return appErr
 	}
 
@@ -2048,7 +2048,7 @@ func (a *App) RemoveTeamIcon(teamID string) *model.AppError {
 
 	team.LastTeamIconUpdate = 0
 
-	if appErr := a.sendTeamEvent(team, model.UpdateTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); appErr != nil {
 		return appErr
 	}
 

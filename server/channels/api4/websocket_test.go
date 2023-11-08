@@ -130,7 +130,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 		for {
 			select {
 			case wsr := <-WebSocketClient.EventChannel:
-				if wsr != nil && wsr.EventType() == model.DirectAdded {
+				if wsr != nil && wsr.EventType() == model.WebsocketEventDirectAdded {
 					count = count + 1
 				}
 

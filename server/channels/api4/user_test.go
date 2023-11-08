@@ -558,11 +558,11 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 			for {
 				select {
 				case ev := <-userWSClient.EventChannel:
-					if ev.EventType() == model.NewUser {
+					if ev.EventType() == model.WebsocketEventNewUser {
 						userHasReceived = true
 					}
 				case ev := <-guestWSClient.EventChannel:
-					if ev.EventType() == model.NewUser {
+					if ev.EventType() == model.WebsocketEventNewUser {
 						guestHasReceived = true
 					}
 				case <-time.After(2 * time.Second):
@@ -571,8 +571,8 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 			}
 		}()
 
-		require.Truef(t, userHasReceived, "User should have received %s event", model.NewUser)
-		require.Falsef(t, guestHasReceived, "Guest should not have received %s event", model.NewUser)
+		require.Truef(t, userHasReceived, "User should have received %s event", model.WebsocketEventNewUser)
+		require.Falsef(t, guestHasReceived, "Guest should not have received %s event", model.WebsocketEventNewUser)
 	})
 }
 

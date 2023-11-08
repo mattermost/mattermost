@@ -199,9 +199,9 @@ func (ps *PlatformService) Publish(message *model.WebSocketEvent) {
 
 		if message.EventType() == model.Posted ||
 			message.EventType() == model.PostEdited ||
-			message.EventType() == model.DirectAdded ||
-			message.EventType() == model.GroupAdded ||
-			message.EventType() == model.AddedToTeam ||
+			message.EventType() == model.WebsocketEventDirectAdded ||
+			message.EventType() == model.WebsocketEventGroupAdded ||
+			message.EventType() == model.WebsocketEventAddedToTeam ||
 			message.GetBroadcast().ReliableClusterSend {
 			cm.SendType = model.ClusterSendReliable
 		}

@@ -696,7 +696,7 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 			return false
 		}
 		userID = user.Id
-	case model.NewUser:
+	case model.WebsocketEventNewUser:
 		userID = msg.GetData()["user_id"].(string)
 	default:
 		return true

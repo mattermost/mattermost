@@ -180,10 +180,10 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		assert.True(t, adminUserWc.ShouldSendEvent(event), "expected admin")
 	})
 
-	event2 := model.NewWebSocketEvent(model.UpdateTeam, th.BasicTeam.Id, "", "", nil, "")
+	event2 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, th.BasicTeam.Id, "", "", nil, "")
 	assert.True(t, basicUserWc.ShouldSendEvent(event2))
 	assert.True(t, basicUser2Wc.ShouldSendEvent(event2))
 
-	event3 := model.NewWebSocketEvent(model.UpdateTeam, "wrongId", "", "", nil, "")
+	event3 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, "wrongId", "", "", nil, "")
 	assert.False(t, basicUserWc.ShouldSendEvent(event3))
 }
