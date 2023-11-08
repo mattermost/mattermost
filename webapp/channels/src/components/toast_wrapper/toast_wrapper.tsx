@@ -9,6 +9,7 @@ import type {RouteComponentProps} from 'react-router-dom';
 import {Preferences} from 'mattermost-redux/constants';
 
 import {HintToast} from 'components/hint-toast/hint_toast';
+import ScrollToBottomToast from 'components/scroll_to_bottom_toast';
 import {SearchShortcut} from 'components/search_shortcut';
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 import Toast from 'components/toast/toast';
@@ -19,6 +20,8 @@ import {isToday} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {isIdNotPost, getNewMessageIndex} from 'utils/post_utils';
 import {localizeMessage} from 'utils/utils';
+
+import './toast__wrapper.scss';
 
 const TOAST_TEXT_COLLAPSE_WIDTH = 500;
 
@@ -42,6 +45,9 @@ export type Props = WrappedComponentProps & RouteComponentProps<{team: string}> 
     updateLastViewedBottomAt: (lastViewedBottom?: number) => void;
     showSearchHintToast: boolean;
     onSearchHintDismiss: () => void;
+    showScrollToBottomToast: boolean;
+    onScrollToBottomToastDismiss: () => void;
+    hideScrollToBottomToast: () => void;
     shouldStartFromBottomWhenUnread: boolean;
     isNewMessageLineReached: boolean;
     rootPosts: Record<string, boolean>;
@@ -67,6 +73,7 @@ type State = {
     showNewMessagesToast?: boolean;
     showMessageHistoryToast?: boolean;
     showUnreadWithBottomStartToast?: boolean;
+    showScrollToBottomToast?: boolean;
 };
 
 export class ToastWrapperClass extends React.PureComponent<Props, State> {
@@ -368,6 +375,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
 
         scrollToLatestMessages();
         this.hideUnreadToast();
+        this.props.hideScrollToBottomToast?.();
     };
 
     scrollToUnreadMessages = () => {
@@ -376,7 +384,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
     };
 
     getToastToRender() {
-        const {atLatestPost, atBottom, width, lastViewedAt, showSearchHintToast} = this.props;
+        const {atLatestPost, atBottom, width, lastViewedAt, showSearchHintToast, showScrollToBottomToast} = this.props;
         const {showUnreadToast, showNewMessagesToast, showMessageHistoryToast, showUnreadWithBottomStartToast, unreadCount} = this.state;
 
         const unreadToastProps = {
@@ -449,13 +457,33 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
             );
         }
 
+        const toasts = [];
+        if (showScrollToBottomToast) {
+            toasts.push(
+                <ScrollToBottomToast
+                    key='scroll-to-bottom-toast'
+                    onClick={this.scrollToLatestMessages}
+                    onDismiss={this.props.onScrollToBottomToastDismiss}
+                />,
+            );
+        }
+
         if (showSearchHintToast) {
-            return (
+            toasts.push(
                 <HintToast
+                    key='search-hint-toast'
                     onDismiss={this.hideSearchHintToast}
                 >
                     {this.getSearchHintToastText()}
-                </HintToast>
+                </HintToast>,
+            );
+        }
+
+        if (toasts.length > 0) {
+            return (
+                <div className='toasts-wrapper'>
+                    {toasts}
+                </div>
             );
         }
 

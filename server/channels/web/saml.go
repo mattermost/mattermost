@@ -145,7 +145,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = c.App.CheckUserAllAuthenticationCriteria(user, ""); err != nil {
+	if err = c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, ""); err != nil {
 		handleError(err)
 		return
 	}
