@@ -212,7 +212,6 @@
   "admin.billing.company_info.city": "Oraș",
   "admin.billing.company_info.companyAddress": "Adresa companiei",
   "admin.billing.company_info.companyName": "Numele Companiei",
-  "admin.billing.company_info.country": "Țară",
   "admin.billing.company_info.employees": "{employees} angajați",
   "admin.billing.company_info.numEmployees": "Număr de angajați (opțional)",
   "admin.billing.company_info.title": "Informatiile Companiei",

@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
@@ -466,7 +467,6 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 		require.NotNil(t, err, "Should not add restricted user")
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
 	})
-
 }
 
 func TestAdjustTeamsFromProductLimits(t *testing.T) {
@@ -522,7 +522,6 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 	})
 
 	t.Run("Should not do anything if the amount of teams is equal to the limit", func(t *testing.T) {
-
 		expectedTeamsList, err := th.App.GetAllTeams()
 
 		var expectedActiveTeams []*model.Team
@@ -590,7 +589,6 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 	})
 
 	t.Run("Should only restore teams that were archived by cloud limits", func(t *testing.T) {
-
 		activeLimit := 1
 		teamLimits := &model.TeamsLimits{Active: &activeLimit}
 
@@ -622,7 +620,6 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		require.Equal(t, int64(0), teamsList[1].DeleteAt)
 		require.Equal(t, int64(0), teamsList[2].DeleteAt)
 	})
-
 }
 
 func TestPermanentDeleteTeam(t *testing.T) {
@@ -1031,7 +1028,12 @@ func TestLeaveTeamPanic(t *testing.T) {
 	mockLicenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
 
 	mockTeamStore := mocks.TeamStore{}
-	mockTeamStore.On("GetMember", sqlstore.WithMaster(context.Background()), "myteam", "userID").Return(&model.TeamMember{TeamId: "myteam", UserId: "userID"}, nil)
+	mockTeamStore.On("GetMember", mock.AnythingOfType("*request.Context"), "myteam", "userID").Return(&model.TeamMember{TeamId: "myteam", UserId: "userID"}, nil).Run(func(args mock.Arguments) {
+		c, ok := args[0].(request.CTX)
+		require.True(t, ok)
+
+		sqlstore.HasMaster(c.Context())
+	})
 	mockTeamStore.On("UpdateMember", mock.Anything).Return(nil, errors.New("repro error")) // This is the line that triggers the error
 
 	mockStore.On("Channel").Return(&mockChannelStore)
@@ -1205,7 +1207,6 @@ func TestGetTeamMembers(t *testing.T) {
 	})
 
 	t.Run("Ensure Sorted By User ID when no TeamMemberGetOptions is passed", func(t *testing.T) {
-
 		// Sort them by UserID because the result of GetTeamMembers() is also sorted
 		sort.Slice(users, func(i, j int) bool {
 			return users[i].Id < users[j].Id
@@ -1302,7 +1303,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_user")
+		_, err = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, "team_user")
 		require.NotNil(t, err, "Should fail when try to modify the guest role")
 	})
 
@@ -1313,7 +1314,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_guest")
+		_, err = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, "team_guest")
 		require.NotNil(t, err, "Should fail when try to modify the guest role")
 	})
 
@@ -1324,7 +1325,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_user team_admin")
+		_, err = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, "team_user team_admin")
 		require.Nil(t, err, "Should work when you not modify guest role")
 	})
 
@@ -1338,7 +1339,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, err = th.App.CreateRole(&model.Role{Name: "custom", DisplayName: "custom", Description: "custom"})
 		require.Nil(t, err)
 
-		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_guest custom")
+		_, err = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, "team_guest custom")
 		require.Nil(t, err, "Should work when you not modify guest role")
 	})
 
@@ -1349,7 +1350,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_guest team_user")
+		_, err = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, "team_guest team_user")
 		require.NotNil(t, err, "Should work when you not modify guest role")
 	})
 }

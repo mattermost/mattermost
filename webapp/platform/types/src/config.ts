@@ -115,12 +115,10 @@ export type ClientConfig = {
     ExperimentalEnablePostMetadata: string;
     ExperimentalGroupUnreadChannels: string;
     ExperimentalPrimaryTeam: string;
-    ExperimentalTimezone: string;
     ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
-    FeatureFlagGraphQL: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
     GoogleDeveloperKey: string;
@@ -865,7 +863,6 @@ export type PluginSettings = {
 
 export type DisplaySettings = {
     CustomURLSchemes: string[];
-    ExperimentalTimezone: boolean;
     MaxMarkdownNodes: number;
 };
 

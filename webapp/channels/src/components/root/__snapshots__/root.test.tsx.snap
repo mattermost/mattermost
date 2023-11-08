@@ -94,7 +94,7 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
       <WindowSizeObserver />
       <Connect(ModalController) />
       <Connect(Component) />
-      <Connect(SystemNotice) />
+      <Connect(injectIntl(SystemNotice)) />
       <GlobalHeader />
       <CloudEffectsWrapper />
       <withRouter(Connect(TeamSidebar)) />
@@ -117,7 +117,7 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
         />
         <LoggedInRoute
           component={[Function]}
-          path="/:team"
+          path="/:team([a-z0-9\\\\-_]+)"
           theme={Object {}}
         />
         <Connect(RootRedirect) />

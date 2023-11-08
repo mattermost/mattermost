@@ -148,7 +148,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
                 onClick={[Function]}
                 type="submit"
               >
-                <LoadingWrapper
+                <Memo(LoadingWrapper)
                   loading={false}
                   text={
                     <Memo(MemoizedFormattedMessage)
@@ -167,7 +167,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
                       </span>
                     </FormattedMessage>
                   </span>
-                </LoadingWrapper>
+                </Memo(LoadingWrapper)>
               </button>
             </SaveButton>
             <button
@@ -385,7 +385,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
                 onClick={[Function]}
                 type="submit"
               >
-                <LoadingWrapper
+                <Memo(LoadingWrapper)
                   loading={false}
                   text={
                     <Memo(MemoizedFormattedMessage)
@@ -404,7 +404,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
                       </span>
                     </FormattedMessage>
                   </span>
-                </LoadingWrapper>
+                </Memo(LoadingWrapper)>
               </button>
             </SaveButton>
             <button

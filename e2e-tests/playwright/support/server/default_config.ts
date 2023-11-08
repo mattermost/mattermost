@@ -63,6 +63,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
         },
         TeamSettings: {
             EnableOpenServer: true,
+            MaxUsersPerTeam: 2000,
         },
     };
 };
@@ -666,7 +667,6 @@ const defaultServerConfig: AdminConfig = {
     DisplaySettings: {
         CustomURLSchemes: [],
         MaxMarkdownNodes: 0,
-        ExperimentalTimezone: true,
     },
     GuestAccountsSettings: {
         Enable: false,
@@ -694,7 +694,6 @@ const defaultServerConfig: AdminConfig = {
         PermalinkPreviews: false,
         CallsEnabled: true,
         NormalizeLdapDNs: false,
-        GraphQL: false,
         PostPriority: false,
         WysiwygEditor: false,
         OnboardingTourTips: true,

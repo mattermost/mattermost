@@ -7,7 +7,7 @@ import {Preferences} from 'mattermost-redux/constants';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
-import {render, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ActionButton from './action_button';
 
@@ -19,7 +19,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
     };
 
     test('should match default component state with given props', () => {
-        render(<ActionButton {...baseProps}/>);
+        renderWithContext(<ActionButton {...baseProps}/>);
 
         const button = screen.getByRole('button');
         expect(button).toHaveAttribute('data-action-cookie', 'cookie-contents');
@@ -30,7 +30,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
     });
 
     test('should call handleAction on click', () => {
-        render(<ActionButton {...baseProps}/>);
+        renderWithContext(<ActionButton {...baseProps}/>);
 
         const button = screen.getByRole('button');
 
@@ -45,12 +45,11 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: 'onlineIndicator'},
         };
 
-        render(<ActionButton {...props}/>);
+        renderWithContext(<ActionButton {...props}/>);
 
         const button = screen.getByRole('button');
 
-        expect(button).toHaveStyle(`borderColor: ${changeOpacity(Preferences.THEMES.denim.onlineIndicator, 0.25)}`);
-        expect(button).toHaveStyle('borderWidth: 2');
+        expect(button).toHaveStyle(`background-color: ${changeOpacity(Preferences.THEMES.denim.onlineIndicator, 0.08)}`);
         expect(button).toHaveStyle(`color: ${Preferences.THEMES.denim.onlineIndicator}`);
     });
 
@@ -61,12 +60,11 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: 'danger'},
         };
 
-        render(<ActionButton {...props}/>);
+        renderWithContext(<ActionButton {...props}/>);
 
         const button = screen.getByRole('button');
 
-        expect(button).toHaveStyle(`borderColor: ${changeOpacity(Preferences.THEMES.indigo.errorTextColor, 0.25)}`);
-        expect(button).toHaveStyle('borderWidth: 2');
+        expect(button).toHaveStyle(`background-color: ${changeOpacity(Preferences.THEMES.indigo.errorTextColor, 0.08)}`);
         expect(button).toHaveStyle(`color: ${Preferences.THEMES.indigo.errorTextColor}`);
     });
 
@@ -76,12 +74,11 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: 'success'},
         };
 
-        render(<ActionButton {...props}/>);
+        renderWithContext(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
-        expect(button).toHaveStyle(`borderColor: ${changeOpacity(Preferences.THEMES.denim.onlineIndicator, 0.25)}`);
-        expect(button).toHaveStyle('borderWidth: 2');
-        expect(button).toHaveStyle(`color: ${Preferences.THEMES.denim.onlineIndicator}`);
+        expect(button).toHaveStyle(`background-color: ${changeOpacity('#339970', 0.08)}`);
+        expect(button).toHaveStyle(`color: ${'#339970'}`);
     });
 
     test('should have correct styles when provided hex color', () => {
@@ -90,11 +87,10 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: '#28a745'},
         };
 
-        render(<ActionButton {...props}/>);
+        renderWithContext(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
-        expect(button).toHaveStyle(`borderColor: ${changeOpacity(props.action.style, 0.25)}`);
-        expect(button).toHaveStyle('borderWidth: 2');
+        expect(button).toHaveStyle(`background-color: ${changeOpacity(props.action.style, 0.08)}`);
         expect(button).toHaveStyle(`color: ${props.action.style}`);
     });
 
@@ -104,7 +100,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: '#wrong'},
         };
 
-        render(<ActionButton {...props}/>);
+        renderWithContext(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
         expect(button.style.length).toBe(0);
@@ -116,7 +112,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, style: undefined},
         };
 
-        render(<ActionButton {...props}/>);
+        renderWithContext(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
         expect(button.style.length).toBe(0);

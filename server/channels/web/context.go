@@ -19,15 +19,12 @@ import (
 )
 
 type Context struct {
-	App        app.AppIface
-	AppContext *request.Context
-	Logger     *mlog.Logger
-	Params     *Params
-	Err        *model.AppError
-	// This is used to track the graphQL query that's being executed,
-	// so that we can monitor the timings in Grafana.
-	GraphQLOperationName string
-	siteURLHeader        string
+	App           app.AppIface
+	AppContext    request.CTX
+	Logger        *mlog.Logger
+	Params        *Params
+	Err           *model.AppError
+	siteURLHeader string
 }
 
 // LogAuditRec logs an audit record using default LevelAPI.
@@ -127,7 +124,6 @@ func (c *Context) SessionRequired() {
 	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens &&
 		c.AppContext.Session().Props[model.SessionPropType] == model.SessionTypeUserAccessToken &&
 		c.AppContext.Session().Props[model.SessionPropIsBot] != model.SessionPropIsBotValue {
-
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserAccessToken", http.StatusUnauthorized)
 		return
 	}
