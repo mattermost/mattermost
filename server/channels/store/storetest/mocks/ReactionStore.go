@@ -146,6 +146,30 @@ func (_m *ReactionStore) GetForPostSince(postId string, since int64, excludeRemo
 	return r0, r1
 }
 
+// GetUniqueCountForPost provides a mock function with given fields: postId
+func (_m *ReactionStore) GetUniqueCountForPost(postId string) (int, error) {
+	ret := _m.Called(postId)
+
+	var r0 int
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (int, error)); ok {
+		return rf(postId)
+	}
+	if rf, ok := ret.Get(0).(func(string) int); ok {
+		r0 = rf(postId)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(postId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PermanentDeleteBatch provides a mock function with given fields: endTime, limit
 func (_m *ReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	ret := _m.Called(endTime, limit)
