@@ -1864,9 +1864,6 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 	if err != nil {
 		return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if members[user.Id] == nil {
-		return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(fmt.Errorf("userID %s not found", user.Id))
-	}
 
 	keywords := MentionKeywords{}
 	keywords.AddUser(
