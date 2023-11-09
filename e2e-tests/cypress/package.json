@@ -1,4 +1,5 @@
 {
+  "name": "cypress",
   "devDependencies": {
     "@babel/eslint-parser": "7.22.15",
     "@babel/eslint-plugin": "7.22.10",
