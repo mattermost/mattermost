@@ -9,7 +9,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 
 import {
     render,
-    renderWithIntl,
+    renderWithContext,
     screen,
     userEvent,
     waitFor,
@@ -404,7 +404,7 @@ describe('components/new_channel_modal', () => {
     test('should request team creation on submit', async () => {
         const name = 'Channel name';
 
-        renderWithIntl(
+        renderWithContext(
             <NewChannelModal/>,
         );
 
