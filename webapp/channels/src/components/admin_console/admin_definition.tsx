@@ -235,6 +235,7 @@ export const it = {
 export const validators = {
     isRequired: (text: string, textDefault: string) => (value: string) => new ValidationResult(Boolean(value), text, textDefault),
     minValue: (min: number, text: string, textDefault: string) => (value: number) => new ValidationResult((value >= min), text, textDefault),
+    maxValue: (max: number, text: string, textDefault: string) => (value: number) => new ValidationResult((value <= max), text, textDefault),
 };
 
 const usesLegacyOauth = (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
@@ -3154,6 +3155,18 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: t('admin.customization.allowSyncedDraftsDesc'),
                             help_text_default: 'When enabled, users message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.',
                             help_text_markdown: false,
+                        },
+                        {
+                            type: 'number',
+                            key: 'ServiceSettings.UniqueEmojiReactionLimitPerPost',
+                            label: t('admin.customization.uniqueEmojiReactionLimitPerPost'),
+                            label_default: 'Unique Emoji Reaction Limit:',
+                            placeholder: t('admin.customization.uniqueEmojiReactionLimitPerPostPlaceholder'),
+                            placeholder_default: 'E.g.: 25',
+                            help_text: t('admin.customization.uniqueEmojiReactionLimitPerPostDesc'),
+                            help_text_default: 'The number of unique emoji reactions that can be added to a post. Increasing this limit could lead to poor client performance. Maximum is 500.',
+                            help_text_markdown: false,
+                            validate: validators.maxValue(500, t('admin.customization.uniqueEmojiReactionLimitPerPost.maxValue'), 'Cannot increase the limit to a value above 500.'),
                         },
                     ],
                 },

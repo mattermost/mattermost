@@ -21,12 +21,11 @@ func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*mod
 	}
 
 	count, cErr := a.Srv().Store().Reaction().GetUniqueCountForPost(reaction.PostId)
-	if err != nil {
+	if cErr != nil {
 		return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(cErr)
 	}
 
-	// TODO: Make this configurable
-	if count > 25 {
+	if count >= *a.Config().ServiceSettings.UniqueEmojiReactionLimitPerPost {
 		return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.too_many_reactions", nil, "", http.StatusBadRequest)
 	}
 
