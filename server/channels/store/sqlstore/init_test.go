@@ -3,8 +3,12 @@
 
 package sqlstore
 
-func InitTest() {
-	initStores()
+import (
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+)
+
+func InitTest(logger mlog.LoggerIFace) {
+	initStores(logger)
 }
 
 func TearDownTest() {

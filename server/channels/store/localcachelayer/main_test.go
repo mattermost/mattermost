@@ -184,7 +184,7 @@ func TestMain(m *testing.M) {
 	mainHelper = testlib.NewMainHelperWithOptions(nil)
 	defer mainHelper.Close()
 
-	initStores()
+	initStores(mainHelper.Logger)
 	mainHelper.Main(m)
 	tearDownStores()
 }

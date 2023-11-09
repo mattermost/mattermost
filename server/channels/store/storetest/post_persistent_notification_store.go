@@ -20,13 +20,7 @@ func TestPostPersistentNotificationStore(t *testing.T, rctx request.CTX, ss stor
 	t.Run("UpdateLastSentAt", func(t *testing.T) { testPostPersistentNotificationStoreUpdateLastSentAt(t, rctx, ss) })
 }
 
-<<<<<<< HEAD
 func testPostPersistentNotificationStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
-=======
-func testPostPersistentNotificationStoreGet(t *testing.T, ss store.Store) {
-	rctx := request.TestContext(t)
-
->>>>>>> a56ceac80d (2nd try)
 	p1 := model.Post{}
 	p1.ChannelId = model.NewId()
 	p1.UserId = model.NewId()
@@ -148,13 +142,7 @@ func testPostPersistentNotificationStoreGet(t *testing.T, ss store.Store) {
 	})
 }
 
-<<<<<<< HEAD
 func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, rctx request.CTX, ss store.Store) {
-=======
-func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, ss store.Store) {
-	rctx := request.TestContext(t)
-
->>>>>>> a56ceac80d (2nd try)
 	p1 := model.Post{}
 	p1.ChannelId = model.NewId()
 	p1.UserId = model.NewId()
@@ -206,13 +194,7 @@ func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, ss store.
 	assert.WithinDuration(t, now, model.GetTimeForMillis(pn[0].LastSentAt), delta)
 }
 
-<<<<<<< HEAD
 func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
-=======
-func testPostPersistentNotificationStoreDelete(t *testing.T, ss store.Store) {
-	rctx := request.TestContext(t)
-
->>>>>>> a56ceac80d (2nd try)
 	t.Run("Delete", func(t *testing.T) {
 		p1 := model.Post{}
 		p1.ChannelId = model.NewId()

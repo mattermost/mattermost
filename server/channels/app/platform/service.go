@@ -205,7 +205,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// |
 			// Cache layer
 			var err error
-			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace)
+			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace)
 			if err != nil {
 				return nil, err
 			}

@@ -130,8 +130,8 @@ type SqlStore struct {
 	context           context.Context
 	license           *model.License
 	licenseMutex      sync.RWMutex
-	metrics           einterfaces.MetricsInterface
 	logger            mlog.LoggerIFace
+	metrics           einterfaces.MetricsInterface
 
 	isBinaryParam             bool
 	pgDefaultTextSearchConfig string
@@ -140,7 +140,7 @@ type SqlStore struct {
 	wgMonitor   *sync.WaitGroup
 }
 
-func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface, logger mlog.LoggerIFace) (*SqlStore, error) {
+func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterfaces.MetricsInterface) (*SqlStore, error) {
 	store := &SqlStore{
 		rrCounter:   0,
 		srCounter:   0,
