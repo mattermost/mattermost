@@ -37,7 +37,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should match snapshot when isStarterFree is true', () => {
         const props = {...defaultProps, isStarterFree: true};
 
-        const wrapper = renderWithFullContext(
+        const wrapper = renderWithContext(
             <UserSettingsNotifications {...props}/>,
         );
 
@@ -47,7 +47,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should match snapshot when its team edition', () => {
         const props = {...defaultProps, isEnterpriseReady: false};
 
-        const wrapper = renderWithFullContext(
+        const wrapper = renderWithContext(
             <UserSettingsNotifications {...props}/>,
         );
 
