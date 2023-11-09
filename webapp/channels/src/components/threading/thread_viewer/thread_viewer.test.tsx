@@ -123,7 +123,7 @@ describe('components/threading/ThreadViewer', () => {
     });
 
     test('should call updateThreadLastOpened on mount', () => {
-        jest.useFakeTimers('modern').setSystemTime(400);
+        jest.useFakeTimers().setSystemTime(400);
         const {actions} = baseProps;
         const userThread = {
             id: 'id',
@@ -146,7 +146,7 @@ describe('components/threading/ThreadViewer', () => {
     });
 
     test('should call updateThreadLastOpened and updateThreadRead on mount when unread replies', () => {
-        jest.useFakeTimers('modern').setSystemTime(400);
+        jest.useFakeTimers().setSystemTime(400);
         const {actions} = baseProps;
         const userThread = {
             id: 'id',

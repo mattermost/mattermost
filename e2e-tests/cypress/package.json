@@ -1,4 +1,5 @@
 {
+  "name": "cypress",
   "devDependencies": {
     "@aws-sdk/client-s3": "3.441.0",
     "@aws-sdk/lib-storage": "3.441.0",

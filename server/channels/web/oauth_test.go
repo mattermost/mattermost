@@ -18,8 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -397,20 +395,18 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 	c := &Context{
 		App:        th.App,
 		AppContext: th.Context,
+		Logger:     th.TestLogger,
 		Params: &Params{
 			Service: "gitlab",
 		},
 	}
 
-	var siteURL = "http://localhost:8065"
+	siteURL := "http://localhost:8065"
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.SiteURL = siteURL
 		*cfg.GitLabSettings.Enable = true
 	})
 
-	translationFunc := i18n.GetUserTranslations("en")
-	c.AppContext.SetT(translationFunc)
-	c.Logger = th.TestLogger
 	provider := &MattermostTestProvider{}
 	einterfaces.RegisterOAuthProvider(model.ServiceGitlab, provider)
 
@@ -617,14 +613,12 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	c := &Context{
 		App:        th.App,
 		AppContext: th.Context,
+		Logger:     th.TestLogger,
 		Params: &Params{
 			Service: "gitlab",
 		},
 	}
 
-	translationFunc := i18n.GetUserTranslations("en")
-	c.AppContext.SetT(translationFunc)
-	c.Logger = mlog.CreateConsoleTestLogger(t)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	provider := &MattermostTestProvider{}

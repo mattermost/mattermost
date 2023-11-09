@@ -949,7 +949,7 @@ func (a *App) SwitchEmailToOAuth(c request.CTX, w http.ResponseWriter, r *http.R
 		return "", err
 	}
 
-	if err = a.CheckPasswordAndAllCriteria(user, password, code); err != nil {
+	if err = a.CheckPasswordAndAllCriteria(c, user, password, code); err != nil {
 		return "", err
 	}
 
@@ -983,7 +983,7 @@ func (a *App) SwitchOAuthToEmail(c request.CTX, email, password, requesterId str
 		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.oauth_to_email.context.app_error", nil, "", http.StatusForbidden)
 	}
 
-	if err := a.UpdatePassword(user, password); err != nil {
+	if err := a.UpdatePassword(c, user, password); err != nil {
 		return "", err
 	}
 
