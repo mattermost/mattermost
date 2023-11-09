@@ -89,7 +89,7 @@ export default function AboutBuildModalCloud(props: Props) {
                         </h3>
                         <p className='subtitle'>{subTitle}</p>
                         <div className='description'>
-                            <div>
+                            <div data-testid='aboutModalVersion'>
                                 <FormattedMessage
                                     id='about.version'
                                     defaultMessage='Mattermost Version:'
