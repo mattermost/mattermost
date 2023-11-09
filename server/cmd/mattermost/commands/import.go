@@ -57,7 +57,7 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Srv().Shutdown()
 
-	var rctx = request.EmptyContext(a.Log())
+	rctx := request.EmptyContext(a.Log())
 
 	if len(args) != 2 {
 		return errors.New("Incorrect number of arguments.")
