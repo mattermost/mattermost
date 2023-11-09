@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {type ConnectedProps, connect} from 'react-redux';
+import {connect, type ConnectedProps} from 'react-redux';
 
 import {Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -24,7 +24,7 @@ function makeGetChannelNamesMap() {
     return createSelector(
         'makeGetChannelNamesMap',
         getChannelNameToDisplayNameMap,
-        (_: GlobalState, props: OwnProps) => props && props.channelNamesMap,
+        (state: GlobalState, props: OwnProps) => props && props.channelNamesMap,
         (channelNamesMap, channelMentions) => {
             if (channelMentions) {
                 return Object.assign({}, channelMentions, channelNamesMap);
@@ -63,7 +63,6 @@ function makeMapStateToProps() {
 }
 
 const connector = connect(makeMapStateToProps);
-
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
 export default connector(Markdown);
