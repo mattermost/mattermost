@@ -57,11 +57,6 @@ export default function AboutBuildModalCloud(props: Props) {
         </div>
     );
 
-    let mmversion = config.BuildNumber;
-    if (!isNaN(config.BuildNumber)) {
-        mmversion = 'ci';
-    }
-
     return (
         <Modal
             dialogClassName={classNames('a11y__modal', 'about-modal', 'cloud')}
@@ -99,7 +94,7 @@ export default function AboutBuildModalCloud(props: Props) {
                                     id='about.version'
                                     defaultMessage='Mattermost Version:'
                                 />
-                                <span id='versionString'>{'\u00a0' + mmversion}</span>
+                                <span id='versionString'>{'\u00a0' + config.Version}</span>
                             </div>
                         </div>
                         {licensee}
