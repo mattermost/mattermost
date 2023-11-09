@@ -763,7 +763,7 @@ func (api *PluginAPI) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 }
 
 func (api *PluginAPI) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
-	return api.app.CopyFileInfos(userID, fileIDs)
+	return api.app.CopyFileInfos(api.ctx, userID, fileIDs)
 }
 
 func (api *PluginAPI) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
@@ -771,7 +771,7 @@ func (api *PluginAPI) GetFileInfo(fileID string) (*model.FileInfo, *model.AppErr
 }
 
 func (api *PluginAPI) SetFileSearchableContent(fileID string, content string) *model.AppError {
-	return api.app.SetFileSearchableContent(fileID, content)
+	return api.app.SetFileSearchableContent(api.ctx, fileID, content)
 }
 
 func (api *PluginAPI) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {

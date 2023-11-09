@@ -352,7 +352,7 @@ func TestCopyFileInfos(t *testing.T) {
 		th.App.RemoveFile(info1.Path)
 	}()
 
-	infoIds, err := th.App.CopyFileInfos(userID, []string{info1.Id})
+	infoIds, err := th.App.CopyFileInfos(th.Context, userID, []string{info1.Id})
 	require.Nil(t, err)
 
 	info2, err := th.App.GetFileInfo(th.Context, infoIds[0])
@@ -710,7 +710,7 @@ func TestSetFileSearchableContent(t *testing.T) {
 	require.Nil(t, appErr)
 	assert.Equal(t, 0, len(result.Order))
 
-	appErr = th.App.SetFileSearchableContent(fileInfo.Id, "searchable")
+	appErr = th.App.SetFileSearchableContent(th.Context, fileInfo.Id, "searchable")
 	require.Nil(t, appErr)
 
 	result, appErr = th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)

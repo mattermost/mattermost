@@ -1862,7 +1862,7 @@ func (a *OpenTracingAppLayer) ConvertUserToBot(user *model.User) (*model.Bot, *m
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
+func (a *OpenTracingAppLayer) CopyFileInfos(rctx request.CTX, userID string, fileIDs []string) ([]string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CopyFileInfos")
 
@@ -1874,7 +1874,7 @@ func (a *OpenTracingAppLayer) CopyFileInfos(userID string, fileIDs []string) ([]
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CopyFileInfos(userID, fileIDs)
+	resultVar0, resultVar1 := a.app.CopyFileInfos(rctx, userID, fileIDs)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -16079,7 +16079,7 @@ func (a *OpenTracingAppLayer) SetDefaultProfileImage(c request.CTX, user *model.
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetFileSearchableContent(fileID string, data string) *model.AppError {
+func (a *OpenTracingAppLayer) SetFileSearchableContent(rctx request.CTX, fileID string, data string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetFileSearchableContent")
 
@@ -16091,7 +16091,7 @@ func (a *OpenTracingAppLayer) SetFileSearchableContent(fileID string, data strin
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SetFileSearchableContent(fileID, data)
+	resultVar0 := a.app.SetFileSearchableContent(rctx, fileID, data)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
