@@ -25,25 +25,23 @@ type Props = {
     onClick?: (e: React.MouseEvent) => void;
 };
 
-const BlockableLink = (props: Props) => {
-    const {blocked, actions, ...restProps} = props;
-    const linkProps = {...restProps};
-
+const BlockableLink = ({blocked, actions, onClick, to, ...restProps}: Props) => {
     const handleClick = (e: React.MouseEvent) => {
-        if (props.onClick) {
-            props.onClick(e);
+        if (onClick) {
+            onClick(e);
         }
         if (blocked) {
             e.preventDefault();
             actions.deferNavigation(() => {
-                getHistory().push(props.to);
+                getHistory().push(to);
             });
         }
     };
 
     return (
         <NavLink
-            {...linkProps}
+            {...restProps}
+            to={to}
             onClick={handleClick}
         />
     );
