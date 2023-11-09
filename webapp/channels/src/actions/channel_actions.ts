@@ -155,11 +155,20 @@ export function autocompleteChannelsForSearch(term: string, success: (channels: 
 }
 
 export function addUsersToChannel(channelId: Channel['id'], userIds: Array<UserProfile['id']>): ActionFunc {
+    const batchSize = 1000;
     return async (dispatch) => {
-        const error = await dispatch(ChannelActions.addChannelMembers(channelId, userIds));
-        if (error) {
-            return error;
+        const batches = [];
+        for (let i = 0; i < userIds.length; i += batchSize) {
+            batches.push(userIds.slice(i, i + batchSize));
         }
+
+        await Promise.all(batches.map((batch) => {
+            const error = dispatch(ChannelActions.addChannelMembers(channelId, batch));
+            if (error) {
+                return error;
+            }
+            return {data: true};
+        }));
         return {data: true};
     };
 }
