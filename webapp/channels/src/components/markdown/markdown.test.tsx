@@ -7,7 +7,7 @@ import type {TeamType} from '@mattermost/types/teams';
 
 import Markdown from 'components/markdown';
 
-import {renderWithFullContext} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 import EmojiMap from 'utils/emoji_map';
 import {TestHelper} from 'utils/test_helper';
 
@@ -42,7 +42,7 @@ describe('components/Markdown', () => {
     };
 
     test('should render properly', () => {
-        const {container} = renderWithFullContext(<Markdown {...baseProps}/>);
+        const {container} = renderWithContext(<Markdown {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
@@ -52,7 +52,7 @@ describe('components/Markdown', () => {
             enableFormatting: false,
         };
 
-        const {container} = renderWithFullContext(<Markdown {...props}/>);
+        const {container} = renderWithContext(<Markdown {...props}/>);
         expect(container).toMatchSnapshot();
     });
 });
