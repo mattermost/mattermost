@@ -44,7 +44,7 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 
 	a.Srv().LoadLicense()
 
-	var rctx = request.EmptyContext(a.Log())
+	rctx := request.EmptyContext(a.Log())
 
 	// Run jobs
 	mlog.Info("Starting Mattermost job server")

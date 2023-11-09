@@ -138,9 +138,7 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 			defer cancel()
 		}
 
-		var rctx request.CTX = request.EmptyContext(a.Log())
-		rctx = rctx.WithContext(ctx)
-
+		rctx := request.EmptyContext(a.Log())
 		job, err := messageExportI.StartSynchronizeJob(rctx, startTime)
 		if err != nil || job.Status == model.JobStatusError || job.Status == model.JobStatusCanceled {
 			CommandPrintErrorln("ERROR: Message export job failed. Please check the server logs")
