@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedDate, FormattedMessage, defineMessages, injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
 
 import {BellRingOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -32,7 +31,6 @@ import AddMembersButton from './add_members_button';
 import PluggableIntroButtons from './pluggable_intro_buttons';
 
 type Props = {
-    intl: IntlShape;
     currentUserId: string;
     channel: Channel;
     fullWidth: boolean;
@@ -52,7 +50,7 @@ type Props = {
     };
 }
 
-class ChannelIntroMessage extends React.PureComponent<Props> {
+export default class ChannelIntroMessage extends React.PureComponent<Props> {
     componentDidMount() {
         if (!this.props.stats?.total_users_count) {
             this.props.actions.getTotalUsersStats();
@@ -87,7 +85,7 @@ class ChannelIntroMessage extends React.PureComponent<Props> {
         } else if (channel.type === Constants.GM_CHANNEL) {
             return createGMIntroMessage(channel, centeredIntro, channelProfiles, currentUserId, channelMember);
         } else if (channel.name === Constants.DEFAULT_CHANNEL) {
-            return createDefaultIntroMessage(channel, centeredIntro, stats, usersLimit, enableUserCreation, isReadOnly, teamIsGroupConstrained, this.props.intl);
+            return createDefaultIntroMessage(channel, centeredIntro, stats, usersLimit, enableUserCreation, isReadOnly, teamIsGroupConstrained);
         } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
             return createOffTopicIntroMessage(channel, centeredIntro, stats, usersLimit);
         } else if (channel.type === Constants.OPEN_CHANNEL || channel.type === Constants.PRIVATE_CHANNEL) {
@@ -325,8 +323,7 @@ function createDefaultIntroMessage(
     usersLimit: number,
     enableUserCreation?: boolean,
     isReadOnly?: boolean,
-    teamIsGroupConstrained?: boolean,
-    intl: IntlShape,
+    teamIsGroupConstrained?: boolean
 ) {
     let teamInviteLink = null;
     const totalUsers = stats.total_users_count;
@@ -378,7 +375,6 @@ function createDefaultIntroMessage(
                     >
                         <i
                             className='fa fa-user-plus'
-                            title={intl.formatMessage({id: 'generic_icons.add', defaultMessage: 'Add Icon'})}
                         />
                         <FormattedMessage
                             id='intro_messages.addGroupsToTeam'
@@ -635,5 +631,3 @@ function createNotificationPreferencesButton(channel: Channel, currentUser?: Use
         </ToggleModalButton>
     );
 }
-
-export default injectIntl(ChannelIntroMessage);
