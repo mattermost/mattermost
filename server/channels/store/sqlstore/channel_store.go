@@ -2074,7 +2074,8 @@ func (s SqlChannelStore) GetMemberOnly(ctx context.Context, channelID string, us
 		LastUpdateAt,
 		SchemeUser,
 		SchemeAdmin,
-		SchemeGuest FROM ChannelMembers
+		SchemeGuest
+		FROM ChannelMembers
 		WHERE ChannelId=? AND UserId=?`, channelID, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("ChannelMember", fmt.Sprintf("channelId=%s, userId=%s", channelID, userID))
