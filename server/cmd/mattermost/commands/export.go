@@ -134,11 +134,12 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 		ctx := context.Background()
 		if timeoutSeconds > 0 {
 			var cancel context.CancelFunc
-			ctx, cancel = context.WithTimeout(ctx, time.Second*time.Duration(timeoutSeconds))
+			_, cancel = context.WithTimeout(ctx, time.Second*time.Duration(timeoutSeconds))
 			defer cancel()
 		}
 
 		rctx := request.EmptyContext(a.Log())
+
 		job, err := messageExportI.StartSynchronizeJob(rctx, startTime)
 		if err != nil || job.Status == model.JobStatusError || job.Status == model.JobStatusCanceled {
 			CommandPrintErrorln("ERROR: Message export job failed. Please check the server logs")
@@ -163,6 +164,8 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 		}
 		defer a.Srv().Shutdown()
 
+		rctx := request.EmptyContext(a.Log())
+
 		startTime, err := command.Flags().GetInt64("exportFrom")
 		if err != nil {
 			return errors.New("exportFrom flag error")
@@ -180,7 +183,7 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("message export feature not available")
 		}
 
-		warningsCount, appErr := a.MessageExport().RunExport(request.EmptyContext(a.Log()), format, startTime, limit)
+		warningsCount, appErr := a.MessageExport().RunExport(rctx, format, startTime, limit)
 		if appErr != nil {
 			return appErr
 		}
@@ -194,10 +197,10 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			}
 		}
 
-		auditRec := a.MakeAuditRecord(request.EmptyContext(a.Log()), "buildExport", audit.Success)
+		auditRec := a.MakeAuditRecord(rctx, "buildExport", audit.Success)
 		auditRec.AddMeta("format", format)
 		auditRec.AddMeta("start", startTime)
-		a.LogAuditRec(request.EmptyContext(a.Log()), auditRec, nil)
+		a.LogAuditRec(rctx, auditRec, nil)
 
 		return nil
 	}
@@ -209,6 +212,8 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer a.Srv().Shutdown()
+
+	rctx := request.EmptyContext(a.Log())
 
 	allTeams, err := command.Flags().GetBool("all-teams")
 	if err != nil {
@@ -248,15 +253,15 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 	opts.IncludeAttachments = attachments
 	opts.CreateArchive = archive
 	opts.IncludeArchivedChannels = withArchivedChannels
-	if err := a.BulkExport(request.EmptyContext(a.Log()), fileWriter, filepath.Dir(outPath), nil /* nil job since it's spawned from CLI */, opts); err != nil {
+	if err := a.BulkExport(rctx, fileWriter, filepath.Dir(outPath), nil /* nil job since it's spawned from CLI */, opts); err != nil {
 		CommandPrintErrorln(err.Error())
 		return err
 	}
 
-	auditRec := a.MakeAuditRecord(request.EmptyContext(a.Log()), "bulkExport", audit.Success)
+	auditRec := a.MakeAuditRecord(rctx, "bulkExport", audit.Success)
 	auditRec.AddMeta("all_teams", allTeams)
 	auditRec.AddMeta("file", args[0])
-	a.LogAuditRec(request.EmptyContext(a.Log()), auditRec, nil)
+	a.LogAuditRec(rctx, auditRec, nil)
 
 	return nil
 }
