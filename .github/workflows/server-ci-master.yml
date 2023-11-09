@@ -5,27 +5,9 @@ on:
       - master
       - cloud
       - release-*
+      - mono-repo*
 
 jobs:
   master-ci:
     uses: ./.github/workflows/server-ci-template.yml
     secrets: inherit
-  on-failure:
-    runs-on: ubuntu-latest
-    needs: master-ci
-    if: ${{ always() && needs.master-ci.result == 'failure' }}
-    steps:
-      - name: Report failure
-        env:
-          REPOSITORY: ${{ github.repository }}
-          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
-          SERVER_URL: ${{ github.server_url }}
-          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id}}
-          WORKFLOW_RUN_NAME: ${{ github.event.workflow_run.name }}
-        run: |
-          curl \
-            --fail \
-            -X POST \
-            -H "Content-Type: application/json" \
-            -d "{\"text\":\"#### ⚠️  $REPOSITORY/$HEAD_BRANCH - $WORKFLOW_RUN_NAME build failure ⚠️\\nThe build is failing: [view failure]($SERVER_URL/$REPOSITORY/actions/runs/$WORKFLOW_RUN_ID).\\n\"}" \
-            ${{ secrets.MM_COMMUNITY_DEVELOPERS_INCOMING_WEBHOOK_FROM_GH_ACTIONS }}
