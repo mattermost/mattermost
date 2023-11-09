@@ -323,7 +323,7 @@ function createDefaultIntroMessage(
     usersLimit: number,
     enableUserCreation?: boolean,
     isReadOnly?: boolean,
-    teamIsGroupConstrained?: boolean
+    teamIsGroupConstrained?: boolean,
 ) {
     let teamInviteLink = null;
     const totalUsers = stats.total_users_count;
