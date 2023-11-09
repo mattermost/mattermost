@@ -1106,10 +1106,17 @@ export function addChannelMember(channelId: string, userId: string, postRootId =
 }
 
 export function addChannelMembers(channelId: string, userIds: string[], postRootId = ''): ActionFunc {
+    const batchSize = 1000;
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        let channelMembers: ChannelMembership[];
+        const batches = [];
+        for (let i = 0; i < userIds.length; i += batchSize) {
+            batches.push(userIds.slice(i, i + batchSize));
+        }
+
+        const channelMembers: ChannelMembership[] = [];
         try {
-            channelMembers = await Client4.addToChannels(userIds, channelId, postRootId);
+            const cm = await Client4.addToChannels(userIds, channelId, postRootId);
+            channelMembers.push(...cm);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
