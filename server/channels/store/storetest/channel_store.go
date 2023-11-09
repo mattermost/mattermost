@@ -245,7 +245,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	require.NoError(t, nErr)
 	require.Len(t, members, 2, "should have saved 2 members")
 
-	userIDs, nErr := ss.Channel().GetAllChannelMembersById(o1.Id)
+	userIDs, nErr := ss.Channel().GetAllChannelMemberIdsByChannelId(o1.Id)
 	require.NoError(t, nErr)
 	require.ElementsMatch(t, []string{u1.Id, u2.Id}, userIDs)
 
@@ -285,7 +285,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	require.NoError(t, nErr)
 	require.Len(t, members, 1, "should have saved just 1 member")
 
-	userIDs, nErr = ss.Channel().GetAllChannelMembersById(o1.Id)
+	userIDs, nErr = ss.Channel().GetAllChannelMemberIdsByChannelId(o1.Id)
 	require.NoError(t, nErr)
 	require.ElementsMatch(t, []string{u1.Id}, userIDs)
 
@@ -7480,7 +7480,7 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store, s
 	assert.NoError(t, err)
 	assert.Len(t, d1, 3)
 
-	userIDs, nErr := ss.Channel().GetAllChannelMembersById(c1.Id)
+	userIDs, nErr := ss.Channel().GetAllChannelMemberIdsByChannelId(c1.Id)
 	require.NoError(t, nErr)
 	require.ElementsMatch(t, []string{u1.Id, u2.Id, u3.Id}, userIDs)
 
@@ -7501,7 +7501,7 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store, s
 	assert.Len(t, d2, 1)
 	assert.Equal(t, u3.Id, d2[0].UserId)
 
-	userIDs, nErr = ss.Channel().GetAllChannelMembersById(c1.Id)
+	userIDs, nErr = ss.Channel().GetAllChannelMemberIdsByChannelId(c1.Id)
 	require.NoError(t, nErr)
 	require.ElementsMatch(t, []string{u3.Id}, userIDs)
 

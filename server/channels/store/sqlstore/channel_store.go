@@ -1125,7 +1125,7 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetAllChannelMembersById(channelID string) ([]string, error) {
+func (s SqlChannelStore) GetAllChannelMemberIdsByChannelId(channelID string) ([]string, error) {
 	userIDs := []string{}
 	err := s.GetReplicaX().Select(&userIDs, `SELECT UserId
 		FROM ChannelMembers

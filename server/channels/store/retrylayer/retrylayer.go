@@ -1039,11 +1039,11 @@ func (s *RetryLayerChannelStore) GetAll(teamID string) ([]*model.Channel, error)
 
 }
 
-func (s *RetryLayerChannelStore) GetAllChannelMembersById(id string) ([]string, error) {
+func (s *RetryLayerChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetAllChannelMembersById(id)
+		result, err := s.ChannelStore.GetAllChannelMemberIdsByChannelId(id)
 		if err == nil {
 			return result, nil
 		}

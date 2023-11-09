@@ -785,7 +785,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 		return false, err
 	}
 
-	userIDs, nErr := a.Srv().Store().Channel().GetAllChannelMembersById(post.ChannelId)
+	userIDs, nErr := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(post.ChannelId)
 	if nErr != nil {
 		return false, model.NewAppError("publishWebsocketEventForPermalinkPost", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1863,6 +1863,9 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 	members, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
 	if err != nil {
 		return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if members[user.Id] == nil {
+		return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(fmt.Errorf("userID %s not found", user.Id))
 	}
 
 	keywords := MentionKeywords{}

@@ -432,8 +432,8 @@ func (_m *ChannelStore) GetAll(teamID string) ([]*model.Channel, error) {
 	return r0, r1
 }
 
-// GetAllChannelMembersById provides a mock function with given fields: id
-func (_m *ChannelStore) GetAllChannelMembersById(id string) ([]string, error) {
+// GetAllChannelMemberIdsByChannelId provides a mock function with given fields: id
+func (_m *ChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([]string, error) {
 	ret := _m.Called(id)
 
 	var r0 []string
