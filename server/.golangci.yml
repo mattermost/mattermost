@@ -46,10 +46,6 @@ issues:
       # We need to fix the unused parameter issues and remove the exception.
 
     - linters:
-      - revive
-      path: "enterprise" # TODO: fix this
-
-    - linters:
       - misspell
       path: "platform/shared/markdown/html_entities.go"
 
