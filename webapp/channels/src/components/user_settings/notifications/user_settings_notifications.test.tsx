@@ -4,7 +4,7 @@
 import React from 'react';
 import {type IntlShape} from 'react-intl';
 
-import {renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import UserSettingsNotifications from './user_settings_notifications';
@@ -25,7 +25,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = renderWithFullContext(
+        const wrapper = renderWithContext(
             <UserSettingsNotifications {...defaultProps}/>,
         );
 
@@ -35,7 +35,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should show reply notifications section when CRT off', () => {
         const props = {...defaultProps, isCollapsedThreadsEnabled: false};
 
-        renderWithFullContext(<UserSettingsNotifications {...props}/>);
+        renderWithContext(<UserSettingsNotifications {...props}/>);
 
         expect(screen.getByText('Reply notifications')).toBeInTheDocument();
     });

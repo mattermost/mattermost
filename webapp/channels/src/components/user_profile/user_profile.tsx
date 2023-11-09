@@ -19,14 +19,14 @@ import {imageURLForUser} from 'utils/utils';
 
 import {generateColor} from './utils';
 
-export type UserProfileProps = {
+export type Props = {
+    user?: UserProfileType;
     userId: string;
     displayName?: string;
     isBusy?: boolean;
     isShared?: boolean;
     overwriteName?: React.ReactNode;
     overwriteIcon?: string;
-    user?: UserProfileType;
     disablePopover?: boolean;
     displayUsername?: boolean;
     colorize?: boolean;
@@ -38,10 +38,10 @@ export type UserProfileProps = {
     theme?: Theme;
 }
 
-export default class UserProfile extends PureComponent<UserProfileProps> {
+export default class UserProfile extends PureComponent<Props> {
     private overlay?: BaseOverlayTrigger;
 
-    static defaultProps: Partial<UserProfileProps> = {
+    static defaultProps: Partial<Props> = {
         disablePopover: false,
         displayUsername: false,
         hasMention: false,
