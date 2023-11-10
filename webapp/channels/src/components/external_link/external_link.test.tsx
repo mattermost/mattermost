@@ -6,7 +6,7 @@ import React from 'react';
 import {Provider} from 'react-redux';
 import type {DeepPartial} from 'redux';
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 import type {GlobalState} from 'types/store';
@@ -55,7 +55,7 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <ExternalLink href='https://mattermost.com'>
                 {'Click Me'}
             </ExternalLink>,
@@ -81,7 +81,7 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <ExternalLink href='https://mattermost.com?test=true'>
                 {'Click Me'}
             </ExternalLink>,
@@ -107,7 +107,7 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <ExternalLink href='https://google.com'>
                 {'Click Me'}
             </ExternalLink>,
@@ -133,7 +133,7 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <ExternalLink
                 target='test'
                 rel='test'
@@ -167,7 +167,7 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <ExternalLink
                 href='https://mattermost.com#desktop'
             >
