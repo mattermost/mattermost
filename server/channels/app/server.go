@@ -341,11 +341,14 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	model.AppErrorInit(i18n.T)
 
-	if s.seenPendingPostIdsCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+	c, err := s.platform.CacheProvider().NewCache(&cache.CacheOptions{
 		Size: PendingPostIDsCacheSize,
-	}); err != nil {
+	})
+	if err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
+	s.seenPendingPostIdsCache = c.(cache.Cache[string])
+
 	if s.openGraphDataCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
 		Size: openGraphMetadataCacheSize,
 	}); err != nil {
