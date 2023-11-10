@@ -1198,6 +1198,15 @@ type API interface {
 	//
 	// Minimum server version: 9.0
 	SendPushNotification(notification *model.PushNotification, userID string) *model.AppError
+
+	// UpdateUserAuth updates a user's auth data.
+	//
+	// It is not currently possible to use this to set a user's auth to e-mail with a hashed
+	// password. It is meant to be used exclusively in setting a non-email auth service.
+	//
+	// @tag User
+	// Minimum server version: 9.3
+	UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
 }
 
 var handshake = plugin.HandshakeConfig{

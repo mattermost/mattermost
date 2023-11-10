@@ -1120,6 +1120,8 @@ func (a *App) UpdateUserAuth(c request.CTX, userID string, userAuth *model.UserA
 		}
 	}
 
+	a.InvalidateCacheForUser(userID)
+
 	return userAuth, nil
 }
 
