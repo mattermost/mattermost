@@ -105,6 +105,8 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 		return errors.New("ERROR: The message export feature is not enabled")
 	}
 
+	var rctx request.CTX = request.EmptyContext(a.Log())
+
 	// for now, format is hard-coded to actiance. In time, we'll have to support other formats and inject them into job data
 	format, err := command.Flags().GetString("format")
 	if err != nil {
@@ -138,7 +140,7 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 			defer cancel()
 		}
 
-		rctx := request.EmptyContext(a.Log())
+		rctx = rctx.WithContext(ctx)
 
 		job, err := messageExportI.StartSynchronizeJob(rctx, startTime)
 		if err != nil || job.Status == model.JobStatusError || job.Status == model.JobStatusCanceled {
