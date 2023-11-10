@@ -135,8 +135,7 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 	if result.NErr != nil {
 		return nil, errors.Wrap(result.NErr, "failed to get user profiles by ids")
 	}
-	inUsers := result.Data
-	autocomplete.InChannel = inUsers
+	autocomplete.InChannel = result.Data
 
 	result = <-nuchan
 	if result.NErr != nil {
