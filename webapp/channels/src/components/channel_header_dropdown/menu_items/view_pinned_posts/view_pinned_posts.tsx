@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, memo} from 'react';
 
 import type {GetStateFunc, DispatchFunc} from 'mattermost-redux/types/actions';
 
@@ -28,7 +28,7 @@ const ViewPinnedPosts = ({
     },
     show,
 }: Props) => {
-    const handleClick = (e: React.MouseEvent) => {
+    const handleClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
 
         if (hasPinnedPosts) {
@@ -36,7 +36,7 @@ const ViewPinnedPosts = ({
         } else {
             showPinnedPosts(channel.id);
         }
-    };
+    }, [channel, closeRightHandSide, showPinnedPosts, hasPinnedPosts]);
 
     return (
         <Menu.ItemAction
@@ -47,4 +47,4 @@ const ViewPinnedPosts = ({
     );
 };
 
-export default React.memo(ViewPinnedPosts);
+export default memo(ViewPinnedPosts);
