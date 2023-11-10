@@ -5971,6 +5971,10 @@
     "translation": "No license present"
   },
   {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Could not update last login timestamp"
+  },
+  {
     "id": "app.member_count",
     "translation": "error retrieving member count"
   },
