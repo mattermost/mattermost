@@ -23,7 +23,7 @@ type Props = {
     /**
      * Invert the permission (used for else)
      */
-    invert: boolean;
+    invert?: boolean;
 
     /**
      * Content protected by the permissions gate
@@ -31,18 +31,11 @@ type Props = {
     children: React.ReactNode;
 };
 
-export default class TeamPermissionGate extends React.PureComponent<Props> {
-    public static defaultProps = {
-        invert: false,
-    };
-
-    render() {
-        if (this.props.hasPermission && !this.props.invert) {
-            return this.props.children;
-        }
-        if (!this.props.hasPermission && this.props.invert) {
-            return this.props.children;
-        }
-        return null;
+const TeamPermissionGate = ({invert = false, hasPermission, children}: Props) => {
+    if (hasPermission !== invert) {
+        return <>{children}</>;
     }
-}
+    return null;
+};
+
+export default React.memo(TeamPermissionGate);
