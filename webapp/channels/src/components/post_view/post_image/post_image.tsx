@@ -23,7 +23,7 @@ interface Props {
 }
 
 export default class PostImage extends React.PureComponent<Props> {
-    showModal = (e: React.MouseEvent, link: string) => {
+    showModal = (e: (React.KeyboardEvent<HTMLImageElement> | React.MouseEvent<HTMLElement, MouseEvent>), link = '') => {
         e.preventDefault();
 
         this.props.actions.openModal({

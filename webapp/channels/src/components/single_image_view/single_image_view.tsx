@@ -82,7 +82,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         }
     };
 
-    handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    handleImageClick = (e: (React.KeyboardEvent<HTMLImageElement> | React.MouseEvent<HTMLElement>)) => {
         e.preventDefault();
 
         this.props.actions.openModal({

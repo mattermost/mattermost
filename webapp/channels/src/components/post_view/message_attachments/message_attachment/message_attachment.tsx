@@ -319,7 +319,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         return index > 0 ? url.substring(index + 1) : null;
     };
 
-    showModal = (e: {preventDefault: () => void}, link: string) => {
+    showModal = (e: (React.KeyboardEvent<HTMLImageElement> | React.MouseEvent<HTMLElement, MouseEvent>), link = '') => {
         e.preventDefault();
 
         const extension = this.getFileExtensionFromUrl(link);

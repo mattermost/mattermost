@@ -66,8 +66,7 @@ export type Props = {
     /*
     * Fetch the onClick function
     */
-    onClick?: ((e: React.MouseEvent<HTMLImageElement, globalThis.MouseEvent>, link: string) => void) |
-    ((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void);
+    onClick?: (e: (React.KeyboardEvent<HTMLImageElement> | React.MouseEvent<HTMLElement, MouseEvent>), link: string) => void;
 
     /*
     * css classes that can added to the img as well as parent div on svg for placeholder
@@ -170,13 +169,13 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         }
     };
 
-    handleImageClick = (e: any) => {
+    handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
         this.props.onClick?.(e, this.props.src);
     };
 
     onEnterKeyDown = (e: React.KeyboardEvent<HTMLImageElement>) => {
         if (e.key === 'Enter') {
-            this.handleImageClick(e);
+            this.props.onClick?.(e, this.props.src);
         }
     };
 
