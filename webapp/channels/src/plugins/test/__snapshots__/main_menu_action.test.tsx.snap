@@ -114,7 +114,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
       />
     </MenuGroup>
     <MenuGroup>
-      <Connect(TeamPermissionGate)
+      <Connect(Component)
         permissions={
           Array [
             "manage_team",
@@ -141,8 +141,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="Add Groups to Team"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Connect(Component)>
+      <Connect(Component)
         permissions={
           Array [
             "add_user_to_team",
@@ -172,10 +172,10 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="Invite People"
         />
-      </Connect(TeamPermissionGate)>
+      </Connect(Component)>
     </MenuGroup>
     <MenuGroup>
-      <Connect(TeamPermissionGate)
+      <Connect(Component)
         permissions={
           Array [
             "manage_team",
@@ -202,8 +202,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="Team Settings"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Connect(Component)>
+      <Connect(Component)
         permissions={
           Array [
             "manage_team",
@@ -235,8 +235,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="Manage Groups"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Connect(Component)>
+      <Connect(Component)
         permissions={
           Array [
             "remove_user_from_team",
@@ -264,8 +264,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="Manage Members"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Connect(Component)>
+      <Connect(Component)
         invert={true}
         permissions={
           Array [
@@ -294,7 +294,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           show={true}
           text="View Members"
         />
-      </Connect(TeamPermissionGate)>
+      </Connect(Component)>
     </MenuGroup>
     <MenuGroup>
       <Connect(SystemPermissionGate)
@@ -441,7 +441,7 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
     style={Object {}}
   >
     <MenuGroup>
-      <Connect(TeamPermissionGate)
+      <Connect(Component)
         permissions={
           Array [
             "manage_team",
@@ -463,8 +463,8 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           show={true}
           text="Add Groups to Team"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Connect(Component)>
+      <Connect(Component)
         permissions={
           Array [
             "add_user_to_team",
@@ -490,8 +490,8 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           show={true}
           text="Invite People"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Connect(Component)>
+      <Connect(Component)
         permissions={
           Array [
             "manage_team",
@@ -513,8 +513,8 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           show={true}
           text="Team Settings"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Connect(Component)>
+      <Connect(Component)
         permissions={
           Array [
             "manage_team",
@@ -541,8 +541,8 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           show={true}
           text="Manage Groups"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Connect(Component)>
+      <Connect(Component)
         permissions={
           Array [
             "remove_user_from_team",
@@ -565,8 +565,8 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           show={true}
           text="Manage Members"
         />
-      </Connect(TeamPermissionGate)>
-      <Connect(TeamPermissionGate)
+      </Connect(Component)>
+      <Connect(Component)
         invert={true}
         permissions={
           Array [
@@ -590,7 +590,7 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           show={true}
           text="View Members"
         />
-      </Connect(TeamPermissionGate)>
+      </Connect(Component)>
       <MenuItemLink
         id="joinTeam"
         show={true}

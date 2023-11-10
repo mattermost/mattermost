@@ -138,7 +138,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       sibling={false}
       text="User Groups"
     />
-    <Connect(TeamPermissionGate)
+    <Connect(Component)
       permissions={
         Array [
           "sysconsole_write_plugins",
@@ -163,7 +163,7 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
         show={false}
         text="App Marketplace"
       />
-    </Connect(TeamPermissionGate)>
+    </Connect(Component)>
     <MenuItemExternalLink
       icon={
         <DownloadOutlineIcon
@@ -336,7 +336,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       sibling={false}
       text="User Groups"
     />
-    <Connect(TeamPermissionGate)
+    <Connect(Component)
       permissions={
         Array [
           "sysconsole_write_plugins",
@@ -361,7 +361,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
         show={true}
         text="App Marketplace"
       />
-    </Connect(TeamPermissionGate)>
+    </Connect(Component)>
     <MenuItemExternalLink
       icon={
         <DownloadOutlineIcon
@@ -660,7 +660,7 @@ exports[`components/global/product_switcher_menu should show integrations should
       sibling={false}
       text="User Groups"
     />
-    <Connect(TeamPermissionGate)
+    <Connect(Component)
       permissions={
         Array [
           "sysconsole_write_plugins",
@@ -685,7 +685,7 @@ exports[`components/global/product_switcher_menu should show integrations should
         show={false}
         text="App Marketplace"
       />
-    </Connect(TeamPermissionGate)>
+    </Connect(Component)>
     <MenuItemExternalLink
       icon={
         <DownloadOutlineIcon
