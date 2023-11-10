@@ -207,6 +207,8 @@ func (a *App) sanitizePostMetadataForUserAndChannel(c request.CTX, post *model.P
 		}
 
 		post.Metadata.Embeds = newEmbeds
+
+		post.DelProp(model.PostPropsPreviewedPost)
 	}
 
 	return post
@@ -239,6 +241,8 @@ func (a *App) SanitizePostMetadataForUser(c request.CTX, post *model.Post, userI
 		}
 
 		post.Metadata.Embeds = newEmbeds
+
+		post.DelProp(model.PostPropsPreviewedPost)
 	}
 
 	return post, nil

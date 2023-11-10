@@ -822,10 +822,12 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	}
 
 	originalEmbeds := post.Metadata.Embeds
+	originalProps := post.GetProps()
 	permalinkPreviewedPost := post.GetPreviewPost()
 	for _, cm := range channelMembers {
 		if permalinkPreviewedPost != nil {
 			post.Metadata.Embeds = originalEmbeds
+			post.SetProps(originalProps)
 		}
 
 		postForUser := a.sanitizePostMetadataForUserAndChannel(c, post, permalinkPreviewedPost, permalinkPreviewedChannel, cm.UserId)
