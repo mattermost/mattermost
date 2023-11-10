@@ -17,30 +17,32 @@ interface Props {
     fileInfos?: Array<{name: string}>;
 }
 
-export default class CommentedOnFilesMessage extends React.PureComponent<Props> {
-    render() {
-        if (!this.props.fileInfos || this.props.fileInfos.length === 0) {
-            return null;
-        }
+const CommentedOnFilesMessage = ({
+    fileInfos,
+}: Props) => {
+    if (!fileInfos || fileInfos.length === 0) {
+        return null;
+    }
 
-        let plusMore = null;
-        if (this.props.fileInfos.length > 1) {
-            plusMore = (
-                <FormattedMessage
-                    id='post_body.plusMore'
-                    defaultMessage=' plus {count, number} other {count, plural, one {file} other {files}}'
-                    values={{
-                        count: this.props.fileInfos.length - 1,
-                    }}
-                />
-            );
-        }
-
-        return (
-            <span data-testid='fileInfo'>
-                {this.props.fileInfos[0].name}
-                {plusMore}
-            </span>
+    let plusMore = null;
+    if (fileInfos.length > 1) {
+        plusMore = (
+            <FormattedMessage
+                id='post_body.plusMore'
+                defaultMessage=' plus {count, number} other {count, plural, one {file} other {files}}'
+                values={{
+                    count: fileInfos.length - 1,
+                }}
+            />
         );
     }
-}
+
+    return (
+        <span data-testid='fileInfo'>
+            {fileInfos[0].name}
+            {plusMore}
+        </span>
+    );
+};
+
+export default React.memo(CommentedOnFilesMessage);
