@@ -92,8 +92,7 @@ export function loadChannelsForCurrentUser(): ActionFunc {
             }
         }
 
-        loadProfilesForSidebar();
-        return {data: true};
+        return dispatch(loadProfilesForSidebar());
     };
 }
 

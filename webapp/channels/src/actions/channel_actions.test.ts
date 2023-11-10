@@ -125,17 +125,23 @@ jest.mock('mattermost-redux/actions/channels', () => ({
 jest.mock('actions/user_actions', () => ({
     loadNewDMIfNeeded: jest.fn(),
     loadNewGMIfNeeded: jest.fn(),
-    loadProfilesForSidebar: jest.fn(),
+    loadProfilesForSidebar: jest.fn((...args: any) => ({type: 'MOCK_LOAD_PROFILES_FOR_SIDEBAR', args})),
 }));
 
 describe('Actions.Channel', () => {
     test('loadChannelsForCurrentUser', async () => {
         const testStore = await mockStore(initialState);
 
-        const expectedActions = [{
-            type: 'MOCK_FETCH_CHANNELS_AND_MEMBERS',
-            args: ['team-id'],
-        }];
+        const expectedActions = [
+            {
+                type: 'MOCK_FETCH_CHANNELS_AND_MEMBERS',
+                args: ['team-id'],
+            },
+            {
+                type: 'MOCK_LOAD_PROFILES_FOR_SIDEBAR',
+                args: [],
+            },
+        ];
 
         await testStore.dispatch(loadChannelsForCurrentUser());
         expect(testStore.getActions()).toEqual(expectedActions);

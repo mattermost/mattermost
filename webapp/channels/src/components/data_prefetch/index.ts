@@ -11,6 +11,7 @@ import {getCurrentChannelId, getUnreadChannels} from 'mattermost-redux/selectors
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
+import {loadProfilesForSidebar} from 'actions/user_actions';
 import {prefetchChannelPosts} from 'actions/views/channel';
 import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
@@ -20,6 +21,7 @@ import {prefetchQueue, trackPreloadedChannels} from './actions';
 import DataPrefetch from './data_prefetch';
 
 type Actions = {
+    loadProfilesForSidebar: () => Promise<void>;
     prefetchChannelPosts: (channelId: string, delay?: number) => Promise<{data: PostList}>;
     trackPreloadedChannels: (prefetchQueueObj: Record<string, string[]>) => void;
 };
@@ -47,6 +49,7 @@ function mapStateToProps(state: GlobalState) {
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
+            loadProfilesForSidebar,
             prefetchChannelPosts,
             trackPreloadedChannels,
         }, dispatch),

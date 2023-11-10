@@ -6,8 +6,6 @@ import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {loadProfilesForSidebar} from 'actions/user_actions';
-
 import {Constants} from 'utils/constants';
 
 const queue = new PQueue({concurrency: 2});
@@ -23,6 +21,7 @@ type Props = {
     unreadChannels: Channel[];
 
     actions: {
+        loadProfilesForSidebar: () => Promise<void>;
         prefetchChannelPosts: (channelId: string, delay?: number) => Promise<any>;
         trackPreloadedChannels: (prefetchQueueObj: Record<string, string[]>) => void;
     };
@@ -56,7 +55,7 @@ export default class DataPrefetch extends React.PureComponent<Props> {
         const {currentChannelId, prefetchQueueObj, sidebarLoaded} = this.props;
         if (currentChannelId && sidebarLoaded && (!prevProps.currentChannelId || !prevProps.sidebarLoaded)) {
             queue.add(async () => this.prefetchPosts(currentChannelId));
-            await loadProfilesForSidebar();
+            await this.props.actions.loadProfilesForSidebar();
             this.prefetchData();
         } else if (prevProps.prefetchQueueObj !== prefetchQueueObj) {
             clearTimeout(this.prefetchTimeout);
