@@ -178,8 +178,8 @@ func (a *App) GetOAuthCodeRedirect(userID string, authRequest *model.AuthorizeRe
 		uri.RawQuery = queryParams.Encode()
 		return uri.String(), nil
 	}
-	queryParams.Set("code", url.QueryEscape(authData.Code))
-	queryParams.Set("state", url.QueryEscape(authData.State))
+	queryParams.Set("code", authData.Code)
+	queryParams.Set("state", authData.State)
 	uri.RawQuery = queryParams.Encode()
 	return uri.String(), nil
 }
