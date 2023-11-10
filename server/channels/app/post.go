@@ -1466,8 +1466,7 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 		if result.NErr != nil {
 			return nil, model.NewAppError("searchPostsInTeam", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
-		data := result.Data
-		posts.Extend(data)
+		posts.Extend(result.Data)
 	}
 
 	posts.SortByCreateAt()
