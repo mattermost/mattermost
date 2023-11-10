@@ -22,7 +22,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         enableAutoResponder: false,
         isCallsRingingEnabled: true,
         intl: {} as IntlShape,
-        isStarterFree: false,
+        isEnterpriseOrCloudOrSKUStarterFree: false,
         isEnterpriseReady: true,
     };
 
@@ -34,8 +34,8 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when isStarterFree is true', () => {
-        const props = {...defaultProps, isStarterFree: true};
+    test('should match snapshot when its a starter free', () => {
+        const props = {...defaultProps, isEnterpriseOrCloudOrSKUStarterFree: true};
 
         const wrapper = renderWithContext(
             <UserSettingsNotifications {...props}/>,

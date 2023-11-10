@@ -105,7 +105,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
         );
 
         let highlightKeys;
-        if (!this.props.isStarterFree && this.props.isEnterpriseReady) {
+        if (!this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) {
             highlightKeys = this.props.highlightKeys;
         }
 

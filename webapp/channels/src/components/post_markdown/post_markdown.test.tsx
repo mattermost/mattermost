@@ -16,7 +16,8 @@ import PostMarkdown from './post_markdown';
 
 describe('components/PostMarkdown', () => {
     const baseProps = {
-        imageProps: {},
+        imageProps: {} as Record<string, unknown>,
+        pluginHooks: [],
         message: 'message',
         post: TestHelper.getPostMock(),
         mentionKeys: [{key: 'a'}, {key: 'b'}, {key: 'c'}],
@@ -29,7 +30,7 @@ describe('components/PostMarkdown', () => {
         highlightKeys: [],
         hasPluginTooltips: false,
         isUserCanManageMembers: false,
-        isStarterFree: true,
+        isEnterpriseOrCloudOrSKUStarterFree: true,
         isEnterpriseReady: false,
         dispatch: jest.fn(),
     };

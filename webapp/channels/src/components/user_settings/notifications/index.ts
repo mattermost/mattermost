@@ -10,8 +10,7 @@ import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/pre
 
 import {isCallsEnabled, isCallsRingingEnabledOnServer} from 'selectors/calls';
 
-import {CloudProducts, SelfHostedProducts} from 'utils/constants';
-import {isCloudLicense} from 'utils/license_utils';
+import {isEnterpriseOrCloudOrSKUStarterFree} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -26,23 +25,16 @@ const mapStateToProps = (state: GlobalState) => {
     const license = getLicense(state);
     const subscriptionProduct = getSubscriptionProduct(state);
 
-    const isCloud = isCloudLicense(license);
-    const isCloudStarterFree = isCloud && subscriptionProduct?.sku === CloudProducts.STARTER;
-
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
-    const isSelfHostedStarter = isEnterpriseReady && (license.IsLicensed === 'false');
-
-    const isStarterSKULicense = license.IsLicensed === 'true' && license.SelfHostedProducts === SelfHostedProducts.STARTER;
-
-    const isStarterFree = isCloudStarterFree || isSelfHostedStarter || isStarterSKULicense;
 
     return {
         sendPushNotifications,
         enableAutoResponder,
         isCollapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
         isCallsRingingEnabled: isCallsEnabled(state, '0.17.0') && isCallsRingingEnabledOnServer(state),
-        isStarterFree,
+        isEnterpriseOrCloudOrSKUStarterFree: isEnterpriseOrCloudOrSKUStarterFree(license, subscriptionProduct, isEnterpriseReady),
         isEnterpriseReady,
+
     };
 };
 

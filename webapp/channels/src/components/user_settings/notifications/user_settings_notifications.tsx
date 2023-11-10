@@ -1004,20 +1004,15 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             );
         }
 
-        let collapsedDescription = '';
-        if (this.props.isStarterFree && this.props.isEnterpriseReady) {
-            // We hide if the keywords were previously selected but the user is no longer on the Professional plan
-            collapsedDescription = this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.none', defaultMessage: 'None'});
-        } else if (this.state.customKeysWithHighlight.length > 0) {
+        let collapsedDescription = this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.none', defaultMessage: 'None'});
+        if (!this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady && this.state.customKeysWithHighlight.length > 0) {
             const customKeysWithHighlightStringArray = this.state.customKeysWithHighlight.map((key) => key.value);
             collapsedDescription = customKeysWithHighlightStringArray.map((key) => `"${key}"`).join(', ');
-        } else {
-            collapsedDescription = this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.none', defaultMessage: 'None'});
         }
 
         const collapsedEditButtonWhenDisabled = (
             <RestrictedIndicator
-                blocked={this.props.isStarterFree && this.props.isEnterpriseReady}
+                blocked={this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady}
                 feature={MattermostFeatures.HIGHLIGHT_WITHOUT_NOTIFICATION}
                 minimumPlanRequiredForFeature={LicenseSkus.Professional}
                 tooltipTitle={this.props.intl.formatMessage({
@@ -1035,7 +1030,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 })}
                 messageAdminPreTrial={this.props.intl.formatMessage({
                     id: 'user.settings.notifications.keywordsWithHighlight.userModal.messageAdminPreTrial',
-                    defaultMessage: 'Get the ability to passively highlight keywords that you care about. Upgrade to the Professional plan to create unlimited highlight keywords.',
+                    defaultMessage: 'Get the ability to passively highlight keywords that you care about. Upgrade to Professional plan to unlock this feature.',
                 })}
                 titleAdminPostTrial={this.props.intl.formatMessage({
                     id: 'user.settings.notifications.keywordsWithHighlight.userModal.titleAdminPostTrial',
@@ -1043,7 +1038,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 })}
                 messageAdminPostTrial={this.props.intl.formatMessage({
                     id: 'user.settings.notifications.keywordsWithHighlight.userModal.messageAdminPostTrial',
-                    defaultMessage: 'Get the ability to passively highlight keywords that you care about. Upgrade to the Professional plan to create unlimited highlight keywords.',
+                    defaultMessage: 'Get the ability to passively highlight keywords that you care about. Upgrade to Professional plan to unlock this feature.',
                 },
                 )}
                 titleEndUser={this.props.intl.formatMessage({
@@ -1078,7 +1073,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 describe={collapsedDescription}
                 updateSection={this.handleUpdateSection}
                 max={expandedSection}
-                isDisabled={this.props.isStarterFree && this.props.isEnterpriseReady}
+                isDisabled={this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady}
                 collapsedEditButtonWhenDisabled={collapsedEditButtonWhenDisabled}
             />);
     };
@@ -1365,7 +1360,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     {pushNotificationSection}
                     <div className='divider-light'/>
                     {keywordsWithNotificationSection}
-                    {(!this.props.isStarterFree && this.props.isEnterpriseReady) && (
+                    {(!this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) && (
                         <>
                             <div className='divider-light'/>
                             {keywordsWithHighlightSection}
@@ -1386,7 +1381,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     )}
 
                     {/*  We placed the disabled items in the last */}
-                    {(this.props.isStarterFree && this.props.isEnterpriseReady) && (
+                    {(this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) && (
                         <>
                             <div className='divider-light'/>
                             {keywordsWithHighlightSection}

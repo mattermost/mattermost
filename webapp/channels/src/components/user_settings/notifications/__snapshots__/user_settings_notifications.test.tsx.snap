@@ -563,7 +563,7 @@ Object {
 }
 `;
 
-exports[`components/user_settings/display/UserSettingsDisplay should match snapshot when isStarterFree is true 1`] = `
+exports[`components/user_settings/display/UserSettingsDisplay should match snapshot when its a starter free 1`] = `
 Object {
   "asFragment": [Function],
   "baseElement": <body>

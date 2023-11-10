@@ -20,8 +20,8 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserMentionKeys, getHighlightWithoutNotificationKeys} from 'mattermost-redux/selectors/entities/users';
 
 import {canManageMembers} from 'utils/channel_utils';
-import {Preferences, CloudProducts, SelfHostedProducts} from 'utils/constants';
-import {isCloudLicense} from 'utils/license_utils';
+import {Preferences} from 'utils/constants';
+import {isEnterpriseOrCloudOrSKUStarterFree} from 'utils/license_utils';
 import type {MentionKey} from 'utils/text_formatting';
 
 import type {GlobalState} from 'types/store';
@@ -67,15 +67,7 @@ function makeMapStateToProps() {
         const subscriptionProduct = getSubscriptionProduct(state);
 
         const config = getConfig(state);
-        const isCloud = isCloudLicense(license);
-        const isCloudStarterFree = isCloud && subscriptionProduct?.sku === CloudProducts.STARTER;
-
         const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
-        const isSelfHostedStarter = isEnterpriseReady && (license.IsLicensed === 'false');
-
-        const isStarterSKULicense = license.IsLicensed === 'true' && license.SelfHostedProducts === SelfHostedProducts.STARTER;
-
-        const isStarterFree = isCloudStarterFree || isSelfHostedStarter || isStarterSKULicense;
 
         return {
             channel,
@@ -88,7 +80,7 @@ function makeMapStateToProps() {
             isMilitaryTime: getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false),
             timezone: getCurrentTimezone(state),
             hideGuestTags: getConfig(state).HideGuestTags === 'true',
-            isStarterFree,
+            isEnterpriseOrCloudOrSKUStarterFree: isEnterpriseOrCloudOrSKUStarterFree(license, subscriptionProduct, isEnterpriseReady),
             isEnterpriseReady,
         };
     };
