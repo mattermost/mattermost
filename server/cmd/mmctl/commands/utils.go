@@ -56,6 +56,7 @@ func addToZip(zipWriter *zip.Writer, basedir, path string) error {
 		if err != nil {
 			return fmt.Errorf("cannot get file info for directory entry %q: %w", dirEntry.Name(), err)
 		}
+
 		filePath := filepath.Join(path, fileInfo.Name())
 		if fileInfo.IsDir() {
 			filePath += "/"

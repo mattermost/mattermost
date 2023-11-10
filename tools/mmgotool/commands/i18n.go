@@ -651,12 +651,8 @@ func cleanEmptyCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	for _, dirEntry := range dirEntries {
-		file, err := dirEntry.Info()
-		if err != nil {
-			return fmt.Errorf("cannot get file info for directory entry %q: %w", dirEntry.Name(), err)
-		}
-		if !file.IsDir() && filepath.Ext(file.Name()) == ".json" && file.Name() != "en.json" {
-			shippedFiles = append(shippedFiles, file.Name())
+		if !dirEntry.IsDir() && filepath.Ext(dirEntry.Name()) == ".json" && dirEntry.Name() != "en.json" {
+			shippedFiles = append(shippedFiles, dirEntry.Name())
 		}
 	}
 
