@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
+import {connect, type ConnectedProps} from 'react-redux';
 
 import {Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -14,24 +14,17 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {getEmojiMap} from 'selectors/emojis';
 
-import type {ChannelNamesMap, MentionKey} from 'utils/text_formatting';
 import {getSiteURL} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 
-import Markdown from './markdown';
-
-type Props = {
-    channelNamesMap?: ChannelNamesMap;
-    mentionKeys?: MentionKey[];
-    postId?: string;
-}
+import Markdown, {type OwnProps} from './markdown';
 
 function makeGetChannelNamesMap() {
     return createSelector(
         'makeGetChannelNamesMap',
         getChannelNameToDisplayNameMap,
-        (state: GlobalState, props: Props) => props && props.channelNamesMap,
+        (state: GlobalState, props: OwnProps) => props && props.channelNamesMap,
         (channelNamesMap, channelMentions) => {
             if (channelMentions) {
                 return Object.assign({}, channelMentions, channelNamesMap);
@@ -45,7 +38,7 @@ function makeGetChannelNamesMap() {
 function makeMapStateToProps() {
     const getChannelNamesMap = makeGetChannelNamesMap();
 
-    return function mapStateToProps(state: GlobalState, ownProps: Props) {
+    return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         const config = getConfig(state);
 
         let channelId;
@@ -69,4 +62,7 @@ function makeMapStateToProps() {
     };
 }
 
-export default connect(makeMapStateToProps)(Markdown);
+const connector = connect(makeMapStateToProps);
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(Markdown);
