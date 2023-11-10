@@ -3421,7 +3421,6 @@ exports[`components/ProfilePopover should show the start call button when isCall
     currentTeamId="team_id"
     currentUserId=""
     enableLastActiveTime={true}
-    enableTimezone={false}
     hide={[MockFunction]}
     isAnyModalOpen={false}
     isCallsCanBeDisabledOnSpecificChannels={false}
@@ -3515,7 +3514,6 @@ exports[`components/ProfilePopover should show the start call button when isCall
       currentUserId=""
       customStatus={null}
       enableLastActiveTime={true}
-      enableTimezone={false}
       hasMention={false}
       hide={[MockFunction]}
       intl={
