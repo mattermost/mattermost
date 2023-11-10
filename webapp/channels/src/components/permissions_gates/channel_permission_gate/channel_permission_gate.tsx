@@ -37,10 +37,7 @@ type Props = {
 }
 
 const ChannelPermissionGate = ({hasPermission, children, invert = false}: Props) => {
-    if (hasPermission && !invert) {
-        return <>{children}</>;
-    }
-    if (!hasPermission && invert) {
+    if (hasPermission !== invert) {
         return <>{children}</>;
     }
     return null;
