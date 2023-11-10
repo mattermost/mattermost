@@ -19,18 +19,17 @@ type Props = {
     };
 }
 
-export default class ViewPinnedPosts extends React.PureComponent<Props> {
-    private handleClick = (e: React.MouseEvent) => {
+const ViewPinnedPosts = ({
+    channel,
+    hasPinnedPosts,
+    actions: {
+        closeRightHandSide,
+        showPinnedPosts,
+    },
+    show,
+}: Props) => {
+    const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();
-
-        const {
-            channel,
-            hasPinnedPosts,
-            actions: {
-                closeRightHandSide,
-                showPinnedPosts,
-            },
-        } = this.props;
 
         if (hasPinnedPosts) {
             closeRightHandSide();
@@ -39,13 +38,13 @@ export default class ViewPinnedPosts extends React.PureComponent<Props> {
         }
     };
 
-    render() {
-        return (
-            <Menu.ItemAction
-                show={this.props.show}
-                onClick={this.handleClick}
-                text={localizeMessage('navbar.viewPinnedPosts', 'View Pinned Posts')}
-            />
-        );
-    }
-}
+    return (
+        <Menu.ItemAction
+            show={show}
+            onClick={handleClick}
+            text={localizeMessage('navbar.viewPinnedPosts', 'View Pinned Posts')}
+        />
+    );
+};
+
+export default React.memo(ViewPinnedPosts);
