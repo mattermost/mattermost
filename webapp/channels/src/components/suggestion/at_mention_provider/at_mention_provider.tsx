@@ -408,8 +408,6 @@ export default class AtMentionProvider extends Provider {
                 loading: true,
             }]]);
 
-            this.items().concat();
-
             showLoadingIndicator = null;
         }, 500);
 
