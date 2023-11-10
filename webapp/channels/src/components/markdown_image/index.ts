@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import type {Action, GenericAction} from 'mattermost-redux/types/actions';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
@@ -14,7 +14,7 @@ import type {Props} from './markdown_image';
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Props['actions']>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Props['actions']>({
             openModal,
         }, dispatch),
     };

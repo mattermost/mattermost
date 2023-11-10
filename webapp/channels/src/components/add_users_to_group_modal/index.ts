@@ -7,7 +7,7 @@ import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import {addUsersToGroup} from 'mattermost-redux/actions/groups';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
-import type {Action, ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
@@ -35,7 +35,7 @@ function mapStateToProps(state: GlobalState, props: OwnProps) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
             addUsersToGroup,
             openModal,
         }, dispatch),

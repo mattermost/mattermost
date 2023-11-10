@@ -11,7 +11,7 @@ import {
     getCurrentUserId,
     makeGetProfilesInChannel,
 } from 'mattermost-redux/selectors/entities/users';
-import type {Action, ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {moveChannelsInSidebar} from 'actions/views/channel_sidebar';
 import {closeModal} from 'actions/views/modals';
@@ -45,7 +45,7 @@ export type Actions = {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
             closeModal,
             convertGroupMessageToPrivateChannel,
             moveChannelsInSidebar,

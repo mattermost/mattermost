@@ -9,7 +9,6 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
 import {getGroupsAssociatedToChannel, unlinkGroupSyncable, patchGroupSyncable} from 'mattermost-redux/actions/groups';
-import type {Action} from 'mattermost-redux/types/actions';
 
 import {closeModal, openModal} from 'actions/views/modals';
 
@@ -41,7 +40,7 @@ type Actions = {
 };
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>(
+    actions: bindActionCreators<ActionCreatorsMapObject, Actions>(
         {
             getGroupsAssociatedToChannel,
             closeModal,

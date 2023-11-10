@@ -7,14 +7,13 @@ import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import {checkIfTeamExists, createTeam, updateTeam} from 'mattermost-redux/actions/teams';
 import {getProfiles} from 'mattermost-redux/actions/users';
-import type {Action} from 'mattermost-redux/types/actions';
 
 import PreparingWorkspace from './preparing_workspace';
 import type {Actions} from './preparing_workspace';
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
             updateTeam,
             createTeam,
             getProfiles,

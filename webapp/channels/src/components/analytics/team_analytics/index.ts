@@ -8,7 +8,7 @@ import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getProfilesInTeam} from 'mattermost-redux/actions/users';
 import {getTeamsList} from 'mattermost-redux/selectors/entities/teams';
-import type {Action, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import type {ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setGlobalItem} from 'actions/storage';
 import {getCurrentLocale} from 'selectors/i18n';
@@ -41,7 +41,7 @@ type Actions = {
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
             getTeams,
             getProfilesInTeam,
             setGlobalItem,

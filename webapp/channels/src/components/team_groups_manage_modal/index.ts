@@ -11,7 +11,6 @@ import type {TeamMembership} from '@mattermost/types/teams';
 
 import {getGroupsAssociatedToTeam, unlinkGroupSyncable, patchGroupSyncable} from 'mattermost-redux/actions/groups';
 import {getMyTeamMembers} from 'mattermost-redux/actions/teams';
-import type {Action} from 'mattermost-redux/types/actions';
 
 import {closeModal, openModal} from 'actions/views/modals';
 
@@ -51,7 +50,7 @@ type Actions = {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+    actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
         getGroupsAssociatedToTeam,
         closeModal,
         openModal,

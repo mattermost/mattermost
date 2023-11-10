@@ -10,7 +10,7 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {createIncomingHook} from 'mattermost-redux/actions/integrations';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import type {Action, GenericAction} from 'mattermost-redux/types/actions';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import AddIncomingWebhook from './add_incoming_webhook';
 
@@ -31,7 +31,7 @@ type Actions = {
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
             createIncomingHook,
         }, dispatch),
     };

@@ -8,7 +8,6 @@ import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 import {sendVerificationEmail} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {Action} from 'mattermost-redux/types/actions';
 
 import type {GlobalState} from 'types/store';
 
@@ -30,7 +29,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Props['actions']>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Props['actions']>({
             sendVerificationEmail,
         }, dispatch),
     };

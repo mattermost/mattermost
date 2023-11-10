@@ -14,7 +14,7 @@ import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getFilteredUsersStats} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getFilteredUsersStats as selectFilteredUserStats} from 'mattermost-redux/selectors/entities/users';
-import type {Action, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import type {ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {requestTrialLicense, upgradeToE0Status, upgradeToE0, restartServer, ping} from 'actions/admin_actions';
 import {openModal} from 'actions/views/modals';
@@ -36,7 +36,6 @@ function mapStateToProps(state: GlobalState) {
 
 type StatusOKFunc = () => Promise<StatusOK>;
 type PromiseStatusFunc = () => Promise<{status: string}>;
-type ActionCreatorTypes = Action | PromiseStatusFunc | StatusOKFunc;
 
 type Actions = {
     getLicenseConfig: () => void;
@@ -54,7 +53,7 @@ type Actions = {
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionCreatorTypes>, Actions>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
             getLicenseConfig,
             uploadLicense,
             removeLicense,

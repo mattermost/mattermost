@@ -31,7 +31,6 @@ import {
     getUser,
     makeGetProfilesInChannel,
 } from 'mattermost-redux/selectors/entities/users';
-import type {Action} from 'mattermost-redux/types/actions';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 
 import {goToLastViewedChannel} from 'actions/views/channel';
@@ -124,7 +123,7 @@ function makeMapStateToProps() {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators<ActionCreatorsMapObject<Action>, Props['actions']>({
+    actions: bindActionCreators<ActionCreatorsMapObject, Props['actions']>({
         favoriteChannel,
         unfavoriteChannel,
         showPinnedPosts,

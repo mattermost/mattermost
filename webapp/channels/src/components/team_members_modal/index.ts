@@ -6,7 +6,6 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import type {Action} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
@@ -32,7 +31,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
             openModal,
         }, dispatch),
     };

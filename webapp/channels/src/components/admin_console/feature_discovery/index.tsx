@@ -10,7 +10,7 @@ import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {checkHadPriorTrial, getCloudCustomer} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
-import type {Action, GenericAction} from 'mattermost-redux/types/actions';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
@@ -53,7 +53,7 @@ type Actions = {
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
             getPrevTrialLicense,
             getCloudSubscription,
             openModal,

@@ -7,7 +7,6 @@ import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import {getMorePostsForSearch, getMoreFilesForSearch} from 'mattermost-redux/actions/search';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
-import type {Action} from 'mattermost-redux/types/actions';
 
 import {autocompleteChannelsForSearch} from 'actions/channel_actions';
 import {autocompleteUsersInTeam} from 'actions/user_actions';
@@ -65,7 +64,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, DispatchProps['actions']>({
+        actions: bindActionCreators<ActionCreatorsMapObject, DispatchProps['actions']>({
             updateSearchTerms,
             updateSearchTermsForShortcut,
             updateSearchType,

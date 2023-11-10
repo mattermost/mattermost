@@ -6,7 +6,6 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {canManageChannelMembers} from 'mattermost-redux/selectors/entities/channels';
-import type {Action} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
@@ -24,7 +23,7 @@ type Actions = {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({openModal}, dispatch),
+    actions: bindActionCreators<ActionCreatorsMapObject, Actions>({openModal}, dispatch),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ChannelMembersModal);

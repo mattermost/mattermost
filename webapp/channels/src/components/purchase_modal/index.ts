@@ -12,7 +12,6 @@ import {getClientConfig} from 'mattermost-redux/actions/general';
 import {getAdminAnalytics} from 'mattermost-redux/selectors/entities/admin';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import type {Action} from 'mattermost-redux/types/actions';
 
 import {completeStripeAddPaymentMethod, subscribeCloudSubscription} from 'actions/cloud';
 import {closeModal, openModal} from 'actions/views/modals';
@@ -82,7 +81,7 @@ type Actions = {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>(
+        actions: bindActionCreators<ActionCreatorsMapObject, Actions>(
             {
                 closeModal: () => closeModal(ModalIdentifiers.CLOUD_PURCHASE),
                 openModal,

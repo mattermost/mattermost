@@ -6,7 +6,6 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {shouldShowUnreadsCategory} from 'mattermost-redux/selectors/entities/preferences';
-import type {Action} from 'mattermost-redux/types/actions';
 
 import {openModal, closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
@@ -32,7 +31,7 @@ type Actions = {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
             openModal,
             closeModal,
         }, dispatch),

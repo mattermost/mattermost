@@ -5,7 +5,6 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import type {StatusOK} from '@mattermost/types/client4';
 import type {ServerError} from '@mattermost/types/errors';
 import type {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/users';
 
@@ -22,7 +21,7 @@ import {
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getTeamsList} from 'mattermost-redux/selectors/entities/teams';
 import {getFilteredUsersStats as selectFilteredUserStats, getUsers} from 'mattermost-redux/selectors/entities/users';
-import type {Action, ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {loadProfilesAndTeamMembers, loadProfilesWithoutTeam} from 'actions/user_actions';
 import {setSystemUsersSearch} from 'actions/views/search';
@@ -75,10 +74,6 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type StatusOKFunc = () => Promise<StatusOK>;
-type PromiseStatusFunc = () => Promise<{status: string}>;
-type ActionCreatorTypes = Action | PromiseStatusFunc | StatusOKFunc;
-
 type Actions = {
     getTeams: (startInde: number, endIndex: number) => void;
     getTeamStats: (teamId: string) => ActionFunc<any, any>;
@@ -96,7 +91,7 @@ type Actions = {
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionCreatorTypes>, Actions>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
             getTeams,
             getTeamStats,
             getUser,

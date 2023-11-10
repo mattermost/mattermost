@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import type {Action, GenericAction} from 'mattermost-redux/types/actions.js';
+import type {GenericAction} from 'mattermost-redux/types/actions.js';
 
 import {closeModal} from 'actions/views/modals';
 
@@ -25,7 +25,7 @@ type Actions = {
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
             closeModal,
         }, dispatch),
     };

@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, AnyAction, Dispatch} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -11,12 +11,13 @@ import {getChannelStats, updateChannelMemberSchemeRoles, removeChannelMember, ge
 import {Permissions} from 'mattermost-redux/constants';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {Action} from 'mattermost-redux/types/actions';
+import type {ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
 import {canManageMembers} from 'utils/channel_utils';
 
+import type {ModalData} from 'types/actions';
 import type {GlobalState} from 'types/store';
 
 import ChannelMembersDropdown from './channel_members_dropdown';
@@ -42,9 +43,17 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
+type Actions = {
+    getChannelMember: (channelId: string, userId: string) => Promise<ActionResult>;
+    getChannelStats: (channelId: string, includeFileCount?: boolean) => Promise<ActionResult>;
+    updateChannelMemberSchemeRoles: (channelId: string, userId: string, isSchemeUser: boolean, isSchemeAdmib: boolean) => Promise<ActionResult>;
+    removeChannelMember: (channelId: string, userId: string) => Promise<ActionResult>;
+    openModal: <P>(modalData: ModalData<P>) => void;
+}
+
+function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, any>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
             getChannelMember,
             getChannelStats,
             updateChannelMemberSchemeRoles,
