@@ -3,6 +3,7 @@
 
 import type {Store} from 'redux';
 
+import {combineResults} from 'mattermost-redux/actions/helpers';
 import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import store from 'stores/redux_store';
@@ -16,7 +17,7 @@ export abstract class ProductPlugin {
 
 export function initializeProducts() {
     return (dispatch: DispatchFunc) => {
-        return Promise.all([
+        return combineResults([
             dispatch(loadRemoteModules()),
             dispatch(configureClient()),
         ]);

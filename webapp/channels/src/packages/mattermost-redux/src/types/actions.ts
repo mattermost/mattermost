@@ -27,4 +27,4 @@ export type DispatchFunc = (action: Action, getState?: GetStateFunc | null) => P
 export type ActionFunc<Data = any, Error = any> = (
     dispatch: DispatchFunc,
     getState: GetStateFunc
-) => Promise<ActionResult<Data, Error> | Array<ActionResult<Data, Error>>> | ActionResult<Data, Error>;
+) => Promise<ActionResult<Data, Error>> | ActionResult<Data, Error>;

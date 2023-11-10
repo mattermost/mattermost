@@ -16,7 +16,7 @@ import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc} from 'matterm
 import {getChannelAndMyMember, getChannelMembers} from './channels';
 import {logError} from './errors';
 import {receivedFiles} from './files';
-import {forceLogoutIfNecessary} from './helpers';
+import {combineResults, forceLogoutIfNecessary} from './helpers';
 import {getMentionsAndStatusesForPosts, receivedPosts} from './posts';
 
 const WEBAPP_SEARCH_PER_PAGE = 20;
@@ -40,12 +40,13 @@ export function getMissingChannelsFromPosts(posts: PostList['posts']): ActionFun
                 promises.push(dispatch(getChannelMembers(id)));
             }
         });
-        return Promise.all(promises);
+
+        return combineResults(promises);
     };
 }
 
 export function getMissingChannelsFromFiles(files: Map<string, FileSearchResultItem>): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const {
             channels,
             membersInChannel,
@@ -63,7 +64,8 @@ export function getMissingChannelsFromFiles(files: Map<string, FileSearchResultI
                 promises.push(dispatch(getChannelMembers(id)));
             }
         });
-        return Promise.all(promises);
+
+        return combineResults(promises);
     };
 }
 

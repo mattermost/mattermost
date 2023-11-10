@@ -9,6 +9,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {getChannel} from 'mattermost-redux/actions/channels';
+import {combineResults} from 'mattermost-redux/actions/helpers';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {getPostsByIds, getPost as fetchPost} from 'mattermost-redux/actions/posts';
 import {
@@ -192,7 +193,7 @@ function updateSearchResultsTerms(terms: string) {
 }
 
 export function performSearch(terms: string, isMentionSearch?: boolean) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let searchTerms = terms;
         const teamId = getCurrentTeamId(getState());
         const config = getConfig(getState());
@@ -226,7 +227,8 @@ export function performSearch(terms: string, isMentionSearch?: boolean) {
         const timezoneOffset = ((userCurrentTimezone && (userCurrentTimezone.length > 0)) ? getUtcOffsetForTimeZone(userCurrentTimezone) : getBrowserUtcOffset()) * 60;
         const messagesPromise = dispatch(searchPostsWithParams(isMentionSearch ? '' : teamId, {terms: searchTerms, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
         const filesPromise = dispatch(searchFilesWithParams(teamId, {terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
-        return Promise.all([filesPromise, messagesPromise]);
+
+        return combineResults([filesPromise, messagesPromise]);
     };
 }
 

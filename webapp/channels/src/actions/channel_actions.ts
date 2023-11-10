@@ -9,6 +9,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {PreferenceTypes} from 'mattermost-redux/action_types';
 import * as ChannelActions from 'mattermost-redux/actions/channels';
+import {combineResults} from 'mattermost-redux/actions/helpers';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getChannelByName, getUnreadChannelIds, getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
@@ -157,9 +158,9 @@ export function autocompleteChannelsForSearch(term: string, success: (channels: 
 export function addUsersToChannel(channelId: Channel['id'], userIds: Array<UserProfile['id']>): ActionFunc {
     return async (dispatch) => {
         try {
-            const requests = userIds.map((uId) => dispatch(ChannelActions.addChannelMember(channelId, uId)));
+            const promises = userIds.map((uId) => dispatch(ChannelActions.addChannelMember(channelId, uId)));
 
-            return await Promise.all(requests);
+            return combineResults(promises);
         } catch (error) {
             return {error};
         }

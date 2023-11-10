@@ -5,7 +5,7 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc, GenericAction, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, GenericAction, DispatchFunc, GetStateFunc, ActionResult} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 
@@ -130,6 +130,18 @@ export function debounce(func: (...args: any) => unknown, wait: number, immediat
                 cb();
             }
         }
+    };
+}
+
+export async function combineResults(promises: Array<Promise<ActionResult>>): Promise<ActionResult<boolean>> {
+    const results = await Promise.all(promises);
+
+    // We don't generally check for specific errors when we have multiple actions, so just return the first one
+    const error = results.find((result) => result.error);
+
+    return {
+        data: Boolean(error),
+        error,
     };
 }
 
