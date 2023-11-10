@@ -140,7 +140,7 @@ function advancedCreatePost(props?: Partial<Props>) {
 }
 
 describe('components/advanced_create_post', () => {
-    jest.useFakeTimers('legacy');
+    jest.useFakeTimers({legacyFakeTimers: true});
     let spy: jest.SpyInstance;
 
     beforeEach(() => {

@@ -7,6 +7,7 @@ import {configure} from 'enzyme';
 import Adapter from 'enzyme-adapter-react-17-updated';
 
 import '@testing-library/jest-dom';
+import 'isomorphic-fetch';
 
 import './redux-persist_mock';
 import './react-intl_mock';
@@ -14,7 +15,6 @@ import './react-router-dom_mock';
 import './react-tippy_mock';
 
 global.performance = {} as any;
-require('isomorphic-fetch');
 
 configure({adapter: new (Adapter as any)()});
 
