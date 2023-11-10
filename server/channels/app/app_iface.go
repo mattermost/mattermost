@@ -362,7 +362,7 @@ type AppIface interface {
 	// Ensure the zip file name ends with a .zip
 	CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error
 	// This to be used for places we check the users password when they are already logged in
-	DoubleCheckPassword(user *model.User, password string) *model.AppError
+	DoubleCheckPassword(rctx request.CTX, user *model.User, password string) *model.AppError
 	// UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
 	UpdateBotActive(c request.CTX, botUserId string, active bool) (*model.Bot, *model.AppError)
 	// UpdateBotOwner changes a bot's owner to the given value.
@@ -450,13 +450,13 @@ type AppIface interface {
 	CheckForClientSideCert(r *http.Request) (string, string, string)
 	CheckIntegrity() <-chan model.IntegrityCheckResult
 	CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError
-	CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError
+	CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, password string, mfaToken string) *model.AppError
 	CheckPostReminders()
 	CheckRolesExist(roleNames []string) *model.AppError
-	CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
-	CheckUserMfa(user *model.User, token string) *model.AppError
-	CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError
-	CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
+	CheckUserAllAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError
+	CheckUserMfa(rctx request.CTX, user *model.User, token string) *model.AppError
+	CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *model.User) *model.AppError
+	CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError
 	CheckWebConn(userID, connectionID string) *platform.CheckConnResult
 	ClearChannelMembersCache(c request.CTX, channelID string) error
 	ClearLatestVersionCache()
@@ -545,7 +545,7 @@ type AppIface interface {
 	DeleteSharedChannelRemote(id string) (bool, error)
 	DeleteSidebarCategory(c request.CTX, userID, teamID, categoryId string) *model.AppError
 	DeleteToken(token *model.Token) *model.AppError
-	DisableAutoResponder(c request.CTX, userID string, asAdmin bool) *model.AppError
+	DisableAutoResponder(rctx request.CTX, userID string, asAdmin bool) *model.AppError
 	DisableUserAccessToken(c request.CTX, token *model.UserAccessToken) *model.AppError
 	DoAppMigrations()
 	DoCheckForAdminNotifications(trial bool) *model.AppError
@@ -885,7 +885,7 @@ type AppIface interface {
 	IsConfigReadOnly() bool
 	IsFirstUserAccount() bool
 	IsLeader() bool
-	IsPasswordValid(password string) *model.AppError
+	IsPasswordValid(rctx request.CTX, password string) *model.AppError
 	IsPersistentNotificationsEnabled() bool
 	IsPhase2MigrationCompleted() *model.AppError
 	IsPluginActive(pluginName string) (bool, error)
@@ -1035,8 +1035,8 @@ type AppIface interface {
 	SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SendAckToPushProxy(ack *model.PushNotificationAck) error
-	SendAutoResponse(c request.CTX, channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError)
-	SendAutoResponseIfNecessary(c request.CTX, channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError)
+	SendAutoResponse(rctx request.CTX, channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError)
+	SendAutoResponseIfNecessary(rctx request.CTX, channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError)
 	SendDelinquencyEmail(emailToSend model.DelinquencyEmail) *model.AppError
 	SendEmailVerification(user *model.User, newEmail, redirect string) *model.AppError
 	SendEphemeralPost(c request.CTX, userID string, post *model.Post) *model.Post
@@ -1060,7 +1060,7 @@ type AppIface interface {
 	SessionHasPermissionToUser(session model.Session, userID string) bool
 	SessionHasPermissionToUserOrBot(session model.Session, userID string) bool
 	SetActiveChannel(c request.CTX, userID string, channelID string) *model.AppError
-	SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap)
+	SetAutoResponderStatus(rctx request.CTX, user *model.User, oldNotifyProps model.StringMap)
 	SetChannels(ch *Channels)
 	SetCustomStatus(c request.CTX, userID string, cs *model.CustomStatus) *model.AppError
 	SetDefaultProfileImage(c request.CTX, user *model.User) *model.AppError
@@ -1126,7 +1126,7 @@ type AppIface interface {
 	UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthApp, *model.AppError)
 	UpdateOAuthUserAttrs(c request.CTX, userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError
 	UpdateOutgoingWebhook(c request.CTX, oldHook, updatedHook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
-	UpdatePassword(user *model.User, newPassword string) *model.AppError
+	UpdatePassword(rctx request.CTX, user *model.User, newPassword string) *model.AppError
 	UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPassword string) *model.AppError
 	UpdatePasswordByUserIdSendEmail(c request.CTX, userID, newPassword, method string) *model.AppError
 	UpdatePasswordSendEmail(c request.CTX, user *model.User, newPassword, method string) *model.AppError
