@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import {NavLink} from 'react-router-dom';
 
 import {getHistory} from 'utils/browser_history';
@@ -26,17 +26,16 @@ type Props = {
 };
 
 const BlockableLink = ({blocked, actions, onClick, to, ...restProps}: Props) => {
-    const handleClick = (e: React.MouseEvent) => {
-        if (onClick) {
-            onClick(e);
-        }
+    const handleClick = useCallback((e: React.MouseEvent) => {
+        onClick?.(e);
+
         if (blocked) {
             e.preventDefault();
             actions.deferNavigation(() => {
                 getHistory().push(to);
             });
         }
-    };
+    }, [actions, blocked, onClick, to]);
 
     return (
         <NavLink
