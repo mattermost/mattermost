@@ -136,7 +136,7 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 		ctx := context.Background()
 		if timeoutSeconds > 0 {
 			var cancel context.CancelFunc
-			_, cancel = context.WithTimeout(ctx, time.Second*time.Duration(timeoutSeconds))
+			ctx, cancel = context.WithTimeout(ctx, time.Second*time.Duration(timeoutSeconds))
 			defer cancel()
 		}
 
