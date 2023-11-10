@@ -141,8 +141,7 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 	if result.NErr != nil {
 		return nil, errors.Wrap(result.NErr, "failed to get user profiles by ids")
 	}
-	outUsers := result.Data
-	autocomplete.OutOfChannel = outUsers
+	autocomplete.OutOfChannel = result.Data
 
 	return autocomplete, nil
 }
