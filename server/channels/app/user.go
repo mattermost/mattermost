@@ -1109,7 +1109,7 @@ func (a *App) PatchUser(c request.CTX, userID string, patch *model.UserPatch, as
 	return updatedUser, nil
 }
 
-func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
+func (a *App) UpdateUserAuth(c request.CTX, userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
 	if _, err := a.Srv().Store().User().UpdateAuthData(userID, userAuth.AuthService, userAuth.AuthData, "", false); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -1217,31 +1217,6 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 			if !user.IsBot {
 				user.Email = prev.Email
 			}
-		}
-	}
-
-	updateAt := model.GetMillis()
-	if user.AuthService != "" && user.AuthData != nil {
-		switch user.AuthService {
-		case model.UserAuthServiceSaml, model.UserAuthServiceLdap:
-			user.Password = ""
-			user.LastPasswordUpdate = updateAt
-		default:
-			user.AuthService = prev.AuthService
-			user.AuthData = prev.AuthData
-		}
-	} else if user.AuthService == "" && user.AuthData == nil && user.Password != "" && prev.AuthService != "" {
-		// Update the password of the user if the AuthService is set to default.
-		if err := a.IsPasswordValid(c, user.Password); err != nil {
-			return nil, err
-		}
-		
-		newPassword := model.HashPassword(user.Password)
-		if newPassword != prev.Password {
-			user.AuthService = ""
-			user.AuthData = nil
-			user.Password = newPassword
-			user.LastPasswordUpdate = updateAt
 		}
 	}
 

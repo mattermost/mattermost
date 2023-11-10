@@ -184,6 +184,10 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 	}
 
 	user.CreateAt = oldUser.CreateAt
+	user.AuthData = oldUser.AuthData
+	user.AuthService = oldUser.AuthService
+	user.Password = oldUser.Password
+	user.LastPasswordUpdate = oldUser.LastPasswordUpdate
 	user.LastPictureUpdate = oldUser.LastPictureUpdate
 	user.EmailVerified = oldUser.EmailVerified
 	user.FailedAttempts = oldUser.FailedAttempts
@@ -232,7 +236,6 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 		}
 		return nil, errors.Wrapf(err, "failed to update User with userId=%s", user.Id)
 	}
-
 
 	count, err := res.RowsAffected()
 	if err != nil {
