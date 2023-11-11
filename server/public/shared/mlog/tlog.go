@@ -45,7 +45,10 @@ func CreateConsoleLogger() *Logger {
 		Lvl:        LvlTrace,
 		Stacktrace: LvlPanic,
 	}
-	formatter := &formatters.Plain{EnableCaller: true}
+	formatter := &formatters.Plain{
+		EnableCaller: true,
+		EnableColor:  true,
+	}
 
 	target := targets.NewWriterTarget(os.Stdout)
 	if err := logger.log.Logr().AddTarget(target, "_testcon", filter, formatter, 1000); err != nil {

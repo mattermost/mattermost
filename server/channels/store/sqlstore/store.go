@@ -241,16 +241,22 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 
 // SetupConnection sets up the connection to the database and pings it to make sure it's alive.
 // It also applies any database configuration settings that are required.
-func SetupConnection(connType string, dataSource string, settings *model.SqlSettings, attempts int) (*dbsql.DB, error) {
+func SetupConnection(logger mlog.LoggerIFace, connType string, dataSource string, settings *model.SqlSettings, attempts int) (*dbsql.DB, error) {
 	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to open SQL connection")
 	}
 
+	// At this point, we have passed sql.Open, so we deliberately ignore any errors.
+	sanitized, _ := SanitizeDataSource(*settings.DriverName, dataSource)
+
+	logger = logger.With(
+		mlog.String("database", connType),
+		mlog.String("dataSource", sanitized),
+	)
+
 	for i := 0; i < attempts; i++ {
-		// At this point, we have passed sql.Open, so we deliberately ignore any errors.
-		sanitized, _ := SanitizeDataSource(*settings.DriverName, dataSource)
-		mlog.Info("Pinging SQL", mlog.String("database", connType), mlog.String("dataSource", sanitized))
+		logger.Info("Pinging SQL")
 		ctx, cancel := context.WithTimeout(context.Background(), DBPingTimeoutSecs*time.Second)
 		defer cancel()
 		err = db.PingContext(ctx)
@@ -258,7 +264,7 @@ func SetupConnection(connType string, dataSource string, settings *model.SqlSett
 			if i == attempts-1 {
 				return nil, err
 			}
-			mlog.Error("Failed to ping DB", mlog.Err(err), mlog.Int("retrying in seconds", DBPingTimeoutSecs))
+			logger.Error("Failed to ping DB", mlog.Int("retrying in seconds", DBPingTimeoutSecs), mlog.Err(err))
 			time.Sleep(DBPingTimeoutSecs * time.Second)
 			continue
 		}
@@ -312,7 +318,7 @@ func (ss *SqlStore) initConnection() error {
 		}
 	}
 
-	handle, err := SetupConnection("master", dataSource, ss.settings, DBPingAttempts)
+	handle, err := SetupConnection(ss.Logger(), "master", dataSource, ss.settings, DBPingAttempts)
 	if err != nil {
 		return err
 	}
@@ -330,7 +336,7 @@ func (ss *SqlStore) initConnection() error {
 		ss.ReplicaXs = make([]*atomic.Pointer[sqlxDBWrapper], len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
 			ss.ReplicaXs[i] = &atomic.Pointer[sqlxDBWrapper]{}
-			handle, err = SetupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings, DBPingAttempts)
+			handle, err = SetupConnection(ss.Logger(), fmt.Sprintf("replica-%v", i), replica, ss.settings, DBPingAttempts)
 			if err != nil {
 				// Initializing to be offline
 				ss.ReplicaXs[i].Store(&sqlxDBWrapper{isOnline: &atomic.Bool{}})
@@ -345,7 +351,7 @@ func (ss *SqlStore) initConnection() error {
 		ss.searchReplicaXs = make([]*atomic.Pointer[sqlxDBWrapper], len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			ss.searchReplicaXs[i] = &atomic.Pointer[sqlxDBWrapper]{}
-			handle, err = SetupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings, DBPingAttempts)
+			handle, err = SetupConnection(ss.Logger(), fmt.Sprintf("search-replica-%v", i), replica, ss.settings, DBPingAttempts)
 			if err != nil {
 				// Initializing to be offline
 				ss.searchReplicaXs[i].Store(&sqlxDBWrapper{isOnline: &atomic.Bool{}})
@@ -362,7 +368,7 @@ func (ss *SqlStore) initConnection() error {
 			if src.DataSource == nil {
 				continue
 			}
-			ss.replicaLagHandles[i], err = SetupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBPingAttempts)
+			ss.replicaLagHandles[i], err = SetupConnection(ss.Logger(), fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBPingAttempts)
 			if err != nil {
 				mlog.Warn("Failed to setup replica lag handle. Skipping..", mlog.String("db", fmt.Sprintf(replicaLagPrefix+"-%d", i)), mlog.Err(err))
 				continue
@@ -517,7 +523,7 @@ func (ss *SqlStore) monitorReplicas() {
 					return
 				}
 
-				handle, err := SetupConnection(name, dsn, ss.settings, 1)
+				handle, err := SetupConnection(ss.Logger(), name, dsn, ss.settings, 1)
 				if err != nil {
 					mlog.Warn("Failed to setup connection. Skipping..", mlog.String("db", name), mlog.Err(err))
 					return

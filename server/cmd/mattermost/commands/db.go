@@ -160,6 +160,9 @@ func resetCmdF(command *cobra.Command, args []string) error {
 }
 
 func migrateCmdF(command *cobra.Command, args []string) error {
+	logger := mlog.CreateConsoleLogger()
+	defer logger.Shutdown()
+
 	cfgDSN := getConfigDSN(command, config.GetEnvironment())
 	recoverFlag, _ := command.Flags().GetBool("auto-recover")
 	savePlan, _ := command.Flags().GetBool("save-plan")
@@ -170,7 +173,7 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 	}
 	config := cfgStore.Get()
 
-	migrator, err := sqlstore.NewMigrator(config.SqlSettings, dryRun)
+	migrator, err := sqlstore.NewMigrator(config.SqlSettings, logger, dryRun)
 	if err != nil {
 		return errors.Wrap(err, "failed to create migrator")
 	}
@@ -224,6 +227,9 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 }
 
 func downgradeCmdF(command *cobra.Command, args []string) error {
+	logger := mlog.CreateConsoleLogger()
+	defer logger.Shutdown()
+
 	cfgDSN := getConfigDSN(command, config.GetEnvironment())
 	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
 	if err != nil {
@@ -239,7 +245,7 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to initialize filebackend: %w", err2)
 	}
 
-	migrator, err := sqlstore.NewMigrator(config.SqlSettings, dryRun)
+	migrator, err := sqlstore.NewMigrator(config.SqlSettings, logger, dryRun)
 	if err != nil {
 		return errors.Wrap(err, "failed to create migrator")
 	}
