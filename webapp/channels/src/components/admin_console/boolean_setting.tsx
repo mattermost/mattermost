@@ -12,7 +12,7 @@ type Props = {
     id: string;
     label: React.ReactNode;
     value: boolean;
-    onChange: (id: string, foo: boolean) => void;
+    onChange: (id: string, value: boolean) => void;
     trueText?: React.ReactNode;
     falseText?: React.ReactNode;
     disabled: boolean;

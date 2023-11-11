@@ -124,7 +124,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
         return this.state.canSave;
     };
 
-    doTestConfig = (success: () => void, error: (error: string) => void): void => {
+    doTestConfig = (success: () => void, error: (error: {message: string; detailed_message?: string}) => void): void => {
         const config = JSON.parse(JSON.stringify(this.props.config));
         this.getConfigFromState(config);
 
@@ -137,7 +137,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                 });
                 success();
             },
-            (err: string) => {
+            (err: {message: string; detailed_message?: string}) => {
                 this.setState({
                     configTested: false,
                     canSave: false,

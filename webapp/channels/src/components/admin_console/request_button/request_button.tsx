@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import SuccessIcon from 'components/widgets/icons/fa_success_icon';
@@ -27,8 +28,8 @@ type Props = {
      * The action to be called to carry out the request.
      */
     requestAction: (
-        success: (data?: any) => void,
-        error: (error: any) => void
+        success: () => void,
+        error: (error: {message: string; detailed_error?: string}) => void
     ) => void;
 
     /**
@@ -87,37 +88,12 @@ type Props = {
     /**
      * The message to show when the request completes successfully.
      */
-    successMessage: {
-
-        /**
-         * The i18n string ID for the success message.
-         */
-        id: string;
-
-        /**
-         * The i18n default value for the success message.
-         */
-        defaultMessage: string;
-    };
+    successMessage: MessageDescriptor;
 
     /**
      * The message to show when the request returns an error.
      */
-    errorMessage: {
-
-        /**
-         * The i18n string ID for the error message.
-         */
-        id: string;
-
-        /**
-         * The i18n default value for the error message.
-         *
-         * The placeholder {error} may be used to include the error message returned
-         * by the server in response to the failed request.
-         */
-        defaultMessage: string;
-    };
+    errorMessage: MessageDescriptor;
 
     /**
      * True if the {error} placeholder for the `errorMessage` property should include both

@@ -20,7 +20,7 @@ import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin, currentUserHasAnAdminRole, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked, deferNavigation, cancelNavigation, confirmNavigation} from 'actions/admin_actions.jsx';
 import {selectLhsItem} from 'actions/views/lhs';
@@ -63,14 +63,14 @@ function mapStateToProps(state: GlobalState) {
 type Actions = {
     getConfig: () => ActionFunc;
     getEnvironmentConfig: () => ActionFunc;
-    setNavigationBlocked: () => void;
+    setNavigationBlocked: (blocked: boolean) => void;
     confirmNavigation: () => void;
     cancelNavigation: () => void;
     loadRolesIfNeeded: (roles: Iterable<string>) => ActionFunc;
     selectLhsItem: (type: LhsItemType, id?: string) => void;
     selectTeam: (teamId: string) => void;
     editRole: (role: Role) => void;
-    updateConfig?: (config: AdminConfig) => ActionFunc;
+    updateConfig: (config: AdminConfig) => ActionResult;
 };
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {

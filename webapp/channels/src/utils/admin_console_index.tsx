@@ -7,6 +7,7 @@ import type {IntlShape} from 'react-intl';
 import type {PluginRedux} from '@mattermost/types/plugins';
 
 import type AdminDefinition from 'components/admin_console/admin_definition';
+import type {AdminDefinitionSetting, AdminDefinitionSubSection} from 'components/admin_console/types';
 
 import {getPluginEntries} from './admin_console_plugin_index';
 
@@ -28,13 +29,17 @@ export type Index = {
     search(query: string): string[];
 }
 
-function extractTextsFromSection(section: Record<string, any>, intl: IntlShape) {
+function extractTextsFromSection(section: AdminDefinitionSubSection, intl: IntlShape) {
     const texts: Array<string | string[]> = [];
     if (section.title) {
-        texts.push(intl.formatMessage({id: section.title, defaultMessage: section.title_default}));
+        texts.push(intl.formatMessage(section.title));
     }
-    if (section.schema && section.schema.name) {
-        texts.push(section.schema.name);
+    if ('name' in section.schema && section.schema.name) {
+        if (typeof section.schema.name === 'string') {
+            texts.push(section.schema.name);
+        } else {
+            texts.push(intl.formatMessage(section.schema.name));
+        }
     }
     if (section.searchableStrings) {
         for (const searchableString of section.searchableStrings) {
@@ -47,10 +52,10 @@ function extractTextsFromSection(section: Record<string, any>, intl: IntlShape) 
     }
 
     if (section.schema) {
-        if (section.schema.settings) {
+        if ('settings' in section.schema && section.schema.settings) {
             texts.push(extractTextFromSettings(section.schema.settings, intl));
-        } else if (section.schema.sections) {
-            section.schema.sections.forEach((schemaSection: any) => {
+        } else if ('sections' in section.schema && section.schema.sections) {
+            section.schema.sections.forEach((schemaSection) => {
                 texts.push(...extractTextFromSettings(schemaSection.settings, intl));
             });
         }
@@ -59,21 +64,25 @@ function extractTextsFromSection(section: Record<string, any>, intl: IntlShape) 
     return texts;
 }
 
-function extractTextFromSettings(settings: Array<Record<string, any>>, intl: IntlShape) {
+function extractTextFromSettings(settings: AdminDefinitionSetting[], intl: IntlShape) {
     const texts = [];
 
     for (const setting of Object.values(settings)) {
         if (setting.label) {
-            texts.push(intl.formatMessage({id: setting.label, defaultMessage: setting.label_default}, setting.label_values));
+            texts.push(typeof setting.label === 'string' ? setting.label : intl.formatMessage(setting.label, setting.label_values));
         }
-        if (setting.help_text && typeof setting.help_text === 'string') {
-            texts.push(intl.formatMessage({id: setting.help_text, defaultMessage: setting.help_text_default}, setting.help_text_values));
+        if (setting.help_text) {
+            if (typeof setting.help_text === 'string') {
+                texts.push(setting.help_text);
+            } else if ('id' in setting.help_text) {
+                texts.push(intl.formatMessage(setting.help_text, setting.help_text_values));
+            }
         }
-        if (setting.remove_help_text) {
-            texts.push(intl.formatMessage({id: setting.remove_help_text, defaultMessage: setting.remove_help_text_default}));
+        if ('remove_help_text' in setting && setting.remove_help_text) {
+            texts.push(intl.formatMessage(setting.remove_help_text));
         }
-        if (setting.remove_button_text) {
-            texts.push(intl.formatMessage({id: setting.remove_button_text, defaultMessage: setting.remove_button_text_default}));
+        if ('remove_button_text' in setting && setting.remove_button_text) {
+            texts.push(intl.formatMessage(setting.remove_button_text));
         }
     }
 

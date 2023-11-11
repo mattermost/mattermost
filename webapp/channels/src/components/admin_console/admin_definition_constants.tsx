@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
 const SECTION_NONE = (
     <tr>
@@ -156,17 +156,14 @@ export const WEBSERVER_MODE_HELP_TEXT = (
 export const LOG_LEVEL_OPTIONS = [
     {
         value: 'DEBUG',
-        display_name: 'DEBUG',
-        display_name_default: 'DEBUG',
+        display_name: defineMessage({id: 'admin.log.levelOptions.DEBUG', defaultMessage: 'DEBUG'}),
     },
     {
         value: 'INFO',
-        display_name: 'INFO',
-        display_name_default: 'INFO',
+        display_name: defineMessage({id: 'admin.log.levelOptions.INFO', defaultMessage: 'INFO'}),
     },
     {
         value: 'ERROR',
-        display_name: 'ERROR',
-        display_name_default: 'ERROR',
+        display_name: defineMessage({id: 'admin.log.levelOptions.ERROR', defaultMessage: 'ERROR'}),
     },
 ];

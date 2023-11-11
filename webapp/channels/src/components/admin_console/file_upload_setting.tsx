@@ -13,7 +13,7 @@ type Props = {
     label: React.ReactNode;
     helpText?: React.ReactNode;
     uploadingText?: React.ReactNode;
-    onSubmit: (id: string, file: File, errorCallback: (error: string) => void) => void;
+    onSubmit: (id: string, file: File, errorCallback: (error?: string) => void) => void;
     disabled: boolean;
     fileType: string;
     error?: string;

@@ -39,13 +39,17 @@ function extractTextsFromPlugin(plugin: PluginRedux) {
 function extractTextFromSetting(setting: Partial<AdminDefinitionSetting & PluginSetting>) {
     const texts = [];
     if (setting.label) {
-        texts.push(setting.label);
+        if (typeof setting.label === 'string') {
+            texts.push(setting.label);
+        }
     }
     if (setting.display_name) {
         texts.push(setting.display_name);
     }
     if (setting.help_text) {
-        texts.push(stripMarkdown(setting.help_text));
+        if (typeof setting.help_text === 'string') {
+            texts.push(stripMarkdown(setting.help_text));
+        }
     }
     if (setting.key) {
         texts.push(setting.key);

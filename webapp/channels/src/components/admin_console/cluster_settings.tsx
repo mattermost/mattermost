@@ -2,24 +2,43 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+
+import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
 
 import ExternalLink from 'components/external_link';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
-import DocLinks from 'utils/constants';
-import * as Utils from 'utils/utils';
+import {DocLinks} from 'utils/constants';
 
+import type {BaseProps, BaseState} from './admin_settings';
 import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
 import ClusterTableContainer from './cluster_table_container';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
-export default class ClusterSettings extends AdminSettings {
-    getConfigFromState = (config) => {
+type Props = {
+    license: ClientLicense;
+} & WrappedComponentProps & BaseProps;
+
+type State = {
+    Enable: boolean;
+    ClusterName: string;
+    OverrideHostname: string;
+    UseIPAddress: boolean;
+    EnableExperimentalGossipEncryption: boolean;
+    EnableGossipCompression: boolean;
+    GossipPort: number;
+    StreamingPort: number;
+    showWarning: boolean;
+} & BaseState;
+
+class ClusterSettings extends AdminSettings<Props, State> {
+    getConfigFromState = (config: AdminConfig) => {
         config.ClusterSettings.Enable = this.state.Enable;
         config.ClusterSettings.ClusterName = this.state.ClusterName;
         config.ClusterSettings.OverrideHostname = this.state.OverrideHostname;
@@ -31,7 +50,7 @@ export default class ClusterSettings extends AdminSettings {
         return config;
     };
 
-    getStateFromConfig(config) {
+    getStateFromConfig(config: AdminConfig) {
         const settings = config.ClusterSettings;
 
         return {
@@ -56,7 +75,7 @@ export default class ClusterSettings extends AdminSettings {
         );
     }
 
-    overrideHandleChange = (id, value) => {
+    overrideHandleChange = (id: string, value: unknown) => {
         this.setState({
             showWarning: true,
         });
@@ -67,10 +86,10 @@ export default class ClusterSettings extends AdminSettings {
     renderSettings = () => {
         const licenseEnabled = this.props.license.IsLicensed === 'true' && this.props.license.Cluster === 'true';
         if (!licenseEnabled) {
-            return null;
+            return (<></>);
         }
 
-        var configLoadedFromCluster = null;
+        let configLoadedFromCluster = null;
 
         if (Client4.clusterId) {
             configLoadedFromCluster = (
@@ -98,7 +117,7 @@ export default class ClusterSettings extends AdminSettings {
             );
         }
 
-        var warning = null;
+        let warning = null;
 
         if (this.state.showWarning) {
             warning = (
@@ -125,7 +144,7 @@ export default class ClusterSettings extends AdminSettings {
             );
         }
 
-        var clusterTableContainer = null;
+        let clusterTableContainer: React.ReactNode = null;
         if (this.state.Enable) {
             clusterTableContainer = (<ClusterTableContainer/>);
         }
@@ -178,7 +197,7 @@ export default class ClusterSettings extends AdminSettings {
                             defaultMessage='Cluster Name:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.cluster.ClusterNameEx', 'E.g.: "Production" or "Staging"')}
+                    placeholder={this.props.intl.formatMessage({id: 'admin.cluster.ClusterNameEx', defaultMessage: 'E.g.: "Production" or "Staging"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.cluster.ClusterNameDesc'
@@ -198,7 +217,7 @@ export default class ClusterSettings extends AdminSettings {
                             defaultMessage='Override Hostname:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.cluster.OverrideHostnameEx', 'E.g.: "app-server-01"')}
+                    placeholder={this.props.intl.formatMessage({id: 'admin.cluster.OverrideHostnameEx', defaultMessage: 'E.g.: "app-server-01"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.cluster.OverrideHostnameDesc'
@@ -275,7 +294,7 @@ export default class ClusterSettings extends AdminSettings {
                             defaultMessage='Gossip Port:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.cluster.GossipPortEx', 'E.g.: "8074"')}
+                    placeholder={this.props.intl.formatMessage({id: 'admin.cluster.GossipPortEx', defaultMessage: 'E.g.: "8074"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.cluster.GossipPortDesc'
@@ -295,7 +314,7 @@ export default class ClusterSettings extends AdminSettings {
                             defaultMessage='Streaming Port:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.cluster.StreamingPortEx', 'E.g.: "8075"')}
+                    placeholder={this.props.intl.formatMessage({id: 'admin.cluster.StreamingPortEx', defaultMessage: 'E.g.: "8075"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.cluster.StreamingPortDesc'
@@ -311,6 +330,8 @@ export default class ClusterSettings extends AdminSettings {
         );
     };
 }
+
+export default injectIntl(ClusterSettings);
 
 const style = {
     configLoadedFromCluster: {marginBottom: 10},
