@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, memo} from 'react';
+import type {MouseEvent} from 'react';
 
 import type {GetStateFunc, DispatchFunc} from 'mattermost-redux/types/actions';
 
@@ -28,7 +29,7 @@ const ViewPinnedPosts = ({
     },
     show,
 }: Props) => {
-    const handleClick = useCallback((e: React.MouseEvent) => {
+    const handleClick = useCallback((e: MouseEvent) => {
         e.preventDefault();
 
         if (hasPinnedPosts) {
@@ -36,7 +37,7 @@ const ViewPinnedPosts = ({
         } else {
             showPinnedPosts(channel.id);
         }
-    }, [channel, closeRightHandSide, showPinnedPosts, hasPinnedPosts]);
+    }, [channel.id, closeRightHandSide, showPinnedPosts, hasPinnedPosts]);
 
     return (
         <Menu.ItemAction
