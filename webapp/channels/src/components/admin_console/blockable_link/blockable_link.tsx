@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
+import type {MouseEvent} from 'react';
 import {NavLink} from 'react-router-dom';
 
 import {getHistory} from 'utils/browser_history';
@@ -26,7 +27,7 @@ type Props = {
 };
 
 const BlockableLink = ({blocked, actions, onClick, to, ...restProps}: Props) => {
-    const handleClick = useCallback((e: React.MouseEvent) => {
+    const handleClick = useCallback((e: MouseEvent) => {
         onClick?.(e);
 
         if (blocked) {
