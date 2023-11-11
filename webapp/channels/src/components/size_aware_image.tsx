@@ -5,6 +5,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import type {KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
@@ -66,7 +67,7 @@ export type Props = {
     /*
     * Fetch the onClick function
     */
-    onClick?: (e: (React.KeyboardEvent<HTMLImageElement> | React.MouseEvent<HTMLElement, MouseEvent>), link: string) => void;
+    onClick?: (e: (KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLImageElement | HTMLDivElement>), link?: string) => void;
 
     /*
     * css classes that can added to the img as well as parent div on svg for placeholder
