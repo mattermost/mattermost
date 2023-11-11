@@ -60,7 +60,7 @@ function makeGetPluginSchema() {
                     } else if (setting.type === Constants.SettingsTypes.TYPE_CUSTOM) {
                         // Show a warning banner to enable the plugin in order to display the custom component.
                         type = Constants.SettingsTypes.TYPE_BANNER;
-                        displayName = defineMessage({id: 'admin.plugin.customSetting.pluginDisabledWarning', defaulMessage: 'In order to view this setting, enable the plugin and click Save.'});
+                        displayName = defineMessage({id: 'admin.plugin.customSetting.pluginDisabledWarning', defaultMessage: 'In order to view this setting, enable the plugin and click Save.'});
                         bannerType = 'warning';
                         isDisabled = it.any(it.stateIsTrue(pluginEnabledConfigKey), it.not(it.userHasWritePermissionOnResource('plugins')));
                     }

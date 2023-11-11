@@ -4029,17 +4029,17 @@ const AdminDefinition: AdminDefinitionType = {
                             options: [
                                 {
                                     value: SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1,
-                                    display_name: defineMessage({id: 'admin.saml.signatureAlgorithmDisplay.sha1', defaultMessage: SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1}),
+                                    display_name: defineMessage({id: 'admin.saml.signatureAlgorithmDisplay.sha1', defaultMessage: 'RSAwithSHA1'}),
                                     help_text: defineMessage({id: 'admin.saml.signatureAlgorithmDescription.sha1', defaultMessage: 'Specify the Signature algorithm used to sign the request (RSAwithSHA1). Please see more information provided at http://www.w3.org/2000/09/xmldsig#rsa-sha1'}),
                                 },
                                 {
                                     value: SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256,
-                                    display_name: defineMessage({id: 'admin.saml.signatureAlgorithmDisplay.sha256', defaultMessage: SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256}),
+                                    display_name: defineMessage({id: 'admin.saml.signatureAlgorithmDisplay.sha256', defaultMessage: 'RSAwithSHA256'}),
                                     help_text: defineMessage({id: 'admin.saml.signatureAlgorithmDescription.sha256', defaultMessage: 'Specify the Signature algorithm used to sign the request (RSAwithSHA256). Please see more information provided at http://www.w3.org/2001/04/xmldsig-more#rsa-sha256 [section 6.4.2 RSA (PKCS#1 v1.5)]'}),
                                 },
                                 {
                                     value: SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512,
-                                    display_name: defineMessage({id: 'admin.saml.signatureAlgorithmDisplay.sha512', defaultMessage: SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512}),
+                                    display_name: defineMessage({id: 'admin.saml.signatureAlgorithmDisplay.sha512', defaultMessage: 'RSAwithSHA512'}),
                                     help_text: defineMessage({id: 'admin.saml.signatureAlgorithmDescription.sha512', defaultMessage: 'Specify the Signature algorithm used to sign the request (RSAwithSHA512). Please see more information provided at http://www.w3.org/2001/04/xmldsig-more#rsa-sha512'}),
                                 },
                             ],
