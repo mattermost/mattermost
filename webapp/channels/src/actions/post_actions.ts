@@ -141,6 +141,25 @@ function storeCommentDraft(rootPostId: string, draft: null) {
     };
 }
 
+export function submitReaction(postId: string, action: string, emojiName: string) {
+    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        const state = getState() as GlobalState;
+        const currentUserId = getCurrentUserId(state);
+
+        const getReactionsForPost = makeGetUniqueReactionsToPost();
+        const reactionsForPost = getReactionsForPost(state, postId) ?? {};
+
+        const isReactionAlreadyAddedToPost = Object.values(reactionsForPost).some((reaction) => reaction.user_id === currentUserId && reaction.emoji_name === emojiName);
+
+        if (action === '+' && !isReactionAlreadyAddedToPost) {
+            dispatch(addReaction(postId, emojiName));
+        } else if (action === '-' && isReactionAlreadyAddedToPost) {
+            dispatch(PostActions.removeReaction(postId, emojiName));
+        }
+        return {data: true};
+    };
+}
+
 export function toggleReaction(postId: string, emojiName: string) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
@@ -149,9 +168,9 @@ export function toggleReaction(postId: string, emojiName: string) {
         const getReactionsForPost = makeGetUniqueReactionsToPost();
         const reactionsForPost = getReactionsForPost(state, postId) ?? {};
 
-        const isEmojiAlreadyAdded = Object.values(reactionsForPost).some((reaction) => reaction.user_id === currentUserId && reaction.emoji_name === emojiName);
+        const isReactionAlreadyAddedToPost = Object.values(reactionsForPost).some((reaction) => reaction.user_id === currentUserId && reaction.emoji_name === emojiName);
 
-        if (isEmojiAlreadyAdded) {
+        if (isReactionAlreadyAddedToPost) {
             return dispatch(PostActions.removeReaction(postId, emojiName));
         }
         return dispatch(addReaction(postId, emojiName));
