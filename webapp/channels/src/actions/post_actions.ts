@@ -34,7 +34,7 @@ import {
     StoragePrefixes,
 } from 'utils/constants';
 import {matchEmoticons} from 'utils/emoticons';
-import {makeGetUniqueReactionsToPost} from 'utils/post_utils';
+import {makeGetIsReactionAlreadyAddedToPost} from 'utils/post_utils';
 import * as UserAgent from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
@@ -144,12 +144,9 @@ function storeCommentDraft(rootPostId: string, draft: null) {
 export function submitReaction(postId: string, action: string, emojiName: string) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
-        const currentUserId = getCurrentUserId(state);
+        const getIsReactionAlreadyAddedToPost = makeGetIsReactionAlreadyAddedToPost();
 
-        const getReactionsForPost = makeGetUniqueReactionsToPost();
-        const reactionsForPost = getReactionsForPost(state, postId) ?? {};
-
-        const isReactionAlreadyAddedToPost = Object.values(reactionsForPost).some((reaction) => reaction.user_id === currentUserId && reaction.emoji_name === emojiName);
+        const isReactionAlreadyAddedToPost = getIsReactionAlreadyAddedToPost(state, postId, emojiName);
 
         if (action === '+' && !isReactionAlreadyAddedToPost) {
             dispatch(addReaction(postId, emojiName));
@@ -163,12 +160,9 @@ export function submitReaction(postId: string, action: string, emojiName: string
 export function toggleReaction(postId: string, emojiName: string) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
-        const currentUserId = getCurrentUserId(state);
+        const getIsReactionAlreadyAddedToPost = makeGetIsReactionAlreadyAddedToPost();
 
-        const getReactionsForPost = makeGetUniqueReactionsToPost();
-        const reactionsForPost = getReactionsForPost(state, postId) ?? {};
-
-        const isReactionAlreadyAddedToPost = Object.values(reactionsForPost).some((reaction) => reaction.user_id === currentUserId && reaction.emoji_name === emojiName);
+        const isReactionAlreadyAddedToPost = getIsReactionAlreadyAddedToPost(state, postId, emojiName);
 
         if (isReactionAlreadyAddedToPost) {
             return dispatch(PostActions.removeReaction(postId, emojiName));
