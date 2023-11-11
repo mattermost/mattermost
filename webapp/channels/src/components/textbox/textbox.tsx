@@ -296,8 +296,10 @@ export default class Textbox extends React.PureComponent<Props> {
                     />
                 </div>
                 <SuggestionBox
-                    id={this.props.id}
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
                     ref={this.message}
+                    id={this.props.id}
                     className={textboxClassName}
                     spellCheck='true'
                     placeholder={this.props.createMessage}
@@ -317,7 +319,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     listComponent={this.props.suggestionList}
                     listPosition={this.props.suggestionListPosition}
                     providers={this.suggestionProviders}
-                    channelId={this.props.channelId}
                     value={this.props.value}
                     renderDividers={ALL}
                     disabled={this.props.disabled}
