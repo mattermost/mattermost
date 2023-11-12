@@ -2,11 +2,6 @@
 
 exports[`components/ToggleModalButton component should match snapshot 1`] = `
 <ToggleModalButton
-  actions={
-    Object {
-      "openModal": [Function],
-    }
-  }
   ariaLabel="Delete Channel"
   dialogType={[Function]}
   id="channelDelete"

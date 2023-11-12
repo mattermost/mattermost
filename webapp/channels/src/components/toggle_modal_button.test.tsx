@@ -10,6 +10,11 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import ToggleModalButton from './toggle_modal_button';
 
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux') as typeof import('react-redux'),
+    useDispatch: () => jest.fn(),
+}));
+
 class TestModal extends React.PureComponent {
     render() {
         return (
@@ -33,7 +38,6 @@ describe('components/ToggleModalButton', () => {
                 role='menuitem'
                 modalId={ModalIdentifiers.DELETE_CHANNEL}
                 dialogType={TestModal}
-                actions={{openModal: () => true}}
             >
                 <FormattedMessage
                     id='channel_header.delete'
