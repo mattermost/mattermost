@@ -6934,7 +6934,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     </ExternalLink>
                                 ),
                             },
-                            isHidden: true || it.not(it.licensedForFeature('SAML')),
+                            isHidden: it.not(it.licensedForFeature('SAML')),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
