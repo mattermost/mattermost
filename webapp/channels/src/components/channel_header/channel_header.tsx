@@ -99,6 +99,7 @@ export type Props = {
 type State = {
     titleMenuOpen: boolean;
     showChannelHeaderPopover: boolean;
+    channelHeaderPoverWidth: number;
     leftOffset: number;
     topOffset: number;
 };
@@ -120,6 +121,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
 
         this.state = {
             showChannelHeaderPopover: false,
+            channelHeaderPoverWidth: 0,
             leftOffset: 0,
             topOffset: 0,
             titleMenuOpen: false,
@@ -231,8 +233,10 @@ class ChannelHeader extends React.PureComponent<Props, State> {
 
         // add 40px to take the global header into account
         const topOffset = (announcementBarSize * this.props.announcementBarCount) + 40;
+        const channelHeaderPoverWidth = this.headerDescriptionRef.current?.clientWidth || 0 - (this.props.hasMoreThanOneTeam ? 64 : 0);
 
         this.setState({topOffset});
+        this.setState({channelHeaderPoverWidth});
     };
 
     toggleChannelMembersRHS = () => {
@@ -518,7 +522,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
 
         let headerTextContainer;
         const headerText = (isDirect && dmUser?.is_bot) ? dmUser.bot_description : channel.header;
-        const popoverWidth = this.headerDescriptionRef.current?.clientWidth || 0 - (this.props.hasMoreThanOneTeam ? 64 : 0);
         if (headerText) {
             const imageProps = {
                 hideUtilities: true,
@@ -528,7 +531,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     id='header-popover'
                     popoverStyle='info'
                     popoverSize='lg'
-                    style={{transform: `translate(${this.state.leftOffset}px, ${this.state.topOffset}px)`, maxWidth: popoverWidth}}
+                    style={{transform: `translate(${this.state.leftOffset}px, ${this.state.topOffset}px)`, maxWidth: this.state.channelHeaderPoverWidth}}
                     placement='bottom'
                     className={classNames('channel-header__popover', {'chanel-header__popover--lhs_offset': this.props.hasMoreThanOneTeam})}
                 >
