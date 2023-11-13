@@ -850,6 +850,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	// Restore the metadata that may have been removed in the sanitization
 	if permalinkPreviewedPost != nil {
 		post.Metadata.Embeds = originalEmbeds
+		post.SetProps(originalProps)
 	}
 
 	return true, nil

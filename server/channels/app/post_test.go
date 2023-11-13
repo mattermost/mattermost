@@ -1467,36 +1467,25 @@ func TestUpdatePost(t *testing.T) {
 		directChannel, err := th.App.createDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, err)
 
-		referencedPost := &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			Message:   "hello world",
-			UserId:    th.BasicUser.Id,
-		}
-
 		th.Context.Session().UserId = th.BasicUser.Id
-
-		referencedPost, err = th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, false, false)
-		require.Nil(t, err)
-
-		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 
 		testCases := []struct {
 			Description string
 			Channel     *model.Channel
 			Author      string
-			Assert      func(t assert.TestingT, object any, msgAndArgs ...any) bool
+			Length      int
 		}{
 			{
 				Description: "removes metadata from post for members who cannot read channel",
 				Channel:     directChannel,
 				Author:      user1.Id,
-				Assert:      assert.Nil,
+				Length:      0,
 			},
 			{
 				Description: "does not remove metadata from post for members who can read channel",
 				Channel:     th.BasicChannel,
 				Author:      th.BasicUser.Id,
-				Assert:      assert.NotNil,
+				Length:      1,
 			},
 		}
 
@@ -1507,6 +1496,17 @@ func TestUpdatePost(t *testing.T) {
 					UserId:    testCase.Author,
 				}
 
+				referencedPost := &model.Post{
+					ChannelId: testCase.Channel.Id,
+					Message:   "hello world",
+					UserId:    th.BasicUser.Id,
+				}
+
+				permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+				_, err = th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, false, false)
+				require.Nil(t, err)
+
 				previewPost, err = th.App.CreatePost(th.Context, previewPost, testCase.Channel, false, false)
 				require.Nil(t, err)
 
@@ -1514,7 +1514,7 @@ func TestUpdatePost(t *testing.T) {
 				previewPost, err = th.App.UpdatePost(th.Context, previewPost, false)
 				require.Nil(t, err)
 
-				testCase.Assert(t, previewPost.Metadata.Embeds[0].Data)
+				require.Len(t, previewPost.Metadata.Embeds, testCase.Length)
 			})
 		}
 	})
