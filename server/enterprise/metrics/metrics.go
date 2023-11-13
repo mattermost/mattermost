@@ -962,7 +962,7 @@ func (mi *MetricsInterfaceImpl) Register() {
 	}
 
 	mi.Platform.HandleMetrics("/metrics", promhttp.HandlerFor(mi.Registry, promhttp.HandlerOpts{}))
-	mlog.Info("Metrics endpoint is initiated", mlog.String("address", *mi.Platform.Config().MetricsSettings.ListenAddress))
+	mi.Platform.Logger().Info("Metrics endpoint is initiated", mlog.String("address", *mi.Platform.Config().MetricsSettings.ListenAddress))
 }
 
 func (mi *MetricsInterfaceImpl) RegisterDBCollector(db *sql.DB, name string) {
