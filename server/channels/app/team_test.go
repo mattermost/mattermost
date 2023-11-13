@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
@@ -1027,7 +1028,12 @@ func TestLeaveTeamPanic(t *testing.T) {
 	mockLicenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
 
 	mockTeamStore := mocks.TeamStore{}
-	mockTeamStore.On("GetMember", sqlstore.RequestContextWithMaster(th.Context), "myteam", "userID").Return(&model.TeamMember{TeamId: "myteam", UserId: "userID"}, nil)
+	mockTeamStore.On("GetMember", mock.AnythingOfType("*request.Context"), "myteam", "userID").Return(&model.TeamMember{TeamId: "myteam", UserId: "userID"}, nil).Run(func(args mock.Arguments) {
+		c, ok := args[0].(request.CTX)
+		require.True(t, ok)
+
+		sqlstore.HasMaster(c.Context())
+	})
 	mockTeamStore.On("UpdateMember", mock.Anything).Return(nil, errors.New("repro error")) // This is the line that triggers the error
 
 	mockStore.On("Channel").Return(&mockChannelStore)

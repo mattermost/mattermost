@@ -214,12 +214,12 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	post.SanitizeProps()
 
-	var pchan chan store.StoreResult
+	var pchan chan store.GenericStoreResult[*model.PostList]
 	if post.RootId != "" {
-		pchan = make(chan store.StoreResult, 1)
+		pchan = make(chan store.GenericStoreResult[*model.PostList], 1)
 		go func() {
 			r, pErr := a.Srv().Store().Post().Get(sqlstore.WithMaster(context.Background()), post.RootId, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
-			pchan <- store.StoreResult{Data: r, NErr: pErr}
+			pchan <- store.GenericStoreResult[*model.PostList]{Data: r, NErr: pErr}
 			close(pchan)
 		}()
 	}
@@ -265,7 +265,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		if result.NErr != nil {
 			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
-		parentPostList = result.Data.(*model.PostList)
+		parentPostList = result.Data
 		if len(parentPostList.Posts) == 0 || !parentPostList.IsChannelId(post.ChannelId) {
 			return nil, model.NewAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusInternalServerError)
 		}
@@ -532,7 +532,7 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 		a.Srv().Go(func() {
 			_, err := a.SendAutoResponseIfNecessary(c, channel, user, post)
 			if err != nil {
-				mlog.Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
+				c.Logger().Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
 			}
 		})
 	}
@@ -540,7 +540,7 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 	if triggerWebhooks {
 		a.Srv().Go(func() {
 			if err := a.handleWebhookEvents(c, post, team, channel, user); err != nil {
-				mlog.Error(err.Error())
+				c.Logger().Error("Failed to handle webhook event", mlog.Err(err))
 			}
 		})
 	}
@@ -569,7 +569,7 @@ func (a *App) SendEphemeralPost(c request.CTX, userID string, post *model.Post) 
 
 	sanitizedPost, appErr := a.SanitizePostMetadataForUser(c, post, userID)
 	if appErr != nil {
-		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(appErr))
+		c.Logger().Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(appErr))
 
 		// If we failed to sanitize the post, we still want to remove the metadata.
 		sanitizedPost = post.Clone()
@@ -1378,7 +1378,7 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 
 	a.Srv().Go(func() {
 		if err = a.RemoveNotifications(c, post, channel); err != nil {
-			a.Log().Error("DeletePost failed to delete notification", mlog.Err(err))
+			c.Logger().Error("DeletePost failed to delete notification", mlog.Err(err))
 		}
 	})
 
@@ -1440,7 +1440,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelNam
 func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
 	var wg sync.WaitGroup
 
-	pchan := make(chan store.StoreResult, len(paramsList))
+	pchan := make(chan store.GenericStoreResult[*model.PostList], len(paramsList))
 
 	for _, params := range paramsList {
 		// Don't allow users to search for everything.
@@ -1453,7 +1453,7 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 		go func(params *model.SearchParams) {
 			defer wg.Done()
 			postList, err := a.Srv().Store().Post().Search(teamID, userID, params)
-			pchan <- store.StoreResult{Data: postList, NErr: err}
+			pchan <- store.GenericStoreResult[*model.PostList]{Data: postList, NErr: err}
 		}(params)
 	}
 
@@ -1466,8 +1466,7 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 		if result.NErr != nil {
 			return nil, model.NewAppError("searchPostsInTeam", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
-		data := result.Data.(*model.PostList)
-		posts.Extend(data)
+		posts.Extend(result.Data)
 	}
 
 	posts.SortByCreateAt()
@@ -1662,15 +1661,15 @@ func (a *App) SearchPostsForUser(c request.CTX, terms string, userID string, tea
 	return postSearchResults, nil
 }
 
-func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
-	pchan := make(chan store.StoreResult, 1)
+func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
+	pchan := make(chan store.GenericStoreResult[*model.Post], 1)
 	go func() {
 		post, err := a.Srv().Store().Post().GetSingle(postID, includeDeleted)
-		pchan <- store.StoreResult{Data: post, NErr: err}
+		pchan <- store.GenericStoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()
 
-	infos, firstInaccessibleFileTime, err := a.GetFileInfosForPost(postID, false, includeDeleted)
+	infos, firstInaccessibleFileTime, err := a.GetFileInfosForPost(rctx, postID, false, includeDeleted)
 	if err != nil {
 		return nil, err
 	}
@@ -1687,13 +1686,13 @@ func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted boo
 				return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 			}
 		}
-		post := result.Data.(*model.Post)
+		post := result.Data
 
 		if len(post.Filenames) > 0 {
 			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
 			// The post has Filenames that need to be replaced with FileInfos
-			infos = a.MigrateFilenamesToFileInfos(post)
+			infos = a.MigrateFilenamesToFileInfos(rctx, post)
 		}
 	}
 
@@ -1701,7 +1700,7 @@ func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted boo
 }
 
 // GetFileInfosForPost also returns firstInaccessibleFileTime based on cloud plan's limit.
-func (a *App) GetFileInfosForPost(postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
+func (a *App) GetFileInfosForPost(rctx request.CTX, postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
 	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, fromMaster, includeDeleted, true)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1712,18 +1711,18 @@ func (a *App) GetFileInfosForPost(postID string, fromMaster bool, includeDeleted
 		return nil, 0, appErr
 	}
 
-	a.generateMiniPreviewForInfos(fileInfos)
+	a.generateMiniPreviewForInfos(rctx, fileInfos)
 
 	return fileInfos, firstInaccessibleFileTime, nil
 }
 
-func (a *App) getFileInfosForPostIgnoreCloudLimit(postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
+func (a *App) getFileInfosForPostIgnoreCloudLimit(rctx request.CTX, postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, fromMaster, includeDeleted, true)
 	if err != nil {
 		return nil, model.NewAppError("getFileInfosForPostIgnoreCloudLimit", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.generateMiniPreviewForInfos(fileInfos)
+	a.generateMiniPreviewForInfos(rctx, fileInfos)
 
 	return fileInfos, nil
 }
