@@ -902,8 +902,6 @@
   "admin.experimental.experimentalPrimaryTeam.desc": "Pagrindinė komanda, kurios nariai yra serverio naudotojai. Kai nustatoma pagrindinė komanda, parinktys prisijungti prie kitų komandų arba išeiti iš pagrindinės komandos išjungiamos.",
   "admin.experimental.experimentalPrimaryTeam.example": "Pvz.: \"komandos pavadinimas\"",
   "admin.experimental.experimentalPrimaryTeam.title": "Pirminė komanda:",
-  "admin.experimental.experimentalTimezone.desc": "Pasirinkite laiko juostą, naudojamą laiko žymoms naudotojo sąsajoje ir el. pašto pranešimams. Kai tiesa, skiltis Laiko juosta matoma nustatymuose, o laiko juosta automatiškai priskiriama kitoje aktyvioje sesijoje. Kai klaidinga, laiko juostos nustatymas yra paslėptas nustatymuose.",
-  "admin.experimental.experimentalTimezone.title": "Laiko juosta:",
   "admin.experimental.experimentalUseNewSAMLLibrary.desc": "Įgalinti atnaujintą SAML biblioteką, kuriai nereikia įdiegti XML saugos bibliotekos (xmlsec1). Įspėjimas: ne visi teikėjai buvo išbandyti. Jei kyla problemų, susisiekite su palaikymo tarnyba: <linkSupport>https://mattermost.com/support/</linkSupport>. Prieš įsigaliojant pakeistai nuostatai reikia iš naujo paleisti serverį.",
   "admin.experimental.experimentalUseNewSAMLLibrary.title": "Naudokite patobulintą SAML biblioteką (beta versija):",
   "admin.experimental.ldapSettingsLoginButtonBorderColor.desc": "Nurodykite AD/LDAP prisijungimo mygtuko kraštinės spalvą baltai ženklinimui. Naudokite šešioliktainį kodą su # ženklu prieš kodą. Šis nustatymas taikomas tik programėlėms mobiliesiems.",
