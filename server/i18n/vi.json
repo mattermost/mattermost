@@ -9128,5 +9128,9 @@
   {
     "id": "api.user.delete_user.not_enabled.app_error",
     "translation": "Tính năng xóa người dùng vĩnh viễn không được bật. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Không thể lấy được nhiều biểu tượng cảm xúc theo tên như vậy. Chỉ có thể yêu cầu biểu tượng cảm xúc {{.MaxNames}} cùng một lúc."
   }
 ]
