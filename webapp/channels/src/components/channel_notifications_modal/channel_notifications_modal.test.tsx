@@ -10,7 +10,7 @@ import type {UserNotifyProps} from '@mattermost/types/users';
 
 import ChannelNotificationsModal from 'components/channel_notifications_modal/channel_notifications_modal';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {IgnoreChannelMentions, NotificationLevels} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -46,7 +46,7 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
     };
 
     it('should not show other settings if channel is mute', async () => {
-        const wrapper = renderWithIntl(
+        const wrapper = renderWithContext(
             <ChannelNotificationsModal {...baseProps}/>,
         );
 
@@ -80,7 +80,7 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
     });
 
     test('should Ignore mentions for @channel, @here and @all', async () => {
-        const wrapper = renderWithIntl(
+        const wrapper = renderWithContext(
             <ChannelNotificationsModal {...baseProps}/>,
         );
         const ignoreChannel = screen.getByTestId('ignoreMentions');
@@ -105,7 +105,7 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
     });
 
     test('should check the options in the desktop notifications', async () => {
-        const wrapper = renderWithIntl(
+        const wrapper = renderWithContext(
             <ChannelNotificationsModal {...baseProps}/>,
         );
 
@@ -146,7 +146,7 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
     });
 
     test('should save the options exactly same as Desktop for mobile if use same as desktop checkbox is checked', async () => {
-        const wrapper = renderWithIntl(
+        const wrapper = renderWithContext(
             <ChannelNotificationsModal {...baseProps}/>,
         );
 
@@ -177,7 +177,7 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
     });
 
     test('should check the options in the mobile notifications', async () => {
-        const wrapper = renderWithIntl(
+        const wrapper = renderWithContext(
             <ChannelNotificationsModal {...baseProps}/>,
         );
 
@@ -220,7 +220,7 @@ describe('components/channel_notifications_modal/ChannelNotificationsModal', () 
             ...baseProps,
             collapsedReplyThreads: true,
         };
-        const wrapper = renderWithIntl(
+        const wrapper = renderWithContext(
             <ChannelNotificationsModal {...props}/>,
         );
 
