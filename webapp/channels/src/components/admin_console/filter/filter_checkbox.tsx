@@ -10,7 +10,12 @@ type Props = {
     updateOption: (checked: boolean, name: string) => void;
 };
 
-function FilterCheckbox(props: Props) {
+function FilterCheckbox({
+    name,
+    checked,
+    label,
+    updateOption,
+} : Props) {
     const {name, checked, label} = props;
 
     function toggleOption(e: React.MouseEvent) {
