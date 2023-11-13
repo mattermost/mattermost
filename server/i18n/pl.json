@@ -4749,7 +4749,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Wersja 102+"
+    "translation": "Wersja 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -9978,5 +9978,13 @@
   {
     "id": "api.emoji.get_multiple_by_name_too_many.request_error",
     "translation": "Nie można uzyskać takiej liczby emotikonów według nazwy. Jednocześnie można zażądać tylko {{.MaxNames}} emoji."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "Parsowanie JSON nie powiodło się: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Nieprawidłowy format: {{.Error}}"
   }
 ]
