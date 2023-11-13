@@ -17,7 +17,7 @@ export type ActionResult<Data = any, Error = any> = {
     error?: Error;
 };
 
-export type DispatchFunc = (action: Action, getState?: GetStateFunc | null) => Promise<ActionResult>;
+export type DispatchFunc = (action: Action) => Promise<ActionResult>;
 
 /**
  * Return type of a redux action.
