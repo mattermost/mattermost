@@ -1,3 +1,5 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 package api4
 
 import (
@@ -12,7 +14,6 @@ import (
 )
 
 func Test_getIPFilters(t *testing.T) {
-
 	lic := &model.License{
 		Features: &model.Features{
 			CustomPermissionsSchemes: model.NewBool(false),
@@ -128,7 +129,6 @@ func Test_getIPFilters(t *testing.T) {
 }
 
 func Test_applyIPFilters(t *testing.T) {
-
 	allowedRanges := &model.AllowedIPRanges{
 		model.AllowedIPRange{
 			CIDRBlock:   "127.0.0.1/32",
@@ -249,7 +249,6 @@ func Test_applyIPFilters(t *testing.T) {
 }
 
 func Test_getMyIP(t *testing.T) {
-
 	lic := &model.License{
 		Features: &model.Features{
 			CustomPermissionsSchemes: model.NewBool(false),
