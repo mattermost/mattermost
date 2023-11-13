@@ -20,3 +20,18 @@ export const checkMetrics = (expectedStatusCode) => {
     });
 };
 
+// toggleMetricsOn turns metrics off and back on, forcing it to be tested against the current
+// license. When, in the future, the product detects license removal and does this automatically,
+// this helper won't be required.
+export const toggleMetricsOn = () => {
+    cy.apiUpdateConfig({
+        MetricsSettings: {
+            Enable: false,
+        },
+    });
+    cy.apiUpdateConfig({
+        MetricsSettings: {
+            Enable: true,
+        },
+    });
+}

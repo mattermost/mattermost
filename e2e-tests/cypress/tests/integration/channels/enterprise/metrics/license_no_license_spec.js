@@ -10,17 +10,13 @@
 // Stage: @prod
 // Group: @channels @enterprise @metrics @not_cloud @license_removal
 
-import {checkMetrics} from './helper';
+import {checkMetrics, toggleMetricsOn} from './helper';
 
 describe('Metrics > No license', () => {
     before(() => {
         cy.shouldNotRunOnCloudEdition();
         cy.apiDeleteLicense();
-        cy.apiUpdateConfig({
-            MetricsSettings: {
-                Enable: true,
-            },
-        });
+        toggleMetricsOn();
     });
 
     it('should enable metrics in BUILD_NUMBER == dev environments', () => {
