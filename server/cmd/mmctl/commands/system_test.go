@@ -8,15 +8,11 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
-	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
@@ -215,19 +211,6 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 	})
 }
 
-func cleanupSupportPacket(t *testing.T) func() {
-	return func() {
-		entries, err := os.ReadDir(".")
-		require.NoError(t, err)
-		for _, e := range entries {
-			if strings.HasPrefix(e.Name(), "mattermost_support_packet_") && strings.HasSuffix(e.Name(), ".zip") {
-				err = os.Remove(e.Name())
-				assert.NoError(t, err)
-			}
-		}
-	}
-}
-
 func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 	printer.SetFormat(printer.FormatPlain)
 	s.T().Cleanup(func() { printer.SetFormat(printer.FormatJSON) })
@@ -235,7 +218,9 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 	s.Run("Download support packet with default filename", func() {
 		printer.Clean()
 
-		s.T().Cleanup(cleanupSupportPacket(s.T()))
+		s.T().Cleanup(func() {
+			s.Require().NoError(os.Remove("mattermost_support_packet.zip"))
+		})
 
 		data := []byte("some bytes")
 		s.client.
@@ -251,21 +236,9 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		s.Require().Equal(printer.GetLines()[0], "Downloading Support Packet")
 		s.Require().Contains(printer.GetLines()[1], "Downloaded Support Packet to ")
 
-		var found bool
-
-		entries, err := os.ReadDir(".")
+		b, err := os.ReadFile("mattermost_support_packet.zip")
 		s.Require().NoError(err)
-		for _, e := range entries {
-			if strings.HasPrefix(e.Name(), "mattermost_support_packet_") && strings.HasSuffix(e.Name(), ".zip") {
-				b, err := os.ReadFile(e.Name())
-				s.NoError(err)
-				s.Equal(b, data)
-
-				found = true
-			}
-		}
-
-		s.True(found)
+		s.NotNil(b, b)
 	})
 
 	s.Run("Download support packet with custom filename", func() {

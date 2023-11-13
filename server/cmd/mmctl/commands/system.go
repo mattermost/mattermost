@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -80,7 +79,7 @@ func init() {
 	SystemSetBusyCmd.Flags().UintP("seconds", "s", 3600, "Number of seconds until server is automatically marked as not busy.")
 	_ = SystemSetBusyCmd.MarkFlagRequired("seconds")
 
-	SystemSupportPacketCmd.Flags().StringP("output-file", "o", fmt.Sprintf("mattermost_support_packet_%s.zip", time.Now().Format("2006-01-02-03-04")), "Output file name")
+	SystemSupportPacketCmd.Flags().StringP("output-file", "o", "mattermost_support_packet.zip", "Output file name")
 
 	SystemCmd.AddCommand(
 		SystemGetBusyCmd,
