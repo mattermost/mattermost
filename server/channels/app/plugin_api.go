@@ -324,6 +324,10 @@ func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError
 	return api.app.UpdateUser(api.ctx, user, true)
 }
 
+func (api *PluginAPI) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
+	return api.app.UpdateUserAuth(api.ctx, userID, userAuth)
+}
+
 func (api *PluginAPI) UpdateUserActive(userID string, active bool) *model.AppError {
 	return api.app.UpdateUserActive(api.ctx, userID, active)
 }
