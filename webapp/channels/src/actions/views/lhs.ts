@@ -3,7 +3,7 @@
 
 import {selectChannel} from 'mattermost-redux/actions/channels';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
@@ -59,8 +59,8 @@ export const selectStaticPage = (itemId: string) => ({
     data: itemId,
 });
 
-export const selectLhsItem = (type: LhsItemType, id?: string) => {
-    return (dispatch: DispatchFunc) => {
+export const selectLhsItem = (type: LhsItemType, id?: string): ActionFunc => {
+    return (dispatch) => {
         switch (type) {
         case LhsItemType.Channel:
             dispatch(selectChannel(id || ''));
@@ -77,11 +77,13 @@ export const selectLhsItem = (type: LhsItemType, id?: string) => {
         default:
             throw new Error('Unknown LHS item type: ' + type);
         }
+
+        return {data: true};
     };
 };
 
-export function switchToLhsStaticPage(id: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function switchToLhsStaticPage(id: string): ActionFunc {
+    return (dispatch, getState) => {
         const state = getState() as GlobalState;
         const teamUrl = getCurrentRelativeTeamUrl(state);
         getHistory().push(`${teamUrl}/${id}`);

@@ -6,8 +6,9 @@ import type {ConnectedProps} from 'react-redux';
 
 import type {PostAction} from '@mattermost/types/integration_actions';
 
+import {autocompleteUsers} from 'mattermost-redux/actions/users';
+
 import {autocompleteChannels} from 'actions/channel_actions';
-import {autocompleteUsers} from 'actions/user_actions';
 import {selectAttachmentMenuAction} from 'actions/views/posts';
 
 import type {GlobalState} from 'types/store';

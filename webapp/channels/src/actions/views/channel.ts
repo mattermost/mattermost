@@ -41,7 +41,7 @@ import {
 } from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUserByUsername} from 'mattermost-redux/selectors/entities/users';
 import {makeAddLastViewAtToProfiles} from 'mattermost-redux/selectors/entities/utils';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
@@ -60,8 +60,8 @@ import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/consta
 
 import type {GlobalState} from 'types/store';
 
-export function goToLastViewedChannel() {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function goToLastViewedChannel(): ActionFunc {
+    return (dispatch, getState) => {
         const state = getState();
         const currentChannel = getCurrentChannel(state) || {};
         const channelsInTeam = getChannelsNameMapInCurrentTeam(state);
@@ -78,16 +78,16 @@ export function goToLastViewedChannel() {
     };
 }
 
-export function switchToChannelById(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function switchToChannelById(channelId: string): ActionFunc {
+    return (dispatch, getState) => {
         const state = getState();
         const channel = getChannel(state, channelId);
         return dispatch(switchToChannel(channel));
     };
 }
 
-export function loadIfNecessaryAndSwitchToChannelById(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadIfNecessaryAndSwitchToChannelById(channelId: string): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState();
         let channel = getChannel(state, channelId);
         if (!channel) {
@@ -98,8 +98,8 @@ export function loadIfNecessaryAndSwitchToChannelById(channelId: string) {
     };
 }
 
-export function switchToChannel(channel: Channel & {userId?: string}) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function switchToChannel(channel: Channel & {userId?: string}): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState();
         const selectedTeamId = channel.team_id;
         const teamUrl = selectedTeamId ? `/${getTeam(state, selectedTeamId).name}` : getCurrentRelativeTeamUrl(state);
@@ -129,8 +129,8 @@ export function switchToChannel(channel: Channel & {userId?: string}) {
     };
 }
 
-export function joinChannelById(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function joinChannelById(channelId: string): ActionFunc {
+    return (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
         const currentTeamId = getCurrentTeamId(state);
@@ -139,8 +139,8 @@ export function joinChannelById(channelId: string) {
     };
 }
 
-export function leaveChannel(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function leaveChannel(channelId: string): ActionFunc {
+    return async (dispatch, getState) => {
         let state = getState();
         const currentUserId = getCurrentUserId(state);
         const currentTeam = getCurrentTeam(state);
@@ -190,8 +190,8 @@ export function leaveChannel(channelId: string) {
     };
 }
 
-export function leaveDirectChannel(channelName: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function leaveDirectChannel(channelName: string): ActionFunc {
+    return (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
         const teams = getTeamsList(state); // dms are shared across teams but on local storage are set linked to one, we need to look into all.
@@ -210,9 +210,9 @@ export function leaveDirectChannel(channelName: string) {
     };
 }
 
-export function autocompleteUsersInChannel(prefix: string, channelId: string) {
+export function autocompleteUsersInChannel(prefix: string, channelId: string): ActionFunc {
     const addLastViewAtToProfiles = makeAddLastViewAtToProfiles();
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const state = getState();
         const currentTeamId = getCurrentTeamId(state);
 
@@ -234,8 +234,8 @@ export function autocompleteUsersInChannel(prefix: string, channelId: string) {
     };
 }
 
-export function loadUnreads(channelId: string, prefetch = false) {
-    return async (dispatch: DispatchFunc) => {
+export function loadUnreads(channelId: string, prefetch = false): ActionFunc {
+    return async (dispatch) => {
         const time = Date.now();
         if (prefetch) {
             dispatch({
@@ -292,8 +292,8 @@ export function loadUnreads(channelId: string, prefetch = false) {
     };
 }
 
-export function loadPostsAround(channelId: string, focusedPostId: string) {
-    return async (dispatch: DispatchFunc) => {
+export function loadPostsAround(channelId: string, focusedPostId: string): ActionFunc {
+    return async (dispatch) => {
         const {data, error} = await dispatch(PostActions.getPostsAround(channelId, focusedPostId, Posts.POST_CHUNK_SIZE / 2));
         if (error) {
             return {
@@ -315,8 +315,8 @@ export function loadPostsAround(channelId: string, focusedPostId: string) {
     };
 }
 
-export function loadLatestPosts(channelId: string) {
-    return async (dispatch: DispatchFunc) => {
+export function loadLatestPosts(channelId: string): ActionFunc {
+    return async (dispatch) => {
         const time = Date.now();
         const {data, error} = await dispatch(PostActions.getPosts(channelId, 0, Posts.POST_CHUNK_SIZE / 2));
 
@@ -359,9 +359,9 @@ export function loadPosts({
     channelId,
     postId,
     type,
-}: LoadPostsParameters) {
+}: LoadPostsParameters): ActionFunc<LoadPostsReturnValue> {
     //type here can be BEFORE_ID or AFTER_ID
-    return async (dispatch: DispatchFunc): Promise<LoadPostsReturnValue> => {
+    return async (dispatch) => {
         const POST_INCREASE_AMOUNT = Constants.POST_CHUNK_SIZE / 2;
 
         dispatch({
@@ -408,8 +408,8 @@ export function loadPosts({
     };
 }
 
-export function syncPostsInChannel(channelId: string, since: number, prefetch = false) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function syncPostsInChannel(channelId: string, since: number, prefetch = false): ActionFunc {
+    return async (dispatch, getState) => {
         const time = Date.now();
         const state = getState();
         const socketStatus = getSocketStatus(state as GlobalState);
@@ -460,8 +460,8 @@ export function syncPostsInChannel(channelId: string, since: number, prefetch = 
     };
 }
 
-export function prefetchChannelPosts(channelId: string, jitter: number) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function prefetchChannelPosts(channelId: string, jitter: number): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState();
         const recentPostIdInChannel = getMostRecentPostIdInChannel(state, channelId);
 
@@ -483,27 +483,27 @@ export function scrollPostListToBottom() {
     };
 }
 
-export function markChannelAsReadOnFocus(channelId: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function markChannelAsReadOnFocus(channelId: string): ActionFunc {
+    return (dispatch, getState) => {
         if (isManuallyUnread(getState(), channelId)) {
-            return;
+            return {data: false};
         }
 
         dispatch(markChannelAsRead(channelId));
+
+        return {data: true};
     };
 }
 
 export function updateToastStatus(status: boolean) {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: ActionTypes.UPDATE_TOAST_STATUS,
-            data: status,
-        });
+    return {
+        type: ActionTypes.UPDATE_TOAST_STATUS,
+        data: status,
     };
 }
 
-export function deleteChannel(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function deleteChannel(channelId: string): ActionFunc {
+    return async (dispatch, getState) => {
         const res = await dispatch(deleteChannelRedux(channelId));
         if (res.error) {
             return {data: false};

@@ -5,10 +5,10 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
+import {autocompleteUsers} from 'mattermost-redux/actions/users';
 import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {autocompleteChannels} from 'actions/channel_actions';
-import {autocompleteUsers} from 'actions/user_actions';
 
 import DialogElement from './dialog_element';
 import type {Props} from './dialog_element';

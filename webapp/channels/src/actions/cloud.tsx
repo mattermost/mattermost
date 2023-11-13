@@ -10,7 +10,7 @@ import {CloudTypes} from 'mattermost-redux/action_types';
 import {getCloudCustomer, getCloudProducts, getCloudSubscription, getInvoices} from 'mattermost-redux/actions/cloud';
 import {Client4} from 'mattermost-redux/client';
 import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
@@ -111,7 +111,7 @@ export function subscribeCloudSubscription(
 
 export function requestCloudTrial(page: string, subscriptionId: string, email = ''): ActionFunc {
     trackEvent('api', 'api_request_cloud_trial_license', {from_page: page});
-    return async (dispatch: DispatchFunc): Promise<any> => {
+    return async (dispatch): Promise<any> => {
         try {
             const newSubscription = await Client4.requestCloudTrial(subscriptionId, email);
             dispatch({
@@ -150,7 +150,7 @@ export function validateWorkspaceBusinessEmail() {
 }
 
 export function getCloudLimits(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+    return async (dispatch) => {
         try {
             dispatch({
                 type: CloudTypes.CLOUD_LIMITS_REQUEST,
@@ -173,7 +173,7 @@ export function getCloudLimits(): ActionFunc {
 }
 
 export function getMessagesUsage(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+    return async (dispatch) => {
         try {
             const result = await Client4.getPostsUsage();
             if (result) {
@@ -190,7 +190,7 @@ export function getMessagesUsage(): ActionFunc {
 }
 
 export function getFilesUsage(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+    return async (dispatch) => {
         try {
             const result = await Client4.getFilesUsage();
 
@@ -210,7 +210,7 @@ export function getFilesUsage(): ActionFunc {
 }
 
 export function getTeamsUsage(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+    return async (dispatch) => {
         try {
             const result = await Client4.getTeamsUsage();
             if (result) {
@@ -237,8 +237,8 @@ export function deleteWorkspace(deletionRequest: WorkspaceDeletionRequest) {
     };
 }
 
-export function retryFailedCloudFetches() {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function retryFailedCloudFetches(): ActionFunc {
+    return (dispatch, getState) => {
         const errors = getCloudErrors(getState());
         if (Object.keys(errors).length === 0) {
             return {data: true};

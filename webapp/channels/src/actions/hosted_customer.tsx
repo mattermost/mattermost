@@ -13,7 +13,7 @@ import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 import {bindClientFunc} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 import {getSelfHostedErrors} from 'mattermost-redux/selectors/entities/hosted_customer';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {getConfirmCardSetup} from 'components/payment_form/stripe';
 
@@ -41,7 +41,7 @@ export function confirmSelfHostedSignup(
     initialProgress: ValueOf<typeof SelfHostedSignupProgress>,
     subscriptionRequest: CreateSubscriptionRequest,
 ): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+    return async (dispatch) => {
         const cardSetupFunction = getConfirmCardSetup(cwsMockMode);
         const confirmCardSetup = cardSetupFunction(stripe.confirmCardSetup);
 
@@ -119,7 +119,7 @@ export function confirmSelfHostedSignup(
 }
 
 export function getSelfHostedProducts(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+    return async (dispatch) => {
         try {
             dispatch({
                 type: HostedCustomerTypes.SELF_HOSTED_PRODUCTS_REQUEST,
@@ -142,7 +142,7 @@ export function getSelfHostedProducts(): ActionFunc {
 }
 
 export function getSelfHostedInvoices(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+    return async (dispatch) => {
         try {
             dispatch({
                 type: HostedCustomerTypes.SELF_HOSTED_INVOICES_REQUEST,
@@ -163,8 +163,8 @@ export function getSelfHostedInvoices(): ActionFunc {
         return true;
     };
 }
-export function retryFailedHostedCustomerFetches() {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function retryFailedHostedCustomerFetches(): ActionFunc {
+    return (dispatch, getState) => {
         const errors = getSelfHostedErrors(getState());
         if (Object.keys(errors).length === 0) {
             return {data: true};
@@ -208,7 +208,7 @@ export function confirmSelfHostedExpansion(
     initialProgress: ValueOf<typeof SelfHostedSignupProgress>,
     expansionRequest: SelfHostedExpansionRequest,
 ): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+    return async (dispatch) => {
         const cardSetupFunction = getConfirmCardSetup(cwsMockMode);
         const confirmCardSetup = cardSetupFunction(stripe.confirmCardSetup);
 

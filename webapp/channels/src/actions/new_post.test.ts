@@ -7,7 +7,6 @@ import type {GlobalState} from '@mattermost/types/store';
 import {ChannelTypes} from 'mattermost-redux/action_types';
 import {receivedNewPost} from 'mattermost-redux/actions/posts';
 import {Posts} from 'mattermost-redux/constants';
-import type {GetStateFunc} from 'mattermost-redux/types/actions';
 
 import * as NewPostActions from 'actions/new_post';
 
@@ -155,7 +154,7 @@ describe('actions/new_post', () => {
 
             window.isActive = true;
 
-            const actions = NewPostActions.setChannelReadAndViewed(testStore.dispatch, testStore.getState as GetStateFunc, post2, newPostMessageProps, false);
+            const actions = NewPostActions.setChannelReadAndViewed(testStore.dispatch, testStore.getState, post2, newPostMessageProps, false);
 
             expect(actions).toMatchObject([
                 {

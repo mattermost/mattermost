@@ -33,7 +33,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<any>, Props['actions']>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Props['actions']>({
             uploadFile,
         }, dispatch),
     };

@@ -7,11 +7,11 @@ import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
+import {autocompleteUsers} from 'mattermost-redux/actions/users';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {autocompleteChannels} from 'actions/channel_actions';
-import {autocompleteUsers} from 'actions/user_actions';
 
 import AppsFormField from './apps_form_field';
 import type {Props} from './apps_form_field';

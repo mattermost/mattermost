@@ -3,8 +3,6 @@
 
 import React from 'react';
 
-import type {GetStateFunc, DispatchFunc} from 'mattermost-redux/types/actions';
-
 import Menu from 'components/widgets/menu/menu';
 
 import {localizeMessage} from 'utils/utils';
@@ -14,7 +12,7 @@ type Props = {
     channel: any;
     hasPinnedPosts: boolean;
     actions: {
-        closeRightHandSide: () => (dispatch: DispatchFunc, getState: GetStateFunc) => void;
+        closeRightHandSide: () => void;
         showPinnedPosts: (id: any) => void;
     };
 }

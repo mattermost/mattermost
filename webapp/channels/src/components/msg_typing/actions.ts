@@ -8,7 +8,7 @@ import {General, Preferences, WebsocketEvents} from 'mattermost-redux/constants'
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 function getTimeBetweenTypingEvents(state: GlobalState) {
     const config = getConfig(state);
@@ -16,15 +16,15 @@ function getTimeBetweenTypingEvents(state: GlobalState) {
     return config.TimeBetweenUserTypingUpdatesMilliseconds === undefined ? 0 : parseInt(config.TimeBetweenUserTypingUpdatesMilliseconds, 10);
 }
 
-export function userStartedTyping(userId: string, channelId: string, rootId: string, now: number) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function userStartedTyping(userId: string, channelId: string, rootId: string, now: number): ActionFunc {
+    return (dispatch, getState) => {
         const state = getState();
 
         if (
             isPerformanceDebuggingEnabled(state) &&
             getBool(state, Preferences.CATEGORY_PERFORMANCE_DEBUGGING, Preferences.NAME_DISABLE_TYPING_MESSAGES)
         ) {
-            return;
+            return {data: false};
         }
 
         dispatch({
@@ -42,11 +42,13 @@ export function userStartedTyping(userId: string, channelId: string, rootId: str
         setTimeout(() => {
             dispatch(userStoppedTyping(userId, channelId, rootId, now));
         }, getTimeBetweenTypingEvents(state));
+
+        return {data: true};
     };
 }
 
-function fillInMissingInfo(userId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+function fillInMissingInfo(userId: string): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
 

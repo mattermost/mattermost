@@ -23,7 +23,7 @@ import {
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import * as Selectors from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
@@ -37,8 +37,8 @@ import type {GlobalState} from 'types/store';
 
 export const queue = new PQueue({concurrency: 4});
 
-export function loadProfilesAndStatusesInChannel(channelId: string, page = 0, perPage: number = General.PROFILE_CHUNK_SIZE, sort = '', options = {}) {
-    return async (dispatch: DispatchFunc) => {
+export function loadProfilesAndStatusesInChannel(channelId: string, page = 0, perPage: number = General.PROFILE_CHUNK_SIZE, sort = '', options = {}): ActionFunc {
+    return async (dispatch) => {
         const {data} = await dispatch(UserActions.getProfilesInChannel(channelId, page, perPage, sort, options));
         if (data) {
             dispatch(loadStatusesForProfilesList(data));
@@ -47,8 +47,8 @@ export function loadProfilesAndStatusesInChannel(channelId: string, page = 0, pe
     };
 }
 
-export function loadProfilesAndReloadTeamMembers(page: number, perPage: number, teamId: string, options = {}) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadProfilesAndReloadTeamMembers(page: number, perPage: number, teamId: string, options = {}): ActionFunc {
+    return async (dispatch, getState) => {
         const newTeamId = teamId || getCurrentTeamId(getState());
         const {data} = await dispatch(UserActions.getProfilesInTeam(newTeamId, page, perPage, '', options));
         if (data) {
@@ -62,8 +62,8 @@ export function loadProfilesAndReloadTeamMembers(page: number, perPage: number, 
     };
 }
 
-export function loadProfilesAndReloadChannelMembers(page: number, perPage?: number, channelId?: string, sort = '', options = {}) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadProfilesAndReloadChannelMembers(page: number, perPage?: number, channelId?: string, sort = '', options = {}): ActionFunc {
+    return async (dispatch, getState) => {
         const newChannelId = channelId || getCurrentChannelId(getState());
         const {data} = await dispatch(UserActions.getProfilesInChannel(newChannelId, page, perPage, sort, options));
         if (data) {
@@ -77,8 +77,8 @@ export function loadProfilesAndReloadChannelMembers(page: number, perPage?: numb
     };
 }
 
-export function loadProfilesAndTeamMembers(page: number, perPage: number, teamId: string, options?: Record<string, any>) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadProfilesAndTeamMembers(page: number, perPage: number, teamId: string, options?: Record<string, any>): ActionFunc {
+    return async (dispatch, getState) => {
         const newTeamId = teamId || getCurrentTeamId(getState());
         const {data} = await dispatch(UserActions.getProfilesInTeam(newTeamId, page, perPage, '', options));
         if (data) {
@@ -90,8 +90,8 @@ export function loadProfilesAndTeamMembers(page: number, perPage: number, teamId
     };
 }
 
-export function searchProfilesAndTeamMembers(term = '', options: Record<string, any> = {}) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function searchProfilesAndTeamMembers(term = '', options: Record<string, any> = {}): ActionFunc {
+    return async (dispatch, getState) => {
         const newTeamId = options.team_id || getCurrentTeamId(getState());
         const {data} = await dispatch(UserActions.searchProfiles(term, options));
         if (data) {
@@ -105,8 +105,8 @@ export function searchProfilesAndTeamMembers(term = '', options: Record<string, 
     };
 }
 
-export function searchProfilesAndChannelMembers(term: string, options: Record<string, any> = {}) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function searchProfilesAndChannelMembers(term: string, options: Record<string, any> = {}): ActionFunc {
+    return async (dispatch, getState) => {
         const newChannelId = options.in_channel_id || getCurrentChannelId(getState());
         const {data} = await dispatch(UserActions.searchProfiles(term, options));
         if (data) {
@@ -120,8 +120,8 @@ export function searchProfilesAndChannelMembers(term: string, options: Record<st
     };
 }
 
-export function loadProfilesAndTeamMembersAndChannelMembers(page: number, perPage: number, teamId: string, channelId: string, options?: {active?: boolean}) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadProfilesAndTeamMembersAndChannelMembers(page: number, perPage: number, teamId: string, channelId: string, options?: {active?: boolean}): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState();
         const teamIdParam = teamId || getCurrentTeamId(state);
         const channelIdParam = channelId || getCurrentChannelId(state);
@@ -138,8 +138,8 @@ export function loadProfilesAndTeamMembersAndChannelMembers(page: number, perPag
     };
 }
 
-export function loadTeamMembersForProfilesList(profiles: UserProfile[], teamId: string, reloadAllMembers = false) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadTeamMembersForProfilesList(profiles: UserProfile[], teamId: string, reloadAllMembers = false): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState();
         const teamIdParam = teamId || getCurrentTeamId(state);
         const membersToLoad: Record<string, true> = {};
@@ -162,8 +162,8 @@ export function loadTeamMembersForProfilesList(profiles: UserProfile[], teamId: 
     };
 }
 
-export function loadProfilesWithoutTeam(page: number, perPage: number, options?: Record<string, any>) {
-    return async (dispatch: DispatchFunc) => {
+export function loadProfilesWithoutTeam(page: number, perPage: number, options?: Record<string, any>): ActionFunc {
+    return async (dispatch) => {
         const {data} = await dispatch(UserActions.getProfilesWithoutTeam(page, perPage, options));
 
         dispatch(loadStatusesForProfilesMap(data));
@@ -172,8 +172,8 @@ export function loadProfilesWithoutTeam(page: number, perPage: number, options?:
     };
 }
 
-export function loadTeamMembersAndChannelMembersForProfilesList(profiles: UserProfile[], teamId: string, channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadTeamMembersAndChannelMembersForProfilesList(profiles: UserProfile[], teamId: string, channelId: string): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState();
         const teamIdParam = teamId || getCurrentTeamId(state);
         const channelIdParam = channelId || getCurrentChannelId(state);
@@ -186,8 +186,8 @@ export function loadTeamMembersAndChannelMembersForProfilesList(profiles: UserPr
     };
 }
 
-export function loadChannelMembersForProfilesList(profiles: UserProfile[], channelId: string, reloadAllMembers = false) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadChannelMembersForProfilesList(profiles: UserProfile[], channelId: string, reloadAllMembers = false): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState();
         const channelIdParam = channelId || getCurrentChannelId(state);
         const membersToLoad: Record<string, boolean> = {};
@@ -210,8 +210,8 @@ export function loadChannelMembersForProfilesList(profiles: UserProfile[], chann
     };
 }
 
-export function loadNewDMIfNeeded(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadNewDMIfNeeded(channelId: string): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = Selectors.getCurrentUserId(state);
 
@@ -250,8 +250,8 @@ export function loadNewDMIfNeeded(channelId: string) {
     };
 }
 
-export function loadNewGMIfNeeded(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadNewGMIfNeeded(channelId: string): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = Selectors.getCurrentUserId(state);
 
@@ -273,8 +273,8 @@ export function loadNewGMIfNeeded(channelId: string) {
     };
 }
 
-export function loadProfilesForGroupChannels(groupChannels: Channel[]) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadProfilesForGroupChannels(groupChannels: Channel[]): ActionFunc {
+    return (dispatch, getState) => {
         const state = getState();
         const userIdsInChannels = Selectors.getUserIdsInChannels(state);
 
@@ -426,23 +426,15 @@ export function loadProfilesForDM(): ActionFunc {
     };
 }
 
-export function autocompleteUsersInTeam(username: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function autocompleteUsersInTeam(username: string): ActionFunc {
+    return (dispatch, getState) => {
         const currentTeamId = getCurrentTeamId(getState());
-        const {data} = await dispatch(UserActions.autocompleteUsers(username, currentTeamId));
-        return data;
+        return dispatch(UserActions.autocompleteUsers(username, currentTeamId));
     };
 }
 
-export function autocompleteUsers(username: string) {
-    return async (dispatch: DispatchFunc) => {
-        const {data} = await dispatch(UserActions.autocompleteUsers(username));
-        return data;
-    };
-}
-
-export function autoResetStatus() {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc): Promise<{data: UserStatus}> => {
+export function autoResetStatus(): ActionFunc<UserStatus> {
+    return async (dispatch, getState) => {
         const {currentUserId} = getState().entities.users;
         const {data: userStatus} = await (UserActions.getStatus(currentUserId)(dispatch, getState) as Promise<{data: UserStatus}>);
 

@@ -25,7 +25,7 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GenericAction, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, getPreviousRhsState} from 'selectors/rhs';
@@ -38,8 +38,8 @@ import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 import type {GlobalState} from 'types/store';
 import type {RhsState} from 'types/store/rhs';
 
-function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc {
+    return async (dispatch, getState) => {
         const postRootId = post.root_id || post.id;
         await dispatch(PostActions.getPostThread(postRootId));
         const state = getState() as GlobalState;
@@ -56,8 +56,8 @@ function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previous
     };
 }
 
-function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc {
+    return (dispatch, getState) => {
         const state = getState() as GlobalState;
 
         dispatch({
@@ -71,8 +71,8 @@ function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, prev
     };
 }
 
-export function updateRhsState(rhsState: string, channelId?: string, previousRhsState?: RhsState) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function updateRhsState(rhsState: string, channelId?: string, previousRhsState?: RhsState): ActionFunc {
+    return (dispatch, getState) => {
         const action = {
             type: ActionTypes.UPDATE_RHS_STATE,
             state: rhsState,
@@ -106,8 +106,8 @@ export function openShowEditHistory(post: Post) {
     };
 }
 
-export function goBack() {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function goBack(): ActionFunc {
+    return (dispatch, getState) => {
         const prevState = getPreviousRhsState(getState() as GlobalState);
         const defaultTab = 'channel-info';
 
@@ -128,10 +128,10 @@ export function selectPostCardFromRightHandSideSearch(post: Post) {
     return selectPostCardFromRightHandSideSearchWithPreviousState(post);
 }
 
-export function selectPostFromRightHandSideSearchByPostId(postId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function selectPostFromRightHandSideSearchByPostId(postId: string): ActionFunc {
+    return (dispatch, getState) => {
         const post = getPost(getState(), postId);
-        return selectPostFromRightHandSideSearch(post)(dispatch, getState);
+        return dispatch(selectPostFromRightHandSideSearch(post));
     };
 }
 
@@ -171,8 +171,8 @@ export function setRhsSize(rhsSize?: SidebarSize) {
     };
 }
 
-export function updateSearchTermsForShortcut() {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function updateSearchTermsForShortcut(): ActionFunc {
+    return (dispatch, getState) => {
         const currentChannelName = getCurrentChannelNameForSearchShortcut(getState());
         return dispatch(updateSearchTerms(`in:${currentChannelName} `));
     };
@@ -192,8 +192,8 @@ function updateSearchResultsTerms(terms: string) {
     };
 }
 
-export function performSearch(terms: string, isMentionSearch?: boolean) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function performSearch(terms: string, isMentionSearch?: boolean): ActionFunc {
+    return (dispatch, getState) => {
         let searchTerms = terms;
         const teamId = getCurrentTeamId(getState());
         const config = getConfig(getState());
@@ -233,17 +233,14 @@ export function performSearch(terms: string, isMentionSearch?: boolean) {
 }
 
 export function filterFilesSearchByExt(extensions: string[]) {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: ActionTypes.SET_FILES_FILTER_BY_EXT,
-            data: extensions,
-        });
-        return {data: true};
+    return {
+        type: ActionTypes.SET_FILES_FILTER_BY_EXT,
+        data: extensions,
     };
 }
 
-export function showSearchResults(isMentionSearch = false) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function showSearchResults(isMentionSearch = false): ActionFunc {
+    return (dispatch, getState) => {
         const state = getState() as GlobalState;
 
         const searchTerms = getSearchTerms(state);
@@ -267,8 +264,8 @@ export function showRHSPlugin(pluggableId: string) {
     };
 }
 
-export function showChannelMembers(channelId: string, inEditingMode = false) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function showChannelMembers(channelId: string, inEditingMode = false): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState() as GlobalState;
 
         if (inEditingMode) {
@@ -290,8 +287,8 @@ export function showChannelMembers(channelId: string, inEditingMode = false) {
     };
 }
 
-export function hideRHSPlugin(pluggableId: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function hideRHSPlugin(pluggableId: string): ActionFunc {
+    return (dispatch, getState) => {
         const state = getState() as GlobalState;
 
         if (getPluggableId(state) === pluggableId) {
@@ -302,8 +299,8 @@ export function hideRHSPlugin(pluggableId: string) {
     };
 }
 
-export function toggleRHSPlugin(pluggableId: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function toggleRHSPlugin(pluggableId: string): ActionFunc {
+    return (dispatch, getState) => {
         const state = getState() as GlobalState;
 
         if (getPluggableId(state) === pluggableId) {
@@ -316,8 +313,8 @@ export function toggleRHSPlugin(pluggableId: string) {
     };
 }
 
-export function showFlaggedPosts() {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function showFlaggedPosts(): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState();
         const teamId = getCurrentTeamId(state);
 
@@ -351,8 +348,8 @@ export function showFlaggedPosts() {
     };
 }
 
-export function showPinnedPosts(channelId?: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function showPinnedPosts(channelId?: string): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState() as GlobalState;
         const currentChannelId = getCurrentChannelId(state);
         const teamId = getCurrentTeamId(state);
@@ -394,8 +391,8 @@ export function showPinnedPosts(channelId?: string) {
     };
 }
 
-export function showChannelFiles(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function showChannelFiles(channelId: string): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState() as GlobalState;
         const teamId = getCurrentTeamId(state);
 
@@ -452,8 +449,8 @@ export function showChannelFiles(channelId: string) {
     };
 }
 
-export function showMentions() {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function showMentions(): ActionFunc {
+    return (dispatch, getState) => {
         const termKeys = getCurrentUserMentionKeys(getState()).filter(({key}) => {
             return key !== '@channel' && key !== '@all' && key !== '@here';
         });
@@ -479,45 +476,39 @@ export function showMentions() {
 }
 
 export function showChannelInfo(channelId: string) {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: ActionTypes.UPDATE_RHS_STATE,
-            channelId,
-            state: RHSStates.CHANNEL_INFO,
-        });
-        return {data: true};
+    return {
+        type: ActionTypes.UPDATE_RHS_STATE,
+        channelId,
+        state: RHSStates.CHANNEL_INFO,
     };
 }
 
 export function closeRightHandSide() {
-    return (dispatch: DispatchFunc) => {
-        const actionsBatch: AnyAction[] = [
-            {
-                type: ActionTypes.UPDATE_RHS_STATE,
-                state: null,
-            },
-            {
-                type: ActionTypes.SELECT_POST,
-                postId: '',
-                channelId: '',
-                timestamp: 0,
-            },
-        ];
+    const actionsBatch: AnyAction[] = [
+        {
+            type: ActionTypes.UPDATE_RHS_STATE,
+            state: null,
+        },
+        {
+            type: ActionTypes.SELECT_POST,
+            postId: '',
+            channelId: '',
+            timestamp: 0,
+        },
+    ];
 
-        dispatch(batchActions(actionsBatch));
-        return {data: true};
-    };
+    return batchActions(actionsBatch);
 }
 
-export const toggleMenu = () => (dispatch: DispatchFunc) => dispatch({
+export const toggleMenu = () => ({
     type: ActionTypes.TOGGLE_RHS_MENU,
 });
 
-export const openMenu = () => (dispatch: DispatchFunc) => dispatch({
+export const openMenu = () => ({
     type: ActionTypes.OPEN_RHS_MENU,
 });
 
-export const closeMenu = () => (dispatch: DispatchFunc) => dispatch({
+export const closeMenu = () => ({
     type: ActionTypes.CLOSE_RHS_MENU,
 });
 
@@ -534,8 +525,8 @@ export function toggleRhsExpanded() {
     };
 }
 
-export function selectPostAndParentChannel(post: Post) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function selectPostAndParentChannel(post: Post): ActionFunc {
+    return async (dispatch, getState) => {
         const channel = getChannelSelector(getState(), post.channel_id);
         if (!channel) {
             await dispatch(getChannel(post.channel_id));
@@ -553,8 +544,8 @@ export function selectPost(post: Post) {
     };
 }
 
-export function selectPostById(postId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function selectPostById(postId: string): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState();
         const post = getPost(state, postId) ?? (await dispatch(fetchPost(postId))).data;
         if (post) {
@@ -584,8 +575,8 @@ export const debouncedClearHighlightReply = debounce((dispatch) => {
     return dispatch(clearHighlightReply);
 }, Constants.PERMALINK_FADEOUT);
 
-export function selectPostAndHighlight(post: Post) {
-    return (dispatch: DispatchFunc) => {
+export function selectPostAndHighlight(post: Post): ActionFunc {
+    return (dispatch) => {
         dispatch(batchActions([
             selectPost(post),
             highlightReply(post),
@@ -601,8 +592,8 @@ export function selectPostCard(post: Post) {
     return {type: ActionTypes.SELECT_POST_CARD, postId: post.id, channelId: post.channel_id};
 }
 
-export function openRHSSearch() {
-    return (dispatch: DispatchFunc) => {
+export function openRHSSearch(): ActionFunc {
+    return (dispatch) => {
         dispatch(clearSearch());
         dispatch(updateSearchTerms(''));
         dispatch(updateSearchResultsTerms(''));
@@ -613,19 +604,19 @@ export function openRHSSearch() {
     };
 }
 
-export function openAtPrevious(previous: any) { // TODO Could not find the proper type. Seems to be in several props around
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function openAtPrevious(previous: any): ActionFunc { // TODO Could not find the proper type. Seems to be in several props around
+    return (dispatch, getState) => {
         if (!previous) {
-            return openRHSSearch()(dispatch);
+            return dispatch(openRHSSearch());
         }
 
         if (previous.isChannelInfo) {
             const currentChannelId = getCurrentChannelId(getState());
-            return showChannelInfo(currentChannelId)(dispatch);
+            return dispatch(showChannelInfo(currentChannelId));
         }
         if (previous.isChannelMembers) {
             const currentChannelId = getCurrentChannelId(getState());
-            return showChannelMembers(currentChannelId)(dispatch, getState);
+            return dispatch(showChannelMembers(currentChannelId));
         }
         if (previous.isMentionSearch) {
             return showMentions()(dispatch, getState);
@@ -638,17 +629,17 @@ export function openAtPrevious(previous: any) { // TODO Could not find the prope
         }
         if (previous.selectedPostId) {
             const post = getPost(getState(), previous.selectedPostId);
-            return post ? selectPostFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)(dispatch, getState) : openRHSSearch()(dispatch);
+            return post ? dispatch(selectPostFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
         }
         if (previous.selectedPostCardId) {
             const post = getPost(getState(), previous.selectedPostCardId);
-            return post ? selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)(dispatch, getState) : openRHSSearch()(dispatch);
+            return post ? dispatch(selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
         }
         if (previous.searchVisible) {
-            return showSearchResults()(dispatch, getState);
+            return dispatch(showSearchResults());
         }
 
-        return openRHSSearch()(dispatch);
+        return dispatch(openRHSSearch());
     };
 }
 
@@ -661,11 +652,8 @@ export const unsuppressRHS = {
 };
 
 export function setEditChannelMembers(active: boolean) {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: ActionTypes.SET_EDIT_CHANNEL_MEMBERS,
-            active,
-        });
-        return {data: true};
+    return {
+        type: ActionTypes.SET_EDIT_CHANNEL_MEMBERS,
+        active,
     };
 }

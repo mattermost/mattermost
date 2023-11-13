@@ -11,7 +11,7 @@ import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
@@ -32,8 +32,8 @@ type Option = {
     skipRedirectReplyPermalink: boolean;
 }
 
-function focusRootPost(post: Post, channel: Channel) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+function focusRootPost(post: Post, channel: Channel): ActionFunc {
+    return (dispatch, getState) => {
         const postURL = getPostURL(getState() as GlobalState, post);
 
         dispatch(selectChannel(channel.id));
@@ -48,8 +48,8 @@ function focusRootPost(post: Post, channel: Channel) {
     };
 }
 
-function focusReplyPost(post: Post, channel: Channel, teamId: string, returnTo: string, option: Option) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+function focusReplyPost(post: Post, channel: Channel, teamId: string, returnTo: string, option: Option): ActionFunc {
+    return async (dispatch, getState) => {
         const {data} = await dispatch(getPostThread(post.root_id));
 
         if (data.first_inaccessible_post_time) {
@@ -82,22 +82,22 @@ function focusReplyPost(post: Post, channel: Channel, teamId: string, returnTo: 
     };
 }
 
-export function focusPost(postId: string, returnTo = '', currentUserId: string, option: Option = {skipRedirectReplyPermalink: false}) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function focusPost(postId: string, returnTo = '', currentUserId: string, option: Option = {skipRedirectReplyPermalink: false}): ActionFunc {
+    return async (dispatch, getState) => {
         // Ignore if prompt is still visible
         if (privateChannelJoinPromptVisible) {
-            return;
+            return {data: false};
         }
         const {data} = await dispatch(getPostThread(postId));
 
         if (!data) {
             getHistory().replace(`/error?type=${ErrorPageTypes.PERMALINK_NOT_FOUND}&returnTo=${returnTo}`);
-            return;
+            return {data: false};
         }
 
         if (data.first_inaccessible_post_time) {
             getHistory().replace(`/error?type=${ErrorPageTypes.CLOUD_ARCHIVED}&returnTo=${returnTo}`);
-            return;
+            return {data: false};
         }
 
         const state = getState();
@@ -113,7 +113,7 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
 
             if (!channelData) {
                 getHistory().replace(`/error?type=${ErrorPageTypes.PERMALINK_NOT_FOUND}&returnTo=${returnTo}`);
-                return;
+                return {data: false};
             }
 
             channel = channelData;
@@ -125,7 +125,7 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
             // If it's a DM or GM channel and we don't have a channel member for it already, user is not a member
             if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
                 getHistory().replace(`/error?type=${ErrorPageTypes.PERMALINK_NOT_FOUND}&returnTo=${returnTo}`);
-                return;
+                return {data: false};
             }
 
             const membership = await dispatch(getChannelMember(channel.id, currentUserId));
@@ -141,7 +141,7 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
                     const joinPromptResult = await dispatch(joinPrivateChannelPrompt(currentTeam, channel));
                     privateChannelJoinPromptVisible = false;
                     if ('data' in joinPromptResult && !joinPromptResult.data.join) {
-                        return;
+                        return {data: false};
                     }
                 }
                 await dispatch(joinChannel(currentUserId, '', channelId, channel.name));
@@ -150,7 +150,7 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
 
         if (channel.team_id && channel.team_id !== teamId) {
             getHistory().replace(`/error?type=${ErrorPageTypes.PERMALINK_NOT_FOUND}&returnTo=${returnTo}`);
-            return;
+            return {data: false};
         }
 
         if (channel && channel.type === Constants.DM_CHANNEL) {
@@ -166,7 +166,7 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
         if (isCollapsed && isComment(post)) {
             const {data} = await dispatch(focusReplyPost(post, channel, teamId, returnTo, option));
             if (!data) {
-                return;
+                return {data: false};
             }
         } else {
             dispatch(focusRootPost(post, channel));
@@ -174,5 +174,7 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
 
         dispatch(loadChannelsForCurrentUser());
         dispatch(getChannelStats(channelId));
+
+        return {data: true};
     };
 }

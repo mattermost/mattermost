@@ -19,7 +19,7 @@ import {
 } from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, DispatchFunc} from 'mattermost-redux/types/actions';
 import {isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
 import {executeCommand} from 'actions/command';
@@ -53,11 +53,11 @@ export function updateCommentDraft(rootId: string, draft?: PostDraft, save = fal
     return updateDraft(key, draft ?? null, rootId, save);
 }
 
-export function makeOnMoveHistoryIndex(rootId: string, direction: number) {
+export function makeOnMoveHistoryIndex(rootId: string, direction: number): () => ActionFunc {
     const getMessageInHistory = makeGetMessageInHistoryItem(Posts.MESSAGE_TYPES.COMMENT as 'comment');
 
-    return () => (dispatch: DispatchFunc, getState: () => GlobalState) => {
-        const draft = getPostDraft(getState(), StoragePrefixes.COMMENT_DRAFT, rootId);
+    return () => (dispatch, getState) => {
+        const draft = getPostDraft(getState() as GlobalState, StoragePrefixes.COMMENT_DRAFT, rootId);
         if (draft.message !== '' && draft.message !== getMessageInHistory(getState())) {
             return {data: true};
         }
@@ -75,8 +75,8 @@ export function makeOnMoveHistoryIndex(rootId: string, direction: number) {
     };
 }
 
-export function submitPost(channelId: string, rootId: string, draft: PostDraft) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function submitPost(channelId: string, rootId: string, draft: PostDraft): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState();
 
         const userId = getCurrentUserId(state);
@@ -106,8 +106,8 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft) 
     };
 }
 
-export function submitReaction(postId: string, action: string, emojiName: string) {
-    return (dispatch: DispatchFunc) => {
+export function submitReaction(postId: string, action: string, emojiName: string): ActionFunc {
+    return (dispatch) => {
         if (action === '+') {
             dispatch(PostActions.addReaction(postId, emojiName));
         } else if (action === '-') {
@@ -117,8 +117,8 @@ export function submitReaction(postId: string, action: string, emojiName: string
     };
 }
 
-export function submitCommand(channelId: string, rootId: string, draft: PostDraft) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function submitCommand(channelId: string, rootId: string, draft: PostDraft): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState();
 
         const teamId = getCurrentTeamId(state);
@@ -230,10 +230,10 @@ function makeGetCurrentUsersLatestReply() {
     );
 }
 
-export function makeOnEditLatestPost(rootId: string) {
+export function makeOnEditLatestPost(rootId: string): () => ActionFunc {
     const getCurrentUsersLatestPost = makeGetCurrentUsersLatestReply();
 
-    return () => (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return () => (dispatch, getState) => {
         const state = getState();
 
         const lastPost = getCurrentUsersLatestPost(state, rootId);

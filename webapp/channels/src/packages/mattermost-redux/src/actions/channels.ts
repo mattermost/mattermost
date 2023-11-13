@@ -50,7 +50,7 @@ export function selectChannel(channelId: string) {
 }
 
 export function createChannel(channel: Channel, userId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let created;
         try {
             created = await Client4.createChannel(channel);
@@ -101,7 +101,7 @@ export function createChannel(channel: Channel, userId: string): ActionFunc {
 }
 
 export function createDirectChannel(userId: string, otherUserId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.CREATE_CHANNEL_REQUEST, data: null});
 
         let created;
@@ -164,7 +164,7 @@ export function createDirectChannel(userId: string, otherUserId: string): Action
 }
 
 export function markGroupChannelOpen(channelId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const {currentUserId} = getState().entities.users;
 
         const preferences: PreferenceType[] = [
@@ -177,7 +177,7 @@ export function markGroupChannelOpen(channelId: string): ActionFunc {
 }
 
 export function createGroupChannel(userIds: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.CREATE_CHANNEL_REQUEST, data: null});
 
         const {currentUserId} = getState().entities.users;
@@ -254,7 +254,7 @@ export function createGroupChannel(userIds: string[]): ActionFunc {
 }
 
 export function patchChannel(channelId: string, patch: Partial<Channel>): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.UPDATE_CHANNEL_REQUEST, data: null});
 
         let updated;
@@ -282,7 +282,7 @@ export function patchChannel(channelId: string, patch: Partial<Channel>): Action
 }
 
 export function updateChannel(channel: Channel): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.UPDATE_CHANNEL_REQUEST, data: null});
 
         let updated;
@@ -311,7 +311,7 @@ export function updateChannel(channel: Channel): ActionFunc {
 }
 
 export function updateChannelPrivacy(channelId: string, privacy: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.UPDATE_CHANNEL_REQUEST, data: null});
 
         let updatedChannel;
@@ -340,7 +340,7 @@ export function updateChannelPrivacy(channelId: string, privacy: string): Action
 }
 
 export function convertGroupMessageToPrivateChannel(channelID: string, teamID: string, displayName: string, name: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.UPDATE_CHANNEL_REQUEST, data: null});
 
         let updatedChannel;
@@ -374,7 +374,7 @@ export function convertGroupMessageToPrivateChannel(channelID: string, teamID: s
 }
 
 export function updateChannelNotifyProps(userId: string, channelId: string, props: Partial<ChannelNotifyProps>): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const notifyProps = {
             user_id: userId,
             channel_id: channelId,
@@ -406,7 +406,7 @@ export function updateChannelNotifyProps(userId: string, channelId: string, prop
 }
 
 export function getChannelByNameAndTeamName(teamName: string, channelName: string, includeDeleted = false): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getChannelByNameAndTeamName(teamName, channelName, includeDeleted);
@@ -427,7 +427,7 @@ export function getChannelByNameAndTeamName(teamName: string, channelName: strin
 }
 
 export function getChannel(channelId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getChannel(channelId);
@@ -448,7 +448,7 @@ export function getChannel(channelId: string): ActionFunc {
 }
 
 export function getChannelAndMyMember(channelId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let channel;
         let member;
         try {
@@ -481,7 +481,7 @@ export function getChannelAndMyMember(channelId: string): ActionFunc {
 }
 
 export function getChannelTimezones(channelId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let channelTimezones;
         try {
             const channelTimezonesRequest = Client4.getChannelTimezones(channelId);
@@ -498,7 +498,7 @@ export function getChannelTimezones(channelId: string): ActionFunc {
 }
 
 export function fetchChannelsAndMembers(teamId: string): ActionFunc<{channels: ServerChannel[]; channelMembers: ChannelMembership[]}> {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let channels;
         let channelMembers;
         try {
@@ -539,7 +539,7 @@ export function fetchChannelsAndMembers(teamId: string): ActionFunc<{channels: S
 }
 
 export function fetchAllMyTeamsChannelsAndChannelMembersREST(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const state = getState();
         const {currentUserId} = state.entities.users;
         let channels;
@@ -588,7 +588,7 @@ export function fetchAllMyTeamsChannelsAndChannelMembersREST(): ActionFunc {
 }
 
 export function getChannelMembers(channelId: string, page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let channelMembers: ChannelMembership[];
 
         try {
@@ -614,7 +614,7 @@ export function getChannelMembers(channelId: string, page = 0, perPage: number =
 }
 
 export function leaveChannel(channelId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const state = getState();
         const {currentUserId} = state.entities.users;
         const {channels, myMembers} = state.entities.channels;
@@ -660,7 +660,7 @@ export function leaveChannel(channelId: string): ActionFunc {
 }
 
 export function joinChannel(userId: string, teamId: string, channelId: string, channelName?: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         if (!channelId && !channelName) {
             return {data: null};
         }
@@ -709,7 +709,7 @@ export function joinChannel(userId: string, teamId: string, channelId: string, c
 }
 
 export function deleteChannel(channelId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let state = getState();
         const viewArchivedChannels = state.entities.general.config.ExperimentalViewArchivedChannels === 'true';
 
@@ -739,7 +739,7 @@ export function deleteChannel(channelId: string): ActionFunc {
 }
 
 export function unarchiveChannel(channelId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         try {
             await Client4.unarchiveChannel(channelId);
         } catch (error) {
@@ -758,7 +758,7 @@ export function unarchiveChannel(channelId: string): ActionFunc {
 }
 
 export function updateApproximateViewTime(channelId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const {currentUserId} = getState().entities.users;
 
         const {myPreferences} = getState().entities.preferences;
@@ -776,7 +776,7 @@ export function updateApproximateViewTime(channelId: string): ActionFunc {
 }
 
 export function readMultipleChannels(channelIds: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let response;
         try {
             response = await Client4.readMultipleChannels(channelIds);
@@ -793,7 +793,7 @@ export function readMultipleChannels(channelIds: string[]): ActionFunc {
 }
 
 export function getChannels(teamId: string, page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_CHANNELS_REQUEST, data: null});
 
         let channels;
@@ -822,7 +822,7 @@ export function getChannels(teamId: string, page = 0, perPage: number = General.
 }
 
 export function getArchivedChannels(teamId: string, page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let channels;
         try {
             channels = await Client4.getArchivedChannels(teamId, page, perPage);
@@ -842,7 +842,7 @@ export function getArchivedChannels(teamId: string, page = 0, perPage: number = 
 }
 
 export function getAllChannelsWithCount(page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE, notAssociatedToGroup = '', excludeDefaultChannels = false, includeDeleted = false, excludePolicyConstrained = false): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_ALL_CHANNELS_REQUEST, data: null});
 
         let payload;
@@ -874,7 +874,7 @@ export function getAllChannelsWithCount(page = 0, perPage: number = General.CHAN
 }
 
 export function getAllChannels(page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE, notAssociatedToGroup = '', excludeDefaultChannels = false, excludePolicyConstrained = false): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_ALL_CHANNELS_REQUEST, data: null});
 
         let channels;
@@ -902,7 +902,7 @@ export function getAllChannels(page = 0, perPage: number = General.CHANNELS_CHUN
 }
 
 export function autocompleteChannels(teamId: string, term: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_CHANNELS_REQUEST, data: null});
 
         let channels;
@@ -931,7 +931,7 @@ export function autocompleteChannels(teamId: string, term: string): ActionFunc {
 }
 
 export function autocompleteChannelsForSearch(teamId: string, term: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_CHANNELS_REQUEST, data: null});
 
         let channels;
@@ -960,7 +960,7 @@ export function autocompleteChannelsForSearch(teamId: string, term: string): Act
 }
 
 export function searchChannels(teamId: string, term: string, archived?: boolean): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_CHANNELS_REQUEST, data: null});
 
         let channels;
@@ -993,7 +993,7 @@ export function searchChannels(teamId: string, term: string, archived?: boolean)
 }
 
 export function searchAllChannels(term: string, opts: ChannelSearchOpts = {}): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_ALL_CHANNELS_REQUEST, data: null});
 
         let response;
@@ -1030,7 +1030,7 @@ export function searchGroupChannels(term: string): ActionFunc {
 }
 
 export function getChannelStats(channelId: string, includeFileCount?: boolean): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let stat;
         try {
             stat = await Client4.getChannelStats(channelId, includeFileCount);
@@ -1050,7 +1050,7 @@ export function getChannelStats(channelId: string, includeFileCount?: boolean): 
 }
 
 export function getChannelsMemberCount(channelIds: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let channelsMemberCount;
 
         try {
@@ -1071,7 +1071,7 @@ export function getChannelsMemberCount(channelIds: string[]): ActionFunc {
 }
 
 export function addChannelMember(channelId: string, userId: string, postRootId = ''): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let member;
         try {
             member = await Client4.addToChannel(userId, channelId, postRootId);
@@ -1106,7 +1106,7 @@ export function addChannelMember(channelId: string, userId: string, postRootId =
 }
 
 export function removeChannelMember(channelId: string, userId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         try {
             await Client4.removeFromChannel(userId, channelId);
         } catch (error) {
@@ -1133,7 +1133,7 @@ export function removeChannelMember(channelId: string, userId: string): ActionFu
 }
 
 export function updateChannelMemberRoles(channelId: string, userId: string, roles: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         try {
             await Client4.updateChannelMemberRoles(channelId, userId, roles);
         } catch (error) {
@@ -1187,7 +1187,7 @@ export function updateChannelPurpose(channelId: string, purpose: string): Action
 }
 
 export function markChannelAsRead(channelId: string, skipUpdateViewTime = false): ActionFunc {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return (dispatch, getState) => {
         if (skipUpdateViewTime) {
             dispatch(updateApproximateViewTime(channelId));
         }
@@ -1203,7 +1203,7 @@ export function markChannelAsRead(channelId: string, skipUpdateViewTime = false)
 }
 
 export function markMultipleChannelsAsRead(channelTimes: Record<string, number>): ActionFunc {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return (dispatch, getState) => {
         const actions: AnyAction[] = [];
         for (const id of Object.keys(channelTimes)) {
             actions.push(...actionsToMarkChannelAsRead(getState, id, channelTimes[id]));
@@ -1218,7 +1218,7 @@ export function markMultipleChannelsAsRead(channelTimes: Record<string, number>)
 }
 
 export function markChannelAsViewedOnServer(channelId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         try {
             await Client4.viewMyChannel(channelId);
         } catch (error) {
@@ -1374,8 +1374,8 @@ export function getMyChannelMember(channelId: string) {
     });
 }
 
-export function loadMyChannelMemberAndRole(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadMyChannelMemberAndRole(channelId: string): ActionFunc {
+    return async (dispatch, getState) => {
         const result = await getMyChannelMember(channelId)(dispatch, getState) as ActionResult;
         const roles = result.data?.roles.split(' ');
         if (roles && roles.length > 0) {
@@ -1387,7 +1387,7 @@ export function loadMyChannelMemberAndRole(channelId: string) {
 
 // favoriteChannel moves the provided channel into the current team's Favorites category.
 export function favoriteChannel(channelId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const state = getState();
         const channel = getChannelSelector(state, channelId);
         const category = getCategoryInTeamByType(state, channel.team_id || getCurrentTeamId(state), CategoryTypes.FAVORITES);
@@ -1404,7 +1404,7 @@ export function favoriteChannel(channelId: string): ActionFunc {
 
 // unfavoriteChannel moves the provided channel into the current team's Channels/DMs category.
 export function unfavoriteChannel(channelId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const state = getState();
         const channel = getChannelSelector(state, channelId);
         const category = getCategoryInTeamByType(

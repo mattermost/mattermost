@@ -11,7 +11,7 @@ import * as TeamActions from 'mattermost-redux/actions/teams';
 import {getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, DispatchFunc} from 'mattermost-redux/types/actions';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {addUsersToTeam} from 'actions/team_actions';
@@ -21,7 +21,7 @@ import {t} from 'utils/i18n';
 import {localizeMessage} from 'utils/utils';
 
 export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         if (users.length > 0) {
             await dispatch(TeamActions.getTeamMembersByIds(teamId, users.map((u) => u.id)));
         }
@@ -152,7 +152,7 @@ export function sendGuestsInvites(
     emails: string[],
     message: string,
 ): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const state = getState();
         const sent = [];
         const notSent = [];
@@ -215,7 +215,7 @@ export function sendMembersInvitesToChannels(
     emails: string[],
     message: string,
 ): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         if (users.length > 0) {
             // used to preload in the global store the teammembers info, used later to validate
             // if one of the invites is already part of the team by getTeamMembers > getMembersInTeam.

@@ -5,12 +5,12 @@ import {AppsTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getChannel, getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {bindClientFunc} from './helpers';
 
 export function fetchAppBindings(channelID: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return (dispatch, getState) => {
         if (!channelID) {
             return {data: true};
         }
@@ -28,7 +28,7 @@ export function fetchAppBindings(channelID: string): ActionFunc {
 }
 
 export function fetchRHSAppsBindings(channelID: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return (dispatch, getState) => {
         const state = getState();
 
         const currentChannelID = getCurrentChannelId(state);

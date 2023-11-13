@@ -32,7 +32,7 @@ import {get, getInt, getBool, isCustomGroupsEnabled} from 'mattermost-redux/sele
 import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getStatusForUserId, getUser, isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, GetStateFunc, DispatchFunc} from 'mattermost-redux/types/actions.js';
+import type {ActionResult, ActionFunc} from 'mattermost-redux/types/actions.js';
 
 import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
@@ -170,8 +170,8 @@ type Actions = {
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
 }
 
-function setDraft(key: string, value: PostDraft, draftChannelId: string, save = false) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+function setDraft(key: string, value: PostDraft, draftChannelId: string, save = false): ActionFunc {
+    return (dispatch, getState) => {
         const channelId = draftChannelId || getCurrentChannelId(getState());
         let updatedValue = null;
         if (value) {

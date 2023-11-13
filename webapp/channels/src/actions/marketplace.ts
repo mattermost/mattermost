@@ -9,7 +9,7 @@ import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/consta
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {getFilter, getPlugin} from 'selectors/views/marketplace';
 
@@ -24,7 +24,7 @@ import type {GlobalState} from 'types/store';
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForContext} from './apps';
 
 export function fetchRemoteListing(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const state = getState() as GlobalState;
         const filter = getFilter(state);
 
@@ -43,7 +43,7 @@ export function fetchRemoteListing(): ActionFunc {
 
 // fetchPlugins fetches the latest marketplace plugins and apps, subject to any existing search filter.
 export function fetchListing(localOnly = false): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const state = getState() as GlobalState;
         const filter = getFilter(state);
 
@@ -87,22 +87,18 @@ export function fetchListing(localOnly = false): ActionFunc {
 }
 
 // filterListing sets a search filter for marketplace listing, fetching the latest data.
-export function filterListing(filter: string): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
-        dispatch({
-            type: ActionTypes.FILTER_MARKETPLACE_LISTING,
-            filter,
-        });
-
-        return dispatch(fetchListing());
+export function filterListing(filter: string) {
+    return {
+        type: ActionTypes.FILTER_MARKETPLACE_LISTING,
+        filter,
     };
 }
 
 // installPlugin installs the latest version of the given plugin from the marketplace.
 //
 // On success, it also requests the current state of the plugins to reflect the newly installed plugin.
-export function installPlugin(id: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc): Promise<void> => {
+export function installPlugin(id: string): ActionFunc {
+    return async (dispatch, getState) => {
         dispatch({
             type: ActionTypes.INSTALLING_MARKETPLACE_ITEM,
             id,
@@ -117,7 +113,7 @@ export function installPlugin(id: string) {
                 id,
                 error: 'Unknown plugin: ' + id,
             });
-            return;
+            return {data: false};
         }
 
         try {
@@ -128,7 +124,7 @@ export function installPlugin(id: string) {
                 id,
                 error: error.message,
             });
-            return;
+            return {data: false};
         }
 
         await dispatch(fetchListing());
@@ -136,14 +132,16 @@ export function installPlugin(id: string) {
             type: ActionTypes.INSTALLING_MARKETPLACE_ITEM_SUCCEEDED,
             id,
         });
+
+        return {data: true};
     };
 }
 
 // installApp installed an App using a given URL a call to the `/install-listed` call path.
 //
 // On success, it also requests the current state of the apps to reflect the newly installed app.
-export function installApp(id: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc): Promise<boolean> => {
+export function installApp(id: string): ActionFunc {
+    return async (dispatch, getState) => {
         dispatch({
             type: ActionTypes.INSTALLING_MARKETPLACE_ITEM,
             id,
@@ -183,7 +181,7 @@ export function installApp(id: string) {
                 id,
                 error: errorResponse.text,
             });
-            return false;
+            return {data: false};
         }
 
         dispatch({
@@ -200,6 +198,6 @@ export function installApp(id: string) {
             dispatch(postEphemeralCallResponseForContext(callResp, callResp.text, context));
         }
 
-        return true;
+        return {data: true};
     };
 }

@@ -3,7 +3,7 @@
 
 import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
 import LocalStorageStore from 'stores/local_storage_store';
@@ -17,8 +17,8 @@ import type {GlobalState} from 'types/store';
 
 import {openModal} from './modals';
 
-export function switchToChannels() {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function switchToChannels(): ActionFunc {
+    return async (dispatch, getState) => {
         const state = getState() as GlobalState;
         const currentUserId = getCurrentUserId(state);
         const user = getCurrentUser(state);
@@ -33,8 +33,8 @@ export function switchToChannels() {
     };
 }
 
-export function openInvitationsModal(timeout = 1) {
-    return (dispatch: DispatchFunc) => {
+export function openInvitationsModal(timeout = 1): ActionFunc {
+    return (dispatch) => {
         dispatch(switchToChannels());
         setTimeout(() => {
             dispatch(openModal({

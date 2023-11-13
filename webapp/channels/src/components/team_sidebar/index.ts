@@ -19,7 +19,7 @@ import {
     getJoinableTeamIds,
     getMyTeams,
 } from 'mattermost-redux/selectors/entities/teams';
-import type {GenericAction, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {switchTeam, updateTeamsOrderForUser} from 'actions/team_actions';
 import {getCurrentLocale} from 'selectors/i18n';
@@ -58,8 +58,8 @@ function mapStateToProps(state: GlobalState) {
 
 type Actions = {
     getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean) => void;
-    switchTeam: (url: string, team?: Team) => (dispatch: Dispatch<GenericAction>, getState: GetStateFunc) => void;
-    updateTeamsOrderForUser: (teamIds: string[]) => (dispatch: Dispatch<GenericAction>, getState: GetStateFunc) => Promise<void>;
+    switchTeam: (url: string, team?: Team) => void;
+    updateTeamsOrderForUser: (teamIds: string[]) => Promise<void>;
 }
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
