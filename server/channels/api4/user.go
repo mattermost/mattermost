@@ -1609,7 +1609,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddEventPriorState(user)
 	}
 
-	user, err := c.App.UpdateUserAuth(c.Params.UserId, &userAuth)
+	user, err := c.App.UpdateUserAuth(c.AppContext, c.Params.UserId, &userAuth)
 	if err != nil {
 		c.Err = err
 		return
