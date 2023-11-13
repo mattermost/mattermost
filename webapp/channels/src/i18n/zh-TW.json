@@ -602,8 +602,6 @@
   "admin.experimental.experimentalPrimaryTeam.desc": "使用者在此伺服器上為成員的主團隊。當有設定主團隊時，加入其他團隊或離開主團隊的選項將被停用。",
   "admin.experimental.experimentalPrimaryTeam.example": "如：\"teamname\"",
   "admin.experimental.experimentalPrimaryTeam.title": "主團隊：",
-  "admin.experimental.experimentalTimezone.desc": "選擇在使用者介面跟郵件通知當中時間戳記的時區。啟用時，可以在帳號設定中看到時區設定且下一個工作階段將會自動指定時區。停用時，帳號設定將隱藏時區設定。",
-  "admin.experimental.experimentalTimezone.title": "時區：",
   "admin.experimental.experimentalUseNewSAMLLibrary.desc": "啟用新版本的 SAML 程式庫，該程式庫不需要安裝 XML 安全性程式庫 (xmlsec1)。注意：尚未測試過所有可能的提供者。如果遇到問題請聯絡支援：<linkSupport>https://mattermost.com/support/</linkSupport>。此設定需要重新啟動伺服器才有效。",
   "admin.experimental.experimentalUseNewSAMLLibrary.title": "使用改善的 SAML 程式庫 (測試版)：",
   "admin.experimental.ldapSettingsLoginButtonBorderColor.desc": "設定 AD/LDAP 登入按鈕邊框的顏色以客製。用#開頭的十六進位色碼。此設定只影響行動裝置應用程式。",

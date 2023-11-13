@@ -746,8 +746,6 @@
   "admin.experimental.experimentalPrimaryTeam.desc": "Echipa principală din care fac parte utilizatorii de pe server. Când este stabilită o echipă primară, opțiunile de a se alătura altor echipe sau de a părăsi echipa primară sunt dezactivate.",
   "admin.experimental.experimentalPrimaryTeam.example": "De exemplu: \"porecla\"",
   "admin.experimental.experimentalPrimaryTeam.title": "Echipa primară:",
-  "admin.experimental.experimentalTimezone.desc": "Selectați fusul orar utilizat pentru marcatele de timp în interfața utilizatorului și notificările prin e-mail. Când este adevărat, setarea fusului orar este vizibilă în Setările contului și un fus orar este automat atribuit în următoarea sesiune activă. Când este falsă, setarea fusului orar este ascunsă în Setările contului.",
-  "admin.experimental.experimentalTimezone.title": "Fus orar:",
   "admin.experimental.experimentalUseNewSAMLLibrary.desc": "Activați o bibliotecă SAML actualizată, care nu necesită instalarea XML Security Library (xmlsec1). Avertisment: nu toți furnizorii au fost testați. Dacă aveți probleme, contactați asistența: <linkSupport>https://mattermost.com/support/</linkSupport>. Modificarea acestei setări necesită o repornire a serverului înainte de a intra în vigoare.",
   "admin.experimental.experimentalUseNewSAMLLibrary.title": "Utilizați Biblioteca SAML îmbunătățit (Beta):",
   "admin.experimental.ldapSettingsLoginButtonBorderColor.desc": "Specificați culoarea bornei butonului de conectare AD/LDAP pentru scopuri de etichetare albă. Utilizați un cod hexazecimal cu un #-sign înaintea codului. Această setare se aplică numai aplicațiilor mobile.",
