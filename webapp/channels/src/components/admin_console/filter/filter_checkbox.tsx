@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 
 type Props = {
     name: string;
@@ -15,15 +15,13 @@ function FilterCheckbox({
     checked,
     label,
     updateOption,
-} : Props) {
-    const {name, checked, label} = props;
-
-    function toggleOption(e: React.MouseEvent) {
+}: Props) {
+    const toggleOption = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        const {checked, name, updateOption} = props;
         updateOption(!checked, name);
-    }
+    }, [name, checked, updateOption]);
+
     return (
         <div
             className='FilterList_checkbox'
@@ -53,4 +51,4 @@ function FilterCheckbox({
     );
 }
 
-export default FilterCheckbox;
+export default React.memo(FilterCheckbox);
