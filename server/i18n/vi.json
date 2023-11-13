@@ -8972,5 +8972,161 @@
   {
     "id": "api.unable_to_read_file_from_backend",
     "translation": "Lỗi đọc file từ backend"
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "ID người dùng không hợp lệ."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Tên xung đột với tên biểu tượng cảm xúc hệ thống hiện có."
+  },
+  {
+    "id": "model.group.name.invalid_chars.app_error",
+    "translation": "ký tự không hợp lệ trong thuộc tính tên cho nhóm"
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "tên nhóm đã tồn tại dưới dạng tên dành riêng"
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Giá trị byte không hợp lệ khi tải lên giấy phép."
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Tên kênh không hợp lệ"
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "Danh sách email trống"
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "Độ dài tối đa của MattermostAppID là 32 ký tự."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.app_error",
+    "translation": "Tính năng xóa kênh vĩnh viễn không được bật. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.app_error",
+    "translation": "Tính năng xóa nhóm vĩnh viễn không được bật. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "api.user.get_authorization_code.endpoint.app_error",
+    "translation": "Lỗi truy xuất điểm cuối từ Tài liệu Discovery."
+  },
+  {
+    "id": "api.user.get_uploads_for_user.forbidden.app_error",
+    "translation": "Không tải được nội dung tải lên."
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Lỗi tìm nạp vai trò trong quá trình xác thực."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Không thể nhận mã thông báo theo loại khi vô hiệu hóa mã thông báo khôi phục mật khẩu"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Không thể xóa mã thông báo khi vô hiệu hóa mã thông báo khôi phục mật khẩu"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Không thể phân tích mã thông báo khi vô hiệu hóa mã thông báo khôi phục mật khẩu"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Không thể nhận mã thông báo theo loại khi vô hiệu hóa mã thông báo xác minh email"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Không thể phân tích mã thông báo khi vô hiệu hóa mã thông báo xác minh email"
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Đăng nhập không thành công vì người dùng từ xa không được phép đăng nhập."
+  },
+  {
+    "id": "api.user.login_by_cws.invalid_token.app_error",
+    "translation": "Mã thông báo CWS không hợp lệ"
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "Đăng nhập CWS bị cấm."
+  },
+  {
+    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
+    "translation": "Trường '{{.Field}}' phải được đặt thông qua nhà cung cấp thông tin đăng nhập của người dùng."
+  },
+  {
+    "id": "api.user.send_cloud_welcome_email.error",
+    "translation": "Không gửi được email chào mừng trên đám mây"
+  },
+  {
+    "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
+    "translation": "Bạn không thể kích hoạt tài khoản khách vì tính năng Truy cập của khách chưa được bật."
+  },
+  {
+    "id": "api.user.update_password.user_and_hashed.app_error",
+    "translation": "Chỉ quản trị viên hệ thống mới có thể đặt mật khẩu đã được băm."
+  },
+  {
+    "id": "api.user.update_user.login_provider_attribute_set.app_error",
+    "translation": "Trường '{{.Field}}' phải được đặt thông qua nhà cung cấp thông tin đăng nhập của người dùng."
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "Yêu cầu thiếu tham số AuthData hoặc AuthService."
+  },
+  {
+    "id": "api.user.update_user_roles.license.app_error",
+    "translation": "Lược đồ cấp phép tùy chỉnh không được giấy phép hiện tại hỗ trợ"
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Kiểm tra giới hạn hình ảnh không thành công. Độ phân giải quá cao."
+  },
+  {
+    "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+    "translation": "Ảnh hồ sơ phải được đặt thông qua nhà cung cấp thông tin đăng nhập của người dùng."
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Không thể truy xuất bài đăng cho kênh đã lưu trữ"
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Không thể xóa xác nhận."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Không thể nhận được sự thừa nhận."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Không thể nhận được sự thừa nhận cho bài viết."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Không thể lưu xác nhận cho bài đăng."
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Không thể xóa mã thông báo khi vô hiệu hóa mã thông báo xác minh email"
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Địa chỉ email trong mã thông báo không khớp với địa chỉ trong dữ liệu người dùng."
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Không thể truy xuất người dùng cho kênh đã lưu trữ"
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.app_error",
+    "translation": "Tính năng xóa người dùng vĩnh viễn không được bật. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
   }
 ]
