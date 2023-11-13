@@ -146,7 +146,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, ldapId *stri
 
 	ldapUser, err := a.Ldap().DoLogin(rctx, *ldapId, password)
 	if err != nil {
-		// Log a info to make it easier to admin to spot that a user
+		// Log a info to make it easier to admin to spot that a user tried to log in with a legitimate user name.
 		if err.Id == "ent.ldap.do_login.invalid_password.app_error" {
 			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched an LDAP account, but the password was incorrect.", mlog.String("ldap_id", *ldapId))
 		}
