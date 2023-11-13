@@ -882,7 +882,7 @@ describe('rhs view actions', () => {
         const post3 = {id: '44'} as Post;
 
         beforeEach(() => {
-            jest.useFakeTimers('modern');
+            jest.useFakeTimers();
             jest.setSystemTime(POST_CREATED_TIME);
         });
 

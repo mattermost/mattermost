@@ -471,20 +471,6 @@
                 max-height: 100%;
             }
 
-            .modal-close {
-                position: absolute;
-                z-index: 9999;
-                top: -13px;
-                right: -13px;
-                width: 37px;
-                height: 37px;
-                background-image: url('../images/close.png');
-                background-size: 100% 100%;
-                cursor: pointer;
-                opacity: 1;
-                transition: opacity 0.6s;
-            }
-
             .modal-zoom-btn {
                 margin-right: 6px;
                 margin-left: 6px;
@@ -549,21 +535,6 @@
             border: none;
             background: alpha-color($black, 0);
             box-shadow: none;
-        }
-
-        .image-control {
-            position: relative;
-            top: 50%;
-            width: 50px;
-            height: 45px;
-            margin-top: -23px;
-            background: url('../images/prev.png') left no-repeat;
-            float: left;
-
-            &.image-next {
-                background: url('../images/next.png') left no-repeat;
-                float: right;
-            }
         }
 
         .loader-image {
@@ -669,7 +640,7 @@
         flex: 32px 0 0;
         align-items: center;
         justify-content: center;
-        background: rgba(var(--center-channel-color), 0.2);
+        background: rgba(var(--center-channel-color-rgb), 0.2);
         border-radius: 50%;
     }
 

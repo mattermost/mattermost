@@ -321,7 +321,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	return ruser, nil
 }
 
-func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
 	if !*a.Config().TeamSettings.EnableUserCreation {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -687,7 +687,7 @@ func (a *App) GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) (
 	return users, nil
 }
 
-func (a *App) GetUsersByGroupChannelIds(c *request.Context, channelIDs []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
+func (a *App) GetUsersByGroupChannelIds(c request.CTX, channelIDs []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
 	usersByChannelId, err := a.Srv().Store().User().GetProfileByGroupChannelIdsForUser(c.Session().UserId, channelIDs)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersByGroupChannelIds", "app.user.get_profile_by_group_channel_ids_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -905,7 +905,7 @@ func (a *App) UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPa
 		return model.NewAppError("updatePassword", "api.user.update_password.oauth.app_error", nil, "auth_service="+user.AuthService, http.StatusBadRequest)
 	}
 
-	if err := a.DoubleCheckPassword(user, currentPassword); err != nil {
+	if err := a.DoubleCheckPassword(c, user, currentPassword); err != nil {
 		if err.Id == "api.user.check_user_password.invalid.app_error" {
 			err = model.NewAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -917,7 +917,7 @@ func (a *App) UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPa
 	return a.UpdatePasswordSendEmail(c, user, newPassword, T("api.user.update_password.menu"))
 }
 
-func (a *App) userDeactivated(c *request.Context, userID string) *model.AppError {
+func (a *App) userDeactivated(c request.CTX, userID string) *model.AppError {
 	a.SetStatusOffline(userID, false)
 
 	user, err := a.GetUser(userID)
@@ -966,7 +966,7 @@ func (a *App) invalidateUserChannelMembersCaches(c request.CTX, userID string) *
 	return nil
 }
 
-func (a *App) UpdateActive(c *request.Context, user *model.User, active bool) (*model.User, *model.AppError) {
+func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
 	user.UpdateAt = model.GetMillis()
 	if active {
 		user.DeleteAt = 0
@@ -1016,7 +1016,7 @@ func (a *App) UpdateActive(c *request.Context, user *model.User, active bool) (*
 	return ruser, nil
 }
 
-func (a *App) DeactivateGuests(c *request.Context) *model.AppError {
+func (a *App) DeactivateGuests(c request.CTX) *model.AppError {
 	userIDs, err := a.ch.srv.userService.DeactivateAllGuests()
 	if err != nil {
 		return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1065,7 +1065,7 @@ func (a *App) UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*
 // CheckProviderAttributes returns the empty string if the patch can be applied without
 // overriding attributes set by the user's login provider; otherwise, the name of the offending
 // field is returned.
-func (a *App) CheckProviderAttributes(c *request.Context, user *model.User, patch *model.UserPatch) string {
+func (a *App) CheckProviderAttributes(c request.CTX, user *model.User, patch *model.UserPatch) string {
 	tryingToChange := func(userValue *string, patchValue *string) bool {
 		return patchValue != nil && *patchValue != *userValue
 	}
@@ -1109,7 +1109,7 @@ func (a *App) PatchUser(c request.CTX, userID string, patch *model.UserPatch, as
 	return updatedUser, nil
 }
 
-func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
+func (a *App) UpdateUserAuth(c request.CTX, userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
 	if _, err := a.Srv().Store().User().UpdateAuthData(userID, userAuth.AuthService, userAuth.AuthData, "", false); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -1119,6 +1119,8 @@ func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.Us
 			return nil, model.NewAppError("UpdateUserAuth", "app.user.update_auth_data.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	a.InvalidateCacheForUser(userID)
 
 	return userAuth, nil
 }
@@ -1300,7 +1302,7 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 	return newUser, nil
 }
 
-func (a *App) UpdateUserActive(c *request.Context, userID string, active bool) *model.AppError {
+func (a *App) UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError {
 	user, err := a.GetUser(userID)
 
 	if err != nil {
@@ -1366,8 +1368,8 @@ func (a *App) UpdatePasswordByUserIdSendEmail(c request.CTX, userID, newPassword
 	return a.UpdatePasswordSendEmail(c, user, newPassword, method)
 }
 
-func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppError {
-	if err := a.IsPasswordValid(newPassword); err != nil {
+func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword string) *model.AppError {
+	if err := a.IsPasswordValid(rctx, newPassword); err != nil {
 		return err
 	}
 
@@ -1383,7 +1385,7 @@ func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppErr
 }
 
 func (a *App) UpdatePasswordSendEmail(c request.CTX, user *model.User, newPassword, method string) *model.AppError {
-	if err := a.UpdatePassword(user, newPassword); err != nil {
+	if err := a.UpdatePassword(c, user, newPassword); err != nil {
 		return err
 	}
 
@@ -1649,7 +1651,7 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 	return ruser, nil
 }
 
-func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.AppError {
+func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppError {
 	c.Logger().Warn("Attempting to permanently delete account", mlog.String("user_id", user.Id), mlog.String("user_email", user.Email))
 	if user.IsInRole(model.SystemAdminRoleId) {
 		c.Logger().Warn("You are deleting a user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.Email))
@@ -1801,7 +1803,7 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 	return nil
 }
 
-func (a *App) PermanentDeleteAllUsers(c *request.Context) *model.AppError {
+func (a *App) PermanentDeleteAllUsers(c request.CTX) *model.AppError {
 	users, err := a.Srv().Store().User().GetAll()
 	if err != nil {
 		return model.NewAppError("PermanentDeleteAllUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -2099,7 +2101,7 @@ func (a *App) AutocompleteUsersInTeam(teamID string, term string, options *model
 	return autocomplete, nil
 }
 
-func (a *App) UpdateOAuthUserAttrs(c *request.Context, userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
+func (a *App) UpdateOAuthUserAttrs(c request.CTX, userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
 	oauthUser, err1 := provider.GetUserFromJSON(c, userData, tokenUser)
 	if err1 != nil {
 		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err1)
@@ -2299,7 +2301,7 @@ func (a *App) GetViewUsersRestrictions(c request.CTX, userID string) (*model.Vie
 
 // PromoteGuestToUser Convert user's roles and all his membership's roles from
 // guest roles to regular user roles.
-func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestorId string) *model.AppError {
+func (a *App) PromoteGuestToUser(c request.CTX, user *model.User, requestorId string) *model.AppError {
 	nErr := a.ch.srv.userService.PromoteGuestToUser(user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {
@@ -2322,7 +2324,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 		c.Logger().Warn("Failed to get user on promote guest to user", mlog.Err(err))
 	} else {
 		a.sendUpdatedUserEvent(*promotedUser)
-		if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(c, promotedUser.Id, promotedUser.IsGuest()); uErr != nil {
+		if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(c, promotedUser, promotedUser.IsGuest()); uErr != nil {
 			c.Logger().Warn("Unable to update user sessions", mlog.String("user_id", promotedUser.Id), mlog.Err(uErr))
 		}
 	}
@@ -2359,7 +2361,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 
 // DemoteUserToGuest Convert user's roles and all his membership's roles from
 // regular user roles to guest roles.
-func (a *App) DemoteUserToGuest(c *request.Context, user *model.User) *model.AppError {
+func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError {
 	demotedUser, nErr := a.ch.srv.userService.DemoteUserToGuest(user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {
@@ -2367,7 +2369,7 @@ func (a *App) DemoteUserToGuest(c *request.Context, user *model.User) *model.App
 	}
 
 	a.sendUpdatedUserEvent(*demotedUser)
-	if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(c, demotedUser.Id, demotedUser.IsGuest()); uErr != nil {
+	if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(c, demotedUser, demotedUser.IsGuest()); uErr != nil {
 		c.Logger().Warn("Unable to update user sessions", mlog.String("user_id", demotedUser.Id), mlog.Err(uErr))
 	}
 
@@ -2474,7 +2476,7 @@ func (a *App) ConvertBotToUser(c request.CTX, bot *model.Bot, userPatch *model.U
 		return nil, err
 	}
 
-	err = a.UpdatePassword(user, *userPatch.Password)
+	err = a.UpdatePassword(c, user, *userPatch.Password)
 	if err != nil {
 		return nil, err
 	}

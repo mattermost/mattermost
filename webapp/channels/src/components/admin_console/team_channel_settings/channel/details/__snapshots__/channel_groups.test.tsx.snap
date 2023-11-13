@@ -3,7 +3,7 @@
 exports[`admin_console/team_channel_settings/channel/ChannelGroups should match snapshot 1`] = `
 <AdminPanel
   button={
-    <Memo(Connect(ToggleModalButton))
+    <ToggleModalButton
       className="btn btn-primary"
       dialogProps={
         Object {
@@ -42,7 +42,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelGroups should match 
         defaultMessage="Add Group"
         id="admin.channel_settings.channel_details.add_group"
       />
-    </Memo(Connect(ToggleModalButton))>
+    </ToggleModalButton>
   }
   className=""
   id="channel_groups"

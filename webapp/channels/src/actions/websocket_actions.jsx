@@ -644,7 +644,8 @@ export function handleChannelUpdatedEvent(msg) {
 
         if (channel.id === getCurrentChannelId(state)) {
             // using channel's team_id to ensure we always redirect to current channel even if channel's team changes.
-            getHistory().replace(`${getRelativeTeamUrl(state, channel.team_id)}/channels/${channel.name}`);
+            const teamId = channel.team_id || getCurrentTeamId(state);
+            getHistory().replace(`${getRelativeTeamUrl(state, teamId)}/channels/${channel.name}`);
         }
     };
 }
@@ -989,7 +990,6 @@ function handleUserAddedEvent(msg) {
         const state = doGetState();
         const config = getConfig(state);
         const license = getLicense(state);
-        const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
         const currentChannelId = getCurrentChannelId(state);
         if (currentChannelId === msg.broadcast.channel_id) {
             doDispatch(getChannelStats(currentChannelId));
@@ -998,7 +998,7 @@ function handleUserAddedEvent(msg) {
                 data: {id: msg.broadcast.channel_id, user_id: msg.data.user_id},
             });
             if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && config.EnableConfirmNotificationsToChannel === 'true') {
-                doDispatch(getChannelMemberCountsByGroup(currentChannelId, isTimezoneEnabled));
+                doDispatch(getChannelMemberCountsByGroup(currentChannelId));
             }
         }
 
@@ -1032,7 +1032,6 @@ export function handleUserRemovedEvent(msg) {
     const currentUser = getCurrentUser(state);
     const config = getConfig(state);
     const license = getLicense(state);
-    const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
 
     if (msg.broadcast.user_id === currentUser.id) {
         dispatch(loadChannelsForCurrentUser());
@@ -1085,7 +1084,7 @@ export function handleUserRemovedEvent(msg) {
             data: {id: msg.broadcast.channel_id, user_id: msg.data.user_id},
         });
         if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && config.EnableConfirmNotificationsToChannel === 'true') {
-            dispatch(getChannelMemberCountsByGroup(currentChannel.id, isTimezoneEnabled));
+            dispatch(getChannelMemberCountsByGroup(currentChannel.id));
         }
     }
 
