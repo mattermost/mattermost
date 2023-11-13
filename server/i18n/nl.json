@@ -676,7 +676,10 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} is reeds lid van het kanaal."
+    "translation": {
+      "one": "{{.User}} is reeds lid van het kanaal.",
+      "other": "{{.User}} zijn reeds lid van het kanaal."
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
