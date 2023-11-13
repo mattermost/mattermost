@@ -3,12 +3,11 @@
 
 import React, {useCallback, memo} from 'react';
 import type {MouseEvent} from 'react';
+import {useIntl} from 'react-intl';
 
 import type {GetStateFunc, DispatchFunc} from 'mattermost-redux/types/actions';
 
 import Menu from 'components/widgets/menu/menu';
-
-import {localizeMessage} from 'utils/utils';
 
 type Props = {
     show?: boolean;
@@ -29,6 +28,7 @@ const ViewPinnedPosts = ({
     },
     show,
 }: Props) => {
+    const intl = useIntl();
     const handleClick = useCallback((e: MouseEvent) => {
         e.preventDefault();
 
@@ -43,7 +43,7 @@ const ViewPinnedPosts = ({
         <Menu.ItemAction
             show={show}
             onClick={handleClick}
-            text={localizeMessage('navbar.viewPinnedPosts', 'View Pinned Posts')}
+            text={intl.formatMessage({id: 'navbar.viewPinnedPosts', defaultMessage: 'View Pinned Posts'})}
         />
     );
 };
