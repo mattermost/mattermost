@@ -1153,7 +1153,7 @@ type AppIface interface {
 	UpdateUser(c request.CTX, user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError
 	UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*model.User, *model.AppError)
-	UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
+	UpdateUserAuth(c request.CTX, userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
 	UpdateUserRoles(c request.CTX, userID string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
 	UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
 	UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)

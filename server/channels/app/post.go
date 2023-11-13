@@ -214,12 +214,12 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	post.SanitizeProps()
 
-	var pchan chan store.StoreResult
+	var pchan chan store.GenericStoreResult[*model.PostList]
 	if post.RootId != "" {
-		pchan = make(chan store.StoreResult, 1)
+		pchan = make(chan store.GenericStoreResult[*model.PostList], 1)
 		go func() {
 			r, pErr := a.Srv().Store().Post().Get(sqlstore.WithMaster(context.Background()), post.RootId, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
-			pchan <- store.StoreResult{Data: r, NErr: pErr}
+			pchan <- store.GenericStoreResult[*model.PostList]{Data: r, NErr: pErr}
 			close(pchan)
 		}()
 	}
@@ -265,7 +265,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		if result.NErr != nil {
 			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
-		parentPostList = result.Data.(*model.PostList)
+		parentPostList = result.Data
 		if len(parentPostList.Posts) == 0 || !parentPostList.IsChannelId(post.ChannelId) {
 			return nil, model.NewAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusInternalServerError)
 		}
@@ -1470,7 +1470,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelNam
 func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
 	var wg sync.WaitGroup
 
-	pchan := make(chan store.StoreResult, len(paramsList))
+	pchan := make(chan store.GenericStoreResult[*model.PostList], len(paramsList))
 
 	for _, params := range paramsList {
 		// Don't allow users to search for everything.
@@ -1483,7 +1483,7 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 		go func(params *model.SearchParams) {
 			defer wg.Done()
 			postList, err := a.Srv().Store().Post().Search(teamID, userID, params)
-			pchan <- store.StoreResult{Data: postList, NErr: err}
+			pchan <- store.GenericStoreResult[*model.PostList]{Data: postList, NErr: err}
 		}(params)
 	}
 
@@ -1496,8 +1496,7 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 		if result.NErr != nil {
 			return nil, model.NewAppError("searchPostsInTeam", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
-		data := result.Data.(*model.PostList)
-		posts.Extend(data)
+		posts.Extend(result.Data)
 	}
 
 	posts.SortByCreateAt()
@@ -1693,10 +1692,10 @@ func (a *App) SearchPostsForUser(c request.CTX, terms string, userID string, tea
 }
 
 func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
-	pchan := make(chan store.StoreResult, 1)
+	pchan := make(chan store.GenericStoreResult[*model.Post], 1)
 	go func() {
 		post, err := a.Srv().Store().Post().GetSingle(postID, includeDeleted)
-		pchan <- store.StoreResult{Data: post, NErr: err}
+		pchan <- store.GenericStoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()
 
@@ -1717,7 +1716,7 @@ func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, 
 				return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 			}
 		}
-		post := result.Data.(*model.Post)
+		post := result.Data
 
 		if len(post.Filenames) > 0 {
 			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)

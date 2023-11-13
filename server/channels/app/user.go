@@ -1109,7 +1109,7 @@ func (a *App) PatchUser(c request.CTX, userID string, patch *model.UserPatch, as
 	return updatedUser, nil
 }
 
-func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
+func (a *App) UpdateUserAuth(c request.CTX, userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
 	if _, err := a.Srv().Store().User().UpdateAuthData(userID, userAuth.AuthService, userAuth.AuthData, "", false); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -1119,6 +1119,8 @@ func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.Us
 			return nil, model.NewAppError("UpdateUserAuth", "app.user.update_auth_data.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	a.InvalidateCacheForUser(userID)
 
 	return userAuth, nil
 }
