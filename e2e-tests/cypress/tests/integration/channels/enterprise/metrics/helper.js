@@ -34,4 +34,4 @@ export const toggleMetricsOn = () => {
             Enable: true,
         },
     });
-}
+};
