@@ -6,7 +6,7 @@ import React from 'react';
 
 import type {AllowedIPRange} from '@mattermost/types/config';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import EditSection from './';
 
@@ -33,7 +33,7 @@ describe('EditSection', () => {
     };
 
     test('renders the component', () => {
-        renderWithIntl(
+        renderWithContext(
             <EditSection
                 {...baseProps}
             />,
@@ -50,7 +50,7 @@ describe('EditSection', () => {
     });
 
     test('clicking the Add Filter button calls setShowAddModal', () => {
-        renderWithIntl(
+        renderWithContext(
             <EditSection
                 {...baseProps}
             />,
@@ -63,7 +63,7 @@ describe('EditSection', () => {
     });
 
     test('clicking the Edit button calls setEditFilter', () => {
-        renderWithIntl(
+        renderWithContext(
             <EditSection
                 {...baseProps}
             />,
@@ -79,7 +79,7 @@ describe('EditSection', () => {
     });
 
     test('clicking the Delete button calls handleConfirmDeleteFilter', () => {
-        renderWithIntl(
+        renderWithContext(
             <EditSection
                 {...baseProps}
             />,
@@ -95,7 +95,7 @@ describe('EditSection', () => {
     });
 
     test('displays an error panel if current IP is not in range', () => {
-        renderWithIntl(
+        renderWithContext(
             <EditSection
                 {...baseProps}
                 currentUsersIP='192.168.1.1'
@@ -109,7 +109,7 @@ describe('EditSection', () => {
     });
 
     test('displays a message if no filters are added', () => {
-        renderWithIntl(
+        renderWithContext(
             <EditSection
                 {...baseProps}
                 ipFilters={[]}

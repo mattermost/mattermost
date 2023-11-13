@@ -4,7 +4,7 @@
 import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import EnableSectionContent from './enable_section';
 jest.mock('components/external_link', () => {
@@ -23,7 +23,7 @@ describe('EnableSectionContent', () => {
     };
 
     test('renders the component', () => {
-        renderWithIntl(
+        renderWithContext(
             <EnableSectionContent
                 {...baseProps}
             />,
@@ -36,7 +36,7 @@ describe('EnableSectionContent', () => {
     });
 
     test('clicking the toggle calls setFilterToggle', () => {
-        renderWithIntl(
+        renderWithContext(
             <EnableSectionContent
                 {...baseProps}
             />,
@@ -49,7 +49,7 @@ describe('EnableSectionContent', () => {
     });
 
     test('renders the component, with toggle not pressed if filterToggle is false', () => {
-        renderWithIntl(
+        renderWithContext(
             <EnableSectionContent
                 {...baseProps}
                 filterToggle={false}

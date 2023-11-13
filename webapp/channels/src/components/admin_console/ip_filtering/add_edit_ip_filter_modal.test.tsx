@@ -6,7 +6,7 @@ import React from 'react';
 
 import type {AllowedIPRange} from '@mattermost/types/config';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import IPFilteringAddOrEditModal from './add_edit_ip_filter_modal';
 
@@ -35,7 +35,7 @@ describe('IPFilteringAddOrEditModal', () => {
     };
 
     test('renders the modal with the correct title when an existingRange is provided', () => {
-        const {getByText} = renderWithIntl(
+        const {getByText} = renderWithContext(
             <IPFilteringAddOrEditModal
                 {...baseProps}
             />,
@@ -45,7 +45,7 @@ describe('IPFilteringAddOrEditModal', () => {
     });
 
     test('renders the modal with the correct title when an existingRange is omitted (ie, Add Modal)', () => {
-        const {getByText} = renderWithIntl(
+        const {getByText} = renderWithContext(
             <IPFilteringAddOrEditModal
                 {...baseProps}
                 existingRange={undefined}
@@ -56,7 +56,7 @@ describe('IPFilteringAddOrEditModal', () => {
     });
 
     test('renders the modal with the correct inputs and values', () => {
-        const {getByLabelText} = renderWithIntl(
+        const {getByLabelText} = renderWithContext(
             <IPFilteringAddOrEditModal
                 {...baseProps}
             />,
@@ -67,7 +67,7 @@ describe('IPFilteringAddOrEditModal', () => {
     });
 
     test('calls the onSave function with the correct values when the Save button is clicked', async () => {
-        const {getByLabelText, getByTestId} = renderWithIntl(
+        const {getByLabelText, getByTestId} = renderWithContext(
             <IPFilteringAddOrEditModal
                 {...baseProps}
             />,
@@ -89,7 +89,7 @@ describe('IPFilteringAddOrEditModal', () => {
     });
 
     test('calls the onSave function with the correct values when the Save button is clicked for a new IP filter', async () => {
-        const {getByLabelText, getByTestId} = renderWithIntl(
+        const {getByLabelText, getByTestId} = renderWithContext(
             <IPFilteringAddOrEditModal
                 {...baseProps}
                 existingRange={undefined}
@@ -112,7 +112,7 @@ describe('IPFilteringAddOrEditModal', () => {
     });
 
     test('displays an error message when an invalid CIDR is entered', async () => {
-        const {getByLabelText, getByTestId, getByText} = renderWithIntl(
+        const {getByLabelText, getByTestId, getByText} = renderWithContext(
             <IPFilteringAddOrEditModal
                 {...baseProps}
             />,
@@ -130,7 +130,7 @@ describe('IPFilteringAddOrEditModal', () => {
     });
 
     test('disables the Save button when an invalid CIDR is entered', () => {
-        const {getByLabelText, getByTestId} = renderWithIntl(
+        const {getByLabelText, getByTestId} = renderWithContext(
             <IPFilteringAddOrEditModal
                 {...baseProps}
             />,
