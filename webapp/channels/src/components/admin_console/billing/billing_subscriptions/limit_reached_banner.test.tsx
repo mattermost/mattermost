@@ -15,7 +15,7 @@ import * as useOpenPricingModal from 'components/common/hooks/useOpenPricingModa
 import * as useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import * as useSaveBool from 'components/common/hooks/useSavePreferences';
 
-import {fireEvent, renderWithFullContext, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 
 import LimitReachedBanner from './limit_reached_banner';
@@ -119,7 +119,7 @@ describe('limits_reached_banner', () => {
         const spies = makeSpies();
         spies.useGetUsageDeltas.mockReturnValue(someLimitReached);
 
-        renderWithFullContext(<LimitReachedBanner product={enterprise}/>, state);
+        renderWithContext(<LimitReachedBanner product={enterprise}/>, state);
 
         expect(screen.queryByText(titleFree)).not.toBeInTheDocument();
         expect(screen.queryByText(titleProfessional)).not.toBeInTheDocument();
@@ -143,7 +143,7 @@ describe('limits_reached_banner', () => {
         const spies = makeSpies();
         spies.useGetUsageDeltas.mockReturnValue(someLimitReached);
 
-        renderWithFullContext(<LimitReachedBanner product={enterprise}/>, myState);
+        renderWithContext(<LimitReachedBanner product={enterprise}/>, myState);
 
         expect(screen.queryByText(titleFree)).not.toBeInTheDocument();
         expect(screen.queryByText(titleProfessional)).not.toBeInTheDocument();
@@ -153,7 +153,7 @@ describe('limits_reached_banner', () => {
         const spies = makeSpies();
         spies.useGetUsageDeltas.mockReturnValue(noLimitReached);
 
-        renderWithFullContext(<LimitReachedBanner product={free}/>, state);
+        renderWithContext(<LimitReachedBanner product={free}/>, state);
 
         expect(screen.queryByText(titleFree)).not.toBeInTheDocument();
         expect(screen.queryByText(titleProfessional)).not.toBeInTheDocument();
@@ -165,7 +165,7 @@ describe('limits_reached_banner', () => {
         spies.useOpenPricingModal.mockReturnValue(mockOpenPricingModal);
         spies.useGetUsageDeltas.mockReturnValue(someLimitReached);
 
-        renderWithFullContext(<LimitReachedBanner product={free}/>, state);
+        renderWithContext(<LimitReachedBanner product={free}/>, state);
 
         screen.getByText(titleFree);
         expect(screen.queryByText(titleProfessional)).not.toBeInTheDocument();
@@ -181,7 +181,7 @@ describe('limits_reached_banner', () => {
         spies.useOpenSalesLink.mockReturnValue([mockOpenSalesLink, '']);
         spies.useGetUsageDeltas.mockReturnValue(someLimitReached);
 
-        renderWithFullContext(<LimitReachedBanner product={free}/>, state);
+        renderWithContext(<LimitReachedBanner product={free}/>, state);
 
         screen.getByText(titleFree);
         expect(screen.queryByText(titleProfessional)).not.toBeInTheDocument();
