@@ -60,7 +60,7 @@ const HistoryButtons = (): JSX.Element => {
     };
 
     const requestButtons = () => {
-        getBrowserHistoryStatus().then(({enableBack, enableForward}) => updateButtons(enableBack, enableForward));
+        getBrowserHistoryStatus().then(({canGoBack, canGoForward}) => updateButtons(canGoBack, canGoForward));
     };
 
     const updateButtons = (enableBack: boolean, enableForward: boolean) => {

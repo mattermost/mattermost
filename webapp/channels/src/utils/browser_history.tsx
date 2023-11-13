@@ -15,11 +15,7 @@ const browserHistory = {
     ...b,
     push: (path: string | { pathname: string }, ...args: string[]) => {
         if (isDesktop) {
-            doBrowserHistoryPush(typeof path === 'object' ? path.pathname : path).then(({pathName}) => {
-                if (pathName) {
-                    b.push(pathName);
-                }
-            });
+            doBrowserHistoryPush(typeof path === 'object' ? path.pathname : path);
         } else {
             b.push(path, ...args);
         }

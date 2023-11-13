@@ -3,16 +3,13 @@
 
 import semver from 'semver';
 
-import type {Channel} from '@mattermost/types/channels';
-
 import {isDesktopApp} from 'utils/user_agent';
 
 // TODO: Temporary typings
+import type {DesktopAPI} from '../../../../../desktop/src/types/api/main';
 declare global {
     interface Window {
-        desktopAPI?: {
-            isDev?: () => Promise<boolean>;
-        };
+        desktopAPI?: DesktopAPI;
     }
 }
 
@@ -24,16 +21,9 @@ class DesktopApp {
     /**
      * @deprecated
      */
-    private postMessageListeners: Map<string, Set<(message: unknown) => void>>;
+    private postMessageListeners?: Map<string, Set<(message: unknown) => void>>;
 
     constructor() {
-        // Legacy code - to be removed
-        this.postMessageListeners = new Map();
-        window.addEventListener('message', this.postMessageListener);
-        window.addEventListener('beforeunload', () => {
-            window.removeEventListener('message', this.postMessageListener);
-        });
-
         // Check the user agent string first
         if (!isDesktopApp()) {
             return;
@@ -53,6 +43,13 @@ class DesktopApp {
         window.desktopAPI?.isDev?.().then((isDev) => {
             this.dev = isDev;
         });
+
+        // Legacy code - to be removed
+        this.postMessageListeners = new Map();
+        window.addEventListener('message', this.postMessageListener);
+        window.addEventListener('beforeunload', () => {
+            window.removeEventListener('message', this.postMessageListener);
+        });
     }
 
     getAppName = () => {
@@ -68,6 +65,10 @@ class DesktopApp {
     };
 
     private getDesktopAppInfo = () => {
+        if (window.desktopAPI?.getAppInfo) {
+            return window.desktopAPI.getAppInfo();
+        }
+
         return this.invokeWithMessaging<void, {name: string; version: string}>(
             'webapp-ready',
             undefined,
@@ -83,7 +84,7 @@ class DesktopApp {
             return;
         }
 
-        const listeners = this.postMessageListeners.get(type);
+        const listeners = this.postMessageListeners?.get(type);
         if (!listeners) {
             return;
         }
@@ -97,10 +98,10 @@ class DesktopApp {
      * @deprecated
      */
     addPostMessageListener = (channel: string, listener: (message: any) => void) => {
-        if (this.postMessageListeners.has(channel)) {
+        if (this.postMessageListeners?.has(channel)) {
             this.postMessageListeners.set(channel, this.postMessageListeners.get(channel)!.add(listener));
         } else {
-            this.postMessageListeners.set(channel, new Set([listener]));
+            this.postMessageListeners?.set(channel, new Set([listener]));
         }
     };
 
@@ -108,12 +109,12 @@ class DesktopApp {
      * @deprecated
      */
     removePostMessageListener = (channel: string, listener: (message: any) => void) => {
-        const set = this.postMessageListeners.get(channel);
+        const set = this.postMessageListeners?.get(channel);
         set?.delete(listener);
         if (set?.size) {
-            this.postMessageListeners.set(channel, set);
+            this.postMessageListeners?.set(channel, set);
         } else {
-            this.postMessageListeners.delete(channel);
+            this.postMessageListeners?.delete(channel);
         }
     };
 
@@ -163,54 +164,57 @@ export default desktopApp;
  * Invokes
  */
 
-export const doBrowserHistoryPush = (path: string) => {
-    // This weird hacky code is to get around the fact that we allow for both an two-way invoke
-    // between the two apps (this function) and a one way listener for the Web App to the Desktop App
-    // Since we reused the same channel twice, we have to remove the one way listeners while the invoke happens
-    // This code should all be removed when we remove message passing completely
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const returnListeners = desktopApp.postMessageListeners.get('browser-history-push-return');
-    returnListeners?.forEach((listener) => desktopApp.removePostMessageListener('browser-history-push-return', listener));
-
-    return desktopApp.invokeWithMessaging<{path: string}, {pathName?: string}>(
-        'browser-history-push',
-        {path},
-        'browser-history-push-return',
-    ).then((result) => {
-        // Restore the attached listeners
-        returnListeners?.forEach((listener) => desktopApp.addPostMessageListener('browser-history-push-return', listener));
-        return result;
-    });
-};
-
 export const getBrowserHistoryStatus = () => {
+    if (window.desktopAPI?.requestBrowserHistoryStatus) {
+        return window.desktopAPI.requestBrowserHistoryStatus();
+    }
+
     return desktopApp.invokeWithMessaging<void, {enableBack: boolean; enableForward: boolean}>(
         'history-button',
         undefined,
         'history-button-return',
-    );
+    ).then(({enableBack, enableForward}) => {
+        return {
+            canGoBack: enableBack,
+            canGoForward: enableForward,
+        };
+    });
 };
 
 /**
  * Listeners
  */
 
-export const onUserActivityUpdate = (listener: (userIsActive: boolean, manual: boolean) => void) => {
-    const legacyListener = ({userIsActive, manual}: {userIsActive: boolean; manual: boolean}) => listener(userIsActive, manual);
+export const onUserActivityUpdate = (listener: (userIsActive: boolean, idleTime: number, isSystemEvent: boolean) => void) => {
+    if (window.desktopAPI?.onUserActivityUpdate) {
+        window.desktopAPI.onUserActivityUpdate(listener);
+        return () => {};
+    }
+
+    const legacyListener = ({userIsActive, manual}: {userIsActive: boolean; manual: boolean}) => listener(userIsActive, 0, manual);
     desktopApp.addPostMessageListener('user-activity-update', legacyListener);
 
     return () => desktopApp.removePostMessageListener('user-activity-update', legacyListener);
 };
 
-export const onNotificationClicked = (listener: (channel: Channel, teamId: string, url: string) => void) => {
-    const legacyListener = ({channel, teamId, url}: {channel: Channel; teamId: string; url: string}) => listener(channel, teamId, url);
+export const onNotificationClicked = (listener: (channelId: string, teamId: string, url: string) => void) => {
+    if (window.desktopAPI?.onNotificationClicked) {
+        window.desktopAPI.onNotificationClicked(listener);
+        return () => {};
+    }
+
+    const legacyListener = ({channel, teamId, url}: {channel: {id: string}; teamId: string; url: string}) => listener(channel.id, teamId, url);
     desktopApp.addPostMessageListener('notification-clicked', legacyListener);
 
     return () => desktopApp.removePostMessageListener('notification-clicked', legacyListener);
 };
 
 export const onBrowserHistoryPush = (listener: (pathName: string) => void) => {
+    if (window.desktopAPI?.onBrowserHistoryPush) {
+        window.desktopAPI.onBrowserHistoryPush(listener);
+        return () => {};
+    }
+
     const legacyListener = ({pathName}: {pathName: string}) => listener(pathName);
     desktopApp.addPostMessageListener('browser-history-push-return', legacyListener);
 
@@ -218,6 +222,11 @@ export const onBrowserHistoryPush = (listener: (pathName: string) => void) => {
 };
 
 export const onBrowserHistoryStatusUpdated = (listener: (enableBack: boolean, enableForward: boolean) => void) => {
+    if (window.desktopAPI?.onBrowserHistoryStatusUpdated) {
+        window.desktopAPI.onBrowserHistoryStatusUpdated(listener);
+        return () => {};
+    }
+
     const legacyListener = ({enableBack, enableForward}: {enableBack: boolean; enableForward: boolean}) => listener(enableBack, enableForward);
     desktopApp.addPostMessageListener('history-button-return', legacyListener);
 
@@ -231,12 +240,17 @@ export const onBrowserHistoryStatusUpdated = (listener: (enableBack: boolean, en
 export const dispatchNotification = (
     title: string,
     body: string,
-    channel: Channel,
+    channelId: string,
     teamId: string,
     silent: boolean,
     soundName: string,
     url: string,
 ) => {
+    if (window.desktopAPI?.sendNotification) {
+        window.desktopAPI.sendNotification(title, body, channelId, teamId, url, silent, soundName);
+        return;
+    }
+
     // get the desktop app to trigger the notification
     window.postMessage(
         {
@@ -244,12 +258,27 @@ export const dispatchNotification = (
             message: {
                 title,
                 body,
-                channel,
+                channel: {id: channelId},
                 teamId,
                 silent,
                 data: {soundName},
                 url,
             },
+        },
+        window.location.origin,
+    );
+};
+
+export const doBrowserHistoryPush = (path: string) => {
+    if (window.desktopAPI?.sendBrowserHistoryPush) {
+        window.desktopAPI.sendBrowserHistoryPush(path);
+        return;
+    }
+
+    window.postMessage(
+        {
+            type: 'browser-history-push',
+            message: {path},
         },
         window.location.origin,
     );

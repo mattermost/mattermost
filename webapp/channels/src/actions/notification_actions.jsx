@@ -313,7 +313,7 @@ export function sendDesktopNotification(post, msgProps) {
 export const notifyMe = (title, body, channel, teamId, silent, soundName, url) => (dispatch) => {
     // handle notifications in desktop app
     if (isDesktopApp()) {
-        dispatchNotification(title, body, channel, teamId, silent, soundName, url);
+        dispatchNotification(title, body, channel.id, teamId, silent, soundName, url);
     } else {
         showNotification({
             title,

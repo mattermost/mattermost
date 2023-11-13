@@ -4,7 +4,6 @@
 import React from 'react';
 import {Redirect} from 'react-router-dom';
 
-import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -36,7 +35,7 @@ export type Props = {
     mfaRequired: boolean;
     actions: {
         autoUpdateTimezone: (deviceTimezone: string) => void;
-        getChannelURLAction: (channel: Channel, teamId: string, url: string) => void;
+        getChannelURLAction: (channelId: string, teamId: string, url: string) => void;
         markChannelAsViewedOnServer: (channelId: string) => void;
         updateApproximateViewTime: (channelId: string) => void;
     };
@@ -150,7 +149,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
         GlobalActions.emitBrowserFocus(false);
     }
 
-    private updateActiveStatus = (userIsActive: boolean, manual: boolean) => {
+    private updateActiveStatus = (userIsActive: boolean, idleTime: number, manual: boolean) => {
         if (!this.props.currentUser) {
             return;
         }
@@ -161,11 +160,11 @@ export default class LoggedIn extends React.PureComponent<Props> {
         }
     };
 
-    private clickNotification = (channel: Channel, teamId: string, url: string) => {
+    private clickNotification = (channelId: string, teamId: string, url: string) => {
         window.focus();
 
         // navigate to the appropriate channel
-        this.props.actions.getChannelURLAction(channel, teamId, url);
+        this.props.actions.getChannelURLAction(channelId, teamId, url);
     };
 
     private handleBackSpace = (e: KeyboardEvent): void => {
