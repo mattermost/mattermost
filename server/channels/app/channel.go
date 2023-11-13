@@ -1666,7 +1666,9 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 		}
 	} else {
 		a.Srv().Go(func() {
-			a.PostAddToChannelMessage(c, userRequestor, user, channel, opts.PostRootID)
+			if err := a.PostAddToChannelMessage(c, userRequestor, user, channel, opts.PostRootID); err != nil {
+				c.Logger().Error("Failed to post AddToChannel message", mlog.Err(err))
+			}
 		})
 	}
 
@@ -2061,6 +2063,21 @@ func (s *Server) getChannelMember(c request.CTX, channelID string, userID string
 	return channelMember, nil
 }
 
+func (s *Server) getChannelMemberOnly(c request.CTX, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
+	channelMember, err := s.Store().Channel().GetMemberOnly(c.Context(), channelID, userID)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("getChannelMemberOnly", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("getChannelMemberOnly", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return channelMember, nil
+}
+
 func (a *App) GetChannelMembersPage(c request.CTX, channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
 	channelMembers, err := a.Srv().Store().Channel().GetMembers(channelID, page*perPage, perPage)
 	if err != nil {
@@ -2193,16 +2210,16 @@ func (a *App) GetChannelUnread(c request.CTX, channelID, userID string) (*model.
 }
 
 func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError {
-	userChan := make(chan store.StoreResult, 1)
-	memberChan := make(chan store.StoreResult, 1)
+	userChan := make(chan store.GenericStoreResult[*model.User], 1)
+	memberChan := make(chan store.GenericStoreResult[*model.ChannelMember], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), userID)
-		userChan <- store.StoreResult{Data: user, NErr: err}
+		userChan <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
 	go func() {
 		member, err := a.Srv().Store().Channel().GetMember(context.Background(), channel.Id, userID)
-		memberChan <- store.StoreResult{Data: member, NErr: err}
+		memberChan <- store.GenericStoreResult[*model.ChannelMember]{Data: member, NErr: err}
 		close(memberChan)
 	}()
 
@@ -2223,7 +2240,7 @@ func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) 
 		return nil
 	}
 
-	user := uresult.Data.(*model.User)
+	user := uresult.Data
 
 	if channel.Type != model.ChannelTypeOpen {
 		return model.NewAppError("JoinChannel", "api.channel.join_channel.permissions.app_error", nil, "", http.StatusBadRequest)
@@ -2294,24 +2311,24 @@ func (a *App) postJoinTeamMessage(c request.CTX, user *model.User, channel *mode
 }
 
 func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *model.AppError {
-	sc := make(chan store.StoreResult, 1)
+	sc := make(chan store.GenericStoreResult[*model.Channel], 1)
 	go func() {
 		channel, err := a.Srv().Store().Channel().Get(channelID, true)
-		sc <- store.StoreResult{Data: channel, NErr: err}
+		sc <- store.GenericStoreResult[*model.Channel]{Data: channel, NErr: err}
 		close(sc)
 	}()
 
-	uc := make(chan store.StoreResult, 1)
+	uc := make(chan store.GenericStoreResult[*model.User], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), userID)
-		uc <- store.StoreResult{Data: user, NErr: err}
+		uc <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
 		close(uc)
 	}()
 
-	mcc := make(chan store.StoreResult, 1)
+	mcc := make(chan store.GenericStoreResult[int64], 1)
 	go func() {
 		count, err := a.Srv().Store().Channel().GetMemberCount(channelID, false)
-		mcc <- store.StoreResult{Data: count, NErr: err}
+		mcc <- store.GenericStoreResult[int64]{Data: count, NErr: err}
 		close(mcc)
 	}()
 
@@ -2340,9 +2357,9 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 		return model.NewAppError("LeaveChannel", "app.channel.get_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(ccresult.NErr)
 	}
 
-	channel := cresult.Data.(*model.Channel)
-	user := uresult.Data.(*model.User)
-	membersCount := ccresult.Data.(int64)
+	channel := cresult.Data
+	user := uresult.Data
+	membersCount := ccresult.Data
 
 	if channel.IsGroupOrDirect() {
 		err := model.NewAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "", http.StatusBadRequest)
@@ -2363,7 +2380,9 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 	}
 
 	a.Srv().Go(func() {
-		a.postLeaveChannelMessage(c, user, channel)
+		if err := a.postLeaveChannelMessage(c, user, channel); err != nil {
+			c.Logger().Error("Failed to post LeaveChannel message", mlog.Err(err))
+		}
 	})
 
 	return nil
@@ -3458,8 +3477,8 @@ func (a *App) ClearChannelMembersCache(c request.CTX, channelID string) error {
 	return nil
 }
 
-func (a *App) GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
-	channelMemberCounts, err := a.Srv().Store().Channel().GetMemberCountsByGroup(ctx, channelID, includeTimezones)
+func (a *App) GetMemberCountsByGroup(rctx request.CTX, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
+	channelMemberCounts, err := a.Srv().Store().Channel().GetMemberCountsByGroup(rctx.Context(), channelID, includeTimezones)
 	if err != nil {
 		return nil, model.NewAppError("GetMemberCountsByGroup", "app.channel.get_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
