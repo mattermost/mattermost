@@ -15,6 +15,7 @@ import {checkMetrics, toggleMetricsOn} from './helper';
 describe('Metrics > No license', () => {
     before(() => {
         cy.shouldNotRunOnCloudEdition();
+        cy.apiAdminLogin();
         cy.apiDeleteLicense();
         toggleMetricsOn();
     });
