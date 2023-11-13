@@ -4,23 +4,20 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-interface Props {
+import type {FileInfo} from '@mattermost/types/files';
 
-    /*
-     * The id of the post that was commented on
-     */
-    parentPostId: string;
+interface Props {
 
     /*
      * An array of file metadata for the parent post
      */
-    fileInfos?: Array<{name: string}>;
+    fileInfos?: FileInfo[];
 }
 
 const CommentedOnFilesMessage = ({
     fileInfos,
 }: Props) => {
-    if (!fileInfos || fileInfos.length === 0) {
+    if (!fileInfos?.length) {
         return null;
     }
 
