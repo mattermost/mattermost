@@ -1378,6 +1378,7 @@
   "admin.license.warn.renew": "续期",
   "admin.lockTeammateNameDisplay": "锁定所有用户的名称显示： ",
   "admin.lockTeammateNameDisplayHelpText": "当设为是时，用户无法更改在<strong>设定 > 显示 > 团队成员名显示</strong>下的设定。",
+  "admin.log.AdvancedLoggingJSONPlaceholder": "输入您的JSON配置",
   "admin.log.Level": "等级",
   "admin.log.consoleDescription": "通常在正式环境中设置为否。开发人员应该设置为是来根据控制台日志级别输出日志信息到控制台。如果设置为是，服务器将写入消息到标准输出流（stdout）。更改此设置需要重启服务器。",
   "admin.log.consoleJsonTitle": "以 JSON 输出控制台日志：",
