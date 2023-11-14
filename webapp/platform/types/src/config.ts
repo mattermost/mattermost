@@ -378,6 +378,7 @@ export type ServiceSettings = {
     PersistentNotificationIntervalMinutes: number;
     PersistentNotificationMaxCount: number;
     PersistentNotificationMaxRecipients: number;
+    RefreshPostStatsRunTime: string;
 };
 
 export type TeamSettings = {

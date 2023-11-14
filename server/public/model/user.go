@@ -106,6 +106,7 @@ type User struct {
 	TermsOfServiceId       string    `json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64     `json:"terms_of_service_create_at,omitempty"`
 	DisableWelcomeEmail    bool      `json:"disable_welcome_email"`
+	LastLogin              int64     `json:"last_login,omitempty"`
 }
 
 func (u *User) Auditable() map[string]interface{} {
@@ -611,6 +612,7 @@ func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
 	u.AuthData = NewString("")
 	u.MfaSecret = ""
+	u.LastLogin = 0
 
 	if len(options) != 0 && !options["email"] {
 		u.Email = ""
