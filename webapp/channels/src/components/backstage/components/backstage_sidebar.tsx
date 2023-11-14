@@ -156,6 +156,25 @@ export default class BackstageSidebar extends React.PureComponent<Props> {
             </SystemPermissionGate>
         );
 
+        let outgoingOauthConnections: JSX.Element | null = null;
+        if (this.props.enableOAuthServiceProvider) {
+            outgoingOauthConnections = (
+                <SystemPermissionGate permissions={[Permissions.MANAGE_OAUTH]}>
+                    <BackstageSection
+                        name='outgoing-oauth2-connections'
+                        parentLink={'/' + this.props.team.name + '/integrations'}
+                        title={
+                            <FormattedMessage
+                                id='backstage_sidebar.integrations.outgoingOauthConnections'
+                                defaultMessage='Outgoing OAuth Connections'
+                            />
+                        }
+                        id='outgoingOauthConnections'
+                    />
+                </SystemPermissionGate>
+            );
+        }
+
         return (
             <BackstageCategory
                 name='integrations'
@@ -173,6 +192,7 @@ export default class BackstageSidebar extends React.PureComponent<Props> {
                 {commands}
                 {oauthApps}
                 {botAccounts}
+                {outgoingOauthConnections}
             </BackstageCategory>
         );
     }
