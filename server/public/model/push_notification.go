@@ -18,7 +18,6 @@ const (
 	PushTypeUpdateBadge = "update_badge"
 	PushTypeSession     = "session"
 	PushTypeTest        = "test"
-	PushTypeCalls       = "calls"
 	PushMessageV2       = "v2"
 
 	PushSoundNone = "none"
@@ -34,6 +33,13 @@ const (
 	PushNotSent     = "Not Sent due to preferences"
 	PushReceived    = "Received by device"
 )
+
+// PushSubType allows for passing additional message type information
+// to mobile clients in a backwards-compatible way
+type PushSubType string
+
+// PushSubTypeCalls is used by the Calls plugin
+const PushSubTypeCalls PushSubType = "Calls"
 
 type PushNotificationAck struct {
 	Id               string `json:"id"`
@@ -60,6 +66,7 @@ type PushNotification struct {
 	RootId           string      `json:"root_id,omitempty"`
 	ChannelName      string      `json:"channel_name,omitempty"`
 	Type             string      `json:"type,omitempty"`
+	SubType          PushSubType `json:"sub_type,omitempty"`
 	SenderId         string      `json:"sender_id,omitempty"`
 	SenderName       string      `json:"sender_name,omitempty"`
 	OverrideUsername string      `json:"override_username,omitempty"`
