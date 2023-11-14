@@ -39,7 +39,7 @@ const (
 type PushSubType string
 
 // PushSubTypeCalls is used by the Calls plugin
-const PushSubTypeCalls PushSubType = "Calls"
+const PushSubTypeCalls PushSubType = "calls"
 
 type PushNotificationAck struct {
 	Id               string `json:"id"`
