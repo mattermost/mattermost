@@ -48,6 +48,10 @@ jest.mock('utils/user_agent', () => ({
     isDesktopApp: jest.fn().mockReturnValue(false),
 }));
 
+jest.mock('utils/post_utils', () => ({
+    makeGetUniqueReactionsToPost: () => jest.fn().mockReturnValue({}),
+}));
+
 const POST_CREATED_TIME = Date.now();
 
 // This mocks the Date.now() function so it returns a constant value
