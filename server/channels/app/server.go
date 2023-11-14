@@ -141,7 +141,8 @@ type Server struct {
 	// startSearchEngine bool
 	skipPostInit bool
 
-	Cloud einterfaces.CloudInterface
+	Cloud       einterfaces.CloudInterface
+	IPFiltering einterfaces.IPFilteringInterface
 
 	tracer *tracing.Tracer
 
@@ -395,6 +396,10 @@ func NewServer(options ...Option) (*Server, error) {
 	s.platform.SetupFeatureFlags()
 
 	s.initJobs()
+
+	if ipFilteringInterface != nil {
+		s.IPFiltering = ipFilteringInterface(app)
+	}
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
