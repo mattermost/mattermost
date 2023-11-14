@@ -6,11 +6,9 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Some ENV variables
 ENV PATH="/mattermost/bin:${PATH}"
-ARG PUID=2000
-ARG PGID=2000
 ARG MM_PACKAGE="https://releases.mattermost.com/9.1.2/mattermost-9.1.2-linux-amd64.tar.gz?src=docker"
 
-# # Install needed packages and indirect dependencies
+# Install needed packages and indirect dependencies
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
   ca-certificates \
@@ -23,23 +21,23 @@ RUN apt-get update \
   tzdata \
   && rm -rf /var/lib/apt/lists/*
 
-# Set mattermost group/user and download Mattermost
+# Set mattermost directories and permissions
 RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
-  && addgroup -gid ${PGID} mattermost \
-  && adduser -q --disabled-password --uid ${PUID} --gid ${PGID} --gecos "" --home /mattermost mattermost \
   && if [ -n "$MM_PACKAGE" ]; then curl $MM_PACKAGE | tar -xvz ; \
   else echo "please set the MM_PACKAGE" ; exit 127 ; fi \
-  && chown -R mattermost:mattermost /mattermost /mattermost/data /mattermost/plugins /mattermost/client/plugins
+  && chmod -R g=u /mattermost /mattermost/data /mattermost/plugins /mattermost/client/plugins
 
-# We should refrain from running as privileged user
-USER mattermost
+# OpenShift runs containers using an arbitrarily assigned user ID
+# The following lines modify the permissions so that the group root can access the necessary files
+RUN chgrp -R 0 /mattermost && \
+    chmod -R g=u /mattermost /etc/passwd
 
-#Healthcheck to make sure container is ready
+# Healthcheck to make sure container is ready
 HEALTHCHECK --interval=30s --timeout=10s \
   CMD curl -f http://localhost:8065/api/v4/system/ping || exit 1
 
 # Configure entrypoint and command
-COPY --chown=mattermost:mattermost --chmod=765 entrypoint.sh /
+COPY --chmod=755 entrypoint.sh /
 ENTRYPOINT ["/entrypoint.sh"]
 WORKDIR /mattermost
 CMD ["mattermost"]
