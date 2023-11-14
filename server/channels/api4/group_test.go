@@ -80,6 +80,10 @@ func TestCreateGroup(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional, "ldap"))
 
+	_, resp, err := th.SystemAdminClient.CreateGroup(context.Background(), nil)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
 	group, _, err := th.SystemAdminClient.CreateGroup(context.Background(), g)
 	require.NoError(t, err)
 
@@ -1422,7 +1426,6 @@ func TestGetGroupsByUserId(t *testing.T) {
 	groups, _, err = th.Client.GetGroupsByUserId(context.Background(), user1.Id)
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
-
 }
 
 func TestGetGroupStats(t *testing.T) {
@@ -1582,6 +1585,11 @@ func TestAddMembersToGroup(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
+	//Empty group members returns bad request
+	_, resp, nullErr := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, nil)
+	require.Error(t, nullErr)
+	CheckBadRequestStatus(t, resp)
+
 	groupMembers, response, upsertErr := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, members)
 	require.NoError(t, upsertErr)
 	CheckOKStatus(t, response)
@@ -1653,6 +1661,10 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 	}
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	_, resp, nullErr := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, nil)
+	require.Error(t, nullErr)
+	CheckBadRequestStatus(t, resp)
 
 	groupMembers, response, deleteErr := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, members)
 	require.NoError(t, deleteErr)

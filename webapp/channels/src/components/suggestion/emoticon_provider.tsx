@@ -9,7 +9,7 @@ import {autocompleteCustomEmojis} from 'mattermost-redux/actions/emojis';
 import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
 import {getEmojiMap, getRecentEmojisNames} from 'selectors/emojis';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import {Preferences} from 'utils/constants';
 import {compareEmojis, emojiMatchesSkin} from 'utils/emoji_utils';
@@ -38,7 +38,7 @@ const EmoticonSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Emoj
             ref={ref}
             {...props}
         >
-            <div className='pull-left'>
+            <div className='pull-left emoticon-suggestion__image-container'>
                 <img
                     alt={text}
                     className='emoticon-suggestion__image'

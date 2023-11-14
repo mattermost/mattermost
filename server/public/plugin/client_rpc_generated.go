@@ -291,6 +291,40 @@ func (s *hooksRPCServer) MessageHasBeenUpdated(args *Z_MessageHasBeenUpdatedArgs
 }
 
 func init() {
+	hookNameToId["MessageHasBeenDeleted"] = MessageHasBeenDeletedID
+}
+
+type Z_MessageHasBeenDeletedArgs struct {
+	A *Context
+	B *model.Post
+}
+
+type Z_MessageHasBeenDeletedReturns struct {
+}
+
+func (g *hooksRPCClient) MessageHasBeenDeleted(c *Context, post *model.Post) {
+	_args := &Z_MessageHasBeenDeletedArgs{c, post}
+	_returns := &Z_MessageHasBeenDeletedReturns{}
+	if g.implemented[MessageHasBeenDeletedID] {
+		if err := g.client.Call("Plugin.MessageHasBeenDeleted", _args, _returns); err != nil {
+			g.log.Error("RPC call MessageHasBeenDeleted to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) MessageHasBeenDeleted(args *Z_MessageHasBeenDeletedArgs, returns *Z_MessageHasBeenDeletedReturns) error {
+	if hook, ok := s.impl.(interface {
+		MessageHasBeenDeleted(c *Context, post *model.Post)
+	}); ok {
+		hook.MessageHasBeenDeleted(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook MessageHasBeenDeleted called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
 	hookNameToId["ChannelHasBeenCreated"] = ChannelHasBeenCreatedID
 }
 
@@ -5959,6 +5993,36 @@ func (s *apiRPCServer) SendPushNotification(args *Z_SendPushNotificationArgs, re
 		returns.A = hook.SendPushNotification(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API SendPushNotification called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UpdateUserAuthArgs struct {
+	A string
+	B *model.UserAuth
+}
+
+type Z_UpdateUserAuthReturns struct {
+	A *model.UserAuth
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
+	_args := &Z_UpdateUserAuthArgs{userID, userAuth}
+	_returns := &Z_UpdateUserAuthReturns{}
+	if err := g.client.Call("Plugin.UpdateUserAuth", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateUserAuth API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdateUserAuth(args *Z_UpdateUserAuthArgs, returns *Z_UpdateUserAuthReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdateUserAuth(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateUserAuth called but not implemented."))
 	}
 	return nil
 }

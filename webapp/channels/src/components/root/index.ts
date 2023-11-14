@@ -15,7 +15,6 @@ import {shouldShowTermsOfService, getCurrentUserId} from 'mattermost-redux/selec
 import type {Action} from 'mattermost-redux/types/actions';
 
 import {migrateRecentEmojis} from 'actions/emoji_actions';
-import {emitBrowserWindowResized} from 'actions/views/browser';
 import {loadConfigAndMe, registerCustomPostRenderer} from 'actions/views/root';
 import {getShowLaunchingWorkspace} from 'selectors/onboarding';
 import {shouldShowAppBar} from 'selectors/plugins';
@@ -65,7 +64,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
             loadConfigAndMe,
-            emitBrowserWindowResized,
             getFirstAdminSetupComplete,
             getProfiles,
             migrateRecentEmojis,

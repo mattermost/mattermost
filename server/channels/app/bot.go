@@ -31,7 +31,7 @@ type botServiceWrapper struct {
 	app AppIface
 }
 
-func (w *botServiceWrapper) EnsureBot(c *request.Context, productID string, bot *model.Bot) (string, error) {
+func (w *botServiceWrapper) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string, error) {
 	return w.app.EnsureBot(c, productID, bot)
 }
 

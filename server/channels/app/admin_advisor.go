@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
-func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model.AppError) {
+func (a *App) GetWarnMetricsStatus(rctx request.CTX) (map[string]*model.WarnMetricStatus, *model.AppError) {
 	systemDataList, nErr := a.Srv().Store().System().Get()
 	if nErr != nil {
 		return nil, model.NewAppError("GetWarnMetricsStatus", "app.system.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -27,7 +27,7 @@ func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model
 		if strings.HasPrefix(key, model.WarnMetricStatusStorePrefix) {
 			if warnMetric, ok := model.WarnMetricsTable[key]; ok {
 				if !warnMetric.IsBotOnly && (value == model.WarnMetricStatusRunonce || value == model.WarnMetricStatusLimitReached) {
-					result[key], _ = a.getWarnMetricStatusAndDisplayTextsForId(key, nil, isE0Edition)
+					result[key], _ = a.getWarnMetricStatusAndDisplayTextsForId(rctx, key, nil, isE0Edition)
 				}
 			}
 		}
@@ -36,7 +36,7 @@ func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model
 	return result, nil
 }
 
-func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18n.TranslateFunc, isE0Edition bool) (*model.WarnMetricStatus, *model.WarnMetricDisplayTexts) {
+func (a *App) getWarnMetricStatusAndDisplayTextsForId(rctx request.CTX, warnMetricId string, T i18n.TranslateFunc, isE0Edition bool) (*model.WarnMetricStatus, *model.WarnMetricDisplayTexts) {
 	var warnMetricStatus *model.WarnMetricStatus
 	var warnMetricDisplayTexts = &model.WarnMetricDisplayTexts{}
 
@@ -48,7 +48,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 		}
 
 		if T == nil {
-			mlog.Debug("No translation function")
+			rctx.Logger().Debug("No translation function")
 			return warnMetricStatus, nil
 		}
 
@@ -137,7 +137,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_2M.notification_body")
 			}
 		default:
-			mlog.Debug("Invalid metric id", mlog.String("id", warnMetricId))
+			rctx.Logger().Debug("Invalid metric id", mlog.String("id", warnMetricId))
 			return nil, nil
 		}
 
@@ -146,11 +146,11 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 	return nil, nil
 }
 
-func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError {
+func (a *App) NotifyAndSetWarnMetricAck(rctx request.CTX, warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError {
 	if warnMetric, ok := model.WarnMetricsTable[warnMetricId]; ok {
 		data, nErr := a.Srv().Store().System().GetByName(warnMetric.Id)
 		if nErr == nil && data != nil && data.Value == model.WarnMetricStatusAck {
-			mlog.Debug("This metric warning has already been acknowledged", mlog.String("id", warnMetric.Id))
+			rctx.Logger().Debug("This metric warning has already been acknowledged", mlog.String("id", warnMetric.Id))
 			return nil
 		}
 
@@ -168,7 +168,7 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			//same definition as the active users count metric displayed in the SystemConsole Analytics section
 			registeredUsersCount, cerr := a.Srv().Store().User().Count(model.UserCountOptions{})
 			if cerr != nil {
-				mlog.Warn("Error retrieving the number of registered users", mlog.Err(cerr))
+				rctx.Logger().Warn("Error retrieving the number of registered users", mlog.Err(cerr))
 			} else {
 				data.Props["RegisteredUsersHeader"] = T("api.templates.warn_metric_ack.body.registered_users_header")
 				data.Props["RegisteredUsersValue"] = registeredUsersCount
@@ -179,7 +179,7 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			data.Props["TelemetryIdValue"] = a.TelemetryId()
 			data.Props["Footer"] = T("api.templates.warn_metric_ack.footer")
 
-			warnMetricStatus, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T, false)
+			warnMetricStatus, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(rctx, warnMetricId, T, false)
 			if warnMetricStatus == nil {
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.invalid_warn_metric.app_error", nil, "", http.StatusInternalServerError)
 			}
@@ -199,16 +199,16 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			}
 		}
 
-		if err := a.setWarnMetricsStatusAndNotify(warnMetric.Id); err != nil {
+		if err := a.setWarnMetricsStatusAndNotify(rctx, warnMetric.Id); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (a *App) setWarnMetricsStatusAndNotify(warnMetricId string) *model.AppError {
+func (a *App) setWarnMetricsStatusAndNotify(rctx request.CTX, warnMetricId string) *model.AppError {
 	// Ack all metric warnings on the server
-	if err := a.setWarnMetricsStatus(model.WarnMetricStatusAck); err != nil {
+	if err := a.setWarnMetricsStatus(rctx, model.WarnMetricStatusAck); err != nil {
 		return err
 	}
 
@@ -220,18 +220,18 @@ func (a *App) setWarnMetricsStatusAndNotify(warnMetricId string) *model.AppError
 	return nil
 }
 
-func (a *App) setWarnMetricsStatus(status string) *model.AppError {
-	mlog.Debug("Set monitoring status for all warn metrics", mlog.String("status", status))
+func (a *App) setWarnMetricsStatus(rctx request.CTX, status string) *model.AppError {
+	rctx.Logger().Debug("Set monitoring status for all warn metrics", mlog.String("status", status))
 	for _, warnMetric := range model.WarnMetricsTable {
-		if err := a.setWarnMetricsStatusForId(warnMetric.Id, status); err != nil {
+		if err := a.setWarnMetricsStatusForId(rctx, warnMetric.Id, status); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (a *App) setWarnMetricsStatusForId(warnMetricId string, status string) *model.AppError {
-	mlog.Debug("Store status for warn metric", mlog.String("warnMetricId", warnMetricId), mlog.String("status", status))
+func (a *App) setWarnMetricsStatusForId(rctx request.CTX, warnMetricId string, status string) *model.AppError {
+	rctx.Logger().Debug("Store status for warn metric", mlog.String("warnMetricId", warnMetricId), mlog.String("status", status))
 	if err := a.Srv().Store().System().SaveOrUpdateWithWarnMetricHandling(&model.System{
 		Name:  warnMetricId,
 		Value: status,
@@ -241,7 +241,7 @@ func (a *App) setWarnMetricsStatusForId(warnMetricId string, status string) *mod
 	return nil
 }
 
-func (a *App) RequestLicenseAndAckWarnMetric(c *request.Context, warnMetricId string, isBot bool) *model.AppError {
+func (a *App) RequestLicenseAndAckWarnMetric(c request.CTX, warnMetricId string, isBot bool) *model.AppError {
 	if *a.Config().ExperimentalSettings.RestrictSystemAdmin {
 		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}
@@ -258,14 +258,14 @@ func (a *App) RequestLicenseAndAckWarnMetric(c *request.Context, warnMetricId st
 
 	if err := a.Channels().RequestTrialLicense(c.Session().UserId, int(registeredUsersCount), true, true); err != nil {
 		// turn off warn metric warning even in case of StartTrial failure
-		if nerr := a.setWarnMetricsStatusAndNotify(warnMetricId); nerr != nil {
+		if nerr := a.setWarnMetricsStatusAndNotify(c, warnMetricId); nerr != nil {
 			return nerr
 		}
 
 		return err
 	}
 
-	if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, currentUser, true, isBot); appErr != nil {
+	if appErr = a.NotifyAndSetWarnMetricAck(c, warnMetricId, currentUser, true, isBot); appErr != nil {
 		return appErr
 	}
 

@@ -50,6 +50,14 @@ type MessageHasBeenUpdatedIFace interface {
 	MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
 }
 
+type MessagesWillBeConsumedIFace interface {
+	MessagesWillBeConsumed(posts []*model.Post) []*model.Post
+}
+
+type MessageHasBeenDeletedIFace interface {
+	MessageHasBeenDeleted(c *Context, post *model.Post)
+}
+
 type ChannelHasBeenCreatedIFace interface {
 	ChannelHasBeenCreated(c *Context, channel *model.Channel)
 }
@@ -218,6 +226,24 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		a.implemented[MessageHasBeenUpdatedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("MessageHasBeenUpdated"); ok {
 		return nil, errors.New("hook has MessageHasBeenUpdated method but does not implement plugin.MessageHasBeenUpdated interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements MessagesWillBeConsumed interface.
+	tt = reflect.TypeOf((*MessagesWillBeConsumedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[MessagesWillBeConsumedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("MessagesWillBeConsumed"); ok {
+		return nil, errors.New("hook has MessagesWillBeConsumed method but does not implement plugin.MessagesWillBeConsumed interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements MessageHasBeenDeleted interface.
+	tt = reflect.TypeOf((*MessageHasBeenDeletedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[MessageHasBeenDeletedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("MessageHasBeenDeleted"); ok {
+		return nil, errors.New("hook has MessageHasBeenDeleted method but does not implement plugin.MessageHasBeenDeleted interface")
 	}
 
 	// Assessing the type of the productHooks if it individually implements ChannelHasBeenCreated interface.
@@ -472,6 +498,24 @@ func (a *HooksAdapter) MessageHasBeenUpdated(c *Context, newPost, oldPost *model
 	}
 
 	a.productHooks.(MessageHasBeenUpdatedIFace).MessageHasBeenUpdated(c, newPost, oldPost)
+
+}
+
+func (a *HooksAdapter) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+	if _, ok := a.implemented[MessagesWillBeConsumedID]; !ok {
+		panic("product hooks must implement MessagesWillBeConsumed")
+	}
+
+	return a.productHooks.(MessagesWillBeConsumedIFace).MessagesWillBeConsumed(posts)
+
+}
+
+func (a *HooksAdapter) MessageHasBeenDeleted(c *Context, post *model.Post) {
+	if _, ok := a.implemented[MessageHasBeenDeletedID]; !ok {
+		panic("product hooks must implement MessageHasBeenDeleted")
+	}
+
+	a.productHooks.(MessageHasBeenDeletedIFace).MessageHasBeenDeleted(c, post)
 
 }
 

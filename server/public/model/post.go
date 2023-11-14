@@ -45,6 +45,7 @@ const (
 	PostTypeChannelRestored        = "system_channel_restored"
 	PostTypeEphemeral              = "system_ephemeral"
 	PostTypeChangeChannelPrivacy   = "system_change_chan_privacy"
+	PostTypeGMConvertedToChannel   = "system_gm_to_channel"
 	PostTypeAddBotTeamsChannels    = "add_bot_teams_channels"
 	PostTypeSystemWarnMetricStatus = "warn_metric_status"
 	PostTypeMe                     = "me"
@@ -62,15 +63,18 @@ const (
 
 	PropsAddChannelMember = "add_channel_member"
 
-	PostPropsAddedUserId       = "addedUserId"
-	PostPropsDeleteBy          = "deleteBy"
-	PostPropsOverrideIconURL   = "override_icon_url"
-	PostPropsOverrideIconEmoji = "override_icon_emoji"
-
+	PostPropsAddedUserId              = "addedUserId"
+	PostPropsDeleteBy                 = "deleteBy"
+	PostPropsOverrideIconURL          = "override_icon_url"
+	PostPropsOverrideIconEmoji        = "override_icon_emoji"
+	PostPropsOverrideUsername         = "override_username"
+	PostPropsFromWebhook              = "from_webhook"
+	PostPropsFromBot                  = "from_bot"
+	PostPropsFromOAuthApp             = "from_oauth_app"
+	PostPropsWebhookDisplayName       = "webhook_display_name"
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
-
-	PostPropsPreviewedPost = "previewed_post"
+	PostPropsPreviewedPost            = "previewed_post"
 
 	PostPriorityUrgent               = "urgent"
 	PostPropsRequestedAck            = "requested_ack"
@@ -140,6 +144,10 @@ func (o *Post) Auditable() map[string]interface{} {
 		"is_following":    o.IsFollowing,
 		"metadata":        metaData,
 	}
+}
+
+func (o *Post) LogClone() any {
+	return o.Auditable()
 }
 
 type PostEphemeral struct {
@@ -428,7 +436,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeAddBotTeamsChannels,
 		PostTypeSystemWarnMetricStatus,
 		PostTypeReminder,
-		PostTypeMe:
+		PostTypeMe,
+		PostTypeGMConvertedToChannel:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
@@ -466,6 +475,39 @@ func (o *Post) SanitizeProps() {
 	for _, p := range o.Participants {
 		p.Sanitize(map[string]bool{})
 	}
+}
+
+func (o *Post) ContainsIntegrationsReservedProps() []string {
+	return containsIntegrationsReservedProps(o.GetProps())
+}
+
+func (o *PostPatch) ContainsIntegrationsReservedProps() []string {
+	if o == nil || o.Props == nil {
+		return nil
+	}
+	return containsIntegrationsReservedProps(*o.Props)
+}
+
+func containsIntegrationsReservedProps(props StringInterface) []string {
+	foundProps := []string{}
+
+	if props != nil {
+		reservedProps := []string{
+			PostPropsFromWebhook,
+			PostPropsOverrideUsername,
+			PostPropsWebhookDisplayName,
+			PostPropsOverrideIconURL,
+			PostPropsOverrideIconEmoji,
+		}
+
+		for _, key := range reservedProps {
+			if _, ok := props[key]; ok {
+				foundProps = append(foundProps, key)
+			}
+		}
+	}
+
+	return foundProps
 }
 
 func (o *Post) PreSave() {

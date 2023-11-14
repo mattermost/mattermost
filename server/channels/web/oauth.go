@@ -69,7 +69,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	redirectURL, appErr := c.App.AllowOAuthAppAccessToUser(c.AppContext.Session().UserId, authRequest)
+	redirectURL, appErr := c.App.AllowOAuthAppAccessToUser(c.AppContext, c.AppContext.Session().UserId, authRequest)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -93,7 +93,7 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("deauthorizeOAuthApp", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	err := c.App.DeauthorizeOAuthAppForUser(c.AppContext.Session().UserId, clientId)
+	err := c.App.DeauthorizeOAuthAppForUser(c.AppContext, c.AppContext.Session().UserId, clientId)
 	if err != nil {
 		c.Err = err
 		return
@@ -166,7 +166,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Automatically allow if the app is trusted
 	if oauthApp.IsTrusted || isAuthorized {
-		redirectURL, err := c.App.AllowOAuthAppAccessToUser(c.AppContext.Session().UserId, authRequest)
+		redirectURL, err := c.App.AllowOAuthAppAccessToUser(c.AppContext, c.AppContext.Session().UserId, authRequest)
 
 		if err != nil {
 			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
@@ -229,7 +229,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("client_id", clientId)
 	c.LogAudit("attempt")
 
-	accessRsp, err := c.App.GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectURI, code, secret, refreshToken)
+	accessRsp, err := c.App.GetOAuthAccessTokenForCodeFlow(c.AppContext, clientId, grantType, redirectURI, code, secret, refreshToken)
 	if err != nil {
 		c.Err = err
 		return
@@ -277,7 +277,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	uri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
 
-	body, teamId, props, tokenUser, err := c.App.AuthorizeOAuthUser(w, r, service, code, state, uri)
+	body, teamId, props, tokenUser, err := c.App.AuthorizeOAuthUser(c.AppContext, w, r, service, code, state, uri)
 
 	action := ""
 	hasRedirectURL := false
@@ -321,13 +321,14 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if action == model.OAuthActionSSOToEmail {
 		redirectURL = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
 	} else {
-		err = c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, false)
+		session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, false)
 		if err != nil {
 			err.Translate(c.AppContext.T)
 			mlog.Error(err.Error())
 			renderError(err)
 			return
 		}
+		c.AppContext = c.AppContext.WithSession(session)
 
 		// Old mobile version
 		if isMobile && !hasRedirectURL {
@@ -400,7 +401,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authURL, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAuthActionLogin, redirectURL, loginHint, false, desktopToken)
+	authURL, err := c.App.GetOAuthLoginEndpoint(c.AppContext, w, r, c.Params.Service, teamId, model.OAuthActionLogin, redirectURL, loginHint, false, desktopToken)
 	if err != nil {
 		c.Err = err
 		return
@@ -429,7 +430,7 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authURL, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAuthActionMobile, redirectURL, "", true, "")
+	authURL, err := c.App.GetOAuthLoginEndpoint(c.AppContext, w, r, c.Params.Service, teamId, model.OAuthActionMobile, redirectURL, "", true, "")
 	if err != nil {
 		c.Err = err
 		return
@@ -459,7 +460,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	desktopToken := r.URL.Query().Get("desktop_token")
 
-	authURL, err := c.App.GetOAuthSignupEndpoint(w, r, c.Params.Service, teamId, desktopToken)
+	authURL, err := c.App.GetOAuthSignupEndpoint(c.AppContext, w, r, c.Params.Service, teamId, desktopToken)
 	if err != nil {
 		c.Err = err
 		return

@@ -131,6 +131,11 @@ func (_m *Hooks) Implemented() ([]string, error) {
 	return r0, r1
 }
 
+// MessageHasBeenDeleted provides a mock function with given fields: c, post
+func (_m *Hooks) MessageHasBeenDeleted(c *plugin.Context, post *model.Post) {
+	_m.Called(c, post)
+}
+
 // MessageHasBeenPosted provides a mock function with given fields: c, post
 func (_m *Hooks) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 	_m.Called(c, post)
@@ -191,6 +196,22 @@ func (_m *Hooks) MessageWillBeUpdated(c *plugin.Context, newPost *model.Post, ol
 	}
 
 	return r0, r1
+}
+
+// MessagesWillBeConsumed provides a mock function with given fields: posts
+func (_m *Hooks) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+	ret := _m.Called(posts)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func([]*model.Post) []*model.Post); ok {
+		r0 = rf(posts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	return r0
 }
 
 // NotificationWillBePushed provides a mock function with given fields: pushNotification, userID

@@ -82,11 +82,15 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
 
     search = async (term: string) => {
         this.setUsersLoadingState(true);
-        let searchResults: UserProfile[] = [];
+        const searchResults: UserProfile[] = [];
         const search = term !== '';
         if (search) {
             const {data} = await this.props.actions.searchProfiles(term, {replace: true});
-            searchResults = data;
+            data.forEach((user) => {
+                if (!user.is_bot) {
+                    searchResults.push(user);
+                }
+            });
         } else {
             await this.props.actions.getProfiles(0, USERS_PER_PAGE * 2);
         }

@@ -24,7 +24,7 @@ export async function initSetup({
         const {adminClient, adminUser} = await getAdminClient();
         if (!adminClient) {
             throw new Error(
-                "Failed to setup admin: Check that you're able to access the server using the same admin credential."
+                "Failed to setup admin: Check that you're able to access the server using the same admin credential.",
             );
         }
 
@@ -83,8 +83,8 @@ export async function initSetup({
             // eslint-disable-next-line no-console
             console.log(
                 chalk.green(
-                    `This failed due to the experimental fetch support in Node.js starting v18.0.0.\nYou may set environment variable: "export NODE_OPTIONS='--no-experimental-fetch'", then try again.'`
-                )
+                    `This failed due to the experimental fetch support in Node.js starting v18.0.0.\nYou may set environment variable: "export NODE_OPTIONS='--no-experimental-fetch'", then try again.'`,
+                ),
             );
         }
         expect(err, 'Should not throw an error').toBeFalsy();

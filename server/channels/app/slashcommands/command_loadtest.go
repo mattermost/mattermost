@@ -325,7 +325,6 @@ func (*LoadTestProvider) UsersCommand(a *app.App, c request.CTX, args *model.Com
 		if err != nil {
 			return &model.CommandResponse{Text: "Failed to add users: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
-
 	}
 
 	team, err := a.Srv().Store().Team().Get(args.TeamId)
@@ -369,7 +368,6 @@ func (*LoadTestProvider) ChannelsCommand(a *app.App, c request.CTX, args *model.
 		if err != nil {
 			return &model.CommandResponse{Text: "Failed to add channels: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
-
 	}
 
 	team, err := a.Srv().Store().Team().Get(args.TeamId)
@@ -427,7 +425,6 @@ func (*LoadTestProvider) DMsCommand(a *app.App, c request.CTX, args *model.Comma
 		if err != nil {
 			return &model.CommandResponse{Text: "Failed to add DMs: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
-
 	}
 
 	time := int64(0)
@@ -465,7 +462,6 @@ func (*LoadTestProvider) ThreadedPostCommand(a *app.App, c request.CTX, args *mo
 		if err != nil {
 			return &model.CommandResponse{Text: "Failed to create post: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
-
 	}
 
 	time := int64(0)
@@ -520,7 +516,6 @@ func (*LoadTestProvider) PostsCommand(a *app.App, c request.CTX, args *model.Com
 		if err != nil {
 			return &model.CommandResponse{Text: "Failed to add posts: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
-
 	}
 
 	maxImages := 0
@@ -565,7 +560,6 @@ func (*LoadTestProvider) PostsCommand(a *app.App, c request.CTX, args *model.Com
 		if err != nil {
 			return &model.CommandResponse{Text: "Failed to add posts", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
-
 	}
 
 	return &model.CommandResponse{Text: "Added posts", ResponseType: model.CommandResponseTypeEphemeral}, nil

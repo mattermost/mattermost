@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -54,8 +55,8 @@ func TestSAMLSettings(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			saml2 := &mocks.SamlInterface{}
-			saml2.Mock.On("ConfigureSP").Return(nil)
-			saml2.Mock.On("GetMetadata").Return("samlTwo", nil)
+			saml2.Mock.On("ConfigureSP", mock.AnythingOfType("*request.Context")).Return(nil)
+			saml2.Mock.On("GetMetadata", mock.AnythingOfType("*request.Context")).Return("samlTwo", nil)
 			if tc.setNewInterface {
 				RegisterNewSamlInterface(func(_ *App) einterfaces.SamlInterface {
 					return saml2
@@ -93,7 +94,7 @@ func TestSAMLSettings(t *testing.T) {
 				assert.Nil(t, th.App.Channels().Saml)
 			} else {
 				assert.NotNil(t, th.App.Channels().Saml)
-				metadata, err := th.App.Channels().Saml.GetMetadata()
+				metadata, err := th.App.Channels().Saml.GetMetadata(request.TestContext(t))
 				assert.Nil(t, err)
 				assert.Equal(t, tc.metadata, metadata)
 			}
