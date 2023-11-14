@@ -48,6 +48,17 @@ func (b *ChannelBookmark) Clone() *ChannelBookmark {
 	return &bCopy
 }
 
+func (b *ChannelBookmark) SetOriginal(newOwnerId string) *ChannelBookmark {
+	bCopy := *b
+	bCopy.Id = ""
+	bCopy.CreateAt = 0
+	bCopy.DeleteAt = 0
+	bCopy.UpdateAt = 0
+	bCopy.OriginalId = b.Id
+	bCopy.OwnerId = newOwnerId
+	return &bCopy
+}
+
 func (o *ChannelBookmark) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }

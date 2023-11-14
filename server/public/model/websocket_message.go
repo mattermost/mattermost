@@ -84,6 +84,9 @@ const (
 	WebsocketEventAcknowledgementRemoved              = "post_acknowledgement_removed"
 	WebsocketEventPersistentNotificationTriggered     = "persistent_notification_triggered"
 	WebsocketEventHostedCustomerSignupProgressUpdated = "hosted_customer_signup_progress_updated"
+	WebsocketEventChannelBookmarkCreated              = "channel_bookmark_created"
+	WebsocketEventChannelBookmarkUpdated              = "channel_bookmark_updated"
+	WebsocketEventChannelBookmarkDeleted              = "channel_bookmark_deleted"
 )
 
 type WebSocketMessage interface {
