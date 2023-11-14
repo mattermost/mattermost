@@ -73,6 +73,7 @@ import {
 import FeatureFlags from './feature_flags';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
+import IPFiltering from './ip_filtering';
 import LicenseSettings from './license_settings';
 import MessageExportSettings from './message_export_settings';
 import OpenIdConvert from './openid_convert';
@@ -3287,6 +3288,20 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTICES)),
                         },
                     ],
+                },
+            },
+            ip_filtering: {
+                url: 'site_config/ip_filtering',
+                title: t('admin.sidebar.ip_filtering'),
+                title_default: 'IP Filtering',
+                isHidden: it.not(it.all(it.configIsTrue('FeatureFlags', 'CloudIPFiltering'), it.licensedForSku('enterprise'))),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.IP_FILTERING)),
+                searchableStrings: [
+                    'admin.sidebar.ip_filtering',
+                ],
+                schema: {
+                    id: 'IPFiltering',
+                    component: IPFiltering,
                 },
             },
         },

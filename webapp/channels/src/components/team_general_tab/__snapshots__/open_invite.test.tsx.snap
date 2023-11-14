@@ -102,7 +102,7 @@ exports[`components/TeamSettings/OpenInvite should match snapshot on active with
 `;
 
 exports[`components/TeamSettings/OpenInvite should match snapshot on non active allowing open invite 1`] = `
-<Connect(SettingItemMin)
+<SettingItemMin
   describe="Yes"
   section="open_invite"
   title="Allow any user with an account on this server to join this team"
@@ -111,7 +111,7 @@ exports[`components/TeamSettings/OpenInvite should match snapshot on non active 
 `;
 
 exports[`components/TeamSettings/OpenInvite should match snapshot on non active with groupConstrained 1`] = `
-<Connect(SettingItemMin)
+<SettingItemMin
   describe="No, members of this team are added and removed by linked groups."
   section="open_invite"
   title="Allow any user with an account on this server to join this team"
@@ -120,7 +120,7 @@ exports[`components/TeamSettings/OpenInvite should match snapshot on non active 
 `;
 
 exports[`components/TeamSettings/OpenInvite should match snapshot on non active without groupConstrained 1`] = `
-<Connect(SettingItemMin)
+<SettingItemMin
   describe="No"
   section="open_invite"
   title="Allow any user with an account on this server to join this team"

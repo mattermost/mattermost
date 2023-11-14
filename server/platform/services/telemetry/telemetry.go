@@ -280,17 +280,17 @@ func (ts *TelemetryService) trackActivity() {
 	var incomingWebhooksCount int64
 	var outgoingWebhooksCount int64
 
-	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
+	activeUsersDailyCountChan := make(chan store.GenericStoreResult[int64], 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersDailyCountChan <- store.StoreResult{Data: count, NErr: err}
+		activeUsersDailyCountChan <- store.GenericStoreResult[int64]{Data: count, NErr: err}
 		close(activeUsersDailyCountChan)
 	}()
 
-	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
+	activeUsersMonthlyCountChan := make(chan store.GenericStoreResult[int64], 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, NErr: err}
+		activeUsersMonthlyCountChan <- store.GenericStoreResult[int64]{Data: count, NErr: err}
 		close(activeUsersMonthlyCountChan)
 	}()
 
@@ -361,12 +361,12 @@ func (ts *TelemetryService) trackActivity() {
 
 	var activeUsersDailyCount int64
 	if r := <-activeUsersDailyCountChan; r.NErr == nil {
-		activeUsersDailyCount = r.Data.(int64)
+		activeUsersDailyCount = r.Data
 	}
 
 	var activeUsersMonthlyCount int64
 	if r := <-activeUsersMonthlyCountChan; r.NErr == nil {
-		activeUsersMonthlyCount = r.Data.(int64)
+		activeUsersMonthlyCount = r.Data
 	}
 
 	activity := map[string]any{
