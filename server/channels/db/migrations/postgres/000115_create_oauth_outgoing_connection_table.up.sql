@@ -1,4 +1,4 @@
-CREATE TYPE oauthoutgoingconnection_granttype AS ENUM ('client_credentials');
+CREATE TYPE oauthoutgoingconnection_granttype AS ENUM ('client_credentials', 'password');
 
 CREATE TABLE IF NOT EXISTS oauthoutgoingconnection (
     id varchar(26) PRIMARY KEY,
@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS oauthoutgoingconnection (
     updateat bigint,
     clientid varchar(255),
     clientsecret varchar(255),
+    credentialsusername varchar(255),
+    credentialspassword varchar(255),
     oauthtokenurl text,
     granttype oauthoutgoingconnection_granttype DEFAULT 'client_credentials',
     audiences VARCHAR(1024)

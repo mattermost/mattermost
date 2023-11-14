@@ -10,23 +10,30 @@ import (
 
 type GrantType string
 
+func (gt GrantType) IsValid() bool {
+	return gt == GrantTypeClientCredentials || gt == GrantTypePassword
+}
+
 const (
 	GrantTypeClientCredentials GrantType = "client_credentials"
+	GrantTypePassword          GrantType = "password"
 
 	defaultGetConnectionsLimit = 50
 )
 
 type OAuthOutgoingConnection struct {
-	Id            string      `json:"id"`
-	CreatorId     string      `json:"creator_id"`
-	CreateAt      int64       `json:"create_at"`
-	UpdateAt      int64       `json:"update_at"`
-	Name          string      `json:"name"`
-	ClientId      string      `json:"client_id"`
-	ClientSecret  string      `json:"client_secret"`
-	OAuthTokenURL string      `json:"oauth_token_url"`
-	GrantType     GrantType   `json:"grant_type"`
-	Audiences     StringArray `json:"audiences"`
+	Id                  string      `json:"id"`
+	CreatorId           string      `json:"creator_id"`
+	CreateAt            int64       `json:"create_at"`
+	UpdateAt            int64       `json:"update_at"`
+	Name                string      `json:"name"`
+	ClientId            string      `json:"client_id"`
+	ClientSecret        string      `json:"client_secret"`
+	CredentialsUsername *string     `json:"credentials_username,omitempty"`
+	CredentialsPassword *string     `json:"credentials_password,omitempty"`
+	OAuthTokenURL       string      `json:"oauth_token_url"`
+	GrantType           GrantType   `json:"grant_type"`
+	Audiences           StringArray `json:"audiences"`
 }
 
 func (oa *OAuthOutgoingConnection) Auditable() map[string]interface{} {
@@ -74,8 +81,8 @@ func (oa *OAuthOutgoingConnection) IsValid() *AppError {
 		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.oauth_token_url.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if oa.GrantType != GrantTypeClientCredentials {
-		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.grant_type.error", nil, "id="+oa.Id, http.StatusBadRequest)
+	if err := oa.IsValidGrantType(); err != nil {
+		return err
 	}
 
 	if len(oa.Audiences) == 0 {
@@ -88,6 +95,23 @@ func (oa *OAuthOutgoingConnection) IsValid() *AppError {
 				return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.audience.error", nil, "id="+oa.Id, http.StatusBadRequest)
 			}
 		}
+	}
+
+	return nil
+}
+
+// IsValidGrantType validates the grant type and its parameters returning an error if it isn't properly configured
+func (oa *OAuthOutgoingConnection) IsValidGrantType() *AppError {
+	if !oa.GrantType.IsValid() {
+		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.grant_type.error", nil, "id="+oa.Id, http.StatusBadRequest)
+	}
+
+	if oa.GrantType == GrantTypePassword && (oa.CredentialsUsername == nil || oa.CredentialsPassword == nil) {
+		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.password_credentials.error", nil, "id="+oa.Id, http.StatusBadRequest)
+	}
+
+	if oa.GrantType == GrantTypePassword && (*oa.CredentialsUsername == "" || *oa.CredentialsPassword == "") {
+		return NewAppError("OAuthOutgoingConnection.IsValid", "model.oauth_outgoing_connection.is_valid.password_credentials.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
 	return nil

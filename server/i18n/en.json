@@ -9303,6 +9303,10 @@
     "translation": "Invalid oauth token url."
   },
   {
+    "id": "model.oauth_outgoing_connection.is_valid.password_credentials.error",
+    "translation": "Invalid password credentials."
+  },
+  {
     "id": "model.oauth_outgoing_connection.is_valid.update_at.error",
     "translation": "Update at must be a valid time."
   },

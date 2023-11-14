@@ -20,7 +20,7 @@ func newValidOAuthOutgoingConnection() *model.OAuthOutgoingConnection {
 		ClientId:      model.NewId(),
 		ClientSecret:  model.NewId(),
 		OAuthTokenURL: "https://nowhere.com/oauth/token",
-		GrantType:     "client_credentials",
+		GrantType:     model.GrantTypeClientCredentials,
 		Audiences:     []string{"https://nowhere.com"},
 	}
 }
@@ -83,6 +83,14 @@ func testSaveOauthOutgoingConnection(t *testing.T, ss store.Store) {
 		connection := &model.OAuthOutgoingConnection{
 			Id: model.NewId(),
 		}
+
+		_, err := ss.OAuthOutgoingConnection().SaveConnection(c, connection)
+		require.Error(t, err)
+	})
+
+	t.Run("save with incorrect grant type should fail", func(t *testing.T) {
+		connection := newValidOAuthOutgoingConnection()
+		connection.GrantType = "incorrect"
 
 		_, err := ss.OAuthOutgoingConnection().SaveConnection(c, connection)
 		require.Error(t, err)

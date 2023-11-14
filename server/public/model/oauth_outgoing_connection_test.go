@@ -6,6 +6,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	emptyString = ""
+	someString  = "userorpass"
+)
+
 func newValidOAuthOutgoingConnection() *OAuthOutgoingConnection {
 	return &OAuthOutgoingConnection{
 		Id:            NewId(),
@@ -158,6 +163,61 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				return oa
 			},
 			assert: requireError,
+		},
+		{
+			name: "nil password credentials",
+			item: func() *OAuthOutgoingConnection {
+				oa := newValidOAuthOutgoingConnection()
+				oa.GrantType = GrantTypePassword
+				oa.CredentialsUsername = nil
+				oa.CredentialsPassword = nil
+				return oa
+			},
+			assert: requireError,
+		},
+		{
+			name: "invalid password credentials username",
+			item: func() *OAuthOutgoingConnection {
+				oa := newValidOAuthOutgoingConnection()
+				oa.GrantType = GrantTypePassword
+				oa.CredentialsUsername = &emptyString
+				oa.CredentialsPassword = &someString
+				return oa
+			},
+			assert: requireError,
+		},
+		{
+			name: "invalid password credentials password",
+			item: func() *OAuthOutgoingConnection {
+				oa := newValidOAuthOutgoingConnection()
+				oa.GrantType = GrantTypePassword
+				oa.CredentialsUsername = &someString
+				oa.CredentialsPassword = &emptyString
+				return oa
+			},
+			assert: requireError,
+		},
+		{
+			name: "empty password credentials",
+			item: func() *OAuthOutgoingConnection {
+				oa := newValidOAuthOutgoingConnection()
+				oa.GrantType = GrantTypePassword
+				oa.CredentialsUsername = &emptyString
+				oa.CredentialsPassword = &emptyString
+				return oa
+			},
+			assert: requireError,
+		},
+		{
+			name: "correct password credentials",
+			item: func() *OAuthOutgoingConnection {
+				oa := newValidOAuthOutgoingConnection()
+				oa.GrantType = GrantTypePassword
+				oa.CredentialsUsername = &someString
+				oa.CredentialsPassword = &someString
+				return oa
+			},
+			assert: requireNoError,
 		},
 		{
 			name: "empty audience",

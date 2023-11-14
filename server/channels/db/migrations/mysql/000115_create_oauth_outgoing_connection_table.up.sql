@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS OAuthOutgoingConnection (
     UpdateAt bigint(20) DEFAULT NULL,
     ClientId varchar(255),
     ClientSecret varchar(255),
+    CredentialsUsername varchar(255),
+    CredentialsPassword varchar(255),
     OAuthTokenURL text,
     GrantType varchar(32) DEFAULT 'client_credentials',
     Audiences TEXT,
