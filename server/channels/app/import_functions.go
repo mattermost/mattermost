@@ -15,8 +15,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/mattermost/logr/v2"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -31,7 +29,7 @@ import (
 // These functions import data directly into the database. Security and permission checks are bypassed but validity is
 // still enforced.
 func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dryRun bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("schema_name", *data.Name))
 	}
@@ -121,7 +119,7 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 }
 
 func (a *App) importRole(rctx request.CTX, data *imports.RoleImportData, dryRun bool, isSchemeRole bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("role_name", *data.Name))
 	}
@@ -176,7 +174,7 @@ func (a *App) importRole(rctx request.CTX, data *imports.RoleImportData, dryRun 
 }
 
 func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("team_name", *data.Name))
 	}
@@ -252,7 +250,7 @@ func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun 
 }
 
 func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, dryRun bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("channel_name", *data.Name))
 	}
@@ -332,7 +330,7 @@ func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, d
 }
 
 func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Username != nil {
 		fields = append(fields, mlog.String("user_name", *data.Username))
 	}
@@ -1284,7 +1282,7 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 		name = realFile.Name()
 		file = realFile
 
-		fields := []logr.Field{mlog.String("file_name", name)}
+		fields := []mlog.Field{mlog.String("file_name", name)}
 		if info, err := realFile.Stat(); err != nil {
 			fields = append(fields, mlog.Int("file_size", info.Size()))
 		}
@@ -1928,7 +1926,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 }
 
 func (a *App) importEmoji(rctx request.CTX, data *imports.EmojiImportData, dryRun bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("emoji_name", *data.Name))
 	}
