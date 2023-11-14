@@ -55,13 +55,13 @@ const HeaderIconWrapper = (props: Props) => {
             class: 'text-nowrap',
             id: 'flaggedTooltip',
             messageID: t('channel_header.flagged'),
-            message: 'Saved Messages',
+            message: 'Saved messages',
         },
         pinnedPosts: {
             class: 'pinned-posts',
             id: 'pinnedPostTooltip',
             messageID: t('channel_header.pinnedPosts'),
-            message: 'Pinned Messages',
+            message: 'Pinned messages',
         },
         recentMentions: {
             class: '',

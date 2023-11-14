@@ -214,7 +214,7 @@ export class MainMenu extends React.PureComponent<Props> {
                         id='flaggedPosts'
                         onClick={this.getFlagged}
                         icon={<i className='fa fa-bookmark'/>}
-                        text={formatMessage({id: 'sidebar_right_menu.flagged', defaultMessage: 'Saved Messages'})}
+                        text={formatMessage({id: 'sidebar_right_menu.flagged', defaultMessage: 'Saved messages'})}
                     />
                 </Menu.Group>
                 <Menu.Group>

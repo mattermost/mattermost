@@ -60,7 +60,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         id="flaggedPosts"
         onClick={[Function]}
         show={true}
-        text="Saved Messages"
+        text="Saved messages"
       />
     </MenuGroup>
     <MenuGroup>

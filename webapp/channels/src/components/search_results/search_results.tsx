@@ -196,7 +196,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                 defaultMessage: 'Save Message'},
             )}</strong>};
         titleDescriptor.id = t('search_header.title3');
-        titleDescriptor.defaultMessage = 'Saved Messages';
+        titleDescriptor.defaultMessage = 'Saved messages';
     } else if (isPinnedPosts) {
         noResultsProps.variant = NoResultsVariant.PinnedPosts;
         noResultsProps.subtitleValues = {text: <strong>{
@@ -209,7 +209,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         sortedResults.sort((postA: Post|FileSearchResultItemType, postB: Post|FileSearchResultItemType) => postB.create_at - postA.create_at);
 
         titleDescriptor.id = t('search_header.pinnedMessages');
-        titleDescriptor.defaultMessage = 'Pinned Messages';
+        titleDescriptor.defaultMessage = 'Pinned messages';
     } else if (isChannelFiles) {
         if (searchFilterType === 'all') {
             noResultsProps.variant = NoResultsVariant.ChannelFiles;
@@ -227,11 +227,11 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         titleDescriptor.defaultMessage = 'Search';
     } else if (searchType === DataSearchTypes.FILES_SEARCH_TYPE && !isChannelFiles) {
         noResultsProps.variant = NoResultsVariant.Files;
-        noResultsProps.titleValues = {searchTerm: `“${searchTerms}”`};
+        noResultsProps.titleValues = {searchTerm: `${searchTerms}`};
         titleDescriptor.id = t('search_header.results');
         titleDescriptor.defaultMessage = 'Search Results';
     } else {
-        noResultsProps.titleValues = {channelName: `“${searchTerms}”`};
+        noResultsProps.titleValues = {channelName: `${searchTerms}`};
 
         titleDescriptor.id = t('search_header.results');
         titleDescriptor.defaultMessage = 'Search Results';

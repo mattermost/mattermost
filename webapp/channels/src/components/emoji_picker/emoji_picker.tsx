@@ -392,7 +392,7 @@ const EmojiPicker = ({
             {areSearchResultsEmpty ? (
                 <NoResultsIndicator
                     variant={NoResultsVariant.Search}
-                    titleValues={{channelName: `“${filter}”`}}
+                    titleValues={{channelName: `${filter}`}}
                 />
             ) : (
                 <EmojiPickerCurrentResults

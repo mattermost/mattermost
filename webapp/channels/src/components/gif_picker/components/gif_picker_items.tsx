@@ -50,7 +50,7 @@ function GifPickerItems(props: Props) {
                 noResultsMessage={
                     <NoResultsIndicator
                         variant={NoResultsVariant.Search}
-                        titleValues={{channelName: `“${props.filter}”`}}
+                        titleValues={{channelName: `${props.filter}`}}
                     />
                 }
                 fetchGifs={fetchGifs}

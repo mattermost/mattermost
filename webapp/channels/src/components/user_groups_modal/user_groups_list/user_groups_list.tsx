@@ -120,7 +120,7 @@ const UserGroupsList = (props: Props) => {
             return (
                 <NoResultsIndicator
                     variant={NoResultsVariant.Search}
-                    titleValues={{channelName: `“${searchTerm}”`}}
+                    titleValues={{channelName: `${searchTerm}`}}
                 />
             );
         }

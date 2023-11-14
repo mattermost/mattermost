@@ -62,6 +62,6 @@ describe('Search', () => {
         cy.uiGetSavedPostButton().click();
 
         // * Verify the pinned post RHS is open
-        cy.uiGetRHS().should('contain', 'Saved Messages');
+        cy.uiGetRHS().should('contain', 'Saved messages');
     });
 });

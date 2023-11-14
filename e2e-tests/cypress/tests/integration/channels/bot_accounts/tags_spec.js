@@ -78,7 +78,7 @@ describe('Bot tags', () => {
         cy.uiGetChannelPinButton().click();
 
         // * Verify bot badge
-        cy.get('.sidebar--right__title').should('contain.text', 'Pinned Messages');
+        cy.get('.sidebar--right__title').should('contain.text', 'Pinned messages');
         rhsPostHasBotBadge(postId);
     });
 
@@ -87,7 +87,7 @@ describe('Bot tags', () => {
         cy.uiGetSavedPostButton().click();
 
         // * Verify bot badge
-        cy.get('.sidebar--right__title').should('contain.text', 'Saved Messages');
+        cy.get('.sidebar--right__title').should('contain.text', 'Saved messages');
         rhsPostHasBotBadge(postId);
     });
 });
