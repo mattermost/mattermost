@@ -33,8 +33,7 @@ class DesktopApp {
             this.name = name;
             this.version = semver.valid(semver.coerce(version));
 
-            // Legacy code, not sure if it's still used by plugins?
-            // Remove if not
+            // Legacy Desktop App version, used by some plugins
             if (!window.desktop) {
                 window.desktop = {};
             }
@@ -283,3 +282,7 @@ export const doBrowserHistoryPush = (path: string) => {
         window.location.origin,
     );
 };
+
+export const updateUnread = (isUnread: boolean) => window.desktopAPI?.updateUnread(isUnread);
+export const updateMentions = (mentionCount: number) => window.desktopAPI?.updateMentions(mentionCount);
+export const setSessionExpired = (expired: boolean) => window.desktopAPI?.setSessionExpired(expired);

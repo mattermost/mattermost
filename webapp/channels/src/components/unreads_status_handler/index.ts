@@ -15,11 +15,11 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
-import FaviconTitleHandler from './favicon_title_handler';
+import UnreadsStatusHandler from './unreads_status_handler';
 
 type Props = RouteChildrenProps;
 
-function mapStateToProps(state: GlobalState, {location: {pathname}}: Props): ComponentProps<typeof FaviconTitleHandler> {
+function mapStateToProps(state: GlobalState, {location: {pathname}}: Props): ComponentProps<typeof UnreadsStatusHandler> {
     const config = getConfig(state);
     const currentChannel = getCurrentChannel(state);
     const currentTeammate = (currentChannel && currentChannel.teammate_id) ? currentChannel : null;
@@ -43,4 +43,4 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     };
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(FaviconTitleHandler));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(UnreadsStatusHandler));
