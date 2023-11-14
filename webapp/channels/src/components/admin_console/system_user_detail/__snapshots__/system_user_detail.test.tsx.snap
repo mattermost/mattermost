@@ -8,7 +8,7 @@ exports[`components/admin_console/system_user_detail should match default snapsh
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -244,7 +244,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if LD
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -482,7 +482,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if MF
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -726,7 +726,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if SA
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -964,7 +964,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if no
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -1200,7 +1200,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if us
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
