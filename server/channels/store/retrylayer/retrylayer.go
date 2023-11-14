@@ -6560,11 +6560,11 @@ func (s *RetryLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, 
 
 }
 
-func (s *RetryLayerOAuthOutgoingConnectionStore) DeleteConnection(c request.CTX, id string) error {
+func (s *RetryLayerOAuthOutgoingConnectionStore) DeleteConnection(rctx request.CTX, id string) error {
 
 	tries := 0
 	for {
-		err := s.OAuthOutgoingConnectionStore.DeleteConnection(c, id)
+		err := s.OAuthOutgoingConnectionStore.DeleteConnection(rctx, id)
 		if err == nil {
 			return nil
 		}
@@ -6581,11 +6581,11 @@ func (s *RetryLayerOAuthOutgoingConnectionStore) DeleteConnection(c request.CTX,
 
 }
 
-func (s *RetryLayerOAuthOutgoingConnectionStore) GetConnection(c request.CTX, id string) (*model.OAuthOutgoingConnection, error) {
+func (s *RetryLayerOAuthOutgoingConnectionStore) GetConnection(rctx request.CTX, id string) (*model.OAuthOutgoingConnection, error) {
 
 	tries := 0
 	for {
-		result, err := s.OAuthOutgoingConnectionStore.GetConnection(c, id)
+		result, err := s.OAuthOutgoingConnectionStore.GetConnection(rctx, id)
 		if err == nil {
 			return result, nil
 		}
@@ -6602,11 +6602,11 @@ func (s *RetryLayerOAuthOutgoingConnectionStore) GetConnection(c request.CTX, id
 
 }
 
-func (s *RetryLayerOAuthOutgoingConnectionStore) GetConnections(c request.CTX, filters model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error) {
+func (s *RetryLayerOAuthOutgoingConnectionStore) GetConnections(rctx request.CTX, filters model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error) {
 
 	tries := 0
 	for {
-		result, err := s.OAuthOutgoingConnectionStore.GetConnections(c, filters)
+		result, err := s.OAuthOutgoingConnectionStore.GetConnections(rctx, filters)
 		if err == nil {
 			return result, nil
 		}
@@ -6623,11 +6623,11 @@ func (s *RetryLayerOAuthOutgoingConnectionStore) GetConnections(c request.CTX, f
 
 }
 
-func (s *RetryLayerOAuthOutgoingConnectionStore) SaveConnection(c request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error) {
+func (s *RetryLayerOAuthOutgoingConnectionStore) SaveConnection(rctx request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error) {
 
 	tries := 0
 	for {
-		result, err := s.OAuthOutgoingConnectionStore.SaveConnection(c, conn)
+		result, err := s.OAuthOutgoingConnectionStore.SaveConnection(rctx, conn)
 		if err == nil {
 			return result, nil
 		}
@@ -6644,11 +6644,11 @@ func (s *RetryLayerOAuthOutgoingConnectionStore) SaveConnection(c request.CTX, c
 
 }
 
-func (s *RetryLayerOAuthOutgoingConnectionStore) UpdateConnection(c request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error) {
+func (s *RetryLayerOAuthOutgoingConnectionStore) UpdateConnection(rctx request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error) {
 
 	tries := 0
 	for {
-		result, err := s.OAuthOutgoingConnectionStore.UpdateConnection(c, conn)
+		result, err := s.OAuthOutgoingConnectionStore.UpdateConnection(rctx, conn)
 		if err == nil {
 			return result, nil
 		}

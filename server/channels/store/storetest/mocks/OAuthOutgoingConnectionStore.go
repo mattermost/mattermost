@@ -15,13 +15,13 @@ type OAuthOutgoingConnectionStore struct {
 	mock.Mock
 }
 
-// DeleteConnection provides a mock function with given fields: c, id
-func (_m *OAuthOutgoingConnectionStore) DeleteConnection(c request.CTX, id string) error {
-	ret := _m.Called(c, id)
+// DeleteConnection provides a mock function with given fields: rctx, id
+func (_m *OAuthOutgoingConnectionStore) DeleteConnection(rctx request.CTX, id string) error {
+	ret := _m.Called(rctx, id)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
-		r0 = rf(c, id)
+		r0 = rf(rctx, id)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -29,17 +29,17 @@ func (_m *OAuthOutgoingConnectionStore) DeleteConnection(c request.CTX, id strin
 	return r0
 }
 
-// GetConnection provides a mock function with given fields: c, id
-func (_m *OAuthOutgoingConnectionStore) GetConnection(c request.CTX, id string) (*model.OAuthOutgoingConnection, error) {
-	ret := _m.Called(c, id)
+// GetConnection provides a mock function with given fields: rctx, id
+func (_m *OAuthOutgoingConnectionStore) GetConnection(rctx request.CTX, id string) (*model.OAuthOutgoingConnection, error) {
+	ret := _m.Called(rctx, id)
 
 	var r0 *model.OAuthOutgoingConnection
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.OAuthOutgoingConnection, error)); ok {
-		return rf(c, id)
+		return rf(rctx, id)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.OAuthOutgoingConnection); ok {
-		r0 = rf(c, id)
+		r0 = rf(rctx, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.OAuthOutgoingConnection)
@@ -47,7 +47,7 @@ func (_m *OAuthOutgoingConnectionStore) GetConnection(c request.CTX, id string) 
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
-		r1 = rf(c, id)
+		r1 = rf(rctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -55,17 +55,17 @@ func (_m *OAuthOutgoingConnectionStore) GetConnection(c request.CTX, id string) 
 	return r0, r1
 }
 
-// GetConnections provides a mock function with given fields: c, filters
-func (_m *OAuthOutgoingConnectionStore) GetConnections(c request.CTX, filters model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error) {
-	ret := _m.Called(c, filters)
+// GetConnections provides a mock function with given fields: rctx, filters
+func (_m *OAuthOutgoingConnectionStore) GetConnections(rctx request.CTX, filters model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error) {
+	ret := _m.Called(rctx, filters)
 
 	var r0 []*model.OAuthOutgoingConnection
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error)); ok {
-		return rf(c, filters)
+		return rf(rctx, filters)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, model.OAuthOutgoingConnectionGetConnectionsFilter) []*model.OAuthOutgoingConnection); ok {
-		r0 = rf(c, filters)
+		r0 = rf(rctx, filters)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.OAuthOutgoingConnection)
@@ -73,7 +73,7 @@ func (_m *OAuthOutgoingConnectionStore) GetConnections(c request.CTX, filters mo
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, model.OAuthOutgoingConnectionGetConnectionsFilter) error); ok {
-		r1 = rf(c, filters)
+		r1 = rf(rctx, filters)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -81,17 +81,17 @@ func (_m *OAuthOutgoingConnectionStore) GetConnections(c request.CTX, filters mo
 	return r0, r1
 }
 
-// SaveConnection provides a mock function with given fields: c, conn
-func (_m *OAuthOutgoingConnectionStore) SaveConnection(c request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error) {
-	ret := _m.Called(c, conn)
+// SaveConnection provides a mock function with given fields: rctx, conn
+func (_m *OAuthOutgoingConnectionStore) SaveConnection(rctx request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error) {
+	ret := _m.Called(rctx, conn)
 
 	var r0 *model.OAuthOutgoingConnection
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error)); ok {
-		return rf(c, conn)
+		return rf(rctx, conn)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.OAuthOutgoingConnection) *model.OAuthOutgoingConnection); ok {
-		r0 = rf(c, conn)
+		r0 = rf(rctx, conn)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.OAuthOutgoingConnection)
@@ -99,7 +99,7 @@ func (_m *OAuthOutgoingConnectionStore) SaveConnection(c request.CTX, conn *mode
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.OAuthOutgoingConnection) error); ok {
-		r1 = rf(c, conn)
+		r1 = rf(rctx, conn)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -107,17 +107,17 @@ func (_m *OAuthOutgoingConnectionStore) SaveConnection(c request.CTX, conn *mode
 	return r0, r1
 }
 
-// UpdateConnection provides a mock function with given fields: c, conn
-func (_m *OAuthOutgoingConnectionStore) UpdateConnection(c request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error) {
-	ret := _m.Called(c, conn)
+// UpdateConnection provides a mock function with given fields: rctx, conn
+func (_m *OAuthOutgoingConnectionStore) UpdateConnection(rctx request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error) {
+	ret := _m.Called(rctx, conn)
 
 	var r0 *model.OAuthOutgoingConnection
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error)); ok {
-		return rf(c, conn)
+		return rf(rctx, conn)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.OAuthOutgoingConnection) *model.OAuthOutgoingConnection); ok {
-		r0 = rf(c, conn)
+		r0 = rf(rctx, conn)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.OAuthOutgoingConnection)
@@ -125,7 +125,7 @@ func (_m *OAuthOutgoingConnectionStore) UpdateConnection(c request.CTX, conn *mo
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.OAuthOutgoingConnection) error); ok {
-		r1 = rf(c, conn)
+		r1 = rf(rctx, conn)
 	} else {
 		r1 = ret.Error(1)
 	}

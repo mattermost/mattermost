@@ -5243,10 +5243,10 @@ func (s *TimerLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, 
 	return result, err
 }
 
-func (s *TimerLayerOAuthOutgoingConnectionStore) DeleteConnection(c request.CTX, id string) error {
+func (s *TimerLayerOAuthOutgoingConnectionStore) DeleteConnection(rctx request.CTX, id string) error {
 	start := time.Now()
 
-	err := s.OAuthOutgoingConnectionStore.DeleteConnection(c, id)
+	err := s.OAuthOutgoingConnectionStore.DeleteConnection(rctx, id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5259,10 +5259,10 @@ func (s *TimerLayerOAuthOutgoingConnectionStore) DeleteConnection(c request.CTX,
 	return err
 }
 
-func (s *TimerLayerOAuthOutgoingConnectionStore) GetConnection(c request.CTX, id string) (*model.OAuthOutgoingConnection, error) {
+func (s *TimerLayerOAuthOutgoingConnectionStore) GetConnection(rctx request.CTX, id string) (*model.OAuthOutgoingConnection, error) {
 	start := time.Now()
 
-	result, err := s.OAuthOutgoingConnectionStore.GetConnection(c, id)
+	result, err := s.OAuthOutgoingConnectionStore.GetConnection(rctx, id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5275,10 +5275,10 @@ func (s *TimerLayerOAuthOutgoingConnectionStore) GetConnection(c request.CTX, id
 	return result, err
 }
 
-func (s *TimerLayerOAuthOutgoingConnectionStore) GetConnections(c request.CTX, filters model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error) {
+func (s *TimerLayerOAuthOutgoingConnectionStore) GetConnections(rctx request.CTX, filters model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error) {
 	start := time.Now()
 
-	result, err := s.OAuthOutgoingConnectionStore.GetConnections(c, filters)
+	result, err := s.OAuthOutgoingConnectionStore.GetConnections(rctx, filters)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5291,10 +5291,10 @@ func (s *TimerLayerOAuthOutgoingConnectionStore) GetConnections(c request.CTX, f
 	return result, err
 }
 
-func (s *TimerLayerOAuthOutgoingConnectionStore) SaveConnection(c request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error) {
+func (s *TimerLayerOAuthOutgoingConnectionStore) SaveConnection(rctx request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error) {
 	start := time.Now()
 
-	result, err := s.OAuthOutgoingConnectionStore.SaveConnection(c, conn)
+	result, err := s.OAuthOutgoingConnectionStore.SaveConnection(rctx, conn)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5307,10 +5307,10 @@ func (s *TimerLayerOAuthOutgoingConnectionStore) SaveConnection(c request.CTX, c
 	return result, err
 }
 
-func (s *TimerLayerOAuthOutgoingConnectionStore) UpdateConnection(c request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error) {
+func (s *TimerLayerOAuthOutgoingConnectionStore) UpdateConnection(rctx request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error) {
 	start := time.Now()
 
-	result, err := s.OAuthOutgoingConnectionStore.UpdateConnection(c, conn)
+	result, err := s.OAuthOutgoingConnectionStore.UpdateConnection(rctx, conn)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
