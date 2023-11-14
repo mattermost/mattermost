@@ -145,13 +145,8 @@ func (s *SqlReactionStore) GetUniqueCountForPost(postId string) (int, error) {
 		Where(sq.Eq{"PostId": postId}).
 		Where(sq.Eq{"DeleteAt": 0})
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return 0, errors.Wrap(err, "reactions_getuniquecountforpost_tosql")
-	}
-
 	var count int64
-	err = s.GetReplicaX().Get(&count, queryString, args...)
+	err := s.GetReplicaX().GetBuilder(&count, query)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to count Reactions")
 	}
