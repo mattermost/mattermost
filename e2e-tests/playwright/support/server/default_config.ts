@@ -180,6 +180,7 @@ const defaultServerConfig: AdminConfig = {
         SelfHostedPurchase: true,
         AllowSyncedDrafts: true,
         UniqueEmojiReactionLimitPerPost: 25,
+        RefreshPostStatsRunTime: '00:00',
     },
     TeamSettings: {
         SiteName: 'Mattermost',

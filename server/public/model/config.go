@@ -397,6 +397,7 @@ type ServiceSettings struct {
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 	UniqueEmojiReactionLimitPerPost                   *int    `access:"site_posts"`
+	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
 }
 
 var MattermostGiphySdkKey string
@@ -894,6 +895,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if *s.UniqueEmojiReactionLimitPerPost > ServiceSettingsMaxUniqueReactionsPerPost {
 		s.UniqueEmojiReactionLimitPerPost = NewInt(ServiceSettingsMaxUniqueReactionsPerPost)
+	}
+
+	if s.RefreshPostStatsRunTime == nil {
+		s.RefreshPostStatsRunTime = NewString("00:00")
 	}
 }
 
