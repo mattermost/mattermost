@@ -17,6 +17,5 @@ CREATE TABLE IF NOT EXISTS channelbookmarks (
 );
 
 CREATE INDEX IF NOT EXISTS idx_channelbookmarks_channelid ON channelbookmarks (channelid);
-CREATE INDEX IF NOT EXISTS idx_channelbookmarks_create_at ON channelbookmarks (createat);
 CREATE INDEX IF NOT EXISTS idx_channelbookmarks_update_at ON channelbookmarks (updateat);
 CREATE INDEX IF NOT EXISTS idx_channelbookmarks_delete_at ON channelbookmarks (deleteat);

@@ -17,6 +17,5 @@ CREATE TABLE IF NOT EXISTS ChannelBookmarks (
     PRIMARY KEY (Id),
     KEY idx_channelbookmarks_channelid (ChannelId),
     KEY idx_channelbookmarks_update_at (UpdateAt),
-    KEY idx_channelbookmarks_create_at (CreateAt),
     KEY idx_channelbookmarks_delete_at (DeleteAt)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
