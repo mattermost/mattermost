@@ -5,6 +5,8 @@ import React from 'react';
 
 import type {PostImage, PostType} from '@mattermost/types/posts';
 
+import type {HighlightWithoutNotificationKey} from 'mattermost-redux/selectors/entities/users';
+
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
 
 import type EmojiMap from 'utils/emoji_map';
@@ -53,6 +55,7 @@ export type OwnProps = {
      * An array of words that can be used to mention a user
      */
     mentionKeys?: MentionKey[];
+    highlightKeys?: HighlightWithoutNotificationKey[];
 
     /**
      * Any extra props that should be passed into the image component
@@ -92,6 +95,7 @@ function Markdown({
     message = '',
     channelNamesMap,
     mentionKeys,
+    highlightKeys,
     imageProps,
     channelId,
     hasPluginTooltips,
@@ -123,6 +127,7 @@ function Markdown({
         autolinkedUrlSchemes,
         siteURL,
         mentionKeys,
+        highlightKeys,
         atMentions: true,
         channelNamesMap,
         proxyImages: hasImageProxy && proxyImages,

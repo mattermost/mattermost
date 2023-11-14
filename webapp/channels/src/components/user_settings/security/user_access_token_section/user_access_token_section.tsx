@@ -16,7 +16,7 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SaveButton from 'components/save_button';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
-import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+import type SettingItemMinComponent from 'components/setting_item_min';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import {Constants, DeveloperLinks} from 'utils/constants';

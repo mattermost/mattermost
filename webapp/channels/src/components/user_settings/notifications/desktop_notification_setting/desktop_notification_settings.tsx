@@ -1,20 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ChangeEvent, RefObject} from 'react';
+import React, {type ChangeEvent, type RefObject, type ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
-import ReactSelect from 'react-select';
-import type {ValueType} from 'react-select';
+import ReactSelect, {type ValueType} from 'react-select';
 
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
-import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {NotificationLevels} from 'utils/constants';
-import {t} from 'utils/i18n';
 import * as NotificationSounds from 'utils/notification_sounds';
-import * as Utils from 'utils/utils';
+import {a11yFocus} from 'utils/utils';
 
 type SelectedOption = {
     label: string;
@@ -22,21 +19,21 @@ type SelectedOption = {
 };
 
 type Props = {
+    active: boolean;
+    updateSection: (section: string) => void;
+    onSubmit: () => void;
+    onCancel: () => void;
+    saving: boolean;
+    error: string;
+    setParentState: (key: string, value: string | boolean) => void;
+    areAllSectionsInactive: boolean;
+    isCollapsedThreadsEnabled: boolean;
     activity: string;
     threads?: string;
     sound: string;
     callsSound: string;
-    updateSection: (section: string) => void;
-    setParentState: (key: string, value: string | boolean) => void;
-    submit: () => void;
-    cancel: () => void;
-    error: string;
-    active: boolean;
-    areAllSectionsInactive: boolean;
-    saving: boolean;
     selectedSound: string;
     callsSelectedSound: string;
-    isCollapsedThreadsEnabled: boolean;
     isCallsRingingEnabled: boolean;
 };
 
@@ -49,27 +46,29 @@ type State = {
 export default class DesktopNotificationSettings extends React.PureComponent<Props, State> {
     dropdownSoundRef: RefObject<ReactSelect>;
     callsDropdownRef: RefObject<ReactSelect>;
-    minRef: RefObject<SettingItemMinComponent>;
+    editButtonRef: RefObject<SettingItemMinComponent>;
 
     constructor(props: Props) {
         super(props);
+
         this.state = {
             selectedOption: {value: props.selectedSound, label: props.selectedSound},
             callsSelectedOption: {value: props.callsSelectedSound, label: props.callsSelectedSound},
             blurDropdown: false,
         };
+
         this.dropdownSoundRef = React.createRef();
         this.callsDropdownRef = React.createRef();
-        this.minRef = React.createRef();
+        this.editButtonRef = React.createRef();
     }
 
     focusEditButton(): void {
-        this.minRef.current?.focus();
+        this.editButtonRef.current?.focus();
     }
 
     handleMinUpdateSection = (section: string): void => {
         this.props.updateSection(section);
-        this.props.cancel();
+        this.props.onCancel();
     };
 
     handleMaxUpdateSection = (section: string): void => this.props.updateSection(section);
@@ -79,7 +78,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
         const value = e.currentTarget.getAttribute('data-value');
         if (key && value) {
             this.props.setParentState(key, value);
-            Utils.a11yFocus(e.currentTarget);
+            a11yFocus(e.currentTarget);
         }
         if (key === 'callsDesktopSound' && value === 'false') {
             NotificationSounds.stopTryNotificationRing();
@@ -435,9 +434,14 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
 
         return (
             <SettingItemMax
-                title={Utils.localizeMessage('user.settings.notifications.desktop.title', 'Desktop Notifications')}
+                title={
+                    <FormattedMessage
+                        id={'user.settings.notifications.desktop.title'}
+                        defaultMessage={'Desktop Notifications'}
+                    />
+                }
                 inputs={inputs}
-                submit={this.props.submit}
+                submit={this.props.onSubmit}
                 saving={this.props.saving}
                 serverError={this.props.error}
                 updateSection={this.handleMaxUpdateSection}
@@ -446,56 +450,76 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
     };
 
     buildMinimizedSetting = () => {
-        let formattedMessageProps;
         const hasSoundOption = NotificationSounds.hasSoundOptions();
+        let collapsedDescription: ReactNode = null;
+
         if (this.props.activity === NotificationLevels.MENTION) {
             if (hasSoundOption && this.props.sound !== 'false') {
-                formattedMessageProps = {
-                    id: t('user.settings.notifications.desktop.mentionsSound'),
-                    defaultMessage: 'For mentions and direct messages, with sound',
-                };
+                collapsedDescription = (
+                    <FormattedMessage
+                        id='user.settings.notifications.desktop.mentionsSound'
+                        defaultMessage='For mentions and direct messages, with sound'
+                    />
+                );
             } else if (hasSoundOption && this.props.sound === 'false') {
-                formattedMessageProps = {
-                    id: t('user.settings.notifications.desktop.mentionsNoSound'),
-                    defaultMessage: 'For mentions and direct messages, without sound',
-                };
+                collapsedDescription = (
+                    <FormattedMessage
+                        id='user.settings.notifications.desktop.mentionsNoSound'
+                        defaultMessage='For mentions and direct messages, without sound'
+                    />
+                );
             } else {
-                formattedMessageProps = {
-                    id: t('user.settings.notifications.desktop.mentionsSoundHidden'),
-                    defaultMessage: 'For mentions and direct messages',
-                };
+                collapsedDescription = (
+                    <FormattedMessage
+                        id='user.settings.notifications.desktop.mentionsSoundHidden'
+                        defaultMessage='For mentions and direct messages'
+                    />
+                );
             }
         } else if (this.props.activity === NotificationLevels.NONE) {
-            formattedMessageProps = {
-                id: t('user.settings.notifications.off'),
-                defaultMessage: 'Off',
-            };
+            collapsedDescription = (
+                <FormattedMessage
+                    id='user.settings.notifications.off'
+                    defaultMessage='Off'
+                />
+            );
         } else {
             if (hasSoundOption && this.props.sound !== 'false') { //eslint-disable-line no-lonely-if
-                formattedMessageProps = {
-                    id: t('user.settings.notifications.desktop.allSound'),
-                    defaultMessage: 'For all activity, with sound',
-                };
+                collapsedDescription = (
+                    <FormattedMessage
+                        id='user.settings.notifications.desktop.allSound'
+                        defaultMessage='For all activity, with sound'
+                    />
+                );
             } else if (hasSoundOption && this.props.sound === 'false') {
-                formattedMessageProps = {
-                    id: t('user.settings.notifications.desktop.allNoSound'),
-                    defaultMessage: 'For all activity, without sound',
-                };
+                collapsedDescription = (
+                    <FormattedMessage
+                        id='user.settings.notifications.desktop.allNoSound'
+                        defaultMessage='For all activity, without sound'
+                    />
+                );
             } else {
-                formattedMessageProps = {
-                    id: t('user.settings.notifications.desktop.allSoundHidden'),
-                    defaultMessage: 'For all activity',
-                };
+                collapsedDescription = (
+                    <FormattedMessage
+                        id='user.settings.notifications.desktop.allSoundHidden'
+                        defaultMessage='For all activity'
+                    />
+                );
             }
         }
 
         return (
             <SettingItemMin
-                title={Utils.localizeMessage('user.settings.notifications.desktop.title', 'Desktop Notifications')}
-                describe={<FormattedMessage {...formattedMessageProps}/>}
+                ref={this.editButtonRef}
+                title={
+                    <FormattedMessage
+                        id={'user.settings.notifications.desktop.title'}
+                        defaultMessage={'Desktop Notifications'}
+                    />
+                }
+                describe={collapsedDescription}
                 section={'desktop'}
                 updateSection={this.handleMinUpdateSection}
-                ref={this.minRef}
             />
         );
     };
