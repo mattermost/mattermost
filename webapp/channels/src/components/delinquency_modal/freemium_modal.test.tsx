@@ -3,23 +3,20 @@
 
 import React from 'react';
 import type {ComponentProps} from 'react';
-import * as reactRedux from 'react-redux';
+
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {trackEvent} from 'actions/telemetry_actions';
-import configureStore from 'store';
 
 import useGetMultiplesExceededCloudLimit from 'components/common/hooks/useGetMultiplesExceededCloudLimit';
 
-import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {LimitTypes} from 'utils/limits';
 
-import {FreemiumModal} from './freemium_modal';
+import type {GlobalState} from 'types/store';
 
-type RenderComponentArgs = {
-    props?: Partial<ComponentProps<typeof FreemiumModal>>;
-    store?: any;
-}
+import {FreemiumModal} from './freemium_modal';
 
 jest.mock('actions/telemetry_actions', () => ({
     trackEvent: jest.fn(),
@@ -33,7 +30,7 @@ jest.mock('react-redux', () => ({
 jest.mock('components/common/hooks/useGetMultiplesExceededCloudLimit');
 
 describe('components/delinquency_modal/freemium_modal', () => {
-    const initialStates = {
+    const initialState: DeepPartial<GlobalState> = {
         views: {
             modals: {
                 modalState: {
@@ -45,7 +42,7 @@ describe('components/delinquency_modal/freemium_modal', () => {
                             closeModal: () => {},
                             isAdminConsole: false,
                         },
-                        dialogType: React.Fragment,
+                        dialogType: React.Fragment as any,
                     },
                 },
                 showLaunchingWorkspace: false,
@@ -61,36 +58,20 @@ describe('components/delinquency_modal/freemium_modal', () => {
         },
     };
 
-    const renderComponent = ({props = {}, store = configureStore(initialStates)}: RenderComponentArgs) => {
-        const defaultProps: ComponentProps<typeof FreemiumModal> = {
-            onClose: jest.fn(),
-            planName: 'planName',
-            isAdminConsole: false,
-            onExited: jest.fn(),
-        };
-
-        return renderWithIntl(
-            <reactRedux.Provider store={store}>
-                <FreemiumModal
-                    {...defaultProps}
-                    {...props}
-                />
-            </reactRedux.Provider>,
-        );
+    const planName = 'Testing';
+    const baseProps: ComponentProps<typeof FreemiumModal> = {
+        onClose: jest.fn(),
+        planName,
+        isAdminConsole: false,
+        onExited: jest.fn(),
     };
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should track reactivate plan if admin click Re activate plan', () => {
-        const planName = 'Testing';
         (useGetMultiplesExceededCloudLimit as jest.Mock).mockReturnValue([LimitTypes.fileStorage]);
-        renderComponent({
-            props: {
-                planName,
-            },
-        });
+        renderWithContext(
+            <FreemiumModal {...baseProps}/>,
+            initialState,
+        );
 
         fireEvent.click(screen.getByText(`Re-activate ${planName}`));
 
@@ -102,13 +83,11 @@ describe('components/delinquency_modal/freemium_modal', () => {
     });
 
     it('should not show reactivate plan if admin limits isn\'t surpassed', () => {
-        const planName = 'Testing';
         (useGetMultiplesExceededCloudLimit as jest.Mock).mockReturnValue([]);
-        renderComponent({
-            props: {
-                planName,
-            },
-        });
+        renderWithContext(
+            <FreemiumModal {...baseProps}/>,
+            initialState,
+        );
 
         expect(screen.queryByText(`Re-activate ${planName}`)).not.toBeInTheDocument();
 
@@ -116,42 +95,33 @@ describe('components/delinquency_modal/freemium_modal', () => {
     });
 
     it('should display message history text when only message limit is surpassed', () => {
-        const planName = 'Testing';
-
         (useGetMultiplesExceededCloudLimit as jest.Mock).mockReturnValue([LimitTypes.messageHistory]);
-        renderComponent({
-            props: {
-                planName,
-            },
-        });
+        renderWithContext(
+            <FreemiumModal {...baseProps}/>,
+            initialState,
+        );
 
         expect(screen.queryByText(`Re-activate ${planName}`)).toBeInTheDocument();
         expect(screen.getByText('Some of your workspace\'s message history are no longer accessible. Upgrade to a paid plan and get unlimited access to your message history.')).toBeInTheDocument();
     });
 
     it('should display storage text when only storage is surpassed', () => {
-        const planName = 'Testing';
-
         (useGetMultiplesExceededCloudLimit as jest.Mock).mockReturnValue([LimitTypes.fileStorage]);
-        renderComponent({
-            props: {
-                planName,
-            },
-        });
+        renderWithContext(
+            <FreemiumModal {...baseProps}/>,
+            initialState,
+        );
 
         expect(screen.queryByText(`Re-activate ${planName}`)).toBeInTheDocument();
         expect(screen.getByText('Some of your workspace\'s files are no longer accessible. Upgrade to a paid plan and get unlimited access to your files.')).toBeInTheDocument();
     });
 
     it('should display update to paid plan text when only multiples limits is surpassed', () => {
-        const planName = 'Testing';
-
         (useGetMultiplesExceededCloudLimit as jest.Mock).mockReturnValue([LimitTypes.messageHistory, LimitTypes.fileStorage]);
-        renderComponent({
-            props: {
-                planName,
-            },
-        });
+        renderWithContext(
+            <FreemiumModal {...baseProps}/>,
+            initialState,
+        );
 
         expect(screen.queryByText(`Re-activate ${planName}`)).toBeInTheDocument();
         expect(screen.getByText('Your workspace has reached free plan limits. Upgrade to a paid plan.')).toBeInTheDocument();

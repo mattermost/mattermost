@@ -362,7 +362,7 @@ type AppIface interface {
 	// Ensure the zip file name ends with a .zip
 	CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error
 	// This to be used for places we check the users password when they are already logged in
-	DoubleCheckPassword(user *model.User, password string) *model.AppError
+	DoubleCheckPassword(rctx request.CTX, user *model.User, password string) *model.AppError
 	// UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
 	UpdateBotActive(c request.CTX, botUserId string, active bool) (*model.Bot, *model.AppError)
 	// UpdateBotOwner changes a bot's owner to the given value.
@@ -450,13 +450,13 @@ type AppIface interface {
 	CheckForClientSideCert(r *http.Request) (string, string, string)
 	CheckIntegrity() <-chan model.IntegrityCheckResult
 	CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError
-	CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError
+	CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, password string, mfaToken string) *model.AppError
 	CheckPostReminders()
 	CheckRolesExist(roleNames []string) *model.AppError
-	CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
-	CheckUserMfa(user *model.User, token string) *model.AppError
-	CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError
-	CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
+	CheckUserAllAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError
+	CheckUserMfa(rctx request.CTX, user *model.User, token string) *model.AppError
+	CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *model.User) *model.AppError
+	CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError
 	CheckWebConn(userID, connectionID string) *platform.CheckConnResult
 	ClearChannelMembersCache(c request.CTX, channelID string) error
 	ClearLatestVersionCache()
@@ -885,7 +885,7 @@ type AppIface interface {
 	IsConfigReadOnly() bool
 	IsFirstUserAccount() bool
 	IsLeader() bool
-	IsPasswordValid(password string) *model.AppError
+	IsPasswordValid(rctx request.CTX, password string) *model.AppError
 	IsPersistentNotificationsEnabled() bool
 	IsPhase2MigrationCompleted() *model.AppError
 	IsPluginActive(pluginName string) (bool, error)
@@ -1126,7 +1126,7 @@ type AppIface interface {
 	UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthApp, *model.AppError)
 	UpdateOAuthUserAttrs(c request.CTX, userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError
 	UpdateOutgoingWebhook(c request.CTX, oldHook, updatedHook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
-	UpdatePassword(user *model.User, newPassword string) *model.AppError
+	UpdatePassword(rctx request.CTX, user *model.User, newPassword string) *model.AppError
 	UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPassword string) *model.AppError
 	UpdatePasswordByUserIdSendEmail(c request.CTX, userID, newPassword, method string) *model.AppError
 	UpdatePasswordSendEmail(c request.CTX, user *model.User, newPassword, method string) *model.AppError
@@ -1153,7 +1153,7 @@ type AppIface interface {
 	UpdateUser(c request.CTX, user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError
 	UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*model.User, *model.AppError)
-	UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
+	UpdateUserAuth(c request.CTX, userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
 	UpdateUserRoles(c request.CTX, userID string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
 	UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
 	UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)
