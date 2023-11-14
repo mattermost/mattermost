@@ -3,7 +3,7 @@
 exports[`MfaSection rendering should render nothing when MFA is not available 1`] = `""`;
 
 exports[`MfaSection rendering when section is collapsed and MFA is active 1`] = `
-<Connect(SettingItemMin)
+<SettingItemMin
   describe={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Active"
@@ -22,7 +22,7 @@ exports[`MfaSection rendering when section is collapsed and MFA is active 1`] = 
 `;
 
 exports[`MfaSection rendering when section is collapsed and MFA is not active 1`] = `
-<Connect(SettingItemMin)
+<SettingItemMin
   describe={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Inactive"
