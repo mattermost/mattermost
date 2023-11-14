@@ -232,7 +232,6 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForAllChannelByIdSince(channelsId 
 
 	if since > 0 {
 		query = query.Where(sq.Or{
-			sq.GtOrEq{"cb.CreateAt": since},
 			sq.GtOrEq{"cb.UpdateAt": since},
 			sq.GtOrEq{"cb.DeleteAt": since},
 		})

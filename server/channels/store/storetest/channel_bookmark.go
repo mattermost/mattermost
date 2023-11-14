@@ -27,7 +27,7 @@ func TestChannelBookmarkStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("SaveChannelBookmark", func(t *testing.T) { testSaveChannelBookmark(t, ss) })
 	t.Run("UpdateChannelBookmark", func(t *testing.T) { testUpdateChannelBookmark(t, ss) })
 	t.Run("UpdateSortOrderChannelBookmark", func(t *testing.T) { testUpdateSortOrderChannelBookmark(t, ss) })
-	// t.Run("DeleteChannelBookmark", func(t *testing.T) { testDeleteChannelBookmark(t, ss) })
+	t.Run("DeleteChannelBookmark", func(t *testing.T) { testDeleteChannelBookmark(t, ss) })
 	t.Run("GetChannelBookmark", func(t *testing.T) { testGetChannelBookmark(t, ss) })
 	t.Run("GetBookmarksForAllChannelByIdSince", func(t *testing.T) { testGetBookmarksForAllChannelByIdSince(t, ss) })
 }
