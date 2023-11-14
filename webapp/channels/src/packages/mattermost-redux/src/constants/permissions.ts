@@ -152,6 +152,8 @@ const values = {
     SYSCONSOLE_WRITE_SITE_PUBLIC_LINKS: 'sysconsole_write_site_public_links',
     SYSCONSOLE_READ_SITE_NOTICES: 'sysconsole_read_site_notices',
     SYSCONSOLE_WRITE_SITE_NOTICES: 'sysconsole_write_site_notices',
+    SYSCONSOLE_READ_SITE_IP_FILTERS: 'sysconsole_read_site_ip_filters',
+    SYSCONSOLE_WRITE_SITE_IP_FILTERS: 'sysconsole_write_site_ip_filters',
     SYSCONSOLE_READ_ENVIRONMENT_WEB_SERVER: 'sysconsole_read_environment_web_server',
     SYSCONSOLE_WRITE_ENVIRONMENT_WEB_SERVER: 'sysconsole_write_environment_web_server',
     SYSCONSOLE_READ_ENVIRONMENT_DATABASE: 'sysconsole_read_environment_database',

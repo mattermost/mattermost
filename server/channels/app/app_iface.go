@@ -868,6 +868,7 @@ type AppIface interface {
 	HasPermissionToTeam(c request.CTX, askingUserId string, teamID string, permission *model.Permission) bool
 	HasPermissionToUser(askingUserId string, userID string) bool
 	HasSharedChannel(channelID string) (bool, error)
+	IPFiltering() einterfaces.IPFilteringInterface
 	ImageProxy() *imageproxy.ImageProxy
 	ImageProxyAdder() func(string) string
 	ImageProxyRemover() (f func(string) string)
