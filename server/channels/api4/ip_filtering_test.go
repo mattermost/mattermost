@@ -151,8 +151,6 @@ func Test_applyIPFilters(t *testing.T) {
 		ExpiresAt:    model.GetMillis() + 100000,
 	}
 
-	// lic := model.NewTestLicense("cloud")
-	// lic.SkuShortName = model.LicenseShortSkuEnterprise
 	// Initialize the allowedRanges variable
 	t.Run("No license returns 501", func(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "true")
