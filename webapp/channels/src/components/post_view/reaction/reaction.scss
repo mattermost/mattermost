@@ -1,6 +1,14 @@
 @import 'sass/utils/mixins';
 @import 'sass/utils/functions';
 
+.reaction-emoji--large img {
+    width: 56px;
+    max-width: none;
+    height: 56px;
+    max-height: none;
+    margin: 4px 0;
+}
+
 .Reaction {
     @include button-style--none;
 
