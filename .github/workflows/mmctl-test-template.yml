@@ -45,10 +45,10 @@ jobs:
       - name: Run docker compose
         run: |
           cd server/build
-          docker-compose --ansi never run --rm start_dependencies
-          cat ../tests/test-data.ldif | docker-compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-          docker-compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
-          docker-compose --ansi never ps
+          docker compose --ansi never run --rm start_dependencies
+          cat ../tests/test-data.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+          docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+          docker compose --ansi never ps
       - name: Run mmctl Tests
         run: |
           if [[ ${{ github.ref_name }} == 'master' ]]; then
@@ -70,7 +70,7 @@ jobs:
       - name: Stop docker compose
         run: |
           cd server/build
-          docker-compose --ansi never stop
+          docker compose --ansi never stop
       - name: Archive logs
         if: ${{ always() }}
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2

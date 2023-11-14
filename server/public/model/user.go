@@ -36,6 +36,7 @@ const (
 	ChannelMentionsNotifyProp      = "channel"
 	CommentsNotifyProp             = "comments"
 	MentionKeysNotifyProp          = "mention_keys"
+	HighlightsNotifyProp           = "highlight_keys"
 	CommentsNotifyNever            = "never"
 	CommentsNotifyRoot             = "root"
 	CommentsNotifyAny              = "any"

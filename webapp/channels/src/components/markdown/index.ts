@@ -24,7 +24,7 @@ function makeGetChannelNamesMap() {
     return createSelector(
         'makeGetChannelNamesMap',
         getChannelNameToDisplayNameMap,
-        (state: GlobalState, props: OwnProps) => props && props.channelNamesMap,
+        (_: GlobalState, props: OwnProps) => props && props.channelNamesMap,
         (channelNamesMap, channelMentions) => {
             if (channelMentions) {
                 return Object.assign({}, channelMentions, channelNamesMap);
@@ -63,6 +63,7 @@ function makeMapStateToProps() {
 }
 
 const connector = connect(makeMapStateToProps);
+
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
 export default connector(Markdown);
