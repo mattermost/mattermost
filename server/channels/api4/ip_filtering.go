@@ -83,7 +83,7 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
-	c.App.Srv().Go(func() {
+	go func() {
 		initiatingUser, err := c.App.Srv().Store().User().GetProfileByIds(context.Background(), []string{c.AppContext.Session().UserId}, nil, true)
 		if err != nil {
 			mlog.Error("Failed to get initiating user", mlog.Err(err))
@@ -110,7 +110,7 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 				mlog.Error("Error while sending IP filters changed email", mlog.Err(err))
 			}
 		}
-	})
+	}()
 
 	if err := json.NewEncoder(w).Encode(updatedAllowedRanges); err != nil {
 		c.Err = model.NewAppError("getIPFilters", "api.context.ip_filtering.get_ip_filters.app_error", nil, err.Error(), http.StatusInternalServerError)

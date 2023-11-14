@@ -136,20 +136,7 @@ func Test_applyIPFilters(t *testing.T) {
 		},
 	}
 
-	lic := &model.License{
-		Features: &model.Features{
-			CustomPermissionsSchemes: model.NewBool(false),
-			Cloud:                    model.NewBool(true),
-		},
-		Customer: &model.Customer{
-			Name:  "TestName",
-			Email: "test@example.com",
-		},
-		SkuName:      "SKU NAME",
-		SkuShortName: model.LicenseShortSkuEnterprise,
-		StartsAt:     model.GetMillis() - 1000,
-		ExpiresAt:    model.GetMillis() + 100000,
-	}
+	lic := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "cloud")
 
 	// Initialize the allowedRanges variable
 	t.Run("No license returns 501", func(t *testing.T) {
