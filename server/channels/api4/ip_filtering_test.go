@@ -150,6 +150,9 @@ func Test_applyIPFilters(t *testing.T) {
 		StartsAt:     model.GetMillis() - 1000,
 		ExpiresAt:    model.GetMillis() + 100000,
 	}
+
+	// lic := model.NewTestLicense("cloud")
+	// lic.SkuShortName = model.LicenseShortSkuEnterprise
 	// Initialize the allowedRanges variable
 	t.Run("No license returns 501", func(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "true")
@@ -224,6 +227,8 @@ func Test_applyIPFilters(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
+		th.App.Srv().SetLicense(lic)
+
 		ipFiltering := &mocks.IPFilteringInterface{}
 		ipFiltering.Mock.On("ApplyIPFilters", mock.Anything).Return(&model.AllowedIPRanges{
 			model.AllowedIPRange{
@@ -237,7 +242,16 @@ func Test_applyIPFilters(t *testing.T) {
 		}()
 		th.App.Srv().IPFiltering = ipFiltering
 
-		th.App.Srv().SetLicense(lic)
+		cloud := &mocks.CloudInterface{}
+		cloud.Mock.On("GetCloudCustomer", mock.Anything).Return(&model.CloudCustomer{
+			CloudCustomerInfo: model.CloudCustomerInfo{Email: "test@localhost"},
+		}, nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = cloud
 
 		th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
 
