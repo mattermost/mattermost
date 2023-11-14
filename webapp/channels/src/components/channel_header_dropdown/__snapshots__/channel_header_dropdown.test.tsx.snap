@@ -71,7 +71,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       isFavorite={false}
       show={false}
     />
-    <Connect(ViewPinnedPosts)
+    <Connect(Component)
       channel={
         Object {
           "create_at": 0,
@@ -903,7 +903,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       isFavorite={false}
       show={false}
     />
-    <Connect(ViewPinnedPosts)
+    <Connect(Component)
       channel={
         Object {
           "create_at": 0,
