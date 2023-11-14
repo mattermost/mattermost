@@ -662,10 +662,10 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	hchan := make(chan store.StoreResult, 1)
+	hchan := make(chan store.GenericStoreResult[[]*model.Webhook], 1)
 	go func() {
 		webhook, err := a.Srv().Store().Webhook().GetIncoming(hookID, true)
-		hchan <- store.StoreResult{Data: webhook, NErr: err}
+		hchan <- store.GenericStoreResult[[]*model.Webhook]{Data: webhook, NErr: err}
 		close(hchan)
 	}()
 
@@ -688,10 +688,10 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 	}
 	hook = result.Data.(*model.IncomingWebhook)
 
-	uchan := make(chan store.StoreResult, 1)
+	uchan := make(chan store.GenericStoreResult[[]*model.User], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), hook.UserId)
-		uchan <- store.StoreResult{Data: user, NErr: err}
+		uchan <- store.GenericStoreResult[[]*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()
 
@@ -710,7 +710,7 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 	}
 
 	var channel *model.Channel
-	var cchan chan store.StoreResult
+	var cchan chan store.GenericStoreResult
 
 	if channelName != "" {
 		if channelName[0] == '@' {
@@ -724,17 +724,17 @@ func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.Inc
 			}
 			channel = ch
 		} else if channelName[0] == '#' {
-			cchan = make(chan store.StoreResult, 1)
+			cchan = make(chan store.GenericStoreResult[[]*model.Chnn], 1)
 			go func() {
 				chnn, chnnErr := a.Srv().Store().Channel().GetByName(hook.TeamId, channelName[1:], true)
-				cchan <- store.StoreResult{Data: chnn, NErr: chnnErr}
+				cchan <- store.GenericStoreResult[[]*model.Chnn]{Data: chnn, NErr: chnnErr}
 				close(cchan)
 			}()
 		} else {
-			cchan = make(chan store.StoreResult, 1)
+			cchan = make(chan store.GenericStoreResult[[]*model.Chnn], 1)
 			go func() {
 				chnn, chnnErr := a.Srv().Store().Channel().GetByName(hook.TeamId, channelName, true)
-				cchan <- store.StoreResult{Data: chnn, NErr: chnnErr}
+				cchan <- store.GenericStoreResult[[]*model.Chnn]{Data: chnn, NErr: chnnErr}
 				close(cchan)
 			}()
 		}
