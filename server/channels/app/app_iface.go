@@ -1112,7 +1112,7 @@ type AppIface interface {
 	TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel)
 	UnregisterPluginCommand(pluginID, teamID, trigger string)
 	UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError)
-	UpdateChannelBookmark(c request.CTX, updateBookmark *model.ChannelBookmark, connectionId string) ([]*model.ChannelBookmarkWithFileInfo, *model.AppError)
+	UpdateChannelBookmark(c request.CTX, updateBookmark *model.ChannelBookmark, connectionId string) (*model.UpdateChannelBookmarkResponse, *model.AppError)
 	UpdateChannelMemberNotifyProps(c request.CTX, data map[string]string, channelID string, userID string) (*model.ChannelMember, *model.AppError)
 	UpdateChannelMemberRoles(c request.CTX, channelID string, userID string, newRoles string) (*model.ChannelMember, *model.AppError)
 	UpdateChannelMemberSchemeRoles(c request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError)

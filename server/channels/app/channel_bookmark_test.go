@@ -113,18 +113,16 @@ func TestUpdateBookmark(t *testing.T) {
 		updateBookmark = bookmarkResp.Clone()
 		updateBookmark.DisplayName = "New name"
 		response, _ := th.App.UpdateChannelBookmark(th.Context, updateBookmark, "")
-		assert.Len(t, response, 1)
-		assert.Greater(t, response[0].UpdateAt, response[0].CreateAt)
+		assert.Greater(t, response.Updated.UpdateAt, response.Updated.CreateAt)
 	})
 
 	t.Run("another user update a channel bookmark", func(t *testing.T) {
 		updateBookmark2 := updateBookmark.Clone()
 		th.Context.Session().UserId = th.BasicUser2.Id
 		response, _ := th.App.UpdateChannelBookmark(th.Context, updateBookmark2, "")
-		assert.Len(t, response, 2) // first is the replaced one, then the deleted one
-		assert.Equal(t, response[0].OriginalId, response[1].Id)
-		assert.Equal(t, response[0].DeleteAt, int64(0))
-		assert.Greater(t, response[1].DeleteAt, int64(0))
+		assert.Equal(t, response.Updated.OriginalId, response.Deleted.Id)
+		assert.Equal(t, response.Updated.DeleteAt, int64(0))
+		assert.Greater(t, response.Deleted.DeleteAt, int64(0))
 
 	})
 

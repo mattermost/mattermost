@@ -42,6 +42,11 @@ type ChannelWithBookmarks struct {
 	Bookmarks []*ChannelBookmarkWithFileInfo `json:"bookmarks,omitempty"`
 }
 
+type UpdateChannelBookmarkResponse struct {
+	Updated *ChannelBookmarkWithFileInfo `json:"updated,omitempty"`
+	Deleted *ChannelBookmarkWithFileInfo `json:"deleted,omitempty"`
+}
+
 // Clone returns a shallow copy of the channel bookmark.
 func (b *ChannelBookmark) Clone() *ChannelBookmark {
 	bCopy := *b
