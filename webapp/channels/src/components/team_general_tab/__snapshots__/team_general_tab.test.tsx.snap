@@ -54,7 +54,7 @@ exports[`components/TeamSettings hide invite code if no permissions for team inv
     <div
       className="divider-dark first"
     />
-    <Connect(SettingItemMin)
+    <SettingItemMin
       describe="name"
       section="name"
       title="Team Name"
@@ -63,7 +63,7 @@ exports[`components/TeamSettings hide invite code if no permissions for team inv
     <div
       className="divider-light"
     />
-    <Connect(SettingItemMin)
+    <SettingItemMin
       describe=""
       section="description"
       title="Team Description"
@@ -95,7 +95,7 @@ exports[`components/TeamSettings hide invite code if no permissions for team inv
     <div
       className="divider-light"
     />
-    <Connect(SettingItemMin)
+    <SettingItemMin
       describe=""
       section="allowed_domains"
       title="allowedDomains"
@@ -115,7 +115,7 @@ exports[`components/TeamSettings hide invite code if no permissions for team inv
     <div
       className="divider-light"
     />
-    <Connect(SettingItemMin)
+    <SettingItemMin
       describe="Click 'Edit' to regenerate Invite Code."
       section="invite_id"
       title="Invite Code"
@@ -182,7 +182,7 @@ exports[`components/TeamSettings hide invite code if no permissions for team inv
     <div
       className="divider-dark first"
     />
-    <Connect(SettingItemMin)
+    <SettingItemMin
       describe="name"
       section="name"
       title="Team Name"
@@ -191,7 +191,7 @@ exports[`components/TeamSettings hide invite code if no permissions for team inv
     <div
       className="divider-light"
     />
-    <Connect(SettingItemMin)
+    <SettingItemMin
       describe=""
       section="description"
       title="Team Description"
@@ -223,7 +223,7 @@ exports[`components/TeamSettings hide invite code if no permissions for team inv
     <div
       className="divider-light"
     />
-    <Connect(SettingItemMin)
+    <SettingItemMin
       describe=""
       section="allowed_domains"
       title="allowedDomains"
@@ -304,7 +304,7 @@ exports[`components/TeamSettings should match snapshot when team is group constr
     <div
       className="divider-dark first"
     />
-    <Connect(SettingItemMin)
+    <SettingItemMin
       describe="TestTeam"
       section="name"
       title="Team Name"
@@ -313,7 +313,7 @@ exports[`components/TeamSettings should match snapshot when team is group constr
     <div
       className="divider-light"
     />
-    <Connect(SettingItemMin)
+    <SettingItemMin
       describe="The Test Team"
       section="description"
       title="Team Description"

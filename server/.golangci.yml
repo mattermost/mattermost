@@ -42,12 +42,14 @@ issues:
 
     - linters:
       - revive
-      text: "var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|context-as-argument|empty-block"
+      text: "var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|empty-block"
       # We need to fix the unused parameter issues and remove the exception.
 
+    # Use a seperate set of exception for the enterprise code to allow community members to fix only the open source issues.
     - linters:
       - revive
-      path: "enterprise" # TODO: fix this
+      path: "enterprise"
+      text: "var-naming|error-naming|exported|increment-decrement|error-strings|if-return|unused-parameter|blank-imports|empty-block"
 
     - linters:
       - misspell

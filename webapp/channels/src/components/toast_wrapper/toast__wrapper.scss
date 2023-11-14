@@ -1,0 +1,10 @@
+.toasts-wrapper {
+    position: absolute;
+    z-index: 3;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    margin-top: 16px;
+    gap: 7px;
+}

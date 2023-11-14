@@ -34,7 +34,6 @@ export type Props = {
     isCurrentChannelManuallyUnread: boolean;
     children?: React.ReactNode;
     mfaRequired: boolean;
-    enableTimezone: boolean;
     actions: {
         autoUpdateTimezone: (deviceTimezone: string) => void;
         getChannelURLAction: (channel: Channel, teamId: string, url: string) => void;
@@ -81,9 +80,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
         // Initialize websocket
         WebSocketActions.initialize();
 
-        if (this.props.enableTimezone) {
-            this.props.actions.autoUpdateTimezone(getBrowserTimezone());
-        }
+        this.props.actions.autoUpdateTimezone(getBrowserTimezone());
 
         // Make sure the websockets close and reset version
         window.addEventListener('beforeunload', this.handleBeforeUnload);

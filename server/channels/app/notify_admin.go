@@ -83,7 +83,7 @@ func filterNotificationData(data []*model.NotifyAdminData, test func(*model.Noti
 	return
 }
 
-func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, currentSKU string, trial bool) *model.AppError {
+func (a *App) SendNotifyAdminPosts(c request.CTX, workspaceName string, currentSKU string, trial bool) *model.AppError {
 	if !a.CanNotifyAdmin(trial) {
 		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, "Cannot notify yet", http.StatusForbidden)
 	}
@@ -135,7 +135,7 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, cur
 	return nil
 }
 
-func (a *App) pluginInstallAdminNotifyPost(c *request.Context, userBasedData map[string][]*model.NotifyAdminData, pluginBasedPluginData map[string][]*model.NotifyAdminData, systemBot *model.Bot, admin *model.User) {
+func (a *App) pluginInstallAdminNotifyPost(c request.CTX, userBasedData map[string][]*model.NotifyAdminData, pluginBasedPluginData map[string][]*model.NotifyAdminData, systemBot *model.Bot, admin *model.User) {
 	props := make(model.StringInterface)
 
 	channel, appErr := a.GetOrCreateDirectChannel(c, systemBot.UserId, admin.Id)
@@ -160,7 +160,7 @@ func (a *App) pluginInstallAdminNotifyPost(c *request.Context, userBasedData map
 	}
 }
 
-func (a *App) upgradePlanAdminNotifyPost(c *request.Context, workspaceName string, userBasedData map[string][]*model.NotifyAdminData, featureBasedData map[model.MattermostFeature][]*model.NotifyAdminData, systemBot *model.Bot, admin *model.User, trial bool) {
+func (a *App) upgradePlanAdminNotifyPost(c request.CTX, workspaceName string, userBasedData map[string][]*model.NotifyAdminData, featureBasedData map[model.MattermostFeature][]*model.NotifyAdminData, systemBot *model.Bot, admin *model.User, trial bool) {
 	props := make(model.StringInterface)
 	T := i18n.GetUserTranslations(admin.Locale)
 

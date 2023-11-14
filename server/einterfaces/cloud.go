@@ -5,6 +5,7 @@ package einterfaces
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 type CloudInterface interface {
@@ -39,7 +40,7 @@ type CloudInterface interface {
 	ConfirmSelfHostedSignup(req model.SelfHostedConfirmPaymentMethodRequest, requesterEmail string) (*model.SelfHostedSignupConfirmResponse, error)
 	ConfirmSelfHostedExpansion(req model.SelfHostedConfirmPaymentMethodRequest, requesterEmail string) (*model.SelfHostedSignupConfirmResponse, error)
 	ConfirmSelfHostedSignupLicenseApplication() error
-	GetSelfHostedInvoices() ([]*model.Invoice, error)
+	GetSelfHostedInvoices(rctx request.CTX) ([]*model.Invoice, error)
 	GetSelfHostedInvoicePDF(invoiceID string) ([]byte, string, error)
 
 	CreateOrUpdateSubscriptionHistoryEvent(userID string, userCount int) (*model.SubscriptionHistory, error)
