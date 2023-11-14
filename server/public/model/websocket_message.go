@@ -11,14 +11,6 @@ import (
 
 type WebsocketEventType string
 
-func ToStringArray(arr []WebsocketEventType) StringArray {
-	stringArray := make([]string, len(arr))
-	for i, item := range arr {
-		stringArray[i] = string(item)
-	}
-	return stringArray
-}
-
 const (
 	WebsocketEventTyping                              WebsocketEventType = "typing"
 	WebsocketEventPosted                              WebsocketEventType = "posted"

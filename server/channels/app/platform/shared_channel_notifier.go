@@ -34,7 +34,7 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 	if syncService == nil {
 		return
 	}
-	if isEligibleForEvents(syncService, event, model.ToStringArray(sharedChannelEventsForSync)) {
+	if isEligibleForEvents(syncService, event, toStringArray(sharedChannelEventsForSync)) {
 		err := handleContentSync(ps, syncService, event)
 		if err != nil {
 			mlog.Warn(
@@ -43,7 +43,7 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 				mlog.String("action", "content_sync"),
 			)
 		}
-	} else if isEligibleForEvents(syncService, event, model.ToStringArray(sharedChannelEventsForInvitation)) {
+	} else if isEligibleForEvents(syncService, event, toStringArray(sharedChannelEventsForInvitation)) {
 		err := handleInvitation(ps, syncService, event)
 		if err != nil {
 			mlog.Warn(
@@ -144,4 +144,12 @@ func findChannel(server *PlatformService, channelId string) (*model.Channel, err
 	}
 
 	return channel, nil
+}
+
+func toStringArray(arr []model.WebsocketEventType) model.StringArray {
+	stringArray := make([]string, len(arr))
+	for i, item := range arr {
+		stringArray[i] = string(item)
+	}
+	return stringArray
 }
