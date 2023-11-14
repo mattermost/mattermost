@@ -140,28 +140,28 @@ func Test_applyIPFilters(t *testing.T) {
 	lic.Id = "testlicenseid"
 
 	// Initialize the allowedRanges variable
-	// t.Run("No license returns 501", func(t *testing.T) {
-	// 	os.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "true")
-	// 	defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDIPFILTERING")
-	// 	th := Setup(t).InitBasic()
-	// 	defer th.TearDown()
+	t.Run("No license returns 501", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDIPFILTERING")
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
 
-	// 	ipFiltering := &mocks.IPFilteringInterface{}
-	// 	ipFilteringImpl := th.App.Srv().IPFiltering
-	// 	defer func() {
-	// 		th.App.Srv().IPFiltering = ipFilteringImpl
-	// 	}()
-	// 	th.App.Srv().IPFiltering = ipFiltering
+		ipFiltering := &mocks.IPFilteringInterface{}
+		ipFilteringImpl := th.App.Srv().IPFiltering
+		defer func() {
+			th.App.Srv().IPFiltering = ipFilteringImpl
+		}()
+		th.App.Srv().IPFiltering = ipFiltering
 
-	// 	th.App.Srv().RemoveLicense()
+		th.App.Srv().RemoveLicense()
 
-	// 	th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
-	// 	ipFilters, r, err := th.Client.ApplyIPFilters(context.Background(), allowedRanges)
-	// 	require.Error(t, err)
-	// 	require.Nil(t, ipFilters)
-	// 	require.Equal(t, 501, r.StatusCode)
-	// })
+		ipFilters, r, err := th.Client.ApplyIPFilters(context.Background(), allowedRanges)
+		require.Error(t, err)
+		require.Nil(t, ipFilters)
+		require.Equal(t, 501, r.StatusCode)
+	})
 
 	t.Run("License but no feature flag returns 501", func(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_CLOUDIPFILTERING", "false")
