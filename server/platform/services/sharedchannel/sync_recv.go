@@ -142,7 +142,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *syncMsg, rc *mode
 				mlog.String("user_id", reaction.UserId),
 				mlog.String("post_id", reaction.PostId),
 				mlog.String("emoji", reaction.EmojiName),
-				mlog.Int64("delete_at", reaction.DeleteAt),
+				mlog.Int("delete_at", reaction.DeleteAt),
 				mlog.Err(err),
 			)
 		} else {
@@ -151,7 +151,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *syncMsg, rc *mode
 				mlog.String("user_id", reaction.UserId),
 				mlog.String("post_id", reaction.PostId),
 				mlog.String("emoji", reaction.EmojiName),
-				mlog.Int64("delete_at", reaction.DeleteAt),
+				mlog.Int("delete_at", reaction.DeleteAt),
 			)
 
 			if syncResp.ReactionsLastUpdateAt < reaction.UpdateAt {

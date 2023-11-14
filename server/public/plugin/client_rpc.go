@@ -375,7 +375,7 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 	go func() {
 		connection, err := g.muxBroker.Accept(serveHTTPStreamId)
 		if err != nil {
-			g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't accept connection", mlog.Uint32("serve_http_stream_id", serveHTTPStreamId), mlog.Err(err))
+			g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't accept connection", mlog.Uint("serve_http_stream_id", serveHTTPStreamId), mlog.Err(err))
 			return
 		}
 		defer connection.Close()

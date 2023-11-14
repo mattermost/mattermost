@@ -473,7 +473,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 		mlog.String("ackId", ack.Id),
 		mlog.String("type", ack.NotificationType),
 		mlog.String("deviceType", ack.ClientPlatform),
-		mlog.Int64("receivedAt", ack.ClientReceivedAt),
+		mlog.Int("receivedAt", ack.ClientReceivedAt),
 		mlog.String("status", model.PushReceived),
 	)
 

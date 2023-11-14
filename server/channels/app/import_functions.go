@@ -1205,7 +1205,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
 		if reply.CreateAt < post.CreateAt {
-			rctx.Logger().Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int64("reply_create_at", reply.CreateAt), mlog.Int64("parent_create_at", post.CreateAt))
+			rctx.Logger().Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int("reply_create_at", reply.CreateAt), mlog.Int("parent_create_at", post.CreateAt))
 			reply.CreateAt = post.CreateAt
 		}
 		if replyData.Type != nil {
@@ -1274,7 +1274,7 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 		name = data.Data.Name
 		file = zipFile.(io.Reader)
 
-		rctx.Logger().Info("Preparing file upload from ZIP", mlog.String("file_name", name), mlog.Uint64("file_size", data.Data.UncompressedSize64))
+		rctx.Logger().Info("Preparing file upload from ZIP", mlog.String("file_name", name), mlog.Uint("file_size", data.Data.UncompressedSize64))
 	} else {
 		realFile, err := os.Open(*data.Path)
 		if err != nil {
@@ -1286,7 +1286,7 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 
 		fields := []logr.Field{mlog.String("file_name", name)}
 		if info, err := realFile.Stat(); err != nil {
-			fields = append(fields, mlog.Int64("file_size", info.Size()))
+			fields = append(fields, mlog.Int("file_size", info.Size()))
 		}
 		rctx.Logger().Info("Preparing file upload from file system", fields...)
 	}
