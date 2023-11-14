@@ -83,6 +83,17 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
+	cloudWorkspaceOwnerEmailAddress := ""
+	if c.App.License().IsCloud() {
+		portalUserCustomer, cErr := c.App.Cloud().GetCloudCustomer(c.AppContext.Session().UserId)
+		if cErr != nil {
+			mlog.Error("Failed to get portal user customer", mlog.Err(cErr))
+		}
+		if cErr == nil && portalUserCustomer != nil {
+			cloudWorkspaceOwnerEmailAddress = portalUserCustomer.Email
+		}
+	}
+
 	go func() {
 		initiatingUser, err := c.App.Srv().Store().User().GetProfileByIds(context.Background(), []string{c.AppContext.Session().UserId}, nil, true)
 		if err != nil {
@@ -92,17 +103,6 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 		users, err := c.App.Srv().Store().User().GetSystemAdminProfiles()
 		if err != nil {
 			mlog.Error("Failed to get system admins", mlog.Err(err))
-		}
-
-		cloudWorkspaceOwnerEmailAddress := ""
-		if c.App.License().IsCloud() {
-			portalUserCustomer, cErr := c.App.Cloud().GetCloudCustomer(c.AppContext.Session().UserId)
-			if cErr != nil {
-				mlog.Error("Failed to get portal user customer", mlog.Err(cErr))
-			}
-			if cErr == nil && portalUserCustomer != nil {
-				cloudWorkspaceOwnerEmailAddress = portalUserCustomer.Email
-			}
 		}
 
 		for _, user := range users {
