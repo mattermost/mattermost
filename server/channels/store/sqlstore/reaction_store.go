@@ -142,7 +142,8 @@ func (s *SqlReactionStore) GetUniqueCountForPost(postId string) (int, error) {
 	query := s.getQueryBuilder().
 		Select("COUNT(DISTINCT EmojiName)").
 		From("Reactions").
-		Where(sq.Eq{"PostId": postId})
+		Where(sq.Eq{"PostId": postId}).
+		Where(sq.Eq{"DeleteAt": 0})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {

@@ -111,7 +111,7 @@ const (
 	ServiceSettingsDefaultListenAndAddress       = ":8065"
 	ServiceSettingsDefaultGiphySdkKeyTest        = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
 	ServiceSettingsDefaultDeveloperFlags         = ""
-	ServiceSettingsDefaultUniqueReactionsPerPost = 25
+	ServiceSettingsDefaultUniqueReactionsPerPost = 50
 	ServiceSettingsMaxUniqueReactionsPerPost     = 500
 
 	TeamSettingsDefaultSiteName              = "Mattermost"
