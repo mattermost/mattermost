@@ -26,14 +26,6 @@ func newValidOAuthOutgoingConnection() *OAuthOutgoingConnection {
 	}
 }
 
-func requireError(t *testing.T, oa *OAuthOutgoingConnection) {
-	require.Error(t, oa.IsValid())
-}
-
-func requireNoError(t *testing.T, oa *OAuthOutgoingConnection) {
-	require.Nil(t, oa.IsValid())
-}
-
 func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 	var cases = []struct {
 		name   string
@@ -45,7 +37,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 			item: func() *OAuthOutgoingConnection {
 				return newValidOAuthOutgoingConnection()
 			},
-			assert: requireNoError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Nil(t, oa.IsValid())
+			},
 		},
 		{
 			name: "invalid id",
@@ -54,7 +48,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.Id = ""
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "invalid create_at",
@@ -63,7 +59,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.CreateAt = 0
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "invalid update_at",
@@ -72,7 +70,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.UpdateAt = 0
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "invalid creator_id",
@@ -81,7 +81,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.CreatorId = ""
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "invalid name",
@@ -90,7 +92,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.Name = ""
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "invalid client_id",
@@ -99,7 +103,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.ClientId = ""
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "long client_id",
@@ -108,7 +114,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.ClientId = string(make([]byte, 257))
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "invalid client_secret",
@@ -117,7 +125,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.ClientSecret = ""
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "long client_secret",
@@ -126,7 +136,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.ClientSecret = string(make([]byte, 257))
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "empty oauth_token_url",
@@ -135,7 +147,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.OAuthTokenURL = ""
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "long oauth_token_url",
@@ -144,7 +158,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.OAuthTokenURL = string(make([]byte, 257))
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "invalid oauth_token_url",
@@ -153,7 +169,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.OAuthTokenURL = "invalid"
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "invalid grant_type",
@@ -162,7 +180,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.GrantType = ""
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "nil password credentials",
@@ -173,7 +193,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.CredentialsPassword = nil
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "invalid password credentials username",
@@ -184,7 +206,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.CredentialsPassword = &someString
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "invalid password credentials password",
@@ -195,7 +219,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.CredentialsPassword = &emptyString
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "empty password credentials",
@@ -206,7 +232,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.CredentialsPassword = &emptyString
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "correct password credentials",
@@ -217,7 +245,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.CredentialsPassword = &someString
 				return oa
 			},
-			assert: requireNoError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Nil(t, oa.IsValid())
+			},
 		},
 		{
 			name: "empty audience",
@@ -226,7 +256,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.Audiences = []string{}
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 		{
 			name: "invalid audience",
@@ -235,7 +267,9 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 				oa.Audiences = []string{"https://nowhere.com", "invalid"}
 				return oa
 			},
-			assert: requireError,
+			assert: func(t *testing.T, oa *OAuthOutgoingConnection) {
+				require.Error(t, oa.IsValid())
+			},
 		},
 	}
 
