@@ -126,7 +126,7 @@ jobs:
         run: |
           export TAG=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)
           cd server/build
-          docker buildx build --no-cache --platform linux/amd64 --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermostdevelopment/mm-te-test:${TAG} .
+          docker buildx build --no-cache --platform linux/amd64 --push --build-arg MM_PACKAGE=${MM_PACKAGE} -t mattermostdevelopment/mm-te-test:${TAG} -t mattermostdevelopment/mattermost-team-edition:${TAG} .
         if: needs['determine-if-monorepo'].outputs.is_monorepo == 'true'
 
   update-failure-final-status:

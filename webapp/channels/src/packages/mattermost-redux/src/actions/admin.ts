@@ -8,6 +8,7 @@ import type {
     ChannelSearchOpts,
 } from '@mattermost/types/channels';
 import type {Compliance} from '@mattermost/types/compliance';
+import type {AllowedIPRange} from '@mattermost/types/config';
 import type {
     CreateDataRetentionCustomPolicy,
 } from '@mattermost/types/data_retention';
@@ -843,5 +844,26 @@ export function completeSetup(completeSetup: CompleteOnboardingRequest): ActionF
 export function getAppliedSchemaMigrations(): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getAppliedSchemaMigrations,
+    });
+}
+
+export function getIPFilters() {
+    return bindClientFunc({
+        clientFunc: Client4.getIPFilters,
+        params: [],
+    });
+}
+
+export function getCurrentIP() {
+    return bindClientFunc({
+        clientFunc: Client4.getCurrentIP,
+        params: [],
+    });
+}
+
+export function applyIPFilters(ipFilters: AllowedIPRange[]) {
+    return bindClientFunc({
+        clientFunc: Client4.applyIPFilters,
+        params: [ipFilters],
     });
 }

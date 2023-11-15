@@ -213,9 +213,14 @@ func (a *App) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, use
 		return nil, err
 	}
 
+	if updateErr := a.Srv().Store().User().UpdateLastLogin(user.Id, session.CreateAt); updateErr != nil {
+		return nil, model.NewAppError("DoLogin", "app.login.doLogin.updateLastLogin.error", nil, updateErr.Error(), http.StatusInternalServerError)
+	}
+
 	w.Header().Set(model.HeaderToken, session.Token)
 
 	c = c.WithSession(session)
+
 	if a.Srv().License() != nil && *a.Srv().License().Features.LDAP && a.Ldap() != nil {
 		userVal := *user
 		sessionVal := *session
