@@ -1,6 +1,6 @@
-CREATE TYPE oauthoutgoingconnection_granttype AS ENUM ('client_credentials', 'password');
+CREATE TYPE oauthoutgoingconnections_granttype AS ENUM ('client_credentials', 'password');
 
-CREATE TABLE IF NOT EXISTS oauthoutgoingconnection (
+CREATE TABLE IF NOT EXISTS oauthoutgoingconnections (
     id varchar(26) PRIMARY KEY,
     name varchar(64),
     creatorid VARCHAR(26),
@@ -15,4 +15,4 @@ CREATE TABLE IF NOT EXISTS oauthoutgoingconnection (
     audiences VARCHAR(1024)
 );
 
-CREATE INDEX IF NOT EXISTS idx_oauthoutgoingconnections_name ON oauthoutgoingconnection (name);
+CREATE INDEX IF NOT EXISTS idx_oauthoutgoingconnections_name ON oauthoutgoingconnections (name);
