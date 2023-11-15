@@ -29,7 +29,7 @@ export const CustomizeYourExperienceTour = () => {
         </p>
     );
 
-    const overlayPunchOut = useMeasurePunchouts(['RightControlsContainer'], [], {y: 6, height: -6, x: 64, width: 0});
+    const overlayPunchOut = useMeasurePunchouts(['CustomizeYourExperienceTour'], []);
 
     return (
         <OnboardingTourTip

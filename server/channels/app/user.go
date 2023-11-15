@@ -905,7 +905,7 @@ func (a *App) UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPa
 		return model.NewAppError("updatePassword", "api.user.update_password.oauth.app_error", nil, "auth_service="+user.AuthService, http.StatusBadRequest)
 	}
 
-	if err := a.DoubleCheckPassword(user, currentPassword); err != nil {
+	if err := a.DoubleCheckPassword(c, user, currentPassword); err != nil {
 		if err.Id == "api.user.check_user_password.invalid.app_error" {
 			err = model.NewAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -1109,7 +1109,7 @@ func (a *App) PatchUser(c request.CTX, userID string, patch *model.UserPatch, as
 	return updatedUser, nil
 }
 
-func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
+func (a *App) UpdateUserAuth(c request.CTX, userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
 	if _, err := a.Srv().Store().User().UpdateAuthData(userID, userAuth.AuthService, userAuth.AuthData, "", false); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -1119,6 +1119,8 @@ func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.Us
 			return nil, model.NewAppError("UpdateUserAuth", "app.user.update_auth_data.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	a.InvalidateCacheForUser(userID)
 
 	return userAuth, nil
 }
@@ -1366,8 +1368,8 @@ func (a *App) UpdatePasswordByUserIdSendEmail(c request.CTX, userID, newPassword
 	return a.UpdatePasswordSendEmail(c, user, newPassword, method)
 }
 
-func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppError {
-	if err := a.IsPasswordValid(newPassword); err != nil {
+func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword string) *model.AppError {
+	if err := a.IsPasswordValid(rctx, newPassword); err != nil {
 		return err
 	}
 
@@ -1383,7 +1385,7 @@ func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppErr
 }
 
 func (a *App) UpdatePasswordSendEmail(c request.CTX, user *model.User, newPassword, method string) *model.AppError {
-	if err := a.UpdatePassword(user, newPassword); err != nil {
+	if err := a.UpdatePassword(c, user, newPassword); err != nil {
 		return err
 	}
 
@@ -1602,17 +1604,17 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 	}
 
 	user.Roles = newRoles
-	uchan := make(chan store.StoreResult, 1)
+	uchan := make(chan store.GenericStoreResult[*model.UserUpdate], 1)
 	go func() {
 		userUpdate, err := a.Srv().Store().User().Update(user, true)
-		uchan <- store.StoreResult{Data: userUpdate, NErr: err}
+		uchan <- store.GenericStoreResult[*model.UserUpdate]{Data: userUpdate, NErr: err}
 		close(uchan)
 	}()
 
-	schan := make(chan store.StoreResult, 1)
+	schan := make(chan store.GenericStoreResult[string], 1)
 	go func() {
 		id, err := a.Srv().Store().Session().UpdateRoles(user.Id, newRoles)
-		schan <- store.StoreResult{Data: id, NErr: err}
+		schan <- store.GenericStoreResult[string]{Data: id, NErr: err}
 		close(schan)
 	}()
 
@@ -1629,7 +1631,7 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 	}
-	ruser := result.Data.(*model.UserUpdate).New
+	ruser := result.Data.New
 
 	if result := <-schan; result.NErr != nil {
 		// soft error since the user roles were still updated
@@ -2322,7 +2324,7 @@ func (a *App) PromoteGuestToUser(c request.CTX, user *model.User, requestorId st
 		c.Logger().Warn("Failed to get user on promote guest to user", mlog.Err(err))
 	} else {
 		a.sendUpdatedUserEvent(*promotedUser)
-		if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(c, promotedUser.Id, promotedUser.IsGuest()); uErr != nil {
+		if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(c, promotedUser, promotedUser.IsGuest()); uErr != nil {
 			c.Logger().Warn("Unable to update user sessions", mlog.String("user_id", promotedUser.Id), mlog.Err(uErr))
 		}
 	}
@@ -2367,7 +2369,7 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 	}
 
 	a.sendUpdatedUserEvent(*demotedUser)
-	if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(c, demotedUser.Id, demotedUser.IsGuest()); uErr != nil {
+	if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(c, demotedUser, demotedUser.IsGuest()); uErr != nil {
 		c.Logger().Warn("Unable to update user sessions", mlog.String("user_id", demotedUser.Id), mlog.Err(uErr))
 	}
 
@@ -2474,7 +2476,7 @@ func (a *App) ConvertBotToUser(c request.CTX, bot *model.Bot, userPatch *model.U
 		return nil, err
 	}
 
-	err = a.UpdatePassword(user, *userPatch.Password)
+	err = a.UpdatePassword(c, user, *userPatch.Password)
 	if err != nil {
 		return nil, err
 	}

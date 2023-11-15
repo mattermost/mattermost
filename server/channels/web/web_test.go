@@ -33,7 +33,7 @@ var URL string
 
 type TestHelper struct {
 	App     app.AppIface
-	Context *request.Context
+	Context request.CTX
 	Server  *app.Server
 	Web     *Web
 
@@ -141,7 +141,6 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 		IncludeCacheLayer: includeCacheLayer,
 		TestLogger:        testLogger,
 	}
-	th.Context.SetLogger(testLogger)
 
 	return th
 }
