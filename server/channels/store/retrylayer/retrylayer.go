@@ -13585,6 +13585,27 @@ func (s *RetryLayerUserStore) PromoteGuestToUser(userID string) error {
 
 }
 
+func (s *RetryLayerUserStore) RefreshPostStatsForUsers() error {
+
+	tries := 0
+	for {
+		err := s.UserStore.RefreshPostStatsForUsers()
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerUserStore) ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error) {
 
 	tries := 0
@@ -13842,6 +13863,27 @@ func (s *RetryLayerUserStore) UpdateFailedPasswordAttempts(userID string, attemp
 	tries := 0
 	for {
 		err := s.UserStore.UpdateFailedPasswordAttempts(userID, attempts)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserStore) UpdateLastLogin(userID string, lastLogin int64) error {
+
+	tries := 0
+	for {
+		err := s.UserStore.UpdateLastLogin(userID, lastLogin)
 		if err == nil {
 			return nil
 		}

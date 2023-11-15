@@ -419,6 +419,7 @@ type UserStore interface {
 	UpdatePassword(userID, newPassword string) error
 	UpdateUpdateAt(userID string) (int64, error)
 	UpdateAuthData(userID string, service string, authData *string, email string, resetMfa bool) (string, error)
+	UpdateLastLogin(userID string, lastLogin int64) error
 	ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error)
 	UpdateMfaSecret(userID, secret string) error
 	UpdateMfaActive(userID string, active bool) error
@@ -488,6 +489,7 @@ type UserStore interface {
 	IsEmpty(excludeBots bool) (bool, error)
 	GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error)
 	InsertUsers(users []*model.User) error
+	RefreshPostStatsForUsers() error
 }
 
 type BotStore interface {
