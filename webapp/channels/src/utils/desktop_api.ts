@@ -283,6 +283,6 @@ export const doBrowserHistoryPush = (path: string) => {
     );
 };
 
-export const updateUnread = (isUnread: boolean) => window.desktopAPI?.updateUnread(isUnread);
-export const updateMentions = (mentionCount: number) => window.desktopAPI?.updateMentions(mentionCount);
-export const setSessionExpired = (expired: boolean) => window.desktopAPI?.setSessionExpired(expired);
+export const updateUnread = (isUnread: boolean) => window.desktopAPI?.updateUnread && window.desktopAPI.updateUnread(isUnread);
+export const updateMentions = (mentionCount: number) => window.desktopAPI?.updateMentions && window.desktopAPI.updateMentions(mentionCount);
+export const setSessionExpired = (expired: boolean) => window.desktopAPI?.setSessionExpired && window.desktopAPI.setSessionExpired(expired);
