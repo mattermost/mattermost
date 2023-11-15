@@ -163,21 +163,21 @@ export default desktopApp;
  * Invokes
  */
 
-export const getBrowserHistoryStatus = () => {
+export const getBrowserHistoryStatus = async () => {
     if (window.desktopAPI?.requestBrowserHistoryStatus) {
         return window.desktopAPI.requestBrowserHistoryStatus();
     }
 
-    return desktopApp.invokeWithMessaging<void, {enableBack: boolean; enableForward: boolean}>(
+    const {enableBack, enableForward} = await desktopApp.invokeWithMessaging<void, {enableBack: boolean; enableForward: boolean}>(
         'history-button',
         undefined,
         'history-button-return',
-    ).then(({enableBack, enableForward}) => {
-        return {
-            canGoBack: enableBack,
-            canGoForward: enableForward,
-        };
-    });
+    );
+
+    return {
+        canGoBack: enableBack,
+        canGoForward: enableForward,
+    };
 };
 
 /**

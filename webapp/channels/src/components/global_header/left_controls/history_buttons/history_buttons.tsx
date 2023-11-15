@@ -18,7 +18,7 @@ import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
 import Constants from 'utils/constants';
-import {getBrowserHistoryStatus, onBrowserHistoryStatusUpdated} from 'utils/desktopAPI';
+import {getBrowserHistoryStatus, onBrowserHistoryStatusUpdated} from 'utils/desktop_api';
 import * as Utils from 'utils/utils';
 
 const HistoryButtonsContainer = styled.nav`
@@ -59,8 +59,9 @@ const HistoryButtons = (): JSX.Element => {
         requestButtons();
     };
 
-    const requestButtons = () => {
-        getBrowserHistoryStatus().then(({canGoBack, canGoForward}) => updateButtons(canGoBack, canGoForward));
+    const requestButtons = async () => {
+        const {canGoBack, canGoForward} = await getBrowserHistoryStatus();
+        updateButtons(canGoBack, canGoForward);
     };
 
     const updateButtons = (enableBack: boolean, enableForward: boolean) => {

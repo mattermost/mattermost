@@ -14,7 +14,7 @@ import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {loginWithDesktopToken} from 'actions/views/login';
 
-import DesktopApp from 'utils/desktopAPI';
+import DesktopApp from 'utils/desktop_api';
 
 import './desktop_auth_token.scss';
 

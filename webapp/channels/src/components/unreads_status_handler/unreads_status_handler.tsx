@@ -27,7 +27,7 @@ import faviconUnread32x32 from 'images/favicon/favicon-unread-32x32.png';
 import faviconUnread64x64 from 'images/favicon/favicon-unread-64x64.png';
 import faviconUnread96x96 from 'images/favicon/favicon-unread-96x96.png';
 import {Constants} from 'utils/constants';
-import {updateMentions, updateUnread} from 'utils/desktopAPI';
+import {updateMentions, updateUnread} from 'utils/desktop_api';
 import * as UserAgent from 'utils/user_agent';
 
 enum BadgeStatus {

@@ -53,7 +53,7 @@ import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
 import Constants from 'utils/constants';
-import {setSessionExpired as setDesktopAppSessionExpired} from 'utils/desktopAPI';
+import {setSessionExpired as setDesktopAppSessionExpired} from 'utils/desktop_api';
 import {t} from 'utils/i18n';
 import {showNotification} from 'utils/notifications';
 import {isDesktopApp} from 'utils/user_agent';

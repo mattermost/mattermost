@@ -14,7 +14,7 @@ import LoadingScreen from 'components/loading_screen';
 
 import WebSocketClient from 'client/web_websocket_client';
 import Constants from 'utils/constants';
-import {onNotificationClicked, onUserActivityUpdate} from 'utils/desktopAPI';
+import {onNotificationClicked, onUserActivityUpdate} from 'utils/desktop_api';
 import {isKeyPressed} from 'utils/keyboard';
 import {getBrowserTimezone} from 'utils/timezone';
 import * as UserAgent from 'utils/user_agent';
