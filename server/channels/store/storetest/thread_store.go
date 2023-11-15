@@ -35,7 +35,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	makeSomePosts := func(urgent bool) []*model.Post {
 		u1 := model.User{
 			Email:    MakeEmail(),
-			Username: model.NewId(),
+			Username: "a" + model.NewId(),
 		}
 
 		u, err := ss.User().Save(&u1)

@@ -429,7 +429,7 @@ func (u *User) PreSave() {
 	}
 
 	if u.Username == "" {
-		u.Username = NewId()
+		u.Username = "a" + NewId()
 	}
 
 	if u.AuthData != nil && *u.AuthData == "" {
@@ -905,7 +905,8 @@ func HashPassword(password string) string {
 }
 
 var validUsernameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
-var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z0-9\.\-_:]+$`)
+var validUsername = regexp.MustCompile(`^[a-z][a-z0-9\.\-_]*$`)
+var validUsernameCharsForRemote = regexp.MustCompile(`^[a-z][a-z0-9\.\-_:]*$`)
 
 var restrictedUsernames = map[string]struct{}{
 	"all":       {},
@@ -919,7 +920,7 @@ func IsValidUsername(s string) bool {
 		return false
 	}
 
-	if !validUsernameChars.MatchString(s) {
+	if !validUsername.MatchString(s) {
 		return false
 	}
 

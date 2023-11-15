@@ -615,7 +615,7 @@ func testRetentionPolicyStoreGetPoliciesForUser(t *testing.T, ss store.Store, s 
 
 	user, userSaveErr := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "a" + model.NewId(),
 	})
 	require.NoError(t, userSaveErr)
 
