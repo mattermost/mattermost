@@ -1070,7 +1070,7 @@ type AppIface interface {
 	SetPluginKey(pluginID string, key string, value []byte) *model.AppError
 	SetPluginKeyWithExpiry(pluginID string, key string, value []byte, expireInSeconds int64) *model.AppError
 	SetPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
-	SetPostReminder(c request.CTX, postID, userID string, targetTime int64) *model.AppError
+	SetPostReminder(postID, userID string, targetTime int64) *model.AppError
 	SetProfileImage(c request.CTX, userID string, imageData *multipart.FileHeader) *model.AppError
 	SetProfileImageFromFile(c request.CTX, userID string, file io.Reader) *model.AppError
 	SetProfileImageFromMultiPartFile(c request.CTX, userID string, file multipart.File) *model.AppError

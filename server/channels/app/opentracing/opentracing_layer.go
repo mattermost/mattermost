@@ -16189,7 +16189,7 @@ func (a *OpenTracingAppLayer) SetPluginKeyWithOptions(pluginID string, key strin
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SetPostReminder(c request.CTX, postID string, userID string, targetTime int64) *model.AppError {
+func (a *OpenTracingAppLayer) SetPostReminder(postID string, userID string, targetTime int64) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetPostReminder")
 
@@ -16201,7 +16201,7 @@ func (a *OpenTracingAppLayer) SetPostReminder(c request.CTX, postID string, user
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SetPostReminder(c, postID, userID, targetTime)
+	resultVar0 := a.app.SetPostReminder(postID, userID, targetTime)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
