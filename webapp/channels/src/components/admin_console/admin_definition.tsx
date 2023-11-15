@@ -73,6 +73,7 @@ import {
 import FeatureFlags from './feature_flags';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
+import IPFiltering from './ip_filtering';
 import LicenseSettings from './license_settings';
 import MessageExportSettings from './message_export_settings';
 import OpenIdConvert from './openid_convert';
@@ -2463,6 +2464,17 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.licensedForSku(LicenseSkus.Professional),
                             )),
                         },
+                        {
+                            type: 'text',
+                            key: 'ServiceSettings.RefreshPostStatsRunTime',
+                            label: t('admin.team.refreshPostStatsRunTimeTitle'),
+                            label_default: 'User Statistics Update Time:',
+                            help_text: t('admin.team.refreshPostStatsRunTimeDescription'),
+                            help_text_default: "Set the server time for updating the user post statistics, including each user's total post count and the timestamp of their most recent post. Must be a 24-hour time stamp in the form HH:MM based on the local time of the server.",
+                            placeholder: t('admin.team.refreshPostStatsRunTimeExample'),
+                            placeholder_default: 'E.g.: "00:00"',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                        },
                     ],
                 },
             },
@@ -3287,6 +3299,20 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTICES)),
                         },
                     ],
+                },
+            },
+            ip_filtering: {
+                url: 'site_config/ip_filtering',
+                title: t('admin.sidebar.ip_filtering'),
+                title_default: 'IP Filtering',
+                isHidden: it.not(it.all(it.configIsTrue('FeatureFlags', 'CloudIPFiltering'), it.licensedForSku('enterprise'))),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.IP_FILTERING)),
+                searchableStrings: [
+                    'admin.sidebar.ip_filtering',
+                ],
+                schema: {
+                    id: 'IPFiltering',
+                    component: IPFiltering,
                 },
             },
         },
