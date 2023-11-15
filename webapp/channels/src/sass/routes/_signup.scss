@@ -8,6 +8,12 @@ body {
     }
 }
 
+.signup-page-container {
+    display: flex;
+    height: 100vh;
+    flex-direction: column;
+}
+
 .signup-header {
     position: fixed;
     z-index: 5;
@@ -25,8 +31,12 @@ body {
 
 .signup-team__container {
     position: relative;
+    display: flex;
+    overflow: hidden;
     max-width: 400px;
-    padding: 100px 0 50px;
+    flex: 1;
+    flex-direction: column;
+    padding: 40px 0 0;
     margin: 0 auto;
 
     .medium-center {
@@ -37,6 +47,7 @@ body {
 
     .terms-of-service__markdown {
         min-width: 100vw;
+        flex: 1;
         padding-top: 3em;
         padding-bottom: 3em;
         background-color: #fff;
@@ -87,7 +98,6 @@ body {
 
     &.terms-of-service__container {
         max-width: 100%;
-        padding-top: 33px;
     }
 
     .terms-of-service__footer {
@@ -110,16 +120,6 @@ body {
 
     .form-control:focus {
         box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
-    }
-
-    .terms-of-service-error__height--fill {
-        height: calc(100vh - 107px - 4em);
-        min-height: calc(100vh - 107px - 4em);
-    }
-
-    .terms-of-service__height--fill {
-        height: calc(100vh - 69px - 3em);
-        min-height: calc(100vh - 69px - 3em);
     }
 
     h1,

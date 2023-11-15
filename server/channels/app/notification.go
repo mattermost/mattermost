@@ -43,80 +43,80 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 	isCRTAllowed := *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
-	pchan := make(chan store.StoreResult, 1)
+	pchan := make(chan store.GenericStoreResult[map[string]*model.User], 1)
 	go func() {
 		props, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
-		pchan <- store.StoreResult{Data: props, NErr: err}
+		pchan <- store.GenericStoreResult[map[string]*model.User]{Data: props, NErr: err}
 		close(pchan)
 	}()
 
-	cmnchan := make(chan store.StoreResult, 1)
+	cmnchan := make(chan store.GenericStoreResult[map[string]model.StringMap], 1)
 	go func() {
 		props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
-		cmnchan <- store.StoreResult{Data: props, NErr: err}
+		cmnchan <- store.GenericStoreResult[map[string]model.StringMap]{Data: props, NErr: err}
 		close(cmnchan)
 	}()
 
-	var gchan chan store.StoreResult
+	var gchan chan store.GenericStoreResult[map[string]*model.Group]
 	if a.allowGroupMentions(c, post) {
-		gchan = make(chan store.StoreResult, 1)
+		gchan = make(chan store.GenericStoreResult[map[string]*model.Group], 1)
 		go func() {
 			groupsMap, err := a.getGroupsAllowedForReferenceInChannel(channel, team)
-			gchan <- store.StoreResult{Data: groupsMap, NErr: err}
+			gchan <- store.GenericStoreResult[map[string]*model.Group]{Data: groupsMap, NErr: err}
 			close(gchan)
 		}()
 	}
 
-	var fchan chan store.StoreResult
+	var fchan chan store.GenericStoreResult[[]*model.FileInfo]
 	if len(post.FileIds) != 0 {
-		fchan = make(chan store.StoreResult, 1)
+		fchan = make(chan store.GenericStoreResult[[]*model.FileInfo], 1)
 		go func() {
 			fileInfos, err := a.Srv().Store().FileInfo().GetForPost(post.Id, true, false, true)
-			fchan <- store.StoreResult{Data: fileInfos, NErr: err}
+			fchan <- store.GenericStoreResult[[]*model.FileInfo]{Data: fileInfos, NErr: err}
 			close(fchan)
 		}()
 	}
 
-	var tchan chan store.StoreResult
+	var tchan chan store.GenericStoreResult[[]string]
 	if isCRTAllowed && post.RootId != "" {
-		tchan = make(chan store.StoreResult, 1)
+		tchan = make(chan store.GenericStoreResult[[]string], 1)
 		go func() {
 			followers, err := a.Srv().Store().Thread().GetThreadFollowers(post.RootId, true)
-			tchan <- store.StoreResult{Data: followers, NErr: err}
+			tchan <- store.GenericStoreResult[[]string]{Data: followers, NErr: err}
 			close(tchan)
 		}()
 	}
 
-	result := <-pchan
-	if result.NErr != nil {
-		return nil, result.NErr
+	pResult := <-pchan
+	if pResult.NErr != nil {
+		return nil, pResult.NErr
 	}
-	profileMap := result.Data.(map[string]*model.User)
+	profileMap := pResult.Data
 
-	result = <-cmnchan
-	if result.NErr != nil {
-		return nil, result.NErr
+	cmnResult := <-cmnchan
+	if cmnResult.NErr != nil {
+		return nil, cmnResult.NErr
 	}
-	channelMemberNotifyPropsMap := result.Data.(map[string]model.StringMap)
+	channelMemberNotifyPropsMap := cmnResult.Data
 
 	followers := make(model.StringSet, 0)
 	if tchan != nil {
-		result = <-tchan
-		if result.NErr != nil {
-			return nil, result.NErr
+		tResult := <-tchan
+		if tResult.NErr != nil {
+			return nil, tResult.NErr
 		}
-		for _, v := range result.Data.([]string) {
+		for _, v := range tResult.Data {
 			followers.Add(v)
 		}
 	}
 
 	groups := make(map[string]*model.Group)
 	if gchan != nil {
-		result = <-gchan
-		if result.NErr != nil {
-			return nil, result.NErr
+		gResult := <-gchan
+		if gResult.NErr != nil {
+			return nil, gResult.NErr
 		}
-		groups = result.Data.(map[string]*model.Group)
+		groups = gResult.Data
 	}
 
 	mentions, keywords := a.getExplicitMentionsAndKeywords(c, post, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
@@ -503,10 +503,10 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		message.Add("otherFile", "true")
 
 		var infos []*model.FileInfo
-		if result := <-fchan; result.NErr != nil {
-			mlog.Warn("Unable to get fileInfo for push notifications.", mlog.String("post_id", post.Id), mlog.Err(result.NErr))
+		if fResult := <-fchan; fResult.NErr != nil {
+			mlog.Warn("Unable to get fileInfo for push notifications.", mlog.String("post_id", post.Id), mlog.Err(fResult.NErr))
 		} else {
-			infos = result.Data.([]*model.FileInfo)
+			infos = fResult.Data
 		}
 
 		for _, info := range infos {
@@ -517,12 +517,12 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		}
 	}
 
-	if len(mentionedUsersList) != 0 {
-		message.Add("mentions", model.ArrayToJSON(mentionedUsersList))
+	if len(mentionedUsersList) > 0 {
+		useAddMentionsHook(message, mentionedUsersList)
 	}
 
-	if len(notificationsForCRT.Desktop) != 0 {
-		message.Add("followers", model.ArrayToJSON(notificationsForCRT.Desktop))
+	if len(notificationsForCRT.Desktop) > 0 {
+		useAddFollowersHook(message, notificationsForCRT.Desktop)
 	}
 
 	published, err := a.publishWebsocketEventForPermalinkPost(c, post, message)
