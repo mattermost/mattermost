@@ -45,6 +45,7 @@
     "hoist-non-react-statics": "3.3.2",
     "html-to-react": "1.6.0",
     "inobounce": "0.2.1",
+    "ipaddr.js": "2.1.0",
     "katex": "0.16.3",
     "key-mirror": "1.0.1",
     "localforage": "1.10.0",

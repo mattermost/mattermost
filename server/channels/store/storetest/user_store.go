@@ -95,6 +95,7 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, rctx, ss) })
 	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, rctx, ss) })
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, rctx, ss) })
+	t.Run("UpdateLastLogin", func(t *testing.T) { testUpdateLastLogin(t, rctx, ss) })
 }
 
 func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -6164,4 +6165,19 @@ func testGetUsersWithInvalidEmails(t *testing.T, rctx request.CTX, ss store.Stor
 	users, err := ss.User().GetUsersWithInvalidEmails(0, 50, "localhost,simulator.amazonses.com")
 	require.NoError(t, err)
 	assert.Len(t, users, 1)
+}
+
+func testUpdateLastLogin(t *testing.T, rctx request.CTX, ss store.Store) {
+	u1 := model.User{}
+	u1.Email = MakeEmail()
+	_, err := ss.User().Save(&u1)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
+
+	err = ss.User().UpdateLastLogin(u1.Id, 1234567890)
+	require.NoError(t, err)
+
+	user, err := ss.User().Get(context.Background(), u1.Id)
+	require.NoError(t, err)
+	require.Equal(t, int64(1234567890), user.LastLogin)
 }
