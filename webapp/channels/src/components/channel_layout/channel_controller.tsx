@@ -3,8 +3,9 @@
 
 import classNames from 'classnames';
 import React, {useEffect} from 'react';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
@@ -28,10 +29,15 @@ type Props = {
 
 export default function ChannelController(props: Props) {
     const dispatch = useDispatch<DispatchFunc>();
+    const config = useSelector(getConfig);
+    const enableUserStatuses = config.EnableUserStatuses;
 
     useEffect(() => {
         const isMsBrowser = isInternetExplorer() || isEdge();
-        const platform = window.navigator.platform;
+        const {navigator} = window;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const platform = navigator?.userAgentData?.platform || navigator?.platform || 'unknown';
         document.body.classList.add(...getClassnamesForBody(platform, isMsBrowser));
 
         return () => {
@@ -40,14 +46,18 @@ export default function ChannelController(props: Props) {
     }, []);
 
     useEffect(() => {
-        const loadStatusesIntervalId = setInterval(() => {
-            dispatch(loadStatusesForChannelAndSidebar());
-        }, Constants.STATUS_INTERVAL);
+        if (enableUserStatuses) {
+            const loadStatusesIntervalId = setInterval(() => {
+                dispatch(loadStatusesForChannelAndSidebar());
+            }, Constants.STATUS_INTERVAL);
 
-        return () => {
-            clearInterval(loadStatusesIntervalId);
-        };
-    }, []);
+            return () => {
+                clearInterval(loadStatusesIntervalId);
+            };
+        }
+        return () => {}; // Return a no-op function when enableUserStatuses is false
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [enableUserStatuses]);
 
     return (
         <>
