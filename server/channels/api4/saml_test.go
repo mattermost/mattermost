@@ -60,7 +60,7 @@ func TestSamlResetId(t *testing.T) {
 	th.App.Channels().Saml = &mocks.SamlInterface{}
 
 	user := th.BasicUser
-	_, appErr := th.App.UpdateUserAuth(user.Id, &model.UserAuth{
+	_, appErr := th.App.UpdateUserAuth(nil, user.Id, &model.UserAuth{
 		AuthData:    model.NewString(model.NewId()),
 		AuthService: model.UserAuthServiceSaml,
 	})
