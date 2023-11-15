@@ -95,6 +95,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, ss) })
 	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, ss) })
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, ss) })
+	t.Run("UpdateLastLogin", func(t *testing.T) { testUpdateLastLogin(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -2398,7 +2399,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	c2 := model.Channel{}
 	c2.TeamId = teamId
 	c2.DisplayName = "Unread Direct"
-	c2.Name = "unread-direct-" + model.NewId()
+	c2.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	c2.Type = model.ChannelTypeDirect
 
 	u1 := &model.User{}
@@ -6168,4 +6169,19 @@ func testGetUsersWithInvalidEmails(t *testing.T, ss store.Store) {
 	users, err := ss.User().GetUsersWithInvalidEmails(0, 50, "localhost,simulator.amazonses.com")
 	require.NoError(t, err)
 	assert.Len(t, users, 1)
+}
+
+func testUpdateLastLogin(t *testing.T, ss store.Store) {
+	u1 := model.User{}
+	u1.Email = MakeEmail()
+	_, err := ss.User().Save(&u1)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
+
+	err = ss.User().UpdateLastLogin(u1.Id, 1234567890)
+	require.NoError(t, err)
+
+	user, err := ss.User().Get(context.Background(), u1.Id)
+	require.NoError(t, err)
+	require.Equal(t, int64(1234567890), user.LastLogin)
 }

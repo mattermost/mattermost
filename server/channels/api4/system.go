@@ -172,7 +172,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if s[dbStatusKey] == model.StatusOk {
-			mlog.Debug("Able to write to database.")
+			c.Logger.Debug("Able to write to database.")
 		}
 
 		filestoreStatusKey := "filestore_status"
@@ -270,7 +270,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audits, appErr := c.App.GetAuditsPage("", c.Params.Page, c.Params.PerPage)
+	audits, appErr := c.App.GetAuditsPage(c.AppContext, "", c.Params.Page, c.Params.PerPage)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -853,7 +853,7 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	license := c.App.Channels().License()
 	if license != nil {
-		mlog.Debug("License is present, skip.")
+		c.Logger.Debug("License is present, skip.")
 		return
 	}
 
@@ -884,7 +884,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	license := c.App.Channels().License()
 	if license != nil {
-		mlog.Debug("License is present, skip.")
+		c.Logger.Debug("License is present, skip.")
 		return
 	}
 
@@ -920,13 +920,13 @@ func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *h
 	}
 
 	if model.BuildEnterpriseReady != "true" {
-		mlog.Debug("Not Enterprise Edition, skip.")
+		c.Logger.Debug("Not Enterprise Edition, skip.")
 		return
 	}
 
 	license := c.App.Channels().License()
 	if license != nil {
-		mlog.Debug("License is present, skip.")
+		c.Logger.Debug("License is present, skip.")
 		return
 	}
 

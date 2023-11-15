@@ -221,7 +221,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		appErr := th.App.attachFilesToPost(post)
 		assert.Nil(t, appErr)
 
-		infos, _, appErr := th.App.GetFileInfosForPost(post.Id, false, false)
+		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 2)
 	})
@@ -249,7 +249,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		appErr := th.App.attachFilesToPost(post)
 		assert.Nil(t, appErr)
 
-		infos, _, appErr := th.App.GetFileInfosForPost(post.Id, false, false)
+		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)
@@ -402,6 +402,147 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 
 	_, err = th.App.CreatePostAsUser(th.Context, &replyPost3, "", true)
 	assert.Nil(t, err)
+}
+
+func TestUpdatePostPluginHooks(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("Should stop processing at first reject", func(t *testing.T) {
+		setupMultiPluginAPITest(t, []string{
+			`
+				package main
+
+				import (
+					"github.com/mattermost/mattermost/server/public/plugin"
+					"github.com/mattermost/mattermost/server/public/model"
+				)
+
+				type MyPlugin struct {
+					plugin.MattermostPlugin
+				}
+
+				func (p *MyPlugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
+					return nil, "rejected"
+				}
+
+				func main() {
+					plugin.ClientMain(&MyPlugin{})
+				}
+			`,
+			`
+				package main
+
+				import (
+					"github.com/mattermost/mattermost/server/public/plugin"
+					"github.com/mattermost/mattermost/server/public/model"
+				)
+
+				type MyPlugin struct {
+					plugin.MattermostPlugin
+				}
+
+				func (p *MyPlugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
+					if (newPost == nil) {
+						return nil, "nil post"
+					}
+					newPost.Message = newPost.Message + "fromplugin"
+					return newPost, ""
+				}
+
+				func main() {
+					plugin.ClientMain(&MyPlugin{})
+				}
+			`,
+		}, []string{
+			`{"id": "testrejectfirstpost", "server": {"executable": "backend.exe"}}`,
+			`{"id": "testupdatepost", "server": {"executable": "backend.exe"}}`,
+		}, []string{
+			"testrejectfirstpost", "testupdatepost",
+		}, true, th.App, th.Context)
+
+		pendingPostId := model.NewId()
+		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "", true)
+		require.Nil(t, err)
+
+		post.Message = "new message"
+		updatedPost, err := th.App.UpdatePost(th.Context, post, false)
+		require.Nil(t, updatedPost)
+		require.NotNil(t, err)
+		require.Equal(t, "Post rejected by plugin. rejected", err.Id)
+	})
+
+	t.Run("Should update", func(t *testing.T) {
+		setupMultiPluginAPITest(t, []string{
+			`
+				package main
+
+				import (
+					"github.com/mattermost/mattermost/server/public/plugin"
+					"github.com/mattermost/mattermost/server/public/model"
+				)
+
+				type MyPlugin struct {
+					plugin.MattermostPlugin
+				}
+
+				func (p *MyPlugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
+					newPost.Message = newPost.Message + " 1"
+					return newPost, ""
+				}
+
+				func main() {
+					plugin.ClientMain(&MyPlugin{})
+				}
+			`,
+			`
+				package main
+
+				import (
+					"github.com/mattermost/mattermost/server/public/plugin"
+					"github.com/mattermost/mattermost/server/public/model"
+				)
+
+				type MyPlugin struct {
+					plugin.MattermostPlugin
+				}
+
+				func (p *MyPlugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
+					newPost.Message = "2 " + newPost.Message
+					return newPost, ""
+				}
+
+				func main() {
+					plugin.ClientMain(&MyPlugin{})
+				}
+			`,
+		}, []string{
+			`{"id": "testaddone", "server": {"executable": "backend.exe"}}`,
+			`{"id": "testaddtwo", "server": {"executable": "backend.exe"}}`,
+		}, []string{
+			"testaddone", "testaddtwo",
+		}, true, th.App, th.Context)
+
+		pendingPostId := model.NewId()
+		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "", true)
+		require.Nil(t, err)
+
+		post.Message = "new message"
+		updatedPost, err := th.App.UpdatePost(th.Context, post, false)
+		require.Nil(t, err)
+		require.NotNil(t, updatedPost)
+		require.Equal(t, "2 new message 1", updatedPost.Message)
+	})
 }
 
 func TestPostChannelMentions(t *testing.T) {
@@ -673,7 +814,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	time.Sleep(time.Millisecond * 100)
 
 	// Check that the file can no longer be reached.
-	_, err = th.App.GetFileInfo(info1.Id)
+	_, err = th.App.GetFileInfo(th.Context, info1.Id)
 	assert.NotNil(t, err)
 }
 
@@ -1944,6 +2085,49 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
+	})
+
+	t.Run("should return the number of posts made by the other user for a group message", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		user1 := th.BasicUser
+		user2 := th.BasicUser2
+		user3 := th.SystemAdminUser
+
+		channel, err := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id})
+		require.Nil(t, err)
+
+		post1, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		_, err = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test2",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		_, err = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user3.Id,
+			ChannelId: channel.Id,
+			Message:   "test3",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+
+		assert.Nil(t, err)
+		assert.Equal(t, 3, count)
+
+		count, _, _, err = th.App.countMentionsFromPost(th.Context, user1, post1)
+
+		assert.Nil(t, err)
+		assert.Equal(t, 1, count)
 	})
 
 	t.Run("should not count mentions from the before the given post", func(t *testing.T) {

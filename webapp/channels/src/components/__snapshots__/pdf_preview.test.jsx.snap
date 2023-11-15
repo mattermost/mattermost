@@ -4,9 +4,7 @@ exports[`component/PDFPreview should match snapshot, loading 1`] = `
 <div
   className="view-image__loading"
 >
-  <LoadingSpinner
-    text={null}
-  />
+  <Memo(LoadingSpinner) />
 </div>
 `;
 
