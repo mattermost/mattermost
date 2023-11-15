@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS oauthoutgoingconnections (
     credentialsusername varchar(255),
     credentialspassword varchar(255),
     oauthtokenurl text,
-    granttype oauthoutgoingconnection_granttype DEFAULT 'client_credentials',
+    granttype oauthoutgoingconnections_granttype DEFAULT 'client_credentials',
     audiences VARCHAR(1024)
 );
 
