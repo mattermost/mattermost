@@ -10,19 +10,16 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ExternalLink from 'components/external_link';
 import SettingItemMax from 'components/setting_item_max';
-import SettingItemMin from 'components/setting_item_min';
 
 type Props = {
     teamId?: string;
-    isActive: boolean;
     isGroupConstrained?: boolean;
     allowOpenInvite?: boolean;
-    onToggle: (active: boolean) => void;
     patchTeam: (patch: Partial<Team>) => Promise<ActionResult>;
 };
 
 const OpenInvite = (props: Props) => {
-    const {teamId, isActive, isGroupConstrained, onToggle, patchTeam} = props;
+    const {teamId, isGroupConstrained, patchTeam} = props;
     const intl = useIntl();
     const [serverError, setServerError] = useState('');
     const [allowOpenInvite, setAllowOpenInvite] = useState(props.allowOpenInvite);
@@ -37,40 +34,9 @@ const OpenInvite = (props: Props) => {
         patchTeam(data).then(({error}) => {
             if (error) {
                 setServerError(error.message);
-            } else {
-                onToggle(false);
             }
         });
-    }, [onToggle, patchTeam, teamId, allowOpenInvite]);
-
-    const handleToggle = useCallback(() => {
-        if (isActive) {
-            onToggle(false);
-        } else {
-            onToggle(true);
-            setAllowOpenInvite(props.allowOpenInvite);
-        }
-    }, [isActive, onToggle]);
-
-    if (!isActive) {
-        let describe = '';
-        if (props.allowOpenInvite) {
-            describe = intl.formatMessage({id: 'general_tab.yes', defaultMessage: 'Yes'});
-        } else if (isGroupConstrained) {
-            describe = intl.formatMessage({id: 'team_settings.openInviteSetting.groupConstrained', defaultMessage: 'No, members of this team are added and removed by linked groups.'});
-        } else {
-            describe = intl.formatMessage({id: 'general_tab.no', defaultMessage: 'No'});
-        }
-
-        return (
-            <SettingItemMin
-                title={intl.formatMessage({id: 'general_tab.openInviteTitle', defaultMessage: 'Allow any user with an account on this server to join this team'})}
-                describe={describe}
-                updateSection={handleToggle}
-                section={'open_invite'}
-            />
-        );
-    }
+    }, [patchTeam, teamId, allowOpenInvite]);
 
     let inputs;
 
@@ -152,7 +118,6 @@ const OpenInvite = (props: Props) => {
             inputs={inputs}
             submit={submit}
             serverError={serverError}
-            updateSection={handleToggle}
         />
     );
 };

@@ -19,7 +19,6 @@ type Props = {
 
 export type State = {
     activeTab: string;
-    activeSection: string;
     show: boolean;
 }
 
@@ -31,7 +30,6 @@ export default class TeamSettingsModal extends React.PureComponent<Props, State>
 
         this.state = {
             activeTab: 'info',
-            activeSection: '',
             show: true,
         };
 
@@ -41,12 +39,7 @@ export default class TeamSettingsModal extends React.PureComponent<Props, State>
     updateTab = (tab: string) => {
         this.setState({
             activeTab: tab,
-            activeSection: '',
         });
-    };
-
-    updateSection = (section: string) => {
-        this.setState({activeSection: section});
     };
 
     collapseModal = () => {
@@ -56,7 +49,6 @@ export default class TeamSettingsModal extends React.PureComponent<Props, State>
 
         this.setState({
             activeTab: '',
-            activeSection: '',
         });
     };
 
@@ -68,7 +60,6 @@ export default class TeamSettingsModal extends React.PureComponent<Props, State>
     handleHidden = () => {
         this.setState({
             activeTab: 'info',
-            activeSection: '',
         });
         this.props.onExited();
     };
@@ -113,8 +104,6 @@ export default class TeamSettingsModal extends React.PureComponent<Props, State>
                         <div className='settings-content minimize-settings'>
                             <TeamSettings
                                 activeTab={this.state.activeTab}
-                                activeSection={this.state.activeSection}
-                                updateSection={this.updateSection}
                                 closeModal={this.handleHide}
                                 collapseModal={this.collapseModal}
                             />

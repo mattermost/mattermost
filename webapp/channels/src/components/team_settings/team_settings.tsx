@@ -9,8 +9,6 @@ import GeneralTab from 'components/team_general_tab';
 
 type Props = {
     activeTab: string;
-    activeSection: string;
-    updateSection: (section: string) => void;
     closeModal: () => void;
     collapseModal: () => void;
     team?: Team;
@@ -18,8 +16,6 @@ type Props = {
 
 const TeamSettings = ({
     activeTab = '',
-    activeSection = '',
-    updateSection,
     closeModal,
     collapseModal,
     team,
@@ -30,13 +26,11 @@ const TeamSettings = ({
 
     let result;
     switch (activeTab) {
-    case 'general':
+    case 'info':
         result = (
             <div>
                 <GeneralTab
                     team={team}
-                    activeSection={activeSection}
-                    updateSection={updateSection}
                     closeModal={closeModal}
                     collapseModal={collapseModal}
                 />

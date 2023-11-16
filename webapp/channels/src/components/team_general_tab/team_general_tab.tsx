@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ChangeEvent, MouseEvent, ReactNode} from 'react';
-import {FormattedMessage, FormattedDate, injectIntl, type WrappedComponentProps} from 'react-intl';
+import type {ChangeEvent, ReactNode} from 'react';
+import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
 import SettingItemMax from 'components/setting_item_max';
-import SettingItemMin from 'components/setting_item_min';
 import SettingPicture from 'components/setting_picture';
 import BackIcon from 'components/widgets/icons/fa_back_icon';
 
@@ -42,11 +41,6 @@ export class GeneralTab extends React.PureComponent<Props, State> {
         super(props);
         this.state = this.setupInitialState(props);
     }
-
-    updateSection = (section: string) => {
-        this.setState(this.setupInitialState(this.props));
-        this.props.updateSection(section);
-    };
 
     setupInitialState(props: Props) {
         const team = props.team;
@@ -115,8 +109,6 @@ export class GeneralTab extends React.PureComponent<Props, State> {
         if (error) {
             state.serverError = error.message;
             this.setState(state);
-        } else {
-            this.updateSection('');
         }
     };
 
@@ -161,8 +153,6 @@ export class GeneralTab extends React.PureComponent<Props, State> {
         if (error) {
             state.serverError = error.message;
             this.setState(state);
-        } else {
-            this.updateSection('');
         }
     };
 
@@ -175,12 +165,8 @@ export class GeneralTab extends React.PureComponent<Props, State> {
         if (error) {
             state.serverError = error.message;
             this.setState(state);
-        } else {
-            this.updateSection('');
         }
     };
-
-    handleClose = () => this.updateSection('');
 
     handleDescriptionSubmit = async () => {
         const state = {serverError: '', clientError: ''};
@@ -209,8 +195,6 @@ export class GeneralTab extends React.PureComponent<Props, State> {
         if (error) {
             state.serverError = error.message;
             this.setState(state);
-        } else {
-            this.updateSection('');
         }
     };
 
@@ -237,7 +221,6 @@ export class GeneralTab extends React.PureComponent<Props, State> {
                 loadingIcon: false,
                 submitActive: false,
             });
-            this.updateSection('');
         }
     };
 
@@ -260,29 +243,7 @@ export class GeneralTab extends React.PureComponent<Props, State> {
                 loadingIcon: false,
                 submitActive: false,
             });
-            this.updateSection('');
         }
-    };
-
-    componentDidMount() {
-        document.getElementById('team_settings')?.addEventListener('hidden.bs.modal', this.handleClose);
-    }
-
-    componentWillUnmount() {
-        document.getElementById('team_settings')?.removeEventListener('hidden.bs.modal', this.handleClose);
-    }
-
-    onOpenInviteToggle = (active: boolean) => this.handleUpdateSection(active ? 'open_invite' : '');
-
-    handleUpdateSection = (section: string) => {
-        if (section === 'invite_id' && this.props.activeSection !== section && !this.props.team?.invite_id) {
-            this.setState({shouldFetchTeam: true}, () => {
-                this.updateSection(section);
-            });
-            return;
-        }
-
-        this.updateSection(section);
     };
 
     updateName = (e: ChangeEvent<HTMLInputElement>) => this.setState({name: e.target.value});
@@ -325,11 +286,10 @@ export class GeneralTab extends React.PureComponent<Props, State> {
         const serverError = this.state.serverError ?? null;
 
         let inviteSection;
+        if (this.props.canInviteTeamMembers) {
+            const inviteSectionInputs = [];
 
-        if (this.props.activeSection === 'invite_id' && this.props.canInviteTeamMembers) {
-            const inputs = [];
-
-            inputs.push(
+            inviteSectionInputs.push(
                 <div key='teamInviteSetting'>
                     <div className='row'>
                         <label className='col-sm-5 control-label visible-xs-block'/>
@@ -368,265 +328,158 @@ export class GeneralTab extends React.PureComponent<Props, State> {
             inviteSection = (
                 <SettingItemMax
                     title={localizeMessage('general_tab.codeTitle', 'Invite Code')}
-                    inputs={inputs}
+                    inputs={inviteSectionInputs}
                     submit={this.handleInviteIdSubmit}
                     serverError={serverError}
                     clientError={clientError}
-                    updateSection={this.handleUpdateSection}
                     saveButtonText={localizeMessage('general_tab.regenerate', 'Regenerate')}
                 />
             );
-        } else if (this.props.canInviteTeamMembers) {
-            inviteSection = (
-                <SettingItemMin
-                    title={localizeMessage('general_tab.codeTitle', 'Invite Code')}
-                    describe={localizeMessage('general_tab.codeDesc', "Click 'Edit' to regenerate Invite Code.")}
-                    updateSection={this.handleUpdateSection}
-                    section={'invite_id'}
-                />
-            );
         }
+        const nameSectionInputs = [];
 
-        let nameSection;
+        const teamNameLabel = this.props.isMobileView ? '' : (
+            <FormattedMessage
+                id='general_tab.teamName'
+                defaultMessage='Team Name'
+            />
+        );
 
-        if (this.props.activeSection === 'name') {
-            const inputs = [];
-
-            const teamNameLabel = this.props.isMobileView ? '' : (
-                <FormattedMessage
-                    id='general_tab.teamName'
-                    defaultMessage='Team Name'
-                />
-            );
-
-            inputs.push(
-                <div
-                    key='teamNameSetting'
-                    className='form-group'
-                >
-                    <label className='col-sm-5 control-label'>{teamNameLabel}</label>
-                    <div className='col-sm-7'>
-                        <input
-                            id='teamName'
-                            autoFocus={true}
-                            className='form-control'
-                            type='text'
-                            maxLength={Constants.MAX_TEAMNAME_LENGTH}
-                            onChange={this.updateName}
-                            value={this.state.name}
-                            onFocus={moveCursorToEnd}
-                        />
-                    </div>
-                </div>,
-            );
-
-            const nameExtraInfo = <span>{localizeMessage('general_tab.teamNameInfo', 'Set the name of the team as it appears on your sign-in screen and at the top of the left-hand sidebar.')}</span>;
-
-            nameSection = (
-                <SettingItemMax
-                    title={localizeMessage('general_tab.teamName', 'Team Name')}
-                    inputs={inputs}
-                    submit={this.handleNameSubmit}
-                    serverError={serverError}
-                    clientError={clientError}
-                    updateSection={this.handleUpdateSection}
-                    extraInfo={nameExtraInfo}
-                />
-            );
-        } else {
-            const describe = this.state.name;
-
-            nameSection = (
-                <SettingItemMin
-                    title={localizeMessage('general_tab.teamName', 'Team Name')}
-                    describe={describe}
-                    updateSection={this.handleUpdateSection}
-                    section={'name'}
-                />
-            );
-        }
-
-        let descriptionSection;
-
-        if (this.props.activeSection === 'description') {
-            const inputs = [];
-
-            const teamDescriptionLabel = this.props.isMobileView ? '' : (
-                <FormattedMessage
-                    id='general_tab.teamDescription'
-                    defaultMessage='Team Description'
-                />
-            );
-
-            inputs.push(
-                <div
-                    key='teamDescriptionSetting'
-                    className='form-group'
-                >
-                    <label className='col-sm-5 control-label'>{teamDescriptionLabel}</label>
-                    <div className='col-sm-7'>
-                        <input
-                            id='teamDescription'
-                            autoFocus={true}
-                            className='form-control'
-                            type='text'
-                            maxLength={Constants.MAX_TEAMDESCRIPTION_LENGTH}
-                            onChange={this.updateDescription}
-                            value={this.state.description}
-                            onFocus={moveCursorToEnd}
-                        />
-                    </div>
-                </div>,
-            );
-
-            const descriptionExtraInfo = <span>{localizeMessage('general_tab.teamDescriptionInfo', 'Team description provides additional information to help users select the right team. Maximum of 50 characters.')}</span>;
-
-            descriptionSection = (
-                <SettingItemMax
-                    title={localizeMessage('general_tab.teamDescription', 'Team Description')}
-                    inputs={inputs}
-                    submit={this.handleDescriptionSubmit}
-                    serverError={serverError}
-                    clientError={clientError}
-                    updateSection={this.handleUpdateSection}
-                    extraInfo={descriptionExtraInfo}
-                />
-            );
-        } else {
-            const describeMsg = this.state.description ?? (
-                <FormattedMessage
-                    id='general_tab.emptyDescription'
-                    defaultMessage="Click 'Edit' to add a team description."
-                />
-            );
-
-            descriptionSection = (
-                <SettingItemMin
-                    title={localizeMessage('general_tab.teamDescription', 'Team Description')}
-                    describe={describeMsg}
-                    updateSection={this.handleUpdateSection}
-                    section={'description'}
-                />
-            );
-        }
-
-        let teamIconSection;
-        if (this.props.activeSection === 'team_icon') {
-            const helpText = (
-                <FormattedMessage
-                    id='setting_picture.help.team'
-                    defaultMessage='Upload a team icon in BMP, JPG or PNG format.\nSquare images with a solid background color are recommended.'
-                />
-            );
-            teamIconSection = (
-                <SettingPicture
-                    imageContext='team'
-                    title={localizeMessage('general_tab.teamIcon', 'Team Icon')}
-                    src={imageURLForTeam(team || {} as Team)}
-                    file={this.state.teamIconFile}
-                    serverError={this.state.serverError}
-                    clientError={this.state.clientError}
-                    loadingPicture={this.state.loadingIcon}
-                    submitActive={this.state.submitActive}
-                    updateSection={(e: MouseEvent<HTMLButtonElement>) => {
-                        this.updateSection('');
-                        e.preventDefault();
-                    }}
-                    onFileChange={this.updateTeamIcon}
-                    onSubmit={this.handleTeamIconSubmit}
-                    onRemove={this.handleTeamIconRemove}
-                    helpText={helpText}
-                />
-            );
-        } else {
-            let minMessage;
-
-            if (team?.last_team_icon_update) {
-                minMessage = (
-                    <FormattedMessage
-                        id='general_tab.teamIconLastUpdated'
-                        defaultMessage='Image last updated {date}'
-                        values={{
-                            date: (
-                                <FormattedDate
-                                    value={new Date(team.last_team_icon_update)}
-                                    day='2-digit'
-                                    month='short'
-                                    year='numeric'
-                                />
-                            ),
-                        }}
+        nameSectionInputs.push(
+            <div
+                key='teamNameSetting'
+                className='form-group'
+            >
+                <label className='col-sm-5 control-label'>{teamNameLabel}</label>
+                <div className='col-sm-7'>
+                    <input
+                        id='teamName'
+                        autoFocus={true}
+                        className='form-control'
+                        type='text'
+                        maxLength={Constants.MAX_TEAMNAME_LENGTH}
+                        onChange={this.updateName}
+                        value={this.state.name}
+                        onFocus={moveCursorToEnd}
                     />
-                );
-            } else {
-                minMessage = this.props.isMobileView ? localizeMessage('general_tab.teamIconEditHintMobile', 'Click to upload an image') : localizeMessage('general_tab.teamIconEditHint', 'Click \'Edit\' to upload an image.');
-            }
+                </div>
+            </div>,
+        );
 
-            teamIconSection = (
-                <SettingItemMin
-                    title={localizeMessage('general_tab.teamIcon', 'Team Icon')}
-                    describe={minMessage}
-                    section={'team_icon'}
-                    updateSection={this.handleUpdateSection}
-                />
-            );
-        }
+        const nameExtraInfo = <span>{localizeMessage('general_tab.teamNameInfo', 'Set the name of the team as it appears on your sign-in screen and at the top of the left-hand sidebar.')}</span>;
 
-        let allowedDomainsSection;
+        const nameSection = (
+            <SettingItemMax
+                title={localizeMessage('general_tab.teamName', 'Team Name')}
+                inputs={nameSectionInputs}
+                submit={this.handleNameSubmit}
+                serverError={serverError}
+                clientError={clientError}
+                extraInfo={nameExtraInfo}
+            />
+        );
 
-        if (this.props.activeSection === 'allowed_domains') {
-            const inputs = [];
+        const descriptionSectionInputs = [];
 
-            inputs.push(
-                <div
-                    key='allowedDomainsSetting'
-                    className='form-group'
-                >
-                    <div className='col-sm-12'>
-                        <input
-                            id='allowedDomains'
-                            autoFocus={true}
-                            className='form-control'
-                            type='text'
-                            onChange={this.updateAllowedDomains}
-                            value={this.state.allowed_domains}
-                            onFocus={moveCursorToEnd}
-                            placeholder={this.props.intl.formatMessage({id: 'general_tab.AllowedDomainsExample', defaultMessage: 'corp.mattermost.com, mattermost.com'})}
-                            aria-label={localizeMessage('general_tab.allowedDomains.ariaLabel', 'Allowed Domains')}
-                        />
-                    </div>
-                </div>,
-            );
+        const teamDescriptionLabel = this.props.isMobileView ? '' : (
+            <FormattedMessage
+                id='general_tab.teamDescription'
+                defaultMessage='Team Description'
+            />
+        );
 
-            const allowedDomainsInfo = <span>{localizeMessage('general_tab.AllowedDomainsInfo', 'Users can only join the team if their email matches a specific domain (e.g. "mattermost.com") or list of comma-separated domains (e.g. "corp.mattermost.com, mattermost.com").')}</span>;
+        descriptionSectionInputs.push(
+            <div
+                key='teamDescriptionSetting'
+                className='form-group'
+            >
+                <label className='col-sm-5 control-label'>{teamDescriptionLabel}</label>
+                <div className='col-sm-7'>
+                    <input
+                        id='teamDescription'
+                        autoFocus={true}
+                        className='form-control'
+                        type='text'
+                        maxLength={Constants.MAX_TEAMDESCRIPTION_LENGTH}
+                        onChange={this.updateDescription}
+                        value={this.state.description}
+                        onFocus={moveCursorToEnd}
+                    />
+                </div>
+            </div>,
+        );
 
-            allowedDomainsSection = (
-                <SettingItemMax
-                    title={localizeMessage('general_tab.allowedDomains', 'Allow only users with a specific email domain to join this team')}
-                    inputs={inputs}
-                    submit={this.handleAllowedDomainsSubmit}
-                    serverError={serverError}
-                    clientError={clientError}
-                    updateSection={this.handleUpdateSection}
-                    extraInfo={allowedDomainsInfo}
-                />
-            );
-        } else {
-            const describeMsg = this.state.allowed_domains ?? (
-                <FormattedMessage
-                    id='general_tab.allowedDomainsEdit'
-                    defaultMessage="Click 'Edit' to add an email domain whitelist."
-                />
-            );
-            allowedDomainsSection = (
-                <SettingItemMin
-                    title={localizeMessage('general_tab.allowedDomains', 'allowedDomains')}
-                    describe={describeMsg}
-                    updateSection={this.handleUpdateSection}
-                    section={'allowed_domains'}
-                />
-            );
-        }
+        const descriptionExtraInfo = <span>{localizeMessage('general_tab.teamDescriptionInfo', 'Team description provides additional information to help users select the right team. Maximum of 50 characters.')}</span>;
+
+        const descriptionSection = (
+            <SettingItemMax
+                title={localizeMessage('general_tab.teamDescription', 'Team Description')}
+                inputs={descriptionSectionInputs}
+                submit={this.handleDescriptionSubmit}
+                serverError={serverError}
+                clientError={clientError}
+                extraInfo={descriptionExtraInfo}
+            />
+        );
+
+        const helpText = (
+            <FormattedMessage
+                id='setting_picture.help.team'
+                defaultMessage='Upload a team icon in BMP, JPG or PNG format.\nSquare images with a solid background color are recommended.'
+            />
+        );
+        const teamIconSection = (
+            <SettingPicture
+                imageContext='team'
+                title={localizeMessage('general_tab.teamIcon', 'Team Icon')}
+                src={imageURLForTeam(team || {} as Team)}
+                file={this.state.teamIconFile}
+                serverError={this.state.serverError}
+                clientError={this.state.clientError}
+                loadingPicture={this.state.loadingIcon}
+                submitActive={this.state.submitActive}
+                onFileChange={this.updateTeamIcon}
+                onSubmit={this.handleTeamIconSubmit}
+                onRemove={this.handleTeamIconRemove}
+                helpText={helpText}
+            />
+        );
+
+        const allowedDomainsSectionInputs = [];
+
+        allowedDomainsSectionInputs.push(
+            <div
+                key='allowedDomainsSetting'
+                className='form-group'
+            >
+                <div className='col-sm-12'>
+                    <input
+                        id='allowedDomains'
+                        autoFocus={true}
+                        className='form-control'
+                        type='text'
+                        onChange={this.updateAllowedDomains}
+                        value={this.state.allowed_domains}
+                        onFocus={moveCursorToEnd}
+                        placeholder={this.props.intl.formatMessage({id: 'general_tab.AllowedDomainsExample', defaultMessage: 'corp.mattermost.com, mattermost.com'})}
+                        aria-label={localizeMessage('general_tab.allowedDomains.ariaLabel', 'Allowed Domains')}
+                    />
+                </div>
+            </div>,
+        );
+
+        const allowedDomainsInfo = <span>{localizeMessage('general_tab.AllowedDomainsInfo', 'Users can only join the team if their email matches a specific domain (e.g. "mattermost.com") or list of comma-separated domains (e.g. "corp.mattermost.com, mattermost.com").')}</span>;
+
+        const allowedDomainsSection = (
+            <SettingItemMax
+                title={localizeMessage('general_tab.allowedDomains', 'Allow only users with a specific email domain to join this team')}
+                inputs={allowedDomainsSectionInputs}
+                submit={this.handleAllowedDomainsSubmit}
+                serverError={serverError}
+                clientError={clientError}
+                extraInfo={allowedDomainsInfo}
+            />
+        );
 
         return (
             <div>
@@ -675,10 +528,8 @@ export class GeneralTab extends React.PureComponent<Props, State> {
                     <div className='divider-light'/>
                     <OpenInvite
                         teamId={this.props.team?.id}
-                        isActive={this.props.activeSection === 'open_invite'}
                         isGroupConstrained={this.props.team?.group_constrained}
                         allowOpenInvite={this.props.team?.allow_open_invite}
-                        onToggle={this.onOpenInviteToggle}
                         patchTeam={this.props.actions.patchTeam}
                     />
                     {!team?.group_constrained &&
@@ -693,5 +544,4 @@ export class GeneralTab extends React.PureComponent<Props, State> {
         );
     }
 }
-
 export default injectIntl(GeneralTab);

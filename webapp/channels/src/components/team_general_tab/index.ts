@@ -21,9 +21,7 @@ import type {GlobalState} from 'types/store/index';
 import TeamGeneralTab from './team_general_tab';
 
 export type OwnProps = {
-    updateSection: (section: string) => void;
     team?: Team & { last_team_icon_update?: number };
-    activeSection: string;
     closeModal: () => void;
     collapseModal: () => void;
 };
