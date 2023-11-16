@@ -745,9 +745,11 @@ export default class SchemaAdminSettings extends React.PureComponent {
                     />
                 }
                 createJobHelpText={
-                    <FormattedMarkdownMessage
-                        id={setting.help_text}
-                        defaultMessage={setting.help_text_default}
+                    <SchemaText
+                        isMarkdown={setting.help_text_markdown}
+                        text={setting.help_text}
+                        textDefault={setting.help_text_default}
+                        textValues={setting.help_text_values}
                     />
                 }
             />

@@ -172,6 +172,25 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                     help_text_default: 'This is some help text for the second bool field.',
                 },
                 {
+                    key: 'FirstSettings.settingn',
+                    label: 'label-n',
+                    label_default: 'Setting Twelve',
+                    type: 'bool',
+                    default: false,
+                    help_text: 'help-text-n',
+                    help_text_markdown: false,
+                    help_text_default: 'This is some help text for the bool field with link <link>some link</link>.',
+                    help_text_values: {
+                        link: (msg) => (
+                            <a
+                                href={'https://example.org'}
+                            >
+                                {msg}
+                            </a>
+                        ),
+                    },
+                },
+                {
                     key: 'FirstSettings.settingm',
                     label: 'label-m',
                     label_default: 'Setting Thirteen',
@@ -190,6 +209,25 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                     label_default: 'Setting Twelve',
                     help_text: 'help-text-l',
                     help_text_default: 'This is some help text for the jobs table field.',
+                    job_type: 'test',
+                    render_job: () => <p>{'Test'}</p>,
+                },
+                {
+                    type: 'jobstable',
+                    label: 'label-l',
+                    label_default: 'Setting Twelve',
+                    help_text: 'help-text-l',
+                    help_text_default: 'This is some help text for the jobs table field with a link <link>some link</link>',
+                    help_text_values: {
+                        link: (msg) => (
+                            <a
+                                href={'https://example.org'}
+                            >
+                                {msg}
+                            </a>
+                        ),
+                    },
+                    help_text_markdown: false,
                     job_type: 'test',
                     render_job: () => <p>{'Test'}</p>,
                 },

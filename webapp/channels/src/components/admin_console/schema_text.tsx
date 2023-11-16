@@ -12,7 +12,7 @@ type Props = {
     isTranslated?: boolean;
     text: string | object;
     textDefault?: string;
-    textValues?: Record<string, React.ReactNode>;
+    textValues?: Record<string, React.ReactNode | React.JSXElementConstructor<any>>;
 }
 
 export default class SchemaText extends React.PureComponent<Props> {

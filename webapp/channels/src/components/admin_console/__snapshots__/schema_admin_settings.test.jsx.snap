@@ -595,6 +595,40 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             }
             value={true}
           />
+          <BooleanSetting
+            disabled={false}
+            falseText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="false"
+                id="admin.false"
+              />
+            }
+            helpText={
+              <SchemaText
+                isMarkdown={false}
+                isTranslated={true}
+                text="help-text-n"
+                textDefault="This is some help text for the bool field with link <link>some link</link>."
+                textValues={
+                  Object {
+                    "link": [Function],
+                  }
+                }
+              />
+            }
+            id="FirstSettings.settingn"
+            key="Config_bool_FirstSettings.settingn"
+            label="Setting Twelve"
+            onChange={[Function]}
+            setByEnv={false}
+            trueText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="true"
+                id="admin.true"
+              />
+            }
+            value={false}
+          />
           <Memo(ColorSetting)
             disabled={false}
             helpText={
@@ -653,9 +687,35 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
               />
             }
             createJobHelpText={
-              <FormattedMarkdownMessage
-                defaultMessage="This is some help text for the jobs table field."
-                id="help-text-l"
+              <SchemaText
+                isTranslated={true}
+                text="help-text-l"
+                textDefault="This is some help text for the jobs table field."
+              />
+            }
+            disabled={false}
+            getExtraInfoText={[Function]}
+            jobType="test"
+            key="Config_jobstable_undefined"
+          />
+          <Connect(JobTable)
+            createJobButtonText={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Setting Twelve"
+                id="label-l"
+              />
+            }
+            createJobHelpText={
+              <SchemaText
+                isMarkdown={false}
+                isTranslated={true}
+                text="help-text-l"
+                textDefault="This is some help text for the jobs table field with a link <link>some link</link>"
+                textValues={
+                  Object {
+                    "link": [Function],
+                  }
+                }
               />
             }
             disabled={false}
