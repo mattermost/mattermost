@@ -12,6 +12,9 @@ import * as Utils from 'utils/utils';
 
 const SettingsSidebar = React.lazy(() => import('components/settings_sidebar'));
 
+// todo sinan: make functional component
+// todo sinan: remove Utils.localizeMessage
+// todo sinan: check why isCloud is not used
 type Props = {
     onExited: () => void;
     isCloud?: boolean;
