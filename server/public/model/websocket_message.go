@@ -87,6 +87,7 @@ const (
 	WebsocketEventChannelBookmarkCreated              = "channel_bookmark_created"
 	WebsocketEventChannelBookmarkUpdated              = "channel_bookmark_updated"
 	WebsocketEventChannelBookmarkDeleted              = "channel_bookmark_deleted"
+	WebsocketEventChannelBookmarkSorted               = "channel_bookmark_sorted"
 )
 
 type WebSocketMessage interface {

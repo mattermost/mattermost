@@ -86,7 +86,7 @@ func (a *App) UpdateChannelBookmark(c request.CTX, updateBookmark *model.Channel
 		reponse.Deleted = updateBookmark.ToBookmarkWithFileInfo(nil)
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkCreated, "", updateBookmark.ChannelId, "", nil, connectionId)
+	message := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkUpdated, "", updateBookmark.ChannelId, "", nil, connectionId)
 	bookmarkJSON, jsonErr := json.Marshal(reponse)
 	if jsonErr != nil {
 		return nil, model.NewAppError("UpdateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -113,4 +113,20 @@ func (a *App) DeleteChannelBookmark(bookmarkId, connectionId string) (*model.Cha
 	message.Add("bookmark", string(bookmarkJSON))
 	a.Publish(message)
 	return bookmark, nil
+}
+
+func (a *App) UpdateChannelBookmarkSortOrder(bookmarkId, channelId string, newIndex int64, connectionId string) ([]*model.ChannelBookmarkWithFileInfo, *model.AppError) {
+	bookmarks, err := a.Srv().Store().ChannelBookmark().UpdateSortOrder(bookmarkId, channelId, newIndex)
+	if err != nil {
+		return nil, model.NewAppError("UpdateSortOrder", "app.channel.bookmark.update_sort.app_error", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkSorted, "", channelId, "", nil, connectionId)
+	bookmarkJSON, jsonErr := json.Marshal(bookmarks)
+	if jsonErr != nil {
+		return nil, model.NewAppError("UpdateSortOrder", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+	message.Add("bookmarks", string(bookmarkJSON))
+
+	return bookmarks, nil
 }
