@@ -28,14 +28,23 @@ function FilterCheckbox({
             onClick={toggleOption}
         >
             <label>
-                <input
-                    key={Math.random()}
-                    type='checkbox'
-                    id={name}
-                    name={name}
-                    checked={checked}
-                    readOnly={true}
-                />
+                {checked &&
+                    <input
+                        type='checkbox'
+                        id={name}
+                        name={name}
+                        defaultChecked={true}
+                    />
+                }
+
+                {!checked &&
+                    <input
+                        type='checkbox'
+                        id={name}
+                        name={name}
+                        defaultChecked={false}
+                    />
+                }
                 {label}
             </label>
         </div>
