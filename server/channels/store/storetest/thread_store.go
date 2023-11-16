@@ -13,25 +13,26 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("ThreadStorePopulation", func(t *testing.T) { testThreadStorePopulation(t, ss) })
+func TestThreadStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("ThreadStorePopulation", func(t *testing.T) { testThreadStorePopulation(t, rctx, ss) })
 	t.Run("ThreadStorePermanentDeleteBatchForRetentionPolicies", func(t *testing.T) {
-		testThreadStorePermanentDeleteBatchForRetentionPolicies(t, ss)
+		testThreadStorePermanentDeleteBatchForRetentionPolicies(t, rctx, ss)
 	})
 	t.Run("ThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies", func(t *testing.T) {
-		testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t, ss, s)
+		testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t, rctx, ss, s)
 	})
-	t.Run("GetTeamsUnreadForUser", func(t *testing.T) { testGetTeamsUnreadForUser(t, ss) })
-	t.Run("GetVarious", func(t *testing.T) { testVarious(t, ss) })
-	t.Run("MarkAllAsReadByChannels", func(t *testing.T) { testMarkAllAsReadByChannels(t, ss) })
-	t.Run("MarkAllAsReadByTeam", func(t *testing.T) { testMarkAllAsReadByTeam(t, ss) })
-	t.Run("DeleteMembershipsForChannel", func(t *testing.T) { testDeleteMembershipsForChannel(t, ss) })
+	t.Run("GetTeamsUnreadForUser", func(t *testing.T) { testGetTeamsUnreadForUser(t, rctx, ss) })
+	t.Run("GetVarious", func(t *testing.T) { testVarious(t, rctx, ss) })
+	t.Run("MarkAllAsReadByChannels", func(t *testing.T) { testMarkAllAsReadByChannels(t, rctx, ss) })
+	t.Run("MarkAllAsReadByTeam", func(t *testing.T) { testMarkAllAsReadByTeam(t, rctx, ss) })
+	t.Run("DeleteMembershipsForChannel", func(t *testing.T) { testDeleteMembershipsForChannel(t, rctx, ss) })
 }
 
-func testThreadStorePopulation(t *testing.T, ss store.Store) {
+func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 	makeSomePosts := func(urgent bool) []*model.Post {
 		u1 := model.User{
 			Email:    MakeEmail(),
@@ -490,7 +491,7 @@ func threadStoreCreateReply(t *testing.T, ss store.Store, channelID, postID, use
 	return reply
 }
 
-func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss store.Store) {
+func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx request.CTX, ss store.Store) {
 	const limit = 1000
 	team, err := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
@@ -564,7 +565,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 	assert.Nil(t, thread, "thread should have been deleted by team policy")
 }
 
-func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t *testing.T, ss store.Store, s SqlStore) {
+func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	const limit = 1000
 	userID := model.NewId()
 	createThreadMembership := func(userID, postID string) *model.ThreadMembership {
@@ -662,7 +663,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	require.Error(t, err, "thread membership should have been deleted because thread no longer exists")
 }
 
-func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
+func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	userID := model.NewId()
 	createThreadMembership := func(userID, postID string) {
 		t.Helper()
@@ -776,7 +777,7 @@ func (a byPostId) Len() int           { return len(a) }
 func (a byPostId) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byPostId) Less(i, j int) bool { return a[i].Id < a[j].Id }
 
-func testVarious(t *testing.T, ss store.Store) {
+func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 	createThreadMembership := func(userID, postID string, isMention bool) {
 		t.Helper()
 
@@ -1203,7 +1204,7 @@ func testVarious(t *testing.T, ss store.Store) {
 	})
 }
 
-func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
+func testMarkAllAsReadByChannels(t *testing.T, rctx request.CTX, ss store.Store) {
 	postingUserId := model.NewId()
 	userAID := model.NewId()
 	userBID := model.NewId()
@@ -1347,7 +1348,7 @@ func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
 	})
 }
 
-func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
+func testMarkAllAsReadByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	createThreadMembership := func(userID, postID string) {
 		t.Helper()
 		opts := store.ThreadMembershipOpts{
@@ -1573,7 +1574,7 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 	})
 }
 
-func testDeleteMembershipsForChannel(t *testing.T, ss store.Store) {
+func testDeleteMembershipsForChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	createThreadMembership := func(userID, postID string) (*model.ThreadMembership, func()) {
 		t.Helper()
 		opts := store.ThreadMembershipOpts{
