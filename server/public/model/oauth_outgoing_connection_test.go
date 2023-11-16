@@ -188,7 +188,7 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 			name: "nil password credentials",
 			item: func() *OAuthOutgoingConnection {
 				oa := newValidOAuthOutgoingConnection()
-				oa.GrantType = GrantTypePassword
+				oa.GrantType = OAuthOutgoingConnectionGrantTypePassword
 				oa.CredentialsUsername = nil
 				oa.CredentialsPassword = nil
 				return oa
@@ -201,7 +201,7 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 			name: "invalid password credentials username",
 			item: func() *OAuthOutgoingConnection {
 				oa := newValidOAuthOutgoingConnection()
-				oa.GrantType = GrantTypePassword
+				oa.GrantType = OAuthOutgoingConnectionGrantTypePassword
 				oa.CredentialsUsername = &emptyString
 				oa.CredentialsPassword = &someString
 				return oa
@@ -214,7 +214,7 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 			name: "invalid password credentials password",
 			item: func() *OAuthOutgoingConnection {
 				oa := newValidOAuthOutgoingConnection()
-				oa.GrantType = GrantTypePassword
+				oa.GrantType = OAuthOutgoingConnectionGrantTypePassword
 				oa.CredentialsUsername = &someString
 				oa.CredentialsPassword = &emptyString
 				return oa
@@ -227,7 +227,7 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 			name: "empty password credentials",
 			item: func() *OAuthOutgoingConnection {
 				oa := newValidOAuthOutgoingConnection()
-				oa.GrantType = GrantTypePassword
+				oa.GrantType = OAuthOutgoingConnectionGrantTypePassword
 				oa.CredentialsUsername = &emptyString
 				oa.CredentialsPassword = &emptyString
 				return oa
@@ -240,7 +240,7 @@ func TestOAuthOutgoingConnectionIsValid(t *testing.T) {
 			name: "correct password credentials",
 			item: func() *OAuthOutgoingConnection {
 				oa := newValidOAuthOutgoingConnection()
-				oa.GrantType = GrantTypePassword
+				oa.GrantType = OAuthOutgoingConnectionGrantTypePassword
 				oa.CredentialsUsername = &someString
 				oa.CredentialsPassword = &someString
 				return oa

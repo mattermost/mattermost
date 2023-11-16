@@ -20,7 +20,7 @@ func newValidOAuthOutgoingConnection() *model.OAuthOutgoingConnection {
 		ClientId:      model.NewId(),
 		ClientSecret:  model.NewId(),
 		OAuthTokenURL: "https://nowhere.com/oauth/token",
-		GrantType:     model.GrantTypeClientCredentials,
+		GrantType:     model.OAuthOutgoingConnectionGrantTypeClientCredentials,
 		Audiences:     []string{"https://nowhere.com"},
 	}
 }
