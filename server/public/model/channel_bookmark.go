@@ -48,24 +48,20 @@ type UpdateChannelBookmarkResponse struct {
 }
 
 // Clone returns a shallow copy of the channel bookmark.
-func (b *ChannelBookmark) Clone() *ChannelBookmark {
-	bCopy := *b
+func (o *ChannelBookmark) Clone() *ChannelBookmark {
+	bCopy := *o
 	return &bCopy
 }
 
-func (b *ChannelBookmark) SetOriginal(newOwnerId string) *ChannelBookmark {
-	bCopy := *b
+func (o *ChannelBookmark) SetOriginal(newOwnerId string) *ChannelBookmark {
+	bCopy := *o
 	bCopy.Id = ""
 	bCopy.CreateAt = 0
 	bCopy.DeleteAt = 0
 	bCopy.UpdateAt = 0
-	bCopy.OriginalId = b.Id
+	bCopy.OriginalId = o.Id
 	bCopy.OwnerId = newOwnerId
 	return &bCopy
-}
-
-func (o *ChannelBookmark) Etag() string {
-	return Etag(o.Id, o.UpdateAt)
 }
 
 func (o *ChannelBookmark) IsValid() *AppError {

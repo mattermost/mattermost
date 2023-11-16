@@ -415,29 +415,29 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 		Type:        model.ChannelBookmarkLink,
 	}
 
-	bookmarkResp, err := th.App.CreateChannelBookmark(th.Context, bookmark0, "")
-	assert.Nil(t, err)
+	bookmarkResp, appErr := th.App.CreateChannelBookmark(th.Context, bookmark0, "")
+	assert.Nil(t, appErr)
 	bookmark0 = bookmarkResp.ChannelBookmark.Clone()
 
-	bookmarkResp, err = th.App.CreateChannelBookmark(th.Context, bookmark1, "")
-	assert.Nil(t, err)
+	bookmarkResp, appErr = th.App.CreateChannelBookmark(th.Context, bookmark1, "")
+	assert.Nil(t, appErr)
 	bookmark1 = bookmarkResp.ChannelBookmark.Clone()
 
-	bookmarkResp, err = th.App.CreateChannelBookmark(th.Context, bookmark2, "")
-	assert.Nil(t, err)
+	bookmarkResp, appErr = th.App.CreateChannelBookmark(th.Context, bookmark2, "")
+	assert.Nil(t, appErr)
 	bookmark2 = bookmarkResp.ChannelBookmark.Clone()
 
-	bookmarkResp, err = th.App.CreateChannelBookmark(th.Context, bookmark3, "")
-	assert.Nil(t, err)
+	bookmarkResp, appErr = th.App.CreateChannelBookmark(th.Context, bookmark3, "")
+	assert.Nil(t, appErr)
 	bookmark3 = bookmarkResp.ChannelBookmark.Clone()
 
-	bookmarkResp, err = th.App.CreateChannelBookmark(th.Context, bookmark4, "")
-	assert.Nil(t, err)
+	bookmarkResp, appErr = th.App.CreateChannelBookmark(th.Context, bookmark4, "")
+	assert.Nil(t, appErr)
 	bookmark4 = bookmarkResp.ChannelBookmark.Clone()
 
 	t.Run("change order of bookmarks first to last", func(t *testing.T) {
-		bookmarks, err := th.App.UpdateChannelBookmarkSortOrder(bookmark0.Id, channelId, int64(4), "")
-		assert.Nil(t, err)
+		bookmarks, sortErr := th.App.UpdateChannelBookmarkSortOrder(bookmark0.Id, channelId, int64(4), "")
+		assert.Nil(t, sortErr)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(1))
@@ -447,8 +447,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	})
 
 	t.Run("change order of bookmarks last to first", func(t *testing.T) {
-		bookmarks, err := th.App.UpdateChannelBookmarkSortOrder(bookmark0.Id, channelId, int64(0), "")
-		assert.Nil(t, err)
+		bookmarks, sortErr := th.App.UpdateChannelBookmarkSortOrder(bookmark0.Id, channelId, int64(0), "")
+		assert.Nil(t, sortErr)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(1))
@@ -458,8 +458,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	})
 
 	t.Run("change order of bookmarks first to third", func(t *testing.T) {
-		bookmarks, err := th.App.UpdateChannelBookmarkSortOrder(bookmark0.Id, channelId, int64(2), "")
-		assert.Nil(t, err)
+		bookmarks, sortErr := th.App.UpdateChannelBookmarkSortOrder(bookmark0.Id, channelId, int64(2), "")
+		assert.Nil(t, sortErr)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(1))
@@ -472,8 +472,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	})
 
 	t.Run("change order of bookmarks second to third", func(t *testing.T) {
-		bookmarks, err := th.App.UpdateChannelBookmarkSortOrder(bookmark1.Id, channelId, int64(2), "")
-		assert.Nil(t, err)
+		bookmarks, sortErr := th.App.UpdateChannelBookmarkSortOrder(bookmark1.Id, channelId, int64(2), "")
+		assert.Nil(t, sortErr)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(1))
@@ -483,8 +483,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	})
 
 	t.Run("change order of bookmarks third to second", func(t *testing.T) {
-		bookmarks, err := th.App.UpdateChannelBookmarkSortOrder(bookmark1.Id, channelId, int64(1), "")
-		assert.Nil(t, err)
+		bookmarks, sortErr := th.App.UpdateChannelBookmarkSortOrder(bookmark1.Id, channelId, int64(1), "")
+		assert.Nil(t, sortErr)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(1))
@@ -494,8 +494,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	})
 
 	t.Run("change order of bookmarks last to previous last", func(t *testing.T) {
-		bookmarks, err := th.App.UpdateChannelBookmarkSortOrder(bookmark4.Id, channelId, int64(3), "")
-		assert.Nil(t, err)
+		bookmarks, sortErr := th.App.UpdateChannelBookmarkSortOrder(bookmark4.Id, channelId, int64(3), "")
+		assert.Nil(t, sortErr)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(1))
@@ -505,8 +505,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	})
 
 	t.Run("change order of bookmarks last to second", func(t *testing.T) {
-		bookmarks, err := th.App.UpdateChannelBookmarkSortOrder(bookmark3.Id, channelId, int64(1), "")
-		assert.Nil(t, err)
+		bookmarks, sortErr := th.App.UpdateChannelBookmarkSortOrder(bookmark3.Id, channelId, int64(1), "")
+		assert.Nil(t, sortErr)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(1))
@@ -516,14 +516,14 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	})
 
 	t.Run("change order of bookmarks error when new index is out of bounds", func(t *testing.T) {
-		_, err = th.App.UpdateChannelBookmarkSortOrder(bookmark3.Id, channelId, int64(-1), "")
-		assert.Error(t, err)
-		_, err = th.App.UpdateChannelBookmarkSortOrder(bookmark3.Id, channelId, int64(5), "")
-		assert.Error(t, err)
+		_, appErr = th.App.UpdateChannelBookmarkSortOrder(bookmark3.Id, channelId, int64(-1), "")
+		assert.Error(t, appErr)
+		_, appErr = th.App.UpdateChannelBookmarkSortOrder(bookmark3.Id, channelId, int64(5), "")
+		assert.Error(t, appErr)
 	})
 
 	t.Run("change order of bookmarks error when bookmark not found", func(t *testing.T) {
-		_, err = th.App.UpdateChannelBookmarkSortOrder(model.NewId(), channelId, int64(0), "")
-		assert.Error(t, err)
+		_, appErr = th.App.UpdateChannelBookmarkSortOrder(model.NewId(), channelId, int64(0), "")
+		assert.Error(t, appErr)
 	})
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 
 	"github.com/pkg/errors"
 )
@@ -170,15 +171,6 @@ func (s *SqlChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error 
 }
 
 func (s *SqlChannelBookmarkStore) UpdateSortOrder(bookmarkId, channelId string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
-	insert := func(slice []*model.ChannelBookmarkWithFileInfo, value *model.ChannelBookmarkWithFileInfo, index int) []*model.ChannelBookmarkWithFileInfo {
-		if len(slice) == index {
-			return append(slice, value)
-		}
-		slice = append(slice[:index+1], slice[index:]...)
-		slice[index] = value
-		return slice
-	}
-
 	now := model.GetMillis()
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
@@ -209,8 +201,8 @@ func (s *SqlChannelBookmarkStore) UpdateSortOrder(bookmarkId, channelId string, 
 		return nil, errors.New("bookmark to sort not found")
 	}
 
-	bookmarks = append(bookmarks[:currentIndex], bookmarks[currentIndex+1:]...)
-	bookmarks = insert(bookmarks, current, int(newIndex))
+	bookmarks = utils.RemoveElementFromSliceAtIndex(bookmarks, currentIndex)
+	bookmarks = utils.InsertElementToSliceAtIndex(bookmarks, current, int(newIndex))
 	for index, b := range bookmarks {
 		b.SortOrder = int64(index)
 		updateSort := "UPDATE ChannelBookmarks SET SortOrder = ?, UpdateAt = ? WHERE Id = ?"
