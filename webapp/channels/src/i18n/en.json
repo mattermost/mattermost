@@ -4565,7 +4565,7 @@
   "quick_switch_modal.input": "quick switch input",
   "quick_switch_modal.switchChannels": "Find Channels",
   "reaction_limit_reached_modal.body": "Oops! It looks like we've hit a ceiling on emoji reactions for this message. Please contact your system administrator for any adjustments to this limit.",
-  "reaction_limit_reached_modal.body.admin": "Oops! It looks like we've hit a ceiling on emoji reactions for this message. We've <link>set a limit</link> to keep things running smoothly on your server.",
+  "reaction_limit_reached_modal.body.admin": "Oops! It looks like we've hit a ceiling on emoji reactions for this message. We've <link>set a limit</link> to keep things running smoothly on your server. As a system administrator, you can adjust this limit from the <linkAdmin>system console</linkAdmin>.",
   "reaction_limit_reached_modal.title": "You've reached the reaction limit",
   "reaction_list.addReactionTooltip": "Add a reaction",
   "reaction.add.ariaLabel": "Add a reaction",
