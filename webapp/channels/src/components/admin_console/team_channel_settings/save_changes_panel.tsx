@@ -27,17 +27,19 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
                 onClick={onClick}
                 savingMessage={localizeMessage('admin.team_channel_settings.saving', 'Saving Config...')}
             />
-            <BlockableLink
-                id='cancelButtonSettings'
-                className='btn btn-quaternary'
-                to={cancelLink}
-            >
-                <FormattedMessage
-                    id='admin.team_channel_settings.cancel'
-                    defaultMessage='Cancel'
-                />
-            </BlockableLink>
-
+            {
+                cancelLink !== '' &&
+                    <BlockableLink
+                        id='cancelButtonSettings'
+                        className='btn btn-quaternary'
+                        to={cancelLink}
+                    >
+                        <FormattedMessage
+                            id='admin.team_channel_settings.cancel'
+                            defaultMessage='Cancel'
+                        />
+                    </BlockableLink>
+            }
             <div className='error-message'>
                 {serverError}
             </div>
