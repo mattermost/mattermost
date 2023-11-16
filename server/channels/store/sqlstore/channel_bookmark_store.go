@@ -104,10 +104,6 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 			From("ChannelBookmarks").
 			Where(sq.Eq{"ChannelId": bookmark.ChannelId, "DeleteAt": 0})
 
-		if err != nil {
-			return nil, errors.Wrap(err, "channel_bookmarks_sortOrder_tosql")
-		}
-
 		err = s.GetReplicaX().GetBuilder(&sortOrder, query)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed while getting the sortOrder from ChannelBookmarks")
@@ -142,7 +138,6 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 		if err = s.GetReplicaX().Get(&fileInfo, query, args...); err != nil {
 			return nil, errors.Wrap(err, "unable_to_get_channel_bookmark_file_info")
 		}
-
 	}
 
 	return bookmark.ToBookmarkWithFileInfo(&fileInfo), nil

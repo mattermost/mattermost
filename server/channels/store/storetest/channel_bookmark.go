@@ -231,8 +231,8 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, ss store.Store) {
 	bookmark4 = bookmarkResp.ChannelBookmark.Clone()
 
 	t.Run("change order of bookmarks first to last", func(t *testing.T) {
-		bookmarks, err := ss.ChannelBookmark().UpdateSortOrder(bookmark0.Id, channelId, 4)
-		assert.NoError(t, err)
+		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark0.Id, channelId, 4)
+		assert.NoError(t, sortError)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(1))
@@ -242,8 +242,8 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("change order of bookmarks last to first", func(t *testing.T) {
-		bookmarks, err := ss.ChannelBookmark().UpdateSortOrder(bookmark0.Id, channelId, 0)
-		assert.NoError(t, err)
+		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark0.Id, channelId, 0)
+		assert.NoError(t, sortError)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(1))
@@ -253,8 +253,8 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("change order of bookmarks first to third", func(t *testing.T) {
-		bookmarks, err := ss.ChannelBookmark().UpdateSortOrder(bookmark0.Id, channelId, 2)
-		assert.NoError(t, err)
+		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark0.Id, channelId, 2)
+		assert.NoError(t, sortError)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(1))
@@ -267,8 +267,8 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("change order of bookmarks second to third", func(t *testing.T) {
-		bookmarks, err := ss.ChannelBookmark().UpdateSortOrder(bookmark1.Id, channelId, 2)
-		assert.NoError(t, err)
+		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark1.Id, channelId, 2)
+		assert.NoError(t, sortError)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(1))
@@ -278,8 +278,8 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("change order of bookmarks third to second", func(t *testing.T) {
-		bookmarks, err := ss.ChannelBookmark().UpdateSortOrder(bookmark1.Id, channelId, 1)
-		assert.NoError(t, err)
+		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark1.Id, channelId, 1)
+		assert.NoError(t, sortError)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(1))
@@ -289,8 +289,8 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("change order of bookmarks last to previous last", func(t *testing.T) {
-		bookmarks, err := ss.ChannelBookmark().UpdateSortOrder(bookmark4.Id, channelId, 3)
-		assert.NoError(t, err)
+		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark4.Id, channelId, 3)
+		assert.NoError(t, sortError)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(1))
@@ -300,8 +300,8 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("change order of bookmarks last to second", func(t *testing.T) {
-		bookmarks, err := ss.ChannelBookmark().UpdateSortOrder(bookmark3.Id, channelId, 1)
-		assert.NoError(t, err)
+		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark3.Id, channelId, 1)
+		assert.NoError(t, sortError)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(1))
