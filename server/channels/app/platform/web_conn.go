@@ -498,7 +498,7 @@ func (wc *WebConn) writePump() {
 			}
 
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebSocketBroadcast(string(msg.EventType()))
+				m.IncrementWebSocketBroadcast(msg.EventType())
 			}
 		case <-ticker.C:
 			if err := wc.writeMessageBuf(websocket.PingMessage, []byte{}); err != nil {
