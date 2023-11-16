@@ -10,14 +10,12 @@ import GeneralTab from 'components/team_general_tab';
 type Props = {
     activeTab: string;
     closeModal: () => void;
-    collapseModal: () => void;
     team?: Team;
 };
 
 const TeamSettings = ({
     activeTab = '',
     closeModal,
-    collapseModal,
     team,
 }: Props): JSX.Element | null => {
     if (!team) {
@@ -32,7 +30,6 @@ const TeamSettings = ({
                 <GeneralTab
                     team={team}
                     closeModal={closeModal}
-                    collapseModal={collapseModal}
                 />
             </div>
         );

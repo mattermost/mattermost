@@ -3,7 +3,6 @@
 
 import React, {useState, useRef} from 'react';
 import {Modal, type ModalBody} from 'react-bootstrap';
-import ReactDOM from 'react-dom';
 import {useIntl} from 'react-intl';
 
 import TeamSettings from 'components/team_settings';
@@ -22,25 +21,17 @@ const TeamSettingsModal = (props: Props) => {
 
     const updateTab = (tab: string) => setActiveTab(tab);
 
-    const collapseModal = () => {
-        const el = ReactDOM.findDOMNode(modalBodyRef.current) as HTMLDivElement;
-        const modalDialog = el.closest('.modal-dialog');
-        modalDialog?.classList.remove('display--content');
-
-        setActiveTab('');
-    };
-
     const handleHide = () => setShow(false);
 
-    // called after the dialog is fully hidden and faded out
     const handleHidden = () => {
         setActiveTab('info');
         props.onExited();
     };
 
-    const tabs = [];
-    tabs.push({name: 'info', uiName: formatMessage({id: 'team_settings_modal.infoTab', defaultMessage: 'Info'}), icon: 'icon icon-information-outline', iconTitle: formatMessage({id: 'generic_icons.info', defaultMessage: 'Info Icon'})});
-    tabs.push({name: 'access', uiName: formatMessage({id: 'team_settings_modal.accessTab', defaultMessage: 'Access'}), icon: 'icon icon-account-multiple-outline', iconTitle: formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})});
+    const tabs = [
+        {name: 'info', uiName: formatMessage({id: 'team_settings_modal.infoTab', defaultMessage: 'Info'}), icon: 'icon icon-information-outline', iconTitle: formatMessage({id: 'generic_icons.info', defaultMessage: 'Info Icon'})},
+        {name: 'access', uiName: formatMessage({id: 'team_settings_modal.accessTab', defaultMessage: 'Access'}), icon: 'icon icon-account-multiple-outline', iconTitle: formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})},
+    ];
 
     return (
         <Modal
@@ -75,7 +66,6 @@ const TeamSettingsModal = (props: Props) => {
                         <TeamSettings
                             activeTab={activeTab}
                             closeModal={handleHide}
-                            collapseModal={collapseModal}
                         />
                     </div>
                 </div>
