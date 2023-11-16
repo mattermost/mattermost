@@ -114,7 +114,7 @@ func Float[T ~float32 | ~float64](key string, val T) Field {
 }
 
 // String constructs a field containing a key and string value.
-func String[T ~string](key string, val T) Field {
+func String[T ~string | ~[]byte](key string, val T) Field {
 	return logr.String[T](key, val)
 }
 

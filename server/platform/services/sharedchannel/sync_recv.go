@@ -29,7 +29,7 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 	if scs.server.Log().IsLevelEnabled(mlog.LvlSharedChannelServiceMessagesInbound) {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceMessagesInbound, "inbound message",
 			mlog.String("remote", rc.DisplayName),
-			mlog.String("msg", string(msg.Payload)),
+			mlog.String("msg", msg.Payload),
 		)
 	}
 
