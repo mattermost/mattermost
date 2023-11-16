@@ -3,13 +3,13 @@
 
 import semver from 'semver';
 
+import type {DesktopAPI} from '@mattermost/desktop-api';
+
 import {isDesktopApp} from 'utils/user_agent';
 
-// TODO: Temporary typings
-import type {DesktopAPI} from '../../../../../desktop/src/types/api/main';
 declare global {
     interface Window {
-        desktopAPI?: DesktopAPI;
+        desktopAPI?: Partial<DesktopAPI>;
     }
 }
 
@@ -283,6 +283,6 @@ export const doBrowserHistoryPush = (path: string) => {
     );
 };
 
-export const updateUnread = (isUnread: boolean) => window.desktopAPI?.updateUnread && window.desktopAPI.updateUnread(isUnread);
-export const updateMentions = (mentionCount: number) => window.desktopAPI?.updateMentions && window.desktopAPI.updateMentions(mentionCount);
+export const updateUnreadsAndMentions = (isUnread: boolean, mentionCount: number) =>
+    window.desktopAPI?.setUnreadsAndMentions && window.desktopAPI.setUnreadsAndMentions(isUnread, mentionCount);
 export const setSessionExpired = (expired: boolean) => window.desktopAPI?.setSessionExpired && window.desktopAPI.setSessionExpired(expired);
