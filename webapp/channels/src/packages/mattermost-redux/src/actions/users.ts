@@ -18,6 +18,7 @@ import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {getMyTeams, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsers} from 'mattermost-redux/selectors/entities/users';
@@ -153,7 +154,9 @@ export function getProfiles(page = 0, perPage: number = General.PROFILE_CHUNK_SI
 
 export function getMissingProfilesByIds(userIds: string[]): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const {profiles} = getState().entities.users;
+        const state = getState();
+        const {profiles} = state.entities.users;
+        const enableUserStatuses = getIsUserStatusesConfigEnabled(state);
         const missingIds: string[] = [];
         userIds.forEach((id) => {
             if (!profiles[id]) {
@@ -161,7 +164,7 @@ export function getMissingProfilesByIds(userIds: string[]): ActionFunc {
             }
         });
 
-        if (missingIds.length > 0) {
+        if (missingIds.length > 0 && enableUserStatuses) {
             dispatch(getStatusesByIds(missingIds));
             return dispatch(getProfilesByIds(missingIds));
         }
@@ -875,6 +878,8 @@ export function searchProfiles(term: string, options: any = {}): NewActionFuncAs
 let statusIntervalId: NodeJS.Timeout|null;
 export function startPeriodicStatusUpdates(): NewActionFuncAsync { // HARRISONTODO unused
     return async (dispatch, getState) => {
+        const state = getState();
+        const enableUserStatuses = getIsUserStatusesConfigEnabled(state);
         if (statusIntervalId) {
             clearInterval(statusIntervalId);
         }
@@ -888,7 +893,7 @@ export function startPeriodicStatusUpdates(): NewActionFuncAsync { // HARRISONTO
                 }
 
                 const userIds = Object.keys(statuses);
-                if (!userIds.length) {
+                if (!userIds.length || !enableUserStatuses) {
                     return;
                 }
 

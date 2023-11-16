@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
@@ -29,8 +29,7 @@ type Props = {
 
 export default function ChannelController(props: Props) {
     const dispatch = useDispatch<DispatchFunc>();
-    const config = useSelector(getConfig);
-    const enableUserStatuses = config.EnableUserStatuses;
+    const enableUserStatuses = useSelector(getIsUserStatusesConfigEnabled);
 
     useEffect(() => {
         const isMsBrowser = isInternetExplorer() || isEdge();

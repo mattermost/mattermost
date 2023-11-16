@@ -5,7 +5,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -89,8 +89,7 @@ export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | 
 export function loadStatusesByIds(userIds: string[]) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
-        const config = getConfig(state);
-        const enableUserStatuses = config.EnableUserStatuses;
+        const enableUserStatuses = getIsUserStatusesConfigEnabled(state);
 
         if (userIds.length === 0 || !enableUserStatuses) {
             return {data: false};
@@ -105,6 +104,7 @@ export function loadStatusesByIds(userIds: string[]) {
 export function loadProfilesMissingStatus(users: UserProfile[]) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
+        const enableUserStatuses = getIsUserStatusesConfigEnabled(state);
 
         const statuses = state.entities.users.statuses;
 
@@ -112,7 +112,7 @@ export function loadProfilesMissingStatus(users: UserProfile[]) {
             filter((user) => !statuses[user.id]).
             map((user) => user.id);
 
-        if (missingStatusByIds.length === 0) {
+        if (missingStatusByIds.length === 0 || !enableUserStatuses) {
             return {data: false};
         }
 

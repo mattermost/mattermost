@@ -51,7 +51,7 @@
         "MinimumHashtagLength": 3,
         "EnableUserTypingMessages": true,
         "EnableChannelViewedMessages": true,
-        "EnableUserStatuses": false,
+        "EnableUserStatuses": true,
         "ExperimentalEnableAuthenticationTransfer": true,
         "ClusterLogTimeoutMilliseconds": 2000,
         "EnablePreviewFeatures": true,

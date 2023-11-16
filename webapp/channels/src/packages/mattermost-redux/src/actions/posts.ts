@@ -26,8 +26,8 @@ import {getProfilesByIds, getProfilesByUsernames, getStatusesByIds} from 'matter
 import {Client4, DEFAULT_LIMIT_AFTER, DEFAULT_LIMIT_BEFORE} from 'mattermost-redux/client';
 import {General, Preferences, Posts} from 'mattermost-redux/constants';
 import {getCurrentChannelId, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAllGroupsByName} from 'mattermost-redux/selectors/entities/groups';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -1058,8 +1058,7 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
 
     const state = getState();
     const {currentUserId, profiles, statuses} = state.entities.users;
-    const config = getConfig(state);
-    const enableUserStatuses = config.EnableUserStatuses;
+    const enableUserStatuses = getIsUserStatusesConfigEnabled(state);
 
     // Statuses and profiles of the users who made the posts
     const userIdsToLoad = new Set<string>();
