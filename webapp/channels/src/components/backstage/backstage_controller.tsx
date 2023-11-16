@@ -25,8 +25,8 @@ import EditOauthApp from 'components/integrations/edit_oauth_app';
 import EditOutgoingWebhook from 'components/integrations/edit_outgoing_webhook';
 import InstalledIncomingWebhooks from 'components/integrations/installed_incoming_webhooks';
 import InstalledOauthApps from 'components/integrations/installed_oauth_apps';
-import InstalledOutgoingOAuthConnections from 'components/integrations/installed_outgoing_oauth_connections';
 import InstalledOutgoingWebhooks from 'components/integrations/installed_outgoing_webhooks';
+import InstalledOutgoingOAuthConnections from 'components/integrations/outgoing_oauth_connections/installed_outgoing_oauth_connections';
 
 import Pluggable from 'plugins/pluggable';
 
