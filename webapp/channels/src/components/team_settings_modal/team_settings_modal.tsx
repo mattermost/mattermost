@@ -30,7 +30,7 @@ export default class TeamSettingsModal extends React.PureComponent<Props, State>
         super(props);
 
         this.state = {
-            activeTab: 'general',
+            activeTab: 'info',
             activeSection: '',
             show: true,
         };
@@ -67,7 +67,7 @@ export default class TeamSettingsModal extends React.PureComponent<Props, State>
     // called after the dialog is fully hidden and faded out
     handleHidden = () => {
         this.setState({
-            activeTab: 'general',
+            activeTab: 'info',
             activeSection: '',
         });
         this.props.onExited();
@@ -75,7 +75,8 @@ export default class TeamSettingsModal extends React.PureComponent<Props, State>
 
     render() {
         const tabs = [];
-        tabs.push({name: 'general', uiName: Utils.localizeMessage('team_settings_modal.generalTab', 'General'), icon: 'icon icon-settings-outline', iconTitle: Utils.localizeMessage('generic_icons.settings', 'Settings Icon')});
+        tabs.push({name: 'info', uiName: Utils.localizeMessage('team_settings_modal.infoTab', 'Info'), icon: 'icon icon-information-outline', iconTitle: Utils.localizeMessage('generic_icons.info', 'Info Icon')});
+        tabs.push({name: 'access', uiName: Utils.localizeMessage('team_settings_modal.accessTab', 'Access'), icon: 'icon icon-account-multiple-outline', iconTitle: Utils.localizeMessage('generic_icons.member', 'Member Icon')});
 
         return (
             <Modal
