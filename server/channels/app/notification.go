@@ -1151,6 +1151,18 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 				groupsMap[group.Id] = &group.Group
 			}
 		}
+
+		opts.Source = model.GroupSourceCustom
+		var customgroups []*model.Group
+		customgroups, err = a.Srv().Store().Group().GetGroups(0, 0, opts, nil)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to get custom groups")
+		}
+		for _, group := range customgroups {
+			if group.Name != nil {
+				groupsMap[group.Id] = group
+			}
+		}
 		return groupsMap, nil
 	}
 
