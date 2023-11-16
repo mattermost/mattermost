@@ -3098,21 +3098,21 @@ func (s *RetryLayerChannelBookmarkStore) Update(bookmark *model.ChannelBookmark)
 
 }
 
-func (s *RetryLayerChannelBookmarkStore) UpdateSortOrder(bookmarkId string, channelId string, newSortOrder int64) error {
+func (s *RetryLayerChannelBookmarkStore) UpdateSortOrder(bookmarkId string, channelId string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
 
 	tries := 0
 	for {
-		err := s.ChannelBookmarkStore.UpdateSortOrder(bookmarkId, channelId, newSortOrder)
+		result, err := s.ChannelBookmarkStore.UpdateSortOrder(bookmarkId, channelId, newIndex)
 		if err == nil {
-			return nil
+			return result, nil
 		}
 		if !isRepeatableError(err) {
-			return err
+			return result, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

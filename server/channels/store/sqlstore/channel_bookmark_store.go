@@ -174,25 +174,58 @@ func (s *SqlChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error 
 	return nil
 }
 
-func (s *SqlChannelBookmarkStore) UpdateSortOrder(bookmarkId, channelId string, newSortOrder int64) error {
+func (s *SqlChannelBookmarkStore) UpdateSortOrder(bookmarkId, channelId string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
+	insert := func(slice []*model.ChannelBookmarkWithFileInfo, value *model.ChannelBookmarkWithFileInfo, index int) []*model.ChannelBookmarkWithFileInfo {
+		if len(slice) == index {
+			return append(slice, value)
+		}
+		slice = append(slice[:index+1], slice[index:]...)
+		slice[index] = value
+		return slice
+	}
+
 	now := model.GetMillis()
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	updateSortOrderQuery := "UPDATE ChannelBookmarks SET SortOrder = SortOrder + 1, UpdateAt = ? WHERE Id != ? AND ChannelId = ? AND SortOrder <= ? AND DeleteAt = 0"
-	if _, updateSortOrderErr := transaction.Exec(updateSortOrderQuery, now, bookmarkId, channelId, newSortOrder); updateSortOrderErr != nil {
-		return updateSortOrderErr
+	bookmarks, err := s.GetBookmarksForChannelSince(channelId, 0)
+	if err != nil {
+		return nil, err
 	}
 
-	updateNewSortOrderQuery := "UPDATE ChannelBookmarks SET SortOrder = ?, UpdateAt = ? WHERE Id = ?"
-	if _, updateNewSortOrderErr := transaction.Exec(updateNewSortOrderQuery, newSortOrder, now, bookmarkId); updateNewSortOrderErr != nil {
-		return updateNewSortOrderErr
+	if (int(newIndex) > len(bookmarks)-1) || newIndex < 0 {
+		return nil, errors.New("new sort order out of bounds")
 	}
 
-	return transaction.Commit()
+	currentIndex := -1
+	var current *model.ChannelBookmarkWithFileInfo
+	for index, b := range bookmarks {
+		if b.Id == bookmarkId {
+			currentIndex = index
+			current = b
+			break
+		}
+	}
+
+	if currentIndex == -1 {
+		return nil, errors.New("bookmark to sort not found")
+	}
+
+	bookmarks = append(bookmarks[:currentIndex], bookmarks[currentIndex+1:]...)
+	bookmarks = insert(bookmarks, current, int(newIndex))
+	for index, b := range bookmarks {
+		b.SortOrder = int64(index)
+		updateSort := "UPDATE ChannelBookmarks SET SortOrder = ?, UpdateAt = ? WHERE Id = ?"
+		if _, updateSortOrderErr := transaction.Exec(updateSort, index, now, b.Id); updateSortOrderErr != nil {
+			return nil, updateSortOrderErr
+		}
+	}
+
+	err = transaction.Commit()
+	return bookmarks, err
 }
 
 func (s *SqlChannelBookmarkStore) Delete(bookmarkId string) error {

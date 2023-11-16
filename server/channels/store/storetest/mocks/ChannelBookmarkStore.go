@@ -146,18 +146,30 @@ func (_m *ChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error {
 	return r0
 }
 
-// UpdateSortOrder provides a mock function with given fields: bookmarkId, channelId, newSortOrder
-func (_m *ChannelBookmarkStore) UpdateSortOrder(bookmarkId string, channelId string, newSortOrder int64) error {
-	ret := _m.Called(bookmarkId, channelId, newSortOrder)
+// UpdateSortOrder provides a mock function with given fields: bookmarkId, channelId, newIndex
+func (_m *ChannelBookmarkStore) UpdateSortOrder(bookmarkId string, channelId string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
+	ret := _m.Called(bookmarkId, channelId, newIndex)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, int64) error); ok {
-		r0 = rf(bookmarkId, channelId, newSortOrder)
+	var r0 []*model.ChannelBookmarkWithFileInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, int64) ([]*model.ChannelBookmarkWithFileInfo, error)); ok {
+		return rf(bookmarkId, channelId, newIndex)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, int64) []*model.ChannelBookmarkWithFileInfo); ok {
+		r0 = rf(bookmarkId, channelId, newIndex)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelBookmarkWithFileInfo)
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(string, string, int64) error); ok {
+		r1 = rf(bookmarkId, channelId, newIndex)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 type mockConstructorTestingTNewChannelBookmarkStore interface {

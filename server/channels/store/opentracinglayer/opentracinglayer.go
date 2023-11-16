@@ -2792,7 +2792,7 @@ func (s *OpenTracingLayerChannelBookmarkStore) Update(bookmark *model.ChannelBoo
 	return err
 }
 
-func (s *OpenTracingLayerChannelBookmarkStore) UpdateSortOrder(bookmarkId string, channelId string, newSortOrder int64) error {
+func (s *OpenTracingLayerChannelBookmarkStore) UpdateSortOrder(bookmarkId string, channelId string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelBookmarkStore.UpdateSortOrder")
 	s.Root.Store.SetContext(newCtx)
@@ -2801,13 +2801,13 @@ func (s *OpenTracingLayerChannelBookmarkStore) UpdateSortOrder(bookmarkId string
 	}()
 
 	defer span.Finish()
-	err := s.ChannelBookmarkStore.UpdateSortOrder(bookmarkId, channelId, newSortOrder)
+	result, err := s.ChannelBookmarkStore.UpdateSortOrder(bookmarkId, channelId, newIndex)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return err
+	return result, err
 }
 
 func (s *OpenTracingLayerChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (int64, error) {

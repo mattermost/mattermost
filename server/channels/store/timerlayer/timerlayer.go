@@ -2574,10 +2574,10 @@ func (s *TimerLayerChannelBookmarkStore) Update(bookmark *model.ChannelBookmark)
 	return err
 }
 
-func (s *TimerLayerChannelBookmarkStore) UpdateSortOrder(bookmarkId string, channelId string, newSortOrder int64) error {
+func (s *TimerLayerChannelBookmarkStore) UpdateSortOrder(bookmarkId string, channelId string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
 	start := time.Now()
 
-	err := s.ChannelBookmarkStore.UpdateSortOrder(bookmarkId, channelId, newSortOrder)
+	result, err := s.ChannelBookmarkStore.UpdateSortOrder(bookmarkId, channelId, newIndex)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2587,7 +2587,7 @@ func (s *TimerLayerChannelBookmarkStore) UpdateSortOrder(bookmarkId string, chan
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.UpdateSortOrder", success, elapsed)
 	}
-	return err
+	return result, err
 }
 
 func (s *TimerLayerChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (int64, error) {
