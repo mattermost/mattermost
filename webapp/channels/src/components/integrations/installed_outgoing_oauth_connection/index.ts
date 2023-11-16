@@ -13,9 +13,9 @@ import InstalledOutgoingOAuthConnection from './installed_outgoing_oauth_connect
 import type {InstalledOutgoingOAuthConnectionProps} from './installed_outgoing_oauth_connection';
 
 function mapStateToProps(state: GlobalState, ownProps: InstalledOutgoingOAuthConnectionProps) {
-    const oauthApp = ownProps.oauthApp || {};
+    const connection = ownProps.outgoingOAuthConnection || {};
     return {
-        creatorName: getDisplayNameByUser(state, getUser(state, oauthApp.creator_id)),
+        creatorName: getDisplayNameByUser(state, getUser(state, connection.creator_id)),
     };
 }
 

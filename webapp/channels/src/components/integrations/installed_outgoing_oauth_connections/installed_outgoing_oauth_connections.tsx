@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {OAuthApp} from '@mattermost/types/integrations';
+import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
@@ -13,8 +13,8 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import {DeveloperLinks} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
-import InstalledOAuthApp from '../installed_oauth_app';
-import {matchesFilter} from '../installed_oauth_app/installed_oauth_app';
+import InstalledOutgoingOAuthConnection from '../installed_outgoing_oauth_connection';
+import {matchesFilter} from '../installed_outgoing_oauth_connection/installed_outgoing_oauth_connection';
 
 type Props = {
 
@@ -24,16 +24,11 @@ type Props = {
     team: {name: string};
 
     /**
-    * The oauthApps data
+    * The outgoingOauthConnections data
     */
-    oauthApps: {
-        [key: string]: OAuthApp;
+    outgoingOAuthConnections: {
+        [key: string]: OutgoingOAuthConnection;
     };
-
-    /**
-     * List of IDs for apps managed by the App Framwork
-     */
-    appsOAuthAppIDs: string[];
 
     /**
     * Set if user can manage oath
@@ -46,21 +41,17 @@ type Props = {
     enableOAuthServiceProvider: boolean;
 
     actions: ({
-
-        /**
-        * The function to call to fetch OAuth apps
-        */
-        loadOAuthAppsAndProfiles: (page?: number, perPage?: number) => Promise<void>;
+        loadOutgoingOAuthConnectionsAndProfiles: (page?: number, perPage?: number) => Promise<void>;
 
         /**
         * The function to call when Regenerate Secret link is clicked
         */
-        regenOAuthAppSecret: (appId: string) => Promise<{ error?: Error }>;
+        regenOutgoingOAuthConnectionSecret: (connectionId: string) => Promise<{ error?: Error }>;
 
         /**
         * The function to call when Delete link is clicked
         */
-        deleteOAuthApp: (appId: string) => Promise<void>;
+        deleteOutgoingOAuthConnection: (connectionId: string) => Promise<void>;
     });
 };
 
@@ -78,57 +69,60 @@ export default class InstalledOutgoingOAuthConnections extends React.PureCompone
 
     componentDidMount(): void {
         if (this.props.enableOAuthServiceProvider) {
-            this.props.actions.loadOAuthAppsAndProfiles().then(
+            this.props.actions.loadOutgoingOAuthConnectionsAndProfiles().then(
                 () => this.setState({loading: false}),
             );
         }
     }
 
-    deleteOAuthApp = (app: OAuthApp): void => {
-        if (app && app.id) {
-            this.props.actions.deleteOAuthApp(app.id);
+    deleteOutgoingOAuthConnection = (connection: OutgoingOAuthConnection): void => {
+        if (connection && connection.id) {
+            this.props.actions.deleteOutgoingOAuthConnection(connection.id);
         }
     };
 
-    oauthAppCompare(a: OAuthApp, b: OAuthApp): number {
+    outgoingOauthConnectionCompare(a: OutgoingOAuthConnection, b: OutgoingOAuthConnection): number {
         let nameA = a.name.toString();
         if (!nameA) {
-            nameA = localizeMessage('installed_integrations.unnamed_oauth_app', 'Unnamed OAuth 2.0 Application');
+            nameA = localizeMessage('installed_integrations.unnamed_outgoing_oauth_connection', 'Unnamed Outgoing OAuth Connection');
         }
 
         let nameB = b.name.toString();
         if (!nameB) {
-            nameB = localizeMessage('installed_integrations.unnamed_oauth_app', 'Unnamed OAuth 2.0 Application');
+            nameB = localizeMessage('installed_integrations.unnamed_outgoing_oauth_connection', 'Unnamed Outgoing OAuth Connection');
         }
 
         return nameA.localeCompare(nameB);
     }
 
-    oauthApps = (filter?: string) => Object.values(this.props.oauthApps).
-        filter((app) => matchesFilter(app, filter)).
-        sort(this.oauthAppCompare).
-        map((app) => {
+    outgoingOauthConnections = (filter?: string) => {
+        const values = Object.values(this.props.outgoingOAuthConnections);
+        const filtered = values.filter((connection) => matchesFilter(connection, filter));
+        const sorted = filtered.sort(this.outgoingOauthConnectionCompare);
+        const mapped = sorted.map((connection) => {
             return (
-                <InstalledOAuthApp
-                    key={app.id}
-                    oauthApp={app}
-                    onRegenerateSecret={this.props.actions.regenOAuthAppSecret}
-                    onDelete={this.deleteOAuthApp}
+                <InstalledOutgoingOAuthConnection
+                    key={connection.id}
+                    outgoingOAuthConnection={connection}
+                    onRegenerateSecret={this.props.actions.regenOutgoingOAuthConnectionSecret}
+                    onDelete={this.deleteOutgoingOAuthConnection}
                     team={this.props.team}
                     creatorName=''
-                    fromApp={this.props.appsOAuthAppIDs.includes(app.id)}
                 />
             );
         });
+
+        return mapped;
+    };
 
     render(): JSX.Element {
         const integrationsEnabled = this.props.enableOAuthServiceProvider && this.props.canManageOauth;
         let props;
         if (integrationsEnabled) {
             props = {
-                addLink: '/' + this.props.team.name + '/integrations/oauth2-apps/add',
-                addText: localizeMessage('installed_oauth_apps.add', 'Add OAuth 2.0 Application'),
-                addButtonId: 'addOauthApp',
+                addLink: '/' + this.props.team.name + '/integrations/outgoing-oauth2-connections/add',
+                addText: localizeMessage('installed_outgoing_oauth_connections.add', 'Add Outgoing OAuth Connection'),
+                addButtonId: 'addOutgoingOauthConnection',
             };
         }
 
@@ -136,34 +130,23 @@ export default class InstalledOutgoingOAuthConnections extends React.PureCompone
             <BackstageList
                 header={
                     <FormattedMessage
-                        id='installed_oauth2_apps.header'
-                        defaultMessage='OAuth 2.0 Applications'
+                        id='installed_outgoing_oauth_connections.header'
+                        defaultMessage='Outgoing OAuth Connections'
                     />
                 }
                 helpText={
                     <FormattedMessage
-                        id='installed_oauth_apps.help'
-                        defaultMessage='Create {oauthApplications} to securely integrate bots and third-party apps with Mattermost. Visit the {appDirectory} to find available self-hosted apps.'
+                        id='installed_outgoing_oauth_connections.help'
+                        defaultMessage='Create {outgoingOauthConnections} to securely integrate bots and third-party apps with Mattermost.'
                         values={{
-                            oauthApplications: (
+                            outgoingOauthConnections: (
                                 <ExternalLink
                                     href={DeveloperLinks.SETUP_OAUTH2}
-                                    location='installed_oauth_apps'
+                                    location='installed_outgoing_oauth_connections'
                                 >
                                     <FormattedMessage
-                                        id='installed_oauth_apps.help.oauthApplications'
-                                        defaultMessage='OAuth 2.0 applications'
-                                    />
-                                </ExternalLink>
-                            ),
-                            appDirectory: (
-                                <ExternalLink
-                                    href='https://mattermost.com/marketplace/'
-                                    location='installed_oauth_apps'
-                                >
-                                    <FormattedMessage
-                                        id='installed_oauth_apps.help.appDirectory'
-                                        defaultMessage='App Directory'
+                                        id='installed_outgoing_oauth_connections.help.outgoingOauthConnections'
+                                        defaultMessage='Outgoing OAuth Connections'
                                     />
                                 </ExternalLink>
                             ),
@@ -172,22 +155,22 @@ export default class InstalledOutgoingOAuthConnections extends React.PureCompone
                 }
                 emptyText={
                     <FormattedMessage
-                        id='installed_oauth_apps.empty'
-                        defaultMessage='No OAuth 2.0 Applications found'
+                        id='installed_outgoing_oauth_connections.empty'
+                        defaultMessage='No Outgoing OAuth Connections found'
                     />
                 }
                 emptyTextSearch={
                     <FormattedMarkdownMessage
-                        id='installed_oauth_apps.emptySearch'
-                        defaultMessage='No OAuth 2.0 Applications match {searchTerm}'
+                        id='installed_outgoing_oauth_connections.emptySearch'
+                        defaultMessage='No Outgoing OAuth Connections match {searchTerm}'
                     />
                 }
-                searchPlaceholder={localizeMessage('installed_oauth_apps.search', 'Search OAuth 2.0 Applications')}
+                searchPlaceholder={localizeMessage('installed_outgoing_oauth_connections.search', 'Search Outgoing OAuth Connections')}
                 loading={this.state.loading}
                 {...props}
             >
                 {(filter: string) => {
-                    const children = this.oauthApps(filter);
+                    const children = this.outgoingOauthConnections(filter);
                     return [children, children.length > 0];
                 }}
             </BackstageList>

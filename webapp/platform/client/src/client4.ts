@@ -87,6 +87,7 @@ import {
     DialogSubmission,
     IncomingWebhook,
     OAuthApp,
+    OutgoingOAuthConnection,
     OutgoingWebhook,
     SubmitDialogResponse,
 } from '@mattermost/types/integrations';
@@ -167,7 +168,7 @@ export default class Client4 {
     csrf = '';
     url = '';
     urlVersion = '/api/v4';
-    userAgent: string|null = null;
+    userAgent: string | null = null;
     enableLogging = false;
     defaultHeaders: {[x: string]: string} = {};
     userId = '';
@@ -375,6 +376,15 @@ export default class Client4 {
     getOAuthAppRoute(appId: string) {
         return `${this.getOAuthAppsRoute()}/${appId}`;
     }
+
+    getOutgoingOAuthConnectionsRoute() {
+        return `${this.getBaseRoute()}/oauth/outgoing_connections`;
+    }
+
+    getOutgoingOAuthConnectionRoute(connectionId: string) {
+        return `${this.getBaseRoute()}/oauth/outgoing_connections/${connectionId}`;
+    }
+
 
     getEmojisRoute() {
         return `${this.getBaseRoute()}/emoji`;
@@ -2687,6 +2697,38 @@ export default class Client4 {
         );
     };
 
+    getOutgoingOAuthConnections = (page = 0, perPage = PER_PAGE_DEFAULT) => {
+        const connection: OutgoingOAuthConnection = {
+            'id': 'someid',
+            'name': 'some name',
+            'creator_id': '0',
+            'create_at': 0,
+            'update_at': 0,
+            'client_id': 'some client id',
+            'client_secret': 'some secret',
+            'credentials_username': '',
+            'credentials_password': '',
+            'oauth_token_url': '',
+            'grant_type': 'client_credentials',
+            'audiences': ['https://myserver.com/my/integration/path'],
+        }
+        return Promise.resolve([
+            connection,
+        ]);
+
+        return this.doFetch<OutgoingOAuthConnection[]>(
+            `${this.getOutgoingOAuthConnectionsRoute()}${buildQueryString({page, per_page: perPage})}`,
+            {method: 'get'},
+        );
+    };
+
+    getOutgoingOAuthConnection = (connectionId: string) => {
+        return this.doFetch<OutgoingOAuthConnection>(
+            `${this.getOutgoingOAuthConnectionRoute(connectionId)}`,
+            {method: 'get'},
+        );
+    };
+
     getOAuthAppInfo = (appId: string) => {
         return this.doFetch<OAuthApp>(
             `${this.getOAuthAppRoute(appId)}/info`,
@@ -2709,6 +2751,24 @@ export default class Client4 {
             {method: 'post'},
         );
     };
+
+    deleteOutgoingOAuthConnection = (connectionId: string) => {
+        this.trackEvent('api', 'api_apps_delete');
+
+        return this.doFetch<StatusOK>(
+            `${this.getOutgoingOAuthConnectionRoute(connectionId)}`,
+            {method: 'delete'},
+        );
+    };
+
+    regenOutgoingOAuthConnectionSecret = (connectionId: string) => {
+        return this.doFetch<OutgoingOAuthConnection>(
+            `${this.getOutgoingOAuthConnectionRoute(connectionId)}/regen_secret`,
+            {method: 'post'},
+        );
+    };
+
+
 
     submitInteractiveDialog = (data: DialogSubmission) => {
         this.trackEvent('api', 'api_interactive_messages_dialog_submitted');

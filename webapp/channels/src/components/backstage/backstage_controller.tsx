@@ -188,6 +188,18 @@ const BackstageController = (props: Props) => {
                     />
                     <BackstageRoute
                         extraProps={extraProps}
+                        exact={true}
+                        path={`${props.match.url}/outgoing-oauth2-connections/add`}
+                        component={InstalledOutgoingOAuthConnections}
+                    />
+                    <BackstageRoute
+                        extraProps={extraProps}
+                        exact={true}
+                        path={`${props.match.url}/outgoing-oauth2-connections/edit`}
+                        component={InstalledOutgoingOAuthConnections}
+                    />
+                    <BackstageRoute
+                        extraProps={extraProps}
                         path={`${props.match.url}/confirm`}
                         component={ConfirmIntegration}
                     />

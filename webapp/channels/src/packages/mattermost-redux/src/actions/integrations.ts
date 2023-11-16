@@ -297,6 +297,17 @@ export function getOAuthApps(page = 0, perPage: number = General.PAGE_SIZE_DEFAU
     });
 }
 
+export function getOutgoingOAuthConnections(page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): ActionFunc {
+    return bindClientFunc({
+        clientFunc: Client4.getOutgoingOAuthConnections,
+        onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTIONS],
+        params: [
+            page,
+            perPage,
+        ],
+    });
+}
+
 export function getAppsOAuthAppIDs(): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getAppsOAuthAppIDs,
@@ -376,6 +387,38 @@ export function regenOAuthAppSecret(appId: string): ActionFunc {
         onSuccess: [IntegrationTypes.RECEIVED_OAUTH_APP],
         params: [
             appId,
+        ],
+    });
+}
+
+export function deleteOutgoingOAuthConnection(id: string): ActionFunc {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        try {
+            await Client4.deleteOutgoingOAuthConnection(id);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch(batchActions([
+            {
+                type: IntegrationTypes.DELETED_OUTGOING_OAUTH_CONNECTION,
+                data: {id},
+            },
+        ]));
+
+        return {data: true};
+    };
+}
+
+export function regenOutgoingOAuthConnectionSecret(connectionId: string): ActionFunc {
+    return bindClientFunc({
+        clientFunc: Client4.regenOutgoingOAuthConnectionSecret,
+        onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTION],
+        params: [
+            connectionId,
         ],
     });
 }
