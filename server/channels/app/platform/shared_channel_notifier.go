@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
@@ -34,7 +35,7 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 	if syncService == nil {
 		return
 	}
-	if isEligibleForEvents(syncService, event, toStringArray(sharedChannelEventsForSync)) {
+	if isEligibleForEvents(syncService, event, sharedChannelEventsForSync) {
 		err := handleContentSync(ps, syncService, event)
 		if err != nil {
 			mlog.Warn(
@@ -43,7 +44,7 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 				mlog.String("action", "content_sync"),
 			)
 		}
-	} else if isEligibleForEvents(syncService, event, toStringArray(sharedChannelEventsForInvitation)) {
+	} else if isEligibleForEvents(syncService, event, sharedChannelEventsForInvitation) {
 		err := handleInvitation(ps, syncService, event)
 		if err != nil {
 			mlog.Warn(
@@ -55,10 +56,10 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 	}
 }
 
-func isEligibleForEvents(syncService SharedChannelServiceIFace, event *model.WebSocketEvent, events model.StringArray) bool {
+func isEligibleForEvents(syncService SharedChannelServiceIFace, event *model.WebSocketEvent, events []model.WebsocketEventType) bool {
 	return syncServiceEnabled(syncService) &&
 		eventHasChannel(event) &&
-		events.Contains(string(event.EventType()))
+		utils.Contains(events, event.EventType())
 }
 
 func eventHasChannel(event *model.WebSocketEvent) bool {
@@ -144,12 +145,4 @@ func findChannel(server *PlatformService, channelId string) (*model.Channel, err
 	}
 
 	return channel, nil
-}
-
-func toStringArray(arr []model.WebsocketEventType) model.StringArray {
-	stringArray := make([]string, len(arr))
-	for i, item := range arr {
-		stringArray[i] = string(item)
-	}
-	return stringArray
 }
