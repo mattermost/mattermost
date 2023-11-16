@@ -16,9 +16,8 @@ import {haveICurrentTeamPermission, haveISystemPermission} from 'mattermost-redu
 import {
     getJoinableTeamIds,
     getCurrentTeam,
-    getCurrentRelativeTeamUrl,
 } from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUser, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
@@ -84,10 +83,8 @@ function mapStateToProps(state: GlobalState) {
         isMentionSearch: rhsState === RHSStates.MENTION,
         teamIsGroupConstrained: Boolean(currentTeam.group_constrained),
         isLicensedForLDAPGroups: state.entities.general.license.LDAPGroups === 'true',
-        teamUrl: getCurrentRelativeTeamUrl(state),
         guestAccessEnabled: config.EnableGuestAccounts === 'true',
         canInviteTeamMember,
-        isFirstAdmin: isFirstAdmin(state),
         isCloud,
         isStarterFree,
         isFreeTrial,
