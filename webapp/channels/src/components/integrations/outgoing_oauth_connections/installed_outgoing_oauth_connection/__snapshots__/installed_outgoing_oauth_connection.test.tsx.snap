@@ -38,7 +38,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnection should match s
             id="installed_integrations.showSecret"
           />
         </button>
-         - 
+         -
         <button
           className="style--none color--link"
           id="regenerateSecretButton"
@@ -49,16 +49,16 @@ exports[`components/integrations/InstalledOutgoingOAuthConnection should match s
             id="installed_integrations.regenSecret"
           />
         </button>
-         - 
+         -
         <Link
-          to="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
+          to="/team_name/integrations/outgoing-oauth2-connections/edit?id=facxd9wpzpbpfp8pad78xj75pr"
         >
           <MemoizedFormattedMessage
             defaultMessage="Edit"
             id="installed_integrations.edit"
           />
         </Link>
-         - 
+         -
         <Connect(DeleteIntegrationLink)
           modalMessage={
             <Memo(MemoizedFormattedMessage)
@@ -262,7 +262,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnection should match s
             id="installed_integrations.showSecret"
           />
         </button>
-         - 
+         -
         <button
           className="style--none color--link"
           id="regenerateSecretButton"
@@ -273,16 +273,16 @@ exports[`components/integrations/InstalledOutgoingOAuthConnection should match s
             id="installed_integrations.regenSecret"
           />
         </button>
-         - 
+         -
         <Link
-          to="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
+          to="/team_name/integrations/outgoing-oauth2-connections/edit?id=facxd9wpzpbpfp8pad78xj75pr"
         >
           <MemoizedFormattedMessage
             defaultMessage="Edit"
             id="installed_integrations.edit"
           />
         </Link>
-         - 
+         -
         <Connect(DeleteIntegrationLink)
           modalMessage={
             <Memo(MemoizedFormattedMessage)
@@ -441,7 +441,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnection should match s
             id="installed_integrations.showSecret"
           />
         </button>
-         - 
+         -
         <button
           className="style--none color--link"
           id="regenerateSecretButton"
@@ -452,16 +452,16 @@ exports[`components/integrations/InstalledOutgoingOAuthConnection should match s
             id="installed_integrations.regenSecret"
           />
         </button>
-         - 
+         -
         <Link
-          to="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
+          to="/team_name/integrations/outgoing-oauth2-connections/edit?id=facxd9wpzpbpfp8pad78xj75pr"
         >
           <MemoizedFormattedMessage
             defaultMessage="Edit"
             id="installed_integrations.edit"
           />
         </Link>
-         - 
+         -
         <Connect(DeleteIntegrationLink)
           modalMessage={
             <Memo(MemoizedFormattedMessage)

@@ -3,7 +3,7 @@
 exports[`components/integrations/InstalledOutgoingOAuthConnections should match snapshot 1`] = `
 <BackstageList
   addButtonId="addOauthApp"
-  addLink="/test/integrations/oauth2-apps/add"
+  addLink="/test/integrations/outgoing-oauth2-connections/add"
   addText="Add OAuth 2.0 Application"
   emptyText={
     <Memo(MemoizedFormattedMessage)

@@ -26,6 +26,8 @@ import EditOutgoingWebhook from 'components/integrations/edit_outgoing_webhook';
 import InstalledIncomingWebhooks from 'components/integrations/installed_incoming_webhooks';
 import InstalledOauthApps from 'components/integrations/installed_oauth_apps';
 import InstalledOutgoingWebhooks from 'components/integrations/installed_outgoing_webhooks';
+import AddOutgoingOAuthConnection from 'components/integrations/outgoing_oauth_connections/add_outgoing_oauth_connection';
+import EditOutgoingOAuthConnection from 'components/integrations/outgoing_oauth_connections/edit_outgoing_oauth_connection';
 import InstalledOutgoingOAuthConnections from 'components/integrations/outgoing_oauth_connections/installed_outgoing_oauth_connections';
 
 import Pluggable from 'plugins/pluggable';
@@ -190,13 +192,13 @@ const BackstageController = (props: Props) => {
                         extraProps={extraProps}
                         exact={true}
                         path={`${props.match.url}/outgoing-oauth2-connections/add`}
-                        component={InstalledOutgoingOAuthConnections}
+                        component={AddOutgoingOAuthConnection}
                     />
                     <BackstageRoute
                         extraProps={extraProps}
                         exact={true}
                         path={`${props.match.url}/outgoing-oauth2-connections/edit`}
-                        component={InstalledOutgoingOAuthConnections}
+                        component={EditOutgoingOAuthConnection}
                     />
                     <BackstageRoute
                         extraProps={extraProps}

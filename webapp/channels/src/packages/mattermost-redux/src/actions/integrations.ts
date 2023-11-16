@@ -3,7 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {Command, CommandArgs, DialogSubmission, IncomingWebhook, OAuthApp, OutgoingWebhook} from '@mattermost/types/integrations';
+import type {Command, CommandArgs, DialogSubmission, IncomingWebhook, OAuthApp, OutgoingOAuthConnection, OutgoingWebhook} from '@mattermost/types/integrations';
 
 import {IntegrationTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
@@ -304,6 +304,36 @@ export function getOutgoingOAuthConnections(page = 0, perPage: number = General.
         params: [
             page,
             perPage,
+        ],
+    });
+}
+
+export function addOutgoingOAuthConnection(app: OutgoingOAuthConnection): ActionFunc {
+    return bindClientFunc({
+        clientFunc: Client4.createOutgoingOAuthConnection,
+        onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTION],
+        params: [
+            app,
+        ],
+    });
+}
+
+export function editOutgoingOAuthConnection(app: OutgoingOAuthConnection): ActionFunc {
+    return bindClientFunc({
+        clientFunc: Client4.editOutgoingOAuthConnection,
+        onSuccess: IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTION,
+        params: [
+            app,
+        ],
+    });
+}
+
+export function getOutgoingOAuthConnection(appId: string): ActionFunc {
+    return bindClientFunc({
+        clientFunc: Client4.getOutgoingOAuthConnection,
+        onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTION],
+        params: [
+            appId,
         ],
     });
 }
