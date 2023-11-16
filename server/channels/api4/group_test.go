@@ -1189,6 +1189,22 @@ func TestGetGroupsByTeam(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Empty(t, groups)
 	})
+
+	t.Run("groups should be fetched only by users with manage_system permission", func(t *testing.T) {
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			groups, _, _, err := client.GetGroupsByTeam(context.Background(), th.BasicTeam.Id, opts)
+			require.NoError(t, err)
+			require.Len(t, groups, 1)
+			require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(true)}}, groups)
+			require.NotNil(t, groups[0].SchemeAdmin)
+			require.True(t, *groups[0].SchemeAdmin)
+		}, "groups can be fetched by system admins")
+
+		groups, _, response, err := th.Client.GetGroupsByTeam(context.Background(), th.BasicTeam.Id, opts)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		require.Empty(t, groups)
+	})
 }
 
 func TestGetGroups(t *testing.T) {
