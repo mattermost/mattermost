@@ -307,6 +307,7 @@ func TestOAuthOutgoingConnectionSanitize(t *testing.T) {
 	oa := newValidOAuthOutgoingConnection()
 	oa.Sanitize()
 
-	require.Empty(t, oa.ClientId)
 	require.Empty(t, oa.ClientSecret)
+	require.Empty(t, oa.CredentialsUsername)
+	require.Empty(t, oa.CredentialsPassword)
 }
