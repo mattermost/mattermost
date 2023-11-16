@@ -198,7 +198,7 @@ describe('rhs view actions', () => {
         const draft = {message: 'test msg', fileInfos: [{id: 1}], uploadsInProgress: [2, 3]};
 
         test('it calls setGlobalItem action correctly', () => {
-            jest.useFakeTimers('modern');
+            jest.useFakeTimers();
             jest.setSystemTime(42);
             store.dispatch(updateCommentDraft(rootId, draft));
 
@@ -219,7 +219,7 @@ describe('rhs view actions', () => {
 
     describe('makeOnMoveHistoryIndex', () => {
         beforeAll(() => {
-            jest.useFakeTimers('modern');
+            jest.useFakeTimers();
             jest.setSystemTime(42);
         });
 

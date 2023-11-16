@@ -38,17 +38,23 @@ const config = {
         ['jest-junit', {outputDirectory: 'build', outputName: 'test-results.xml'}],
     ],
     transformIgnorePatterns: [
-        'node_modules/(?!react-native|react-router|p-queue|p-timeout|@mattermost/compass-components|@mattermost/compass-icons)',
+        'node_modules/(?!react-native|react-router|p-queue|p-timeout|@mattermost/compass-components|@mattermost/compass-icons|cidr-regex|ip-regex)',
     ],
     setupFiles: ['jest-canvas-mock'],
-    setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts'],
+    setupFilesAfterEnv: ['<rootDir>/src/tests/setup_jest.ts'],
     testEnvironment: 'jsdom',
     testTimeout: 60000,
-    testURL: 'http://localhost:8065',
+    testEnvironmentOptions: {
+        url: 'http://localhost:8065',
+    },
     watchPlugins: [
         'jest-watch-typeahead/filename',
         'jest-watch-typeahead/testname',
     ],
+    snapshotFormat: {
+        escapeString: true,
+        printBasicPrototype: true,
+    },
 };
 
 module.exports = config;

@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
+import type {MouseEvent} from 'react';
 import {NavLink} from 'react-router-dom';
 
 import {getHistory} from 'utils/browser_history';
@@ -24,29 +25,26 @@ type Props = {
     className?: string;
     onClick?: (e: React.MouseEvent) => void;
 };
-export default class BlockableLink extends React.PureComponent<Props> {
-    private handleClick = (e: React.MouseEvent) => {
-        if (this.props.onClick) {
-            this.props.onClick(e);
-        }
-        if (this.props.blocked) {
+
+const BlockableLink = ({blocked, actions, onClick, to, ...restProps}: Props) => {
+    const handleClick = useCallback((e: MouseEvent) => {
+        onClick?.(e);
+
+        if (blocked) {
             e.preventDefault();
-            this.props.actions.deferNavigation(() => {
-                getHistory().push(this.props.to);
+            actions.deferNavigation(() => {
+                getHistory().push(to);
             });
         }
-    };
+    }, [actions, blocked, onClick, to]);
 
-    public render() {
-        const props = {...this.props};
-        Reflect.deleteProperty(props, 'blocked');
-        Reflect.deleteProperty(props, 'actions');
+    return (
+        <NavLink
+            {...restProps}
+            to={to}
+            onClick={handleClick}
+        />
+    );
+};
 
-        return (
-            <NavLink
-                {...props}
-                onClick={this.handleClick}
-            />
-        );
-    }
-}
+export default React.memo(BlockableLink);

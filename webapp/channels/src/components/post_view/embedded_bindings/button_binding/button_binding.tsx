@@ -35,7 +35,7 @@ type State = {
     executing: boolean;
 }
 
-export class ButtonBinding extends React.PureComponent<Props, State> {
+class ButtonBinding extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {

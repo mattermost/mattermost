@@ -62,7 +62,7 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
         target={[Function]}
         topOffset={-5}
       />
-      <Connect(ChannelPermissionGate)
+      <Connect(Component)
         channelId=""
         permissions={
           Array [
@@ -105,7 +105,7 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
             </span>
           </button>
         </OverlayTrigger>
-      </Connect(ChannelPermissionGate)>
+      </Connect(Component)>
     </span>
   </div>
 </div>

@@ -241,7 +241,7 @@ func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64)
 // ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
 // A new ExpiresAt is only written if enough time has elapsed since last update.
 // Returns true only if the session was extended.
-func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
+func (a *App) ExtendSessionExpiryIfNeeded(rctx request.CTX, session *model.Session) bool {
 	if !*a.Config().ServiceSettings.ExtendSessionLengthWithActivity {
 		return false
 	}
@@ -268,8 +268,8 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 		return false
 	}
 
-	auditRec := a.MakeAuditRecord("extendSessionExpiry", audit.Fail)
-	defer a.LogAuditRec(auditRec, nil)
+	auditRec := a.MakeAuditRecord(rctx, "extendSessionExpiry", audit.Fail)
+	defer a.LogAuditRec(rctx, auditRec, nil)
 	auditRec.AddEventPriorState(session)
 
 	newExpiry := now + sessionLength

@@ -1,6 +1,4 @@
 dashboard
-.env
-!.env.cypress
-!.env.server
-!.env.server.cloud
-!.env.dashboard
+server.yml
+env
+.env.*

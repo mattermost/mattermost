@@ -1626,6 +1626,22 @@
     "translation": "Invitation is expired."
   },
   {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "An error has occurred while applying IP Filters"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "An error has occurred while fetching IP Filters"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "An error has occurred while fetching the client's IP address"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP Filtering is not available on this server"
+  },
+  {
     "id": "api.context.json_encoding.app_error",
     "translation": "Error encoding JSON."
   },
@@ -3705,6 +3721,38 @@
   {
     "id": "api.templates.invite_team_and_channels_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Review changes"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} changed the IP filtering settings for your workspace at the URL: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Changes to Your Workspace's IP Filters"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "IP filtering changes for your workspace"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Contact support"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Log in to the customer portal to reset IP filtering"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Send an email to {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Having trouble accessing your workspace?"
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
@@ -5969,6 +6017,10 @@
   {
     "id": "app.license.generate_renewal_token.no_license",
     "translation": "No license present"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Could not update last login timestamp"
   },
   {
     "id": "app.member_count",
@@ -8860,7 +8912,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Identity Provider Issuer URL must be a valid URL and start with http:// or https://."
+    "translation": "Identity Provider Issuer URL cannot be an empty string."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -9900,11 +9952,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 116+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 116+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",

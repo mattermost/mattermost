@@ -223,8 +223,13 @@ func (ps *PlatformService) ExtendSessionExpiry(session *model.Session, newExpiry
 	return nil
 }
 
-func (ps *PlatformService) UpdateSessionsIsGuest(c request.CTX, userID string, isGuest bool) error {
-	sessions, err := ps.GetSessions(c, userID)
+func (ps *PlatformService) UpdateSessionsIsGuest(c request.CTX, user *model.User, isGuest bool) error {
+	sessions, err := ps.GetSessions(c, user.Id)
+	if err != nil {
+		return err
+	}
+
+	_, err = ps.Store.Session().UpdateRoles(user.Id, user.GetRawRoles())
 	if err != nil {
 		return err
 	}
