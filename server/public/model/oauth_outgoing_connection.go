@@ -8,32 +8,32 @@ import (
 	"unicode/utf8"
 )
 
-type GrantType string
+type OAuthOutgoingConnectionGrantType string
 
-func (gt GrantType) IsValid() bool {
+func (gt OAuthOutgoingConnectionGrantType) IsValid() bool {
 	return gt == GrantTypeClientCredentials || gt == GrantTypePassword
 }
 
 const (
-	GrantTypeClientCredentials GrantType = "client_credentials"
-	GrantTypePassword          GrantType = "password"
+	GrantTypeClientCredentials OAuthOutgoingConnectionGrantType = "client_credentials"
+	GrantTypePassword          OAuthOutgoingConnectionGrantType = "password"
 
 	defaultGetConnectionsLimit = 50
 )
 
 type OAuthOutgoingConnection struct {
-	Id                  string      `json:"id"`
-	CreatorId           string      `json:"creator_id"`
-	CreateAt            int64       `json:"create_at"`
-	UpdateAt            int64       `json:"update_at"`
-	Name                string      `json:"name"`
-	ClientId            string      `json:"client_id"`
-	ClientSecret        string      `json:"client_secret"`
-	CredentialsUsername *string     `json:"credentials_username,omitempty"`
-	CredentialsPassword *string     `json:"credentials_password,omitempty"`
-	OAuthTokenURL       string      `json:"oauth_token_url"`
-	GrantType           GrantType   `json:"grant_type"`
-	Audiences           StringArray `json:"audiences"`
+	Id                  string                           `json:"id"`
+	CreatorId           string                           `json:"creator_id"`
+	CreateAt            int64                            `json:"create_at"`
+	UpdateAt            int64                            `json:"update_at"`
+	Name                string                           `json:"name"`
+	ClientId            string                           `json:"client_id"`
+	ClientSecret        string                           `json:"client_secret"`
+	CredentialsUsername *string                          `json:"credentials_username,omitempty"`
+	CredentialsPassword *string                          `json:"credentials_password,omitempty"`
+	OAuthTokenURL       string                           `json:"oauth_token_url"`
+	GrantType           OAuthOutgoingConnectionGrantType `json:"grant_type"`
+	Audiences           StringArray                      `json:"audiences"`
 }
 
 func (oa *OAuthOutgoingConnection) Auditable() map[string]interface{} {
@@ -139,8 +139,9 @@ func (oa *OAuthOutgoingConnection) Etag() string {
 
 // Sanitize removes any sensitive fields from the OAuthOutgoingConnection object.
 func (oa *OAuthOutgoingConnection) Sanitize() {
-	oa.ClientId = ""
 	oa.ClientSecret = ""
+	oa.CredentialsUsername = nil
+	oa.CredentialsPassword = nil
 }
 
 // OAuthOutgoingConnectionGetConnectionsFilter is used to filter outgoing connections

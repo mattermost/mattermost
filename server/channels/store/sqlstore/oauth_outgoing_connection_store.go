@@ -30,7 +30,7 @@ func (s *SqlOAuthOutgoingConnectionStore) SaveConnection(c request.CTX, conn *mo
 		return nil, err
 	}
 
-	if _, err := s.GetMasterX().NamedExec(`INSERT INTO OAuthOutgoingConnection
+	if _, err := s.GetMasterX().NamedExec(`INSERT INTO OAuthOutgoingConnections
 	(Id, Name, ClientId, ClientSecret, CreateAt, UpdateAt, CreatorId, OAuthTokenURL, GrantType, Audiences)
 	VALUES
 	(:Id, :Name, :ClientId, :ClientSecret, :CreateAt, :UpdateAt, :CreatorId, :OAuthTokenURL, :GrantType, :Audiences)`, conn); err != nil {
@@ -49,7 +49,7 @@ func (s *SqlOAuthOutgoingConnectionStore) UpdateConnection(c request.CTX, conn *
 		return nil, err
 	}
 
-	if _, err := s.GetMasterX().NamedExec(`UPDATE OAuthOutgoingConnection SET
+	if _, err := s.GetMasterX().NamedExec(`UPDATE OAuthOutgoingConnections SET
 	Name=:Name, ClientId=:ClientId, ClientSecret=:ClientSecret, UpdateAt=:UpdateAt, OAuthTokenURL=:OAuthTokenURL, GrantType=:GrantType, Audiences=:Audiences
 	WHERE Id=:Id`, conn); err != nil {
 		return nil, errors.Wrap(err, "failed to update OAuthOutgoingConnection")
@@ -59,7 +59,7 @@ func (s *SqlOAuthOutgoingConnectionStore) UpdateConnection(c request.CTX, conn *
 
 func (s *SqlOAuthOutgoingConnectionStore) GetConnection(c request.CTX, id string) (*model.OAuthOutgoingConnection, error) {
 	conn := &model.OAuthOutgoingConnection{}
-	if err := s.GetReplicaX().Get(conn, `SELECT * FROM OAuthOutgoingConnection WHERE Id=?`, id); err != nil {
+	if err := s.GetReplicaX().Get(conn, `SELECT * FROM OAuthOutgoingConnections WHERE Id=?`, id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("OAuthOutgoingConnection", id)
 		}
@@ -74,7 +74,7 @@ func (s *SqlOAuthOutgoingConnectionStore) GetConnections(c request.CTX, filters 
 	conns := []*model.OAuthOutgoingConnection{}
 	query := s.getQueryBuilder().
 		Select("*").
-		From("OAuthOutgoingConnection").
+		From("OAuthOutgoingConnections").
 		OrderBy("Id").
 		Limit(uint64(filters.Limit))
 
@@ -90,7 +90,7 @@ func (s *SqlOAuthOutgoingConnectionStore) GetConnections(c request.CTX, filters 
 }
 
 func (s *SqlOAuthOutgoingConnectionStore) DeleteConnection(c request.CTX, id string) error {
-	if _, err := s.GetMasterX().Exec(`DELETE FROM OAuthOutgoingConnection WHERE Id=?`, id); err != nil {
+	if _, err := s.GetMasterX().Exec(`DELETE FROM OAuthOutgoingConnections WHERE Id=?`, id); err != nil {
 		return errors.Wrap(err, "failed to delete OAuthOutgoingConnection")
 	}
 	return nil
