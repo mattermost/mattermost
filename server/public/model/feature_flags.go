@@ -44,7 +44,8 @@ type FeatureFlags struct {
 
 	StreamlinedMarketplace bool
 
-	ConsumePostHook bool
+	CloudIPFiltering bool
+	ConsumePostHook  bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -60,6 +61,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
 	f.StreamlinedMarketplace = true
+	f.CloudIPFiltering = false
 	f.ConsumePostHook = false
 }
 
