@@ -4763,6 +4763,30 @@
     "translation": "Failed to update thread membership for mentioned user"
   },
   {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "Could not delete bookmark."
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "Could not get bookmark."
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "Could not save bookmark."
+  },
+  {
+    "id": "app.channel.bookmark.update.app_error",
+    "translation": "Could not update bookmark."
+  },
+  {
+    "id": "app.channel.bookmark.update_deleted.app_error",
+    "translation": "Cannot update an already deleted bookmark."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.app_error",
+    "translation": "Could not sort the bookmark."
+  },
+  {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Failed to retrieve the channel members."
   },
@@ -8431,6 +8455,10 @@
     "translation": "Invalid image url."
   },
   {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "Link url is missing or invalid."
+  },
+  {
     "id": "model.channel_bookmark.is_valid.original_id.app_error",
     "translation": "Invalid original id."
   },
@@ -8449,10 +8477,6 @@
   {
     "id": "model.channel_bookmark.is_valid.update_at.app_error",
     "translation": "Update at must be a valid time."
-  },
-  {
-    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
-    "translation": "Link url is missing or invalid."
   },
   {
     "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
