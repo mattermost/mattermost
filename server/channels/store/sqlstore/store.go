@@ -200,7 +200,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) (*Sql
 	store.stores.compliance = newSqlComplianceStore(store)
 	store.stores.session = newSqlSessionStore(store)
 	store.stores.oauth = newSqlOAuthStore(store)
-	store.stores.OutgoingOAuthConnection = NewSqlOutgoingOAuthConnectionStore(store)
+	store.stores.OutgoingOAuthConnection = newSqlOutgoingOAuthConnectionStore(store)
 	store.stores.system = newSqlSystemStore(store)
 	store.stores.webhook = newSqlWebhookStore(store, metrics)
 	store.stores.command = newSqlCommandStore(store)
