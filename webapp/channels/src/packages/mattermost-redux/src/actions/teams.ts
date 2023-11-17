@@ -74,7 +74,7 @@ export function getMyTeams(): ActionFunc {
 // team but we do not track unread mentions for DMs/GMs independently. This results in a bit of funky logic and edge case bugs
 // that need workarounds like this. In the future we should fix the root cause with better APIs and redux state.
 export function getMyTeamUnreads(collapsedThreads: boolean, skipCurrentTeam = false): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let unreads;
         try {
             unreads = await Client4.getMyTeamUnreads(collapsedThreads);
@@ -126,7 +126,7 @@ export function getTeamByName(teamName: string): ActionFunc<Team, ServerError> {
 }
 
 export function getTeams(page = 0, perPage: number = General.TEAMS_CHUNK_SIZE, includeTotalCount = false, excludePolicyConstrained = false): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
 
         dispatch({type: TeamTypes.GET_TEAMS_REQUEST, data});
@@ -165,7 +165,7 @@ export function getTeams(page = 0, perPage: number = General.TEAMS_CHUNK_SIZE, i
 }
 
 export function searchTeams(term: string, opts: TeamSearchOpts = {}): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         dispatch({type: TeamTypes.GET_TEAMS_REQUEST, data: null});
 
         let response;
@@ -201,7 +201,7 @@ export function searchTeams(term: string, opts: TeamSearchOpts = {}): ActionFunc
 }
 
 export function createTeam(team: Team): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let created;
         try {
             created = await Client4.createTeam(team);
@@ -241,7 +241,7 @@ export function createTeam(team: Team): ActionFunc {
 }
 
 export function deleteTeam(teamId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         try {
             await Client4.deleteTeam(teamId);
         } catch (error) {
@@ -274,7 +274,7 @@ export function deleteTeam(teamId: string): ActionFunc {
 }
 
 export function unarchiveTeam(teamId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let team: Team;
         try {
             team = await Client4.unarchiveTeam(teamId);
@@ -324,7 +324,7 @@ export function regenerateTeamInviteId(teamId: string): ActionFunc {
 }
 
 export function getMyTeamMembers(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const getMyTeamMembersFunc = bindClientFunc({
             clientFunc: Client4.getMyTeamMembers,
             onSuccess: TeamTypes.RECEIVED_MY_TEAM_MEMBERS,
@@ -364,7 +364,7 @@ export function getTeamMembers(teamId: string, page = 0, perPage: number = Gener
 }
 
 export function getTeamMember(teamId: string, userId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let member;
         try {
             const memberRequest = Client4.getTeamMember(teamId, userId);
@@ -388,7 +388,7 @@ export function getTeamMember(teamId: string, userId: string): ActionFunc {
 }
 
 export function getTeamMembersByIds(teamId: string, userIds: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let members;
         try {
             const membersRequest = Client4.getTeamMembersByIds(teamId, userIds);
@@ -457,7 +457,7 @@ export function addUserToTeamFromInvite(token: string, inviteId: string): Action
 }
 
 export function addUserToTeam(teamId: string, userId: string): ActionFunc<TeamMembership, ServerError> {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let member;
         try {
             member = await Client4.addToTeam(teamId, userId);
@@ -483,7 +483,7 @@ export function addUserToTeam(teamId: string, userId: string): ActionFunc<TeamMe
 }
 
 export function addUsersToTeam(teamId: string, userIds: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let members;
         try {
             members = await Client4.addUsersToTeam(teamId, userIds);
@@ -513,7 +513,7 @@ export function addUsersToTeam(teamId: string, userIds: string[]): ActionFunc {
 }
 
 export function addUsersToTeamGracefully(teamId: string, userIds: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let result: TeamMemberWithError[];
         try {
             result = await Client4.addUsersToTeamGracefully(teamId, userIds);
@@ -543,7 +543,7 @@ export function addUsersToTeamGracefully(teamId: string, userIds: string[]): Act
 }
 
 export function removeUserFromTeam(teamId: string, userId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         try {
             await Client4.removeFromTeam(teamId, userId);
         } catch (error) {
@@ -597,7 +597,7 @@ export function removeUserFromTeam(teamId: string, userId: string): ActionFunc {
 }
 
 export function updateTeamMemberRoles(teamId: string, userId: string, roles: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         try {
             await Client4.updateTeamMemberRoles(teamId, userId, roles);
         } catch (error) {
@@ -691,7 +691,7 @@ export function getTeamInviteInfo(inviteId: string): ActionFunc {
 }
 
 export function checkIfTeamExists(teamName: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.checkIfTeamExists(teamName);
@@ -706,7 +706,7 @@ export function checkIfTeamExists(teamName: string): ActionFunc {
 }
 
 export function joinTeam(inviteId: string, teamId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         dispatch({type: TeamTypes.JOIN_TEAM_REQUEST, data: null});
 
         const state = getState();
@@ -737,7 +737,7 @@ export function joinTeam(inviteId: string, teamId: string): ActionFunc {
 }
 
 export function setTeamIcon(teamId: string, imageData: File): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+    return async (dispatch) => {
         await Client4.setTeamIcon(teamId, imageData);
         const team = await Client4.getTeam(teamId);
         dispatch({
@@ -749,7 +749,7 @@ export function setTeamIcon(teamId: string, imageData: File): ActionFunc {
 }
 
 export function removeTeamIcon(teamId: string): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+    return async (dispatch) => {
         await Client4.removeTeamIcon(teamId);
         const team = await Client4.getTeam(teamId);
         dispatch({

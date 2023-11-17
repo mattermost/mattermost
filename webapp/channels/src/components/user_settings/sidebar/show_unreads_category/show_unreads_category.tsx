@@ -5,8 +5,6 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {PreferenceType} from '@mattermost/types/preferences';
-
 import {Preferences} from 'mattermost-redux/constants';
 
 import SettingItemMax from 'components/setting_item_max';
@@ -15,12 +13,11 @@ import type SettingItemMinComponent from 'components/setting_item_min/setting_it
 
 import {a11yFocus} from 'utils/utils';
 
-type Props = {
+import type {PropsFromRedux} from '.';
+
+type Props = PropsFromRedux & {
     active: boolean;
     areAllSectionsInactive: boolean;
-    currentUserId: string;
-    savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<{data: boolean}>;
-    showUnreadsCategory: boolean;
     updateSection: (section: string) => void;
 }
 

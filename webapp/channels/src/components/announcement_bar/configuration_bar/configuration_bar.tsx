@@ -8,9 +8,6 @@ import type {IntlShape} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
-import type {PreferenceType} from '@mattermost/types/preferences';
-
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -30,27 +27,14 @@ import AnnouncementBar from '../default_announcement_bar';
 import RenewalLink from '../renewal_link/';
 import TextDismissableBar from '../text_dismissable_bar';
 
-type Props = {
+import type {PropsFromRedux} from '.';
+
+export type Props = PropsFromRedux & {
     config?: Partial<ClientConfig>;
     intl: IntlShape;
     license?: any;
     canViewSystemErrors: boolean;
-    dismissedExpiringTrialLicense?: boolean;
-    dismissedExpiringLicense?: boolean;
-    dismissedExpiredLicense?: boolean;
-    dismissedNumberOfActiveUsersWarnMetricStatus?: boolean;
-    dismissedNumberOfActiveUsersWarnMetricStatusAck?: boolean;
-    dismissedNumberOfPostsWarnMetricStatus?: boolean;
-    dismissedNumberOfPostsWarnMetricStatusAck?: boolean;
-    siteURL: string;
-    currentUserId: string;
     warnMetricsStatus?: Record<string, WarnMetricStatus>;
-    actions: {
-        dismissNotice: (notice: string) => void;
-        savePreferences: (userId: string, preferences: PreferenceType[]) => (dispatch: DispatchFunc) => Promise<{
-            data: boolean;
-        }>;
-    };
 };
 
 const ConfigurationAnnouncementBar = (props: Props) => {

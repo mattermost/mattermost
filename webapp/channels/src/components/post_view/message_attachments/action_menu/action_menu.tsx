@@ -34,7 +34,7 @@ export default class ActionMenu extends React.PureComponent<Props, State> {
         this.providers = [];
         if (action) {
             if (action.data_source === 'users') {
-                this.providers = [new GenericUserProvider(props.autocompleteUsers)];
+                this.providers = [new GenericUserProvider(props.autocompleteUsers as any)];
             } else if (action.data_source === 'channels') {
                 this.providers = [new GenericChannelProvider(props.autocompleteChannels)];
             } else if (action.options) {

@@ -266,6 +266,7 @@ describe('components/PermalinkView', () => {
                 expect(getPostThread).toHaveBeenCalledWith('gmpostid1');
                 expect(testStore.getActions()).toEqual([
                     {type: 'MOCK_GET_POST_THREAD', data: {posts: {gmpostid1: {id: 'gmpostid1', message: 'some message', channel_id: 'gmchannelid'}}, order: ['gmpostid1']}},
+                    {type: 'RECEIVED_PREFERENCES', data: [{category: 'group_channel_show', name: 'gmchannelid', user_id: 'current_user_id', value: 'true'}]},
                     {type: 'MOCK_SELECT_CHANNEL', args: ['gmchannelid']},
                     {type: 'RECEIVED_FOCUSED_POST', channelId: 'gmchannelid', data: 'gmpostid1'},
                     {type: 'MOCK_LOAD_CHANNELS_FOR_CURRENT_USER'},

@@ -10,13 +10,13 @@ import {SyncableType, GroupSource} from '@mattermost/types/groups';
 import {ChannelTypes, GroupTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 export function linkGroupSyncable(groupID: string, syncableID: string, syncableType: SyncableType, patch: SyncablePatch): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.linkGroupSyncable(groupID, syncableID, syncableType, patch);
@@ -48,7 +48,7 @@ export function linkGroupSyncable(groupID: string, syncableID: string, syncableT
 }
 
 export function unlinkGroupSyncable(groupID: string, syncableID: string, syncableType: SyncableType): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         try {
             await Client4.unlinkGroupSyncable(groupID, syncableID, syncableType);
         } catch (error) {
@@ -83,7 +83,7 @@ export function unlinkGroupSyncable(groupID: string, syncableID: string, syncabl
 }
 
 export function getGroupSyncables(groupID: string, syncableType: SyncableType): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getGroupSyncables(groupID, syncableType);
@@ -114,7 +114,7 @@ export function getGroupSyncables(groupID: string, syncableType: SyncableType): 
 }
 
 export function patchGroupSyncable(groupID: string, syncableID: string, syncableType: SyncableType, patch: SyncablePatch): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.patchGroupSyncable(groupID, syncableID, syncableType, patch);
@@ -324,7 +324,7 @@ export function getGroupStats(groupID: string): ActionFunc {
 }
 
 export function createGroupWithUserIds(group: GroupCreateWithUserIds): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.createGroupWithUserIds(group);
@@ -342,7 +342,7 @@ export function createGroupWithUserIds(group: GroupCreateWithUserIds): ActionFun
 }
 
 export function addUsersToGroup(groupId: string, userIds: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.addUsersToGroup(groupId, userIds);
@@ -364,7 +364,7 @@ export function addUsersToGroup(groupId: string, userIds: string[]): ActionFunc 
 }
 
 export function removeUsersFromGroup(groupId: string, userIds: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.removeUsersFromGroup(groupId, userIds);
@@ -386,7 +386,7 @@ export function removeUsersFromGroup(groupId: string, userIds: string[]): Action
 }
 
 export function searchGroups(params: GroupSearchParams): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.searchGroups(params);
@@ -411,7 +411,7 @@ export function searchGroups(params: GroupSearchParams): ActionFunc {
 }
 
 export function archiveGroup(groupId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.archiveGroup(groupId);
@@ -433,7 +433,7 @@ export function archiveGroup(groupId: string): ActionFunc {
 }
 
 export function restoreGroup(groupId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.restoreGroup(groupId);
@@ -455,7 +455,7 @@ export function restoreGroup(groupId: string): ActionFunc {
 }
 
 export function createGroupTeamsAndChannels(userID: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         try {
             await Client4.createGroupTeamsAndChannels(userID);
         } catch (error) {

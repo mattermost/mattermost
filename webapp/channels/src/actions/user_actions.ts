@@ -225,10 +225,10 @@ export function loadNewDMIfNeeded(channelId: string): ActionFunc {
             const pref = getBool(state, Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, false);
             if (pref === false) {
                 const now = Utils.getTimestamp();
-                savePreferences(currentUserId, [
+                dispatch(savePreferences(currentUserId, [
                     {user_id: currentUserId, category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: userId, value: 'true'},
                     {user_id: currentUserId, category: Preferences.CATEGORY_CHANNEL_OPEN_TIME, name: channelId, value: now.toString()},
-                ])(dispatch);
+                ]));
                 loadProfilesForDM();
                 return {data: true};
             }

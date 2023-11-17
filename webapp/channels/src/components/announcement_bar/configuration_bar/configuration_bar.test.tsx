@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import ConfigurationBar from 'components/announcement_bar/configuration_bar/configuration_bar';
-
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+
+import ConfigurationBar from './configuration_bar';
 
 describe('components/ConfigurationBar', () => {
     const millisPerDay = 24 * 60 * 60 * 1000;
@@ -20,10 +20,15 @@ describe('components/ConfigurationBar', () => {
             ShortSkuName: 'skuShortName',
         },
         config: {
-            sendEmailNotifications: false,
+            SendEmailNotifications: 'false',
         },
+        dismissedExpiringTrialLicense: false,
         dismissedExpiringLicense: false,
         dismissedExpiredLicense: false,
+        dismissedNumberOfActiveUsersWarnMetricStatus: false,
+        dismissedNumberOfActiveUsersWarnMetricStatusAck: false,
+        dismissedNumberOfPostsWarnMetricStatus: false,
+        dismissedNumberOfPostsWarnMetricStatusAck: false,
         siteURL: '',
         totalUsers: 100,
         actions: {

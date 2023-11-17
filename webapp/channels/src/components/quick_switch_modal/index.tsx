@@ -5,8 +5,6 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-
 import {joinChannelById, switchToChannel} from 'actions/views/channel';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
@@ -27,7 +25,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Props['actions']>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Props['actions']>({
             joinChannelById,
             switchToChannel,
             closeRightHandSide,

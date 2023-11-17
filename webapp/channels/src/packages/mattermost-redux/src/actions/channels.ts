@@ -130,7 +130,7 @@ export function createDirectChannel(userId: string, otherUserId: string): Action
             {user_id: userId, category: Preferences.CATEGORY_CHANNEL_OPEN_TIME, name: created.id, value: new Date().getTime().toString()},
         ];
 
-        savePreferences(userId, preferences)(dispatch);
+        dispatch(savePreferences(userId, preferences));
 
         dispatch(batchActions([
             {
@@ -769,7 +769,7 @@ export function updateApproximateViewTime(channelId: string): ActionFunc {
             const preferences = [
                 {user_id: currentUserId, category: Preferences.CATEGORY_CHANNEL_APPROXIMATE_VIEW_TIME, name: channelId, value: new Date().getTime().toString()},
             ];
-            savePreferences(currentUserId, preferences)(dispatch);
+            dispatch(savePreferences(currentUserId, preferences));
         }
         return {data: true};
     };

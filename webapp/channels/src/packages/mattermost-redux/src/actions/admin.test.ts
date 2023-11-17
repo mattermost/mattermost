@@ -1041,7 +1041,7 @@ describe('Actions.Admin', () => {
             post('/warn_metrics/ack/metric1').
             reply(200, OK_RESPONSE);
 
-        await Actions.sendWarnMetricAck(warnMetricAck.id, false)(store.dispatch);
+        await store.dispatch(Actions.sendWarnMetricAck(warnMetricAck.id, false));
 
         expect(nock.isDone()).toBe(true);
     });

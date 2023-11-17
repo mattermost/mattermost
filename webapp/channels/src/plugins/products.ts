@@ -4,7 +4,7 @@
 import type {Store} from 'redux';
 
 import {combineResults} from 'mattermost-redux/actions/helpers';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import store from 'stores/redux_store';
 
@@ -15,8 +15,8 @@ export abstract class ProductPlugin {
     abstract uninitialize(): void;
 }
 
-export function initializeProducts() {
-    return (dispatch: DispatchFunc) => {
+export function initializeProducts(): ActionFunc {
+    return (dispatch) => {
         return combineResults([
             dispatch(loadRemoteModules()),
             dispatch(configureClient()),
@@ -24,16 +24,17 @@ export function initializeProducts() {
     };
 }
 
-function configureClient() {
+function configureClient(): ActionFunc {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return (dispatch, getState) => {
         return Promise.resolve({data: true});
     };
 }
 
-function loadRemoteModules() {
+function loadRemoteModules(): ActionFunc {
     /* eslint-disable no-console */
-    return async (/*dispatch: DispatchFunc, getState: GetStateFunc*/) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return async (dispatch, getState) => {
         // const config = getConfig(getState());
 
         /**

@@ -7,8 +7,6 @@ import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {ValueType} from 'react-select';
 
-import type {PreferenceType} from '@mattermost/types/preferences';
-
 import {Preferences} from 'mattermost-redux/constants';
 
 import SettingItemMax from 'components/setting_item_max';
@@ -17,19 +15,18 @@ import type SettingItemMinComponent from 'components/setting_item_min/setting_it
 
 import {localizeMessage} from 'utils/utils';
 
+import type {PropsFromRedux} from '.';
+
 type Limit = {
     value: number;
     label: string;
 };
 
-type Props = {
+type Props = PropsFromRedux & {
     active: boolean;
     areAllSectionsInactive: boolean;
-    currentUserId: string;
-    savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<{data: boolean}>;
-    dmGmLimit: number;
     updateSection: (section: string) => void;
-}
+};
 
 type State = {
     active: boolean;

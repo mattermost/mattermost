@@ -118,7 +118,7 @@ describe('Actions.Preferences', () => {
         nock(Client4.getUsersRoute()).
             put(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
-        await Actions.savePreferences(user.id, preferences)(store.dispatch);
+        await store.dispatch(Actions.savePreferences(user.id, preferences));
 
         const state = store.getState();
         const {myPreferences} = state.entities.preferences;
@@ -236,10 +236,10 @@ describe('Actions.Preferences', () => {
         nock(Client4.getUsersRoute()).
             put(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
-        Actions.savePreferences(user.id, [{
+        store.dispatch(Actions.savePreferences(user.id, [{
             ...preference,
             value: 'false',
-        }])(store.dispatch);
+        }]));
 
         nock(Client4.getUsersRoute()).
             put(`/${TestHelper.basicUser!.id}/preferences`).

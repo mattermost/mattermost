@@ -10,7 +10,7 @@ import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc, ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
@@ -50,7 +50,7 @@ export function getIncomingHooks(teamId = '', page = 0, perPage: number = Genera
 }
 
 export function removeIncomingHook(hookId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         try {
             await Client4.removeIncomingWebhook(hookId);
         } catch (error) {
@@ -115,7 +115,7 @@ export function getOutgoingHooks(channelId = '', teamId = '', page = 0, perPage:
 }
 
 export function removeOutgoingHook(hookId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         try {
             await Client4.removeOutgoingWebhook(hookId);
         } catch (error) {
@@ -219,7 +219,7 @@ export function executeCommand(command: string, args: CommandArgs): ActionFunc {
 }
 
 export function regenCommandToken(id: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let res;
         try {
             res = await Client4.regenCommandToken(id);
@@ -245,7 +245,7 @@ export function regenCommandToken(id: string): ActionFunc {
 }
 
 export function deleteCommand(id: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         try {
             await Client4.deleteCommand(id);
         } catch (error) {
@@ -322,7 +322,7 @@ export function getOAuthApp(appId: string): ActionFunc {
 }
 
 export function getAuthorizedOAuthApps(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
 
@@ -349,7 +349,7 @@ export function deauthorizeOAuthApp(clientId: string): ActionFunc {
 }
 
 export function deleteOAuthApp(id: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         try {
             await Client4.deleteOAuthApp(id);
         } catch (error) {
@@ -381,7 +381,7 @@ export function regenOAuthAppSecret(appId: string): ActionFunc {
 }
 
 export function submitInteractiveDialog(submission: DialogSubmission): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const state = getState();
         submission.channel_id = getCurrentChannelId(state);
         submission.team_id = getCurrentTeamId(state);

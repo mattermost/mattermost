@@ -7,14 +7,14 @@ import {LogLevel} from '@mattermost/types/client4';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 import {loadRolesIfNeeded} from './roles';
 
 export function getClientConfig(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getClientConfigOld();
@@ -33,7 +33,7 @@ export function getClientConfig(): ActionFunc {
 }
 
 export function getDataRetentionPolicy(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getDataRetentionPolicy();
@@ -90,7 +90,7 @@ export function setUrl(url: string) {
 }
 
 export function getWarnMetricsStatus(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getWarnMetricsStatus();
@@ -105,7 +105,7 @@ export function getWarnMetricsStatus(): ActionFunc {
 }
 
 export function setFirstAdminVisitMarketplaceStatus(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+    return async (dispatch) => {
         try {
             await Client4.setFirstAdminVisitMarketplaceStatus();
         } catch (e) {
@@ -118,7 +118,7 @@ export function setFirstAdminVisitMarketplaceStatus(): ActionFunc {
 }
 
 export function getFirstAdminVisitMarketplaceStatus(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getFirstAdminVisitMarketplaceStatus();
@@ -135,7 +135,7 @@ export function getFirstAdminVisitMarketplaceStatus(): ActionFunc {
 
 // accompanying "set" happens as part of Client4.completeSetup
 export function getFirstAdminSetupComplete(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getFirstAdminSetupComplete();
