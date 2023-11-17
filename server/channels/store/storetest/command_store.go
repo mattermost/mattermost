@@ -10,22 +10,23 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestCommandStore(t *testing.T, ss store.Store) {
-	t.Run("Save", func(t *testing.T) { testCommandStoreSave(t, ss) })
-	t.Run("Get", func(t *testing.T) { testCommandStoreGet(t, ss) })
-	t.Run("GetByTeam", func(t *testing.T) { testCommandStoreGetByTeam(t, ss) })
-	t.Run("GetByTrigger", func(t *testing.T) { testCommandStoreGetByTrigger(t, ss) })
-	t.Run("Delete", func(t *testing.T) { testCommandStoreDelete(t, ss) })
-	t.Run("DeleteByTeam", func(t *testing.T) { testCommandStoreDeleteByTeam(t, ss) })
-	t.Run("DeleteByUser", func(t *testing.T) { testCommandStoreDeleteByUser(t, ss) })
-	t.Run("Update", func(t *testing.T) { testCommandStoreUpdate(t, ss) })
-	t.Run("CommandCount", func(t *testing.T) { testCommandCount(t, ss) })
+func TestCommandStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("Save", func(t *testing.T) { testCommandStoreSave(t, rctx, ss) })
+	t.Run("Get", func(t *testing.T) { testCommandStoreGet(t, rctx, ss) })
+	t.Run("GetByTeam", func(t *testing.T) { testCommandStoreGetByTeam(t, rctx, ss) })
+	t.Run("GetByTrigger", func(t *testing.T) { testCommandStoreGetByTrigger(t, rctx, ss) })
+	t.Run("Delete", func(t *testing.T) { testCommandStoreDelete(t, rctx, ss) })
+	t.Run("DeleteByTeam", func(t *testing.T) { testCommandStoreDeleteByTeam(t, rctx, ss) })
+	t.Run("DeleteByUser", func(t *testing.T) { testCommandStoreDeleteByUser(t, rctx, ss) })
+	t.Run("Update", func(t *testing.T) { testCommandStoreUpdate(t, rctx, ss) })
+	t.Run("CommandCount", func(t *testing.T) { testCommandCount(t, rctx, ss) })
 }
 
-func testCommandStoreSave(t *testing.T, ss store.Store) {
+func testCommandStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Command{}
 	o1.CreatorId = model.NewId()
 	o1.Method = model.CommandMethodPost
@@ -40,7 +41,7 @@ func testCommandStoreSave(t *testing.T, ss store.Store) {
 	require.Error(t, err, "shouldn't be able to update from save")
 }
 
-func testCommandStoreGet(t *testing.T, ss store.Store) {
+func testCommandStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
 	o1.Method = model.CommandMethodPost
@@ -61,7 +62,7 @@ func testCommandStoreGet(t *testing.T, ss store.Store) {
 	require.True(t, errors.As(err, &nfErr))
 }
 
-func testCommandStoreGetByTeam(t *testing.T, ss store.Store) {
+func testCommandStoreGetByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
 	o1.Method = model.CommandMethodPost
@@ -82,7 +83,7 @@ func testCommandStoreGetByTeam(t *testing.T, ss store.Store) {
 	require.Empty(t, result, "no commands should have returned")
 }
 
-func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
+func testCommandStoreGetByTrigger(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
 	o1.Method = model.CommandMethodPost
@@ -117,7 +118,7 @@ func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
 	require.True(t, errors.As(err, &nfErr))
 }
 
-func testCommandStoreDelete(t *testing.T, ss store.Store) {
+func testCommandStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
 	o1.Method = model.CommandMethodPost
@@ -141,7 +142,7 @@ func testCommandStoreDelete(t *testing.T, ss store.Store) {
 	require.True(t, errors.As(err, &nfErr))
 }
 
-func testCommandStoreDeleteByTeam(t *testing.T, ss store.Store) {
+func testCommandStoreDeleteByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
 	o1.Method = model.CommandMethodPost
@@ -165,7 +166,7 @@ func testCommandStoreDeleteByTeam(t *testing.T, ss store.Store) {
 	require.True(t, errors.As(err, &nfErr))
 }
 
-func testCommandStoreDeleteByUser(t *testing.T, ss store.Store) {
+func testCommandStoreDeleteByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
 	o1.Method = model.CommandMethodPost
@@ -189,7 +190,7 @@ func testCommandStoreDeleteByUser(t *testing.T, ss store.Store) {
 	require.True(t, errors.As(err, &nfErr))
 }
 
-func testCommandStoreUpdate(t *testing.T, ss store.Store) {
+func testCommandStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
 	o1.Method = model.CommandMethodPost
@@ -211,7 +212,7 @@ func testCommandStoreUpdate(t *testing.T, ss store.Store) {
 	require.Error(t, err)
 }
 
-func testCommandCount(t *testing.T, ss store.Store) {
+func testCommandCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.Command{}
 	o1.CreatorId = model.NewId()
 	o1.Method = model.CommandMethodPost

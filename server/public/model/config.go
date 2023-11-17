@@ -394,6 +394,7 @@ type ServiceSettings struct {
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
+	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
 }
 
 var MattermostGiphySdkKey string
@@ -884,6 +885,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.SelfHostedPurchase == nil {
 		s.SelfHostedPurchase = NewBool(true)
 	}
+
+	if s.RefreshPostStatsRunTime == nil {
+		s.RefreshPostStatsRunTime = NewString("00:00")
+	}
 }
 
 type ClusterSettings struct {
@@ -1287,7 +1292,7 @@ func NewLogSettings() *LogSettings {
 
 func (s *LogSettings) isValid() *AppError {
 	cfg := make(mlog.LoggerConfiguration)
-	err := json.Unmarshal(s.GetAdvancedLoggingConfig(), &cfg)
+	err := json.Unmarshal(s.AdvancedLoggingJSON, &cfg)
 	if err != nil {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.json", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
 	}
