@@ -1303,7 +1303,7 @@ func NewLogSettings() *LogSettings {
 
 func (s *LogSettings) isValid() *AppError {
 	cfg := make(mlog.LoggerConfiguration)
-	err := json.Unmarshal(s.GetAdvancedLoggingConfig(), &cfg)
+	err := json.Unmarshal(s.AdvancedLoggingJSON, &cfg)
 	if err != nil {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.json", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
 	}
