@@ -144,7 +144,7 @@ type Server struct {
 
 	Cloud                   einterfaces.CloudInterface
 	IPFiltering             einterfaces.IPFilteringInterface
-	OAuthOutgoingConnection einterfaces.OAuthOutgoingConnectionInterface
+	OAuthOutgoingConnection einterfaces.OutgoingOAuthConnectionInterface
 
 	tracer *tracing.Tracer
 

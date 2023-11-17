@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS OAuthOutgoingConnections (
+CREATE TABLE IF NOT EXISTS OutgoingOAuthConnections (
     Id varchar(26),
     Name varchar(64),
     CreatorId varchar(26) DEFAULT NULL,
@@ -12,5 +12,5 @@ CREATE TABLE IF NOT EXISTS OAuthOutgoingConnections (
     GrantType varchar(32) DEFAULT 'client_credentials',
     Audiences TEXT,
     PRIMARY KEY (Id),
-    KEY idx_oauthoutgoingconnections_name (Name)
+    KEY idx_OutgoingOAuthConnections_name (Name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

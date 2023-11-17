@@ -106,7 +106,7 @@ func (a *App) Cloud() einterfaces.CloudInterface {
 func (a *App) IPFiltering() einterfaces.IPFilteringInterface {
 	return a.ch.srv.IPFiltering
 }
-func (a *App) OAuthOutgoingConnection() einterfaces.OAuthOutgoingConnectionInterface {
+func (a *App) OAuthOutgoingConnection() einterfaces.OutgoingOAuthConnectionInterface {
 	return a.ch.srv.OAuthOutgoingConnection
 }
 func (a *App) HTTPService() httpservice.HTTPService {

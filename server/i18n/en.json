@@ -9315,51 +9315,51 @@
     "translation": "Update at must be a valid time."
   },
   {
-    "id": "model.oauth_outgoing_connection.is_valid.audience.empty",
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
     "translation": "Audience must not be empty."
   },
   {
-    "id": "model.oauth_outgoing_connection.is_valid.audience.error",
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
     "translation": "Some audience URL is incorrect."
   },
   {
-    "id": "model.oauth_outgoing_connection.is_valid.client_id.error",
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
     "translation": "Invalid client id."
   },
   {
-    "id": "model.oauth_outgoing_connection.is_valid.client_secret.error",
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
     "translation": "Invalid client secret."
   },
   {
-    "id": "model.oauth_outgoing_connection.is_valid.create_at.error",
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
     "translation": "Create at must be a valid time."
   },
   {
-    "id": "model.oauth_outgoing_connection.is_valid.creator_id.error",
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
     "translation": "Invalid creator id."
   },
   {
-    "id": "model.oauth_outgoing_connection.is_valid.grant_type.error",
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
     "translation": "Invalid grant type."
   },
   {
-    "id": "model.oauth_outgoing_connection.is_valid.id.error",
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
     "translation": "Invalid id."
   },
   {
-    "id": "model.oauth_outgoing_connection.is_valid.name.error",
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
     "translation": "Invalid name."
   },
   {
-    "id": "model.oauth_outgoing_connection.is_valid.oauth_token_url.error",
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
     "translation": "Invalid oauth token url."
   },
   {
-    "id": "model.oauth_outgoing_connection.is_valid.password_credentials.error",
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
     "translation": "Invalid password credentials."
   },
   {
-    "id": "model.oauth_outgoing_connection.is_valid.update_at.error",
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
     "translation": "Update at must be a valid time."
   },
   {

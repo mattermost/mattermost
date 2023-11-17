@@ -12755,7 +12755,7 @@ func (a *OpenTracingAppLayer) NotifySharedChannelUserUpdate(user *model.User) {
 	a.app.NotifySharedChannelUserUpdate(user)
 }
 
-func (a *OpenTracingAppLayer) OAuthOutgoingConnection() einterfaces.OAuthOutgoingConnectionInterface {
+func (a *OpenTracingAppLayer) OAuthOutgoingConnection() einterfaces.OutgoingOAuthConnectionInterface {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OAuthOutgoingConnection")
 

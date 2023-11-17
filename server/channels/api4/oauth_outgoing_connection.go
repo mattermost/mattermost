@@ -19,7 +19,7 @@ func (api *API) InitOAuthOutgoingConnection() {
 	api.BaseRoutes.OAuthOutgoingConnection.Handle("", api.APISessionRequired(listConnections)).Methods("GET")
 }
 
-func ensureOAuthOutgoingConnectionInterface(c *Context, where string) (einterfaces.OAuthOutgoingConnectionInterface, bool) {
+func ensureOAuthOutgoingConnectionInterface(c *Context, where string) (einterfaces.OutgoingOAuthConnectionInterface, bool) {
 	if c.App.OAuthOutgoingConnection() == nil || !c.App.Config().FeatureFlags.OAuthOutgoingConnections || c.App.License() == nil || c.App.License().SkuShortName != model.LicenseShortSkuEnterprise {
 		c.Err = model.NewAppError(where, "api.context.oauth_outgoing_connection.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, false
@@ -33,7 +33,7 @@ func listConnections(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	connections, err := service.GetConnections(c.AppContext, model.OAuthOutgoingConnectionGetConnectionsFilter{})
+	connections, err := service.GetConnections(c.AppContext, model.OutgoingOAuthConnectionGetConnectionsFilter{})
 	if err != nil {
 		c.Err = model.NewAppError(whereOAuthOutgoingConnection, "api.context.oauth_outgoing_connection.list_connections.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return

@@ -66,7 +66,7 @@ type Channels struct {
 	MessageExport           einterfaces.MessageExportInterface
 	Saml                    einterfaces.SamlInterface
 	Notification            einterfaces.NotificationInterface
-	OAuthOutgoingConnection einterfaces.OAuthOutgoingConnectionInterface
+	OAuthOutgoingConnection einterfaces.OutgoingOAuthConnectionInterface
 	Ldap                    einterfaces.LdapInterface
 
 	// These are used to prevent concurrent upload requests

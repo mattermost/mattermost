@@ -46,7 +46,7 @@ type Store interface {
 	Compliance() ComplianceStore
 	Session() SessionStore
 	OAuth() OAuthStore
-	OAuthOutgoingConnection() OAuthOutgoingConnectionStore
+	OutgoingOAuthConnection() OutgoingOAuthConnectionStore
 	System() SystemStore
 	Webhook() WebhookStore
 	Command() CommandStore
@@ -578,12 +578,12 @@ type OAuthStore interface {
 	RemoveAllAccessData() error
 }
 
-type OAuthOutgoingConnectionStore interface {
-	DeleteConnection(rctx request.CTX, id string) error
-	GetConnection(rctx request.CTX, id string) (*model.OAuthOutgoingConnection, error)
-	GetConnections(rctx request.CTX, filters model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error)
-	SaveConnection(rctx request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error)
-	UpdateConnection(rctx request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error)
+type OutgoingOAuthConnectionStore interface {
+	SaveConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error)
+	UpdateConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error)
+	GetConnection(c request.CTX, id string) (*model.OutgoingOAuthConnection, error)
+	GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error)
+	DeleteConnection(c request.CTX, id string) error
 }
 
 type SystemStore interface {
