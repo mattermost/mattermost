@@ -39,7 +39,7 @@ func cleanupOutgoingOAuthConnections(t *testing.T, ss store.Store) func() {
 	}
 }
 
-func TestOutgoingOAuthConnectionStore(t *testing.T, ss store.Store) {
+func TestOutgoingOAuthConnectionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("SaveConnection", func(t *testing.T) {
 		t.Cleanup(cleanupOutgoingOAuthConnections(t, ss))
 		testSaveOutgoingOAuthConnection(t, ss)
