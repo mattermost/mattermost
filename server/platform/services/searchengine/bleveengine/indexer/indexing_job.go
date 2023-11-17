@@ -253,10 +253,10 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 		progress.TotalFilesCount = count
 	}
 
-	cancelContext := request.EmptyContext(worker.logger)
+	var cancelContext request.CTX = request.EmptyContext(worker.logger)
 	cancelCtx, cancelCancelWatcher := context.WithCancel(context.Background())
 	cancelWatcherChan := make(chan struct{}, 1)
-	cancelContext.SetContext(cancelCtx)
+	cancelContext = cancelContext.WithContext(cancelCtx)
 	go worker.jobServer.CancellationWatcher(cancelContext, job.Id, cancelWatcherChan)
 	defer cancelCancelWatcher()
 
@@ -526,7 +526,7 @@ func (worker *BleveIndexerWorker) BulkIndexChannels(logger mlog.LoggerIFace, cha
 			var userIDs []string
 			var err error
 			if channel.Type == model.ChannelTypePrivate {
-				userIDs, err = worker.jobServer.Store.Channel().GetAllChannelMembersById(channel.Id)
+				userIDs, err = worker.jobServer.Store.Channel().GetAllChannelMemberIdsByChannelId(channel.Id)
 				if err != nil {
 					return nil, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, "", http.StatusInternalServerError).Wrap(err)
 				}

@@ -1125,26 +1125,16 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetAllChannelMembersById(channelID string) ([]string, error) {
-	sql, args, err := s.channelMembersForTeamWithSchemeSelectQuery.Where(sq.Eq{
-		"ChannelId": channelID,
-	}).ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "GetAllChannelMembersById_ToSql")
-	}
-
-	dbMembers := channelMemberWithSchemeRolesList{}
-	err = s.GetReplicaX().Select(&dbMembers, sql, args...)
+func (s SqlChannelStore) GetAllChannelMemberIdsByChannelId(channelID string) ([]string, error) {
+	userIDs := []string{}
+	err := s.GetReplicaX().Select(&userIDs, `SELECT UserId
+		FROM ChannelMembers
+		WHERE ChannelId=?`, channelID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get ChannelMembers with channelID=%s", channelID)
 	}
 
-	res := make([]string, len(dbMembers))
-	for i, member := range dbMembers.ToModel() {
-		res[i] = member.UserId
-	}
-
-	return res, nil
+	return userIDs, nil
 }
 
 func (s SqlChannelStore) GetAllChannels(offset, limit int, opts store.ChannelSearchOpts) (model.ChannelListWithTeamData, error) {
@@ -2069,6 +2059,33 @@ func (s SqlChannelStore) GetMember(ctx context.Context, channelID string, userID
 	return dbMember.ToModel(), nil
 }
 
+func (s SqlChannelStore) GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
+	var dbMember model.ChannelMember
+	if err := s.DBXFromContext(ctx).Get(&dbMember, `SELECT ChannelId,
+		UserId,
+		Roles,
+		LastViewedAt,
+		MsgCount,
+		MentionCount,
+		MentionCountRoot,
+		COALESCE(UrgentMentionCount, 0) AS UrgentMentionCount,
+		MsgCountRoot,
+		NotifyProps,
+		LastUpdateAt,
+		SchemeUser,
+		SchemeAdmin,
+		SchemeGuest
+		FROM ChannelMembers
+		WHERE ChannelId=? AND UserId=?`, channelID, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("ChannelMember", fmt.Sprintf("channelId=%s, userId=%s", channelID, userID))
+		}
+		return nil, errors.Wrapf(err, "failed to get ChannelMember with channelId=%s and userId=%s", channelID, userID)
+	}
+
+	return &dbMember, nil
+}
+
 func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 	allChannelMembersForUserCache.Remove(userId)
 	allChannelMembersForUserCache.Remove(userId + "_deleted")
@@ -2644,7 +2661,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	return times, nil
 }
 
-func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64, userId string) (int, error) {
+func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64, excludedUserID string) (int, error) {
 	query := s.getQueryBuilder().
 		Select("count(*)").
 		From("PostsPriority").
@@ -2656,8 +2673,8 @@ func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64
 			sq.Eq{"Posts.DeleteAt": 0},
 		})
 
-	if userId != "" {
-		query = query.Where(sq.Eq{"Posts.UserId": userId})
+	if excludedUserID != "" {
+		query = query.Where(sq.NotEq{"Posts.UserId": excludedUserID})
 	}
 
 	var urgent int64
@@ -2669,8 +2686,8 @@ func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64
 	return int(urgent), nil
 }
 
-// CountPostsAfter returns the number of posts in the given channel created after but not including the given timestamp. If given a non-empty user ID, only counts posts made by that user.
-func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int, int, error) {
+// CountPostsAfter returns the number of posts in the given channel created after but not including the given timestamp. If given a non-empty user ID, only counts posts made by any other user.
+func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, excludedUserID string) (int, int, error) {
 	joinLeavePostTypes := []string{
 		// These types correspond to the ones checked by Post.IsJoinLeaveMessage
 		model.PostTypeJoinLeave,
@@ -2694,8 +2711,8 @@ func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, user
 			sq.Eq{"DeleteAt": 0},
 		})
 
-	if userId != "" {
-		query = query.Where(sq.Eq{"UserId": userId})
+	if excludedUserID != "" {
+		query = query.Where(sq.NotEq{"UserId": excludedUserID})
 	}
 	sql, args, err := query.ToSql()
 	if err != nil {

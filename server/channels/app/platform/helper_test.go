@@ -21,7 +21,7 @@ import (
 )
 
 type TestHelper struct {
-	Context *request.Context
+	Context request.CTX
 	Service *PlatformService
 	Suite   SuiteIFace
 
@@ -187,7 +187,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		th.Service.SetLicense(nil)
 	}
 
-	err = th.Service.Start()
+	err = th.Service.Start(nil)
 	if err != nil {
 		panic(err)
 	}

@@ -8,7 +8,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/teams"
       />
@@ -114,7 +114,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/teams"
       />
