@@ -16,7 +16,7 @@ type SqlOutgoingOAuthConnectionStore struct {
 	*SqlStore
 }
 
-func NewSqlOutgoingOAuthConnectionStore(sqlStore *SqlStore) store.OutgoingOAuthConnectionStore {
+func newSqlOutgoingOAuthConnectionStore(sqlStore *SqlStore) store.OutgoingOAuthConnectionStore {
 	return &SqlOutgoingOAuthConnectionStore{sqlStore}
 }
 
