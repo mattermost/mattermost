@@ -824,8 +824,6 @@
   "admin.experimental.experimentalPrimaryTeam.desc": "تیم اصلی که کاربران روی سرور اعضای آن هستند. وقتی یک تیم اصلی تنظیم می‌شود، گزینه‌های پیوستن به تیم‌های دیگر یا ترک تیم اصلی غیرفعال می‌شوند.",
   "admin.experimental.experimentalPrimaryTeam.example": "به عنوان مثال: \"نام تیم\"",
   "admin.experimental.experimentalPrimaryTeam.title": "تیم اصلی:",
-  "admin.experimental.experimentalTimezone.desc": "منطقه زمانی مورد استفاده برای مهرهای زمانی در رابط کاربری و اعلان‌های ایمیل را انتخاب کنید. وقتی درست است، بخش Timezone در تنظیمات قابل مشاهده است و یک منطقه زمانی به طور خودکار در جلسه فعال بعدی اختصاص داده می شود. وقتی نادرست است، تنظیم Timezone در تنظیمات پنهان می شود.",
-  "admin.experimental.experimentalTimezone.title": "منطقه زمانی:",
   "admin.experimental.experimentalUseNewSAMLLibrary.desc": "یک کتابخانه SAML به روز شده را فعال کنید، که برای نصب کتابخانه امنیتی XML (xmlsec1) نیازی ندارد. هشدار: همه ارائه دهندگان آزمایش نشده اند. اگر مشکلی دارید، لطفاً با پشتیبانی تماس بگیرید: <linkSupport>https://mattermost.com/support/</linkSupport>. تغییر این تنظیم نیاز به راه اندازی مجدد سرور قبل از اعمال دارد.",
   "admin.experimental.experimentalUseNewSAMLLibrary.title": "از کتابخانه SAML بهبود یافته (بتا) استفاده کنید:",
   "admin.experimental.ldapSettingsLoginButtonBorderColor.desc": "رنگ حاشیه دکمه ورود به سیستم AD/LDAP را برای اهداف برچسب‌گذاری سفید مشخص کنید. قبل از کد از یک کد هگز با علامت # استفاده کنید. این تنظیم فقط برای برنامه های تلفن همراه اعمال می شود.",
