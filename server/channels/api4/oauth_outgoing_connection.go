@@ -24,8 +24,13 @@ func (api *API) InitOutgoingOAuthConnection() {
 }
 
 func ensureOutgoingOAuthConnectionInterface(c *Context, where string) (einterfaces.OutgoingOAuthConnectionInterface, bool) {
-	if c.App.OutgoingOAuthConnection() == nil || !c.App.Config().FeatureFlags.OutgoingOAuthConnections || c.App.License() == nil || c.App.License().SkuShortName != model.LicenseShortSkuEnterprise {
-		c.Err = model.NewAppError(where, "api.context.outgoing_oauth_conneciton.not_available.app_error", nil, "", http.StatusNotImplemented)
+	if !c.App.Config().FeatureFlags.OutgoingOAuthConnections {
+		c.Err = model.NewAppError(where, "api.context.outgoing_oauth_conneciton.not_available.feature_flag", nil, "", http.StatusNotImplemented)
+		return nil, false
+	}
+
+	if c.App.OutgoingOAuthConnection() == nil || c.App.License() == nil || c.App.License().SkuShortName != model.LicenseShortSkuEnterprise {
+		c.Err = model.NewAppError(where, "api.license.upgrade_needed.app_error", nil, "", http.StatusNotImplemented)
 		return nil, false
 	}
 	return c.App.OutgoingOAuthConnection(), true
