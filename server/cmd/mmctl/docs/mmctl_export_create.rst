@@ -22,7 +22,7 @@ Options
 
   -h, --help                        help for create
       --include-archived-channels   Include archived channels in the export file.
-      --no-attachments              Omit file attachments in the export file.
+      --no-attachments              Exclude file attachments from the export file.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
