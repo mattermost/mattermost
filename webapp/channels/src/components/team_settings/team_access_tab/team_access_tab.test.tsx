@@ -3,7 +3,7 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
-import type {ChangeEvent, ComponentProps} from 'react';
+import type {ComponentProps} from 'react';
 
 import {type MockIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
@@ -35,76 +35,6 @@ describe('components/TeamSettings', () => {
         isMobileView: false,
     };
 
-    test('should handle bad updateTeamIcon function call', () => {
-        const wrapper = shallow<AccessTab>(<AccessTab {...defaultProps}/>);
-
-        wrapper.instance().updateTeamIcon(null as unknown as ChangeEvent<HTMLInputElement>);
-
-        expect(wrapper.state('clientError')).toEqual('An error occurred while selecting the image.');
-    });
-
-    test('should handle invalid file selection', () => {
-        const wrapper = shallow<AccessTab>(<AccessTab {...defaultProps}/>);
-
-        wrapper.instance().updateTeamIcon({
-            target: {
-                files: [{
-                    type: 'text/plain',
-                }],
-            },
-        } as unknown as ChangeEvent<HTMLInputElement>);
-
-        expect(wrapper.state('clientError')).toEqual('Only BMP, JPG or PNG images may be used for team icons');
-    });
-
-    test('should handle too large files', () => {
-        const wrapper = shallow<AccessTab>(<AccessTab {...defaultProps}/>);
-
-        wrapper.instance().updateTeamIcon({
-            target: {
-                files: [{
-                    type: 'image/jpeg',
-                    size: defaultProps.maxFileSize + 1,
-                }],
-            },
-        } as unknown as ChangeEvent<HTMLInputElement>);
-
-        expect(wrapper.state('clientError')).toEqual('Unable to upload team icon. File is too large.');
-    });
-
-    test('should call actions.setTeamIcon on handleTeamIconSubmit', () => {
-        const actions = {...baseActions};
-        const props = {...defaultProps, actions};
-        const wrapper = shallow<AccessTab>(<AccessTab {...props}/>);
-
-        let teamIconFile = null;
-        wrapper.setState({teamIconFile, submitActive: true});
-        wrapper.instance().handleTeamIconSubmit();
-        expect(actions.setTeamIcon).not.toHaveBeenCalled();
-
-        teamIconFile = {file: 'team_icon_file'} as unknown as File;
-        wrapper.setState({teamIconFile, submitActive: false});
-        wrapper.instance().handleTeamIconSubmit();
-        expect(actions.setTeamIcon).not.toHaveBeenCalled();
-
-        wrapper.setState({teamIconFile, submitActive: true});
-        wrapper.instance().handleTeamIconSubmit();
-
-        expect(actions.setTeamIcon).toHaveBeenCalledTimes(1);
-        expect(actions.setTeamIcon).toHaveBeenCalledWith(props.team?.id, teamIconFile);
-    });
-
-    test('should call actions.removeTeamIcon on handleTeamIconRemove', () => {
-        const actions = {...baseActions};
-        const props = {...defaultProps, actions};
-        const wrapper = shallow<AccessTab>(<AccessTab {...props}/>);
-
-        wrapper.instance().handleTeamIconRemove();
-
-        expect(actions.removeTeamIcon).toHaveBeenCalledTimes(1);
-        expect(actions.removeTeamIcon).toHaveBeenCalledWith(props.team?.id);
-    });
-
     test('hide invite code if no permissions for team inviting', () => {
         const props = {...defaultProps, canInviteTeamMembers: false};
 
@@ -129,24 +59,6 @@ describe('components/TeamSettings', () => {
         });
     });
 
-    test('should call actions.patchTeam on handleNameSubmit', () => {
-        const actions = {...baseActions};
-        const props = {...defaultProps, actions};
-        if (props.team) {
-            props.team.display_name = 'TestTeam';
-        }
-
-        const wrapper = shallow<AccessTab>(<AccessTab {...props}/>);
-
-        wrapper.instance().handleNameSubmit();
-
-        expect(actions.patchTeam).toHaveBeenCalledTimes(1);
-        expect(actions.patchTeam).toHaveBeenCalledWith({
-            display_name: props.team?.display_name,
-            id: props.team?.id,
-        });
-    });
-
     test('should call actions.patchTeam on handleInviteIdSubmit', () => {
         const actions = {...baseActions};
         const props = {...defaultProps, actions};
@@ -160,26 +72,6 @@ describe('components/TeamSettings', () => {
 
         expect(actions.regenerateTeamInviteId).toHaveBeenCalledTimes(1);
         expect(actions.regenerateTeamInviteId).toHaveBeenCalledWith(props.team?.id);
-    });
-
-    test('should call actions.patchTeam on handleDescriptionSubmit', () => {
-        const actions = {...baseActions};
-        const props = {...defaultProps, actions};
-
-        const wrapper = shallow<AccessTab>(<AccessTab {...props}/>);
-
-        const newDescription = 'The Test Team';
-        wrapper.setState({description: newDescription});
-        wrapper.instance().handleDescriptionSubmit();
-        if (props.team) {
-            props.team.description = newDescription;
-        }
-
-        expect(actions.patchTeam).toHaveBeenCalledTimes(1);
-        expect(actions.patchTeam).toHaveBeenCalledWith({
-            description: newDescription,
-            id: props.team?.id,
-        });
     });
 
     test('should match snapshot when team is group constrained', () => {
