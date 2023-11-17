@@ -50,7 +50,7 @@ function fillInMissingInfo(userId: string) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
-        const enableUserStatuses = getIsUserStatusesConfigEnabled(state);
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
 
         if (userId !== currentUserId) {
             const result = await dispatch(getMissingProfilesByIds([userId]));
@@ -61,7 +61,7 @@ function fillInMissingInfo(userId: string) {
         }
 
         const status = getStatusForUserId(state, userId);
-        if (status !== General.ONLINE && enableUserStatuses) {
+        if (status !== General.ONLINE && enabledUserStatuses) {
             dispatch(getStatusesByIds([userId]));
         }
 

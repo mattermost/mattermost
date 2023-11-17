@@ -29,7 +29,7 @@ type Props = {
 
 export default function ChannelController(props: Props) {
     const dispatch = useDispatch<DispatchFunc>();
-    const enableUserStatuses = useSelector(getIsUserStatusesConfigEnabled);
+    const enabledUserStatuses = useSelector(getIsUserStatusesConfigEnabled);
 
     useEffect(() => {
         const isMsBrowser = isInternetExplorer() || isEdge();
@@ -45,18 +45,17 @@ export default function ChannelController(props: Props) {
     }, []);
 
     useEffect(() => {
-        if (enableUserStatuses) {
-            const loadStatusesIntervalId = setInterval(() => {
+        let loadStatusesIntervalId: NodeJS.Timer;
+        if (enabledUserStatuses) {
+            loadStatusesIntervalId = setInterval(() => {
                 dispatch(loadStatusesForChannelAndSidebar());
             }, Constants.STATUS_INTERVAL);
-
-            return () => {
-                clearInterval(loadStatusesIntervalId);
-            };
         }
-        return () => {}; // Return a no-op function when enableUserStatuses is false
+        return () => {
+            clearInterval(loadStatusesIntervalId);
+        };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [enableUserStatuses]);
+    }, [enabledUserStatuses]);
 
     return (
         <>

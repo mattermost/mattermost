@@ -89,9 +89,9 @@ export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | 
 export function loadStatusesByIds(userIds: string[]) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
-        const enableUserStatuses = getIsUserStatusesConfigEnabled(state);
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
 
-        if (userIds.length === 0 || !enableUserStatuses) {
+        if (userIds.length === 0 || !enabledUserStatuses) {
             return {data: false};
         }
 
@@ -104,7 +104,7 @@ export function loadStatusesByIds(userIds: string[]) {
 export function loadProfilesMissingStatus(users: UserProfile[]) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
-        const enableUserStatuses = getIsUserStatusesConfigEnabled(state);
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
 
         const statuses = state.entities.users.statuses;
 
@@ -112,7 +112,7 @@ export function loadProfilesMissingStatus(users: UserProfile[]) {
             filter((user) => !statuses[user.id]).
             map((user) => user.id);
 
-        if (missingStatusByIds.length === 0 || !enableUserStatuses) {
+        if (missingStatusByIds.length === 0 || !enabledUserStatuses) {
             return {data: false};
         }
 

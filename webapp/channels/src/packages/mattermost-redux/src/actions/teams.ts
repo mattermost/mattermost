@@ -31,7 +31,7 @@ async function getProfilesAndStatusesForMembers(userIds: string[], dispatch: Dis
         profiles,
         statuses,
     } = state.entities.users;
-    const enableUserStatuses = getIsUserStatusesConfigEnabled(state);
+    const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
 
     const profilesToLoad: string[] = [];
     const statusesToLoad: string[] = [];
@@ -50,7 +50,7 @@ async function getProfilesAndStatusesForMembers(userIds: string[], dispatch: Dis
         requests.push(dispatch(getProfilesByIds(profilesToLoad)));
     }
 
-    if (statusesToLoad.length && enableUserStatuses) {
+    if (statusesToLoad.length && enabledUserStatuses) {
         requests.push(dispatch(getStatusesByIds(statusesToLoad)));
     }
 

@@ -156,7 +156,7 @@ export function getMissingProfilesByIds(userIds: string[]): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
         const {profiles} = state.entities.users;
-        const enableUserStatuses = getIsUserStatusesConfigEnabled(state);
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
         const missingIds: string[] = [];
         userIds.forEach((id) => {
             if (!profiles[id]) {
@@ -164,8 +164,10 @@ export function getMissingProfilesByIds(userIds: string[]): ActionFunc {
             }
         });
 
-        if (missingIds.length > 0 && enableUserStatuses) {
-            dispatch(getStatusesByIds(missingIds));
+        if (missingIds.length > 0) {
+            if (enabledUserStatuses) {
+                dispatch(getStatusesByIds(missingIds));
+            }
             return dispatch(getProfilesByIds(missingIds));
         }
 
@@ -879,7 +881,7 @@ let statusIntervalId: NodeJS.Timeout|null;
 export function startPeriodicStatusUpdates(): NewActionFuncAsync { // HARRISONTODO unused
     return async (dispatch, getState) => {
         const state = getState();
-        const enableUserStatuses = getIsUserStatusesConfigEnabled(state);
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
         if (statusIntervalId) {
             clearInterval(statusIntervalId);
         }
@@ -893,7 +895,7 @@ export function startPeriodicStatusUpdates(): NewActionFuncAsync { // HARRISONTO
                 }
 
                 const userIds = Object.keys(statuses);
-                if (!userIds.length || !enableUserStatuses) {
+                if (!userIds.length || !enabledUserStatuses) {
                     return;
                 }
 
