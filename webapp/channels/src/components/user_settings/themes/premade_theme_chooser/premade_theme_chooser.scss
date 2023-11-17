@@ -1,0 +1,39 @@
+.premade-theme-chooser{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2.4rem;
+
+    &__ctr{
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    &__card{
+        display: flex;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: var(--elevation-1);
+        border:1px solid rgba(var(--center-channel-text-rgb), 0.16)
+    }
+
+    &__card-active{
+        border: 3px solid var(--denim-button-bg);
+    }
+
+    &__theme-label{
+        color: var(--center-channel-text);
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 16px;
+    }
+    &__theme-label-active{
+        font-weight: 600;
+    }
+    &__icon-label-ctr{
+        display: flex;
+        gap: 4px;
+        color: var(--button-bg);
+        align-items: center;
+    }
+}

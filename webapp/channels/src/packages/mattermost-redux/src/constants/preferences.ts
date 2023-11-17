@@ -78,6 +78,9 @@ const Preferences = {
     DRAFTS_TOUR_TIP_SHOWED: 'drafts_tour_tip_showed',
 
     CATEGORY_THEME: 'theme',
+    SYNC_THEME_WITH_OS: 'sync_theme_with_os',
+    WEB_DARK_THEME: 'web_dark_theme',
+    WEB_LIGHT_THEME: 'web_light_theme',
     THEMES: {
         denim: {
             type: 'Denim',

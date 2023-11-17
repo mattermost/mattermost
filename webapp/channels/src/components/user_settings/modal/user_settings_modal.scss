@@ -1,0 +1,81 @@
+.modal .user-settings-modal{
+    width: 832px;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid rgba(var(--center-channel-text-rgb), 0.16);
+    .modal-body{
+        overflow: hidden;
+        height: calc(90vh - 80px);
+    }
+    .modal-header {
+        background: none;
+        border: none;
+        border-bottom: 1px solid rgba(var(--center-channel-text-rgb), 0.08);
+    }
+
+    &__header {
+        display: flex;
+        background: none;
+        align-items: center;
+        padding: 24px 32px;
+        border-bottom: 1px solid rgba(var(--center-channel-text-rgb), 0.08);
+    }
+
+    &__heading{
+        margin: 0;
+        padding: 0;
+        font-family: 'Metropolis', serif;
+        font-style: normal;
+        font-weight: 600;
+        font-size: 22px;
+        line-height: 28px;
+        color: var(--center-channel-text);
+    }
+    &__search-ctr{
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        color: rgba(var(--center-channel-text-rgb), 0.56);
+        flex: 1 1 auto;
+        gap: 24px;
+    }
+    &__search{
+        max-width: 200px;
+        border: 1px solid rgba(var(--center-channel-text-rgb), 0.16);
+        background: none;
+        input::placeholder{
+            color: rgba(var(--center-channel-text-rgb), 0.64);
+        }
+        i{
+            color: rgba(var(--center-channel-text-rgb), 0.64);
+        }
+    }
+    &__body{
+        display: flex;
+        width: 100%;
+        max-width: 1024px;
+        height: 100%;
+    }
+    &__sidebar{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 24px;
+        gap: 8px;
+        width: 232px;
+        background: rgba(var(--center-channel-text-rgb), 0.04);
+    }
+    &__content{
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 32px;
+        height: 100%;
+        width: 100%;
+        gap: 24px;
+    }
+    &__divider{
+        border-bottom: 1px solid rgba(var(--center-channel-text-rgb), 0.08);
+    }
+}

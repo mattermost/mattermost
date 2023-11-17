@@ -8,6 +8,8 @@ import {FormattedMessage} from 'react-intl';
 
 import semver from 'semver';
 
+import {UserNotifyProps, UserProfile} from '@mattermost/types/users';
+
 import {ActionResult} from 'mattermost-redux/types/actions';
 
 import Constants, {NotificationLevels} from 'utils/constants';
@@ -15,12 +17,9 @@ import {localizeMessage, moveCursorToEnd} from 'utils/utils';
 import {isDesktopApp} from 'utils/user_agent';
 import {t} from 'utils/i18n';
 
-import SettingItemMax from 'components/setting_item_max';
+import SettingItemMax from 'components/setting_item_max.jsx';
 import SettingItemMin from 'components/setting_item_min';
-
-import {UserNotifyProps, UserProfile} from '@mattermost/types/users';
-
-import SectionCreator from 'components/widgets/modals/components/modal_section';
+import LocalizedIcon from 'components/localized_icon';
 
 import DesktopNotificationSettings from './desktop_notification_setting/desktop_notification_settings';
 import EmailNotificationSetting from './email_notification_setting';
@@ -949,86 +948,96 @@ export default class NotificationsTab extends React.PureComponent<Props, State> 
         const pushNotificationSection = this.createPushNotificationSection();
         const enableEmailProp = this.state.enableEmail === 'true';
 
-        const desktopAndWebNotificationTitle = {
-            id: t('user.settings.notifications.desktop.title'),
-            defaultMessage: 'Desktop & web notifications',
-        };
-        const desktopAndWebNotificationDesc = {
-            id: t('user.settings.notifications.desktop.desc'),
-            defaultMessage: 'Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.',
-        };
-        const desktopAndWebNotificationContent = (
-            <DesktopNotificationSettings
-                activity={this.state.desktopActivity}
-                threads={this.state.desktopThreads}
-                sound={this.state.desktopSound}
-                updateSection={this.handleUpdateSection}
-                setParentState={this.setStateValue}
-                submit={this.handleSubmit}
-                saving={this.state.isSaving}
-                cancel={this.handleCancel}
-                error={this.state.serverError}
-                active={this.props.activeSection === 'desktop'}
-                selectedSound={this.state.desktopNotificationSound || 'default'}
-                isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
-            />
-        );
-
-        const emailNotificationSettingTitle = {
-            id: t('user.settings.notifications.emailNotifications.title'),
-            defaultMessage: 'Email Notifications',
-        };
-        const emailNotificationSettingDesc = {
-            id: t('user.settings.notifications.emailNotifications.desc'),
-            defaultMessage: 'Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes.',
-        };
-        const emailNotificationSettingContent = (
-            <EmailNotificationSetting
-                activeSection={this.props.activeSection}
-                updateSection={this.handleUpdateSection}
-                enableEmail={enableEmailProp}
-                onSubmit={this.handleSubmit}
-                onCancel={this.handleCancel}
-                onChange={this.handleEmailRadio}
-                saving={this.state.isSaving}
-                serverError={this.state.serverError}
-                isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
-                setParentState={this.setStateValue}
-                threads={this.state.emailThreads || ''}
-            />
-        );
-
         return (
-            <div
-                ref={this.wrapperRef}
-                className='user-settings'
-                id='notificationSettings'
-            >
-                <SectionCreator
-                    title={desktopAndWebNotificationTitle}
-                    description={desktopAndWebNotificationDesc}
-                    content={desktopAndWebNotificationContent}
-                />
-                <div className='divider-light'/>
-                <SectionCreator
-                    title={emailNotificationSettingTitle}
-                    description={emailNotificationSettingDesc}
-                    content={emailNotificationSettingContent}
-                />
-                <div className='divider-light'/>
-                {pushNotificationSection}
-                <div className='divider-light'/>
-                {keysSection}
-                <div className='divider-light'/>
-                {!this.props.isCollapsedThreadsEnabled && (
-                    <>
-                        {commentsSection}
-                        <div className='divider-light'/>
-                    </>
-                )}
-                {autoResponderSection}
-                <div className='divider-dark'/>
+            <div id='notificationSettings'>
+                <div className='modal-header'>
+                    <button
+                        id='closeButton'
+                        type='button'
+                        className='close'
+                        data-dismiss='modal'
+                        onClick={this.props.closeModal}
+                    >
+                        <span aria-hidden='true'>{'×'}</span>
+                    </button>
+                    <h4
+                        className='modal-title'
+                        ref={this.drawerRef}
+                    >
+                        <div className='modal-back'>
+                            <LocalizedIcon
+                                className='fa fa-angle-left'
+                                ariaLabel={{
+                                    id: t('generic_icons.collapse'),
+                                    defaultMessage: 'Collapse Icon',
+                                }}
+                                onClick={this.props.collapseModal}
+                            />
+                        </div>
+                        <FormattedMessage
+                            id='user.settings.notifications.title'
+                            defaultMessage='Notification Settings'
+                        />
+                    </h4>
+                </div>
+                <div
+                    ref={this.wrapperRef}
+                    className='user-settings'
+                >
+                    <h3
+                        id='notificationSettingsTitle'
+                        className='tab-header'
+                    >
+                        <FormattedMessage
+                            id='user.settings.notifications.header'
+                            defaultMessage='Notifications'
+                        />
+                    </h3>
+                    <div className='divider-dark first'/>
+                    <DesktopNotificationSettings
+                        activity={this.state.desktopActivity}
+                        threads={this.state.desktopThreads}
+                        sound={this.state.desktopSound}
+                        updateSection={this.handleUpdateSection}
+                        setParentState={this.setStateValue}
+                        submit={this.handleSubmit}
+                        saving={this.state.isSaving}
+                        cancel={this.handleCancel}
+                        error={this.state.serverError}
+                        active={this.props.activeSection === 'desktop'}
+                        selectedSound={this.state.desktopNotificationSound || 'default'}
+                        isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
+                    />
+                    <div className='divider-light'/>
+                    <EmailNotificationSetting
+                        activeSection={this.props.activeSection}
+                        updateSection={this.handleUpdateSection}
+                        enableEmail={enableEmailProp}
+                        onSubmit={this.handleSubmit}
+                        onCancel={this.handleCancel}
+                        onChange={this.handleEmailRadio}
+                        saving={this.state.isSaving}
+                        serverError={this.state.serverError}
+                        isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
+                        setParentState={this.setStateValue}
+                        threads={this.state.emailThreads || ''}
+                    />
+                    <div className='divider-light'/>
+                    {pushNotificationSection}
+                    <div className='divider-light'/>
+                    {keysSection}
+                    <div className='divider-light'/>
+                    {!this.props.isCollapsedThreadsEnabled && (
+                        <>
+                            {commentsSection}
+                            <div className='divider-light'/>
+                        </>
+                    )}
+                    {autoResponderSection}
+                    <div className='divider-dark'/>
+                </div>
             </div>
+
         );
     }
 }

@@ -1,36 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
-import React from 'react';
-import type {ComponentProps} from 'react';
 
-import EmailNotificationSetting from 'components/user_settings/notifications/email_notification_setting/email_notification_setting';
+import {Preferences, NotificationLevels} from 'utils/constants';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {Preferences, NotificationLevels} from 'utils/constants';
+import EmailNotificationSetting from 'components/user_settings/notifications/email_notification_setting/email_notification_setting';
 
 describe('components/user_settings/notifications/EmailNotificationSetting', () => {
     const requiredProps: ComponentProps<typeof EmailNotificationSetting> = {
-        active: true,
+        currentUserId: 'current_user_id',
+        activeSection: 'email',
         updateSection: jest.fn(),
+        enableEmail: false,
+        emailInterval: Preferences.INTERVAL_NEVER,
         onSubmit: jest.fn(),
         onCancel: jest.fn(),
-        saving: false,
-        error: '',
-        setParentState: jest.fn(),
-        areAllSectionsInactive: false,
-        isCollapsedThreadsEnabled: false,
-        enableEmail: false,
         onChange: jest.fn(),
-        threads: NotificationLevels.ALL,
-        currentUserId: 'current_user_id',
-        emailInterval: Preferences.INTERVAL_NEVER,
+        serverError: '',
+        saving: false,
         sendEmailNotifications: true,
         enableEmailBatching: false,
         actions: {
             savePreferences: jest.fn(),
         },
+        isCollapsedThreadsEnabled: false,
+        threads: NotificationLevels.ALL,
+        setParentState: jest.fn(),
     };
 
     test('should match snapshot', () => {
@@ -69,7 +67,7 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
         const props = {
             ...requiredProps,
             sendEmailNotifications: false,
-            active: false,
+            activeSection: '',
         };
         const wrapper = shallow(<EmailNotificationSetting {...props}/>);
 
@@ -80,7 +78,7 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
         const props = {
             ...requiredProps,
             sendEmailNotifications: true,
-            active: false,
+            activeSection: '',
         };
         const wrapper = shallow(<EmailNotificationSetting {...props}/>);
 
@@ -91,7 +89,7 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
         const props = {
             ...requiredProps,
             sendEmailNotifications: true,
-            active: false,
+            activeSection: '',
             enableEmail: true,
         };
         const wrapper = shallow(<EmailNotificationSetting {...props}/>);
@@ -101,7 +99,7 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
 
     test('should match snapshot, on serverError', () => {
         const newServerError = 'serverError';
-        const props = {...requiredProps, error: newServerError};
+        const props = {...requiredProps, serverError: newServerError};
         const wrapper = shallow(<EmailNotificationSetting {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });

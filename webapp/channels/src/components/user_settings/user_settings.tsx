@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {UserProfile} from '@mattermost/types/users';
+import {UserProfile} from '@mattermost/types/users';
 
 import AdvancedTab from './advanced';
 import DisplayTab from './display';
@@ -11,6 +11,7 @@ import GeneralTab from './general';
 import NotificationsTab from './notifications';
 import SecurityTab from './security';
 import SidebarTab from './sidebar';
+import ThemeTab from './themes';
 
 export type Props = {
     user: UserProfile;
@@ -80,25 +81,15 @@ export default class UserSettings extends React.PureComponent<Props> {
             );
         } else if (this.props.activeTab === 'sidebar') {
             return (
-                <div>
-                    <SidebarTab
-                        activeSection={this.props.activeSection}
-                        updateSection={this.props.updateSection}
-                        closeModal={this.props.closeModal}
-                        collapseModal={this.props.collapseModal}
-                    />
-                </div>
+                <SidebarTab/>
+            );
+        } else if (this.props.activeTab === 'themes') {
+            return (
+                <ThemeTab/>
             );
         } else if (this.props.activeTab === 'advanced') {
             return (
-                <div>
-                    <AdvancedTab
-                        activeSection={this.props.activeSection}
-                        updateSection={this.props.updateSection}
-                        closeModal={this.props.closeModal}
-                        collapseModal={this.props.collapseModal}
-                    />
-                </div>
+                <AdvancedTab/>
             );
         }
 

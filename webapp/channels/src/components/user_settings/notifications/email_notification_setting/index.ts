@@ -2,18 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
 
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {GlobalState} from '@mattermost/types/store';
+import {Preferences} from 'mattermost-redux/constants';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {Preferences} from 'mattermost-redux/constants';
+import {PreferenceType} from '@mattermost/types/preferences';
+
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import {GlobalState} from '@mattermost/types/store';
+import {ActionFunc} from 'mattermost-redux/types/actions';
 
 import EmailNotificationSetting from './email_notification_setting';
 

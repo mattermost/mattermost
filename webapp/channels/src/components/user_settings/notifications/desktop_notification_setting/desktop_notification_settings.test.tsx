@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
-import React from 'react';
-import type {ComponentProps} from 'react';
 
 import {NotificationLevels} from 'utils/constants';
 
 import DesktopNotificationSettings from './desktop_notification_settings';
 
-jest.mock('utils/notification_sounds', () => {
-    const original = jest.requireActual('utils/notification_sounds');
+jest.mock('utils/utils', () => {
+    const original = jest.requireActual('utils/utils');
     return {
         ...original,
         hasSoundOptions: jest.fn(() => true),
@@ -19,22 +18,19 @@ jest.mock('utils/notification_sounds', () => {
 
 describe('components/user_settings/notifications/DesktopNotificationSettings', () => {
     const baseProps: ComponentProps<typeof DesktopNotificationSettings> = {
-        active: true,
-        updateSection: jest.fn(),
-        onSubmit: jest.fn(),
-        onCancel: jest.fn(),
-        saving: false,
-        error: '',
-        setParentState: jest.fn(),
-        areAllSectionsInactive: false,
-        isCollapsedThreadsEnabled: false,
         activity: NotificationLevels.MENTION,
-        threads: NotificationLevels.ALL,
         sound: 'false',
-        callsSound: 'false',
+        updateSection: jest.fn(),
+        setParentState: jest.fn(),
+        submit: jest.fn(),
+        cancel: jest.fn(),
+        error: '',
+        active: true,
+        areAllSectionsInactive: false,
+        saving: false,
         selectedSound: 'Bing',
-        callsSelectedSound: 'Dynamic',
-        isCallsRingingEnabled: false,
+        isCollapsedThreadsEnabled: false,
+        threads: NotificationLevels.ALL,
     };
 
     test('should match snapshot, on max setting', () => {
@@ -54,24 +50,6 @@ describe('components/user_settings/notifications/DesktopNotificationSettings', (
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, on max setting with Calls enabled', () => {
-        const props = {...baseProps, isCallsRingingEnabled: true};
-        const wrapper = shallow(
-            <DesktopNotificationSettings {...props}/>,
-        );
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on max setting with Calls enabled, calls sound true', () => {
-        const props = {...baseProps, isCallsRingingEnabled: true, callsSound: 'true'};
-        const wrapper = shallow(
-            <DesktopNotificationSettings {...props}/>,
-        );
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
     test('should match snapshot, on min setting', () => {
         const props = {...baseProps, active: false};
         const wrapper = shallow(
@@ -81,8 +59,8 @@ describe('components/user_settings/notifications/DesktopNotificationSettings', (
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should call props.updateSection and props.onCancel on handleMinUpdateSection', () => {
-        const props = {...baseProps, updateSection: jest.fn(), onCancel: jest.fn()};
+    test('should call props.updateSection and props.cancel on handleMinUpdateSection', () => {
+        const props = {...baseProps, updateSection: jest.fn(), cancel: jest.fn()};
         const wrapper = shallow<DesktopNotificationSettings>(
             <DesktopNotificationSettings {...props}/>,
         );
@@ -90,14 +68,14 @@ describe('components/user_settings/notifications/DesktopNotificationSettings', (
         wrapper.instance().handleMinUpdateSection('');
         expect(props.updateSection).toHaveBeenCalledTimes(1);
         expect(props.updateSection).toHaveBeenCalledWith('');
-        expect(props.onCancel).toHaveBeenCalledTimes(1);
-        expect(props.onCancel).toHaveBeenCalledWith();
+        expect(props.cancel).toHaveBeenCalledTimes(1);
+        expect(props.cancel).toHaveBeenCalledWith();
 
         wrapper.instance().handleMinUpdateSection('desktop');
         expect(props.updateSection).toHaveBeenCalledTimes(2);
         expect(props.updateSection).toHaveBeenCalledWith('desktop');
-        expect(props.onCancel).toHaveBeenCalledTimes(2);
-        expect(props.onCancel).toHaveBeenCalledWith();
+        expect(props.cancel).toHaveBeenCalledTimes(2);
+        expect(props.cancel).toHaveBeenCalledWith();
     });
 
     test('should call props.updateSection on handleMaxUpdateSection', () => {

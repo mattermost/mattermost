@@ -1,79 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Modal} from 'react-bootstrap';
+import {Provider} from 'react-redux';
 import ReactDOM from 'react-dom';
 import {
-    defineMessages,
-    injectIntl,
+    FormattedMessage,
+    useIntl,
 } from 'react-intl';
-import type {
-    IntlShape} from 'react-intl';
-import {Provider} from 'react-redux';
-
-import type {StatusOK} from '@mattermost/types/client4';
-import type {UserProfile} from '@mattermost/types/users';
 
 import store from 'stores/redux_store';
-
+import Constants from 'utils/constants';
+import * as Utils from 'utils/utils';
 import ConfirmModal from 'components/confirm_modal';
 
-import Constants from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
-import * as NotificationSounds from 'utils/notification_sounds';
-import * as Utils from 'utils/utils';
+import {CloseIcon} from '@mattermost/compass-icons/components';
+
+import TextInput from '@mattermost/compass-components/components/text-input';
+
+import {StatusOK} from '@mattermost/types/client4';
+import {UserProfile} from '@mattermost/types/users';
+import {holders, useUserSettingsTabs} from './../utils';
+
+import './user_settings_modal.scss';
 
 const UserSettings = React.lazy(() => import(/* webpackPrefetch: true */ 'components/user_settings'));
-const SettingsSidebar = React.lazy(() => import(/* webpackPrefetch: true */ '../../settings_sidebar'));
-
-const holders = defineMessages({
-    profile: {
-        id: 'user.settings.modal.profile',
-        defaultMessage: 'Profile',
-    },
-    security: {
-        id: 'user.settings.modal.security',
-        defaultMessage: 'Security',
-    },
-    notifications: {
-        id: 'user.settings.modal.notifications',
-        defaultMessage: 'Notifications',
-    },
-    display: {
-        id: 'user.settings.modal.display',
-        defaultMessage: 'Display',
-    },
-    sidebar: {
-        id: 'user.settings.modal.sidebar',
-        defaultMessage: 'Sidebar',
-    },
-    advanced: {
-        id: 'user.settings.modal.advanced',
-        defaultMessage: 'Advanced',
-    },
-    checkEmail: {
-        id: 'user.settings.general.checkEmail',
-        defaultMessage: 'Check your email at {email} to verify the address. Cannot find the email?',
-    },
-    confirmTitle: {
-        id: 'user.settings.modal.confirmTitle',
-        defaultMessage: 'Discard Changes?',
-    },
-    confirmMsg: {
-        id: 'user.settings.modal.confirmMsg',
-        defaultMessage: 'You have unsaved changes, are you sure you want to discard them?',
-    },
-    confirmBtns: {
-        id: 'user.settings.modal.confirmBtns',
-        defaultMessage: 'Yes, Discard',
-    },
-});
+const ModalSidebar = React.lazy(() => import(/* webpackPrefetch: true */ 'components/widgets/modals/components/modal_sidebar'));
 
 export type Props = {
     currentUser: UserProfile;
     onExited: () => void;
-    intl: IntlShape;
     isContentProductSettings: boolean;
     actions: {
         sendVerificationEmail: (email: string) => Promise<{
@@ -85,285 +42,251 @@ export type Props = {
     };
 }
 
-type State = {
-    active_tab?: string;
-    active_section: string;
-    showConfirmModal: boolean;
-    enforceFocus?: boolean;
-    show: boolean;
-    resendStatus: string;
-}
+function UserSettingsModal(props: Props): JSX.Element {
+    let requireConfirm = false;
+    let customConfirmAction: ((handleConfirm: () => void) => void) | null = null;
+    const modalBodyRef = useRef<Modal>(null);
+    let afterConfirm: (() => void) | null = null;
 
-class UserSettingsModal extends React.PureComponent<Props, State> {
-    private requireConfirm: boolean;
-    private customConfirmAction: ((handleConfirm: () => void) => void) | null;
-    private modalBodyRef: React.RefObject<Modal>;
-    private afterConfirm: (() => void) | null;
+    const [activeTab, setActiveTab] = useState<string>(props.isContentProductSettings ? 'themes' : 'profile');
+    const [activeSection, setActiveSection] = useState('');
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [enforceFocus, setEnforceFocus] = useState(true);
+    const [show, setShow] = useState(true);
 
-    constructor(props: Props) {
-        super(props);
-
-        this.state = {
-            active_tab: props.isContentProductSettings ? 'notifications' : 'profile',
-            active_section: '',
-            showConfirmModal: false,
-            enforceFocus: true,
-            show: true,
-            resendStatus: '',
-        };
-
-        this.requireConfirm = false;
-
-        // Used when settings want to override the default confirm modal with their own
-        // If set by a child, it will be called in place of showing the regular confirm
-        // modal. It will be passed a function to call on modal confirm
-        this.customConfirmAction = null;
-        this.afterConfirm = null;
-
-        this.modalBodyRef = React.createRef();
-    }
-
-    handleResend = (email: string) => {
-        this.setState({resendStatus: 'sending'});
-
-        this.props.actions.sendVerificationEmail(email).then(({data, error: err}) => {
-            if (data) {
-                this.setState({resendStatus: 'success'});
-            } else if (err) {
-                this.setState({resendStatus: 'failure'});
-            }
-        });
-    };
-
-    componentDidMount() {
-        document.addEventListener('keydown', this.handleKeyDown);
-    }
-
-    componentWillUnmount() {
-        document.removeEventListener('keydown', this.handleKeyDown);
-    }
-
-    componentDidUpdate(prevProps: Props, prevState: State) {
-        if (this.state.active_tab !== prevState.active_tab) {
-            const el = ReactDOM.findDOMNode(this.modalBodyRef.current) as any;
-            el.scrollTop = 0;
-        }
-    }
-
-    handleKeyDown = (e: KeyboardEvent) => {
-        if (Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && Keyboard.isKeyPressed(e, Constants.KeyCodes.A)) {
-            e.preventDefault();
-            this.handleHide();
-        }
-    };
+    const {formatMessage} = useIntl();
+    const tabs = useUserSettingsTabs();
 
     // Called when the close button is pressed on the main modal
-    handleHide = () => {
-        if (this.requireConfirm) {
-            this.showConfirmModal(() => this.handleHide());
+    const handleHide = useCallback(() => {
+        if (requireConfirm) {
+            showConfirmModalFunc(() => handleHide());
             return;
         }
 
-        // Cancel any ongoing notification sound, if any (from DesktopNotificationSettings)
-        NotificationSounds.stopTryNotificationRing();
+        setShow(false);
+    }, [requireConfirm, setShowConfirmModal]);
 
-        this.setState({
-            show: false,
-        });
-    };
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && Utils.isKeyPressed(e, Constants.KeyCodes.A)) {
+                e.preventDefault();
+                handleHide();
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [handleHide]);
+
+    useEffect(() => {
+        const el = modalBodyRef.current;
+
+        // const componentRef = useRef(null);
+        //
+        // const handleClick = () => {
+        //     componentREf.current.scrollTo(0, 0);
+        // };
+        //
+        // return (
+        //     <div ref={componentRef}>
+        //         ...
+        //         <button onClick={handleClick}> Reset scroll </button>
+        //     </div>
+        // )
+    }, [activeTab]);
 
     // called after the dialog is fully hidden and faded out
-    handleHidden = () => {
-        this.setState({
-            active_tab: this.props.isContentProductSettings ? 'notifications' : 'profile',
-            active_section: '',
-        });
-        this.props.onExited();
-    };
+    function handleHidden() {
+        setActiveTab(props.isContentProductSettings ? 'notifications' : 'profile');
+        setActiveSection('');
+        props.onExited();
+    }
 
     // Called to hide the settings pane when on mobile
-    handleCollapse = () => {
-        const el = ReactDOM.findDOMNode(this.modalBodyRef.current) as HTMLDivElement;
+    function handleCollapse() {
+        const el = ReactDOM.findDOMNode(modalBodyRef.current) as HTMLDivElement;
         el.closest('.modal-dialog')!.classList.remove('display--content');
+        setActiveTab('');
+        setActiveSection('');
+    }
 
-        this.setState({
-            active_tab: '',
-            active_section: '',
-        });
-    };
+    function handleConfirm() {
+        setShowConfirmModal(false);
+        setEnforceFocus(true);
 
-    handleConfirm = () => {
-        this.setState({
-            showConfirmModal: false,
-            enforceFocus: true,
-        });
+        requireConfirm = false;
+        customConfirmAction = null;
 
-        this.requireConfirm = false;
-        this.customConfirmAction = null;
-
-        if (this.afterConfirm) {
-            this.afterConfirm();
-            this.afterConfirm = null;
-        }
-    };
-
-    handleCancelConfirmation = () => {
-        this.setState({
-            showConfirmModal: false,
-            enforceFocus: true,
-        });
-
-        this.afterConfirm = null;
-    };
-
-    showConfirmModal = (afterConfirm: () => void) => {
         if (afterConfirm) {
-            this.afterConfirm = afterConfirm;
+            afterConfirm();
+            afterConfirm = null;
+        }
+    }
+
+    const handleCancelConfirmation = () => {
+        setShowConfirmModal(false);
+        setEnforceFocus(true);
+        afterConfirm = null;
+    };
+
+    function showConfirmModalFunc(afterConfirmParam: () => void) {
+        if (afterConfirmParam) {
+            afterConfirm = afterConfirmParam;
         }
 
-        if (this.customConfirmAction) {
-            this.customConfirmAction(this.handleConfirm);
+        if (customConfirmAction) {
+            customConfirmAction(handleConfirm);
             return;
         }
-
-        this.setState({
-            showConfirmModal: true,
-            enforceFocus: false,
-        });
-    };
+        setShowConfirmModal(true);
+        setEnforceFocus(false);
+    }
 
     // Called by settings tabs when their close button is pressed
-    closeModal = () => {
-        if (this.requireConfirm) {
-            this.showConfirmModal(this.closeModal);
+    function closeModal() {
+        if (requireConfirm) {
+            showConfirmModalFunc(closeModal);
         } else {
-            this.handleHide();
+            handleHide();
         }
-    };
+    }
 
     // Called by settings tabs when their back button is pressed
-    collapseModal = () => {
-        if (this.requireConfirm) {
-            this.showConfirmModal(this.collapseModal);
+    function collapseModal() {
+        if (requireConfirm) {
+            showConfirmModalFunc(collapseModal);
         } else {
-            this.handleCollapse();
+            handleCollapse();
         }
-    };
-
-    updateTab = (tab?: string, skipConfirm?: boolean) => {
-        if (!skipConfirm && this.requireConfirm) {
-            this.showConfirmModal(() => this.updateTab(tab, true));
-        } else {
-            this.setState({
-                active_tab: tab,
-                active_section: '',
-            });
-        }
-    };
-
-    updateSection = (section?: string, skipConfirm?: boolean) => {
-        if (!skipConfirm && this.requireConfirm) {
-            this.showConfirmModal(() => this.updateSection(section, true));
-        } else {
-            this.setState({
-                active_section: section ?? '',
-            });
-        }
-    };
-
-    render() {
-        const {formatMessage} = this.props.intl;
-        if (this.props.currentUser == null) {
-            return (<div/>);
-        }
-        const tabs = [];
-        if (this.props.isContentProductSettings) {
-            tabs.push({name: 'notifications', uiName: formatMessage(holders.notifications), icon: 'icon icon-bell-outline', iconTitle: Utils.localizeMessage('user.settings.notifications.icon', 'Notification Settings Icon')});
-            tabs.push({name: 'display', uiName: formatMessage(holders.display), icon: 'icon icon-eye-outline', iconTitle: Utils.localizeMessage('user.settings.display.icon', 'Display Settings Icon')});
-            tabs.push({name: 'sidebar', uiName: formatMessage(holders.sidebar), icon: 'icon icon-dock-left', iconTitle: Utils.localizeMessage('user.settings.sidebar.icon', 'Sidebar Settings Icon')});
-            tabs.push({name: 'advanced', uiName: formatMessage(holders.advanced), icon: 'icon icon-tune', iconTitle: Utils.localizeMessage('user.settings.advance.icon', 'Advanced Settings Icon')});
-        } else {
-            tabs.push({name: 'profile', uiName: formatMessage(holders.profile), icon: 'icon icon-settings-outline', iconTitle: Utils.localizeMessage('user.settings.profile.icon', 'Profile Settings Icon')});
-            tabs.push({name: 'security', uiName: formatMessage(holders.security), icon: 'icon icon-lock-outline', iconTitle: Utils.localizeMessage('user.settings.security.icon', 'Security Settings Icon')});
-        }
-
-        const title = this.props.isContentProductSettings ? formatMessage({
-            id: 'global_header.productSettings',
-            defaultMessage: 'Settings',
-        }) : formatMessage({
-            id: 'user.settings.modal.title',
-            defaultMessage: 'Profile',
-        });
-
-        return (
-            <Modal
-                id='accountSettingsModal'
-                dialogClassName='a11y__modal settings-modal'
-                show={this.state.show}
-                onHide={this.handleHide}
-                onExited={this.handleHidden}
-                enforceFocus={this.state.enforceFocus}
-                role='dialog'
-                aria-label={title}
-            >
-                <Modal.Header
-                    id='accountSettingsHeader'
-                    closeButton={true}
-                >
-                    <Modal.Title
-                        componentClass='h1'
-                        id='accountSettingsModalLabel'
-                    >
-                        {title}
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body ref={this.modalBodyRef}>
-                    <div className='settings-table'>
-                        <div className='settings-links'>
-                            <React.Suspense fallback={null}>
-                                <Provider store={store}>
-                                    <SettingsSidebar
-                                        tabs={tabs}
-                                        activeTab={this.state.active_tab}
-                                        updateTab={this.updateTab}
-                                    />
-                                </Provider>
-                            </React.Suspense>
-                        </div>
-                        <div className='settings-content minimize-settings'>
-                            <React.Suspense fallback={null}>
-                                <Provider store={store}>
-                                    <UserSettings
-                                        activeTab={this.state.active_tab}
-                                        activeSection={this.state.active_section}
-                                        updateSection={this.updateSection}
-                                        updateTab={this.updateTab}
-                                        closeModal={this.closeModal}
-                                        collapseModal={this.collapseModal}
-                                        setEnforceFocus={(enforceFocus?: boolean) => this.setState({enforceFocus})}
-                                        setRequireConfirm={
-                                            (requireConfirm?: boolean, customConfirmAction?: () => () => void) => {
-                                                this.requireConfirm = requireConfirm!;
-                                                this.customConfirmAction = customConfirmAction!;
-                                            }
-                                        }
-                                    />
-                                </Provider>
-                            </React.Suspense>
-                        </div>
-                    </div>
-                </Modal.Body>
-                <ConfirmModal
-                    title={formatMessage(holders.confirmTitle)}
-                    message={formatMessage(holders.confirmMsg)}
-                    confirmButtonText={formatMessage(holders.confirmBtns)}
-                    show={this.state.showConfirmModal}
-                    onConfirm={this.handleConfirm}
-                    onCancel={this.handleCancelConfirmation}
-                />
-            </Modal>
-        );
     }
+
+    function updateTab(tab?: string, skipConfirm?: boolean) {
+        if (!skipConfirm && requireConfirm) {
+            showConfirmModalFunc(() => updateTab(tab, true));
+        } else {
+            setActiveTab(tab || '');
+            setActiveSection('');
+        }
+    }
+
+    function updateSection(section?: string, skipConfirm?: boolean) {
+        if (!skipConfirm && requireConfirm) {
+            showConfirmModalFunc(() => updateSection(section, true));
+        } else {
+            setActiveSection(section || '');
+        }
+    }
+
+    if (props.currentUser == null) {
+        return (<div/>);
+    }
+
+    // const tabs = [];
+    // if (this.props.isContentProductSettings) {
+    //     tabs.push({name: 'notifications', uiName: formatMessage(holders.notifications), icon: 'icon fa fa-exclamation-circle', iconTitle: Utils.localizeMessage('user.settings.notifications.icon', 'Notification Settings Icon')});
+    //     tabs.push({name: 'display', uiName: formatMessage(holders.display), icon: 'icon fa fa-eye', iconTitle: Utils.localizeMessage('user.settings.display.icon', 'Display Settings Icon')});
+    //     tabs.push({name: 'sidebar', uiName: formatMessage(holders.sidebar), icon: 'icon fa fa-columns', iconTitle: Utils.localizeMessage('user.settings.sidebar.icon', 'Sidebar Settings Icon')});
+    //     tabs.push({name: 'advanced', uiName: formatMessage(holders.advanced), icon: 'icon fa fa-list-alt', iconTitle: Utils.localizeMessage('user.settings.advance.icon', 'Advanced Settings Icon')});
+    // } else {
+    //     tabs.push({name: 'profile', uiName: formatMessage(holders.profile), icon: 'icon fa fa-gear', iconTitle: Utils.localizeMessage('user.settings.profile.icon', 'Profile Settings Icon')});
+    //     tabs.push({name: 'security', uiName: formatMessage(holders.security), icon: 'icon fa fa-lock', iconTitle: Utils.localizeMessage('user.settings.security.icon', 'Security Settings Icon')});
+    // }
+
+    return (
+        <Modal
+            id='accountSettingsModal'
+            dialogClassName='a11y__modal settings-modal user-settings-modal'
+            show={show}
+            onHide={handleHide}
+            onExited={handleHidden}
+            enforceFocus={enforceFocus}
+            role='dialog'
+            aria-labelledby='accountSettingsModalLabel'
+        >
+            <Modal.Header
+                id='accountSettingsHeader'
+                closeButton={false}
+                className='user-settings-modal__header'
+            >
+                <h1
+                    id='accountSettingsModalLabel'
+                    className='user-settings-modal__heading'
+                    tabIndex={0}
+                >
+                    {props.isContentProductSettings ? (
+                        <FormattedMessage
+                            id='global_header.productSettings'
+                            defaultMessage='Preferences'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='user.settings.modal.title'
+                            defaultMessage='Profile'
+                        />
+                    )}
+                </h1>
+                <div className='user-settings-modal__search-ctr'>
+                    <TextInput
+                        className='user-settings-modal__search'
+                        leadingIcon={'magnify'}
+                        placeholder={'Search preferences'}
+                    >
+                        {'Search Preferences'}
+                    </TextInput>
+                    <CloseIcon
+                        size={24}
+                        color={'currentcolor'}
+                    />
+                </div>
+            </Modal.Header>
+            <Modal.Body ref={modalBodyRef}>
+                <div className='user-settings-modal__body'>
+                    <div className='user-settings-modal__sidebar'>
+                        <React.Suspense fallback={null}>
+                            <Provider store={store}>
+                                <ModalSidebar
+                                    tabs={tabs}
+                                    activeTab={activeTab}
+                                    updateTab={updateTab}
+                                />
+                            </Provider>
+                        </React.Suspense>
+                    </div>
+                    <div className='user-settings-modal__content'>
+                        <React.Suspense fallback={null}>
+                            <Provider store={store}>
+                                <UserSettings
+                                    activeTab={activeTab}
+                                    activeSection={activeSection}
+                                    updateSection={updateSection}
+                                    updateTab={updateTab}
+                                    closeModal={closeModal}
+                                    collapseModal={collapseModal}
+                                    setEnforceFocus={(enforceFocus?: boolean) => setEnforceFocus(enforceFocus || false)}
+                                    setRequireConfirm={
+                                        (requireConfirmParam?: boolean, customConfirmActionParam?: () => () => void) => {
+                                            requireConfirm = requireConfirmParam!;
+                                            customConfirmAction = customConfirmActionParam!;
+                                        }
+                                    }
+                                />
+                            </Provider>
+                        </React.Suspense>
+                    </div>
+                </div>
+            </Modal.Body>
+            <ConfirmModal
+                title={formatMessage(holders.confirmTitle)}
+                message={formatMessage(holders.confirmMsg)}
+                confirmButtonText={formatMessage(holders.confirmBtns)}
+                show={showConfirmModal}
+                onConfirm={handleConfirm}
+                onCancel={handleCancelConfirmation}
+            />
+        </Modal>
+    );
 }
 
-export default injectIntl(UserSettingsModal);
+export default UserSettingsModal;
