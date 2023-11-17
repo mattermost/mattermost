@@ -33,8 +33,8 @@ func TestSqlX(t *testing.T) {
 				rrCounter:   0,
 				srCounter:   0,
 				settings:    settings,
-				quitMonitor: make(chan struct{}),
 				logger:      mlog.CreateConsoleTestLogger(t),
+				quitMonitor: make(chan struct{}),
 				wgMonitor:   &sync.WaitGroup{},
 			}
 

@@ -33,9 +33,9 @@ func NewMigrator(settings model.SqlSettings, logger mlog.LoggerIFace, dryRun boo
 		rrCounter:   0,
 		srCounter:   0,
 		settings:    &settings,
+		logger:      logger,
 		quitMonitor: make(chan struct{}),
 		wgMonitor:   &sync.WaitGroup{},
-		logger:      logger,
 	}
 
 	err := ss.initConnection()

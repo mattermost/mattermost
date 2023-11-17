@@ -775,6 +775,7 @@ func TestReplicaLagQuery(t *testing.T) {
 				srCounter:   0,
 				settings:    settings,
 				metrics:     mockMetrics,
+				logger:      mlog.CreateConsoleTestLogger(t),
 				quitMonitor: make(chan struct{}),
 				wgMonitor:   &sync.WaitGroup{},
 			}
@@ -852,6 +853,7 @@ func TestMySQLReadTimeout(t *testing.T) {
 
 	store := &SqlStore{
 		settings:    settings,
+		logger:      mlog.CreateConsoleTestLogger(t),
 		quitMonitor: make(chan struct{}),
 		wgMonitor:   &sync.WaitGroup{},
 	}
