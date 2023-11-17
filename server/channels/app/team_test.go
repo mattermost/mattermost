@@ -1034,7 +1034,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 
 		sqlstore.HasMaster(c.Context())
 	})
-	mockTeamStore.On("UpdateMember", mock.Anything).Return(nil, errors.New("repro error")) // This is the line that triggers the error
+	mockTeamStore.On("UpdateMember", mock.Anything, mock.Anything).Return(nil, errors.New("repro error")) // This is the line that triggers the error
 
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
