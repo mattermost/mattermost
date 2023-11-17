@@ -6,7 +6,7 @@ import React from 'react';
 import type {Team} from '@mattermost/types/teams';
 
 import AccessTab from './team_access_tab';
-import GeneralTab from './team_info_tab';
+import InfoTab from './team_info_tab';
 
 // todo sinan: why it is scrolled down in the sections
 type Props = {
@@ -29,7 +29,7 @@ const TeamSettings = ({
     case 'info':
         result = (
             <div>
-                <GeneralTab
+                <InfoTab
                     team={team}
                     closeModal={closeModal}
                 />

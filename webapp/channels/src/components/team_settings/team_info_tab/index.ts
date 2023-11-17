@@ -8,7 +8,7 @@ import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import type {Team} from '@mattermost/types/teams';
 
-import {getTeam, patchTeam, removeTeamIcon, setTeamIcon, regenerateTeamInviteId} from 'mattermost-redux/actions/teams';
+import {getTeam, patchTeam, removeTeamIcon, setTeamIcon} from 'mattermost-redux/actions/teams';
 import {Permissions} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -41,7 +41,6 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 type Actions = {
     getTeam: (teamId: string) => Promise<ActionResult>;
     patchTeam: (team: Partial<Team>) => Promise<ActionResult>;
-    regenerateTeamInviteId: (teamId: string) => Promise<ActionResult>;
     removeTeamIcon: (teamId: string) => Promise<ActionResult>;
     setTeamIcon: (teamId: string, teamIconFile: File) => Promise<ActionResult>;
 };
@@ -51,7 +50,6 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
         actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
             getTeam,
             patchTeam,
-            regenerateTeamInviteId,
             removeTeamIcon,
             setTeamIcon,
         }, dispatch),

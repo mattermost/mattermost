@@ -21,9 +21,7 @@ type Props = PropsFromRedux & OwnProps & WrappedComponentProps;
 
 type State = {
     name?: Team['display_name'];
-    invite_id?: Team['invite_id'];
     description?: Team['description'];
-    allowed_domains?: Team['allowed_domains'];
     serverError: ReactNode;
     clientError: ReactNode;
     teamIconFile: File | null;
@@ -44,9 +42,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
 
         return {
             name: team?.display_name,
-            invite_id: team?.invite_id,
             description: team?.description,
-            allowed_domains: team?.allowed_domains,
             serverError: '',
             clientError: '',
             teamIconFile: null,
@@ -62,8 +58,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
             return {
                 name: team?.display_name,
                 description: team?.description,
-                allowed_domains: team?.allowed_domains,
-                invite_id: team?.invite_id,
                 isInitialState: false,
             };
         }
@@ -93,21 +87,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
             });
         }
     }
-
-    handleAllowedDomainsSubmit = async () => {
-        const state = {serverError: '', clientError: ''};
-
-        const data = {
-            id: this.props.team?.id,
-            allowed_domains: this.state.allowed_domains,
-        };
-        const {error} = await this.props.actions.patchTeam(data);
-
-        if (error) {
-            state.serverError = error.message;
-            this.setState(state);
-        }
-    };
 
     handleNameSubmit = async () => {
         const state: Pick<State, 'serverError' | 'clientError'> = {serverError: '', clientError: ''};
@@ -146,18 +125,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
             display_name: this.state.name,
         };
         const {error} = await this.props.actions.patchTeam(data);
-
-        if (error) {
-            state.serverError = error.message;
-            this.setState(state);
-        }
-    };
-
-    handleInviteIdSubmit = async () => {
-        const state = {serverError: '', clientError: ''};
-        this.setState(state);
-
-        const {error} = await this.props.actions.regenerateTeamInviteId(this.props.team?.id || '');
 
         if (error) {
             state.serverError = error.message;
@@ -273,8 +240,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
             });
         }
     };
-
-    updateAllowedDomains = (e: ChangeEvent<HTMLInputElement>) => this.setState({allowed_domains: e.target.value});
 
     render() {
         const team = this.props.team;

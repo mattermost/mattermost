@@ -13,13 +13,11 @@ import {InfoTab} from './team_info_tab';
 describe('components/TeamSettings', () => {
     const getTeam = jest.fn().mockResolvedValue({data: true});
     const patchTeam = jest.fn().mockReturnValue({data: true});
-    const regenerateTeamInviteId = jest.fn().mockReturnValue({data: true});
     const removeTeamIcon = jest.fn().mockReturnValue({data: true});
     const setTeamIcon = jest.fn().mockReturnValue({data: true});
     const baseActions = {
         getTeam,
         patchTeam,
-        regenerateTeamInviteId,
         removeTeamIcon,
         setTeamIcon,
     };
@@ -115,20 +113,6 @@ describe('components/TeamSettings', () => {
         expect(wrapper2).toMatchSnapshot();
     });
 
-    test('should call actions.patchTeam on handleAllowedDomainsSubmit', () => {
-        const actions = {...baseActions};
-        const props = {...defaultProps, actions};
-        const wrapper = shallow<InfoTab>(<InfoTab {...props}/>);
-
-        wrapper.instance().handleAllowedDomainsSubmit();
-
-        expect(actions.patchTeam).toHaveBeenCalledTimes(1);
-        expect(actions.patchTeam).toHaveBeenCalledWith({
-            allowed_domains: '',
-            id: props.team?.id,
-        });
-    });
-
     test('should call actions.patchTeam on handleNameSubmit', () => {
         const actions = {...baseActions};
         const props = {...defaultProps, actions};
@@ -145,21 +129,6 @@ describe('components/TeamSettings', () => {
             display_name: props.team?.display_name,
             id: props.team?.id,
         });
-    });
-
-    test('should call actions.patchTeam on handleInviteIdSubmit', () => {
-        const actions = {...baseActions};
-        const props = {...defaultProps, actions};
-        if (props.team) {
-            props.team.invite_id = '12345';
-        }
-
-        const wrapper = shallow<InfoTab>(<InfoTab {...props}/>);
-
-        wrapper.instance().handleInviteIdSubmit();
-
-        expect(actions.regenerateTeamInviteId).toHaveBeenCalledTimes(1);
-        expect(actions.regenerateTeamInviteId).toHaveBeenCalledWith(props.team?.id);
     });
 
     test('should call actions.patchTeam on handleDescriptionSubmit', () => {
