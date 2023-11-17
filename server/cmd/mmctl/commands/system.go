@@ -80,7 +80,7 @@ func init() {
 	SystemSetBusyCmd.Flags().UintP("seconds", "s", 3600, "Number of seconds until server is automatically marked as not busy.")
 	_ = SystemSetBusyCmd.MarkFlagRequired("seconds")
 
-	SystemSupportPacketCmd.Flags().StringP("output-file", "o", fmt.Sprintf("mattermost_support_packet_%s.zip", time.Now().Format("2006-01-02-03-04")), "Output file name")
+	SystemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Output file name (default \"mattermost_support_packet_YYYY-MM-DD-HH-MM.zip\")")
 
 	SystemCmd.AddCommand(
 		SystemGetBusyCmd,
@@ -174,6 +174,10 @@ func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) er
 	filename, err := cmd.Flags().GetString("output-file")
 	if err != nil {
 		return err
+	}
+
+	if filename == "" {
+		filename = fmt.Sprintf("mattermost_support_packet_%s.zip", time.Now().Format("2006-01-02-03-04"))
 	}
 
 	printer.Print("Downloading Support Packet")

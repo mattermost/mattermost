@@ -28,7 +28,7 @@ Options
 ::
 
   -h, --help                 help for supportpacket
-  -o, --output-file string   Output file name (default "mattermost_support_packet_2023-11-13-02-28.zip")
+  -o, --output-file string   Output file name (default "mattermost_support_packet_YYYY-MM-DD-HH-MM.zip")
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
