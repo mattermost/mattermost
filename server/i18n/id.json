@@ -3660,5 +3660,13 @@
   {
     "id": "api.config.patch_config.restricted_merge.app_error",
     "translation": "Gagal menggabungkan konfigurasi yang diberikan."
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Gagal memuat config."
+  },
+  {
+    "id": "api.config.update_config.clear_siteurl.app_error",
+    "translation": "URL situs tidak dapat dibersihkan."
   }
 ]

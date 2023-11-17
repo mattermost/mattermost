@@ -73,7 +73,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 102+"
+    "translation": "Version 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -6700,7 +6700,10 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} finns redan i kanalen."
+    "translation": {
+      "one": "{{.User}} finns redan i kanalen.",
+      "other": "{{.User}} finns redan i kanalen."
+    }
   },
   {
     "id": "api.command_invite.success",
@@ -9180,7 +9183,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost är en plattform med öppen källkod för säker kommunikation, samarbete och orkestrering av arbete över verktyg och team.\nMattermost innehåller tre viktiga verktyg:\n\n**Channels** - Håll kontakten med ditt team via 1:1 och gruppmeddelanden.\n**[Playbooks](/playbooks)** - Bygg och konfigurera repeterbara processer för att uppnå specifika och förutsägbara resultat.\n**[Boards](/boards)** - Hantera projekt och uppgifter i Kanbantavlor för att hjälpa ditt team att nå viktiga milstolpar.\n\n[Visa dokumentation och guider]({{.HelpLink}})"
+    "translation": "Mattermost är en plattform med öppen källkod för säker kommunikation, samarbete och orkestrering av arbete över verktyg och team.\nMattermost innehåller tre viktiga verktyg:\n\n**Channels** - Håll kontakten med ditt team via 1:1 och gruppmeddelanden.\n**[Playbooks](/playbooks)** - Bygg och konfigurera repeterbara processer för att uppnå specifika och förutsägbara resultat.\n\n[Visa dokumentation och guider]({{.HelpLink}})"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
@@ -9973,5 +9976,13 @@
   {
     "id": "api.emoji.get_multiple_by_name_too_many.request_error",
     "translation": "Det går inte att få så många emojis med namn. Endast {{.MaxNames}} emojis kan fås per gång."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "Kunde inte tolka JSON: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Felaktigt format: {{.Error}}"
   }
 ]
