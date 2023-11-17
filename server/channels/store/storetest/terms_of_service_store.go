@@ -10,13 +10,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestTermsOfServiceStore(t *testing.T, ss store.Store) {
-	t.Run("TestSaveTermsOfService", func(t *testing.T) { testSaveTermsOfService(t, ss) })
-	t.Run("TestGetLatestTermsOfService", func(t *testing.T) { testGetLatestTermsOfService(t, ss) })
-	t.Run("TestGetTermsOfService", func(t *testing.T) { testGetTermsOfService(t, ss) })
+func TestTermsOfServiceStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("TestSaveTermsOfService", func(t *testing.T) { testSaveTermsOfService(t, rctx, ss) })
+	t.Run("TestGetLatestTermsOfService", func(t *testing.T) { testGetLatestTermsOfService(t, rctx, ss) })
+	t.Run("TestGetTermsOfService", func(t *testing.T) { testGetTermsOfService(t, rctx, ss) })
 }
 
 func cleanUpTOS(ss store.Store) {
@@ -29,7 +30,7 @@ func cleanUpTOS(ss store.Store) {
 	ss.DropAllTables()
 }
 
-func testSaveTermsOfService(t *testing.T, ss store.Store) {
+func testSaveTermsOfService(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Cleanup(func() { cleanUpTOS(ss) })
 
 	u1 := model.User{}
@@ -48,7 +49,7 @@ func testSaveTermsOfService(t *testing.T, ss store.Store) {
 	require.NotEqual(t, savedTermsOfService.CreateAt, 0, "Create at should have been populated")
 }
 
-func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
+func testGetLatestTermsOfService(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Cleanup(func() { cleanUpTOS(ss) })
 
 	u1 := model.User{}
@@ -68,7 +69,7 @@ func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
 	assert.Equal(t, termsOfService.UserId, fetchedTermsOfService.UserId)
 }
 
-func testGetTermsOfService(t *testing.T, ss store.Store) {
+func testGetTermsOfService(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Cleanup(func() { cleanUpTOS(ss) })
 
 	u1 := model.User{}
