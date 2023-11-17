@@ -142,8 +142,9 @@ type Server struct {
 	// startSearchEngine bool
 	skipPostInit bool
 
-	Cloud       einterfaces.CloudInterface
-	IPFiltering einterfaces.IPFilteringInterface
+	Cloud                   einterfaces.CloudInterface
+	IPFiltering             einterfaces.IPFilteringInterface
+	OAuthOutgoingConnection einterfaces.OAuthOutgoingConnectionInterface
 
 	tracer *tracing.Tracer
 

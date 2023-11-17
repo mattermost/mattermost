@@ -467,6 +467,14 @@ func (c *Client4) oAuthAppRoute(appId string) string {
 	return fmt.Sprintf("/oauth/apps/%v", appId)
 }
 
+func (c *Client4) oAuthOutgoingConnectionsRoute() string {
+	return "/oauth/outgoing_connections"
+}
+
+func (c *Client4) oAuthOutgoingConnectionRoute(id string) string {
+	return fmt.Sprintf("/oauth/outgoing_connections/%s", id)
+}
+
 func (c *Client4) jobsRoute() string {
 	return "/jobs"
 }
@@ -5927,6 +5935,22 @@ func (c *Client4) GetOAuthAccessToken(ctx context.Context, data url.Values) (*Ac
 	}
 
 	return ar, BuildResponse(rp), nil
+}
+
+// OAuthOutgoingConnection section
+
+// GetOAuthOutgoingConnections retrieves the outgoing OAuth connections.
+func (c *Client4) GetOAuthOutgoingConnections(ctx context.Context) ([]*OAuthOutgoingConnection, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.oAuthOutgoingConnectionsRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var connections []*OAuthOutgoingConnection
+	if err := json.NewDecoder(r.Body).Decode(&connections); err != nil {
+		return nil, nil, NewAppError("GetOAuthOutgoingConnections", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return connections, BuildResponse(r), nil
 }
 
 // Elasticsearch Section
