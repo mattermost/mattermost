@@ -5,7 +5,8 @@ import React from 'react';
 
 import type {Team} from '@mattermost/types/teams';
 
-import GeneralTab from 'components/team_general_tab';
+import AccessTab from './team_access_tab';
+import GeneralTab from './team_info_tab';
 
 type Props = {
     activeTab: string;
@@ -28,6 +29,16 @@ const TeamSettings = ({
         result = (
             <div>
                 <GeneralTab
+                    team={team}
+                    closeModal={closeModal}
+                />
+            </div>
+        );
+        break;
+    case 'access':
+        result = (
+            <div>
+                <AccessTab
                     team={team}
                     closeModal={closeModal}
                 />

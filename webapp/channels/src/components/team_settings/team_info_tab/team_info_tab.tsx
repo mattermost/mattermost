@@ -9,12 +9,11 @@ import type {Team} from '@mattermost/types/teams';
 
 import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
-import BackIcon from 'components/widgets/icons/fa_back_icon';
 
 import Constants from 'utils/constants';
 import {imageURLForTeam, localizeMessage, moveCursorToEnd} from 'utils/utils';
 
-import OpenInvite from './open_invite';
+import OpenInvite from '../team_access_tab/open_invite';
 
 import type {PropsFromRedux, OwnProps} from '.';
 
@@ -36,7 +35,7 @@ type State = {
     shouldFetchTeam?: boolean;
 }
 
-export class GeneralTab extends React.PureComponent<Props, State> {
+export class InfoTab extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = this.setupInitialState(props);
@@ -495,11 +494,6 @@ export class GeneralTab extends React.PureComponent<Props, State> {
                         <span aria-hidden='true'>{'×'}</span>
                     </button>
                     <h4 className='modal-title'>
-                        <div className='modal-back'>
-                            <span onClick={this.props.collapseModal}>
-                                <BackIcon/>
-                            </span>
-                        </div>
                         <FormattedMessage
                             id='general_tab.title'
                             defaultMessage='General Settings'
@@ -544,4 +538,4 @@ export class GeneralTab extends React.PureComponent<Props, State> {
         );
     }
 }
-export default injectIntl(GeneralTab);
+export default injectIntl(InfoTab);

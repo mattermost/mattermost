@@ -18,7 +18,7 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import type {GlobalState} from 'types/store/index';
 
-import TeamGeneralTab from './team_general_tab';
+import TeamInfoTab from './team_info_tab';
 
 export type OwnProps = {
     team?: Team & { last_team_icon_update?: number };
@@ -62,4 +62,4 @@ const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
-export default connector(TeamGeneralTab);
+export default connector(TeamInfoTab);
