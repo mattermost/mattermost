@@ -66,7 +66,7 @@ type Channels struct {
 	MessageExport           einterfaces.MessageExportInterface
 	Saml                    einterfaces.SamlInterface
 	Notification            einterfaces.NotificationInterface
-	OAuthOutgoingConnection einterfaces.OutgoingOAuthConnectionInterface
+	OutgoingOAuthConnection einterfaces.OutgoingOAuthConnectionInterface
 	Ldap                    einterfaces.LdapInterface
 
 	// These are used to prevent concurrent upload requests
@@ -177,8 +177,8 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 	if notificationInterface != nil {
 		ch.Notification = notificationInterface(New(ServerConnector(ch)))
 	}
-	if oauthOutgoingConnectionInterface != nil {
-		ch.OAuthOutgoingConnection = oauthOutgoingConnectionInterface(New(ServerConnector(ch)))
+	if outgoingOauthConnectionInterface != nil {
+		ch.OutgoingOAuthConnection = outgoingOauthConnectionInterface(New(ServerConnector(ch)))
 	}
 	if samlInterfaceNew != nil {
 		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))

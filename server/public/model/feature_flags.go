@@ -47,7 +47,7 @@ type FeatureFlags struct {
 	CloudIPFiltering bool
 	ConsumePostHook  bool
 
-	OAuthOutgoingConnections bool
+	OutgoingOAuthConnections bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -65,7 +65,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.StreamlinedMarketplace = true
 	f.CloudIPFiltering = false
 	f.ConsumePostHook = false
-	f.OAuthOutgoingConnections = false
+	f.OutgoingOAuthConnections = false
 }
 
 // ToMap returns the feature flags as a map[string]string

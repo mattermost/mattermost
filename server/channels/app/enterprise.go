@@ -92,10 +92,10 @@ func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterfac
 	notificationInterface = f
 }
 
-var oauthOutgoingConnectionInterface func(*App) einterfaces.OutgoingOAuthConnectionInterface
+var outgoingOauthConnectionInterface func(*App) einterfaces.OutgoingOAuthConnectionInterface
 
-func RegisterOAuthOutgoingConnectionInterface(f func(*App) einterfaces.OutgoingOAuthConnectionInterface) {
-	oauthOutgoingConnectionInterface = f
+func RegisterOutgoingOAuthConnectionInterface(f func(*App) einterfaces.OutgoingOAuthConnectionInterface) {
+	outgoingOauthConnectionInterface = f
 }
 
 var ipFilteringInterface func(*App) einterfaces.IPFilteringInterface

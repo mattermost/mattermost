@@ -140,7 +140,7 @@ type Routes struct {
 
 	IPFiltering *mux.Router // 'api/v4/ip_filtering'
 
-	OAuthOutgoingConnection *mux.Router // 'api/v4/oauth_outgoing_connections'
+	OutgoingOAuthConnection *mux.Router // 'api/v4/oauth_outgoing_connections'
 }
 
 type API struct {
@@ -267,7 +267,7 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.IPFiltering = api.BaseRoutes.APIRoot.PathPrefix("/ip_filtering").Subrouter()
 
-	api.BaseRoutes.OAuthOutgoingConnection = api.BaseRoutes.APIRoot.PathPrefix("/oauth_outgoing_connections").Subrouter()
+	api.BaseRoutes.OutgoingOAuthConnection = api.BaseRoutes.APIRoot.PathPrefix("/oauth_outgoing_connections").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
@@ -313,7 +313,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitHostedCustomer()
 	api.InitDrafts()
 	api.InitIPFiltering()
-	api.InitOAuthOutgoingConnection()
+	api.InitOutgoingOAuthConnection()
 
 	srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

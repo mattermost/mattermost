@@ -467,11 +467,11 @@ func (c *Client4) oAuthAppRoute(appId string) string {
 	return fmt.Sprintf("/oauth/apps/%v", appId)
 }
 
-func (c *Client4) oAuthOutgoingConnectionsRoute() string {
+func (c *Client4) outgoingOAuthConnectionsRoute() string {
 	return "/oauth/outgoing_connections"
 }
 
-func (c *Client4) oAuthOutgoingConnectionRoute(id string) string {
+func (c *Client4) outgoingOAuthConnectionRoute(id string) string {
 	return fmt.Sprintf("/oauth/outgoing_connections/%s", id)
 }
 
@@ -5937,18 +5937,18 @@ func (c *Client4) GetOAuthAccessToken(ctx context.Context, data url.Values) (*Ac
 	return ar, BuildResponse(rp), nil
 }
 
-// OAuthOutgoingConnection section
+// OutgoingOAuthConnection section
 
-// GetOAuthOutgoingConnections retrieves the outgoing OAuth connections.
-func (c *Client4) GetOAuthOutgoingConnections(ctx context.Context) ([]*OutgoingOAuthConnectionGrantType, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.oAuthOutgoingConnectionsRoute(), "")
+// GetOutgoingOAuthConnections retrieves the outgoing OAuth connections.
+func (c *Client4) GetOutgoingOAuthConnections(ctx context.Context) ([]*OutgoingOAuthConnectionGrantType, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.outgoingOAuthConnectionsRoute(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	var connections []*OutgoingOAuthConnectionGrantType
 	if err := json.NewDecoder(r.Body).Decode(&connections); err != nil {
-		return nil, nil, NewAppError("GetOAuthOutgoingConnections", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, NewAppError("GetOutgoingOAuthConnections", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return connections, BuildResponse(r), nil
 }

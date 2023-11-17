@@ -12755,23 +12755,6 @@ func (a *OpenTracingAppLayer) NotifySharedChannelUserUpdate(user *model.User) {
 	a.app.NotifySharedChannelUserUpdate(user)
 }
 
-func (a *OpenTracingAppLayer) OAuthOutgoingConnection() einterfaces.OutgoingOAuthConnectionInterface {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OAuthOutgoingConnection")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.OAuthOutgoingConnection()
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OpenInteractiveDialog")
@@ -12807,6 +12790,23 @@ func (a *OpenTracingAppLayer) OriginChecker() func(*http.Request) bool {
 
 	defer span.Finish()
 	resultVar0 := a.app.OriginChecker()
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) OutgoingOAuthConnection() einterfaces.OutgoingOAuthConnectionInterface {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OutgoingOAuthConnection")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.OutgoingOAuthConnection()
 
 	return resultVar0
 }

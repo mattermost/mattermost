@@ -65,7 +65,7 @@ func (oa *OutgoingOAuthConnection) IsValid() *AppError {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.creator_id.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(oa.Name) > 64 {
+	if len(oa.Name) == 0 || utf8.RuneCountInString(oa.Name) > 64 {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.name.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
