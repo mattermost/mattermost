@@ -76,7 +76,6 @@ describe('components/AdvancedCreateComment', () => {
         rhsExpanded: false,
         badConnection: false,
         getChannelTimezones: jest.fn(() => Promise.resolve({data: '', error: ''})),
-        isTimezoneEnabled: false,
         selectedPostFocussedAt: 0,
         canPost: true,
         canUploadFiles: true,
@@ -732,29 +731,6 @@ describe('components/AdvancedCreateComment', () => {
                 });
             });
 
-            it(`should show Confirm Modal for @${mention} mentions when needed`, () => {
-                const props: any = {
-                    ...baseProps,
-                    draft: {
-                        message: `Test message @${mention}`,
-                        uploadsInProgress: [],
-                        fileInfos: [{}, {}, {}],
-                    },
-                    onSubmit,
-                    channelMembersCount: 8,
-                    enableConfirmNotificationsToChannel: true,
-                };
-
-                const wrapper = shallow<AdvancedCreateComment>(
-                    <AdvancedCreateComment {...props}/>,
-                );
-
-                wrapper.instance().handleSubmit(submitEvent);
-                expect(onSubmit).not.toHaveBeenCalled();
-                expect(preventDefault).toHaveBeenCalled();
-                expect(props.openModal).toHaveBeenCalled();
-            });
-
             it(`should show Confirm Modal for @${mention} mentions when needed and timezone notification`, async () => {
                 const props: any = {
                     ...baseProps,
@@ -764,7 +740,6 @@ describe('components/AdvancedCreateComment', () => {
                         fileInfos: [{}, {}, {}],
                     },
                     onSubmit,
-                    isTimezoneEnabled: true,
                     channelMembersCount: 8,
                     enableConfirmNotificationsToChannel: true,
                 };
@@ -792,7 +767,6 @@ describe('components/AdvancedCreateComment', () => {
                         fileInfos: [{}, {}, {}],
                     },
                     onSubmit,
-                    isTimezoneEnabled: true,
                     channelMembersCount: 8,
                     enableConfirmNotificationsToChannel: true,
                 };
@@ -832,7 +806,6 @@ describe('components/AdvancedCreateComment', () => {
                         channel_member_timezones_count: 0,
                     },
                 },
-                isTimezoneEnabled: false,
                 channelMembersCount: 8,
                 useChannelMentions: true,
                 enableConfirmNotificationsToChannel: true,
@@ -904,7 +877,6 @@ describe('components/AdvancedCreateComment', () => {
                         channel_member_timezones_count: 0,
                     },
                 },
-                isTimezoneEnabled: false,
                 channelMembersCount: 8,
                 useChannelMentions: true,
                 enableConfirmNotificationsToChannel: true,
@@ -945,7 +917,6 @@ describe('components/AdvancedCreateComment', () => {
                         channel_member_timezones_count: 5,
                     },
                 },
-                isTimezoneEnabled: true,
                 channelMembersCount: 8,
                 useChannelMentions: true,
                 enableConfirmNotificationsToChannel: true,

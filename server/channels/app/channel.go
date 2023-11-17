@@ -1401,18 +1401,18 @@ func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*
 }
 
 func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError {
-	ihc := make(chan store.StoreResult, 1)
-	ohc := make(chan store.StoreResult, 1)
+	ihc := make(chan store.GenericStoreResult[[]*model.IncomingWebhook], 1)
+	ohc := make(chan store.GenericStoreResult[[]*model.OutgoingWebhook], 1)
 
 	go func() {
 		webhooks, err := a.Srv().Store().Webhook().GetIncomingByChannel(channel.Id)
-		ihc <- store.StoreResult{Data: webhooks, NErr: err}
+		ihc <- store.GenericStoreResult[[]*model.IncomingWebhook]{Data: webhooks, NErr: err}
 		close(ihc)
 	}()
 
 	go func() {
 		outgoingHooks, err := a.Srv().Store().Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
-		ohc <- store.StoreResult{Data: outgoingHooks, NErr: err}
+		ohc <- store.GenericStoreResult[[]*model.OutgoingWebhook]{Data: outgoingHooks, NErr: err}
 		close(ohc)
 	}()
 
@@ -1440,9 +1440,6 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 	if ohcresult.NErr != nil {
 		return model.NewAppError("DeleteChannel", "app.webhooks.get_outgoing_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(ohcresult.NErr)
 	}
-
-	incomingHooks := ihcresult.Data.([]*model.IncomingWebhook)
-	outgoingHooks := ohcresult.Data.([]*model.OutgoingWebhook)
 
 	if channel.DeleteAt > 0 {
 		err := model.NewAppError("deleteChannel", "api.channel.delete_channel.deleted.app_error", nil, "", http.StatusBadRequest)
@@ -1492,14 +1489,14 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 	}
 
 	now := model.GetMillis()
-	for _, hook := range incomingHooks {
+	for _, hook := range ihcresult.Data {
 		if err := a.Srv().Store().Webhook().DeleteIncoming(hook.Id, now); err != nil {
 			c.Logger().Warn("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
 		a.Srv().Platform().InvalidateCacheForWebhook(hook.Id)
 	}
 
-	for _, hook := range outgoingHooks {
+	for _, hook := range ohcresult.Data {
 		if err := a.Srv().Store().Webhook().DeleteOutgoing(hook.Id, now); err != nil {
 			c.Logger().Warn("Encountered error deleting outgoing webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
@@ -2196,16 +2193,16 @@ func (a *App) GetChannelUnread(c request.CTX, channelID, userID string) (*model.
 }
 
 func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError {
-	userChan := make(chan store.StoreResult, 1)
-	memberChan := make(chan store.StoreResult, 1)
+	userChan := make(chan store.GenericStoreResult[*model.User], 1)
+	memberChan := make(chan store.GenericStoreResult[*model.ChannelMember], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), userID)
-		userChan <- store.StoreResult{Data: user, NErr: err}
+		userChan <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
 	go func() {
 		member, err := a.Srv().Store().Channel().GetMember(context.Background(), channel.Id, userID)
-		memberChan <- store.StoreResult{Data: member, NErr: err}
+		memberChan <- store.GenericStoreResult[*model.ChannelMember]{Data: member, NErr: err}
 		close(memberChan)
 	}()
 
@@ -2226,7 +2223,7 @@ func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) 
 		return nil
 	}
 
-	user := uresult.Data.(*model.User)
+	user := uresult.Data
 
 	if channel.Type != model.ChannelTypeOpen {
 		return model.NewAppError("JoinChannel", "api.channel.join_channel.permissions.app_error", nil, "", http.StatusBadRequest)
@@ -2297,24 +2294,24 @@ func (a *App) postJoinTeamMessage(c request.CTX, user *model.User, channel *mode
 }
 
 func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *model.AppError {
-	sc := make(chan store.StoreResult, 1)
+	sc := make(chan store.GenericStoreResult[*model.Channel], 1)
 	go func() {
 		channel, err := a.Srv().Store().Channel().Get(channelID, true)
-		sc <- store.StoreResult{Data: channel, NErr: err}
+		sc <- store.GenericStoreResult[*model.Channel]{Data: channel, NErr: err}
 		close(sc)
 	}()
 
-	uc := make(chan store.StoreResult, 1)
+	uc := make(chan store.GenericStoreResult[*model.User], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), userID)
-		uc <- store.StoreResult{Data: user, NErr: err}
+		uc <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
 		close(uc)
 	}()
 
-	mcc := make(chan store.StoreResult, 1)
+	mcc := make(chan store.GenericStoreResult[int64], 1)
 	go func() {
 		count, err := a.Srv().Store().Channel().GetMemberCount(channelID, false)
-		mcc <- store.StoreResult{Data: count, NErr: err}
+		mcc <- store.GenericStoreResult[int64]{Data: count, NErr: err}
 		close(mcc)
 	}()
 
@@ -2343,9 +2340,9 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 		return model.NewAppError("LeaveChannel", "app.channel.get_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(ccresult.NErr)
 	}
 
-	channel := cresult.Data.(*model.Channel)
-	user := uresult.Data.(*model.User)
-	membersCount := ccresult.Data.(int64)
+	channel := cresult.Data
+	user := uresult.Data
+	membersCount := ccresult.Data
 
 	if channel.IsGroupOrDirect() {
 		err := model.NewAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "", http.StatusBadRequest)
