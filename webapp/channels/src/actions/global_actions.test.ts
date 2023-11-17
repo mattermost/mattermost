@@ -4,9 +4,7 @@
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {redirectUserToDefaultTeam, toggleSideBarRightMenuAction, getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
-import {close as closeLhs} from 'actions/views/lhs';
-import {closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
+import {redirectUserToDefaultTeam, getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
 import LocalStorageStore from 'stores/local_storage_store';
 import reduxStore from 'stores/redux_store';
 
@@ -572,15 +570,5 @@ describe('actions/global_actions', () => {
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/team1/channels/channel-in-team-1');
         });
-    });
-
-    test('toggleSideBarRightMenuAction', () => {
-        const dispatchMock = async () => {
-            return {data: true};
-        };
-        toggleSideBarRightMenuAction()(dispatchMock);
-        expect(closeRhsMenu).toHaveBeenCalled();
-        expect(closeRightHandSide).toHaveBeenCalled();
-        expect(closeLhs).toHaveBeenCalled();
     });
 });

@@ -1319,46 +1319,30 @@ export function doPostActionWithCookie(postId: string, actionId: string, actionC
 }
 
 export function addMessageIntoHistory(message: string) {
-    return async (dispatch: DispatchFunc) => {
-        dispatch({
-            type: PostTypes.ADD_MESSAGE_INTO_HISTORY,
-            data: message,
-        });
-
-        return {data: true};
+    return {
+        type: PostTypes.ADD_MESSAGE_INTO_HISTORY,
+        data: message,
     };
 }
 
 export function resetHistoryIndex(index: string) {
-    return async (dispatch: DispatchFunc) => {
-        dispatch({
-            type: PostTypes.RESET_HISTORY_INDEX,
-            data: index,
-        });
-
-        return {data: true};
+    return {
+        type: PostTypes.RESET_HISTORY_INDEX,
+        data: index,
     };
 }
 
 export function moveHistoryIndexBack(index: string) {
-    return async (dispatch: DispatchFunc) => {
-        dispatch({
-            type: PostTypes.MOVE_HISTORY_INDEX_BACK,
-            data: index,
-        });
-
-        return {data: true};
+    return {
+        type: PostTypes.MOVE_HISTORY_INDEX_BACK,
+        data: index,
     };
 }
 
 export function moveHistoryIndexForward(index: string) {
-    return async (dispatch: DispatchFunc) => {
-        dispatch({
-            type: PostTypes.MOVE_HISTORY_INDEX_FORWARD,
-            data: index,
-        });
-
-        return {data: true};
+    return {
+        type: PostTypes.MOVE_HISTORY_INDEX_FORWARD,
+        data: index,
     };
 }
 

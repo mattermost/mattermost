@@ -1,17 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {MockStoreEnhanced} from 'redux-mock-store';
-
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-
 import {close, open, toggle} from 'actions/views/lhs';
 import configureStore from 'store';
 
 import mockStore from 'tests/test_store';
 import {ActionTypes} from 'utils/constants';
-
-import type {GlobalState} from 'types/store';
 
 import * as Actions from './lhs';
 
@@ -24,7 +18,7 @@ describe('lhs view actions', () => {
         },
     };
 
-    let store: MockStoreEnhanced<GlobalState, DispatchFunc>;
+    let store: ReturnType<typeof mockStore>;
 
     beforeEach(() => {
         store = mockStore(initialState);

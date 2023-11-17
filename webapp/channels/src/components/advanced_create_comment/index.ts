@@ -148,7 +148,7 @@ function makeMapDispatchToProps() {
     let onSubmit: (
         draft: PostDraft,
         options: {ignoreSlash: boolean},
-    ) => (dispatch: DispatchFunc, getState: () => GlobalState) => Promise<ActionResult | ActionResult[]> | ActionResult;
+    ) => (dispatch: DispatchFunc, getState: () => GlobalState) => Promise<ActionResult> | ActionResult;
     let onEditLatestPost: () => ActionFunc;
 
     function onResetHistoryIndex() {

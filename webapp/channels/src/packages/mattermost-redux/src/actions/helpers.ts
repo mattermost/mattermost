@@ -76,7 +76,7 @@ export function bindClientFunc({
     onFailure?: ActionType;
     params?: any[];
 }): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         if (onRequest) {
             dispatch(requestData(onRequest));
         }

@@ -30,7 +30,7 @@ import {
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import type {ActionFunc, ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ActionResult, GetStateFunc} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 
 import {addChannelToInitialCategory, addChannelToCategory} from './channel_categories';
@@ -1155,7 +1155,7 @@ export function updateChannelMemberRoles(channelId: string, userId: string, role
 }
 
 export function updateChannelHeader(channelId: string, header: string): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+    return async (dispatch) => {
         Client4.trackEvent('action', 'action_channels_update_header', {channel_id: channelId});
 
         dispatch({
@@ -1171,7 +1171,7 @@ export function updateChannelHeader(channelId: string, header: string): ActionFu
 }
 
 export function updateChannelPurpose(channelId: string, purpose: string): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+    return async (dispatch) => {
         Client4.trackEvent('action', 'action_channels_update_purpose', {channel_id: channelId});
 
         dispatch({

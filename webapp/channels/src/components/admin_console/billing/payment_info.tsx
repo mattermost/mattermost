@@ -9,7 +9,6 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
 import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {pageVisited} from 'actions/telemetry_actions';
 
@@ -24,7 +23,7 @@ import './payment_info.scss';
 type Props = Record<string, never>;
 
 const PaymentInfo: React.FC<Props> = () => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const {customer: customerError} = useSelector(getCloudErrors);
 
     const isCardAboutToExpire = useSelector((state: GlobalState) => {

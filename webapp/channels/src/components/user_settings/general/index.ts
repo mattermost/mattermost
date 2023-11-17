@@ -13,7 +13,6 @@ import {
     uploadProfileImage,
 } from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -55,7 +54,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Props['actions']>({
+        actions: bindActionCreators<ActionCreatorsMapObject, Props['actions']>({
             logError,
             clearErrors,
             updateMe,

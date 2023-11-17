@@ -7,7 +7,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import {Client4} from 'mattermost-redux/client';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import type {ActionFunc, DispatchFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 import {cleanForm} from 'mattermost-redux/utils/apps';
 
 import {openModal} from 'actions/views/modals';
@@ -22,7 +22,7 @@ import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
 import {sendEphemeralPost} from './global_actions';
 
 export function handleBindingClick<Res=unknown>(binding: AppBinding, context: AppContext, intl: any): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+    return async (dispatch) => {
         // Fetch form
         let form = binding.form;
         if (form?.source) {

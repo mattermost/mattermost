@@ -9,21 +9,13 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import {ErrorTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
-export function dismissErrorObject(index: number) {
+export function dismissError(index: number) {
     return {
         type: ErrorTypes.DISMISS_ERROR,
         index,
         data: null,
-    };
-}
-
-export function dismissError(index: number): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
-        dispatch(dismissErrorObject(index));
-
-        return {data: true};
     };
 }
 
@@ -81,10 +73,9 @@ export function logError(error: ServerError, displayable = false, consoleError =
     };
 }
 
-export function clearErrors(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
-        dispatch({type: ErrorTypes.CLEAR_ERRORS, data: null});
-
-        return {data: true};
+export function clearErrors() {
+    return {
+        type: ErrorTypes.CLEAR_ERRORS,
+        data: null,
     };
 }
