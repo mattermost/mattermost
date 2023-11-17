@@ -8,7 +8,10 @@ import {useDispatch} from 'react-redux';
 import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
 import type {AllowedIPRange, FetchIPResponse} from '@mattermost/types/config';
 
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+
 import {applyIPFilters, getCurrentIP, getIPFilters} from 'actions/admin_actions';
+import {getInstallation} from 'actions/cloud';
 import {closeModal, openModal} from 'actions/views/modals';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
@@ -27,7 +30,7 @@ import SaveChangesPanel from '../team_channel_settings/save_changes_panel';
 import './ip_filtering.scss';
 
 const IPFiltering = () => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<DispatchFunc>();
     const {formatMessage} = useIntl();
     const [ipFilters, setIpFilters] = useState<AllowedIPRange[] | null>(null);
     const [originalIpFilters, setOriginalIpFilters] = useState<AllowedIPRange[] | null>(null);
@@ -35,8 +38,17 @@ const IPFiltering = () => {
     const [currentUsersIP, setCurrentUsersIP] = useState<string | null>(null);
     const [saving, setSaving] = useState<boolean>(false);
     const [filterToggle, setFilterToggle] = useState<boolean>(false);
+    const [installationStatus, setInstallationStatus] = useState<string>('');
+    const [savingMessage, setSavingMessage] = useState<string>('');
+
+    const savingMessages = {
+        SAVING_PREVIOUS_CHANGE: formatMessage({id: 'admin.ip_filtering.saving_previous_change', defaultMessage: 'Applying previous filter changes...'}),
+        SAVING_CHANGES: formatMessage({id: 'admin.ip_filtering.saving_changes', defaultMessage: 'Applying filter changes...'}),
+    };
 
     useEffect(() => {
+        getInstallationStatus();
+
         getIPFilters((data: AllowedIPRange[]) => {
             setIpFilters(data);
             setOriginalIpFilters(data);
@@ -57,7 +69,7 @@ const IPFiltering = () => {
         setSaveNeeded(haveFiltersChanged);
     }, [ipFilters, originalIpFilters]);
 
-    const currentIPIsInRange = () => {
+    const currentIPIsInRange = (): boolean => {
         if (!filterToggle) {
             return true;
         }
@@ -91,6 +103,34 @@ const IPFiltering = () => {
             }) || []);
         }
     }, [filterToggle]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            getInstallationStatus();
+        }, 5000);
+
+        if (installationStatus === 'stable') {
+            setSaving(false);
+            clearInterval(interval);
+        }
+
+        return () => clearInterval(interval);
+    }, [installationStatus]);
+
+    async function getInstallationStatus() {
+        const result = await dispatch(getInstallation());
+        if (result.data) {
+            const {data} = result;
+            if (installationStatus === '' && data.state !== 'stable') {
+                // This is the first load of the page, and the installation is not stable, so we must lock saving until it becomes stable
+                setInstallationStatus(data.state);
+                setSaving(true);
+                setSaveNeeded(true);
+                setSavingMessage(savingMessages.SAVING_PREVIOUS_CHANGE);
+            }
+            setInstallationStatus(data.state);
+        }
+    }
 
     function handleEditFilter(filter: AllowedIPRange, existingRange?: AllowedIPRange) {
         setIpFilters((prevIpFilters) => {
@@ -156,12 +196,13 @@ const IPFiltering = () => {
 
     function handleSave() {
         setSaving(true);
+        setSavingMessage(savingMessages.SAVING_CHANGES);
         dispatch(closeModal(ModalIdentifiers.IP_FILTERING_SAVE_CONFIRMATION_MODAL));
 
         const success = (data: AllowedIPRange[]) => {
             setIpFilters(data);
-            setSaving(false);
             setSaveNeeded(false);
+            setInstallationStatus('update-requested');
         };
 
         applyIPFilters(ipFilters ?? [], success);
@@ -257,9 +298,10 @@ const IPFiltering = () => {
             <SaveChangesPanel
                 saving={saving}
                 saveNeeded={saveNeeded}
-                isDisabled={!currentIPIsInRange}
+                isDisabled={!currentIPIsInRange() || installationStatus !== 'stable'}
                 onClick={handleSaveClick}
                 serverError={saveBarError()}
+                savingMessage={savingMessage}
                 cancelLink=''
             />
         </div>

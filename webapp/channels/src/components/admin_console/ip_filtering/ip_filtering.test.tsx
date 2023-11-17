@@ -201,4 +201,34 @@ describe('IPFiltering', () => {
             expect(applyIPFiltersMock).toHaveBeenCalledTimes(1);
         });
     });
+
+    test('Save button is disabled when users IP is not within the allowed ranges', async () => {
+        const {getByLabelText, getByText, queryByText, getByTestId} = render(wrapWithIntlProviderAndStore(<IPFiltering/>));
+
+        await waitFor(() => {
+            expect(getByText('Test IP Filter')).toBeInTheDocument();
+        });
+
+        fireEvent.mouseEnter(screen.getByText('Test IP Filter'));
+        fireEvent.click(screen.getByRole('button', {
+            name: /Edit/i,
+        }));
+
+        const descriptionInput = getByLabelText('Enter a name for this rule');
+        const cidrInput = getByLabelText('Enter IP Range');
+        const saveButton = screen.getByTestId('save-add-edit-button');
+
+        fireEvent.change(cidrInput, {target: {value: '192.168.0.0/16'}});
+        fireEvent.change(descriptionInput, {target: {value: 'zzzzzfilter'}});
+        fireEvent.click(saveButton);
+
+        await waitFor(() => {
+            expect(getByText('zzzzzfilter')).toBeInTheDocument();
+            expect(getByText('192.168.0.0/16')).toBeInTheDocument();
+
+            // ensure that the old description is gone, because we've now changed it
+            expect(queryByText('Test IP Filter')).toBeNull();
+            expect(getByTestId('saveSetting')).toBeDisabled();
+        });
+    });
 });
