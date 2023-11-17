@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
@@ -49,7 +48,7 @@ func (*CustomStatusProvider) DoCommand(a *app.App, c request.CTX, args *model.Co
 	message = strings.TrimSpace(message)
 	if message == CmdCustomStatusClear {
 		if err := a.RemoveCustomStatus(c, args.UserId); err != nil {
-			mlog.Debug(err.Error())
+			c.Logger().Debug(err.Error())
 			return &model.CommandResponse{Text: args.T("api.command_custom_status.clear.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 
@@ -62,7 +61,7 @@ func (*CustomStatusProvider) DoCommand(a *app.App, c request.CTX, args *model.Co
 	customStatus := GetCustomStatus(message)
 	customStatus.PreSave()
 	if err := a.SetCustomStatus(c, args.UserId, customStatus); err != nil {
-		mlog.Debug(err.Error())
+		c.Logger().Debug(err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_custom_status.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 

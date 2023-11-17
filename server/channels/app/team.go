@@ -699,13 +699,13 @@ func (a *App) AddUserToTeamByToken(c request.CTX, userID string, tokenID string)
 		for _, channel := range channels {
 			_, err := a.AddUserToChannel(c, user, channel, false)
 			if err != nil {
-				mlog.Warn("Error adding user to channel", mlog.Err(err))
+				c.Logger().Warn("Error adding user to channel", mlog.Err(err))
 			}
 		}
 	}
 
 	if err := a.DeleteToken(token); err != nil {
-		mlog.Warn("Error while deleting token", mlog.Err(err))
+		c.Logger().Warn("Error while deleting token", mlog.Err(err))
 	}
 
 	return team, teamMember, nil
@@ -794,7 +794,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 		ExcludeTeam: false,
 	}
 	if _, err := a.createInitialSidebarCategories(c, user.Id, opts); err != nil {
-		mlog.Warn(
+		c.Logger().Warn(
 			"Encountered an issue creating default sidebar categories.",
 			mlog.String("user_id", user.Id),
 			mlog.String("team_id", team.Id),
@@ -807,7 +807,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 	if !user.IsGuest() {
 		// Soft error if there is an issue joining the default channels
 		if err := a.JoinDefaultChannels(c, team.Id, user, shouldBeAdmin, userRequestorId); err != nil {
-			mlog.Warn(
+			c.Logger().Warn(
 				"Encountered an issue joining default channels.",
 				mlog.String("user_id", user.Id),
 				mlog.String("team_id", team.Id),

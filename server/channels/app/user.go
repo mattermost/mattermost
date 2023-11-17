@@ -885,7 +885,7 @@ func (a *App) SetProfileImageFromFile(c request.CTX, userID string, file io.Read
 	if err := a.Srv().Store().User().UpdateLastPictureUpdate(userID); err != nil {
 		c.Logger().Warn("Error with updating last picture update", mlog.Err(err))
 	}
-	a.invalidateUserCacheAndPublish(userID)
+	a.invalidateUserCacheAndPublish(c, userID)
 	a.onUserProfileChange(userID)
 
 	return nil
@@ -937,7 +937,7 @@ func (a *App) userDeactivated(c request.CTX, userID string) *model.AppError {
 	}
 
 	if nErr := a.Srv().Store().OAuth().RemoveAuthDataByUserId(userID); nErr != nil {
-		mlog.Warn("unable to remove auth data by user id", mlog.Err(nErr))
+		c.Logger().Warn("unable to remove auth data by user id", mlog.Err(nErr))
 	}
 
 	return nil
@@ -1877,7 +1877,7 @@ func (a *App) VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string
 	if user.Email != tokenData.Email {
 		a.Srv().Go(func() {
 			if err := a.Srv().EmailService.SendEmailChangeEmail(user.Email, tokenData.Email, user.Locale, a.GetSiteURL()); err != nil {
-				mlog.Error("Failed to send email change email", mlog.Err(err))
+				c.Logger().Error("Failed to send email change email", mlog.Err(err))
 			}
 		})
 	}
@@ -2417,12 +2417,12 @@ func (a *App) PublishUserTyping(userID, channelID, parentId string) *model.AppEr
 }
 
 // invalidateUserCacheAndPublish Invalidates cache for a user and publishes user updated event
-func (a *App) invalidateUserCacheAndPublish(userID string) {
+func (a *App) invalidateUserCacheAndPublish(rctx request.CTX, userID string) {
 	a.InvalidateCacheForUser(userID)
 
 	user, userErr := a.GetUser(userID)
 	if userErr != nil {
-		mlog.Error("Error in getting users profile", mlog.String("user_id", userID), mlog.Err(userErr))
+		rctx.Logger().Error("Error in getting users profile", mlog.String("user_id", userID), mlog.Err(userErr))
 		return
 	}
 

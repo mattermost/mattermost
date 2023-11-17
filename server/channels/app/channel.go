@@ -2675,7 +2675,7 @@ func (a *App) ValidateUserPermissionsOnChannels(c request.CTX, userId string, ch
 	for _, channelId := range channelIds {
 		channel, err := a.GetChannel(c, channelId)
 		if err != nil {
-			mlog.Info("Invite users to team - couldn't get channel " + channelId)
+			c.Logger().Info("Invite users to team - couldn't get channel " + channelId)
 			continue
 		}
 
@@ -2684,7 +2684,7 @@ func (a *App) ValidateUserPermissionsOnChannels(c request.CTX, userId string, ch
 		} else if channel.Type == model.ChannelTypeOpen && a.HasPermissionToChannel(c, userId, channelId, model.PermissionManagePublicChannelMembers) {
 			allowedChannelIds = append(allowedChannelIds, channelId)
 		} else {
-			mlog.Info("Invite users to team - no permission to add members to that channel. UserId: " + userId + " ChannelId: " + channelId)
+			c.Logger().Info("Invite users to team - no permission to add members to that channel. UserId: " + userId + " ChannelId: " + channelId)
 		}
 	}
 	return allowedChannelIds
@@ -3587,7 +3587,7 @@ func (a *App) setSidebarCategoriesForConvertedGroupMessage(c request.CTX, gmConv
 		})
 
 		if appErr != nil {
-			mlog.Error("Failed to search sidebar categories for user for adding converted GM")
+			c.Logger().Error("Failed to search sidebar categories for user for adding converted GM")
 			continue
 		}
 
@@ -3606,7 +3606,7 @@ func (a *App) setSidebarCategoriesForConvertedGroupMessage(c request.CTX, gmConv
 		channelsCategory := categories.Categories[0]
 		_, appErr = a.UpdateSidebarCategories(c, user.Id, gmConversionRequest.TeamID, []*model.SidebarCategoryWithChannels{channelsCategory})
 		if appErr != nil {
-			mlog.Error("Failed to add converted GM to default sidebar category for user", mlog.String("user_id", user.Id), mlog.Err(err))
+			c.Logger().Error("Failed to add converted GM to default sidebar category for user", mlog.String("user_id", user.Id), mlog.Err(err))
 		}
 	}
 
@@ -3701,7 +3701,7 @@ func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelI
 	}
 
 	if _, appErr := a.CreatePost(c, post, channel, false, true); appErr != nil {
-		mlog.Error("Failed to create post for notifying about GM converted to private channel", mlog.Err(appErr))
+		c.Logger().Error("Failed to create post for notifying about GM converted to private channel", mlog.Err(appErr))
 
 		return model.NewAppError(
 			"postMessageForConvertGroupMessageToChannel",
