@@ -9,6 +9,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 )
 
-func TestOAuthOutgoingConnectionStore(t *testing.T) {
-	StoreTest(t, storetest.TestOAuthOutgoingConnectionStore)
+func TestOutgoingOAuthConnectionStore(t *testing.T) {
+	StoreTest(t, storetest.TestOutgoingOAuthConnectionStore)
 }

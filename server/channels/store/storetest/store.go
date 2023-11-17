@@ -29,7 +29,7 @@ type Store struct {
 	ComplianceStore                 mocks.ComplianceStore
 	SessionStore                    mocks.SessionStore
 	OAuthStore                      mocks.OAuthStore
-	OAuthOutgoingConnectionStore    mocks.OAuthOutgoingConnectionStore
+	OutgoingOAuthConnectionStore    mocks.OutgoingOAuthConnectionStore
 	SystemStore                     mocks.SystemStore
 	WebhookStore                    mocks.WebhookStore
 	CommandStore                    mocks.CommandStore
@@ -80,8 +80,8 @@ func (s *Store) RemoteCluster() store.RemoteClusterStore       { return &s.Remot
 func (s *Store) Compliance() store.ComplianceStore             { return &s.ComplianceStore }
 func (s *Store) Session() store.SessionStore                   { return &s.SessionStore }
 func (s *Store) OAuth() store.OAuthStore                       { return &s.OAuthStore }
-func (s *Store) OAuthOutgoingConnection() store.OAuthOutgoingConnectionStore {
-	return &s.OAuthOutgoingConnectionStore
+func (s *Store) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
+	return &s.OutgoingOAuthConnectionStore
 }
 func (s *Store) System() store.SystemStore                         { return &s.SystemStore }
 func (s *Store) Webhook() store.WebhookStore                       { return &s.WebhookStore }

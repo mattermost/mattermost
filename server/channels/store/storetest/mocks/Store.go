@@ -492,16 +492,16 @@ func (_m *Store) OAuth() store.OAuthStore {
 	return r0
 }
 
-// OAuthOutgoingConnection provides a mock function with given fields:
-func (_m *Store) OAuthOutgoingConnection() store.OAuthOutgoingConnectionStore {
+// OutgoingOAuthConnection provides a mock function with given fields:
+func (_m *Store) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
 	ret := _m.Called()
 
-	var r0 store.OAuthOutgoingConnectionStore
-	if rf, ok := ret.Get(0).(func() store.OAuthOutgoingConnectionStore); ok {
+	var r0 store.OutgoingOAuthConnectionStore
+	if rf, ok := ret.Get(0).(func() store.OutgoingOAuthConnectionStore); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.OAuthOutgoingConnectionStore)
+			r0 = ret.Get(0).(store.OutgoingOAuthConnectionStore)
 		}
 	}
 

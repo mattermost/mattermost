@@ -37,7 +37,7 @@ type TimerLayer struct {
 	LinkMetadataStore               store.LinkMetadataStore
 	NotifyAdminStore                store.NotifyAdminStore
 	OAuthStore                      store.OAuthStore
-	OAuthOutgoingConnectionStore    store.OAuthOutgoingConnectionStore
+	OutgoingOAuthConnectionStore    store.OutgoingOAuthConnectionStore
 	PluginStore                     store.PluginStore
 	PostStore                       store.PostStore
 	PostAcknowledgementStore        store.PostAcknowledgementStore
@@ -138,8 +138,8 @@ func (s *TimerLayer) OAuth() store.OAuthStore {
 	return s.OAuthStore
 }
 
-func (s *TimerLayer) OAuthOutgoingConnection() store.OAuthOutgoingConnectionStore {
-	return s.OAuthOutgoingConnectionStore
+func (s *TimerLayer) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
+	return s.OutgoingOAuthConnectionStore
 }
 
 func (s *TimerLayer) Plugin() store.PluginStore {
@@ -336,8 +336,8 @@ type TimerLayerOAuthStore struct {
 	Root *TimerLayer
 }
 
-type TimerLayerOAuthOutgoingConnectionStore struct {
-	store.OAuthOutgoingConnectionStore
+type TimerLayerOutgoingOAuthConnectionStore struct {
+	store.OutgoingOAuthConnectionStore
 	Root *TimerLayer
 }
 
@@ -5243,10 +5243,10 @@ func (s *TimerLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, 
 	return result, err
 }
 
-func (s *TimerLayerOAuthOutgoingConnectionStore) DeleteConnection(c request.CTX, id string) error {
+func (s *TimerLayerOutgoingOAuthConnectionStore) DeleteConnection(c request.CTX, id string) error {
 	start := time.Now()
 
-	err := s.OAuthOutgoingConnectionStore.DeleteConnection(c, id)
+	err := s.OutgoingOAuthConnectionStore.DeleteConnection(c, id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5254,15 +5254,15 @@ func (s *TimerLayerOAuthOutgoingConnectionStore) DeleteConnection(c request.CTX,
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("OAuthOutgoingConnectionStore.DeleteConnection", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("OutgoingOAuthConnectionStore.DeleteConnection", success, elapsed)
 	}
 	return err
 }
 
-func (s *TimerLayerOAuthOutgoingConnectionStore) GetConnection(c request.CTX, id string) (*model.OAuthOutgoingConnection, error) {
+func (s *TimerLayerOutgoingOAuthConnectionStore) GetConnection(c request.CTX, id string) (*model.OutgoingOAuthConnection, error) {
 	start := time.Now()
 
-	result, err := s.OAuthOutgoingConnectionStore.GetConnection(c, id)
+	result, err := s.OutgoingOAuthConnectionStore.GetConnection(c, id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5270,15 +5270,15 @@ func (s *TimerLayerOAuthOutgoingConnectionStore) GetConnection(c request.CTX, id
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("OAuthOutgoingConnectionStore.GetConnection", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("OutgoingOAuthConnectionStore.GetConnection", success, elapsed)
 	}
 	return result, err
 }
 
-func (s *TimerLayerOAuthOutgoingConnectionStore) GetConnections(c request.CTX, filters model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error) {
+func (s *TimerLayerOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error) {
 	start := time.Now()
 
-	result, err := s.OAuthOutgoingConnectionStore.GetConnections(c, filters)
+	result, err := s.OutgoingOAuthConnectionStore.GetConnections(c, filters)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5286,15 +5286,15 @@ func (s *TimerLayerOAuthOutgoingConnectionStore) GetConnections(c request.CTX, f
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("OAuthOutgoingConnectionStore.GetConnections", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("OutgoingOAuthConnectionStore.GetConnections", success, elapsed)
 	}
 	return result, err
 }
 
-func (s *TimerLayerOAuthOutgoingConnectionStore) SaveConnection(c request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error) {
+func (s *TimerLayerOutgoingOAuthConnectionStore) SaveConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
 	start := time.Now()
 
-	result, err := s.OAuthOutgoingConnectionStore.SaveConnection(c, conn)
+	result, err := s.OutgoingOAuthConnectionStore.SaveConnection(c, conn)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5302,15 +5302,15 @@ func (s *TimerLayerOAuthOutgoingConnectionStore) SaveConnection(c request.CTX, c
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("OAuthOutgoingConnectionStore.SaveConnection", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("OutgoingOAuthConnectionStore.SaveConnection", success, elapsed)
 	}
 	return result, err
 }
 
-func (s *TimerLayerOAuthOutgoingConnectionStore) UpdateConnection(c request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error) {
+func (s *TimerLayerOutgoingOAuthConnectionStore) UpdateConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
 	start := time.Now()
 
-	result, err := s.OAuthOutgoingConnectionStore.UpdateConnection(c, conn)
+	result, err := s.OutgoingOAuthConnectionStore.UpdateConnection(c, conn)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5318,7 +5318,7 @@ func (s *TimerLayerOAuthOutgoingConnectionStore) UpdateConnection(c request.CTX,
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("OAuthOutgoingConnectionStore.UpdateConnection", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("OutgoingOAuthConnectionStore.UpdateConnection", success, elapsed)
 	}
 	return result, err
 }
@@ -11884,7 +11884,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.LinkMetadataStore = &TimerLayerLinkMetadataStore{LinkMetadataStore: childStore.LinkMetadata(), Root: &newStore}
 	newStore.NotifyAdminStore = &TimerLayerNotifyAdminStore{NotifyAdminStore: childStore.NotifyAdmin(), Root: &newStore}
 	newStore.OAuthStore = &TimerLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
-	newStore.OAuthOutgoingConnectionStore = &TimerLayerOAuthOutgoingConnectionStore{OAuthOutgoingConnectionStore: childStore.OAuthOutgoingConnection(), Root: &newStore}
+	newStore.OutgoingOAuthConnectionStore = &TimerLayerOutgoingOAuthConnectionStore{OutgoingOAuthConnectionStore: childStore.OutgoingOAuthConnection(), Root: &newStore}
 	newStore.PluginStore = &TimerLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &TimerLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
 	newStore.PostAcknowledgementStore = &TimerLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}

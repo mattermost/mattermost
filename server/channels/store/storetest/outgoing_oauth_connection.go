@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func newValidOAuthOutgoingConnection() *model.OAuthOutgoingConnection {
-	return &model.OAuthOutgoingConnection{
+func newValidOutgoingOAuthConnection() *model.OutgoingOAuthConnection {
+	return &model.OutgoingOAuthConnection{
 		CreatorId:     model.NewId(),
 		Name:          "Test Connection",
 		ClientId:      model.NewId(),
@@ -25,123 +25,123 @@ func newValidOAuthOutgoingConnection() *model.OAuthOutgoingConnection {
 	}
 }
 
-func cleanupOAuthOutgoingConnections(t *testing.T, ss store.Store) func() {
+func cleanupOutgoingOAuthConnections(t *testing.T, ss store.Store) func() {
 	return func() {
 		// Delete all outgoing connections
-		connections, err := ss.OAuthOutgoingConnection().GetConnections(request.TestContext(t), model.OAuthOutgoingConnectionGetConnectionsFilter{
+		connections, err := ss.OutgoingOAuthConnection().GetConnections(request.TestContext(t), model.OutgoingOAuthConnectionGetConnectionsFilter{
 			Limit: 100,
 		})
 		require.NoError(t, err)
 		for _, conn := range connections {
-			err := ss.OAuthOutgoingConnection().DeleteConnection(request.TestContext(t), conn.Id)
+			err := ss.OutgoingOAuthConnection().DeleteConnection(request.TestContext(t), conn.Id)
 			require.NoError(t, err)
 		}
 	}
 }
 
-func TestOAuthOutgoingConnectionStore(t *testing.T, ss store.Store) {
+func TestOutgoingOAuthConnectionStore(t *testing.T, ss store.Store) {
 	t.Run("SaveConnection", func(t *testing.T) {
-		t.Cleanup(cleanupOAuthOutgoingConnections(t, ss))
-		testSaveOauthOutgoingConnection(t, ss)
+		t.Cleanup(cleanupOutgoingOAuthConnections(t, ss))
+		testSaveOutgoingOAuthConnection(t, ss)
 	})
 	t.Run("UpdateConnection", func(t *testing.T) {
-		t.Cleanup(cleanupOAuthOutgoingConnections(t, ss))
-		testUpdateOauthOutgoingConnection(t, ss)
+		t.Cleanup(cleanupOutgoingOAuthConnections(t, ss))
+		testUpdateOutgoingOAuthConnection(t, ss)
 	})
 	t.Run("GetConnection", func(t *testing.T) {
-		t.Cleanup(cleanupOAuthOutgoingConnections(t, ss))
-		testGetOauthOutgoingConnection(t, ss)
+		t.Cleanup(cleanupOutgoingOAuthConnections(t, ss))
+		testGetOutgoingOAuthConnection(t, ss)
 	})
 	t.Run("GetConnections", func(t *testing.T) {
-		t.Cleanup(cleanupOAuthOutgoingConnections(t, ss))
-		testGetOauthOutgoingConnections(t, ss)
+		t.Cleanup(cleanupOutgoingOAuthConnections(t, ss))
+		testGetOutgoingOAuthConnections(t, ss)
 	})
 	t.Run("DeleteConnection", func(t *testing.T) {
-		t.Cleanup(cleanupOAuthOutgoingConnections(t, ss))
-		testDeleteOauthOutgoingConnection(t, ss)
+		t.Cleanup(cleanupOutgoingOAuthConnections(t, ss))
+		testDeleteOutgoingOAuthConnection(t, ss)
 	})
 }
 
-func testSaveOauthOutgoingConnection(t *testing.T, ss store.Store) {
+func testSaveOutgoingOAuthConnection(t *testing.T, ss store.Store) {
 	c := request.TestContext(t)
 
 	t.Run("save/get", func(t *testing.T) {
 		// Define test data
-		connection := newValidOAuthOutgoingConnection()
+		connection := newValidOutgoingOAuthConnection()
 
 		// Save the connection
-		_, err := ss.OAuthOutgoingConnection().SaveConnection(c, connection)
+		_, err := ss.OutgoingOAuthConnection().SaveConnection(c, connection)
 		require.NoError(t, err)
 
 		// Retrieve the connection
-		storeConn, err := ss.OAuthOutgoingConnection().GetConnection(c, connection.Id)
+		storeConn, err := ss.OutgoingOAuthConnection().GetConnection(c, connection.Id)
 		require.NoError(t, err)
 		require.Equal(t, connection, storeConn)
 	})
 
 	t.Run("save without id should fail", func(t *testing.T) {
-		connection := &model.OAuthOutgoingConnection{
+		connection := &model.OutgoingOAuthConnection{
 			Id: model.NewId(),
 		}
 
-		_, err := ss.OAuthOutgoingConnection().SaveConnection(c, connection)
+		_, err := ss.OutgoingOAuthConnection().SaveConnection(c, connection)
 		require.Error(t, err)
 	})
 
 	t.Run("save with incorrect grant type should fail", func(t *testing.T) {
-		connection := newValidOAuthOutgoingConnection()
+		connection := newValidOutgoingOAuthConnection()
 		connection.GrantType = "incorrect"
 
-		_, err := ss.OAuthOutgoingConnection().SaveConnection(c, connection)
+		_, err := ss.OutgoingOAuthConnection().SaveConnection(c, connection)
 		require.Error(t, err)
 	})
 }
 
-func testUpdateOauthOutgoingConnection(t *testing.T, ss store.Store) {
+func testUpdateOutgoingOAuthConnection(t *testing.T, ss store.Store) {
 	c := request.TestContext(t)
 
 	t.Run("update/get", func(t *testing.T) {
 		// Define test data
-		connection := newValidOAuthOutgoingConnection()
+		connection := newValidOutgoingOAuthConnection()
 
 		// Save the connection
-		_, err := ss.OAuthOutgoingConnection().SaveConnection(c, connection)
+		_, err := ss.OutgoingOAuthConnection().SaveConnection(c, connection)
 		require.NoError(t, err)
 
 		// Update the connection
 		connection.Name = "Updated Name"
-		_, err = ss.OAuthOutgoingConnection().UpdateConnection(c, connection)
+		_, err = ss.OutgoingOAuthConnection().UpdateConnection(c, connection)
 		require.NoError(t, err)
 
 		// Retrieve the connection
-		storeConn, err := ss.OAuthOutgoingConnection().GetConnection(c, connection.Id)
+		storeConn, err := ss.OutgoingOAuthConnection().GetConnection(c, connection.Id)
 		require.NoError(t, err)
 		require.Equal(t, connection, storeConn)
 	})
 
 	t.Run("update non-existing", func(t *testing.T) {
-		connection := newValidOAuthOutgoingConnection()
+		connection := newValidOutgoingOAuthConnection()
 		connection.Id = model.NewId()
 
-		_, err := ss.OAuthOutgoingConnection().UpdateConnection(c, connection)
+		_, err := ss.OutgoingOAuthConnection().UpdateConnection(c, connection)
 		require.Error(t, err)
 	})
 
 	t.Run("update without id should fail", func(t *testing.T) {
-		connection := &model.OAuthOutgoingConnection{
+		connection := &model.OutgoingOAuthConnection{
 			Id: model.NewId(),
 		}
 
-		_, err := ss.OAuthOutgoingConnection().UpdateConnection(c, connection)
+		_, err := ss.OutgoingOAuthConnection().UpdateConnection(c, connection)
 		require.Error(t, err)
 	})
 
 	t.Run("update should update all fields", func(t *testing.T) {
 		// Define test data
-		connection := newValidOAuthOutgoingConnection()
+		connection := newValidOutgoingOAuthConnection()
 
 		// Save the connection
-		_, err := ss.OAuthOutgoingConnection().SaveConnection(c, connection)
+		_, err := ss.OutgoingOAuthConnection().SaveConnection(c, connection)
 		require.NoError(t, err)
 
 		// Update the connection
@@ -151,64 +151,64 @@ func testUpdateOauthOutgoingConnection(t *testing.T, ss store.Store) {
 		connection.OAuthTokenURL = "https://nowhere.com/updated"
 		// connection.GrantType = "client_credentials" // ignoring since we only allow one for now
 		connection.Audiences = []string{"https://nowhere.com/updated"}
-		_, err = ss.OAuthOutgoingConnection().UpdateConnection(c, connection)
+		_, err = ss.OutgoingOAuthConnection().UpdateConnection(c, connection)
 		require.NoError(t, err)
 
 		// Retrieve the connection
-		storeConn, err := ss.OAuthOutgoingConnection().GetConnection(c, connection.Id)
+		storeConn, err := ss.OutgoingOAuthConnection().GetConnection(c, connection.Id)
 		require.NoError(t, err)
 		require.Equal(t, connection, storeConn)
 	})
 }
 
-func testGetOauthOutgoingConnection(t *testing.T, ss store.Store) {
+func testGetOutgoingOAuthConnection(t *testing.T, ss store.Store) {
 	c := request.TestContext(t)
 
 	t.Run("get non-existing", func(t *testing.T) {
 		nonExistingId := model.NewId()
 		var expected *store.ErrNotFound
-		_, err := ss.OAuthOutgoingConnection().GetConnection(c, nonExistingId)
+		_, err := ss.OutgoingOAuthConnection().GetConnection(c, nonExistingId)
 		require.ErrorAs(t, err, &expected)
 	})
 }
 
-func testGetOauthOutgoingConnections(t *testing.T, ss store.Store) {
+func testGetOutgoingOAuthConnections(t *testing.T, ss store.Store) {
 	c := request.TestContext(t)
 
 	// Define test data
-	connection1 := newValidOAuthOutgoingConnection()
-	connection2 := newValidOAuthOutgoingConnection()
-	connection3 := newValidOAuthOutgoingConnection()
+	connection1 := newValidOutgoingOAuthConnection()
+	connection2 := newValidOutgoingOAuthConnection()
+	connection3 := newValidOutgoingOAuthConnection()
 
 	// Save the connections
-	connection1, err := ss.OAuthOutgoingConnection().SaveConnection(c, connection1)
+	connection1, err := ss.OutgoingOAuthConnection().SaveConnection(c, connection1)
 	require.NoError(t, err)
-	connection2, err = ss.OAuthOutgoingConnection().SaveConnection(c, connection2)
+	connection2, err = ss.OutgoingOAuthConnection().SaveConnection(c, connection2)
 	require.NoError(t, err)
-	connection3, err = ss.OAuthOutgoingConnection().SaveConnection(c, connection3)
+	connection3, err = ss.OutgoingOAuthConnection().SaveConnection(c, connection3)
 	require.NoError(t, err)
 
-	connections := []*model.OAuthOutgoingConnection{connection1, connection2, connection3}
+	connections := []*model.OutgoingOAuthConnection{connection1, connection2, connection3}
 	sort.Slice(connections, func(i, j int) bool {
 		return connections[i].Id < connections[j].Id
 	})
 
 	t.Run("get all", func(t *testing.T) {
 		// Retrieve the connections
-		conns, err := ss.OAuthOutgoingConnection().GetConnections(c, model.OAuthOutgoingConnectionGetConnectionsFilter{Limit: 3})
+		conns, err := ss.OutgoingOAuthConnection().GetConnections(c, model.OutgoingOAuthConnectionGetConnectionsFilter{Limit: 3})
 		require.NoError(t, err)
 		require.Len(t, conns, 3)
 	})
 
 	t.Run("get connections using pagination", func(t *testing.T) {
 		// Retrieve the first page
-		conns, err := ss.OAuthOutgoingConnection().GetConnections(c, model.OAuthOutgoingConnectionGetConnectionsFilter{Limit: 1})
+		conns, err := ss.OutgoingOAuthConnection().GetConnections(c, model.OutgoingOAuthConnectionGetConnectionsFilter{Limit: 1})
 		require.NoError(t, err)
 		require.Len(t, conns, 1)
 		require.Equal(t, connections[0].Id, conns[0].Id, "should return the first connection")
 
 		// Retrieve the second page
-		conns, err = ss.OAuthOutgoingConnection().GetConnections(c, model.OAuthOutgoingConnectionGetConnectionsFilter{OffsetId: connections[0].Id})
+		conns, err = ss.OutgoingOAuthConnection().GetConnections(c, model.OutgoingOAuthConnectionGetConnectionsFilter{OffsetId: connections[0].Id})
 		require.NoError(t, err)
 		require.Len(t, conns, 2)
 		require.Equal(t, connections[1].Id, conns[0].Id, "should return the second connection")
@@ -216,23 +216,23 @@ func testGetOauthOutgoingConnections(t *testing.T, ss store.Store) {
 	})
 }
 
-func testDeleteOauthOutgoingConnection(t *testing.T, ss store.Store) {
+func testDeleteOutgoingOAuthConnection(t *testing.T, ss store.Store) {
 	c := request.TestContext(t)
 
 	t.Run("delete", func(t *testing.T) {
 		// Define test data
-		connection := newValidOAuthOutgoingConnection()
+		connection := newValidOutgoingOAuthConnection()
 
 		// Save the connection
-		_, err := ss.OAuthOutgoingConnection().SaveConnection(c, connection)
+		_, err := ss.OutgoingOAuthConnection().SaveConnection(c, connection)
 		require.NoError(t, err)
 
 		// Delete the connection
-		err = ss.OAuthOutgoingConnection().DeleteConnection(c, connection.Id)
+		err = ss.OutgoingOAuthConnection().DeleteConnection(c, connection.Id)
 		require.NoError(t, err)
 
 		// Retrieve the connection
-		_, err = ss.OAuthOutgoingConnection().GetConnection(c, connection.Id)
+		_, err = ss.OutgoingOAuthConnection().GetConnection(c, connection.Id)
 		var expected *store.ErrNotFound
 		require.ErrorAs(t, err, &expected)
 	})

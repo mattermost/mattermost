@@ -37,7 +37,7 @@ type OpenTracingLayer struct {
 	LinkMetadataStore               store.LinkMetadataStore
 	NotifyAdminStore                store.NotifyAdminStore
 	OAuthStore                      store.OAuthStore
-	OAuthOutgoingConnectionStore    store.OAuthOutgoingConnectionStore
+	OutgoingOAuthConnectionStore    store.OutgoingOAuthConnectionStore
 	PluginStore                     store.PluginStore
 	PostStore                       store.PostStore
 	PostAcknowledgementStore        store.PostAcknowledgementStore
@@ -138,8 +138,8 @@ func (s *OpenTracingLayer) OAuth() store.OAuthStore {
 	return s.OAuthStore
 }
 
-func (s *OpenTracingLayer) OAuthOutgoingConnection() store.OAuthOutgoingConnectionStore {
-	return s.OAuthOutgoingConnectionStore
+func (s *OpenTracingLayer) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
+	return s.OutgoingOAuthConnectionStore
 }
 
 func (s *OpenTracingLayer) Plugin() store.PluginStore {
@@ -336,8 +336,8 @@ type OpenTracingLayerOAuthStore struct {
 	Root *OpenTracingLayer
 }
 
-type OpenTracingLayerOAuthOutgoingConnectionStore struct {
-	store.OAuthOutgoingConnectionStore
+type OpenTracingLayerOutgoingOAuthConnectionStore struct {
+	store.OutgoingOAuthConnectionStore
 	Root *OpenTracingLayer
 }
 
@@ -5783,16 +5783,16 @@ func (s *OpenTracingLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAut
 	return result, err
 }
 
-func (s *OpenTracingLayerOAuthOutgoingConnectionStore) DeleteConnection(c request.CTX, id string) error {
+func (s *OpenTracingLayerOutgoingOAuthConnectionStore) DeleteConnection(c request.CTX, id string) error {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthOutgoingConnectionStore.DeleteConnection")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OutgoingOAuthConnectionStore.DeleteConnection")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	err := s.OAuthOutgoingConnectionStore.DeleteConnection(c, id)
+	err := s.OutgoingOAuthConnectionStore.DeleteConnection(c, id)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -5801,16 +5801,16 @@ func (s *OpenTracingLayerOAuthOutgoingConnectionStore) DeleteConnection(c reques
 	return err
 }
 
-func (s *OpenTracingLayerOAuthOutgoingConnectionStore) GetConnection(c request.CTX, id string) (*model.OAuthOutgoingConnection, error) {
+func (s *OpenTracingLayerOutgoingOAuthConnectionStore) GetConnection(c request.CTX, id string) (*model.OutgoingOAuthConnection, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthOutgoingConnectionStore.GetConnection")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OutgoingOAuthConnectionStore.GetConnection")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.OAuthOutgoingConnectionStore.GetConnection(c, id)
+	result, err := s.OutgoingOAuthConnectionStore.GetConnection(c, id)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -5819,16 +5819,16 @@ func (s *OpenTracingLayerOAuthOutgoingConnectionStore) GetConnection(c request.C
 	return result, err
 }
 
-func (s *OpenTracingLayerOAuthOutgoingConnectionStore) GetConnections(c request.CTX, filters model.OAuthOutgoingConnectionGetConnectionsFilter) ([]*model.OAuthOutgoingConnection, error) {
+func (s *OpenTracingLayerOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthOutgoingConnectionStore.GetConnections")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OutgoingOAuthConnectionStore.GetConnections")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.OAuthOutgoingConnectionStore.GetConnections(c, filters)
+	result, err := s.OutgoingOAuthConnectionStore.GetConnections(c, filters)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -5837,16 +5837,16 @@ func (s *OpenTracingLayerOAuthOutgoingConnectionStore) GetConnections(c request.
 	return result, err
 }
 
-func (s *OpenTracingLayerOAuthOutgoingConnectionStore) SaveConnection(c request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error) {
+func (s *OpenTracingLayerOutgoingOAuthConnectionStore) SaveConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthOutgoingConnectionStore.SaveConnection")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OutgoingOAuthConnectionStore.SaveConnection")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.OAuthOutgoingConnectionStore.SaveConnection(c, conn)
+	result, err := s.OutgoingOAuthConnectionStore.SaveConnection(c, conn)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -5855,16 +5855,16 @@ func (s *OpenTracingLayerOAuthOutgoingConnectionStore) SaveConnection(c request.
 	return result, err
 }
 
-func (s *OpenTracingLayerOAuthOutgoingConnectionStore) UpdateConnection(c request.CTX, conn *model.OAuthOutgoingConnection) (*model.OAuthOutgoingConnection, error) {
+func (s *OpenTracingLayerOutgoingOAuthConnectionStore) UpdateConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthOutgoingConnectionStore.UpdateConnection")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OutgoingOAuthConnectionStore.UpdateConnection")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.OAuthOutgoingConnectionStore.UpdateConnection(c, conn)
+	result, err := s.OutgoingOAuthConnectionStore.UpdateConnection(c, conn)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -13186,7 +13186,7 @@ func New(childStore store.Store, ctx context.Context) *OpenTracingLayer {
 	newStore.LinkMetadataStore = &OpenTracingLayerLinkMetadataStore{LinkMetadataStore: childStore.LinkMetadata(), Root: &newStore}
 	newStore.NotifyAdminStore = &OpenTracingLayerNotifyAdminStore{NotifyAdminStore: childStore.NotifyAdmin(), Root: &newStore}
 	newStore.OAuthStore = &OpenTracingLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
-	newStore.OAuthOutgoingConnectionStore = &OpenTracingLayerOAuthOutgoingConnectionStore{OAuthOutgoingConnectionStore: childStore.OAuthOutgoingConnection(), Root: &newStore}
+	newStore.OutgoingOAuthConnectionStore = &OpenTracingLayerOutgoingOAuthConnectionStore{OutgoingOAuthConnectionStore: childStore.OutgoingOAuthConnection(), Root: &newStore}
 	newStore.PluginStore = &OpenTracingLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &OpenTracingLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
 	newStore.PostAcknowledgementStore = &OpenTracingLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}
