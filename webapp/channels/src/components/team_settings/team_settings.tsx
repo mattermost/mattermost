@@ -8,6 +8,7 @@ import type {Team} from '@mattermost/types/teams';
 import AccessTab from './team_access_tab';
 import GeneralTab from './team_info_tab';
 
+// todo sinan: why it is scrolled down in the sections
 type Props = {
     activeTab: string;
     closeModal: () => void;
