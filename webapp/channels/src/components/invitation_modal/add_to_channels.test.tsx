@@ -10,12 +10,12 @@ import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import CloseCircleIcon from 'components/widgets/icons/close_circle_icon';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import AddToChannels from './add_to_channels';
 import type {Props} from './add_to_channels';
 
-const defaultProps: Props = deepFreeze({
+const baseProps: Props = deepFreeze({
     customMessage: {
         message: '',
         open: false,
@@ -35,35 +35,30 @@ const defaultProps: Props = deepFreeze({
     townSquareDisplayName: 'Town Square',
 });
 
-let props = defaultProps;
-
 describe('AddToChannels', () => {
-    beforeEach(() => {
-        props = defaultProps;
-    });
-
     describe('placeholder selection', () => {
         it('should use townSquareDisplayName when not in a channel', () => {
-            props = {...props, currentChannel: undefined};
-            renderWithIntl(<AddToChannels {...props}/>);
+            const props = {...baseProps, currentChannel: undefined};
+            renderWithContext(<AddToChannels {...props}/>);
             expect(screen.getByText(props.townSquareDisplayName, {exact: false})).toBeInTheDocument();
         });
 
         it('should use townSqureDisplayName when not in a public or private channel', () => {
-            props = {...props, currentChannel: {type: 'D', display_name: ''} as Channel};
-            renderWithIntl(<AddToChannels {...props}/>);
+            const props = {...baseProps, currentChannel: {type: 'D', display_name: ''} as Channel};
+            renderWithContext(<AddToChannels {...props}/>);
             expect(screen.getByText(props.townSquareDisplayName, {exact: false})).toBeInTheDocument();
         });
 
         it('should use the currentChannel display_name when in a channel', () => {
-            props = {...props, currentChannel: {type: 'O', display_name: 'My Awesome Channel'} as Channel};
-            renderWithIntl(<AddToChannels {...props}/>);
+            const props = {...baseProps, currentChannel: {type: 'O', display_name: 'My Awesome Channel'} as Channel};
+            renderWithContext(<AddToChannels {...props}/>);
             expect(screen.getByText('My Awesome Channel', {exact: false})).toBeInTheDocument();
         });
     });
 
     describe('custom message', () => {
         it('UI to toggle custom message opens it when closed', () => {
+            const props = baseProps;
             const wrapper = mountWithIntl(<AddToChannels {...props}/>);
             expect(props.toggleCustomMessage).not.toHaveBeenCalled();
             wrapper.find('a').at(0).simulate('click');
@@ -71,10 +66,10 @@ describe('AddToChannels', () => {
         });
 
         it('UI to toggle custom message closes it when opened', () => {
-            props = {
-                ...props,
+            const props = {
+                ...baseProps,
                 customMessage: {
-                    ...props.customMessage,
+                    ...baseProps.customMessage,
                     open: true,
                 },
             };
@@ -85,10 +80,10 @@ describe('AddToChannels', () => {
         });
 
         it('UI to write custom message calls the on change handler with its input', () => {
-            props = {
-                ...props,
+            const props = {
+                ...baseProps,
                 customMessage: {
-                    ...props.customMessage,
+                    ...baseProps.customMessage,
                     open: true,
                 },
             };

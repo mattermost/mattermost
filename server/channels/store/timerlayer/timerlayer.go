@@ -907,10 +907,10 @@ func (s *TimerLayerChannelStore) GetAll(teamID string) ([]*model.Channel, error)
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetAllChannelMembersById(id string) ([]string, error) {
+func (s *TimerLayerChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([]string, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetAllChannelMembersById(id)
+	result, err := s.ChannelStore.GetAllChannelMemberIdsByChannelId(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -918,7 +918,7 @@ func (s *TimerLayerChannelStore) GetAllChannelMembersById(id string) ([]string, 
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetAllChannelMembersById", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetAllChannelMemberIdsByChannelId", success, elapsed)
 	}
 	return result, err
 }
@@ -1447,6 +1447,22 @@ func (s *TimerLayerChannelStore) GetMemberForPost(postID string, userID string) 
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMemberForPost", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetMemberOnly(ctx, channelID, userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMemberOnly", success, elapsed)
 	}
 	return result, err
 }
@@ -10728,6 +10744,22 @@ func (s *TimerLayerUserStore) PromoteGuestToUser(userID string) error {
 	return err
 }
 
+func (s *TimerLayerUserStore) RefreshPostStatsForUsers() error {
+	start := time.Now()
+
+	err := s.UserStore.RefreshPostStatsForUsers()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.RefreshPostStatsForUsers", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerUserStore) ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error) {
 	start := time.Now()
 
@@ -10932,6 +10964,22 @@ func (s *TimerLayerUserStore) UpdateFailedPasswordAttempts(userID string, attemp
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.UpdateFailedPasswordAttempts", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerUserStore) UpdateLastLogin(userID string, lastLogin int64) error {
+	start := time.Now()
+
+	err := s.UserStore.UpdateLastLogin(userID, lastLogin)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.UpdateLastLogin", success, elapsed)
 	}
 	return err
 }

@@ -150,26 +150,26 @@ function TeamController(props: Props) {
     }, []);
 
     async function initTeamOrRedirect(team: Team) {
-        try {
-            await props.initializeTeam(team);
-            setTeam(team);
-        } catch (error) {
+        const {data: joinedTeam, error} = await props.initializeTeam(team) as ActionResult<Team, ServerError>; // Fix in MM-46907;
+        if (error) {
             history.push('/error?type=team_not_found');
+            return;
+        }
+        if (joinedTeam) {
+            setTeam(joinedTeam);
         }
     }
 
     async function joinTeamOrRedirect(teamNameParam: string, joinedOnFirstLoad: boolean) {
         setTeam(null);
 
-        try {
-            const {data: joinedTeam} = await props.joinTeam(teamNameParam, joinedOnFirstLoad) as ActionResult<Team, ServerError>; // Fix in MM-46907;
-            if (joinedTeam) {
-                setTeam(joinedTeam);
-            } else {
-                throw new Error('Unable to join team');
-            }
-        } catch (error) {
+        const {data: joinedTeam, error} = await props.joinTeam(teamNameParam, joinedOnFirstLoad) as ActionResult<Team, ServerError>; // Fix in MM-46907;
+        if (error) {
             history.push('/error?type=team_not_found');
+            return;
+        }
+        if (joinedTeam) {
+            setTeam(joinedTeam);
         }
     }
 

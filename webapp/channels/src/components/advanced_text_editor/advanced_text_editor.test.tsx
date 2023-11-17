@@ -11,11 +11,9 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
-import WebSocketClient from 'client/web_websocket_client';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithFullContext, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
-import {WebSocketContext} from 'utils/use_websocket';
 
 import type {PostDraft} from 'types/store/draft';
 
@@ -152,14 +150,13 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
     describe('keyDown behavior', () => {
         it('Enter should call postMsgKeyPress', () => {
             const postMsgKeyPress = jest.fn();
-            renderWithFullContext(
-                <WebSocketContext.Provider value={WebSocketClient}>
-                    <AdavancedTextEditor
-                        {...baseProps}
-                        postMsgKeyPress={postMsgKeyPress}
-                        message={'test'}
-                    />
-                </WebSocketContext.Provider>, mergeObjects(initialState, {
+            renderWithContext(
+                <AdavancedTextEditor
+                    {...baseProps}
+                    postMsgKeyPress={postMsgKeyPress}
+                    message={'test'}
+                />,
+                mergeObjects(initialState, {
                     entities: {
                         roles: {
                             roles: {
@@ -167,7 +164,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                             },
                         },
                     },
-                }));
+                }),
+            );
 
             userEvent.type(screen.getByTestId('post_textbox'), '{enter}');
             expect(postMsgKeyPress).toHaveBeenCalledTimes(1);
@@ -175,13 +173,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         it('Ctrl+up should call loadPrevMessage', () => {
             const loadPrevMessage = jest.fn();
-            renderWithFullContext(
-                <WebSocketContext.Provider value={WebSocketClient}>
-                    <AdavancedTextEditor
-                        {...baseProps}
-                        loadPrevMessage={loadPrevMessage}
-                    />
-                </WebSocketContext.Provider>, mergeObjects(initialState, {
+            renderWithContext(
+                <AdavancedTextEditor
+                    {...baseProps}
+                    loadPrevMessage={loadPrevMessage}
+                />,
+                mergeObjects(initialState, {
                     entities: {
                         roles: {
                             roles: {
@@ -189,20 +186,20 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                             },
                         },
                     },
-                }));
+                }),
+            );
             userEvent.type(screen.getByTestId('post_textbox'), '{ctrl}{arrowup}');
             expect(loadPrevMessage).toHaveBeenCalledTimes(1);
         });
 
         it('up should call onEditLatestPost', () => {
             const onEditLatestPost = jest.fn();
-            renderWithFullContext(
-                <WebSocketContext.Provider value={WebSocketClient}>
-                    <AdavancedTextEditor
-                        {...baseProps}
-                        onEditLatestPost={onEditLatestPost}
-                    />
-                </WebSocketContext.Provider>, mergeObjects(initialState, {
+            renderWithContext(
+                <AdavancedTextEditor
+                    {...baseProps}
+                    onEditLatestPost={onEditLatestPost}
+                />,
+                mergeObjects(initialState, {
                     entities: {
                         roles: {
                             roles: {
@@ -210,18 +207,18 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                             },
                         },
                     },
-                }));
+                }),
+            );
             userEvent.type(screen.getByTestId('post_textbox'), '{arrowup}');
             expect(onEditLatestPost).toHaveBeenCalledTimes(1);
         });
 
         it('ESC should blur the input', () => {
-            renderWithFullContext(
-                <WebSocketContext.Provider value={WebSocketClient}>
-                    <AdavancedTextEditor
-                        {...baseProps}
-                    />
-                </WebSocketContext.Provider>, mergeObjects(initialState, {
+            renderWithContext(
+                <AdavancedTextEditor
+                    {...baseProps}
+                />,
+                mergeObjects(initialState, {
                     entities: {
                         roles: {
                             roles: {
@@ -229,7 +226,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                             },
                         },
                     },
-                }));
+                }),
+            );
             const textbox = screen.getByTestId('post_textbox');
             userEvent.type(textbox, 'something{esc}');
             expect(textbox).not.toHaveFocus();
@@ -261,14 +259,13 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     const selectionStart = 5;
                     const selectionEnd = 10;
 
-                    renderWithFullContext(
-                        <WebSocketContext.Provider value={WebSocketClient}>
-                            <AdavancedTextEditor
-                                {...baseProps}
-                                applyMarkdown={applyMarkdown}
-                                message={'Some markdown text'}
-                            />
-                        </WebSocketContext.Provider>, mergeObjects(initialState, {
+                    renderWithContext(
+                        <AdavancedTextEditor
+                            {...baseProps}
+                            applyMarkdown={applyMarkdown}
+                            message={'Some markdown text'}
+                        />,
+                        mergeObjects(initialState, {
                             entities: {
                                 roles: {
                                     roles: {
@@ -276,7 +273,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                                     },
                                 },
                             },
-                        }));
+                        }),
+                    );
                     const textbox = screen.getByTestId('post_textbox');
                     userEvent.type(textbox, tc.input, {initialSelectionStart: selectionStart, initialSelectionEnd: selectionEnd});
                     expect(applyMarkdown).toHaveBeenCalledWith({
