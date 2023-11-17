@@ -52,8 +52,10 @@ jest.mock('utils/user_agent', () => ({
 
 jest.mock('utils/post_utils', () => ({
     makeGetUniqueReactionsToPost: () => jest.fn().mockReturnValue({}),
+    makeGetIsReactionAlreadyAddedToPost: jest.fn(),
 }));
-const mockMakeGetIsReactionAlreadyAddedToPost = jest.spyOn(PostUtils, 'makeGetIsReactionAlreadyAddedToPost');
+
+const mockMakeGetIsReactionAlreadyAddedToPost = PostUtils.makeGetIsReactionAlreadyAddedToPost as unknown as jest.Mock<() => boolean>;
 
 const POST_CREATED_TIME = Date.now();
 
