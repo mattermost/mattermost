@@ -361,7 +361,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         };
 
         const provider = new AtMentionProvider(params);
-        jest.spyOn(provider, 'getProfilesWithLastViewAtInChannel').mockImplementation(() => [userid10, userid3, userid1, userid2]);
+        jest.spyOn(provider, 'getProfilesWithLastViewAtInChannel').mockImplementation(() => [userid10, userid3, userid1, userid2, userid12]);
 
         const resultCallback = jest.fn();
         expect(provider.handlePretextChanged(pretext, resultCallback)).toEqual(true);
