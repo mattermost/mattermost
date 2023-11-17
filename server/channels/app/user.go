@@ -1604,17 +1604,17 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 	}
 
 	user.Roles = newRoles
-	uchan := make(chan store.StoreResult, 1)
+	uchan := make(chan store.GenericStoreResult[*model.UserUpdate], 1)
 	go func() {
 		userUpdate, err := a.Srv().Store().User().Update(user, true)
-		uchan <- store.StoreResult{Data: userUpdate, NErr: err}
+		uchan <- store.GenericStoreResult[*model.UserUpdate]{Data: userUpdate, NErr: err}
 		close(uchan)
 	}()
 
-	schan := make(chan store.StoreResult, 1)
+	schan := make(chan store.GenericStoreResult[string], 1)
 	go func() {
 		id, err := a.Srv().Store().Session().UpdateRoles(user.Id, newRoles)
-		schan <- store.StoreResult{Data: id, NErr: err}
+		schan <- store.GenericStoreResult[string]{Data: id, NErr: err}
 		close(schan)
 	}()
 
@@ -1631,7 +1631,7 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 	}
-	ruser := result.Data.(*model.UserUpdate).New
+	ruser := result.Data.New
 
 	if result := <-schan; result.NErr != nil {
 		// soft error since the user roles were still updated
