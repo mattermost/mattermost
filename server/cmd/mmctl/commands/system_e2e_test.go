@@ -5,6 +5,7 @@ package commands
 
 import (
 	"os"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
@@ -114,9 +115,7 @@ func (s *MmctlE2ETestSuite) TestSupportPacketCmdF() {
 	s.Run("Download support packet with default filename", func() {
 		printer.Clean()
 
-		s.T().Cleanup(func() {
-			s.Require().NoError(os.Remove("mattermost_support_packet.zip"))
-		})
+		s.T().Cleanup(cleanupSupportPacket(s.T()))
 
 		err := systemSupportPacketCmdF(s.th.SystemAdminClient, SystemSupportPacketCmd, []string{})
 		s.Require().NoError(err)
@@ -125,9 +124,21 @@ func (s *MmctlE2ETestSuite) TestSupportPacketCmdF() {
 		s.Require().Contains(printer.GetLines()[1], "Downloaded Support Packet to ")
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		b, err := os.ReadFile("mattermost_support_packet.zip")
+		var found bool
+
+		entries, err := os.ReadDir(".")
 		s.Require().NoError(err)
-		s.NotNil(b, b)
+		for _, e := range entries {
+			if strings.HasPrefix(e.Name(), "mattermost_support_packet_") && strings.HasSuffix(e.Name(), ".zip") {
+				b, err := os.ReadFile(e.Name())
+				s.NoError(err)
+
+				s.NotEmpty(b, b)
+
+				found = true
+			}
+		}
+		s.True(found)
 	})
 
 	s.Run("Download support packet with custom filename", func() {
