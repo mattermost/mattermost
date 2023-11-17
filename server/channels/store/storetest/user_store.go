@@ -96,6 +96,7 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, rctx, ss) })
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, rctx, ss) })
 	t.Run("UpdateLastLogin", func(t *testing.T) { testUpdateLastLogin(t, rctx, ss) })
+	t.Run("GetUserReport", func(t *testing.T) { testGetUserReport(t, rctx, ss) })
 }
 
 func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -6180,4 +6181,170 @@ func testUpdateLastLogin(t *testing.T, rctx request.CTX, ss store.Store) {
 	user, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 	require.Equal(t, int64(1234567890), user.LastLogin)
+}
+
+func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
+	now := time.Now()
+
+	u1 := &model.User{Username: "u1" + model.NewId()}
+	u1.Email = MakeEmail()
+	u1, err := ss.User().Save(u1)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
+
+	for i := 0; i < 5; i++ {
+		daysSince := -time.Hour * 24 * time.Duration(i)
+		p := model.Post{UserId: u1.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.Add(daysSince).UnixMilli()}
+		_, err = ss.Post().Save(&p)
+		require.NoError(t, err)
+	}
+
+	u2 := &model.User{Username: "u2" + model.NewId()}
+	u2.Email = MakeEmail()
+	u2, err = ss.User().Save(u2)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
+
+	for i := 0; i < 5; i++ {
+		daysSince := -time.Hour * 24 * time.Duration(i)
+		p := model.Post{UserId: u2.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.Add(daysSince).UnixMilli()}
+		_, err = ss.Post().Save(&p)
+		require.NoError(t, err)
+	}
+
+	u3 := &model.User{Username: "u3" + model.NewId()}
+	u3.Email = MakeEmail()
+	u3, err = ss.User().Save(u3)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
+
+	for i := 0; i < 5; i++ {
+		daysSince := -time.Hour * 24 * time.Duration(i)
+		p := model.Post{UserId: u3.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.Add(daysSince).UnixMilli()}
+		_, err = ss.Post().Save(&p)
+		require.NoError(t, err)
+	}
+
+	err = ss.User().RefreshPostStatsForUsers()
+	require.NoError(t, err)
+
+	t.Run("should return info for all the users", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport("Username", false, 50, "", "", 0, 0)
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 3, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, u1.Username, userReport[0].Username)
+
+		require.NotNil(t, userReport[1])
+		require.Equal(t, u2.Username, userReport[1].Username)
+
+		require.NotNil(t, userReport[2])
+		require.Equal(t, u3.Username, userReport[2].Username)
+	})
+
+	t.Run("should return in the correct order", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport("Username", true, 50, "", "", 0, 0)
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 3, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, u3.Username, userReport[0].Username)
+
+		require.NotNil(t, userReport[1])
+		require.Equal(t, u2.Username, userReport[1].Username)
+
+		require.NotNil(t, userReport[2])
+		require.Equal(t, u1.Username, userReport[2].Username)
+	})
+
+	t.Run("should fail on invalid sort column", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport("FakeColumn", true, 50, "", "", 0, 0)
+		require.Error(t, err)
+		require.Nil(t, userReport)
+	})
+
+	t.Run("should only return amount of users in page", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport("Username", false, 2, "", "", 0, 0)
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 2, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, u1.Username, userReport[0].Username)
+
+		require.NotNil(t, userReport[1])
+		require.Equal(t, u2.Username, userReport[1].Username)
+	})
+
+	t.Run("should return correct paging", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport("Username", false, 50, u2.Username, u2.Id, 0, 0)
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 1, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, u3.Username, userReport[0].Username)
+	})
+
+	t.Run("should return accurate post stats for various date ranges", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport("Username", false, 50, "", "", 0, 0)
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+
+		require.Equal(t, 5, *userReport[0].TotalPosts)
+		require.Equal(t, 5, *userReport[0].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[0].LastPostDate)
+		require.Equal(t, 5, *userReport[1].TotalPosts)
+		require.Equal(t, 5, *userReport[1].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[1].LastPostDate)
+		require.Equal(t, 5, *userReport[2].TotalPosts)
+		require.Equal(t, 5, *userReport[2].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[2].LastPostDate)
+
+		userReport, err = ss.User().GetUserReport("Username", false, 50, "", "", now.Add(-time.Hour*48).UnixMilli(), 0)
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+
+		require.Equal(t, 3, *userReport[0].TotalPosts)
+		require.Equal(t, 3, *userReport[0].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[0].LastPostDate)
+		require.Equal(t, 3, *userReport[1].TotalPosts)
+		require.Equal(t, 3, *userReport[1].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[1].LastPostDate)
+		require.Equal(t, 3, *userReport[2].TotalPosts)
+		require.Equal(t, 3, *userReport[2].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[2].LastPostDate)
+
+		userReport, err = ss.User().GetUserReport("Username", false, 50, "", "", 0, now.Add(-time.Hour*48).UnixMilli())
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+
+		require.Equal(t, 2, *userReport[0].TotalPosts)
+		require.Equal(t, 2, *userReport[0].DaysActive)
+		require.Equal(t, now.Add(-time.Hour*72).UnixMilli(), *userReport[0].LastPostDate)
+		require.Equal(t, 2, *userReport[1].TotalPosts)
+		require.Equal(t, 2, *userReport[1].DaysActive)
+		require.Equal(t, now.Add(-time.Hour*72).UnixMilli(), *userReport[1].LastPostDate)
+		require.Equal(t, 2, *userReport[2].TotalPosts)
+		require.Equal(t, 2, *userReport[2].DaysActive)
+		require.Equal(t, now.Add(-time.Hour*72).UnixMilli(), *userReport[2].LastPostDate)
+
+		userReport, err = ss.User().GetUserReport("Username", false, 50, "", "", now.Add(-time.Hour*72).UnixMilli(), now.Add(-time.Hour*48).UnixMilli())
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+
+		require.Equal(t, 1, *userReport[0].TotalPosts)
+		require.Equal(t, 1, *userReport[0].DaysActive)
+		require.Equal(t, now.Add(-time.Hour*72).UnixMilli(), *userReport[0].LastPostDate)
+		require.Equal(t, 1, *userReport[1].TotalPosts)
+		require.Equal(t, 1, *userReport[1].DaysActive)
+		require.Equal(t, now.Add(-time.Hour*72).UnixMilli(), *userReport[1].LastPostDate)
+		require.Equal(t, 1, *userReport[2].TotalPosts)
+		require.Equal(t, 1, *userReport[2].DaysActive)
+		require.Equal(t, now.Add(-time.Hour*72).UnixMilli(), *userReport[2].LastPostDate)
+	})
+
 }

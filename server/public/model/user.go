@@ -1007,3 +1007,18 @@ type UsersWithGroupsAndCount struct {
 	Users []*UserWithGroups `json:"users"`
 	Count int64             `json:"total_count"`
 }
+
+type UserReport struct {
+	Id             string `json:"id"`
+	CreateAt       int64  `json:"create_at,omitempty"`
+	Username       string `json:"username"`
+	Email          string `json:"email"`
+	Nickname       string `json:"nickname"`
+	FirstName      string `json:"first_name"`
+	LastName       string `json:"last_name"`
+	LastLogin      int64  `json:"last_login_at,omitempty"`
+	LastActivityAt *int64 `json:"last_activity_at,omitempty"`
+	LastPostDate   *int64 `json:"last_post_date,omitempty"`
+	DaysActive     *int   `json:"days_active,omitempty"`
+	TotalPosts     *int   `json:"total_posts,omitempty"`
+}

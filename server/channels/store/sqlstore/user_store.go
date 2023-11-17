@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	sq "github.com/mattermost/squirrel"
@@ -18,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
@@ -31,6 +33,8 @@ var (
 	UserSearchTypeNames           = []string{"Username", "FirstName", "LastName", "Nickname"}
 	UserSearchTypeAllNoFullName   = []string{"Username", "Nickname", "Email"}
 	UserSearchTypeAll             = []string{"Username", "FirstName", "LastName", "Nickname", "Email"}
+
+	UserReportSortColumns = []string{"CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email"}
 )
 
 type SqlUserStore struct {
@@ -2264,4 +2268,86 @@ func (us SqlUserStore) RefreshPostStatsForUsers() error {
 	}
 
 	return nil
+}
+
+func (us SqlUserStore) GetUserReport(
+	sortColumn string,
+	sortDesc bool,
+	pageSize int,
+	lastSortColumnValue string,
+	lastUserId string,
+	startAt int64,
+	endAt int64,
+) ([]*model.UserReport, error) {
+	if !pUtils.Contains(UserReportSortColumns, sortColumn) {
+		return nil, errors.New("Invalid sort column provided")
+	}
+
+	selectColumns := []string{"u.Id", "u.LastLogin", "s.LastActivityAt"}
+	for _, column := range UserReportSortColumns {
+		selectColumns = append(selectColumns, "u."+column)
+	}
+	if us.DriverName() == model.DatabaseDriverPostgres {
+		selectColumns = append(selectColumns,
+			"MAX(ps.LastPostDate) AS LastPostDate",
+			"COUNT(ps.Day) AS DaysActive",
+			"SUM(ps.NumPosts) AS TotalPosts",
+		)
+	} else {
+		selectColumns = append(selectColumns,
+			"MAX(p.CreateAt) AS LastPostDate",
+			"COUNT(DATE(FROM_UNIXTIME(p.CreateAt / 1000))) AS DaysActive",
+			"COUNT(p.Id) AS TotalPosts",
+		)
+	}
+
+	sortColumnValue := sortColumn
+	if sortDesc {
+		sortColumnValue += " DESC"
+	}
+
+	query := us.getQueryBuilder().
+		Select(selectColumns...).
+		From("Users u").
+		LeftJoin("Status s ON s.UserId = u.Id").
+		Where(sq.Or{
+			sq.Gt{sortColumn: lastSortColumnValue},
+			sq.And{
+				sq.Eq{sortColumn: lastSortColumnValue},
+				sq.Gt{"u.Id": lastUserId},
+			},
+		}).
+		GroupBy("u.Id", "s.UserId").
+		OrderBy(sortColumnValue, "u.Id").
+		Limit(uint64(pageSize))
+
+	if us.DriverName() == model.DatabaseDriverPostgres {
+		query = query.LeftJoin("PostStats ps ON ps.UserId = u.Id")
+
+		if startAt > 0 {
+			startDate := time.UnixMilli(startAt)
+			query = query.Where(sq.GtOrEq{"ps.Day": startDate.Format("2006-01-02")})
+		}
+		if endAt > 0 {
+			endDate := time.UnixMilli(endAt)
+			query = query.Where(sq.Lt{"ps.Day": endDate.Format("2006-01-02")})
+		}
+	} else {
+		query = query.LeftJoin("Posts p on p.UserId = u.Id")
+
+		if startAt > 0 {
+			query = query.Where(sq.GtOrEq{"p.CreateAt": startAt})
+		}
+		if endAt > 0 {
+			query = query.Where(sq.Lt{"p.CreateAt": endAt})
+		}
+	}
+
+	userResults := []*model.UserReport{}
+	err := us.GetReplicaX().SelectBuilder(&userResults, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get users for reporting")
+	}
+
+	return userResults, nil
 }
