@@ -115,7 +115,7 @@ func (a *App) runPluginsHook(c request.CTX, info *model.FileInfo, file io.Reader
 		}
 	} else {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
+			c.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 	}
 

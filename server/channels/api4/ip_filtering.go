@@ -87,7 +87,7 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.License().IsCloud() {
 		portalUserCustomer, cErr := c.App.Cloud().GetCloudCustomer(c.AppContext.Session().UserId)
 		if cErr != nil {
-			mlog.Error("Failed to get portal user customer", mlog.Err(cErr))
+			c.Logger.Error("Failed to get portal user customer", mlog.Err(cErr))
 		}
 		if cErr == nil && portalUserCustomer != nil {
 			cloudWorkspaceOwnerEmailAddress = portalUserCustomer.Email
@@ -97,17 +97,17 @@ func applyIPFilters(c *Context, w http.ResponseWriter, r *http.Request) {
 	go func() {
 		initiatingUser, err := c.App.Srv().Store().User().GetProfileByIds(context.Background(), []string{c.AppContext.Session().UserId}, nil, true)
 		if err != nil {
-			mlog.Error("Failed to get initiating user", mlog.Err(err))
+			c.Logger.Error("Failed to get initiating user", mlog.Err(err))
 		}
 
 		users, err := c.App.Srv().Store().User().GetSystemAdminProfiles()
 		if err != nil {
-			mlog.Error("Failed to get system admins", mlog.Err(err))
+			c.Logger.Error("Failed to get system admins", mlog.Err(err))
 		}
 
 		for _, user := range users {
 			if err = c.App.Srv().EmailService.SendIPFiltersChangedEmail(user.Email, initiatingUser[0], *c.App.Config().ServiceSettings.SiteURL, *c.App.Config().CloudSettings.CWSURL, user.Locale, cloudWorkspaceOwnerEmailAddress == user.Email); err != nil {
-				mlog.Error("Error while sending IP filters changed email", mlog.Err(err))
+				c.Logger.Error("Error while sending IP filters changed email", mlog.Err(err))
 			}
 		}
 	}()

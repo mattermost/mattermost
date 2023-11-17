@@ -133,7 +133,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 
 	a.Srv().Go(func() {
 		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(subjectText), bodyText, embeddedFiles, messageID, inReplyTo, references, "Notification"); nErr != nil {
-			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
+			c.Logger().Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
 		}
 	})
 
@@ -238,13 +238,13 @@ func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, pos
 		postMessage = html.EscapeString(postMessage)
 		mdPostMessage, mdErr := utils.MarkdownToHTML(postMessage, a.GetSiteURL())
 		if mdErr != nil {
-			mlog.Warn("Encountered error while converting markdown to HTML", mlog.Err(mdErr))
+			c.Logger().Warn("Encountered error while converting markdown to HTML", mlog.Err(mdErr))
 			mdPostMessage = postMessage
 		}
 
 		normalizedPostMessage, err := a.generateHyperlinkForChannels(c, mdPostMessage, teamName, landingURL)
 		if err != nil {
-			mlog.Warn("Encountered error while generating hyperlink for channels", mlog.String("team_name", teamName), mlog.Err(err))
+			c.Logger().Warn("Encountered error while generating hyperlink for channels", mlog.String("team_name", teamName), mlog.Err(err))
 			normalizedPostMessage = mdPostMessage
 		}
 		pData.Message = template.HTML(normalizedPostMessage)

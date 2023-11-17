@@ -456,7 +456,7 @@ func (a *App) doLocalWarnMetricsRequest(c request.CTX, rawURL string, upstreamRe
 
 	license := a.Srv().License()
 	if license != nil {
-		mlog.Debug("License is present, skip this call")
+		c.Logger().Debug("License is present, skip this call")
 		return nil
 	}
 
@@ -554,7 +554,7 @@ func (a *App) buildWarnMetricMailtoLink(rctx request.CTX, warnMetricId string, u
 
 	registeredUsersCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
-		mlog.Warn("Error retrieving the number of registered users", mlog.Err(err))
+		rctx.Logger().Warn("Error retrieving the number of registered users", mlog.Err(err))
 	} else {
 		mailBody += i18n.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]any{"NoRegisteredUsers": registeredUsersCount})
 		mailBody += "\r\n"
