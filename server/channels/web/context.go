@@ -453,6 +453,17 @@ func (c *Context) RequireAppId() *Context {
 	return c
 }
 
+func (c *Context) RequireOutgoingOAuthConnectionId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.OutgoingOAuthConnectionID) {
+		c.SetInvalidURLParam("outgoing_oauth_connection_id")
+	}
+	return c
+}
+
 func (c *Context) RequireFileId() *Context {
 	if c.Err != nil {
 		return c
