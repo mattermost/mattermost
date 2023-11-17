@@ -14,7 +14,6 @@ import Tooltip from 'components/tooltip';
 
 import {Locations} from 'utils/constants';
 
-
 import EmojiItem from './recent_reactions_emoji_item';
 
 type LocationTypes = 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT';
