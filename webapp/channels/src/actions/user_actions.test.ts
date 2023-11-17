@@ -102,7 +102,9 @@ describe('Actions.User', () => {
                 },
             } as unknown as GlobalState['entities']['channels'],
             general: {
-                config: {},
+                config: {
+                    EnableUserStatuses: 'true',
+                },
             } as GlobalState['entities']['general'],
             preferences: {
                 myPreferences: {

@@ -45,7 +45,7 @@ export default function ChannelController(props: Props) {
     }, []);
 
     useEffect(() => {
-        let loadStatusesIntervalId: NodeJS.Timer;
+        let loadStatusesIntervalId: ReturnType<typeof setInterval>;
         if (enabledUserStatuses) {
             loadStatusesIntervalId = setInterval(() => {
                 dispatch(loadStatusesForChannelAndSidebar());

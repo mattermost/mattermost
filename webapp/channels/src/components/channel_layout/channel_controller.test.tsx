@@ -5,8 +5,6 @@ import {render, act} from '@testing-library/react';
 import React from 'react';
 import {Provider} from 'react-redux';
 
-import type {ClientConfig} from '@mattermost/types/config';
-
 import * as actions from 'actions/status_actions';
 
 import mockStore from 'tests/test_store';
@@ -17,7 +15,6 @@ import type {GlobalState} from 'types/store';
 import ChannelController, {getClassnamesForBody} from './channel_controller';
 
 let mockState: GlobalState;
-let mockConfig: Partial<ClientConfig>;
 
 jest.mock('components/reset_status_modal', () => () => <div/>);
 jest.mock('components/sidebar', () => () => <div/>);
@@ -33,15 +30,10 @@ jest.mock('actions/status_actions', () => ({
 
 jest.mock('mattermost-redux/selectors/entities/general', () => ({
     ...jest.requireActual('mattermost-redux/selectors/entities/general') as typeof import('mattermost-redux/selectors/entities/general'),
-    getConfig: () => mockConfig,
 }));
 
 describe('ChannelController', () => {
     beforeEach(() => {
-        mockConfig = {
-            EnableUserStatuses: 'false',
-        };
-
         mockState = {
             entities: {
                 general: {
@@ -55,8 +47,8 @@ describe('ChannelController', () => {
     });
 
     it('dispatches loadStatusesForChannelAndSidebar when enableUserStatuses is true', () => {
+        mockState.entities.general.config.EnableUserStatuses = 'true';
         const store = mockStore(mockState);
-        mockConfig.EnableUserStatuses = 'true';
 
         render(
             <Provider store={store}>
@@ -73,7 +65,7 @@ describe('ChannelController', () => {
 
     it('does not dispatch loadStatusesForChannelAndSidebar when enableUserStatuses is false', () => {
         const store = mockStore(mockState);
-        mockConfig.EnableUserStatuses = 'false';
+        mockState.entities.general.config.EnableUserStatuses = 'false';
 
         render(
             <Provider store={store}>
