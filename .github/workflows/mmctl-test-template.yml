@@ -58,10 +58,8 @@ jobs:
             --env-file=server/build/dotenv/test.env \
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
             --env MMCTL_TESTFLAGS="$TESTFLAGS" \
-            -v $(go env GOCACHE):/go/cache \
-            -v $(go env GOMODCACHE):/go/pkgmodcache \
-            -e GOCACHE=/go/cache \
-            -e GOMODCACHE=/go/pkgmodcache \
+            -v $(go env GOCACHE):/go/.cache/go-build \
+            -v $(go env GOMODCACHE):/go/pkg/mod \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
