@@ -11,12 +11,12 @@ import (
 type OutgoingOAuthConnectionGrantType string
 
 func (gt OutgoingOAuthConnectionGrantType) IsValid() bool {
-	return gt == OAuthOutgoingConnectionGrantTypeClientCredentials || gt == OAuthOutgoingConnectionGrantTypePassword
+	return gt == OutgoingOAuthConnectionGrantTypeClientCredentials || gt == OutgoingOAuthConnectionGrantTypePassword
 }
 
 const (
-	OAuthOutgoingConnectionGrantTypeClientCredentials OutgoingOAuthConnectionGrantType = "client_credentials"
-	OAuthOutgoingConnectionGrantTypePassword          OutgoingOAuthConnectionGrantType = "password"
+	OutgoingOAuthConnectionGrantTypeClientCredentials OutgoingOAuthConnectionGrantType = "client_credentials"
+	OutgoingOAuthConnectionGrantTypePassword          OutgoingOAuthConnectionGrantType = "password"
 
 	defaultGetConnectionsLimit = 50
 )
@@ -106,11 +106,11 @@ func (oa *OutgoingOAuthConnection) IsValidGrantType() *AppError {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.grant_type.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if oa.GrantType == OAuthOutgoingConnectionGrantTypePassword && (oa.CredentialsUsername == nil || oa.CredentialsPassword == nil) {
+	if oa.GrantType == OutgoingOAuthConnectionGrantTypePassword && (oa.CredentialsUsername == nil || oa.CredentialsPassword == nil) {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.password_credentials.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if oa.GrantType == OAuthOutgoingConnectionGrantTypePassword && (*oa.CredentialsUsername == "" || *oa.CredentialsPassword == "") {
+	if oa.GrantType == OutgoingOAuthConnectionGrantTypePassword && (*oa.CredentialsUsername == "" || *oa.CredentialsPassword == "") {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.password_credentials.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
