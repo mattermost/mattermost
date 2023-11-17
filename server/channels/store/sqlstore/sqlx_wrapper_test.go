@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func TestSqlX(t *testing.T) {
@@ -33,6 +34,7 @@ func TestSqlX(t *testing.T) {
 				srCounter:   0,
 				settings:    settings,
 				quitMonitor: make(chan struct{}),
+				logger:      mlog.CreateConsoleTestLogger(t),
 				wgMonitor:   &sync.WaitGroup{},
 			}
 

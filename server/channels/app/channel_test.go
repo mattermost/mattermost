@@ -2537,7 +2537,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 		UpdateAt: time.Now().Unix(),
 		Type:     model.ChannelTypeGroup,
 	}, nil)
-	mockChannelStore.On("Update", mock.AnythingOfType("*model.Channel")).Return(&model.Channel{}, nil)
+	mockChannelStore.On("Update", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.Channel")).Return(&model.Channel{}, nil)
 	mockChannelStore.On("InvalidateChannel", "channelidchannelidchanneli")
 	mockChannelStore.On("InvalidateChannelByName", "team_id_1", "new_name").Times(1)
 	mockChannelStore.On("InvalidateChannelByName", "dm", "")

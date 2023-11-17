@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -77,8 +78,8 @@ var searchChannelStoreTests = []searchTest{
 
 func TestSearchChannelStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
 	th := &SearchTestHelper{
-
-		Store: s,
+		Context: request.TestContext(t),
+		Store:   s,
 	}
 	err := th.SetupBasicFixtures()
 	require.NoError(t, err)
