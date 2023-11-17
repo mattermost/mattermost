@@ -71,6 +71,7 @@ func testSaveChannelBookmark(t *testing.T, ss store.Store) {
 
 	_, err := ss.FileInfo().Save(file)
 	require.NoError(t, err)
+	defer ss.FileInfo().PermanentDelete(file.Id)
 
 	t.Run("save bookmarks", func(t *testing.T) {
 		bookmarkResp, err := ss.ChannelBookmark().Save(bookmark1.Clone(), true)
@@ -181,6 +182,7 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, ss store.Store) {
 
 	_, err := ss.FileInfo().Save(file)
 	require.NoError(t, err)
+	defer ss.FileInfo().PermanentDelete(file.Id)
 
 	bookmark2 := &model.ChannelBookmark{
 		ChannelId:   channelId,
@@ -362,6 +364,7 @@ func testDeleteChannelBookmark(t *testing.T, ss store.Store) {
 
 	_, err := ss.FileInfo().Save(file)
 	require.NoError(t, err)
+	defer ss.FileInfo().PermanentDelete(file.Id)
 
 	t.Run("delete bookmark", func(t *testing.T) {
 		now := model.GetMillis()
@@ -468,6 +471,7 @@ func testGetBookmarksForAllChannelByIdSince(t *testing.T, ss store.Store) {
 
 	_, err := ss.FileInfo().Save(file)
 	require.NoError(t, err)
+	defer ss.FileInfo().PermanentDelete(file.Id)
 
 	bookmark3 := &model.ChannelBookmark{
 		ChannelId:   channel2Id,

@@ -213,6 +213,7 @@ func TestGetAllChannelsBookmarks(t *testing.T) {
 	}
 
 	th.App.Srv().Store().FileInfo().Save(file)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(file.Id)
 
 	bookmark2 := &model.ChannelBookmark{
 		ChannelId:   th.BasicChannel.Id,
@@ -313,6 +314,7 @@ func TestGetChannelBookmarks(t *testing.T) {
 	}
 
 	th.App.Srv().Store().FileInfo().Save(file)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(file.Id)
 
 	bookmark2 := &model.ChannelBookmark{
 		ChannelId:   th.BasicChannel.Id,
@@ -393,6 +395,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	_, err := th.App.Srv().Store().FileInfo().Save(file)
 	require.NoError(t, err)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(file.Id)
 
 	bookmark2 := &model.ChannelBookmark{
 		ChannelId:   channelId,
