@@ -2,11 +2,11 @@
 @import 'sass/utils/functions';
 
 .reaction-emoji--large img {
-    width: 56px;
+    width: 48px;
     max-width: none;
-    height: 56px;
+    height: 48px;
     max-height: none;
-    margin: 4px 0;
+    margin: 4px 0 8px;
 }
 
 .Reaction {
@@ -71,6 +71,14 @@
         margin: 0 2px 0 0;
         object-fit: contain;
         vertical-align: middle;
+
+        &--large {
+            width: 48px;
+            max-width: none;
+            height: 48px;
+            max-height: none;
+            margin: 4px 0 8px;
+        }
     }
 
     &__emoji--post-menu {
