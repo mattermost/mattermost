@@ -204,10 +204,10 @@ const (
 	BleveSettingsDefaultIndexDir  = ""
 	BleveSettingsDefaultBatchSize = 10000
 
-	DataRetentionSettingsDefaultMessageRetentionDays           = 0
-	DataRetentionSettingsDefaultMessageRetentionHours          = 8760
-	DataRetentionSettingsDefaultFileRetentionDays              = 0
-	DataRetentionSettingsDefaultFileRetentionHours             = 8760
+	DataRetentionSettingsDefaultMessageRetentionDays           = 365
+	DataRetentionSettingsDefaultMessageRetentionHours          = 0
+	DataRetentionSettingsDefaultFileRetentionDays              = 365
+	DataRetentionSettingsDefaultFileRetentionHours             = 0
 	DataRetentionSettingsDefaultBoardsRetentionDays            = 365
 	DataRetentionSettingsDefaultDeletionJobStartTime           = "02:00"
 	DataRetentionSettingsDefaultBatchSize                      = 3000
@@ -2949,10 +2949,10 @@ func (s *DataRetentionSettings) GetMessageRetentionHours() int {
 	if s.MessageRetentionHours != nil && *s.MessageRetentionHours > 0 {
 		return *s.MessageRetentionHours
 	}
-	if s.MessageRetentionDays != nil && *s.MessageRetentionDays > 0 {
+	if s.MessageRetentionDays != nil {
 		return *s.MessageRetentionDays * 24
 	}
-	return DataRetentionSettingsDefaultMessageRetentionHours
+	return DataRetentionSettingsDefaultMessageRetentionDays * 24
 }
 
 // GetFileRetentionHours returns the message retention time as an int.
@@ -4084,7 +4084,7 @@ func (bs *BleveSettings) isValid() *AppError {
 }
 
 func (s *DataRetentionSettings) isValid() *AppError {
-	if *s.MessageRetentionDays < 0 {
+	if *s.MessageRetentionDays <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -4092,20 +4092,12 @@ func (s *DataRetentionSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.FileRetentionDays < 0 {
+	if *s.FileRetentionDays <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if s.FileRetentionHours != nil && *s.FileRetentionHours < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if *s.MessageRetentionDays > 0 && *s.MessageRetentionHours > 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_days_and_hours_set.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if *s.FileRetentionDays > 0 && *s.FileRetentionHours > 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_days_and_hours_set.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if _, err := time.Parse("15:04", *s.DeletionJobStartTime); err != nil {
