@@ -929,8 +929,6 @@
   "admin.experimental.experimentalPrimaryTeam.desc": "A equipe principal da qual os usuários no servidor são membros. Quando uma equipe principal é definida, as opções para ingressar em outras equipes ou deixar a equipe principal são desativadas.",
   "admin.experimental.experimentalPrimaryTeam.example": "Ex.: \"teamname\"",
   "admin.experimental.experimentalPrimaryTeam.title": "Equipe Primária:",
-  "admin.experimental.experimentalTimezone.desc": "Selecione o fuso horário usado para registros de data e hora na interface do usuário e notificações por email. Quando verdadeiro, a configuração de fuso horário fica visível nas configurações de conta e um fuso horário é atribuído automaticamente na próxima sessão ativa. Quando falso, a configuração do fuso horário fica oculta nas configurações da conta.",
-  "admin.experimental.experimentalTimezone.title": "Fuso horário:",
   "admin.experimental.experimentalUseNewSAMLLibrary.desc": "Habilitar uma Biblioteca do SAML atualizada, que não requer que a Biblioteca de Segurança XML (xmlsec1) seja instalada. Aviso: Nem todos os provedores foram testados. Se você experimentar questões, por favor, entre em contato com o suporte: <linkSupport>https://mattermost.com/support/</linkSupport>. A alteração dessa configuração requer um reinício do servidor antes de fazer efeito.",
   "admin.experimental.experimentalUseNewSAMLLibrary.title": "Usar Biblioteca SAML Melhorada (Beta):",
   "admin.experimental.ldapSettingsLoginButtonBorderColor.desc": "Especifique a cor da borda do botão de login do AD/LDAP para fins de identificação em branco. Use um código hexadecimal com um sinal # antes do código. Essa configuração aplica-se apenas aos aplicativos para dispositivos móveis.",

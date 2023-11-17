@@ -902,8 +902,6 @@
   "admin.experimental.experimentalPrimaryTeam.desc": "Primární tým, jehož členy jsou uživatelé na serveru. Je-li nastaven primární tým, jsou zakázány možnosti připojení k jiným týmům nebo opuštění primárního týmu.",
   "admin.experimental.experimentalPrimaryTeam.example": "Např.: \"přezdívka\"",
   "admin.experimental.experimentalPrimaryTeam.title": "Primární tým:",
-  "admin.experimental.experimentalTimezone.desc": "Vyberte časové pásmo používané pro časové značky v uživatelském rozhraní a e-mailových oznámeních. Pokud je hodnota true (pravda), je v Nastavení viditelná část Časové pásmo a časové pásmo je automaticky přiřazeno v příští aktivní relaci. Pokud je hodnota false (nepravda), nastavení Časové pásmo je v Nastavení skryto.",
-  "admin.experimental.experimentalTimezone.title": "Časové pásmo:",
   "admin.experimental.experimentalUseNewSAMLLibrary.desc": "Povolte aktualizovanou knihovnu SAML, která nevyžaduje instalaci knihovny XML Security Library (xmlsec1). Upozornění: Ne všichni poskytovatelé byli otestováni. Pokud se vyskytnou problémy, kontaktujte prosím podporu: <linkSupport>https://mattermost.com/support/</linkSupport>. Změna tohoto nastavení vyžaduje restart serveru, než se projeví.",
   "admin.experimental.experimentalUseNewSAMLLibrary.title": "Použít vylepšenou knihovnu SAML (Beta):",
   "admin.experimental.ldapSettingsLoginButtonBorderColor.desc": "Zadejte barvu rámečku tlačítka přihlášení do služby AD/LDAP pro účely bílého označení. Použijte šestnáctkový kód se znakem # před kódem. Toto nastavení se vztahuje pouze na mobilní aplikace.",

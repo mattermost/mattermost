@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -43,6 +44,8 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 
 	a.Srv().LoadLicense()
 
+	rctx := request.EmptyContext(a.Log())
+
 	// Run jobs
 	mlog.Info("Starting Mattermost job server")
 	defer mlog.Info("Stopped Mattermost job server")
@@ -57,8 +60,8 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if !noJobs || !noSchedule {
-		auditRec := a.MakeAuditRecord("jobServer", audit.Success)
-		a.LogAuditRec(auditRec, nil)
+		auditRec := a.MakeAuditRecord(rctx, "jobServer", audit.Success)
+		a.LogAuditRec(rctx, auditRec, nil)
 	}
 
 	signalChan := make(chan os.Signal, 1)
