@@ -441,7 +441,6 @@
   "admin.experimental.emailBatchingBufferSize.example": "Наприклад: \"25\"",
   "admin.experimental.emailBatchingInterval.example": "Наприклад: \"30\"",
   "admin.experimental.experimentalPrimaryTeam.example": "Наприклад: \"nickname\"",
-  "admin.experimental.experimentalTimezone.title": "Часовий пояс",
   "admin.experimental.linkMetadataTimeoutMilliseconds.example": "Наприклад: \"2000\"",
   "admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.example": "Наприклад: \"2000\"",
   "admin.experimental.userStatusAwayTimeout.example": "Наприклад: \"30\"",
