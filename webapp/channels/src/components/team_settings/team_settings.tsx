@@ -8,7 +8,7 @@ import type {Team} from '@mattermost/types/teams';
 import AccessTab from './team_access_tab';
 import InfoTab from './team_info_tab';
 
-// todo sinan: why it is scrolled down in the sections
+// todo sinan: why it is scrolled down in the tabs
 type Props = {
     activeTab: string;
     closeModal: () => void;
@@ -31,7 +31,6 @@ const TeamSettings = ({
             <div>
                 <InfoTab
                     team={team}
-                    closeModal={closeModal}
                 />
             </div>
         );

@@ -7,13 +7,16 @@ import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-in
 
 import type {Team} from '@mattermost/types/teams';
 
-import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
+import Input from 'components/widgets/inputs/input/input';
+import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
+import ModalSection from 'components/widgets/modals/components/modal_section';
 
 import Constants from 'utils/constants';
 import {imageURLForTeam, localizeMessage, moveCursorToEnd} from 'utils/utils';
 
 import type {PropsFromRedux, OwnProps} from '.';
+import './team_info_tab.scss';
 
 const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
 
@@ -247,89 +250,64 @@ export class InfoTab extends React.PureComponent<Props, State> {
         const clientError = this.state.clientError;
         const serverError = this.state.serverError ?? null;
 
-        const nameSectionInputs = [];
-
-        const teamNameLabel = this.props.isMobileView ? '' : (
-            <FormattedMessage
-                id='general_tab.teamName'
-                defaultMessage='Team Name'
+        const nameSectionInput = (
+            <Input
+                id='teamName'
+                autoFocus={true}
+                className='form-control'
+                type='text'
+                maxLength={Constants.MAX_TEAMNAME_LENGTH}
+                onChange={this.updateName}
+                value={this.state.name}
+                onFocus={moveCursorToEnd}
+                label={this.props.intl.formatMessage({id: 'general_tab.teamName', defaultMessage: 'Team Name'})}
             />
         );
 
-        nameSectionInputs.push(
-            <div
-                key='teamNameSetting'
-                className='form-group'
-            >
-                <label className='col-sm-5 control-label'>{teamNameLabel}</label>
-                <div className='col-sm-7'>
-                    <input
-                        id='teamName'
-                        autoFocus={true}
-                        className='form-control'
-                        type='text'
-                        maxLength={Constants.MAX_TEAMNAME_LENGTH}
-                        onChange={this.updateName}
-                        value={this.state.name}
-                        onFocus={moveCursorToEnd}
-                    />
-                </div>
-            </div>,
-        );
-
-        const nameExtraInfo = <span>{localizeMessage('general_tab.teamNameInfo', 'Set the name of the team as it appears on your sign-in screen and at the top of the left-hand sidebar.')}</span>;
+        // todo sinan what to do with submit and errors
+        // const nameSection = (
+        //     <SettingItemMax
+        //         submit={this.handleNameSubmit}
+        //         serverError={serverError}
+        //         clientError={clientError}
+        //     />
+        // );
 
         const nameSection = (
-            <SettingItemMax
-                title={localizeMessage('general_tab.teamName', 'Team Name')}
-                inputs={nameSectionInputs}
-                submit={this.handleNameSubmit}
-                serverError={serverError}
-                clientError={clientError}
-                extraInfo={nameExtraInfo}
+            <BaseSettingItem
+                description={{id: 'general_tab.teamNameInfo', defaultMessage: 'Set the name of the team as it appears on your sign-in screen and at the top of the left-hand sidebar.'}}
+                content={nameSectionInput}
             />
         );
 
-        const descriptionSectionInputs = [];
-
-        const teamDescriptionLabel = this.props.isMobileView ? '' : (
-            <FormattedMessage
-                id='general_tab.teamDescription'
-                defaultMessage='Team Description'
+        // todo sinan: update Input component when passed textarea use text area
+        const descriptionSectionInput = (
+            <Input
+                id='teamDescription'
+                autoFocus={true}
+                className='form-control'
+                type='textarea'
+                maxLength={Constants.MAX_TEAMDESCRIPTION_LENGTH}
+                onChange={this.updateDescription}
+                value={this.state.description}
+                onFocus={moveCursorToEnd}
+                label={this.props.intl.formatMessage({id: 'general_tab.teamDescription', defaultMessage: 'Description'})}
             />
         );
 
-        descriptionSectionInputs.push(
-            <div
-                key='teamDescriptionSetting'
-                className='form-group'
-            >
-                <label className='col-sm-5 control-label'>{teamDescriptionLabel}</label>
-                <div className='col-sm-7'>
-                    <input
-                        id='teamDescription'
-                        autoFocus={true}
-                        className='form-control'
-                        type='text'
-                        maxLength={Constants.MAX_TEAMDESCRIPTION_LENGTH}
-                        onChange={this.updateDescription}
-                        value={this.state.description}
-                        onFocus={moveCursorToEnd}
-                    />
-                </div>
-            </div>,
-        );
-
-        const descriptionExtraInfo = <span>{localizeMessage('general_tab.teamDescriptionInfo', 'Team description provides additional information to help users select the right team. Maximum of 50 characters.')}</span>;
+        // todo sinan: what to do with remaining props
+        // const descriptionSection = (
+        //     <SettingItemMax
+        //         submit={this.handleDescriptionSubmit}
+        //         serverError={serverError}
+        //         clientError={clientError}
+        //     />
+        // );
 
         const descriptionSection = (
-            <SettingItemMax
-                title={localizeMessage('general_tab.teamDescription', 'Team Description')}
-                inputs={descriptionSectionInputs}
-                submit={this.handleDescriptionSubmit}
-                serverError={serverError}
-                clientError={clientError}
-                extraInfo={descriptionExtraInfo}
+            <BaseSettingItem
+                description={{id: 'general_tab.teamDescriptionInfo', defaultMessage: 'Team description provides additional information to help users select the right team. Maximum of 50 characters.'}}
+                content={descriptionSectionInput}
             />
         );
 
@@ -356,41 +334,21 @@ export class InfoTab extends React.PureComponent<Props, State> {
             />
         );
 
-        return (
-            <div>
-                <div className='modal-header'>
-                    <button
-                        id='closeButton'
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label='Close'
-                        onClick={this.props.closeModal}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                    </button>
-                    <h4 className='modal-title'>
-                        <FormattedMessage
-                            id='general_tab.title'
-                            defaultMessage='General Settings'
-                        />
-                    </h4>
-                </div>
-                <div className='user-settings'>
-                    <h3 className='tab-header'>
-                        <FormattedMessage
-                            id='general_tab.title'
-                            defaultMessage='General Settings'
-                        />
-                    </h3>
-                    <div className='divider-dark first'/>
+        const modalSectionContent = (
+            <div className='modal-info-tab-content' >
+                <div>
                     {nameSection}
-                    <div className='divider-light'/>
                     {descriptionSection}
-                    <div className='divider-light'/>
-                    {teamIconSection}
                 </div>
+                {teamIconSection}
             </div>
+        );
+
+        return (
+            <ModalSection
+                title={{id: 'general_tab.teamName', defaultMessage: 'Team Name'}}
+                content={modalSectionContent}
+            />
         );
     }
 }

@@ -22,7 +22,6 @@ import TeamInfoTab from './team_info_tab';
 
 export type OwnProps = {
     team?: Team & { last_team_icon_update?: number };
-    closeModal: () => void;
 };
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
