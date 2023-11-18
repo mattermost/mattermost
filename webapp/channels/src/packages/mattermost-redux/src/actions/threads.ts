@@ -424,12 +424,14 @@ export function decrementThreadCounts(post: ExtendedPost): ActionFunc {
         const channel = getChannel(state, post.channel_id);
         const teamId = channel?.team_id || getCurrentTeamId(state);
 
-        return dispatch({
+        dispatch({
             type: ThreadTypes.DECREMENT_THREAD_COUNTS,
             teamId,
             replies: thread.unread_replies,
             mentions: thread.unread_mentions,
             channelType: channel.type,
         });
+
+        return {data: true};
     };
 }

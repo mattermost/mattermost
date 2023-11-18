@@ -149,7 +149,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
             let buttonText;
             let onTryAgain = handleErrorModalTryAgain;
 
-            if (data.status === 422) {
+            if ('status' in data && data.status === 422) {
                 title = (<></>);
                 subtitle = (
                     <FormattedMessage

@@ -174,7 +174,9 @@ export function setRhsSize(rhsSize?: SidebarSize) {
 export function updateSearchTermsForShortcut(): ActionFunc {
     return (dispatch, getState) => {
         const currentChannelName = getCurrentChannelNameForSearchShortcut(getState());
-        return dispatch(updateSearchTerms(`in:${currentChannelName} `));
+        dispatch(updateSearchTerms(`in:${currentChannelName} `));
+
+        return {data: true};
     };
 }
 
@@ -525,16 +527,6 @@ export function toggleRhsExpanded() {
     };
 }
 
-export function selectPostAndParentChannel(post: Post): ActionFunc {
-    return async (dispatch, getState) => {
-        const channel = getChannelSelector(getState(), post.channel_id);
-        if (!channel) {
-            await dispatch(getChannel(post.channel_id));
-        }
-        return dispatch(selectPost(post));
-    };
-}
-
 export function selectPost(post: Post) {
     return {
         type: ActionTypes.SELECT_POST,
@@ -607,39 +599,57 @@ export function openRHSSearch(): ActionFunc {
 export function openAtPrevious(previous: any): ActionFunc { // TODO Could not find the proper type. Seems to be in several props around
     return (dispatch, getState) => {
         if (!previous) {
-            return dispatch(openRHSSearch());
+            dispatch(openRHSSearch());
+            return {data: true};
         }
 
         if (previous.isChannelInfo) {
             const currentChannelId = getCurrentChannelId(getState());
-            return dispatch(showChannelInfo(currentChannelId));
+            dispatch(showChannelInfo(currentChannelId));
+            return {data: true};
         }
         if (previous.isChannelMembers) {
             const currentChannelId = getCurrentChannelId(getState());
-            return dispatch(showChannelMembers(currentChannelId));
+            dispatch(showChannelMembers(currentChannelId));
+            return {data: true};
         }
         if (previous.isMentionSearch) {
-            return showMentions()(dispatch, getState);
+            dispatch(showMentions());
+            return {data: true};
         }
         if (previous.isPinnedPosts) {
-            return showPinnedPosts()(dispatch, getState);
+            dispatch(showPinnedPosts());
+            return {data: true};
         }
         if (previous.isFlaggedPosts) {
-            return showFlaggedPosts()(dispatch, getState);
+            dispatch(showFlaggedPosts());
+            return {data: true};
         }
         if (previous.selectedPostId) {
             const post = getPost(getState(), previous.selectedPostId);
-            return post ? dispatch(selectPostFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
+            if (post) {
+                dispatch(selectPostFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState));
+            } else {
+                dispatch(openRHSSearch());
+            }
+            return {data: true};
         }
         if (previous.selectedPostCardId) {
             const post = getPost(getState(), previous.selectedPostCardId);
-            return post ? dispatch(selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
+            if (post) {
+                dispatch(selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState));
+            } else {
+                dispatch(openRHSSearch());
+            }
+            return {data: true};
         }
         if (previous.searchVisible) {
-            return dispatch(showSearchResults());
+            dispatch(showSearchResults());
+            return {data: true};
         }
 
-        return dispatch(openRHSSearch());
+        dispatch(openRHSSearch());
+        return {data: true};
     };
 }
 

@@ -19,7 +19,7 @@ import {makeGetMessageInHistoryItem} from 'mattermost-redux/selectors/entities/p
 import {getBool, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import type {ActionFunc, ActionResult, DispatchFunc} from 'mattermost-redux/types/actions.js';
+import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions.js';
 
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {
@@ -145,10 +145,7 @@ type Actions = {
 function makeMapDispatchToProps() {
     let onUpdateCommentDraft: (draft?: PostDraft, save?: boolean) => void;
     let updateCommentDraftWithRootId: (rootID: string, draft: PostDraft, save?: boolean) => void;
-    let onSubmit: (
-        draft: PostDraft,
-        options: {ignoreSlash: boolean},
-    ) => (dispatch: DispatchFunc, getState: () => GlobalState) => Promise<ActionResult> | ActionResult;
+    let onSubmit: ReturnType<typeof makeOnSubmit>;
     let onEditLatestPost: () => ActionFunc;
 
     function onResetHistoryIndex() {

@@ -4,7 +4,7 @@
 import type {Store} from 'redux';
 
 import {combineResults} from 'mattermost-redux/actions/helpers';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ActionFuncPromiseDoNotUse} from 'mattermost-redux/types/actions';
 
 import store from 'stores/redux_store';
 
@@ -24,14 +24,14 @@ export function initializeProducts(): ActionFunc {
     };
 }
 
-function configureClient(): ActionFunc {
+function configureClient(): ActionFuncPromiseDoNotUse {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return (dispatch, getState) => {
         return Promise.resolve({data: true});
     };
 }
 
-function loadRemoteModules(): ActionFunc {
+function loadRemoteModules(): ActionFuncPromiseDoNotUse {
     /* eslint-disable no-console */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return async (dispatch, getState) => {

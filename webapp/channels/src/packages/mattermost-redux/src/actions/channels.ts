@@ -30,7 +30,7 @@ import {
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import type {ActionFunc, ActionResult, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ActionFuncPromiseDoNotUse, GetStateFunc} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 
 import {addChannelToInitialCategory, addChannelToCategory} from './channel_categories';
@@ -447,7 +447,7 @@ export function getChannel(channelId: string): ActionFunc {
     };
 }
 
-export function getChannelAndMyMember(channelId: string): ActionFunc {
+export function getChannelAndMyMember(channelId: string): ActionFuncPromiseDoNotUse {
     return async (dispatch, getState) => {
         let channel;
         let member;
@@ -587,7 +587,7 @@ export function fetchAllMyTeamsChannelsAndChannelMembersREST(): ActionFunc {
     };
 }
 
-export function getChannelMembers(channelId: string, page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE): ActionFunc {
+export function getChannelMembers(channelId: string, page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE): ActionFuncPromiseDoNotUse {
     return async (dispatch, getState) => {
         let channelMembers: ChannelMembership[];
 
@@ -1070,7 +1070,7 @@ export function getChannelsMemberCount(channelIds: string[]): ActionFunc {
     };
 }
 
-export function addChannelMember(channelId: string, userId: string, postRootId = ''): ActionFunc {
+export function addChannelMember(channelId: string, userId: string, postRootId = ''): ActionFuncPromiseDoNotUse {
     return async (dispatch, getState) => {
         let member;
         try {

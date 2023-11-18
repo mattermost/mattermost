@@ -89,12 +89,12 @@ export function setCategoryMuted(categoryId: string, muted: boolean): ActionFunc
         }));
 
         if ('error' in result) {
-            return result;
+            return {error: result.error};
         }
 
         const updated = result.data as ChannelCategory;
 
-        return dispatch(batchActions([
+        dispatch(batchActions([
             {
                 type: ChannelCategoryTypes.RECEIVED_CATEGORY,
                 data: updated,
@@ -107,6 +107,8 @@ export function setCategoryMuted(categoryId: string, muted: boolean): ActionFunc
                 },
             }))),
         ]));
+
+        return {data: true};
     };
 }
 
@@ -143,7 +145,7 @@ export function fetchMyCategories(teamId: string, isWebSocket: boolean): ActionF
             return {error};
         }
 
-        return dispatch(batchActions([
+        dispatch(batchActions([
             {
                 type: ChannelCategoryTypes.RECEIVED_CATEGORIES,
                 data: data.categories,
@@ -157,6 +159,8 @@ export function fetchMyCategories(teamId: string, isWebSocket: boolean): ActionF
                 },
             },
         ]));
+
+        return {data: true};
     };
 }
 

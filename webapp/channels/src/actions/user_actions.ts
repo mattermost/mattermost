@@ -23,7 +23,7 @@ import {
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import * as Selectors from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ActionFuncPromiseDoNotUse, ActionResult} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
@@ -315,7 +315,7 @@ export const getGMsForLoading = (state: GlobalState) => {
     return channels;
 };
 
-export function loadProfilesForGM(): ActionFunc {
+export function loadProfilesForGM(): ActionFuncPromiseDoNotUse {
     return async (dispatch, getState) => {
         const state = getState() as GlobalState;
         const newPreferences = [];
@@ -370,7 +370,7 @@ export function loadProfilesForGM(): ActionFunc {
     };
 }
 
-export function loadProfilesForDM(): ActionFunc {
+export function loadProfilesForDM(): ActionFuncPromiseDoNotUse {
     return async (dispatch, getState) => {
         const state = getState();
         const channels = getMyChannels(state);

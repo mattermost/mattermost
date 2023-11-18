@@ -132,7 +132,7 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
         let {message} = draft;
 
         const hookResult = await dispatch(runSlashCommandWillBePostedHooks(message, args));
-        if (hookResult.error) {
+        if (hookResult.error || !hookResult.data) {
             return {error: hookResult.error};
         } else if (!hookResult.data.message && !hookResult.data.args) {
             // do nothing with an empty return from a hook

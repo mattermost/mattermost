@@ -120,7 +120,9 @@ export function getCustomEmojisByName(names: string[]): ActionFunc {
             }
         }
 
-        return dispatch(actions.length > 1 ? batchActions(actions) : actions[0]);
+        dispatch(actions.length > 1 ? batchActions(actions) : actions[0]);
+
+        return {data: true};
     };
 }
 

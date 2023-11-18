@@ -11,7 +11,7 @@ import {SearchTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult, ActionFunc, ActionFuncPromiseDoNotUse} from 'mattermost-redux/types/actions';
 
 import {getChannelAndMyMember, getChannelMembers} from './channels';
 import {logError} from './errors';
@@ -21,7 +21,7 @@ import {getMentionsAndStatusesForPosts, receivedPosts} from './posts';
 
 const WEBAPP_SEARCH_PER_PAGE = 20;
 
-export function getMissingChannelsFromPosts(posts: PostList['posts']): ActionFunc {
+export function getMissingChannelsFromPosts(posts: PostList['posts']): ActionFuncPromiseDoNotUse {
     return (dispatch, getState) => {
         const {
             channels,
@@ -69,7 +69,7 @@ export function getMissingChannelsFromFiles(files: Map<string, FileSearchResultI
     };
 }
 
-export function searchPostsWithParams(teamId: string, params: SearchParameter): ActionFunc {
+export function searchPostsWithParams(teamId: string, params: SearchParameter): ActionFuncPromiseDoNotUse {
     return async (dispatch, getState) => {
         const isGettingMore = params.page > 0;
         dispatch({
@@ -139,7 +139,7 @@ export function clearSearch() {
     ]);
 }
 
-export function searchFilesWithParams(teamId: string, params: SearchParameter): ActionFunc {
+export function searchFilesWithParams(teamId: string, params: SearchParameter): ActionFuncPromiseDoNotUse {
     return async (dispatch, getState) => {
         const isGettingMore = params.page > 0;
         dispatch({
