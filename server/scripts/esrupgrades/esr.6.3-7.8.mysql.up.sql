@@ -449,7 +449,7 @@ SET @preparedStatement = (SELECT IF(
         SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
         WHERE table_name = 'TeamMembers'
         AND table_schema = DATABASE()
-        AND index_name = 'idx_teammembers_create_at'
+        AND index_name = 'idx_teammembers_createat'
     ) > 0,
     'SELECT 1',
     'CREATE INDEX idx_teammembers_createat ON TeamMembers(CreateAt);'

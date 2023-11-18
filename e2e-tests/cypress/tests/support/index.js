@@ -177,7 +177,8 @@ function printServerDetails() {
   - BuildHash               = ${config.BuildHash}
   - BuildHashEnterprise     = ${config.BuildHashEnterprise}
   - BuildEnterpriseReady    = ${config.BuildEnterpriseReady}
-  - TelemetryId             = ${config.TelemetryId}`);
+  - TelemetryId             = ${config.TelemetryId}
+  - ServiceEnvironment      = ${config.ServiceEnvironment}`);
     });
 }
 
@@ -215,6 +216,9 @@ function sysadminSetup(user) {
 
     // # Deactivate test bots if any
     cy.apiDeactivateTestBots();
+
+    // # Disable welcome tours if any
+    cy.apiDisableTutorials(user.id);
 
     // # Check if default team is present; create if not found.
     cy.apiGetTeamsForUser().then(({teams}) => {

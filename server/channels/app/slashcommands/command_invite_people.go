@@ -6,11 +6,11 @@ package slashcommands
 import (
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 type InvitePeopleProvider struct {
@@ -43,11 +43,11 @@ func (*InvitePeopleProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model
 }
 
 func (*InvitePeopleProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	if !a.HasPermissionToTeam(args.UserId, args.TeamId, model.PermissionInviteUser) {
+	if !a.HasPermissionToTeam(c, args.UserId, args.TeamId, model.PermissionInviteUser) {
 		return &model.CommandResponse{Text: args.T("api.command_invite_people.permission.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
-	if !a.HasPermissionToTeam(args.UserId, args.TeamId, model.PermissionAddUserToTeam) {
+	if !a.HasPermissionToTeam(c, args.UserId, args.TeamId, model.PermissionAddUserToTeam) {
 		return &model.CommandResponse{Text: args.T("api.command_invite_people.permission.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 

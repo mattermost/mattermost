@@ -4,19 +4,21 @@
 import {useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {trackEvent} from 'actions/telemetry_actions';
-import {openModal} from 'actions/views/modals';
-import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
-import PurchaseInProgressModal from 'components/purchase_in_progress_modal';
+import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
-import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 
+import {trackEvent} from 'actions/telemetry_actions';
+import {openModal} from 'actions/views/modals';
+
+import PurchaseInProgressModal from 'components/purchase_in_progress_modal';
 import {STORAGE_KEY_EXPANSION_IN_PROGRESS} from 'components/self_hosted_purchases/constants';
 import SelfHostedExpansionModal from 'components/self_hosted_purchases/self_hosted_expansion_modal';
 
-import {useControlModal, ControlModal} from './useControlModal';
-import useCanSelfHostedExpand from './useCanSelfHostedExpand';
+import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+
+import {useControlModal} from './useControlModal';
+import type {ControlModal} from './useControlModal';
 
 interface HookOptions{
     trackingLocation?: string;
@@ -25,7 +27,6 @@ interface HookOptions{
 export default function useControlSelfHostedExpansionModal(options: HookOptions): ControlModal {
     const dispatch = useDispatch();
     const currentUser = useSelector(getCurrentUser);
-    const canExpand = useCanSelfHostedExpand();
     const controlModal = useControlModal({
         modalId: ModalIdentifiers.SELF_HOSTED_EXPANSION,
         dialogType: SelfHostedExpansionModal,
@@ -35,10 +36,6 @@ export default function useControlSelfHostedExpansionModal(options: HookOptions)
         return {
             ...controlModal,
             open: async () => {
-                if (!canExpand) {
-                    return;
-                }
-
                 const purchaseInProgress = localStorage.getItem(STORAGE_KEY_EXPANSION_IN_PROGRESS) === 'true';
 
                 // check if user already has an open purchase modal in current browser.

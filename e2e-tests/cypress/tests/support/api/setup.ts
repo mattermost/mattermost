@@ -16,6 +16,7 @@ interface SetupParam {
     promoteNewUserAsAdmin?: boolean;
     hideAdminTrialModal?: boolean;
     userPrefix?: string;
+    userCreateAt?: number;
     teamPrefix?: {name: string; displayName: string};
     channelPrefix?: {name: string; displayName: string};
     skipBoardsWelcomePage?: boolean;
@@ -26,6 +27,7 @@ function apiInitSetup(arg: SetupParam = {}): ChainableT<SetupResult> {
         promoteNewUserAsAdmin = false,
         hideAdminTrialModal = true,
         userPrefix,
+        userCreateAt,
         teamPrefix = {name: 'team', displayName: 'Team'},
         channelPrefix = {name: 'channel', displayName: 'Channel'},
         skipBoardsWelcomePage = true,
@@ -34,7 +36,7 @@ function apiInitSetup(arg: SetupParam = {}): ChainableT<SetupResult> {
     return (cy.apiCreateTeam(teamPrefix.name, teamPrefix.displayName) as any).then(({team}) => {
         // # Add public channel
         return (cy.apiCreateChannel(team.id, channelPrefix.name, channelPrefix.displayName) as any).then(({channel}) => {
-            return (cy.apiCreateUser({prefix: userPrefix || (promoteNewUserAsAdmin ? 'admin' : 'user')}) as any).then(({user}) => {
+            return (cy.apiCreateUser({prefix: userPrefix || (promoteNewUserAsAdmin ? 'admin' : 'user'), createAt: userCreateAt}) as any).then(({user}) => {
                 if (promoteNewUserAsAdmin) {
                     (cy as any).apiPatchUserRoles(user.id, ['system_admin', 'system_user']);
 

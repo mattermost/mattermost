@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
-import classNames from 'classnames';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-import Input from '../input/input';
 
 import Constants from 'utils/constants';
 import {getShortenedURL} from 'utils/url';
+
+import Input from '../input/input';
 
 import './url_input.scss';
 
@@ -79,7 +80,10 @@ function UrlInput({
     };
 
     const urlInputLabel = (
-        <span className='url-input-label'>
+        <span
+            className='url-input-label'
+            data-testid='urlInputLabel'
+        >
             {formatMessage({id: 'url_input.label.url', defaultMessage: 'URL: '})}
             {isShortenedURL ? getShortenedURL(fullURL, shortenLength) : fullURL}
         </span>
@@ -105,6 +109,7 @@ function UrlInput({
                 )}
                 {(editing || hasError) && (
                     <Input
+                        data-testid='channelURLInput'
                         name='url-input'
                         type='text'
                         containerClassName='url-input-editable-container'

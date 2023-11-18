@@ -11,6 +11,7 @@ import {IDMappedObjects, RelationOneToMany, RelationOneToManyUnique, RelationOne
 export type UserNotifyProps = {
     desktop: 'default' | 'all' | 'mention' | 'none';
     desktop_sound: 'true' | 'false';
+    calls_desktop_sound: 'true' | 'false';
     email: 'true' | 'false';
     mark_unread: 'all' | 'mention';
     push: 'default' | 'all' | 'mention' | 'none';
@@ -19,7 +20,9 @@ export type UserNotifyProps = {
     first_name: 'true' | 'false';
     channel: 'true' | 'false';
     mention_keys: string;
+    highlight_keys: string;
     desktop_notification_sound?: 'Bing' | 'Crackle' | 'Down' | 'Hello' | 'Ripple' | 'Upstairs';
+    calls_notification_sound?: 'Dynamic' | 'Calm' | 'Urgent' | 'Cheerful';
     desktop_threads?: 'default' | 'all' | 'mention' | 'none';
     email_threads?: 'default' | 'all' | 'mention' | 'none';
     push_threads?: 'default' | 'all' | 'mention' | 'none';
@@ -131,6 +134,7 @@ export type GetFilteredUsersStatsOpts = {
     in_channel?: string;
     include_deleted?: boolean;
     include_bots?: boolean;
+    include_remote_users?: boolean;
     roles?: string[];
     channel_roles?: string[];
     team_roles?: string[];

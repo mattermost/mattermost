@@ -1,17 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'reselect';
+import type {Channel} from '@mattermost/types/channels';
+import type {
+    MessageHistory,
+    OpenGraphMetadata,
+    Post,
+    PostAcknowledgement,
+    PostOrderBlock,
+} from '@mattermost/types/posts';
+import type {Reaction} from '@mattermost/types/reactions';
+import type {GlobalState} from '@mattermost/types/store';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {
+    IDMappedObjects,
+    RelationOneToOne,
+    RelationOneToMany,
+} from '@mattermost/types/utilities';
 
-import {Posts, Preferences} from 'mattermost-redux/constants';
-
+import {General, Posts, Preferences} from 'mattermost-redux/constants';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getUsers, getCurrentUserId, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
-import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
-
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
-
+import {shouldShowJoinLeaveMessages} from 'mattermost-redux/utils/post_list';
 import {
     isPostEphemeral,
     isSystemMessage,
@@ -20,27 +37,8 @@ import {
     isPostPendingOrFailed,
     isPostCommentMention,
 } from 'mattermost-redux/utils/post_utils';
-
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
-
-import {shouldShowJoinLeaveMessages} from 'mattermost-redux/utils/post_list';
-
-import {Channel} from '@mattermost/types/channels';
-import {
-    MessageHistory,
-    OpenGraphMetadata,
-    Post,
-    PostAcknowledgement,
-    PostOrderBlock,
-} from '@mattermost/types/posts';
-import {Reaction} from '@mattermost/types/reactions';
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile} from '@mattermost/types/users';
-import {
-    IDMappedObjects,
-    RelationOneToOne,
-    RelationOneToMany,
-} from '@mattermost/types/utilities';
+import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 export function getAllPosts(state: GlobalState) {
     return state.entities.posts.posts;
@@ -298,7 +296,7 @@ export function makeGetPostsInChannel(): (state: GlobalState, channelId: Channel
             for (let i = 0; i < postIds.length; i++) {
                 const post = allPosts[postIds[i]];
 
-                if (shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '')) {
+                if (!post || shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '')) {
                     continue;
                 }
 
@@ -753,19 +751,12 @@ export const makeIsPostCommentMention = (): ((state: GlobalState, postId: Post['
     );
 };
 
-export function getExpandedLink(state: GlobalState, link: string): string {
-    return state.entities.posts.expandedURLs[link];
-}
-
 export function getLimitedViews(state: GlobalState): GlobalState['entities']['posts']['limitedViews'] {
     return state.entities.posts.limitedViews;
 }
 
 export function isPostPriorityEnabled(state: GlobalState) {
-    return (
-        getFeatureFlagValue(state, 'PostPriority') === 'true' &&
-        getConfig(state).PostPriority === 'true'
-    );
+    return getConfig(state).PostPriority === 'true';
 }
 
 export function isPostAcknowledgementsEnabled(state: GlobalState) {
@@ -775,9 +766,39 @@ export function isPostAcknowledgementsEnabled(state: GlobalState) {
     );
 }
 
+export function getAllowPersistentNotifications(state: GlobalState) {
+    return (
+        isPostPriorityEnabled(state) &&
+        getConfig(state).AllowPersistentNotifications === 'true'
+    );
+}
+
+export function getPersistentNotificationMaxRecipients(state: GlobalState) {
+    return getConfig(state).PersistentNotificationMaxRecipients;
+}
+
+export function getPersistentNotificationIntervalMinutes(state: GlobalState) {
+    return getConfig(state).PersistentNotificationIntervalMinutes;
+}
+
+export function getAllowPersistentNotificationsForGuests(state: GlobalState) {
+    return (
+        isPostPriorityEnabled(state) &&
+        getConfig(state).AllowPersistentNotificationsForGuests === 'true'
+    );
+}
+
 export function getPostAcknowledgements(state: GlobalState, postId: Post['id']): Record<UserProfile['id'], PostAcknowledgement['acknowledged_at']> {
     return state.entities.posts.acknowledgements[postId];
 }
+
+export const isPersistentNotificationsEnabled = createSelector(
+    'getPersistentNotificationsEnabled',
+    getCurrentUser,
+    getAllowPersistentNotifications,
+    getAllowPersistentNotificationsForGuests,
+    (user, forAll, forGuests) => (isGuest(user.roles) ? (forAll && forGuests) : forAll),
+);
 
 export function makeGetPostAcknowledgementsWithProfiles(): (state: GlobalState, postId: Post['id']) => Array<{user: UserProfile; acknowledgedAt: PostAcknowledgement['acknowledged_at']}> {
     return createSelector(
@@ -799,4 +820,18 @@ export function makeGetPostAcknowledgementsWithProfiles(): (state: GlobalState, 
             }).sort((a, b) => b.acknowledgedAt - a.acknowledgedAt);
         },
     );
+}
+
+export function getTeamIdFromPost(state: GlobalState, post: Post): Team['id'] | undefined {
+    const channel = getChannel(state, post.channel_id);
+
+    if (!channel) {
+        return undefined;
+    }
+
+    if (channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL) {
+        return getCurrentTeamId(state);
+    }
+
+    return channel.team_id;
 }

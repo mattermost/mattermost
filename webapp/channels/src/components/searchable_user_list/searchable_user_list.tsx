@@ -2,18 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 import Scrollbars from 'react-custom-scrollbars';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {TeamMembership} from '@mattermost/types/teams';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import QuickInput from 'components/quick_input';
 import UserList from 'components/user_list';
-import LocalizedInput from 'components/localized_input/localized_input';
-
-import {t} from 'utils/i18n';
 
 const NEXT_BUTTON_TIMEOUT = 500;
 
@@ -231,7 +229,6 @@ class SearchableUserList extends React.PureComponent<Props, State> {
         let nextButton;
         let previousButton;
         let usersToDisplay;
-        const {formatMessage} = this.props.intl;
 
         if (this.props.term || !this.props.users) {
             usersToDisplay = this.props.users;
@@ -248,7 +245,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                 nextButton = (
                     <button
                         id='searchableUserListNextBtn'
-                        className='btn btn-link filter-control filter-control__next'
+                        className='btn btn-tertiary filter-control filter-control__next'
                         onClick={this.nextPage}
                         disabled={this.state.nextDisabled}
                     >
@@ -264,7 +261,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                 previousButton = (
                     <button
                         id='searchableUserListPrevBtn'
-                        className='btn btn-link filter-control filter-control__prev'
+                        className='btn btn-tertiary filter-control filter-control__prev'
                         onClick={this.previousPage}
                     >
                         <FormattedMessage
@@ -280,7 +277,6 @@ class SearchableUserList extends React.PureComponent<Props, State> {
         if (this.props.renderFilterRow) {
             filterRow = this.props.renderFilterRow(this.handleInput);
         } else {
-            const searchUsersPlaceholder = {id: t('filtered_user_list.search'), defaultMessage: 'Search users'};
             filterRow = (
                 <div className='col-xs-12'>
                     <label
@@ -293,14 +289,13 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                         />
                     </label>
                     <QuickInput
-                        id='searchUsersInput'
                         ref={this.filterRef}
+                        id='searchUsersInput'
                         className='form-control filter-textbox'
-                        placeholder={searchUsersPlaceholder}
-                        inputComponent={LocalizedInput}
-                        value={this.props.term}
+                        placeholder={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
+                        aria-label={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
                         onInput={this.handleInput}
-                        aria-label={formatMessage(searchUsersPlaceholder).toLowerCase()}
+                        value={this.props.term}
                     />
                 </div>
             );

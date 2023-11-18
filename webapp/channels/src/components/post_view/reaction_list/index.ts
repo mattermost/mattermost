@@ -2,19 +2,20 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {Post} from '@mattermost/types/posts';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {canAddReactions} from 'mattermost-redux/selectors/entities/reactions';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {Post} from '@mattermost/types/posts';
-
-import {GlobalState} from 'types/store';
-
-import {addReaction} from 'actions/post_actions';
+import {toggleReaction} from 'actions/post_actions';
 
 import {makeGetUniqueReactionsToPost} from 'utils/post_utils';
+
+import type {GlobalState} from 'types/store';
 
 import ReactionList from './reaction_list';
 
@@ -42,7 +43,7 @@ function makeMapStateToProps() {
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
         actions: bindActionCreators({
-            addReaction,
+            toggleReaction,
         }, dispatch),
     };
 }

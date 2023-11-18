@@ -4,14 +4,15 @@
 package api4
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 func TestListImports(t *testing.T) {
@@ -38,11 +39,11 @@ func TestListImports(t *testing.T) {
 			us.UserId = model.UploadNoUserID
 		}
 
-		u, _, err := c.CreateUpload(us)
+		u, _, err := c.CreateUpload(context.Background(), us)
 		require.NoError(t, err)
 		require.NotNil(t, u)
 
-		finfo, _, err := c.UploadData(u.Id, file)
+		finfo, _, err := c.UploadData(context.Background(), u.Id, file)
 		require.NoError(t, err)
 		require.NotNil(t, finfo)
 
@@ -50,7 +51,7 @@ func TestListImports(t *testing.T) {
 	}
 
 	t.Run("no permissions", func(t *testing.T) {
-		imports, _, err := th.Client.ListImports()
+		imports, _, err := th.Client.ListImports(context.Background())
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
 		require.Nil(t, imports)
@@ -60,7 +61,7 @@ func TestListImports(t *testing.T) {
 	require.True(t, found)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		imports, _, err := c.ListImports()
+		imports, _, err := c.ListImports(context.Background())
 		require.NoError(t, err)
 		require.Empty(t, imports)
 	}, "no imports")
@@ -74,7 +75,7 @@ func TestListImports(t *testing.T) {
 		require.NoError(t, err)
 		f.Close()
 
-		imports, _, err := c.ListImports()
+		imports, _, err := c.ListImports(context.Background())
 		require.NoError(t, err)
 		require.NotEmpty(t, imports)
 		require.Len(t, imports, 2)
@@ -90,12 +91,12 @@ func TestListImports(t *testing.T) {
 
 		importDir := filepath.Join(dataDir, "import_new")
 
-		imports, _, err := c.ListImports()
+		imports, _, err := c.ListImports(context.Background())
 		require.NoError(t, err)
 		require.Empty(t, imports)
 
 		id := uploadNewImport(c, t)
-		imports, _, err = c.ListImports()
+		imports, _, err = c.ListImports(context.Background())
 		require.NoError(t, err)
 		require.NotEmpty(t, imports)
 		require.Len(t, imports, 1)

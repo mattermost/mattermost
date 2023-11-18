@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -21,16 +20,15 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	storeMocks "github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/telemetry/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/plugin"
-	"github.com/mattermost/mattermost-server/server/v8/plugin/plugintest"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	storeMocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry/mocks"
 )
 
 type FakeConfigService struct {
@@ -96,7 +94,6 @@ func collectBatches(t *testing.T, info *[]testBatch, pchan chan testTelemetryPay
 }
 
 func makeTelemetryServiceAndReceiver(t *testing.T, cloudLicense bool) (*TelemetryService, chan testTelemetryPayload, *model.Config, func()) {
-
 	cfg := &model.Config{}
 	cfg.SetDefaults()
 	serverIfaceMock, storeMock, deferredAssertions, cleanUp := initializeMocks(cfg, cloudLicense)
@@ -124,7 +121,7 @@ func makeTelemetryServiceAndReceiver(t *testing.T, cloudLicense bool) (*Telemetr
 
 	service.TelemetryID = testTelemetryID
 	service.rudderClient = nil
-	service.initRudder(receiver.URL, RudderKey)
+	service.initRudder(receiver.URL, "")
 
 	// initializing rudder send a client identify message
 	select {
@@ -168,7 +165,6 @@ func initializeMocks(cfg *model.Config, cloudLicense bool) (*mocks.ServerIface, 
 		func(m *model.Manifest) plugin.API { return pluginsAPIMock },
 		nil,
 		pluginDir, webappPluginDir,
-		false,
 		logger,
 		nil)
 	serverIfaceMock.On("GetPluginsEnvironment").Return(pluginEnv, nil)
@@ -192,7 +188,6 @@ func initializeMocks(cfg *model.Config, cloudLicense bool) (*mocks.ServerIface, 
 	serverIfaceMock.On("GetRoleByName", context.Background(), "channel_guest").Return(&model.Role{Permissions: []string{"cg-test1", "cg-test2"}}, nil)
 	serverIfaceMock.On("GetSchemes", "team", 0, 100).Return([]*model.Scheme{}, nil)
 	serverIfaceMock.On("HTTPService").Return(httpservice.MakeHTTPService(configService))
-	serverIfaceMock.On("HooksManager").Return(product.NewHooksManager(nil))
 
 	storeMock := &storeMocks.Store{}
 	storeMock.On("GetDbVersion", false).Return("5.24.0", nil)
@@ -341,6 +336,10 @@ func TestEnsureTelemetryID(t *testing.T) {
 	})
 
 	t.Run("fail to save test ID", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("skipping test in short mode.")
+		}
+
 		storeMock := &storeMocks.Store{}
 
 		systemStore := storeMocks.SystemStore{}
@@ -580,9 +579,6 @@ func TestRudderTelemetry(t *testing.T) {
 	})
 
 	t.Run("SendDailyTelemetryNoRudderKey", func(t *testing.T) {
-		if !strings.Contains(RudderKey, "placeholder") {
-			t.Skipf("Skipping telemetry on production builds")
-		}
 		service.sendDailyTelemetry(false)
 
 		select {
@@ -594,9 +590,6 @@ func TestRudderTelemetry(t *testing.T) {
 	})
 
 	t.Run("SendDailyTelemetryNonCloud", func(t *testing.T) {
-		if !strings.Contains(RudderKey, "placeholder") {
-			t.Skipf("Skipping telemetry on production builds")
-		}
 		service.sendDailyTelemetry(true)
 
 		var batches []testBatch
@@ -619,9 +612,6 @@ func TestRudderTelemetry(t *testing.T) {
 	})
 
 	t.Run("SendDailyTelemetryDisabled", func(t *testing.T) {
-		if !strings.Contains(RudderKey, "placeholder") {
-			t.Skipf("Skipping telemetry on production builds")
-		}
 		*cfg.LogSettings.EnableDiagnostics = false
 		defer func() {
 			*cfg.LogSettings.EnableDiagnostics = true
@@ -664,9 +654,6 @@ func TestRudderTelemetry(t *testing.T) {
 	})
 
 	t.Run("RudderConfigUsesConfigForValues", func(t *testing.T) {
-		if !strings.Contains(RudderKey, "placeholder") {
-			t.Skipf("Skipping telemetry on production builds")
-		}
 		os.Setenv("RudderKey", "abc123")
 		os.Setenv("RudderDataplaneURL", "arudderstackplace")
 		defer os.Unsetenv("RudderKey")
@@ -680,9 +667,6 @@ func TestRudderTelemetry(t *testing.T) {
 }
 
 func TestRudderTelemetryCloud(t *testing.T) {
-	if !strings.Contains(RudderKey, "placeholder") {
-		t.Skipf("Skipping telemetry on production builds")
-	}
 	if testing.Short() {
 		t.SkipNow()
 	}

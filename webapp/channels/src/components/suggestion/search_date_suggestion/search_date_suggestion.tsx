@@ -1,21 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Locale} from 'date-fns';
 import React from 'react';
-
 import {DayPicker} from 'react-day-picker';
 
-import type {Locale} from 'date-fns';
-
-import Suggestion from '../suggestion.jsx';
-
+import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
-import Constants from 'utils/constants';
+
+import type {SuggestionProps} from '../suggestion';
 
 import 'react-day-picker/dist/style.css';
 
-export default class SearchDateSuggestion extends Suggestion {
+type Props = SuggestionProps<never> & {
+    currentDate?: Date;
+    handleEscape: () => void;
+    locale: string;
+    preventClose: () => void;
+}
+
+export default class SearchDateSuggestion extends React.PureComponent<Props> {
     private loadedLocales: Record<string, Locale> = {};
 
     state = {
@@ -23,7 +28,7 @@ export default class SearchDateSuggestion extends Suggestion {
     };
 
     handleDayClick = (day: Date) => {
-        const dayString = day.toISOString().split('T')[0];
+        const dayString = new Date(Date.UTC(day.getFullYear(), day.getMonth(), day.getDate())).toISOString().split('T')[0];
         this.props.onClick(dayString, this.props.matchedPretext);
     };
 

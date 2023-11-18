@@ -1,13 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import expect from 'expect';
-
-import {Post, PostOrderBlock} from '@mattermost/types/posts';
+import type {Post, PostOrderBlock} from '@mattermost/types/posts';
 
 import {
     ChannelTypes,
-    GeneralTypes,
     PostTypes,
     ThreadTypes,
     CloudTypes,
@@ -15,6 +12,7 @@ import {
 import {Posts} from 'mattermost-redux/constants';
 import * as reducers from 'mattermost-redux/reducers/entities/posts';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
+
 import {TestHelper} from 'utils/test_helper';
 
 function toPostsRecord(partials: Record<string, Partial<Post>>): Record<string, Post> {
@@ -315,6 +313,59 @@ describe('posts', () => {
             expect(nextState).toEqual({
                 post1: {id: 'post1', file_ids: [], has_reactions: false, state: Posts.POST_DELETED},
             });
+        });
+
+        it('should remove deleted post from other post embeds', () => {
+            const post1 = {id: 'post1', message: 'Post 1'};
+            const post2 = {
+                id: 'post2',
+                message: 'Post 2',
+                metadata: {
+                    embeds: [
+                        {
+                            type: 'permalink',
+                            data: {
+                                post_id: 'post1',
+                            },
+                        },
+                    ],
+                },
+            };
+            const post3 = {
+                id: 'post3',
+                message: 'Post 3',
+                metadata: {
+                    embeds: [
+                        {
+                            type: 'permalink',
+                            data: {
+                                post_id: 'post1',
+                            },
+                        },
+                        {
+                            type: 'permalink',
+                            data: {
+                                post_id: 'post2',
+                            },
+                        },
+                    ],
+                },
+            };
+
+            const state = deepFreeze({
+                post1,
+                post2,
+                post3,
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: PostTypes.POST_DELETED,
+                data: {id: 'post1'},
+            });
+
+            expect(nextState).not.toBe(state);
+            expect(nextState.post2.metadata.embeds.length).toBe(0);
+            expect(nextState.post3.metadata.embeds.length).toBe(1);
         });
 
         it('should not remove the rest of the thread when deleting a comment', () => {
@@ -4037,41 +4088,6 @@ describe('opengraph', () => {
     });
 });
 
-describe('expandedURLs', () => {
-    it('should store the URLs on REDIRECT_LOCATION_SUCCESS', () => {
-        const state = deepFreeze({});
-        const action = {
-            type: GeneralTypes.REDIRECT_LOCATION_SUCCESS,
-            data: {
-                url: 'a',
-                location: 'b',
-            },
-        };
-
-        const nextState = reducers.expandedURLs(state, action);
-        expect(state).not.toEqual(nextState);
-        expect(nextState).toEqual({
-            a: 'b',
-        });
-    });
-
-    it('should store the non-expanded URL on REDIRECT_LOCATION_FAILURE', () => {
-        const state = deepFreeze({});
-        const action = {
-            type: GeneralTypes.REDIRECT_LOCATION_FAILURE,
-            data: {
-                url: 'b',
-            },
-        };
-
-        const nextState = reducers.expandedURLs(state, action);
-        expect(state).not.toEqual(nextState);
-        expect(nextState).toEqual({
-            b: 'b',
-        });
-    });
-});
-
 describe('removeNonRecentEmptyPostBlocks', () => {
     it('should filter empty blocks', () => {
         const blocks = [{
@@ -4378,24 +4394,5 @@ describe('limitedViews', () => {
 
             expect(nextState).toEqual(zeroState);
         });
-    });
-
-    it('makes no changes if events type is not listened to', () => {
-        const initialState = {
-            channels: {
-                channelId: 123,
-            },
-            threads: {
-                rootId: 124,
-            },
-        };
-        const nextState = reducers.limitedViews(initialState, {
-            type: GeneralTypes.REDIRECT_LOCATION_FAILURE,
-            data: {
-                url: 'http://failed-location-failure.com',
-            },
-        });
-
-        expect(nextState).toEqual(initialState);
     });
 });

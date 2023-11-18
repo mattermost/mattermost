@@ -2,14 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-import LocalizedIcon from 'components/localized_icon';
-
-import {t} from 'utils/i18n';
-
-import ShowUnreadsCategory from './show_unreads_category';
 import LimitVisibleGMsDMs from './limit_visible_gms_dms';
+import ShowUnreadsCategory from './show_unreads_category';
 
 export interface Props {
     updateSection: (section: string) => void;
@@ -19,6 +15,8 @@ export interface Props {
 }
 
 export default function UserSettingsSidebar(props: Props): JSX.Element {
+    const {formatMessage} = useIntl();
+
     return (
         <div>
             <div className='modal-header'>
@@ -37,9 +35,9 @@ export default function UserSettingsSidebar(props: Props): JSX.Element {
                         className='modal-back'
                         onClick={props.collapseModal}
                     >
-                        <LocalizedIcon
+                        <i
                             className='fa fa-angle-left'
-                            title={{id: t('generic_icons.collapse'), defaultMessage: 'Collapse Icon'}}
+                            title={formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
                         />
                     </div>
                     <FormattedMessage

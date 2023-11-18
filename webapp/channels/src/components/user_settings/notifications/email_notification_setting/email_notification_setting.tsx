@@ -1,47 +1,48 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {RefObject} from 'react';
+import React, {type RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserNotifyProps} from '@mattermost/types/users';
 
 import {getEmailInterval} from 'mattermost-redux/utils/notify_props';
 
-import {Preferences, NotificationLevels} from 'utils/constants';
-import {a11yFocus, localizeMessage} from 'utils/utils';
-
-import SettingItemMin from 'components/setting_item_min';
 import SettingItemMax from 'components/setting_item_max';
-import SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+import SettingItemMin from 'components/setting_item_min';
+import type SettingItemMinComponent from 'components/setting_item_min';
 
-import {UserNotifyProps} from '@mattermost/types/users';
-import {PreferenceType} from '@mattermost/types/preferences';
+import {Preferences, NotificationLevels} from 'utils/constants';
+import {a11yFocus} from 'utils/utils';
 
 const SECONDS_PER_MINUTE = 60;
 
 type Props = {
-    currentUserId: string;
-    activeSection: string;
+    active: boolean;
     updateSection: (section: string) => void;
-    enableEmail: boolean;
-    emailInterval: number;
     onSubmit: () => void;
     onCancel: () => void;
-    onChange: (enableEmail: UserNotifyProps['email']) => void;
-    serverError?: string;
     saving?: boolean;
+    error?: string;
+    setParentState: (key: string, value: any) => void;
+    areAllSectionsInactive: boolean;
+    isCollapsedThreadsEnabled: boolean;
+    enableEmail: boolean;
+    onChange: (enableEmail: UserNotifyProps['email']) => void;
+    threads: string;
+    currentUserId: string;
+    emailInterval: number;
     sendEmailNotifications: boolean;
     enableEmailBatching: boolean;
     actions: {
         savePreferences: (currentUserId: string, emailIntervalPreference: PreferenceType[]) =>
         Promise<{data: boolean}>;
     };
-    isCollapsedThreadsEnabled: boolean;
-    threads: string;
-    setParentState: (key: string, value: any) => void;
 };
 
 type State = {
-    activeSection: string;
+    active: boolean;
     emailInterval: number;
     enableEmail: boolean;
     enableEmailBatching: boolean;
@@ -50,7 +51,7 @@ type State = {
 };
 
 export default class EmailNotificationSetting extends React.PureComponent<Props, State> {
-    minRef: RefObject<SettingItemMinComponent>;
+    editButtonRef: RefObject<SettingItemMinComponent>;
 
     constructor(props: Props) {
         super(props);
@@ -60,11 +61,11 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
             enableEmail,
             enableEmailBatching,
             sendEmailNotifications,
-            activeSection,
+            active,
         } = props;
 
         this.state = {
-            activeSection,
+            active,
             emailInterval,
             enableEmail,
             enableEmailBatching,
@@ -72,7 +73,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
             newInterval: getEmailInterval(enableEmail && sendEmailNotifications, enableEmailBatching, emailInterval),
         };
 
-        this.minRef = React.createRef();
+        this.editButtonRef = React.createRef();
     }
 
     static getDerivedStateFromProps(nextProps: Props, prevState: State) {
@@ -81,13 +82,13 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
             enableEmail,
             enableEmailBatching,
             sendEmailNotifications,
-            activeSection,
+            active,
         } = nextProps;
 
         // If we're re-opening this section, reset to defaults from props
-        if (activeSection === 'email' && prevState.activeSection !== 'email') {
+        if (active && !prevState.active) {
             return {
-                activeSection,
+                active,
                 emailInterval,
                 enableEmail,
                 enableEmailBatching,
@@ -99,10 +100,10 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
         if (sendEmailNotifications !== prevState.sendEmailNotifications ||
             enableEmailBatching !== prevState.enableEmailBatching ||
             emailInterval !== prevState.emailInterval ||
-            activeSection !== prevState.activeSection
+            active !== prevState.active
         ) {
             return {
-                activeSection,
+                active,
                 emailInterval,
                 enableEmail,
                 enableEmailBatching,
@@ -115,7 +116,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
     }
 
     focusEditButton(): void {
-        this.minRef.current?.focus();
+        this.editButtonRef.current?.focus();
     }
 
     handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -233,11 +234,16 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
 
         return (
             <SettingItemMin
-                title={localizeMessage('user.settings.notifications.emailNotifications', 'Email Notifications')}
+                ref={this.editButtonRef}
+                title={
+                    <FormattedMessage
+                        id={'user.settings.notifications.emailNotifications'}
+                        defaultMessage={'Email Notifications'}
+                    />
+                }
                 describe={description}
                 section={'email'}
                 updateSection={this.handleUpdateSection}
-                ref={this.minRef}
             />
         );
     };
@@ -246,7 +252,12 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
         if (!this.props.sendEmailNotifications) {
             return (
                 <SettingItemMax
-                    title={localizeMessage('user.settings.notifications.emailNotifications', 'Email Notifications')}
+                    title={
+                        <FormattedMessage
+                            id={'user.settings.notifications.emailNotifications'}
+                            defaultMessage={'Email Notifications'}
+                        />
+                    }
                     inputs={[
                         <div
                             key='oauthEmailInfo'
@@ -258,7 +269,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                             />
                         </div>,
                     ]}
-                    serverError={this.props.serverError}
+                    serverError={this.props.error}
                     section={'email'}
                     updateSection={this.handleUpdateSection}
                 />
@@ -358,7 +369,12 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
 
         return (
             <SettingItemMax
-                title={localizeMessage('user.settings.notifications.emailNotifications', 'Email Notifications')}
+                title={
+                    <FormattedMessage
+                        id={'user.settings.notifications.emailNotifications'}
+                        defaultMessage={'Email Notifications'}
+                    />
+                }
                 inputs={[
                     <fieldset key='userNotificationEmailOptions'>
                         <legend className='form-legend'>
@@ -415,23 +431,23 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                 ]}
                 submit={this.handleSubmit}
                 saving={this.props.saving}
-                serverError={this.props.serverError}
+                serverError={this.props.error}
                 updateSection={this.handleUpdateSection}
             />
         );
     };
 
     componentDidUpdate(prevProps: Props) {
-        if (prevProps.activeSection === 'email' && this.props.activeSection === '') {
+        if (prevProps.active && !this.props.active && this.props.areAllSectionsInactive) {
             this.focusEditButton();
         }
     }
 
     render() {
-        if (this.props.activeSection !== 'email') {
-            return this.renderMinSettingView();
+        if (this.props.active) {
+            return this.renderMaxSettingView();
         }
 
-        return this.renderMaxSettingView();
+        return this.renderMinSettingView();
     }
 }

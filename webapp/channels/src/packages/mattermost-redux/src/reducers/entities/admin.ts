@@ -3,26 +3,39 @@
 
 import {combineReducers} from 'redux';
 
+import type {ClusterInfo, AnalyticsRow} from '@mattermost/types/admin';
+import type {Audit} from '@mattermost/types/audits';
+import type {Compliance} from '@mattermost/types/compliance';
+import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
+import type {DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
+import type {MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
+import type {PluginRedux, PluginStatusRedux} from '@mattermost/types/plugins';
+import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
+import type {Team} from '@mattermost/types/teams';
+import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilities';
+
 import {AdminTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Stats} from 'mattermost-redux/constants';
 import PluginState from 'mattermost-redux/constants/plugins';
-
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {ClusterInfo, AnalyticsRow} from '@mattermost/types/admin';
-import {Audit} from '@mattermost/types/audits';
-import {Compliance} from '@mattermost/types/compliance';
-import {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
-import {MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
-import {PluginRedux, PluginStatusRedux} from '@mattermost/types/plugins';
-import {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
-import {Team} from '@mattermost/types/teams';
-import {UserAccessToken, UserProfile} from '@mattermost/types/users';
-import {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilities';
-import {DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function logs(state: string[] = [], action: GenericAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_LOGS: {
+        return action.data;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return [];
+
+    default:
+        return state;
+    }
+}
+
+function plainLogs(state: string[] = [], action: GenericAction) {
+    switch (action.type) {
+    case AdminTypes.RECEIVED_PLAIN_LOGS: {
         return action.data;
     }
     case UserTypes.LOGOUT_SUCCESS:
@@ -658,8 +671,11 @@ function dataRetentionCustomPoliciesCount(state = 0, action: GenericAction) {
 
 export default combineReducers({
 
-    // array of strings each representing a log entry
+    // array of LogObjects each representing a log entry (JSON)
     logs,
+
+    // array of strings each representing a log entry (legacy)
+    plainLogs,
 
     // object where every key is an audit id and has an object with audit details
     audits,

@@ -9,17 +9,18 @@ import (
 	"html"
 	"html/template"
 	"io"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
 
-	email "github.com/mattermost/mattermost-server/server/v8/channels/app/email"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	email "github.com/mattermost/mattermost/server/v8/channels/app/email"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotification, user *model.User, team *model.Team, senderProfileImage []byte) error {
@@ -343,9 +344,9 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 
 	return formattedPostTime{
 		Time:     localTime,
-		Year:     fmt.Sprintf("%d", localTime.Year()),
+		Year:     strconv.Itoa(localTime.Year()),
 		Month:    translateFunc(localTime.Month().String()),
-		Day:      fmt.Sprintf("%d", localTime.Day()),
+		Day:      strconv.Itoa(localTime.Day()),
 		Hour:     hour,
 		Minute:   fmt.Sprintf("%02d"+period, localTime.Minute()),
 		TimeZone: zone,

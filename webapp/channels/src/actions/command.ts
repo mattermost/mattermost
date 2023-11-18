@@ -1,46 +1,41 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from 'mattermost-redux/client';
-import {unfavoriteChannel} from 'mattermost-redux/actions/channels';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {getCurrentChannel, getRedirectChannelNameForTeam, isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {IntegrationTypes} from 'mattermost-redux/action_types';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import type {CommandArgs} from '@mattermost/types/integrations';
 
+import {IntegrationTypes} from 'mattermost-redux/action_types';
+import {unfavoriteChannel} from 'mattermost-redux/actions/channels';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {Client4} from 'mattermost-redux/client';
+import {Permissions} from 'mattermost-redux/constants';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
+import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
+import {getCurrentChannel, getRedirectChannelNameForTeam, isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general';
+import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
-import {DoAppCallResult} from 'types/apps';
-
-import {openModal} from 'actions/views/modals';
 import * as GlobalActions from 'actions/global_actions';
 import * as PostActions from 'actions/post_actions';
+import {openModal} from 'actions/views/modals';
 
-import {isUrlSafe, getSiteURL} from 'utils/url';
-import {localizeMessage, getUserIdFromChannelName, localizeAndFormatMessage} from 'utils/utils';
-import * as UserAgent from 'utils/user_agent';
-import {Constants, ModalIdentifiers} from 'utils/constants';
-import {getHistory} from 'utils/browser_history';
-
-import UserSettingsModal from 'components/user_settings/modal';
+import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
+import LeaveChannelModal from 'components/leave_channel_modal';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import {AppCommandParser} from 'components/suggestion/command_provider/app_command_parser/app_command_parser';
 import {intlShim} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
-import LeaveChannelModal from 'components/leave_channel_modal';
-import KeyboardShortcutsModal from 'components/keyboard_shortcuts/keyboard_shortcuts_modal/keyboard_shortcuts_modal';
+import UserSettingsModal from 'components/user_settings/modal';
 
-import {GlobalState} from 'types/store';
+import {getHistory} from 'utils/browser_history';
+import {Constants, ModalIdentifiers} from 'utils/constants';
+import {isUrlSafe, getSiteURL} from 'utils/url';
+import * as UserAgent from 'utils/user_agent';
+import {localizeMessage, getUserIdFromChannelName} from 'utils/utils';
 
-import {t} from 'utils/i18n';
-import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
-import WorkTemplateModal from 'components/work_templates';
-import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
-import {Permissions} from 'mattermost-redux/constants';
-import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general';
-import {areWorkTemplatesEnabled} from 'selectors/work_template';
+import type {DoAppCallResult} from 'types/apps';
+import type {GlobalState} from 'types/store';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForCommandArgs} from './apps';
 import {trackEvent} from './telemetry_actions';
@@ -141,15 +136,6 @@ export function executeCommand(message: string, args: CommandArgs): ActionFunc {
 
             dispatch(openModal({modalId: ModalIdentifiers.PLUGIN_MARKETPLACE, dialogType: MarketplaceModal, dialogProps: {openedFrom: 'command'}}));
             return {data: true};
-        case '/templates': {
-            const workTemplateEnabled = areWorkTemplatesEnabled(state);
-            if (!workTemplateEnabled) {
-                return {error: {message: localizeMessage('templates_command.disabled', 'Templates are disabled. Please contact your System Administrator for details.')}};
-            }
-
-            dispatch(openModal({modalId: ModalIdentifiers.WORK_TEMPLATE, dialogType: WorkTemplateModal}));
-            return {data: true};
-        }
         case '/collapse':
         case '/expand':
             dispatch(PostActions.resetEmbedVisibility());
@@ -194,14 +180,22 @@ export function executeCommand(message: string, args: CommandArgs): ActionFunc {
                     case AppCallResponseTypes.NAVIGATE:
                         return {data: true};
                     default:
-                        return createErrorMessage(localizeAndFormatMessage(
-                            t('apps.error.responses.unknown_type'),
-                            'App response type not supported. Response type: {type}.',
-                            {type: callResp.type},
+                        return createErrorMessage(intlShim.formatMessage(
+                            {
+                                id: 'apps.error.responses.unknown_type',
+                                defaultMessage: 'App response type not supported. Response type: {type}.',
+                            },
+                            {
+                                type: callResp.type,
+                            },
                         ));
                     }
                 } catch (err: any) {
-                    return createErrorMessage(err.message || localizeMessage('apps.error.unknown', 'Unknown error occurred.'));
+                    const message = err.message || intlShim.formatMessage({
+                        id: 'apps.error.unknown',
+                        defaultMessage: 'Unknown error occurred.',
+                    });
+                    return createErrorMessage(message);
                 }
             }
         }

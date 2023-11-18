@@ -148,7 +148,6 @@ export type PostsState = {
     postEditHistory: Post[];
     currentFocusedPostId: string;
     messagesHistory: MessageHistory;
-    expandedURLs: Record<string, string>;
     limitedViews: {
         channels: Record<Channel['id'], number>;
         threads: Record<Post['root_id'], number>;
@@ -203,4 +202,10 @@ export type PostAnalytics = {
     priority?: PostPriority|'';
     requested_ack?: boolean;
     persistent_notifications?: boolean;
+}
+export type ActivityEntry = {
+    postType: Post['type'];
+    actorId: string[];
+    userIds: string[];
+    usernames: string[];
 }

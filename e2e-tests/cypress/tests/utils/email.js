@@ -111,7 +111,7 @@ export function getWelcomeEmailTemplate(userEmail, siteName, teamName) {
         'Download the desktop and mobile apps',
         'For the best experience, download the apps for PC, Mac, iOS and Android.',
         '',
-        'Download ( https://mattermost.com/download/#mattermostApps )',
+        'Download ( https://mattermost.com/pl/download-apps )',
         '',
         '© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301',
     ];

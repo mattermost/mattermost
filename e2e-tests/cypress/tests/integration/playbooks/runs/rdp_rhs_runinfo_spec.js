@@ -164,7 +164,7 @@ describe('runs > run details page > run info', {testIsolation: true}, () => {
                         from: 'run_details',
                         playbookrun_id: testRun.id,
                     },
-                ], {waitForCalls: 3});
+                ], {waitForCalls: 2});
             });
 
             it('click channel link navigates to run\'s channel', () => {

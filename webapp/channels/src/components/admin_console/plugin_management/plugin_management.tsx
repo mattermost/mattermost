@@ -1,26 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
-import classNames from 'classnames';
+
+import type {AdminConfig} from '@mattermost/types/config';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import PluginState from 'mattermost-redux/constants/plugins';
-import {AdminConfig} from '@mattermost/types/config';
-import {DeepPartial} from '@mattermost/types/utilities';
 
-import * as Utils from 'utils/utils';
-import LoadingScreen from 'components/loading_screen';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import ConfirmModal from 'components/confirm_modal';
-
-import AdminSettings, {BaseProps, BaseState} from '../admin_settings';
-import BooleanSetting from '../boolean_setting';
-import SettingsGroup from '../settings_group.jsx';
-import TextSetting from '../text_setting';
-import {appsPluginID} from 'utils/apps';
 import ExternalLink from 'components/external_link';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import LoadingScreen from 'components/loading_screen';
+
+import {appsPluginID} from 'utils/apps';
+import {DeveloperLinks} from 'utils/constants';
+import * as Utils from 'utils/utils';
+
+import AdminSettings from '../admin_settings';
+import type {BaseProps, BaseState} from '../admin_settings';
+import BooleanSetting from '../boolean_setting';
+import SettingsGroup from '../settings_group';
+import TextSetting from '../text_setting';
 
 const PluginItemState = ({state}: {state: number}) => {
     switch (state) {
@@ -204,16 +208,17 @@ const PluginItem = ({
                 className={deactivating || isDisabled ? 'disabled' : ''}
                 onClick={handleDisable}
             >
-                {deactivating ?
+                {deactivating ? (
                     <FormattedMessage
                         id='admin.plugin.disabling'
                         defaultMessage='Disabling...'
-                    /> :
+                    />
+                ) : (
                     <FormattedMessage
                         id='admin.plugin.disable'
                         defaultMessage='Disable'
                     />
-                }
+                )}
             </a>
         );
     } else {
@@ -223,16 +228,17 @@ const PluginItem = ({
                 className={activating || isDisabled ? 'disabled' : ''}
                 onClick={handleEnable}
             >
-                {activating ?
+                {activating ? (
                     <FormattedMessage
                         id='admin.plugin.enabling'
                         defaultMessage='Enabling...'
-                    /> :
+                    />
+                ) : (
                     <FormattedMessage
                         id='admin.plugin.enable'
                         defaultMessage='Enable'
                     />
-                }
+                )}
             </a>
         );
     }
@@ -674,7 +680,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                         values={{
                             link: (msg: React.ReactNode) => (
                                 <ExternalLink
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-plugins-beta/'
+                                    href={DeveloperLinks.PLUGINS}
                                     location='plugin_management'
                                 >
                                     {msg}
@@ -875,7 +881,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                             values={{
                                 link: (msg: React.ReactNode) => (
                                     <ExternalLink
-                                        href='https://developers.mattermost.com/integrate/admin-guide/admin-plugins-beta/'
+                                        href={DeveloperLinks.PLUGINS}
                                         location='plugin_management'
                                     >
                                         {msg}
@@ -910,7 +916,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
             lastMessage = <div className='col-sm-12'><div className='form-group half'>{this.state.lastMessage}</div></div>;
         }
 
-        let btnClass = 'btn';
+        let btnClass = 'btn btn-primary';
         if (this.state.fileSelected) {
             btnClass = 'btn btn-primary';
         }
@@ -1021,7 +1027,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
-                                href='https://developers.mattermost.com/integrate/admin-guide/admin-plugins-beta/'
+                                href={DeveloperLinks.PLUGINS}
                                 location='plugin_management'
                             >
                                 {msg}
@@ -1038,7 +1044,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
-                                href='https://developers.mattermost.com/integrate/admin-guide/admin-plugins-beta/'
+                                href={DeveloperLinks.PLUGINS}
                                 location='plugin_management'
                             >
                                 {msg}
@@ -1055,7 +1061,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
-                                href='https://developers.mattermost.com/integrate/admin-guide/admin-plugins-beta/'
+                                href={DeveloperLinks.PLUGINS}
                                 location='plugin_management'
                             >
                                 {msg}
@@ -1104,7 +1110,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                                             values={{
                                                 link: (msg: React.ReactNode) => (
                                                     <ExternalLink
-                                                        href='https://mattermost.com/pl/default-plugin-signing'
+                                                        href={DeveloperLinks.PLUGIN_SIGNING}
                                                         location='plugin_management'
                                                     >
                                                         {msg}
@@ -1150,7 +1156,7 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                                         <div className='file__upload'>
                                             <button
                                                 type='button'
-                                                className={classNames(['btn', {'btn-primary': enableUploads}])}
+                                                className={classNames(['btn', {'btn-tertiary': enableUploads}])}
                                                 disabled={!enableUploadButton || this.props.isDisabled}
                                             >
                                                 <FormattedMessage
@@ -1234,7 +1240,6 @@ export default class PluginManagement extends AdminSettings<Props, State> {
                                 />
                                 <TextSetting
                                     id={'marketplaceUrl'}
-                                    type={'input'}
                                     label={
                                         <FormattedMessage
                                             id='admin.plugins.settings.marketplaceUrl'

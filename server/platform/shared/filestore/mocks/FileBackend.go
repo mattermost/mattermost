@@ -7,7 +7,7 @@ package mocks
 import (
 	io "io"
 
-	filestore "github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
+	filestore "github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 
 	mock "github.com/stretchr/testify/mock"
 
@@ -52,6 +52,20 @@ func (_m *FileBackend) CopyFile(oldPath string, newPath string) error {
 		r0 = rf(oldPath, newPath)
 	} else {
 		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DriverName provides a mock function with given fields:
+func (_m *FileBackend) DriverName() string {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
 	}
 
 	return r0

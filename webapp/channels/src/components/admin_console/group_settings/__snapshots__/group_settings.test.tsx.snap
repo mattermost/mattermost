@@ -4,14 +4,12 @@ exports[`components/admin_console/group_settings/GroupSettings should match snap
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header"
-  >
+  <AdminHeader>
     <MemoizedFormattedMessage
       defaultMessage="Groups"
       id="admin.group_settings.groupsPageTitle"
     />
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >

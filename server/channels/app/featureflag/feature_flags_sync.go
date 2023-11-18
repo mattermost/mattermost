@@ -13,8 +13,8 @@ import (
 	"github.com/splitio/go-client/v6/splitio/client"
 	"github.com/splitio/go-client/v6/splitio/conf"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type SyncParams struct {
@@ -95,7 +95,6 @@ func featureFlagsFromMap(featuresMap map[string]string, baseFeatureFlags model.F
 		default:
 			refField.Set(reflect.ValueOf(fieldValue))
 		}
-
 	}
 	return baseFeatureFlags
 }

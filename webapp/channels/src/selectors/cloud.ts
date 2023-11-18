@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Invoice, Subscription} from '@mattermost/types/cloud';
+import type {Invoice, Subscription} from '@mattermost/types/cloud';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {createSelector} from 'reselect';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 export const getExpandSeatsLink: (state: GlobalState) => (licenseId: string) => string = createSelector(
     'getExpandSeatsLink',
@@ -43,3 +43,5 @@ export const isCloudDelinquencyGreaterThan90Days = createSelector(
         return (Math.floor((now.getTime() - delinquentDate.getTime()) / (1000 * 60 * 60 * 24)) >= 90);
     },
 );
+
+export const isCwsMockMode = (state: GlobalState) => getConfig(state)?.CWSMock === 'true';

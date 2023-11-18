@@ -1,26 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CheckIcon} from '@mattermost/compass-icons/components';
 import classNames from 'classnames';
-
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
-import Accordion, {AccordionItemType} from 'components/common/accordion/accordion';
+import {CheckIcon} from '@mattermost/compass-icons/components';
 
-import LoadingScreen from '../../loading_screen';
-import FormattedAdminHeader from '../../widgets/admin_console/formatted_admin_header';
-import {Props} from '../admin_console';
+import Accordion from 'components/common/accordion/accordion';
+import type {AccordionItemType} from 'components/common/accordion/accordion';
+import LoadingScreen from 'components/loading_screen';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import ChipsList, {ChipsInfoType} from './chips_list';
+import ChipsList from './chips_list';
+import type {ChipsInfoType} from './chips_list';
 import CtaButtons from './cta_buttons';
-
 import useMetricsData from './dashboard.data';
+import {ItemStatus} from './dashboard.type';
+import OverallScore from './overall-score';
+
+import type {Props} from '../admin_console';
 
 import './dashboard.scss';
-import OverallScore from './overall-score';
-import {ItemStatus} from './dashboard.type';
 
 const AccordionItem = styled.div`
     padding: 12px;
@@ -121,10 +123,12 @@ const WorkspaceOptimizationDashboard = (props: Props) => {
 
     return loading || !accordionItemsData ? <LoadingScreen/> : (
         <div className='WorkspaceOptimizationDashboard wrapper--fixed'>
-            <FormattedAdminHeader
-                id={'admin.reporting.workspace_optimization.title'}
-                defaultMessage='Workspace Optimization'
-            />
+            <AdminHeader>
+                <FormattedMessage
+                    id={'admin.reporting.workspace_optimization.title'}
+                    defaultMessage='Workspace Optimization'
+                />
+            </AdminHeader>
             <div className='admin-console__wrapper'>
                 <OverallScore
                     chips={

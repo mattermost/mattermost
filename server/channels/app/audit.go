@@ -9,11 +9,13 @@ import (
 	"net/http"
 	"os/user"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/public/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/config"
 )
 
 var (
@@ -23,7 +25,7 @@ var (
 	LevelCLI     = mlog.LvlAuditCLI
 )
 
-func (a *App) GetAudits(userID string, limit int) (model.Audits, *model.AppError) {
+func (a *App) GetAudits(rctx request.CTX, userID string, limit int) (model.Audits, *model.AppError) {
 	audits, err := a.Srv().Store().Audit().Get(userID, 0, limit)
 	if err != nil {
 		var outErr *store.ErrOutOfBounds
@@ -37,7 +39,7 @@ func (a *App) GetAudits(userID string, limit int) (model.Audits, *model.AppError
 	return audits, nil
 }
 
-func (a *App) GetAuditsPage(userID string, page int, perPage int) (model.Audits, *model.AppError) {
+func (a *App) GetAuditsPage(rctx request.CTX, userID string, page int, perPage int) (model.Audits, *model.AppError) {
 	audits, err := a.Srv().Store().Audit().Get(userID, page*perPage, perPage)
 	if err != nil {
 		var outErr *store.ErrOutOfBounds
@@ -52,12 +54,12 @@ func (a *App) GetAuditsPage(userID string, page int, perPage int) (model.Audits,
 }
 
 // LogAuditRec logs an audit record using default LvlAuditCLI.
-func (a *App) LogAuditRec(rec *audit.Record, err error) {
-	a.LogAuditRecWithLevel(rec, mlog.LvlAuditCLI, err)
+func (a *App) LogAuditRec(rctx request.CTX, rec *audit.Record, err error) {
+	a.LogAuditRecWithLevel(rctx, rec, mlog.LvlAuditCLI, err)
 }
 
 // LogAuditRecWithLevel logs an audit record using specified Level.
-func (a *App) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level, err error) {
+func (a *App) LogAuditRecWithLevel(rctx request.CTX, rec *audit.Record, level mlog.Level, err error) {
 	if rec == nil {
 		return
 	}
@@ -73,7 +75,7 @@ func (a *App) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level, err erro
 }
 
 // MakeAuditRecord creates a audit record pre-populated with defaults.
-func (a *App) MakeAuditRecord(event string, initialStatus string) *audit.Record {
+func (a *App) MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *audit.Record {
 	var userID string
 	user, err := user.Current()
 	if err == nil {
@@ -88,10 +90,11 @@ func (a *App) MakeAuditRecord(event string, initialStatus string) *audit.Record 
 			audit.KeyClusterID: a.GetClusterId(),
 		},
 		Actor: audit.EventActor{
-			UserId:    userID,
-			SessionId: "",
-			Client:    fmt.Sprintf("server %s-%s", model.BuildNumber, model.BuildHash),
-			IpAddress: "",
+			UserId:        userID,
+			SessionId:     "",
+			Client:        fmt.Sprintf("server %s-%s", model.BuildNumber, model.BuildHash),
+			IpAddress:     "",
+			XForwardedFor: "",
 		},
 		EventData: audit.EventData{
 			Parameters:  map[string]interface{}{},
@@ -109,14 +112,18 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 	adt.OnError = s.onAuditError
 
 	var logConfigSrc config.LogConfigSrc
-	dsn := *s.platform.Config().ExperimentalAuditSettings.AdvancedLoggingConfig
-	if bAllowAdvancedLogging && dsn != "" {
-		var err error
-		logConfigSrc, err = config.NewLogConfigSrc(dsn, s.platform.GetConfigStore())
-		if err != nil {
-			return fmt.Errorf("invalid config source for audit, %w", err)
+	dsn := s.platform.Config().ExperimentalAuditSettings.GetAdvancedLoggingConfig()
+	if bAllowAdvancedLogging {
+		if !utils.IsEmptyJSON(dsn) {
+			var err error
+			logConfigSrc, err = config.NewLogConfigSrc(dsn, s.platform.GetConfigStore())
+			if err != nil {
+				return fmt.Errorf("invalid config source for audit, %w", err)
+			}
+			mlog.Debug("Loaded audit configuration", mlog.String("source", string(dsn)))
+		} else {
+			s.Log().Debug("Advanced logging config not provided for audit")
 		}
-		mlog.Debug("Loaded audit configuration", mlog.String("source", dsn))
 	}
 
 	// ExperimentalAuditSettings provides basic file audit (E0, E10); logConfigSrc provides advanced config (E20).

@@ -4,11 +4,8 @@
 import React from 'react';
 
 import SearchResultsHeader from 'components/search_results_header';
-import {BoardsTourTip, PlaybooksTourTip} from 'components/tours/worktemplate_explore_tour';
 
 import Pluggable from 'plugins/pluggable';
-
-import AutoShowLinkedBoardTourTip from './auto_show_linked_board_tourtip';
 
 export type Props = {
     showPluggable: boolean;
@@ -16,33 +13,24 @@ export type Props = {
     title: React.ReactNode;
 }
 
-export default class RhsPlugin extends React.PureComponent<Props> {
-    render() {
-        const boardsTourTip = (<BoardsTourTip/>);
-        const playbooksTourtip = (<PlaybooksTourTip/>);
-        const autoLinkedBoardTourTip = (<AutoShowLinkedBoardTourTip/>);
+const RhsPlugin = ({showPluggable, pluggableId, title}: Props) => {
+    return (
+        <div
+            id='rhsContainer'
+            className='sidebar-right__body'
+        >
+            <SearchResultsHeader>
+                {title}
+            </SearchResultsHeader>
+            {
+                showPluggable &&
+                <Pluggable
+                    pluggableName='RightHandSidebarComponent'
+                    pluggableId={pluggableId}
+                />
+            }
+        </div>
+    );
+};
 
-        return (
-            <div
-                id='rhsContainer'
-                className='sidebar-right__body'
-            >
-                <SearchResultsHeader>
-                    {autoLinkedBoardTourTip}
-                    {this.props.title}
-                </SearchResultsHeader>
-                {
-                    this.props.showPluggable &&
-                    <>
-                        <Pluggable
-                            pluggableName='RightHandSidebarComponent'
-                            pluggableId={this.props.pluggableId}
-                        />
-                        {boardsTourTip}
-                        {playbooksTourtip}
-                    </>
-                }
-            </div>
-        );
-    }
-}
+export default React.memo(RhsPlugin);

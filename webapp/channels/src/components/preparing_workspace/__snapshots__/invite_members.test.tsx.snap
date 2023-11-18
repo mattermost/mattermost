@@ -71,7 +71,145 @@ exports[`InviteMembers component should match snapshot 1`] = `
         </div>
         <div
           class="PageLine PageLine--no-left"
-          style="margin-top: 50px; margin-left: 50px; height: calc(30vh);"
+          style="margin-top: 50px; margin-left: 50px; height: calc(35vh);"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`InviteMembers component should match snapshot when it is cloud 1`] = `
+<div>
+  <div
+    class="InviteMembers-body test-class"
+  >
+    <div
+      class="SingleColumnLayout"
+      style="width: 547px;"
+    >
+      <div>
+        <div
+          class="PageLine PageLine--no-left"
+          style="margin-bottom: 50px; margin-left: 50px; height: calc(25vh);"
+        />
+        <div>
+          Previous step
+        </div>
+        <h1
+          class="PreparingWorkspaceTitle"
+        >
+          <span>
+            Who works with you?
+          </span>
+        </h1>
+        <p
+          class="PreparingWorkspaceDescription"
+        >
+          <span>
+            Collaboration is tough by yourself. Invite a few team members. Separate each email address with a space or comma.
+          </span>
+        </p>
+        <div
+          class="PreparingWorkspacePageBody"
+        >
+          <div
+            class="UsersEmailsInput empty no-selections css-2b097c-container"
+          >
+            <span
+              aria-live="assertive"
+              class="css-1laao21-a11yText"
+            >
+              <p
+                id="aria-selection-event"
+              >
+                 
+                
+              </p>
+              <p
+                id="aria-context"
+              >
+                 
+                  0 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
+              </p>
+            </span>
+            <div
+              class="users-emails-input__control users-emails-input__control--is-focused users-emails-input__control--menu-is-open css-1pahdxg-control"
+            >
+              <div
+                class="users-emails-input__value-container users-emails-input__value-container--is-multi css-1hwfws3"
+              >
+                <div
+                  class="users-emails-input__placeholder css-1lxtzh0-placeholder"
+                >
+                  Enter email addresses
+                </div>
+                <div
+                  class="css-gftnqw-Input"
+                >
+                  <div
+                    class="users-emails-input__input"
+                    style="display: inline-block;"
+                  >
+                    <input
+                      aria-autocomplete="list"
+                      aria-label="Invite People"
+                      autocapitalize="none"
+                      autocomplete="off"
+                      autocorrect="off"
+                      id="react-select-2-input"
+                      spellcheck="false"
+                      style="box-sizing: content-box; width: 2px; border: 0px; opacity: 1; outline: 0; padding: 0px;"
+                      tabindex="0"
+                      type="text"
+                      value=""
+                    />
+                    <div
+                      style="position: absolute; top: 0px; left: 0px; visibility: hidden; height: 0px; overflow: scroll; white-space: pre; font-family: -webkit-small-control; letter-spacing: normal; text-transform: none;"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="users-emails-input__menu css-26l3qy-menu"
+            >
+              <div
+                class="users-emails-input__menu-list users-emails-input__menu-list--is-multi css-4ljt47-MenuList"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="InviteMembers__submit"
+        >
+          <button
+            class="primary-button"
+            disabled=""
+          >
+            <span>
+              Send invites
+            </span>
+          </button>
+          <div
+            class="InviteMembersLink"
+          >
+            <button
+              class="InviteMembersLink__button--single"
+              data-testid="shareLinkInputButton"
+            >
+              <i
+                class="icon icon-content-copy"
+              />
+              <span>
+                Copy Link
+              </span>
+            </button>
+          </div>
+        </div>
+        <div
+          class="PageLine PageLine--no-left"
+          style="margin-top: 50px; margin-left: 50px; height: calc(35vh);"
         />
       </div>
     </div>

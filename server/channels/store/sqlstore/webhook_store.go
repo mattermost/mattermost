@@ -9,9 +9,9 @@ import (
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 type SqlWebhookStore struct {
@@ -131,7 +131,6 @@ func (s SqlWebhookStore) GetIncomingListByUser(userId string, offset, limit int)
 	}
 
 	return webhooks, nil
-
 }
 
 func (s SqlWebhookStore) GetIncomingByTeamByUser(teamId string, userId string, offset, limit int) ([]*model.IncomingWebhook, error) {
@@ -198,7 +197,6 @@ func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*model.Ou
 }
 
 func (s SqlWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, error) {
-
 	var webhook model.OutgoingWebhook
 
 	if err := s.GetReplicaX().Get(&webhook, "SELECT * FROM OutgoingWebhooks WHERE Id = ? AND DeleteAt = 0", id); err != nil {
@@ -240,7 +238,6 @@ func (s SqlWebhookStore) GetOutgoingListByUser(userId string, offset, limit int)
 
 func (s SqlWebhookStore) GetOutgoingList(offset, limit int) ([]*model.OutgoingWebhook, error) {
 	return s.GetOutgoingListByUser("", offset, limit)
-
 }
 
 func (s SqlWebhookStore) GetOutgoingByChannelByUser(channelId string, userId string, offset, limit int) ([]*model.OutgoingWebhook, error) {

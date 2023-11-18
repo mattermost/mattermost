@@ -6,76 +6,74 @@ import {Modal} from 'react-bootstrap';
 import {defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {GlobalState} from 'types/store';
-
-import {suitePluginIds} from 'utils/constants';
-
-import {t} from 'utils/i18n';
-import * as UserAgent from 'utils/user_agent';
+import {isCallsEnabled} from 'selectors/calls';
 
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
-    KeyboardShortcutDescriptor,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import type {
+    KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+
+import * as UserAgent from 'utils/user_agent';
 
 import './keyboard_shortcuts_modal.scss';
 
 const modalMessages = defineMessages({
     msgHeader: {
-        id: t('shortcuts.msgs.header'),
+        id: 'shortcuts.msgs.header',
         defaultMessage: 'Messages',
     },
     msgInputHeader: {
-        id: t('shortcuts.msgs.input.header'),
+        id: 'shortcuts.msgs.input.header',
         defaultMessage: 'Works inside an empty input field',
     },
     filesHeader: {
-        id: t('shortcuts.files.header'),
+        id: 'shortcuts.files.header',
         defaultMessage: 'Files',
     },
     browserHeader: {
-        id: t('shortcuts.browser.header'),
+        id: 'shortcuts.browser.header',
         defaultMessage: 'Built-in Browser Commands',
     },
     msgCompHeader: {
-        id: t('shortcuts.msgs.comp.header'),
+        id: 'shortcuts.msgs.comp.header',
         defaultMessage: 'Autocomplete',
     },
     browserInputHeader: {
-        id: t('shortcuts.browser.input.header'),
+        id: 'shortcuts.browser.input.header',
         defaultMessage: 'Works inside an input field',
     },
     msgMarkdownHeader: {
-        id: t('shortcuts.msgs.markdown.header'),
+        id: 'shortcuts.msgs.markdown.header',
         defaultMessage: 'Formatting',
     },
     info: {
-        id: t('shortcuts.info'),
+        id: 'shortcuts.info',
         defaultMessage:
             'Begin a message with / for a list of all the available slash commands.',
     },
     navHeader: {
-        id: t('shortcuts.nav.header'),
+        id: 'shortcuts.nav.header',
         defaultMessage: 'Navigation',
     },
     msgSearchHeader: {
-        id: t('shortcuts.msgs.search.header'),
+        id: 'shortcuts.msgs.search.header',
         defaultMessage: 'Searching',
     },
     callsHeader: {
-        id: t('shortcuts.calls.header'),
+        id: 'shortcuts.calls.header',
         defaultMessage: 'Calls',
     },
     callsGlobalHeader: {
-        id: t('shortcuts.calls.global.header'),
+        id: 'shortcuts.calls.global.header',
         defaultMessage: 'Global',
     },
     callsWidgetHeader: {
-        id: t('shortcuts.calls.widget.header'),
+        id: 'shortcuts.calls.widget.header',
         defaultMessage: 'Call widget',
     },
     callsExpandedHeader: {
-        id: t('shortcuts.calls.expanded.header'),
+        id: 'shortcuts.calls.expanded.header',
         defaultMessage: 'Expanded view (pop-out window)',
     },
 });
@@ -93,9 +91,7 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
 
     const isLinux = UserAgent.isLinux();
 
-    const isCallsEnabled = useSelector((state: GlobalState) => {
-        return Boolean(state.plugins.plugins[suitePluginIds.calls]);
-    });
+    const callsEnabled = useSelector(isCallsEnabled);
 
     const renderShortcutSequences = (shortcuts: {[key: string]: KeyboardShortcutDescriptor}) => {
         return Object.entries(shortcuts).map(([key, shortcut]) => {
@@ -205,7 +201,7 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
                         </div>
 
                     </div>
-                    { isCallsEnabled &&
+                    { callsEnabled &&
                     <div className='row'>
                         <div className='col-sm-4'>
                             <div className='section'>

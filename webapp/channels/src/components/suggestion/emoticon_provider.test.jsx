@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import EmojiMap from 'utils/emoji_map';
 import {getEmojiMap, getRecentEmojisNames} from 'selectors/emojis';
+
+import EmojiMap from 'utils/emoji_map';
 
 import EmoticonProvider, {
     MIN_EMOTICON_LENGTH,
     EMOJI_CATEGORY_SUGGESTION_BLOCKLIST,
-} from 'components/suggestion/emoticon_provider.jsx';
+} from './emoticon_provider';
 
 jest.mock('selectors/emojis', () => ({
     getEmojiMap: jest.fn(),
@@ -57,9 +58,9 @@ describe('components/EmoticonProvider', () => {
         expect(results.map((item) => item.name)).toEqual([
             'thumbsup', // thumbsup is a special case where it always appears before thumbsdown
             'thumbsdown',
+            'thunder_cloud_and_rain',
             'thumbsdown-custom',
             'thumbsup-custom',
-            'thunder_cloud_and_rain',
             'lithuania',
             'lithuania-custom',
         ]);
@@ -141,8 +142,8 @@ describe('components/EmoticonProvider', () => {
             'lithuania-custom',
             'thumbsup',
             'thumbsdown',
-            'thumbsup-custom',
             'thunder_cloud_and_rain',
+            'thumbsup-custom',
             'lithuania',
         ]);
     });
@@ -162,8 +163,8 @@ describe('components/EmoticonProvider', () => {
             'thumbsdown',
             'thumbsdown-custom',
             'lithuania-custom',
-            'thumbsup-custom',
             'thunder_cloud_and_rain',
+            'thumbsup-custom',
             'lithuania',
         ]);
     });

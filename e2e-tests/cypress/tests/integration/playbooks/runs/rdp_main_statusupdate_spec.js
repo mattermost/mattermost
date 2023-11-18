@@ -267,7 +267,7 @@ describe('runs > run details page > status update', {testIsolation: true}, () =>
             });
         });
 
-        it.skip('requests an update and confirm', () => {
+        it('requests an update and confirm', () => {
             // # Click on request update
             cy.findByTestId('run-statusupdate-section').
                 should('be.visible').
@@ -281,11 +281,11 @@ describe('runs > run details page > status update', {testIsolation: true}, () =>
                 cy.visit(`${testTeam.name}/channels/${playbookRunChannelName}`);
 
                 // * Assert that message has been sent
-                cy.getLastPost().contains(`${testUser.username} requested a status update for ${testPublicPlaybook.name}.`);
+                cy.getLastPost().contains(`${testViewerUser.username} requested a status update for ${testRun.name}.`);
             });
         });
 
-        it.skip('requests an update and cancel', () => {
+        it('requests an update and cancel', () => {
             // # Click request update
             cy.findByTestId('run-statusupdate-section').
                 should('be.visible').

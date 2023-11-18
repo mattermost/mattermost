@@ -12,9 +12,9 @@ include:
 
 variables:
   BUILD: "yes"
-  IMAGE_BUILD_SERVER: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20230118_golang-1.19.5
-  IMAGE_BUILD_DOCKER: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
-  IMAGE_DIND: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
+  IMAGE_BUILD_SERVER: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20230904_golang-1.20.7
+  IMAGE_BUILD_DOCKER: $CI_REGISTRY/mattermost/ci/devops-images/mattermost-build-docker:23.0.1-0
+  IMAGE_DIND: $CI_REGISTRY/mattermost/ci/devops-images/docker-dind:23.0.1-0
 
 empty:
   stage: create-vars

@@ -2,12 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {act, fireEvent, screen} from '@testing-library/react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import type {Channel, ChannelStats} from '@mattermost/types/channels';
+
+import {
+    act,
+    fireEvent,
+    renderWithContext,
+    screen,
+} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
-
-import {Channel, ChannelStats} from '@mattermost/types/channels';
 
 import Menu from './menu';
 
@@ -39,7 +43,7 @@ describe('channel_info_rhs/menu', () => {
         const props = {...defaultProps};
         props.actions.openNotificationSettings = jest.fn();
 
-        renderWithIntl(
+        renderWithContext(
             <Menu
                 {...props}
             />,
@@ -61,7 +65,7 @@ describe('channel_info_rhs/menu', () => {
             channel: {type: Constants.DM_CHANNEL} as Channel,
         };
 
-        renderWithIntl(
+        renderWithContext(
             <Menu
                 {...props}
             />,
@@ -80,7 +84,7 @@ describe('channel_info_rhs/menu', () => {
             isArchived: true,
         };
 
-        renderWithIntl(
+        renderWithContext(
             <Menu
                 {...props}
             />,
@@ -97,7 +101,7 @@ describe('channel_info_rhs/menu', () => {
         const props = {...defaultProps};
         props.actions.showChannelFiles = jest.fn();
 
-        renderWithIntl(
+        renderWithContext(
             <Menu
                 {...props}
             />,
@@ -119,7 +123,7 @@ describe('channel_info_rhs/menu', () => {
         const props = {...defaultProps};
         props.actions.showPinnedPosts = jest.fn();
 
-        renderWithIntl(
+        renderWithContext(
             <Menu
                 {...props}
             />,
@@ -141,7 +145,7 @@ describe('channel_info_rhs/menu', () => {
         const props = {...defaultProps};
         props.actions.showChannelMembers = jest.fn();
 
-        renderWithIntl(
+        renderWithContext(
             <Menu
                 {...props}
             />,
@@ -165,7 +169,7 @@ describe('channel_info_rhs/menu', () => {
             channel: {type: Constants.DM_CHANNEL} as Channel,
         };
 
-        renderWithIntl(
+        renderWithContext(
             <Menu
                 {...props}
             />,

@@ -24,7 +24,6 @@ exports[`components/PluginManagement should match snapshot 1`] = `
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -147,7 +146,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -162,7 +161,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -276,7 +275,6 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -311,7 +309,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -374,7 +372,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -497,7 +494,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -512,7 +509,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -626,7 +623,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -661,7 +657,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -724,7 +720,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <div
             className="form-group"
@@ -758,7 +753,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -821,7 +816,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -944,7 +938,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -959,7 +953,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -1073,7 +1067,6 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -1108,7 +1101,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -1171,7 +1164,6 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -1294,7 +1286,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   disabled={true}
                   type="button"
                 >
@@ -1311,7 +1303,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -1425,7 +1417,6 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -1460,7 +1451,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -1523,7 +1514,6 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -1646,7 +1636,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -1661,7 +1651,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -1775,7 +1765,6 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -1814,7 +1803,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -1877,7 +1866,6 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -2000,7 +1988,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -2015,7 +2003,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -2129,7 +2117,6 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -2164,7 +2151,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -2227,7 +2214,6 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -2350,7 +2336,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   disabled={true}
                   type="button"
                 >
@@ -2367,7 +2353,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -2481,7 +2467,6 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
         </SettingsGroup>
@@ -2491,7 +2476,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -2554,7 +2539,6 @@ exports[`components/PluginManagement should match snapshot, text entered into th
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -2677,7 +2661,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -2692,7 +2676,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -2806,7 +2790,6 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -2841,7 +2824,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -2904,7 +2887,6 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -3044,7 +3026,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -3163,7 +3145,6 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -3198,7 +3179,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -3261,7 +3242,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -3384,7 +3364,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -3399,7 +3379,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -3513,7 +3493,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -3611,7 +3590,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -3674,7 +3653,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -3797,7 +3775,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -3812,7 +3790,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -3926,7 +3904,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -3992,7 +3969,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -4055,7 +4032,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -4178,7 +4154,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -4193,7 +4169,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -4307,7 +4283,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -4373,7 +4348,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -4436,7 +4411,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -4559,7 +4533,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -4574,7 +4548,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -4688,7 +4662,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -4754,7 +4727,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -4817,7 +4790,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         <SettingsGroup
           container={false}
           id="PluginSettings"
-          show={true}
         >
           <BooleanSetting
             disabled={false}
@@ -4940,7 +4912,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -4955,7 +4927,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -5069,7 +5041,6 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             }
             onChange={[Function]}
             setByEnv={false}
-            type="input"
             value="marketplace.example.com"
           />
           <div
@@ -5167,7 +5138,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"

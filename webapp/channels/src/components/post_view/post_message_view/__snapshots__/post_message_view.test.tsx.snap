@@ -6,7 +6,6 @@ exports[`components/post_view/PostAttachment should match snapshot 1`] = `
   text="post message"
 >
   <div
-    aria-readonly="true"
     className="post-message__text"
     dir="auto"
     id="postMessageText_post_id"
@@ -20,8 +19,6 @@ exports[`components/post_view/PostAttachment should match snapshot 1`] = `
           "onImageLoaded": [Function],
         }
       }
-      isRHS={false}
-      mentionKeys={Array []}
       message="post message"
       options={Object {}}
       post={
@@ -46,7 +43,6 @@ exports[`components/post_view/PostAttachment should match snapshot, on Show Less
   text="post message"
 >
   <div
-    aria-readonly="true"
     className="post-message__text"
     dir="auto"
     id="postMessageText_post_id"
@@ -60,8 +56,6 @@ exports[`components/post_view/PostAttachment should match snapshot, on Show Less
           "onImageLoaded": [Function],
         }
       }
-      isRHS={false}
-      mentionKeys={Array []}
       message="post message"
       options={Object {}}
       post={
@@ -86,7 +80,6 @@ exports[`components/post_view/PostAttachment should match snapshot, on Show More
   text="post message"
 >
   <div
-    aria-readonly="true"
     className="post-message__text"
     dir="auto"
     id="postMessageText_post_id"
@@ -100,8 +93,6 @@ exports[`components/post_view/PostAttachment should match snapshot, on Show More
           "onImageLoaded": [Function],
         }
       }
-      isRHS={false}
-      mentionKeys={Array []}
       message="post message"
       options={Object {}}
       post={
@@ -144,7 +135,6 @@ exports[`components/post_view/PostAttachment should match snapshot, on edited po
   text="post message"
 >
   <div
-    aria-readonly="true"
     className="post-message__text"
     dir="auto"
     id="postMessageText_post_id"
@@ -158,8 +148,6 @@ exports[`components/post_view/PostAttachment should match snapshot, on edited po
           "onImageLoaded": [Function],
         }
       }
-      isRHS={false}
-      mentionKeys={Array []}
       message="post message"
       options={Object {}}
       post={
@@ -185,7 +173,6 @@ exports[`components/post_view/PostAttachment should match snapshot, on ephemeral
   text="post message"
 >
   <div
-    aria-readonly="true"
     className="post-message__text"
     dir="auto"
     id="postMessageText_post_id"
@@ -199,8 +186,6 @@ exports[`components/post_view/PostAttachment should match snapshot, on ephemeral
           "onImageLoaded": [Function],
         }
       }
-      isRHS={false}
-      mentionKeys={Array []}
       message="post message"
       options={Object {}}
       post={

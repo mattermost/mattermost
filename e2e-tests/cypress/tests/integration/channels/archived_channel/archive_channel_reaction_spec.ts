@@ -41,6 +41,7 @@ describe('Archived channels', () => {
             cy.wait(TIMEOUTS.HALF_SEC).get(`#CENTER_reaction_${postId}`).should('be.visible');
 
             // # Archive the channel
+            cy.get('body').type('{esc}');
             cy.uiArchiveChannel();
 
             // # Click on post dot menu so we can check for reaction icon
@@ -50,7 +51,7 @@ describe('Archived channels', () => {
             cy.wait(TIMEOUTS.HALF_SEC).get(`#CENTER_reaction_${postId}`).should('not.exist');
 
             // # Remove focus so we can open RHS
-            cy.get('#channel_view').click();
+            cy.get('body').type('{esc}');
 
             // # Open RHS for the post
             cy.clickPostCommentIcon(postId);
@@ -62,6 +63,7 @@ describe('Archived channels', () => {
             cy.wait(TIMEOUTS.HALF_SEC).get(`#RHS_ROOT_reaction_${postId}`).should('not.exist');
 
             // # Search for "Test archive reaction"
+            cy.get('body').type('{esc}');
             cy.get('#searchBox').should('be.visible').type(messageText).type('{enter}');
 
             // # Click on post dot menu so we can check for reaction icon

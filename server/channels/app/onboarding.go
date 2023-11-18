@@ -8,13 +8,13 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) markAdminOnboardingComplete(c *request.Context) *model.AppError {
+func (a *App) markAdminOnboardingComplete(c request.CTX) *model.AppError {
 	firstAdminCompleteSetupObj := model.System{
 		Name:  model.SystemFirstAdminSetupComplete,
 		Value: "true",
@@ -27,7 +27,7 @@ func (a *App) markAdminOnboardingComplete(c *request.Context) *model.AppError {
 	return nil
 }
 
-func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnboardingRequest) *model.AppError {
+func (a *App) CompleteOnboarding(c request.CTX, request *model.CompleteOnboardingRequest) *model.AppError {
 	isCloud := a.Srv().License() != nil && *a.Srv().License().Features.Cloud
 
 	if !isCloud && request.Organization == "" {
@@ -41,7 +41,6 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 			Value: request.Organization,
 		})
 		if err != nil {
-			// don't block onboarding because of that.
 			a.Log().Error("failed to save organization name", mlog.Err(err))
 		}
 	}
@@ -54,7 +53,6 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 	pluginContext := pluginContext(c)
 
 	for _, pluginID := range request.InstallPlugins {
-
 		go func(id string) {
 			installRequest := &model.InstallMarketplacePluginRequest{
 				Id: id,

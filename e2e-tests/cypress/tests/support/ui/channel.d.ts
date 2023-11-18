@@ -24,6 +24,7 @@ declare namespace Cypress {
          * @param {string} options.purpose - Channel's purpose
          * @param {string} options.header - Channel's header
          * @param {boolean} options.isNewSidebar) - the new sidebar has a different ui flow, set this setting to true to use that. Defaults to false.
+         * @param {string} options.createBoard) - Board template to create
          *
          * @example
          *   cy.uiCreateChannel({prefix: 'private-channel-', isPrivate: true, purpose: 'my private channel', header: 'my private header', isNewSidebar: false});

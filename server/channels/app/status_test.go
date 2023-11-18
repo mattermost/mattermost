@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestCustomStatus(t *testing.T) {
@@ -43,7 +43,6 @@ func TestCustomStatus(t *testing.T) {
 }
 
 func TestCustomStatusErrors(t *testing.T) {
-
 	fakeUserID := "foobar"
 	mockErr := store.NewErrNotFound("User", fakeUserID)
 	mockUser := &model.User{Id: fakeUserID}

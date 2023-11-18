@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 const (
@@ -35,7 +35,6 @@ func (rp *RemoteProvider) GetTrigger() string {
 }
 
 func (rp *RemoteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
-
 	remote := model.NewAutocompleteData(rp.GetTrigger(), "[action]", T("api.command_remote.remote_add_remove.help", map[string]any{"Actions": AvailableRemoteActions}))
 
 	create := model.NewAutocompleteData("create", "", T("api.command_remote.invite.help"))

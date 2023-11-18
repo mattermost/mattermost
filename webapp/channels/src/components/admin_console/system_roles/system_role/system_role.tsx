@@ -1,30 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {uniq, difference} from 'lodash';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {uniq, difference} from 'lodash';
 
-import {Role} from '@mattermost/types/roles';
+import type {Role} from '@mattermost/types/roles';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {Client4} from 'mattermost-redux/client';
-
-import {UserProfile} from '@mattermost/types/users';
-import {ActionResult} from 'mattermost-redux/types/actions';
-
 import Permissions from 'mattermost-redux/constants/permissions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import Constants from 'utils/constants';
-import {getHistory} from 'utils/browser_history';
-
-import FormError from 'components/form_error';
 import BlockableLink from 'components/admin_console/blockable_link';
 import SaveChangesPanel from 'components/admin_console/team_channel_settings/save_changes_panel';
+import FormError from 'components/form_error';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
+
+import {getHistory} from 'utils/browser_history';
+import Constants from 'utils/constants';
 
 import {isError} from 'types/actions';
 
-import SystemRoleUsers from './system_role_users';
 import SystemRolePermissions from './system_role_permissions';
-import {PermissionToUpdate, PermissionsToUpdate, writeAccess} from './types';
+import SystemRoleUsers from './system_role_users';
+import {writeAccess} from './types';
+import type {PermissionToUpdate, PermissionsToUpdate} from './types';
 
 type Props = {
     role: Role;
@@ -155,7 +156,7 @@ export default class SystemRole extends React.PureComponent<Props, State> {
         }
 
         const userIdsToAdd = Object.keys(usersToAdd);
-        if (userIdsToAdd.length > 0 && serverError == null) {
+        if (userIdsToAdd.length > 0 && !serverError) {
             const addUserPromises: Array<Promise<ActionResult>> = [];
             userIdsToAdd.forEach((userId) => {
                 const user = usersToAdd[userId];
@@ -173,16 +174,16 @@ export default class SystemRole extends React.PureComponent<Props, State> {
         }
 
         let {saveKey} = this.state;
-        if (serverError === null) {
+        if (!serverError) {
             saveKey += 1;
         }
 
-        if (serverError === null) {
+        if (!serverError) {
             getHistory().push('/admin_console/user_management/system_roles');
         }
-        setNavigationBlocked(serverError !== null);
+        setNavigationBlocked(Boolean(serverError));
         this.setState({
-            saveNeeded: (serverError !== null),
+            saveNeeded: Boolean(serverError),
             saving: false,
             serverError,
             usersToAdd: {},
@@ -243,7 +244,7 @@ export default class SystemRole extends React.PureComponent<Props, State> {
         const defaultName = role.name.split('').map((r) => r.charAt(0).toUpperCase() + r.slice(1)).join(' ');
         return (
             <div className='wrapper--fixed'>
-                <div className='admin-console__header with-back'>
+                <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
                             to='/admin_console/user_management/system_roles'
@@ -254,7 +255,7 @@ export default class SystemRole extends React.PureComponent<Props, State> {
                             defaultMessage={defaultName}
                         />
                     </div>
-                </div>
+                </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <SystemRolePermissions

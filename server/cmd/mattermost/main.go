@@ -6,14 +6,14 @@ package main
 import (
 	"os"
 
-	"github.com/mattermost/mattermost-server/server/v8/cmd/mattermost/commands"
+	"github.com/mattermost/mattermost/server/v8/cmd/mattermost/commands"
 	// Import and register app layer slash commands
-	_ "github.com/mattermost/mattermost-server/server/v8/channels/app/slashcommands"
+	_ "github.com/mattermost/mattermost/server/v8/channels/app/slashcommands"
 	// Plugins
-	_ "github.com/mattermost/mattermost-server/server/v8/model/oauthproviders/gitlab"
+	_ "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
 
 	// Enterprise Imports
-	_ "github.com/mattermost/mattermost-server/server/v8/channels/imports"
+	_ "github.com/mattermost/mattermost/server/v8/channels/imports"
 )
 
 func main() {

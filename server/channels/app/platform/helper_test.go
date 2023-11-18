@@ -11,15 +11,17 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 type TestHelper struct {
+	Context request.CTX
 	Service *PlatformService
 	Suite   SuiteIFace
 
@@ -52,7 +54,7 @@ func (ms *mockSuite) GetSession(token string) (*model.Session, *model.AppError) 
 	return &model.Session{}, nil
 }
 func (ms *mockSuite) RolesGrantPermission(roleNames []string, permissionId string) bool { return true }
-func (ms *mockSuite) UserCanSeeOtherUser(userID string, otherUserId string) (bool, *model.AppError) {
+func (ms *mockSuite) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
 	return true, nil
 }
 
@@ -158,6 +160,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	th := &TestHelper{
+		Context: request.TestContext(tb),
 		Service: ps,
 		Suite:   &mockSuite{},
 	}
@@ -184,7 +187,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		th.Service.SetLicense(nil)
 	}
 
-	err = th.Service.Start()
+	err = th.Service.Start(nil)
 	if err != nil {
 		panic(err)
 	}

@@ -2,4 +2,3 @@
 // See LICENSE.txt for license information.
 
 export * from './playbooks_tour_tip';
-export * from './boards_tour_tip';

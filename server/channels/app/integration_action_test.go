@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 // Test for MM-13598 where an invalid integration URL was causing a crash
@@ -314,6 +314,13 @@ func TestPostAction(t *testing.T) {
 			require.True(t, ok)
 
 			_, err = th.App.DoPostAction(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "")
+			require.Equal(t, "api.post.do_action.action_integration.app_error", err.Id)
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+			})
+
+			_, err = th.App.DoPostAction(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "")
 			require.Nil(t, err)
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
@@ -398,7 +405,6 @@ func TestPostAction(t *testing.T) {
 
 			_, err = th.App.DoPostAction(th.Context, postSubpath.Id, attachmentsSubpath[0].Actions[0].Id, th.BasicUser.Id, "")
 			require.Nil(t, err)
-
 		})
 	}
 }
@@ -541,8 +547,8 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 			"net/http"
 			"encoding/json"
 
-			"github.com/mattermost/mattermost-server/server/v8/plugin"
-			"github.com/mattermost/mattermost-server/server/v8/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
 		)
 
 		type MyPlugin struct {
@@ -737,7 +743,6 @@ func TestPostActionRelativeURL(t *testing.T) {
 
 		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 		require.NotNil(t, err)
-
 	})
 
 	t.Run("valid (but dirty) relative URL with SiteURL set", func(t *testing.T) {
@@ -833,8 +838,8 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			"net/http"
 			"encoding/json" 
 
-			"github.com/mattermost/mattermost-server/server/v8/plugin"
-			"github.com/mattermost/mattermost-server/server/v8/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
 		)
 
 		type MyPlugin struct {
@@ -1035,7 +1040,7 @@ func TestDoPluginRequest(t *testing.T) {
 			"reflect"
 			"sort"
 
-			"github.com/mattermost/mattermost-server/server/v8/plugin"
+			"github.com/mattermost/mattermost/server/public/plugin"
 		)
 
 		type MyPlugin struct {

@@ -27,54 +27,63 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/email"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/request"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/teams"
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/audit"
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/active_users"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/expirynotify"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/export_delete"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/export_process"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/extract_content"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/hosted_purchase_screening"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/import_delete"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/import_process"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/last_accessible_file"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/last_accessible_post"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/migrations"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/notify_admin"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/product_notices"
-	"github.com/mattermost/mattermost-server/server/v8/channels/jobs/resend_invitation_email"
-	"github.com/mattermost/mattermost-server/server/v8/channels/product"
-	"github.com/mattermost/mattermost-server/server/v8/channels/store"
-	"github.com/mattermost/mattermost-server/server/v8/channels/utils"
-	"github.com/mattermost/mattermost-server/server/v8/config"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/awsmeter"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/cache"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/remotecluster"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/bleveengine"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/searchengine/bleveengine/indexer"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/sharedchannel"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/telemetry"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/timezones"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/tracing"
-	"github.com/mattermost/mattermost-server/server/v8/platform/services/upgrader"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mail"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/templates"
-	"github.com/mattermost/mattermost-server/server/v8/plugin/scheduler"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/public/shared/timezones"
+	"github.com/mattermost/mattermost/server/v8/channels/app/email"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_empty_drafts_migration"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_delete"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/extract_content"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/hosted_purchase_screening"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_delete"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_process"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_file"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_post"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/migrations"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/notify_admin"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/plugins"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/post_persistent_notifications"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/product_notices"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/refresh_post_stats"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/resend_invitation_email"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/s3_path_migration"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/platform/services/awsmeter"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine/indexer"
+	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
+	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
+	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
-// declaring this as var to allow overriding in tests
-var SentryDSN = "placeholder_sentry_dsn"
+var SentryDSN = "https://9d7c9cccf549479799f880bcf4f26323@o94110.ingest.sentry.io/5212327"
+
+// This is a placeholder to allow the existing release pipelines to run without failing to insert
+// the key that's now hard-coded above. Remove this once we converge on the unified delivery
+// pipeline in GitHub.
+var _ = "placeholder_sentry_dsn"
 
 type Server struct {
 	// RootRouter is the starting point for all HTTP requests to the server.
@@ -133,7 +142,8 @@ type Server struct {
 	// startSearchEngine bool
 	skipPostInit bool
 
-	Cloud einterfaces.CloudInterface
+	Cloud       einterfaces.CloudInterface
+	IPFiltering einterfaces.IPFilteringInterface
 
 	tracer *tracing.Tracer
 
@@ -141,8 +151,6 @@ type Server struct {
 
 	products map[string]product.Product
 	services map[product.ServiceKey]any
-
-	hooksManager *product.HooksManager
 }
 
 func (s *Server) Store() store.Store {
@@ -238,34 +246,33 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
-	s.hooksManager = product.NewHooksManager(s.GetMetrics())
-
 	// ensure app implements `product.UserService`
 	var _ product.UserService = (*App)(nil)
 
 	app := New(ServerConnector(s.Channels()))
 	serviceMap := map[product.ServiceKey]any{
-		ServerKey:                s,
-		product.ConfigKey:        s.platform,
-		product.LicenseKey:       s.licenseWrapper,
-		product.FilestoreKey:     s.platform.FileBackend(),
-		product.FileInfoStoreKey: &fileInfoWrapper{srv: s},
-		product.ClusterKey:       s.platform,
-		product.UserKey:          app,
-		product.LogKey:           s.platform.Log(),
-		product.CloudKey:         &cloudWrapper{cloud: s.Cloud},
-		product.KVStoreKey:       s.platform,
-		product.StoreKey:         store.NewStoreServiceAdapter(s.Store()),
-		product.SystemKey:        &systemServiceAdapter{server: s},
-		product.SessionKey:       app,
-		product.FrontendKey:      app,
-		product.CommandKey:       app,
+		ServerKey:                  s,
+		product.ConfigKey:          s.platform,
+		product.LicenseKey:         s.licenseWrapper,
+		product.FilestoreKey:       s.platform.FileBackend(),
+		product.ExportFilestoreKey: s.platform.ExportFileBackend(),
+		product.FileInfoStoreKey:   &fileInfoWrapper{srv: s},
+		product.ClusterKey:         s.platform,
+		product.UserKey:            app,
+		product.LogKey:             s.platform.Log(),
+		product.CloudKey:           &cloudWrapper{cloud: s.Cloud},
+		product.KVStoreKey:         s.platform,
+		product.StoreKey:           store.NewStoreServiceAdapter(s.Store()),
+		product.SystemKey:          &systemServiceAdapter{server: s},
+		product.SessionKey:         app,
+		product.FrontendKey:        app,
+		product.CommandKey:         app,
 	}
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 4: Start platform
-	s.platform.Start()
+	s.platform.Start(s.makeBroadcastHooks())
 
 	// NOTE: There should be no call to App.Srv().Channels() before step 5 is done
 	// otherwise it will throw a panic.
@@ -293,9 +300,10 @@ func NewServer(options ...Option) (*Server, error) {
 	// -------------------------------------------------------------------------
 
 	if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry {
-		if strings.Contains(SentryDSN, "placeholder") {
-			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
-		} else {
+		switch model.GetServiceEnvironment() {
+		case model.ServiceEnvironmentDev:
+			mlog.Warn("Sentry reporting is enabled, but service environment is dev. Disabling reporting.")
+		case model.ServiceEnvironmentProduction, model.ServiceEnvironmentTest:
 			if err2 := sentry.Init(sentry.ClientOptions{
 				Dsn:              SentryDSN,
 				Release:          model.BuildHash,
@@ -390,6 +398,10 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.initJobs()
 
+	if ipFilteringInterface != nil {
+		s.IPFiltering = ipFilteringInterface(app)
+	}
+
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
 		if s.Jobs != nil {
@@ -407,13 +419,18 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if _, err = url.ParseRequestURI(*s.platform.Config().ServiceSettings.SiteURL); err != nil {
-		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://docs.mattermost.com/configure/configuration-settings.html#site-url")
+		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://mattermost.com/pl/configure-site-url")
 	}
 
 	// Start email batching because it's not like the other jobs
 	s.platform.AddConfigListener(func(_, _ *model.Config) {
 		s.EmailService.InitEmailBatching()
 	})
+
+	isTrial := false
+	if licence := s.License(); licence != nil {
+		isTrial = licence.IsTrial
+	}
 
 	logCurrentVersion := fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
 	mlog.Info(
@@ -423,9 +440,14 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.String("build_date", model.BuildDate),
 		mlog.String("build_hash", model.BuildHash),
 		mlog.String("build_hash_enterprise", model.BuildHashEnterprise),
+		mlog.String("service_environment", model.GetServiceEnvironment()),
 	)
 	if model.BuildEnterpriseReady == "true" {
-		mlog.Info("Enterprise Build", mlog.Bool("enterprise_build", true))
+		mlog.Info(
+			"Enterprise Build",
+			mlog.Bool("enterprise_build", true),
+			mlog.Bool("is_trial", isTrial),
+		)
 	} else {
 		mlog.Info("Team Edition Build", mlog.Bool("enterprise_build", false))
 	}
@@ -455,12 +477,12 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// if enabled - perform initial product notices fetch
 	if *s.platform.Config().AnnouncementSettings.AdminNoticesEnabled || *s.platform.Config().AnnouncementSettings.UserNoticesEnabled {
-		go func() {
+		s.platform.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			if err := appInstance.UpdateProductNotices(); err != nil {
 				mlog.Warn("Failed to perform initial product notices fetch", mlog.Err(err))
 			}
-		}()
+		})
 	}
 
 	if s.skipPostInit {
@@ -906,11 +928,15 @@ func (s *Server) Start() error {
 
 	var handler http.Handler = s.RootRouter
 
-	if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry && !strings.Contains(SentryDSN, "placeholder") {
-		sentryHandler := sentryhttp.New(sentryhttp.Options{
-			Repanic: true,
-		})
-		handler = sentryHandler.Handle(handler)
+	switch model.GetServiceEnvironment() {
+	case model.ServiceEnvironmentProduction, model.ServiceEnvironmentTest:
+		if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry {
+			sentryHandler := sentryhttp.New(sentryhttp.Options{
+				Repanic: true,
+			})
+			handler = sentryHandler.Handle(handler)
+		}
+	case model.ServiceEnvironmentDev:
 	}
 
 	if allowedOrigins := *s.platform.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {
@@ -1021,7 +1047,6 @@ func (s *Server) Start() error {
 	go func() {
 		var err error
 		if *s.platform.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTLS {
-
 			tlsConfig := &tls.Config{
 				PreferServerCipherSuites: true,
 				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
@@ -1151,7 +1176,31 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 
 		return utils.OriginChecker(allowed)
 	}
-	return nil
+
+	// Overriding the default origin checker
+	return func(r *http.Request) bool {
+		origin := r.Header["Origin"]
+		if len(origin) == 0 {
+			return true
+		}
+		if origin[0] == "null" {
+			return false
+		}
+		u, err := url.Parse(origin[0])
+		if err != nil {
+			return false
+		}
+
+		// To maintain the case where siteURL is not set.
+		if *a.Config().ServiceSettings.SiteURL == "" {
+			return strings.EqualFold(u.Host, r.Host)
+		}
+		siteURL, err := url.Parse(*a.Config().ServiceSettings.SiteURL)
+		if err != nil {
+			return false
+		}
+		return strings.EqualFold(u.Host, siteURL.Host) && strings.EqualFold(u.Scheme, siteURL.Scheme)
+	}
 }
 
 func (s *Server) checkPushNotificationServerURL() {
@@ -1429,7 +1478,6 @@ func (s *Server) doLicenseExpirationCheck() {
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
 // to renew the user license
 func (s *Server) SendRemoveExpiredLicenseEmail(email, ctaText, ctaLink, locale, siteURL string) *model.AppError {
-
 	if err := s.EmailService.SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL); err != nil {
 		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1439,6 +1487,10 @@ func (s *Server) SendRemoveExpiredLicenseEmail(email, ctaText, ctaLink, locale, 
 
 func (s *Server) FileBackend() filestore.FileBackend {
 	return s.platform.FileBackend()
+}
+
+func (s *Server) ExportFileBackend() filestore.FileBackend {
+	return s.platform.ExportFileBackend()
 }
 
 func (s *Server) TotalWebsocketConnections() int {
@@ -1454,7 +1506,7 @@ func (ch *Channels) ClientConfigHash() string {
 }
 
 func (s *Server) initJobs() {
-	s.Jobs = jobs.NewJobServer(s.platform, s.Store(), s.GetMetrics())
+	s.Jobs = jobs.NewJobServer(s.platform, s.Store(), s.GetMetrics(), s.Log())
 
 	if jobsDataRetentionJobInterface != nil {
 		builder := jobsDataRetentionJobInterface(s)
@@ -1476,6 +1528,11 @@ func (s *Server) initJobs() {
 		s.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, builder.MakeWorker(), nil)
 	}
 
+	if jobsElasticsearchFixChannelIndexInterface != nil {
+		builder := jobsElasticsearchFixChannelIndexInterface(s)
+		s.Jobs.RegisterJobType(model.JobTypeElasticsearchFixChannelIndex, builder.MakeWorker(), nil)
+	}
+
 	if jobsLdapSyncInterface != nil {
 		builder := jobsLdapSyncInterface(New(ServerConnector(s.Channels())))
 		s.Jobs.RegisterJobType(model.JobTypeLdapSync, builder.MakeWorker(), builder.MakeScheduler())
@@ -1495,8 +1552,8 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypePlugins,
-		scheduler.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
-		scheduler.MakeScheduler(s.Jobs),
+		plugins.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		plugins.MakeScheduler(s.Jobs),
 	)
 
 	s.Jobs.RegisterJobType(
@@ -1522,6 +1579,16 @@ func (s *Server) initJobs() {
 		import_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store()),
 		import_delete.MakeScheduler(s.Jobs),
 	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeS3PathMigration,
+		s3_path_migration.MakeWorker(s.Jobs, s.Store(), s.FileBackend()),
+		nil)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeDeleteEmptyDraftsMigration,
+		delete_empty_drafts_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeExportDelete,
@@ -1578,6 +1645,12 @@ func (s *Server) initJobs() {
 	)
 
 	s.Jobs.RegisterJobType(
+		model.JobTypePostPersistentNotifications,
+		post_persistent_notifications.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		post_persistent_notifications.MakeScheduler(s.Jobs, func() *model.License { return s.License() }),
+	)
+
+	s.Jobs.RegisterJobType(
 		model.JobTypeInstallPluginNotifyAdmin,
 		notify_admin.MakeInstallPluginNotifyWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		notify_admin.MakeInstallPluginScheduler(s.Jobs, s.License(), model.JobTypeInstallPluginNotifyAdmin),
@@ -1587,6 +1660,18 @@ func (s *Server) initJobs() {
 		model.JobTypeHostedPurchaseScreening,
 		hosted_purchase_screening.MakeWorker(s.Jobs, s.License(), s.Store().System()),
 		hosted_purchase_screening.MakeScheduler(s.Jobs, s.License()),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeCleanupDesktopTokens,
+		cleanup_desktop_tokens.MakeWorker(s.Jobs),
+		cleanup_desktop_tokens.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeRefreshPostStats,
+		refresh_post_stats.MakeWorker(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
+		refresh_post_stats.MakeScheduler(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
 	)
 
 	s.platform.Jobs = s.Jobs

@@ -2,34 +2,40 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback, useEffect, useRef, useMemo} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {RouterProps} from 'react-router-dom';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
+import type {RouterProps} from 'react-router-dom';
+
+import type {Team} from '@mattermost/types/teams';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
-import {General} from 'mattermost-redux/constants';
 import {getFirstAdminSetupComplete as getFirstAdminSetupCompleteAction} from 'mattermost-redux/actions/general';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {Team} from '@mattermost/types/teams';
-import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
-import {getFirstAdminSetupComplete, getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {sendEmailInvitesToTeamGracefully} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
-
-import Constants from 'utils/constants';
-import {getSiteURL, teamNameToUrl} from 'utils/url';
-import {makeNewTeam} from 'utils/team_utils';
+import {General} from 'mattermost-redux/constants';
+import {getFirstAdminSetupComplete, getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
+import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 
 import LogoSvg from 'components/common/svg_images_components/logo_dark_blue_svg';
 
+import Constants from 'utils/constants';
+import {makeNewTeam} from 'utils/team_utils';
+import {getSiteURL, teamNameToUrl} from 'utils/url';
+
+import InviteMembers from './invite_members';
+import InviteMembersIllustration from './invite_members_illustration';
+import LaunchingWorkspace, {START_TRANSITIONING_OUT} from './launching_workspace';
+import Organization from './organization';
+import Plugins from './plugins';
+import Progress from './progress';
 import {
     WizardSteps,
-    WizardStep,
     Animations,
-    AnimationReason,
-    Form,
     emptyForm,
     mapStepToNextName,
     mapStepToSkipName,
@@ -38,13 +44,10 @@ import {
     PLUGIN_NAME_TO_ID_MAP,
     mapStepToPrevious,
 } from './steps';
-
-import Organization from './organization';
-import Plugins from './plugins';
-import Progress from './progress';
-import InviteMembers from './invite_members';
-import InviteMembersIllustration from './invite_members_illustration';
-import LaunchingWorkspace, {START_TRANSITIONING_OUT} from './launching_workspace';
+import type {
+    WizardStep,
+    AnimationReason,
+    Form} from './steps';
 
 import './preparing_workspace.scss';
 
@@ -108,24 +111,26 @@ const PreparingWorkspace = (props: Props) => {
         defaultMessage: 'Something went wrong. Please try again.',
     });
     const isUserFirstAdmin = useSelector(isFirstAdmin);
+    const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
 
     const currentTeam = useSelector(getCurrentTeam);
     const myTeams = useSelector(getMyTeams);
 
     // In cloud instances created from portal,
     // new admin user has a team in myTeams but not in currentTeam.
-    let team = currentTeam || myTeams?.[0];
+    const team = currentTeam || myTeams?.[0];
 
     const config = useSelector(getConfig);
     const pluginsEnabled = config.PluginsEnabled === 'true';
     const showOnMountTimeout = useRef<NodeJS.Timeout>();
     const configSiteUrl = config.SiteURL;
+    const isConfigSiteUrlDefault = Boolean(config.SiteURL && config.SiteURL === Constants.DEFAULT_SITE_URL);
     const isSelfHosted = useSelector(getLicense).Cloud !== 'true';
 
     const stepOrder = [
         isSelfHosted && WizardSteps.Organization,
         pluginsEnabled && WizardSteps.Plugins,
-        isSelfHosted && WizardSteps.InviteMembers,
+        WizardSteps.InviteMembers,
         WizardSteps.LaunchingWorkspace,
     ].filter((x) => Boolean(x)) as WizardStep[];
 
@@ -225,16 +230,15 @@ const PreparingWorkspace = (props: Props) => {
         const sendFormStart = Date.now();
         setSubmissionState(SubmissionStates.Submitting);
 
-        if (form.organization && !isSelfHosted) {
+        if (!form.teamMembers.skipped && !isConfigSiteUrlDefault && !isSelfHosted) {
             try {
-                const {error, newTeam} = await createTeam(form.organization);
-                if (error !== null) {
-                    redirectWithError(WizardSteps.Organization, genericSubmitError);
+                const inviteResult = await dispatch(sendEmailInvitesToTeamGracefully(team.id, form.teamMembers.invites));
+                if ((inviteResult as ActionResult).error) {
+                    redirectWithError(WizardSteps.InviteMembers, genericSubmitError);
                     return;
                 }
-                team = newTeam as Team;
             } catch (e) {
-                redirectWithError(WizardSteps.Organization, genericSubmitError);
+                redirectWithError(WizardSteps.InviteMembers, genericSubmitError);
                 return;
             }
         }
@@ -266,7 +270,7 @@ const PreparingWorkspace = (props: Props) => {
 
         const goToChannels = () => {
             dispatch({type: GeneralTypes.SHOW_LAUNCHING_WORKSPACE, open: true});
-            props.history.push(`/${team.name}/channels${Constants.DEFAULT_CHANNEL}`);
+            props.history.push(`/${team.name}/channels/${Constants.DEFAULT_CHANNEL}`);
             trackEvent('first_admin_setup', 'admin_setup_complete');
         };
 
@@ -288,7 +292,7 @@ const PreparingWorkspace = (props: Props) => {
     }, [submissionState]);
 
     const adminRevisitedPage = firstAdminSetupComplete && submissionState === SubmissionStates.Presubmit;
-    const shouldRedirect = !isUserFirstAdmin || adminRevisitedPage;
+    const shouldRedirect = !isUserFirstAdmin || adminRevisitedPage || !onboardingFlowEnabled;
 
     useEffect(() => {
         if (shouldRedirect) {
@@ -435,16 +439,10 @@ const PreparingWorkspace = (props: Props) => {
                     next={() => {
                         const pluginChoices = {...form.plugins};
                         delete pluginChoices.skipped;
-                        if (!isSelfHosted) {
-                            setSubmissionState(SubmissionStates.UserRequested);
-                        }
                         makeNext(WizardSteps.Plugins)(pluginChoices);
                         skipPlugins(false);
                     }}
                     skip={() => {
-                        if (!isSelfHosted) {
-                            setSubmissionState(SubmissionStates.UserRequested);
-                        }
                         makeNext(WizardSteps.Plugins, true)();
                         skipPlugins(true);
                     }}
@@ -489,6 +487,18 @@ const PreparingWorkspace = (props: Props) => {
                     configSiteUrl={configSiteUrl}
                     formUrl={form.url}
                     browserSiteUrl={browserSiteUrl}
+                    emails={form.teamMembers.invites}
+                    setEmails={(emails: string[]) => {
+                        setForm({
+                            ...form,
+                            teamMembers: {
+                                ...form.teamMembers,
+                                invites: emails,
+                            },
+                        });
+                    }}
+                    inferredProtocol={form.inferredProtocol}
+                    isSelfHosted={isSelfHosted}
                 />
                 <LaunchingWorkspace
                     onPageView={onPageViews[WizardSteps.LaunchingWorkspace]}

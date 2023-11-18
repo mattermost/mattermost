@@ -3,7 +3,7 @@
 exports[`admin_console/system_role_users should match snapshot 1`] = `
 <AdminPanel
   button={
-    <Memo(Connect(ToggleModalButton))
+    <ToggleModalButton
       className="btn btn-primary"
       dialogProps={
         Object {
@@ -25,12 +25,14 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
               "mfa_active": false,
               "nickname": "",
               "notify_props": Object {
+                "calls_desktop_sound": "true",
                 "channel": "false",
                 "comments": "never",
                 "desktop": "default",
                 "desktop_sound": "false",
                 "email": "false",
                 "first_name": "false",
+                "highlight_keys": "",
                 "mark_unread": "mention",
                 "mention_keys": "",
                 "push": "none",
@@ -64,12 +66,14 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
               "mfa_active": false,
               "nickname": "",
               "notify_props": Object {
+                "calls_desktop_sound": "true",
                 "channel": "false",
                 "comments": "never",
                 "desktop": "default",
                 "desktop_sound": "false",
                 "email": "false",
                 "first_name": "false",
+                "highlight_keys": "",
                 "mark_unread": "mention",
                 "mention_keys": "",
                 "push": "none",
@@ -117,7 +121,7 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
         defaultMessage="Add People"
         id="admin.permissions.system_role_users.add_people"
       />
-    </Memo(Connect(ToggleModalButton))>
+    </ToggleModalButton>
   }
   className=""
   id="SystemRoleUsers"
@@ -182,12 +186,14 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
                   "mfa_active": false,
                   "nickname": "",
                   "notify_props": Object {
+                    "calls_desktop_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
                     "desktop_sound": "false",
                     "email": "false",
                     "first_name": "false",
+                    "highlight_keys": "",
                     "mark_unread": "mention",
                     "mention_keys": "",
                     "push": "none",
@@ -226,12 +232,14 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
                   "mfa_active": false,
                   "nickname": "",
                   "notify_props": Object {
+                    "calls_desktop_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
                     "desktop_sound": "false",
                     "email": "false",
                     "first_name": "false",
+                    "highlight_keys": "",
                     "mark_unread": "mention",
                     "mention_keys": "",
                     "push": "none",
@@ -272,12 +280,14 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
                   "mfa_active": false,
                   "nickname": "",
                   "notify_props": Object {
+                    "calls_desktop_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
                     "desktop_sound": "false",
                     "email": "false",
                     "first_name": "false",
+                    "highlight_keys": "",
                     "mark_unread": "mention",
                     "mention_keys": "",
                     "push": "none",
@@ -316,12 +326,14 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
                   "mfa_active": false,
                   "nickname": "",
                   "notify_props": Object {
+                    "calls_desktop_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
                     "desktop_sound": "false",
                     "email": "false",
                     "first_name": "false",
+                    "highlight_keys": "",
                     "mark_unread": "mention",
                     "mention_keys": "",
                     "push": "none",
@@ -353,7 +365,7 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
 exports[`admin_console/system_role_users should match snapshot with readOnly true 1`] = `
 <AdminPanel
   button={
-    <Memo(Connect(ToggleModalButton))
+    <ToggleModalButton
       className="btn btn-primary"
       dialogProps={
         Object {
@@ -375,12 +387,14 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
               "mfa_active": false,
               "nickname": "",
               "notify_props": Object {
+                "calls_desktop_sound": "true",
                 "channel": "false",
                 "comments": "never",
                 "desktop": "default",
                 "desktop_sound": "false",
                 "email": "false",
                 "first_name": "false",
+                "highlight_keys": "",
                 "mark_unread": "mention",
                 "mention_keys": "",
                 "push": "none",
@@ -414,12 +428,14 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
               "mfa_active": false,
               "nickname": "",
               "notify_props": Object {
+                "calls_desktop_sound": "true",
                 "channel": "false",
                 "comments": "never",
                 "desktop": "default",
                 "desktop_sound": "false",
                 "email": "false",
                 "first_name": "false",
+                "highlight_keys": "",
                 "mark_unread": "mention",
                 "mention_keys": "",
                 "push": "none",
@@ -467,7 +483,7 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
         defaultMessage="Add People"
         id="admin.permissions.system_role_users.add_people"
       />
-    </Memo(Connect(ToggleModalButton))>
+    </ToggleModalButton>
   }
   className=""
   id="SystemRoleUsers"
@@ -532,12 +548,14 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
                   "mfa_active": false,
                   "nickname": "",
                   "notify_props": Object {
+                    "calls_desktop_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
                     "desktop_sound": "false",
                     "email": "false",
                     "first_name": "false",
+                    "highlight_keys": "",
                     "mark_unread": "mention",
                     "mention_keys": "",
                     "push": "none",
@@ -576,12 +594,14 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
                   "mfa_active": false,
                   "nickname": "",
                   "notify_props": Object {
+                    "calls_desktop_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
                     "desktop_sound": "false",
                     "email": "false",
                     "first_name": "false",
+                    "highlight_keys": "",
                     "mark_unread": "mention",
                     "mention_keys": "",
                     "push": "none",
@@ -622,12 +642,14 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
                   "mfa_active": false,
                   "nickname": "",
                   "notify_props": Object {
+                    "calls_desktop_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
                     "desktop_sound": "false",
                     "email": "false",
                     "first_name": "false",
+                    "highlight_keys": "",
                     "mark_unread": "mention",
                     "mention_keys": "",
                     "push": "none",
@@ -666,12 +688,14 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
                   "mfa_active": false,
                   "nickname": "",
                   "notify_props": Object {
+                    "calls_desktop_sound": "true",
                     "channel": "false",
                     "comments": "never",
                     "desktop": "default",
                     "desktop_sound": "false",
                     "email": "false",
                     "first_name": "false",
+                    "highlight_keys": "",
                     "mark_unread": "mention",
                     "mention_keys": "",
                     "push": "none",

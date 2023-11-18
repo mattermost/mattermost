@@ -4,6 +4,7 @@
 import React, {memo} from 'react';
 
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
+
 import type {Draft} from 'selectors/drafts';
 
 import ChannelDraft from './channel_draft';
@@ -14,7 +15,7 @@ type Props = {
     status: UserStatus['status'];
     displayName: string;
     draft: Draft;
-    isRemote: boolean;
+    isRemote?: boolean;
 }
 
 function DraftRow({draft, user, status, displayName, isRemote}: Props) {

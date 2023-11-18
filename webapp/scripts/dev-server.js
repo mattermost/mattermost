@@ -13,8 +13,6 @@ async function watchAllWithDevServer() {
 
     const commands = [
         {command: 'npm:dev-server --workspace=channels', name: 'webapp', prefixColor: 'cyan'},
-        {command: 'npm:start:product --workspace=boards', name: 'boards', prefixColor: 'blue'},
-        {command: 'npm:start:product --workspace=playbooks', name: 'playbooks', prefixColor: 'red'},
     ];
 
     commands.push(...getPlatformCommands('run'));
@@ -27,7 +25,16 @@ async function watchAllWithDevServer() {
             killOthers: 'failure',
         },
     );
-    await result;
+
+    let exitCode = 0;
+    try {
+        await result;
+    } catch (closeEvents) {
+        exitCode = getExitCode(closeEvents, 0);
+    }
+    return exitCode;
 }
 
-watchAllWithDevServer();
+watchAllWithDevServer().then((exitCode) => {
+    process.exit(exitCode);
+});

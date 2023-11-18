@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (api *API) InitDrafts() {
@@ -21,7 +21,6 @@ func (api *API) InitDrafts() {
 }
 
 func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
-
 	if !*c.App.Config().ServiceSettings.AllowSyncedDrafts {
 		c.Err = model.NewAppError("upsertDraft", "api.drafts.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
@@ -87,7 +86,7 @@ func getDrafts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	drafts, err := c.App.GetDraftsForUser(c.AppContext.Session().UserId, c.Params.TeamId)
+	drafts, err := c.App.GetDraftsForUser(c.AppContext, c.AppContext.Session().UserId, c.Params.TeamId)
 	if err != nil {
 		c.Err = err
 		return
@@ -136,7 +135,7 @@ func deleteDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := c.App.DeleteDraft(userID, channelID, rootID, connectionID); err != nil {
+	if _, err := c.App.DeleteDraft(c.AppContext, userID, channelID, rootID, connectionID); err != nil {
 		c.Err = err
 		return
 	}

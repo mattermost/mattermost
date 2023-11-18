@@ -1,25 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactWrapper} from 'enzyme';
+import {shallow} from 'enzyme';
 import React from 'react';
-import {shallow, ReactWrapper} from 'enzyme';
 import {IntlProvider} from 'react-intl';
 import {BrowserRouter} from 'react-router-dom';
-import {act, screen} from '@testing-library/react';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import type {ClientConfig} from '@mattermost/types/config';
 
+import {RequestStatus} from 'mattermost-redux/constants';
+
+import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
+import SaveButton from 'components/save_button';
 import Signup from 'components/signup/signup';
 import Input from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
-import SaveButton from 'components/save_button';
-import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
 
-import {RequestStatus} from 'mattermost-redux/constants';
-import {ClientConfig} from '@mattermost/types/config';
-import {GlobalState} from 'types/store';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act, renderWithContext, screen} from 'tests/react_testing_utils';
 import {WindowSizes} from 'utils/constants';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+
+import type {GlobalState} from 'types/store';
 
 let mockState: GlobalState;
 let mockLocation = {pathname: '', search: '', hash: ''};
@@ -291,10 +293,9 @@ describe('components/signup/Signup', () => {
         jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
         mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 
-        const {container: signupContainer} = renderWithIntlAndStore(
-            <BrowserRouter>
-                <Signup/>
-            </BrowserRouter>, {});
+        const {container: signupContainer} = renderWithContext(
+            <Signup/>,
+        );
 
         screen.getByTestId('signup-body-card-form-check-newsletter');
         const checkInput = screen.getByTestId('signup-body-card-form-check-newsletter');
@@ -307,24 +308,26 @@ describe('components/signup/Signup', () => {
         jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => false);
         mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 
-        const {container: signupContainer} = renderWithIntlAndStore(
-            <BrowserRouter>
-                <Signup/>
-            </BrowserRouter>, {});
+        const {container: signupContainer} = renderWithContext(
+            <Signup/>,
+        );
 
         expect(() => screen.getByTestId('signup-body-card-form-check-newsletter')).toThrow();
         expect(signupContainer).toHaveTextContent('Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?Sign up at https://mattermost.com/security-updates/.');
     });
 
-    it('should not show any newsletter related opt-in or text for cloud', async () => {
+    it('should show newsletter related opt-in or text for cloud', async () => {
         jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
         mockLicense = {IsLicensed: 'true', Cloud: 'true'};
 
-        renderWithIntlAndStore(
-            <BrowserRouter>
-                <Signup/>
-            </BrowserRouter>, {});
+        const {container: signupContainer} = renderWithContext(
+            <Signup/>,
+        );
 
-        expect(() => screen.getByTestId('signup-body-card-form-check-newsletter')).toThrow();
+        screen.getByTestId('signup-body-card-form-check-newsletter');
+        const checkInput = screen.getByTestId('signup-body-card-form-check-newsletter');
+        expect(checkInput).toHaveAttribute('type', 'checkbox');
+
+        expect(signupContainer).toHaveTextContent('I would like to receive Mattermost security updates via newsletter. By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news. I have read the Privacy Policy and understand that I can unsubscribe at any time');
     });
 });

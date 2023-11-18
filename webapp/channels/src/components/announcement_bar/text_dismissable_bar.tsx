@@ -4,6 +4,7 @@
 import React from 'react';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
+
 import Markdown from 'components/markdown';
 
 import alertIcon from 'images/icons/round-white-info-icon.svg';

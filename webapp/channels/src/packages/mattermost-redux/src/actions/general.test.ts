@@ -3,16 +3,11 @@
 
 import nock from 'nock';
 
-import {GeneralTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
-
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-import {FormattedError} from './helpers';
 
 const OK_RESPONSE = {status: 'OK'};
 
@@ -28,40 +23,6 @@ describe('Actions.General', () => {
 
     afterAll(() => {
         TestHelper.tearDown();
-    });
-
-    it('getPing - Invalid URL', async () => {
-        const serverUrl = Client4.getUrl();
-        Client4.setUrl('notarealurl');
-
-        const pingError = new FormattedError(
-            'mobile.server_ping_failed',
-            'Cannot connect to the server. Please check your server URL and internet connection.',
-        );
-
-        nock(Client4.getBaseRoute()).
-            get('/system/ping').
-            query(true).
-            reply(401, {error: 'ping error', code: 401});
-
-        const {error} = await Actions.getPing()(store.dispatch, store.getState) as ActionResult;
-        Client4.setUrl(serverUrl);
-        expect(error).toEqual(pingError);
-    });
-
-    it('getPing', async () => {
-        const response = {
-            status: 'OK',
-            version: '4.0.0',
-        };
-
-        nock(Client4.getBaseRoute()).
-            get('/system/ping').
-            query(true).
-            reply(200, response);
-
-        const {data} = await Actions.getPing()(store.dispatch, store.getState) as ActionResult;
-        expect(data).toEqual(response);
     });
 
     it('getClientConfig', async () => {
@@ -137,44 +98,6 @@ describe('Actions.General', () => {
         const {warnMetricsStatus} = store.getState().entities.general;
         expect(warnMetricsStatus.metric1).toEqual(true);
         expect(warnMetricsStatus.metric2).toEqual(false);
-    });
-
-    describe('getRedirectLocation', () => {
-        it('old server', async () => {
-            store.dispatch({type: GeneralTypes.RECEIVED_SERVER_VERSION, data: '5.0.0'});
-
-            const mock = nock(Client4.getBaseRoute()).
-                get('/redirect_location').
-                reply(404);
-
-            // Should return the original link
-            const result = await store.dispatch(Actions.getRedirectLocation('http://examp.le'));
-            expect(result.data).toEqual({location: 'http://examp.le'});
-
-            // Should not call the API on an old server
-            expect(mock.isDone()).toEqual(false);
-        });
-
-        it('should save the correct location', async () => {
-            store.dispatch({type: GeneralTypes.RECEIVED_SERVER_VERSION, data: '5.3.0'});
-
-            nock(Client4.getBaseRoute()).
-                get('/redirect_location').
-                query({url: 'http://examp.le'}).
-                reply(200, '{"location": "https://example.com"}');
-
-            // Save the found URL if it finds one
-            await store.dispatch(Actions.getRedirectLocation('http://examp.le'));
-
-            const existingURL = store.getState().entities.posts.expandedURLs['http://examp.le'];
-            expect(existingURL).toEqual('https://example.com');
-
-            // Save the found URL if it finds one
-            await store.dispatch(Actions.getRedirectLocation('http://nonexisting.url'));
-
-            const nonexistingURL = store.getState().entities.posts.expandedURLs['http://nonexisting.url'];
-            expect(nonexistingURL).toEqual('http://nonexisting.url');
-        });
     });
 
     it('getFirstAdminVisitMarketplaceStatus', async () => {

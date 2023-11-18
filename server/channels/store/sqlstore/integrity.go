@@ -6,8 +6,8 @@ package sqlstore
 import (
 	sq "github.com/mattermost/squirrel"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type relationalCheckConfig struct {

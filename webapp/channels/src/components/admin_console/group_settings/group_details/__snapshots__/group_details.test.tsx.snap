@@ -4,11 +4,11 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/groups"
       />
@@ -17,7 +17,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
         id="admin.group_settings.group_detail.group_configuration"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -154,11 +154,11 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/groups"
       />
@@ -167,7 +167,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
         id="admin.group_settings.group_detail.group_configuration"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -303,11 +303,11 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/groups"
       />
@@ -316,7 +316,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
         id="admin.group_settings.group_detail.group_configuration"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -441,11 +441,11 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
 <div
   className="wrapper--fixed"
 >
-  <div
-    className="admin-console__header with-back"
+  <AdminHeader
+    withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/groups"
       />
@@ -454,7 +454,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
         id="admin.group_settings.group_detail.group_configuration"
       />
     </div>
-  </div>
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >

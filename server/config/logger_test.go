@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func TestMloggerConfigFromAuditConfig(t *testing.T) {
@@ -49,5 +49,4 @@ func TestMloggerConfigFromAuditConfig(t *testing.T) {
 		require.NoError(t, err, "unmarshal should not fail")
 		assert.Equal(t, optionsExpected, optionsReceived)
 	})
-
 }

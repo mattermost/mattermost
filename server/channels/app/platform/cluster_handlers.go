@@ -7,11 +7,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"runtime/debug"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/server/v8/model"
-	"github.com/mattermost/mattermost-server/server/v8/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 func (ps *PlatformService) RegisterClusterHandlers() {
@@ -159,11 +158,9 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() {
 }
 
 func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
-	debug.FreeOSMemory()
 	ps.InvalidateAllCachesSkipSend()
 
 	if ps.clusterIFace != nil {
-
 		msg := &model.ClusterMessage{
 			Event:            model.ClusterEventInvalidateAllCaches,
 			SendType:         model.ClusterSendReliable,

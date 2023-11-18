@@ -2,15 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {fireEvent, screen} from '@testing-library/react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import EditableArea from './editable_area';
 
 describe('channel_info_rhs/components/editable_area', () => {
     test('should be able to see content', async () => {
-        renderWithIntl(
+        renderWithContext(
             <EditableArea
                 content='test content'
                 editable={true}
@@ -24,7 +23,7 @@ describe('channel_info_rhs/components/editable_area', () => {
 
     test('should be able to edit content', async () => {
         const mockOnEdit = jest.fn();
-        renderWithIntl(
+        renderWithContext(
             <EditableArea
                 content='test content'
                 editable={true}
@@ -39,7 +38,7 @@ describe('channel_info_rhs/components/editable_area', () => {
     });
 
     test('should be able prevent edition', async () => {
-        renderWithIntl(
+        renderWithContext(
             <EditableArea
                 content='test content'
                 editable={false}
@@ -53,7 +52,7 @@ describe('channel_info_rhs/components/editable_area', () => {
 
     test('should show the empty label when there\'s no content', async () => {
         const mockOnEdit = jest.fn();
-        renderWithIntl(
+        renderWithContext(
             <EditableArea
                 content=''
                 editable={true}

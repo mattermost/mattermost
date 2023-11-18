@@ -1,18 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
-import store from 'stores/redux_store.jsx';
 
+import store from 'stores/redux_store';
+
+import * as lineBreakHelpers from 'tests/helpers/line_break_helpers';
+import * as ua from 'tests/helpers/user_agent_mocks';
 import Constants, {ValidationErrors} from 'utils/constants';
 import * as Utils from 'utils/utils';
-import * as lineBreakHelpers from 'tests/helpers/line_break_helpers.js';
-import {makeSelectionEvent} from 'tests/helpers/markdown_hotkey_helpers.js';
-import * as ua from 'tests/helpers/user_agent_mocks';
-import {UserProfile} from '@mattermost/types/users';
-import {TextboxElement} from 'components/textbox';
 
 describe('Utils.getDisplayNameByUser', () => {
     afterEach(() => {
@@ -379,25 +377,25 @@ describe('Utils.imageURLForUser', () => {
 describe('Utils.isUnhandledLineBreakKeyCombo', () => {
     test('isUnhandledLineBreakKeyCombo returns true for alt + enter for Chrome UA', () => {
         ua.mockChrome();
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getAltKeyEvent() as KeyboardEvent)).toBe(true);
+        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getAltKeyEvent())).toBe(true);
     });
 
     test('isUnhandledLineBreakKeyCombo returns false for alt + enter for Safari UA', () => {
         ua.mockSafari();
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getAltKeyEvent() as KeyboardEvent)).toBe(false);
+        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getAltKeyEvent())).toBe(false);
     });
 
     test('isUnhandledLineBreakKeyCombo returns false for shift + enter', () => {
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getShiftKeyEvent() as unknown as KeyboardEvent)).toBe(false);
+        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getShiftKeyEvent())).toBe(false);
     });
 
     test('isUnhandledLineBreakKeyCombo returns false for ctrl/command + enter', () => {
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getCtrlKeyEvent() as unknown as KeyboardEvent)).toBe(false);
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getMetaKeyEvent() as unknown as KeyboardEvent)).toBe(false);
+        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getCtrlKeyEvent())).toBe(false);
+        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.getMetaKeyEvent())).toBe(false);
     });
 
     test('isUnhandledLineBreakKeyCombo returns false for just enter', () => {
-        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.BASE_EVENT as unknown as KeyboardEvent)).toBe(false);
+        expect(Utils.isUnhandledLineBreakKeyCombo(lineBreakHelpers.BASE_EVENT)).toBe(false);
     });
 
     test('isUnhandledLineBreakKeyCombo returns false for f (random key)', () => {
@@ -406,7 +404,7 @@ describe('Utils.isUnhandledLineBreakKeyCombo', () => {
             key: Constants.KeyCodes.F[0],
             keyCode: Constants.KeyCodes.F[1],
         };
-        expect(Utils.isUnhandledLineBreakKeyCombo(e as unknown as KeyboardEvent)).toBe(false);
+        expect(Utils.isUnhandledLineBreakKeyCombo(e)).toBe(false);
     });
 
     // restore initial user agent
@@ -415,72 +413,10 @@ describe('Utils.isUnhandledLineBreakKeyCombo', () => {
 
 describe('Utils.insertLineBreakFromKeyEvent', () => {
     test('insertLineBreakFromKeyEvent returns with line break appending (no selection range)', () => {
-        expect(Utils.insertLineBreakFromKeyEvent(lineBreakHelpers.getAppendEvent() as React.KeyboardEvent<HTMLInputElement>)).toBe(lineBreakHelpers.OUTPUT_APPEND);
+        expect(Utils.insertLineBreakFromKeyEvent(lineBreakHelpers.getAppendEvent())).toBe(lineBreakHelpers.OUTPUT_APPEND);
     });
     test('insertLineBreakFromKeyEvent returns with line break replacing (with selection range)', () => {
-        expect(Utils.insertLineBreakFromKeyEvent(lineBreakHelpers.getReplaceEvent() as React.KeyboardEvent<HTMLInputElement>)).toBe(lineBreakHelpers.OUTPUT_REPLACE);
-    });
-});
-
-describe('Utils.adjustSelection', () => {
-    test('adjustSelection fixes selection to correct text', () => {
-        // "_Fafda_" is selected
-        const e = makeSelectionEvent('Jalebi _Fafda_ and Sambharo', 7, 14);
-        const input = {
-            focus: jest.fn(),
-            setSelectionRange: jest.fn(),
-        } as unknown as HTMLInputElement;
-
-        Utils.adjustSelection(input, e as React.KeyboardEvent<TextboxElement>);
-        expect(input.setSelectionRange).toHaveBeenCalledWith(8, 13);
-    });
-
-    test('adjustSelection does not fix selection when selected text does not end with "_"', () => {
-        // "_Fafda" is selected
-        const e = makeSelectionEvent('Jalebi _Fafda and Sambharo', 7, 13);
-        const input = {
-            focus: jest.fn(),
-            setSelectionRange: jest.fn(),
-        } as unknown as HTMLInputElement;
-
-        Utils.adjustSelection(input, e as React.KeyboardEvent<TextboxElement>);
-        expect(input.setSelectionRange).not.toHaveBeenCalled();
-    });
-
-    test('adjustSelection does not fix selection when selected text does start end with "_"', () => {
-        // "Fafda_" is selected
-        const e = makeSelectionEvent('Jalebi Fafda_ and Sambharo', 7, 13);
-        const input = {
-            focus: jest.fn(),
-            setSelectionRange: jest.fn(),
-        } as unknown as HTMLInputElement;
-
-        Utils.adjustSelection(input, e as React.KeyboardEvent<TextboxElement>);
-        expect(input.setSelectionRange).not.toHaveBeenCalled();
-    });
-
-    test('adjustSelection fixes selection at start of text', () => {
-        // "_Jalebi_" is selected
-        const e = makeSelectionEvent('_Jalebi_ Fafda and Sambharo', 0, 8);
-        const input = {
-            focus: jest.fn(),
-            setSelectionRange: jest.fn(),
-        } as unknown as HTMLInputElement;
-
-        Utils.adjustSelection(input, e as React.KeyboardEvent<TextboxElement>);
-        expect(input.setSelectionRange).toHaveBeenCalledWith(1, 7);
-    });
-
-    test('adjustSelection fixes selection at end of text', () => {
-        // "_Sambharo_" is selected
-        const e = makeSelectionEvent('Jalebi Fafda and _Sambharo_', 17, 27);
-        const input = {
-            focus: jest.fn(),
-            setSelectionRange: jest.fn(),
-        } as unknown as HTMLInputElement;
-
-        Utils.adjustSelection(input, e as React.KeyboardEvent<TextboxElement>);
-        expect(input.setSelectionRange).toHaveBeenCalledWith(18, 26);
+        expect(Utils.insertLineBreakFromKeyEvent(lineBreakHelpers.getReplaceEvent())).toBe(lineBreakHelpers.OUTPUT_REPLACE);
     });
 });
 

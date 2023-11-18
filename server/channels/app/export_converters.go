@@ -6,8 +6,8 @@ package app
 import (
 	"strings"
 
-	"github.com/mattermost/mattermost-server/server/v8/channels/app/imports"
-	"github.com/mattermost/mattermost-server/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 )
 
 func ImportLineFromTeam(team *model.TeamForExport) *imports.LineImportData {
@@ -35,6 +35,7 @@ func ImportLineFromChannel(channel *model.ChannelForExport) *imports.LineImportD
 			Header:      &channel.Header,
 			Purpose:     &channel.Purpose,
 			Scheme:      channel.SchemeName,
+			DeletedAt:   &channel.DeleteAt,
 		},
 	}
 }
