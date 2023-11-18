@@ -14,7 +14,7 @@ import type {GlobalState} from 'types/store';
 import {defaultIntl} from './helpers/intl-test-helper';
 
 export default function testConfigureStore(initialState = {}) {
-    return configureStore<GlobalState, ThunkDispatch<GlobalState, Record<string, never>, AnyAction>>([thunk])(initialState as GlobalState);
+    return configureStore<GlobalState, ThunkDispatch<GlobalState, never, AnyAction>>([thunk])(initialState as GlobalState);
 }
 
 export function mockStore(initialState = {}, intl = defaultIntl) {

@@ -1985,7 +1985,7 @@ describe('Actions.Channels', () => {
             put(`/users/${currentUserId}/preferences`).
             reply(200, OK_RESPONSE);
 
-        await Actions.markGroupChannelOpen(channelId)(store.dispatch, store.getState);
+        await store.dispatch(Actions.markGroupChannelOpen(channelId));
 
         const state = store.getState();
         let prefKey = getPreferenceKey(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId);
@@ -2000,7 +2000,6 @@ describe('Actions.Channels', () => {
     });
 
     it('getChannelTimezones', async () => {
-        const {dispatch, getState} = store;
         const channelId = TestHelper.basicChannel!.id;
         const response = {
             useAutomaticTimezone: 'true',
@@ -2013,7 +2012,7 @@ describe('Actions.Channels', () => {
             query(true).
             reply(200, response);
 
-        const {data} = await Actions.getChannelTimezones(channelId)(dispatch, getState) as ActionResult;
+        const {data} = await store.dispatch(Actions.getChannelTimezones(channelId));
 
         expect(response).toEqual(data);
     });
@@ -2028,7 +2027,7 @@ describe('Actions.Channels', () => {
             `/channels/${channelID}/members_minus_group_members?group_ids=${groupIDs.join(',')}&page=${page}&per_page=${perPage}`).
             reply(200, {users: [], total_count: 0});
 
-        const {error} = await Actions.membersMinusGroupMembers(channelID, groupIDs, page, perPage)(store.dispatch, store.getState) as ActionResult;
+        const {error} = await store.dispatch(Actions.membersMinusGroupMembers(channelID, groupIDs, page, perPage)) as ActionResult;
 
         expect(error).toEqual(undefined);
     });

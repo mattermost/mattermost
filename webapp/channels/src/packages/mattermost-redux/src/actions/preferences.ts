@@ -65,7 +65,7 @@ export function makeDirectChannelVisibleIfNecessary(otherUserId: string): Action
                 name: otherUserId,
                 value: 'true',
             };
-            getProfilesByIds([otherUserId])(dispatch, getState);
+            dispatch(getProfilesByIds([otherUserId]));
             dispatch(savePreferences(currentUserId, [preference]));
         }
 
@@ -91,12 +91,12 @@ export function makeGroupMessageVisibleIfNecessary(channelId: string): ActionFun
             };
 
             if (channels[channelId]) {
-                getMyChannelMember(channelId)(dispatch, getState);
+                dispatch(getMyChannelMember(channelId));
             } else {
-                getChannelAndMyMember(channelId)(dispatch, getState);
+                dispatch(getChannelAndMyMember(channelId));
             }
 
-            getProfilesInChannel(channelId, 0)(dispatch, getState);
+            dispatch(getProfilesInChannel(channelId, 0));
             dispatch(savePreferences(currentUserId, [preference]));
         }
 
@@ -179,7 +179,7 @@ export function deleteTeamSpecificThemes(): ActionFunc {
 
         const toDelete = themePreferences.filter((pref) => pref.name !== '');
         if (toDelete.length > 0) {
-            await deletePreferences(currentUserId, toDelete)(dispatch, getState);
+            await dispatch(deletePreferences(currentUserId, toDelete));
         }
 
         return {data: true};

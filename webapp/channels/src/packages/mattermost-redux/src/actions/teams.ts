@@ -20,7 +20,7 @@ import {isCompatibleWithJoinViewTeamPermissions} from 'mattermost-redux/selector
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {GetStateFunc, DispatchFunc, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 async function getProfilesAndStatusesForMembers(userIds: string[], dispatch: DispatchFunc, getState: GetStateFunc) {
@@ -40,7 +40,7 @@ async function getProfilesAndStatusesForMembers(userIds: string[], dispatch: Dis
             statusesToLoad.push(userId);
         }
     });
-    const requests: Array<Promise<ActionResult|ActionResult[]>> = [];
+    const requests = [];
 
     if (profilesToLoad.length) {
         requests.push(dispatch(getProfilesByIds(profilesToLoad)));
@@ -51,6 +51,8 @@ async function getProfilesAndStatusesForMembers(userIds: string[], dispatch: Dis
     }
 
     await Promise.all(requests);
+
+    return {data: true};
 }
 
 export function selectTeam(team: Team | Team['id']) {
@@ -324,12 +326,12 @@ export function regenerateTeamInviteId(teamId: string): ActionFunc {
 }
 
 export function getMyTeamMembers(): ActionFunc {
-    return async (dispatch, getState) => {
+    return async (dispatch) => {
         const getMyTeamMembersFunc = bindClientFunc({
             clientFunc: Client4.getMyTeamMembers,
             onSuccess: TeamTypes.RECEIVED_MY_TEAM_MEMBERS,
         });
-        const teamMembers = (await getMyTeamMembersFunc(dispatch, getState)) as ActionResult;
+        const teamMembers = await dispatch(getMyTeamMembersFunc);
 
         if ('data' in teamMembers && teamMembers.data) {
             const roles = new Set<string>();
@@ -727,8 +729,8 @@ export function joinTeam(inviteId: string, teamId: string): ActionFunc {
         dispatch(getMyTeamUnreads(isCollapsedThreadsEnabled(state)));
 
         await Promise.all([
-            getTeam(teamId)(dispatch, getState),
-            getMyTeamMembers()(dispatch, getState),
+            dispatch(getTeam(teamId)),
+            dispatch(getMyTeamMembers()),
         ]);
 
         dispatch({type: TeamTypes.JOIN_TEAM_SUCCESS, data: null});

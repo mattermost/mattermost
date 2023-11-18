@@ -602,7 +602,7 @@ export function getChannelMembers(channelId: string, page = 0, perPage: number =
         }
 
         const userIds = channelMembers.map((cm) => cm.user_id);
-        getMissingProfilesByIds(userIds)(dispatch, getState);
+        dispatch(getMissingProfilesByIds(userIds));
 
         dispatch({
             type: ChannelTypes.RECEIVED_CHANNEL_MEMBERS,
@@ -1375,8 +1375,8 @@ export function getMyChannelMember(channelId: string) {
 }
 
 export function loadMyChannelMemberAndRole(channelId: string): ActionFunc {
-    return async (dispatch, getState) => {
-        const result = await getMyChannelMember(channelId)(dispatch, getState) as ActionResult;
+    return async (dispatch) => {
+        const result = await dispatch(getMyChannelMember(channelId));
         const roles = result.data?.roles.split(' ');
         if (roles && roles.length > 0) {
             dispatch(loadRolesIfNeeded(roles));

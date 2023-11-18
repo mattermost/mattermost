@@ -241,7 +241,7 @@ export function loadNewDMIfNeeded(channelId: string): ActionFunc {
         if (channel) {
             result = checkPreference(channel);
         } else {
-            result = await getChannelAndMyMember(channelId)(dispatch, getState) as ActionResult;
+            result = await dispatch(getChannelAndMyMember(channelId));
             if (result.data) {
                 result = checkPreference(result.data.channel);
             }
@@ -267,7 +267,7 @@ export function loadNewGMIfNeeded(channelId: string): ActionFunc {
 
         const channel = getChannel(state, channelId);
         if (!channel) {
-            await getChannelAndMyMember(channelId)(dispatch, getState);
+            await dispatch(getChannelAndMyMember(channelId));
         }
         return checkPreference();
     };
@@ -436,7 +436,7 @@ export function autocompleteUsersInTeam(username: string): ActionFunc {
 export function autoResetStatus(): ActionFunc<UserStatus> {
     return async (dispatch, getState) => {
         const {currentUserId} = getState().entities.users;
-        const {data: userStatus} = await (UserActions.getStatus(currentUserId)(dispatch, getState) as Promise<{data: UserStatus}>);
+        const {data: userStatus} = await dispatch(UserActions.getStatus(currentUserId));
 
         if (userStatus.status === UserStatuses.OUT_OF_OFFICE || !userStatus.manual) {
             return {data: userStatus};
@@ -445,7 +445,7 @@ export function autoResetStatus(): ActionFunc<UserStatus> {
         const autoReset = getBool(getState(), PreferencesRedux.CATEGORY_AUTO_RESET_MANUAL_STATUS, currentUserId, false);
 
         if (autoReset) {
-            UserActions.setStatus({user_id: currentUserId, status: 'online'})(dispatch, getState);
+            dispatch(UserActions.setStatus({user_id: currentUserId, status: 'online'}));
             return {data: userStatus};
         }
 

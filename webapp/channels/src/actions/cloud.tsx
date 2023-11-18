@@ -261,7 +261,7 @@ export function retryFailedCloudFetches(): ActionFunc {
         }
 
         if (errors.limits) {
-            getCloudLimits()(dispatch, getState);
+            dispatch(getCloudLimits());
         }
 
         return {data: true};
