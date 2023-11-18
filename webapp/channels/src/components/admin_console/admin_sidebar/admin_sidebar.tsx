@@ -209,9 +209,11 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                             name={item.url}
                             restrictedIndicator={item.restrictedIndicator?.shouldDisplay(license, subscriptionProduct) ? item.restrictedIndicator.value(cloud) : undefined}
                             title={
-                                <FormattedMessage
-                                    {...item.title}
-                                />
+                                typeof item.title === 'string' ?
+                                    item.title :
+                                    <FormattedMessage
+                                        {...item.title}
+                                    />
                             }
                         />
                     ));
@@ -236,9 +238,11 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                         icon={section.icon}
                         sectionClass=''
                         title={
-                            <FormattedMessage
-                                {...section.sectionTitle}
-                            />
+                            typeof section.sectionTitle === 'string' ?
+                                section.sectionTitle :
+                                <FormattedMessage
+                                    {...section.sectionTitle}
+                                />
                         }
                     >
                         {sidebarItems}

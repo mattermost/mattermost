@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
 import GroupsList from 'components/admin_console/group_settings/groups_list';
 import ExternalLink from 'components/external_link';
@@ -10,7 +10,6 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {DocLinks} from 'utils/constants';
-import {t} from 'utils/i18n';
 import {getSiteURL} from 'utils/url';
 
 type Props = {
@@ -50,10 +49,8 @@ const GroupSettings = ({isDisabled}: Props) => {
 
                     <AdminPanel
                         id='ldap_groups'
-                        titleId={t('admin.group_settings.ldapGroupsTitle')}
-                        titleDefault='AD/LDAP Groups'
-                        subtitleId={t('admin.group_settings.ldapGroupsDescription')}
-                        subtitleDefault={'Connect AD/LDAP and create groups in Mattermost. To get started, configure group attributes on the <link>AD/LDAP</link> configuration page.'}
+                        title={defineMessage({id: 'admin.group_settings.ldapGroupsTitle', defaultMessage: 'AD/LDAP Groups'})}
+                        subtitle={defineMessage({id: 'admin.group_settings.ldapGroupsDescription', defaultMessage: 'Connect AD/LDAP and create groups in Mattermost. To get started, configure group attributes on the <link>AD/LDAP</link> configuration page.'})}
                         subtitleValues={{
                             link: (msg: React.ReactNode) => (
                                 <ExternalLink

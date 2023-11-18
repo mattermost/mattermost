@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {StatusOK} from '@mattermost/types/client4';
 import type {ClientLicense} from '@mattermost/types/config';
@@ -60,6 +60,10 @@ type Props = {
         }>;
     };
 }
+
+export const messages = defineMessages({
+    title: {id: 'admin.license.title', defaultMessage: 'Edition and License'},
+});
 
 type State = {
     fileSelected: boolean;
@@ -332,10 +336,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
         return (
             <div className='wrapper--fixed'>
                 <AdminHeader>
-                    <FormattedMessage
-                        id='admin.license.title'
-                        defaultMessage='Edition and License'
-                    />
+                    <FormattedMessage {...messages.title}/>
                 </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>

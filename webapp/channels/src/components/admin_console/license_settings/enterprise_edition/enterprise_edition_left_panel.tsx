@@ -3,8 +3,8 @@
 
 import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
-import type {RefObject} from 'react';
-import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, useIntl} from 'react-intl';
+import type {ReactNode, RefObject} from 'react';
+import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {ClientLicense} from '@mattermost/types/config';
@@ -43,6 +43,14 @@ export interface EnterpriseEditionProps {
     handleChange: () => void;
     statsActiveUsers: number;
 }
+
+export const messages = defineMessages({
+    notice: {
+        id: 'admin.license.notices.enterprise',
+        defaultMessage: 'This software is offered under a commercial license. See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. See NOTICE.txt for information about open source software used in this system.',
+    },
+    keyRemove: {id: 'admin.license.keyRemove', defaultMessage: 'Remove license and downgrade to Mattermost Free'},
+});
 
 const EnterpriseEditionLeftPanel = ({
     openEELicenseModal,
@@ -181,19 +189,25 @@ const EnterpriseEditionLeftPanel = ({
             <div className='license-notices'>
                 {upgradedFromTE ? <>
                     <p>
-                        {'When using Mattermost Enterprise Edition, the software is offered under a commercial license. See '}
-                        <a
-                            role='button'
-                            onClick={openEELicenseModal}
-                            className='openEELicenseModal'
-                        >
-                            {'here'}
-                        </a>
-                        {' for “Enterprise Edition License” for details. '}
-                        {'See NOTICE.txt for information about open source software used in the system.'}
+                        {
+                            formatMessage({
+                                id: 'admin.license.notices.upgrade',
+                                defaultMessage: 'When using Mattermost Enterprise Edition, the software is offered under a commercial license. See <a>here</a> for “Enterprise Edition License” for details. See NOTICE.txt for information about open source software used in the system.',
+                            }, {
+                                a: (chunk: ReactNode[]) => (
+                                    <a
+                                        role='button'
+                                        onClick={openEELicenseModal}
+                                        className='openEELicenseModal'
+                                    >
+                                        {chunk}
+                                    </a>
+                                ),
+                            })
+                        }
                     </p>
                 </> : <p>
-                    {'This software is offered under a commercial license.\n\nSee ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. See NOTICE.txt for information about open source software used in this system.'}
+                    {formatMessage(messages.notice)}
                 </p>
                 }
             </div>
@@ -347,12 +361,7 @@ const renderRemoveButton = (
     isDisabled: boolean,
     removing: boolean,
 ) => {
-    let removeButtonText = (
-        <FormattedMessage
-            id='admin.license.keyRemove'
-            defaultMessage='Remove license and downgrade to Mattermost Free'
-        />
-    );
+    let removeButtonText = (<FormattedMessage {...messages.keyRemove}/>);
     if (removing) {
         removeButtonText = (
             <FormattedMessage

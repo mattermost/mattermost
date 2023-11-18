@@ -4,7 +4,7 @@
 import React from 'react';
 import {Overlay} from 'react-bootstrap';
 import {FormattedMessage, injectIntl} from 'react-intl';
-import type {WrappedComponentProps} from 'react-intl';
+import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {CloudState} from '@mattermost/types/cloud';
@@ -81,6 +81,14 @@ export function escapePathPart(pathPart: string) {
 
 export function unescapePathPart(pathPart: string) {
     return pathPart.replace(/\+/g, '.');
+}
+
+function descriptorOrStringToString(text: string | MessageDescriptor | undefined, intl: IntlShape) {
+    if (!text) {
+        return undefined;
+    }
+
+    return typeof text === 'string' ? text : intl.formatMessage(text);
 }
 
 class SchemaAdminSettings extends React.PureComponent<Props, State> {
@@ -318,6 +326,10 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
             return <span>{''}</span>;
         }
 
+        if (typeof setting.label === 'string') {
+            return <span>{setting.label}</span>;
+        }
+
         return (
             <FormattedMessage
                 {...setting.label}
@@ -435,14 +447,13 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
             setting.action(successCallback, error, this.state[sourceUrlKey]);
         };
 
-        const loadingMessage = (setting.loading) ? <FormattedMessage {...setting.loading}/> : undefined;
         return (
             <RequestButton
                 id={setting.key}
                 key={this.props.schema.id + '_text_' + setting.key}
                 requestAction={handleRequestAction}
                 helpText={this.renderSettingHelpText(setting)}
-                loadingText={loadingMessage}
+                loadingText={descriptorOrStringToString(setting.loading, this.props.intl)}
                 buttonText={<span>{this.renderLabel(setting)}</span>}
                 showSuccessMessage={Boolean(setting.success_message)}
                 includeDetailedError={true}
@@ -481,8 +492,6 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
             ) : footer;
         }
 
-        const placeholderMessage = setting.placeholder ? this.props.intl.formatMessage(setting.placeholder) : undefined;
-
         return (
             <TextSetting
                 key={this.props.schema.id + '_text_' + setting.key}
@@ -490,7 +499,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 type={inputType}
                 label={this.renderLabel(setting)}
                 helpText={this.renderSettingHelpText(setting)}
-                placeholder={placeholderMessage}
+                placeholder={descriptorOrStringToString(setting.placeholder, this.props.intl)}
                 value={value}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
@@ -568,7 +577,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
             }
         });
 
-        const values = options.map((o) => ({value: o.value, text: this.props.intl.formatMessage(o.display_name)}));
+        const values = options.map((o) => ({value: o.value, text: descriptorOrStringToString(o.display_name, this.props.intl)!}));
         const selectedValue = this.state[setting.key] || values[0].value;
 
         let selectedOptionForHelpText = null;
@@ -621,12 +630,6 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
         values.sort((a, b) => a.order - b.order);
 
         if (setting.multiple) {
-            const noResultText = (
-                <FormattedMessage
-                    {...setting.no_result}
-                />
-            );
-
             return (
                 <MultiSelectSetting
                     key={this.props.schema.id + '_language_' + setting.key}
@@ -638,7 +641,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
                     disabled={this.isDisabled(setting)}
                     setByEnv={this.isSetByEnv(setting.key)}
                     onChange={(changedId, value) => this.handleChange(changedId, value.join(','))}
-                    noResultText={noResultText}
+                    noResultText={descriptorOrStringToString(setting.no_result, this.props.intl)}
                 />
             );
         }
@@ -663,7 +666,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
         }
 
         const options = setting.options || [];
-        const values = options.map((o) => ({value: o.value, text: this.props.intl.formatMessage(o.display_name)}));
+        const values = options.map((o) => ({value: o.value, text: descriptorOrStringToString(o.display_name, this.props.intl)!}));
 
         return (
             <RadioSetting
@@ -712,7 +715,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 label={this.renderLabel(setting)}
                 helpText={this.renderSettingHelpText(setting)}
                 regenerateHelpText={setting.regenerate_help_text}
-                placeholder={setting.placeholder}
+                placeholder={descriptorOrStringToString(setting.placeholder, this.props.intl)}
                 value={this.state[setting.key] || ''}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
@@ -798,11 +801,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 jobType={setting.job_type}
                 getExtraInfoText={setting.render_job}
                 disabled={this.isDisabled(setting)}
-                createJobButtonText={
-                    <FormattedMessage
-                        {...setting.label}
-                    />
-                }
+                createJobButtonText={descriptorOrStringToString(setting.label, this.props.intl)}
                 createJobHelpText={this.renderSettingHelpText(setting)}
             />
         );
@@ -830,13 +829,9 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
                     id={this.props.schema.id}
                     key={this.props.schema.id + '_fileupload_' + setting.key}
                     label={this.renderLabel(setting)}
-                    helpText={
-                        <FormattedMessage
-                            {...setting.remove_help_text}
-                        />
-                    }
-                    removeButtonText={this.props.intl.formatMessage(setting.remove_button_text)}
-                    removingText={this.props.intl.formatMessage(setting.removing_text)}
+                    helpText={descriptorOrStringToString(setting.remove_help_text, this.props.intl)}
+                    removeButtonText={descriptorOrStringToString(setting.remove_button_text, this.props.intl)}
+                    removingText={descriptorOrStringToString(setting.removing_text, this.props.intl)}
                     fileName={this.state[setting.key]}
                     onSubmit={removeFile}
                     disabled={this.isDisabled(setting)}
@@ -866,7 +861,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 key={this.props.schema.id + '_fileupload_' + setting.key}
                 label={this.renderLabel(setting)}
                 helpText={this.renderSettingHelpText(setting)}
-                uploadingText={this.props.intl.formatMessage(setting.uploading_text)}
+                uploadingText={descriptorOrStringToString(setting.uploading_text, this.props.intl)}
                 disabled={this.isDisabled(setting)}
                 fileType={setting.fileType}
                 onSubmit={uploadFile}
@@ -1192,7 +1187,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
 
     render = () => {
         const schema = this.props.schema;
-        if (schema && 'component' in schema && schema.component && (!('settings' in schema) || !schema.settings)) {
+        if (schema && 'component' in schema && schema.component && (!('settings' in schema))) {
             const CustomComponent = schema.component;
             return (
                 <CustomComponent

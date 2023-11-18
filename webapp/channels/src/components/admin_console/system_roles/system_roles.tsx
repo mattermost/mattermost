@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Role} from '@mattermost/types/roles';
@@ -89,10 +89,8 @@ export default class SystemRoles extends React.PureComponent<Props> {
                     <div className='admin-console__content'>
                         <AdminPanel
                             id='SystemRoles'
-                            titleId={t('admin.permissions.systemRolesBannerTitle')}
-                            titleDefault='Admin Roles'
-                            subtitleId={t('admin.permissions.systemRolesBannerText')}
-                            subtitleDefault='Manage different levels of access to the system console.'
+                            title={defineMessage({id: 'admin.permissions.systemRolesBannerTitle', defaultMessage: 'Admin Roles'})}
+                            subtitle={defineMessage({id: 'admin.permissions.systemRolesBannerText', defaultMessage: 'Manage different levels of access to the system console.'})}
                         >
                             <div className='SystemRoles'>
                                 <DataGrid

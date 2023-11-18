@@ -10,13 +10,16 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
     const defaultProps = {
         className: 'test-class-name',
         id: 'test-id',
-        titleId: 'test-title-id',
-        titleDefault: 'test-title-default',
-        subtitleId: 'test-subtitle-id',
-        subtitleDefault: 'test-subtitle-default',
+        title: {id: 'test-title-id', defaultMessage: 'test-title-default'},
+        subtitle: {
+            id: 'test-subtitle-id',
+            defaultMessage: 'test-subtitle-default',
+        },
         url: '/path',
-        linkTextId: 'test-button-text-id',
-        linkTextDefault: 'test-button-text-default',
+        linkText: {
+            id: 'test-button-text-id',
+            defaultMessage: 'test-button-text-default',
+        },
         disabled: false,
     };
 
@@ -42,10 +45,18 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
               className="AdminPanelWithLink test-class-name"
               data-testid="test-id"
               id="test-id"
-              subtitleDefault="test-subtitle-default"
-              subtitleId="test-subtitle-id"
-              titleDefault="test-title-default"
-              titleId="test-title-id"
+              subtitle={
+                Object {
+                  "defaultMessage": "test-subtitle-default",
+                  "id": "test-subtitle-id",
+                }
+              }
+              title={
+                Object {
+                  "defaultMessage": "test-title-default",
+                  "id": "test-title-id",
+                }
+              }
             >
               Test
             </AdminPanel>
@@ -79,10 +90,18 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
               className="AdminPanelWithLink test-class-name"
               data-testid="test-id"
               id="test-id"
-              subtitleDefault="test-subtitle-default"
-              subtitleId="test-subtitle-id"
-              titleDefault="test-title-default"
-              titleId="test-title-id"
+              subtitle={
+                Object {
+                  "defaultMessage": "test-subtitle-default",
+                  "id": "test-subtitle-id",
+                }
+              }
+              title={
+                Object {
+                  "defaultMessage": "test-title-default",
+                  "id": "test-title-id",
+                }
+              }
             >
               Test
             </AdminPanel>

@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent} from 'react';
-import {FormattedMessage, type IntlShape, injectIntl} from 'react-intl';
+import {FormattedMessage, type IntlShape, injectIntl, defineMessages} from 'react-intl';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
@@ -113,6 +113,10 @@ type State = {
     showRevokeAllSessionsModal: boolean;
     term?: string;
 };
+
+export const messages = defineMessages({
+    title: {id: 'admin.system_users.title', defaultMessage: '{siteName} Users'},
+});
 
 export class SystemUsers extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -373,8 +377,7 @@ export class SystemUsers extends React.PureComponent<Props, State> {
             <div className='wrapper--fixed'>
                 <AdminHeader>
                     <FormattedMessage
-                        id='admin.system_users.title'
-                        defaultMessage='{siteName} Users'
+                        {...messages.title}
                         values={{
                             siteName: this.props.siteName,
                         }}

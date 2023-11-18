@@ -28,7 +28,7 @@ export type Props = {
     downloadExportResults?: boolean;
     className?: string;
     hideJobCreateButton?: boolean;
-    createJobButtonText: React.ReactElement;
+    createJobButtonText: React.ReactNode;
     actions: {
         getJobsByType: (jobType: JobType) => void;
         cancelJob: (jobId: string) => Promise<ActionResult>;

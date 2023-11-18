@@ -3,7 +3,8 @@
 
 import React from 'react';
 import {Overlay} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import {Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
@@ -32,7 +33,6 @@ import EmailIcon from 'components/widgets/icons/email_icon';
 import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 
 import {Constants} from 'utils/constants';
-import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import './system_user_detail.scss';
@@ -46,7 +46,7 @@ export type Props = {
         setNavigationBlocked: (blocked: boolean) => void;
         addUserToTeam: (teamId: string, userId?: string) => Promise<{data: TeamMembership; error?: any}>;
     };
-}
+} & WrappedComponentProps;
 
 export type State = {
     teams: TeamMembership[];
@@ -66,7 +66,7 @@ export type State = {
     error: ServerError | null;
 }
 
-export default class SystemUserDetail extends React.PureComponent<Props & RouteComponentProps, State> {
+class SystemUserDetail extends React.PureComponent<Props & RouteComponentProps, State> {
     errorMessageRef: React.RefObject<HTMLDivElement>;
     errorMessageRefCurrent: React.ReactInstance | undefined;
 
@@ -288,7 +288,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
                     className='admin-btn-default'
                     disabled={this.props.isDisabled}
                 >
-                    {Utils.localizeMessage('admin.user_item.makeActive', 'Activate')}
+                    {this.props.intl.formatMessage({id: 'admin.user_item.makeActive', defaultMessage: 'Activate'})}
                 </AdminButtonOutline>
             );
         }
@@ -298,7 +298,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
                 className='admin-btn-default'
                 disabled={this.props.isDisabled}
             >
-                {Utils.localizeMessage('admin.user_item.makeInactive', 'Deactivate')}
+                {this.props.intl.formatMessage({id: 'admin.user_item.makeInactive', defaultMessage: 'Deactivate'})}
             </AdminButtonOutline>
         );
     };
@@ -311,7 +311,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
                     className='admin-btn-default'
                     disabled={this.props.isDisabled}
                 >
-                    {Utils.localizeMessage('admin.user_item.resetMfa', 'Remove MFA')}
+                    {this.props.intl.formatMessage({id: 'admin.user_item.resetMfa', defaultMessage: 'Remove MFA'})}
                 </AdminButtonOutline>
             );
         }
@@ -331,12 +331,12 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
             }
             authLine = service;
         } else {
-            authLine = Utils.localizeMessage('admin.userManagement.userDetail.email', 'Email');
+            authLine = this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.email', defaultMessage: 'Email'});
         }
         if (mfaEnabled) {
             if (user.mfa_active) {
                 authLine += ', ';
-                authLine += Utils.localizeMessage('admin.userManagement.userDetail.mfa', 'MFA');
+                authLine += this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.mfa', defaultMessage: 'MFA'});
             }
         }
         return authLine;
@@ -383,7 +383,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
                             body={
                                 <React.Fragment>
                                     <span className='SystemUserDetail__position'>{user.position}</span>
-                                    <span className='SystemUserDetail__field-label'>{Utils.localizeMessage('admin.userManagement.userDetail.email', 'Email')}</span>
+                                    <span className='SystemUserDetail__field-label'>{this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.email', defaultMessage: 'Email'})}</span>
                                     <div>
                                         <EmailIcon className='SystemUserDetail__field-icon'/>
                                         <input
@@ -394,12 +394,12 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
                                             disabled={this.props.isDisabled}
                                         />
                                     </div>
-                                    <span className='SystemUserDetail__field-label'>{Utils.localizeMessage('admin.userManagement.userDetail.username', 'Username')}</span>
+                                    <span className='SystemUserDetail__field-label'>{this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.username', defaultMessage: 'Username'})}</span>
                                     <div>
                                         <AtIcon className='SystemUserDetail__field-icon'/>
                                         <span className='SystemUserDetail__field-text'>{user.username}</span>
                                     </div>
-                                    <span className='SystemUserDetail__field-label'>{Utils.localizeMessage('admin.userManagement.userDetail.authenticationMethod', 'Authentication Method')}</span>
+                                    <span className='SystemUserDetail__field-label'>{this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.authenticationMethod', defaultMessage: 'Authentication Method'})}</span>
                                     <div className='SystemUserDetail__field-text'>
                                         <SheidOutlineIcon className='SystemUserDetail__field-icon'/>
                                         <span className='SystemUserDetail__field-text'>{this.getAuthenticationText()}</span>
@@ -413,7 +413,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
                                         className='admin-btn-default'
                                         disabled={this.props.isDisabled}
                                     >
-                                        {Utils.localizeMessage('admin.user_item.resetPwd', 'Reset Password')}
+                                        {this.props.intl.formatMessage({id: 'admin.user_item.resetPwd', defaultMessage: 'Reset Password'})}
                                     </AdminButtonOutline>
                                     {this.renderActivateDeactivate()}
                                     {this.renderRemoveMFA()}
@@ -421,10 +421,8 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
                             }
                         />
                         <AdminPanel
-                            subtitleId={t('admin.userManagement.userDetail.teamsSubtitle')}
-                            subtitleDefault={'Teams to which this user belongs'}
-                            titleId={t('admin.userManagement.userDetail.teamsTitle')}
-                            titleDefault={'Team Membership'}
+                            subtitle={defineMessage({id: 'admin.userManagement.userDetail.teamsSubtitle', defaultMessage: 'Teams to which this user belongs'})}
+                            title={defineMessage({id: 'admin.userManagement.userDetail.teamsTitle', defaultMessage: 'Team Membership'})}
                             button={(
                                 <div className='add-team-button'>
                                     <button
@@ -455,7 +453,7 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
                         saving={this.state.saving}
                         disabled={!this.state.saveNeeded}
                         onClick={this.handleSubmit}
-                        savingMessage={Utils.localizeMessage('admin.saving', 'Saving Config...')}
+                        savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
                     />
                     <div
                         className='error-message'
@@ -492,3 +490,5 @@ export default class SystemUserDetail extends React.PureComponent<Props & RouteC
         );
     }
 }
+
+export default injectIntl(SystemUserDetail);

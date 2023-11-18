@@ -5,7 +5,7 @@
 
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage, defineMessage} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon} from '@mattermost/compass-icons/components';
 import type {CloudState, Product, Limits} from '@mattermost/types/cloud';
@@ -27,8 +27,11 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 import PluginManagement from 'components/admin_console/plugin_management';
+import {messages as activatedUsersCardsMessages} from 'components/analytics/activated_users_card';
 import SystemAnalytics from 'components/analytics/system_analytics';
+import {messages as reportingSystemMessages} from 'components/analytics/system_analytics/system_analytics';
 import TeamAnalytics from 'components/analytics/team_analytics';
+import {messages as reportingTeamStatiticsMessages} from 'components/analytics/team_analytics/team_analytics';
 import ExternalLink from 'components/external_link';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
@@ -39,23 +42,28 @@ import {getSiteURL} from 'utils/url';
 
 import * as DefinitionConstants from './admin_definition_constants';
 import Audits from './audits';
-import BillingHistory from './billing/billing_history';
-import BillingSubscriptions from './billing/billing_subscriptions';
-import CompanyInfo from './billing/company_info';
+import {messages as auditsMessages} from './audits/audits';
+import BillingHistory, {messages as billingHistoryMessages} from './billing/billing_history';
+import BillingSubscriptions, {messages as billingSubscriptionMessages} from './billing/billing_subscriptions';
+import CompanyInfo, {messages as billingCompanyInfoMessages} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
-import PaymentInfo from './billing/payment_info';
+import {messages as deleteWorkspaceMessages} from './billing/delete_workspace/delete_workspace_cta';
+import {messages as deleteWorkspaceModalmessages} from './billing/delete_workspace/delete_workspace_modal';
+import PaymentInfo, {messages as billingPaymentInfoMessages} from './billing/payment_info';
 import PaymentInfoEdit from './billing/payment_info_edit';
 import BleveSettings from './bleve_settings';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
-import ClusterSettings from './cluster_settings';
+import ClusterSettings, {messages as clusterSettingsMessages} from './cluster_settings';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
+import {messages as customTermsOfServiceMessages} from './custom_terms_of_service_settings/custom_terms_of_service_settings';
 import CustomURLSchemesSetting from './custom_url_schemes_setting';
 import DataRetentionSettings from './data_retention_settings';
 import CustomDataRetentionForm from './data_retention_settings/custom_policy_form';
+import {messages as dataRetentionMessages} from './data_retention_settings/data_retention_settings';
 import GlobalDataRetentionForm from './data_retention_settings/global_policy_form';
-import DatabaseSettings from './database_settings';
-import ElasticSearchSettings from './elasticsearch_settings';
+import DatabaseSettings, {messages as databaseSettingsMessages} from './database_settings';
+import ElasticSearchSettings, {messages as elasticSearchMessages} from './elasticsearch_settings';
 import {
     LDAPFeatureDiscovery,
     SAMLFeatureDiscovery,
@@ -69,23 +77,30 @@ import {
     SystemRolesFeatureDiscovery,
     GroupsFeatureDiscovery,
 } from './feature_discovery/features';
-import FeatureFlags from './feature_flags';
+import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import LicenseSettings from './license_settings';
-import MessageExportSettings from './message_export_settings';
+import {messages as enterpriseEditionLeftPanelMessages} from './license_settings/enterprise_edition/enterprise_edition_left_panel';
+import {messages as licenseSettingsMessages} from './license_settings/license_settings';
+import {messages as licenseSettingsStarterEditionMessages} from './license_settings/starter_edition/starter_left_panel';
+import MessageExportSettings, {messages as messageExportMessages} from './message_export_settings';
 import OpenIdConvert from './openid_convert';
-import PasswordSettings from './password_settings';
+import PasswordSettings, {messages as passwordSettingsMessages} from './password_settings';
 import PermissionSchemesSettings from './permission_schemes_settings';
+import {messages as userManagementPermissionsMessages} from './permission_schemes_settings/permission_schemes_settings';
 import PermissionSystemSchemeSettings from './permission_schemes_settings/permission_system_scheme_settings';
 import PermissionTeamSchemeSettings from './permission_schemes_settings/permission_team_scheme_settings';
-import PushNotificationsSettings from './push_settings';
+import {messages as pluginManagementMessages} from './plugin_management/plugin_management';
+import PushNotificationsSettings, {messages as pushSettingsMessages} from './push_settings';
 import ServerLogs from './server_logs';
-import SessionLengthSettings from './session_length_settings';
+import {messages as reportingServerLogsMessages} from './server_logs/logs';
+import SessionLengthSettings, {messages as sessionLengthMessages} from './session_length_settings';
 import SystemRoles from './system_roles';
 import SystemRole from './system_roles/system_role';
 import SystemUserDetail from './system_user_detail';
 import SystemUsers from './system_users';
+import {messages as userManagementMessages} from './system_users/system_users';
 import ChannelSettings from './team_channel_settings/channel';
 import ChannelDetails from './team_channel_settings/channel/details';
 import TeamSettings from './team_channel_settings/team';
@@ -281,6 +296,9 @@ const getRestrictedIndicator = (displayBlocked = false, minimumPlanRequiredForFe
     shouldDisplay: (license: ClientLicense, subscriptionProduct: Product|undefined) => displayBlocked || (isCloudLicense(license) && subscriptionProduct?.sku === CloudProducts.STARTER),
 });
 
+const adminDefinitionMessages = defineMessages({
+    data_retention_title: {id: 'admin.data_retention.title', defaultMessage: 'Data Retention Policy'},
+});
 const AdminDefinition: AdminDefinitionType = {
     about: {
         icon: (
@@ -299,14 +317,10 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'about/license',
                 title: defineMessage({id: 'admin.sidebar.license', defaultMessage: 'Edition and License'}),
                 searchableStrings: [
-                    'admin.license.title',
-                    'admin.license.uploadDesc',
-                    'admin.license.keyRemove',
-                    'admin.license.edition',
-                    'admin.license.type',
-                    'admin.license.key',
-                    'Mattermost Enterprise Edition. Unlock enterprise features in this software through the purchase of a subscription from ',
-                    'This software is offered under a commercial license.\n\nSee ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. See NOTICE.txt for information about open source software used in this system.',
+                    licenseSettingsStarterEditionMessages.key,
+                    enterpriseEditionLeftPanelMessages.keyRemove,
+                    licenseSettingsMessages.title,
+                    enterpriseEditionLeftPanelMessages.notice,
                 ],
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
@@ -339,9 +353,9 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'billing/subscription',
                 title: defineMessage({id: 'admin.sidebar.subscription', defaultMessage: 'Subscription'}),
                 searchableStrings: [
-                    'admin.billing.subscription.title',
-                    'admin.billing.subscription.deleteWorkspaceSection.title',
-                    'admin.billing.subscription.deleteWorkspaceModal.deleteButton',
+                    billingSubscriptionMessages.title,
+                    deleteWorkspaceMessages.title,
+                    deleteWorkspaceModalmessages.deleteButton,
                 ],
                 schema: {
                     id: 'BillingSubscriptions',
@@ -356,7 +370,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'billing/billing_history',
                 title: defineMessage({id: 'admin.sidebar.billing_history', defaultMessage: 'Billing History'}),
                 searchableStrings: [
-                    'admin.billing.history.title',
+                    billingHistoryMessages.title,
                 ],
                 schema: {
                     id: 'BillingHistory',
@@ -368,7 +382,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'billing/company_info',
                 title: defineMessage({id: 'admin.sidebar.company_info', defaultMessage: 'Company Information'}),
                 searchableStrings: [
-                    'admin.billing.company_info.title',
+                    billingCompanyInfoMessages.title,
                 ],
                 schema: {
                     id: 'CompanyInfo',
@@ -400,7 +414,7 @@ const AdminDefinition: AdminDefinitionType = {
                     it.not(it.licensedForFeature('Cloud')),
                 ),
                 searchableStrings: [
-                    'admin.billing.payment_info.title',
+                    billingPaymentInfoMessages.title,
                 ],
                 schema: {
                     id: 'PaymentInfo',
@@ -442,23 +456,22 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'reporting/system_analytics',
                 title: defineMessage({id: 'admin.sidebar.siteStatistics', defaultMessage: 'Site Statistics'}),
                 searchableStrings: [
-                    'analytics.system.title',
-                    'analytics.system.totalPosts',
-                    'analytics.system.activeUsers',
-                    'analytics.system.totalSessions',
-                    'analytics.system.totalCommands',
-                    'analytics.system.totalIncomingWebhooks',
-                    'analytics.system.totalOutgoingWebhooks',
-                    'analytics.system.totalWebsockets',
-                    'analytics.system.totalMasterDbConnections',
-                    'analytics.system.totalReadDbConnections',
-                    'analytics.system.postTypes',
-                    'analytics.system.channelTypes',
-                    'analytics.system.totalUsers',
-                    'analytics.system.totalTeams',
-                    'analytics.system.totalChannels',
-                    'analytics.system.dailyActiveUsers',
-                    'analytics.system.monthlyActiveUsers',
+                    reportingSystemMessages.title,
+                    reportingSystemMessages.totalPosts,
+                    reportingSystemMessages.activeUsers,
+                    reportingSystemMessages.totalSessions,
+                    reportingSystemMessages.totalCommands,
+                    reportingSystemMessages.totalIncomingWebhooks,
+                    reportingSystemMessages.totalOutgoingWebhooks,
+                    reportingSystemMessages.totalWebsockets,
+                    reportingSystemMessages.totalMasterDbConnections,
+                    reportingSystemMessages.totalReadDbConnections,
+                    reportingSystemMessages.postTypes,
+                    reportingSystemMessages.channelTypes,
+                    reportingSystemMessages.totalTeams,
+                    reportingSystemMessages.totalChannels,
+                    reportingSystemMessages.dailyActiveUsers,
+                    reportingSystemMessages.monthlyActiveUsers,
                 ],
                 schema: {
                     id: 'SystemAnalytics',
@@ -471,15 +484,15 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'reporting/team_statistics',
                 title: defineMessage({id: 'admin.sidebar.teamStatistics', defaultMessage: 'Team Statistics'}),
                 searchableStrings: [
-                    ['analytics.team.title', {team: ''}],
-                    'analytics.system.info',
-                    'analytics.team.totalPosts',
-                    'analytics.team.activeUsers',
-                    'analytics.team.totalUsers',
-                    'analytics.team.publicChannels',
-                    'analytics.team.privateGroups',
-                    'analytics.team.recentUsers',
-                    'analytics.team.newlyCreated',
+                    [reportingTeamStatiticsMessages.title, {team: ''}],
+                    reportingTeamStatiticsMessages.info,
+                    reportingTeamStatiticsMessages.totalPosts,
+                    reportingTeamStatiticsMessages.activeUsers,
+                    activatedUsersCardsMessages.totalUsers,
+                    reportingTeamStatiticsMessages.publicChannels,
+                    reportingTeamStatiticsMessages.privateGroups,
+                    reportingTeamStatiticsMessages.recentUsers,
+                    reportingTeamStatiticsMessages.newlyCreated,
                 ],
                 schema: {
                     id: 'TeamAnalytics',
@@ -497,8 +510,8 @@ const AdminDefinition: AdminDefinitionType = {
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.REPORTING.SERVER_LOGS)),
                 searchableStrings: [
-                    'admin.logs.bannerDesc',
-                    'admin.logs.title',
+                    reportingServerLogsMessages.bannerDesc,
+                    reportingServerLogsMessages.title,
                 ],
                 schema: {
                     id: 'ServerLogs',
@@ -521,7 +534,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'user_management/users',
                 title: defineMessage({id: 'admin.sidebar.users', defaultMessage: 'Users'}),
                 searchableStrings: [
-                    ['admin.system_users.title', {siteName: ''}],
+                    [userManagementMessages.title, {siteName: ''}],
                 ],
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
@@ -651,16 +664,15 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'user_management/permissions/',
                 title: defineMessage({id: 'admin.sidebar.permissions', defaultMessage: 'Permissions'}),
                 searchableStrings: [
-                    'admin.permissions.documentationLinkText',
-                    'admin.permissions.teamOverrideSchemesNoSchemes',
-                    'admin.permissions.loadMoreSchemes',
-                    'admin.permissions.introBanner',
-                    'admin.permissions.systemSchemeBannerTitle',
-                    'admin.permissions.systemSchemeBannerText',
-                    'admin.permissions.systemSchemeBannerButton',
-                    'admin.permissions.teamOverrideSchemesTitle',
-                    'admin.permissions.teamOverrideSchemesBannerText',
-                    'admin.permissions.teamOverrideSchemesNewButton',
+                    userManagementPermissionsMessages.teamOverrideSchemesNoSchemes,
+                    userManagementPermissionsMessages.loadMoreSchemes,
+                    userManagementPermissionsMessages.introBanner,
+                    userManagementPermissionsMessages.systemSchemeBannerTitle,
+                    userManagementPermissionsMessages.systemSchemeBannerText,
+                    userManagementPermissionsMessages.systemSchemeBannerButton,
+                    userManagementPermissionsMessages.teamOverrideSchemesTitle,
+                    userManagementPermissionsMessages.teamOverrideSchemesBannerText,
+                    userManagementPermissionsMessages.teamOverrideSchemesNewButton,
                 ],
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
@@ -682,7 +694,6 @@ const AdminDefinition: AdminDefinitionType = {
             system_roles: {
                 url: 'user_management/system_roles',
                 title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'System Roles'}),
-                searchableStrings: [],
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAPGroups')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -947,30 +958,30 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'environment/database',
                 title: defineMessage({id: 'admin.sidebar.database', defaultMessage: 'Database'}),
                 searchableStrings: [
-                    'admin.database.title',
-                    ['admin.recycle.recycleDescription', {featureName: '', reloadConfiguration: ''}],
-                    'admin.recycle.recycleDescription.featureName',
-                    'admin.recycle.recycleDescription.reloadConfiguration',
-                    'admin.recycle.button',
-                    'admin.sql.noteDescription',
-                    'admin.sql.disableDatabaseSearchTitle',
-                    'admin.sql.disableDatabaseSearchDescription',
-                    'admin.sql.driverName',
-                    'admin.sql.driverNameDescription',
-                    'admin.sql.dataSource',
-                    'admin.sql.dataSourceDescription',
-                    'admin.sql.maxConnectionsTitle',
-                    'admin.sql.maxConnectionsDescription',
-                    'admin.sql.maxOpenTitle',
-                    'admin.sql.maxOpenDescription',
-                    'admin.sql.queryTimeoutTitle',
-                    'admin.sql.queryTimeoutDescription',
-                    'admin.sql.connMaxLifetimeTitle',
-                    'admin.sql.connMaxLifetimeDescription',
-                    'admin.sql.connMaxIdleTimeTitle',
-                    'admin.sql.connMaxIdleTimeDescription',
-                    'admin.sql.traceTitle',
-                    'admin.sql.traceDescription',
+                    databaseSettingsMessages.title,
+                    [databaseSettingsMessages.recycleDescription, {featureName: '', reloadConfiguration: ''}],
+                    databaseSettingsMessages.featureName,
+                    databaseSettingsMessages.reloadConfiguration,
+                    databaseSettingsMessages.button,
+                    databaseSettingsMessages.noteDescription,
+                    databaseSettingsMessages.disableDatabaseSearchTitle,
+                    databaseSettingsMessages.disableDatabaseSearchDescription,
+                    databaseSettingsMessages.driverName,
+                    databaseSettingsMessages.driverNameDescription,
+                    databaseSettingsMessages.dataSource,
+                    databaseSettingsMessages.dataSourceDescription,
+                    databaseSettingsMessages.maxConnectionsTitle,
+                    databaseSettingsMessages.maxConnectionsDescription,
+                    databaseSettingsMessages.maxOpenTitle,
+                    databaseSettingsMessages.maxOpenDescription,
+                    databaseSettingsMessages.queryTimeoutTitle,
+                    databaseSettingsMessages.queryTimeoutDescription,
+                    databaseSettingsMessages.connMaxLifetimeTitle,
+                    databaseSettingsMessages.connMaxLifetimeDescription,
+                    databaseSettingsMessages.connMaxIdleTimeTitle,
+                    databaseSettingsMessages.connMaxIdleTimeDescription,
+                    databaseSettingsMessages.traceTitle,
+                    databaseSettingsMessages.traceDescription,
                 ],
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
@@ -991,30 +1002,28 @@ const AdminDefinition: AdminDefinitionType = {
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.ELASTICSEARCH)),
                 ),
                 searchableStrings: [
-                    'admin.elasticsearch.title',
-                    'admin.elasticsearch.enableIndexingTitle',
-                    ['admin.elasticsearch.enableIndexingDescription', {documentationLink: ''}],
-                    'admin.elasticsearch.enableIndexingDescription.documentationLinkText',
-                    'admin.elasticsearch.connectionUrlTitle',
-                    ['admin.elasticsearch.connectionUrlDescription', {documentationLink: ''}],
-                    'admin.elasticsearch.connectionUrlExample.documentationLinkText',
-                    'admin.elasticsearch.skipTLSVerificationTitle',
-                    'admin.elasticsearch.skipTLSVerificationDescription',
-                    'admin.elasticsearch.usernameTitle',
-                    'admin.elasticsearch.usernameDescription',
-                    'admin.elasticsearch.passwordTitle',
-                    'admin.elasticsearch.passwordDescription',
-                    'admin.elasticsearch.sniffTitle',
-                    'admin.elasticsearch.sniffDescription',
-                    'admin.elasticsearch.testHelpText',
-                    'admin.elasticsearch.elasticsearch_test_button',
-                    'admin.elasticsearch.bulkIndexingTitle',
-                    'admin.elasticsearch.createJob.help',
-                    'admin.elasticsearch.purgeIndexesHelpText',
-                    'admin.elasticsearch.purgeIndexesButton',
-                    'admin.elasticsearch.purgeIndexesButton.label',
-                    'admin.elasticsearch.enableSearchingTitle',
-                    'admin.elasticsearch.enableSearchingDescription',
+                    elasticSearchMessages.title,
+                    elasticSearchMessages.enableIndexingTitle,
+                    [elasticSearchMessages.enableIndexingDescription, {documentationLink: ''}],
+                    elasticSearchMessages.connectionUrlTitle,
+                    [elasticSearchMessages.connectionUrlDescription, {documentationLink: ''}],
+                    elasticSearchMessages.skipTLSVerificationTitle,
+                    elasticSearchMessages.skipTLSVerificationDescription,
+                    elasticSearchMessages.usernameTitle,
+                    elasticSearchMessages.usernameDescription,
+                    elasticSearchMessages.passwordTitle,
+                    elasticSearchMessages.passwordDescription,
+                    elasticSearchMessages.sniffTitle,
+                    elasticSearchMessages.sniffDescription,
+                    elasticSearchMessages.testHelpText,
+                    elasticSearchMessages.elasticsearch_test_button,
+                    elasticSearchMessages.bulkIndexingTitle,
+                    elasticSearchMessages.help,
+                    elasticSearchMessages.purgeIndexesHelpText,
+                    elasticSearchMessages.purgeIndexesButton,
+                    elasticSearchMessages.label,
+                    elasticSearchMessages.enableSearchingTitle,
+                    elasticSearchMessages.enableSearchingDescription,
                 ],
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.ELASTICSEARCH)),
                 schema: {
@@ -1416,11 +1425,9 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'environment/push_notification_server',
                 title: defineMessage({id: 'admin.sidebar.pushNotificationServer', defaultMessage: 'Push Notification Server'}),
                 searchableStrings: [
-                    'admin.environment.pushNotificationServer',
-                    'admin.email.pushTitle',
-                    'admin.email.pushServerTitle',
-                    'admin.email.pushContentTitle',
-                    'admin.email.pushContentDesc',
+                    pushSettingsMessages.pushNotificationServer,
+                    pushSettingsMessages.pushTitle,
+                    pushSettingsMessages.pushServerTitle,
                 ],
                 isHidden: it.any(
                     it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
@@ -1441,24 +1448,24 @@ const AdminDefinition: AdminDefinitionType = {
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
                 ),
                 searchableStrings: [
-                    'admin.advance.cluster',
-                    'admin.cluster.noteDescription',
-                    'admin.cluster.enableTitle',
-                    'admin.cluster.enableDescription',
-                    'admin.cluster.ClusterName',
-                    'admin.cluster.ClusterNameDesc',
-                    'admin.cluster.OverrideHostname',
-                    'admin.cluster.OverrideHostnameDesc',
-                    'admin.cluster.UseIPAddress',
-                    'admin.cluster.UseIPAddressDesc',
-                    'admin.cluster.EnableExperimentalGossipEncryption',
-                    'admin.cluster.EnableExperimentalGossipEncryptionDesc',
-                    'admin.cluster.EnableGossipCompression',
-                    'admin.cluster.EnableGossipCompressionDesc',
-                    'admin.cluster.GossipPort',
-                    'admin.cluster.GossipPortDesc',
-                    'admin.cluster.StreamingPort',
-                    'admin.cluster.StreamingPortDesc',
+                    clusterSettingsMessages.cluster,
+                    clusterSettingsMessages.noteDescription,
+                    clusterSettingsMessages.enableTitle,
+                    clusterSettingsMessages.enableDescription,
+                    clusterSettingsMessages.clusterName,
+                    clusterSettingsMessages.clusterNameDesc,
+                    clusterSettingsMessages.overrideHostname,
+                    clusterSettingsMessages.overrideHostnameDesc,
+                    clusterSettingsMessages.useIPAddress,
+                    clusterSettingsMessages.useIPAddressDesc,
+                    clusterSettingsMessages.enableExperimentalGossipEncryption,
+                    clusterSettingsMessages.enableExperimentalGossipEncryptionDesc,
+                    clusterSettingsMessages.enableGossipCompression,
+                    clusterSettingsMessages.enableGossipCompressionDesc,
+                    clusterSettingsMessages.gossipPort,
+                    clusterSettingsMessages.gossipPortDesc,
+                    clusterSettingsMessages.streamingPort,
+                    clusterSettingsMessages.streamingPortDesc,
                 ],
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
                 schema: {
@@ -1728,23 +1735,23 @@ const AdminDefinition: AdminDefinitionType = {
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SESSION_LENGTHS)),
                 ),
                 searchableStrings: [
-                    'admin.sessionLengths.title',
-                    'admin.service.webSessionHoursDesc.extendLength',
-                    'admin.service.mobileSessionHoursDesc.extendLength',
-                    'admin.service.ssoSessionHoursDesc.extendLength',
-                    'admin.service.webSessionHoursDesc',
-                    'admin.service.mobileSessionHoursDesc',
-                    'admin.service.ssoSessionHoursDesc',
-                    'admin.service.sessionIdleTimeout',
-                    'admin.service.sessionIdleTimeoutDesc',
-                    'admin.service.extendSessionLengthActivity.label',
-                    'admin.service.extendSessionLengthActivity.helpText',
-                    'admin.service.webSessionHours',
-                    'admin.service.sessionHoursEx',
-                    'admin.service.mobileSessionHours',
-                    'admin.service.ssoSessionHours',
-                    'admin.service.sessionCache',
-                    'admin.service.sessionCacheDesc',
+                    sessionLengthMessages.title,
+                    sessionLengthMessages.webSessionHoursDesc_extendLength,
+                    sessionLengthMessages.mobileSessionHoursDesc_extendLength,
+                    sessionLengthMessages.ssoSessionHoursDesc_extendLength,
+                    sessionLengthMessages.webSessionHoursDesc,
+                    sessionLengthMessages.mobileSessionHoursDesc,
+                    sessionLengthMessages.ssoSessionHoursDesc,
+                    sessionLengthMessages.sessionIdleTimeout,
+                    sessionLengthMessages.sessionIdleTimeoutDesc,
+                    sessionLengthMessages.extendSessionLengthActivity_label,
+                    sessionLengthMessages.extendSessionLengthActivity_helpText,
+                    sessionLengthMessages.webSessionHours,
+                    sessionLengthMessages.sessionHoursEx,
+                    sessionLengthMessages.mobileSessionHours,
+                    sessionLengthMessages.ssoSessionHours,
+                    sessionLengthMessages.sessionCache,
+                    sessionLengthMessages.sessionCacheDesc,
                 ],
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SESSION_LENGTHS)),
                 schema: {
@@ -2993,18 +3000,18 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'authentication/password',
                 title: defineMessage({id: 'admin.sidebar.password', defaultMessage: 'Password'}),
                 searchableStrings: [
-                    'user.settings.security.passwordMinLength',
-                    'admin.security.password',
-                    ['admin.password.minimumLength', {max: '', min: ''}],
-                    ['admin.password.minimumLengthDescription', {max: '', min: ''}],
-                    'passwordRequirements',
-                    'admin.password.lowercase',
-                    'admin.password.uppercase',
-                    'admin.password.number',
-                    'admin.password.symbol',
-                    'admin.password.preview',
-                    'admin.service.attemptTitle',
-                    'admin.service.attemptDescription',
+                    passwordSettingsMessages.passwordMinLength,
+                    passwordSettingsMessages.password,
+                    [passwordSettingsMessages.minimumLength, {max: '', min: ''}],
+                    [passwordSettingsMessages.minimumLengthDescription, {max: '', min: ''}],
+                    passwordSettingsMessages.passwordRequirements,
+                    passwordSettingsMessages.lowercase,
+                    passwordSettingsMessages.uppercase,
+                    passwordSettingsMessages.number,
+                    passwordSettingsMessages.symbol,
+                    passwordSettingsMessages.preview,
+                    passwordSettingsMessages.attemptTitle,
+                    passwordSettingsMessages.attemptDescription,
                 ],
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.PASSWORD)),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.PASSWORD)),
@@ -5133,22 +5140,22 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'plugins/plugin_management',
                 title: defineMessage({id: 'admin.plugins.pluginManagement', defaultMessage: 'Plugin Management'}),
                 searchableStrings: [
-                    'admin.plugin.management.title',
-                    'admin.plugins.settings.enable',
-                    'admin.plugins.settings.enableDesc',
-                    'admin.plugin.uploadTitle',
-                    'admin.plugin.installedTitle',
-                    'admin.plugin.installedDesc',
-                    'admin.plugin.uploadDesc',
-                    'admin.plugin.uploadDisabledDesc',
-                    'admin.plugins.settings.enableMarketplace',
-                    'admin.plugins.settings.enableMarketplaceDesc',
-                    'admin.plugins.settings.enableRemoteMarketplace',
-                    'admin.plugins.settings.enableRemoteMarketplaceDesc',
-                    'admin.plugins.settings.automaticPrepackagedPlugins',
-                    'admin.plugins.settings.automaticPrepackagedPluginsDesc',
-                    'admin.plugins.settings.marketplaceUrl',
-                    'admin.plugins.settings.marketplaceUrlDesc',
+                    pluginManagementMessages.title,
+                    pluginManagementMessages.enable,
+                    pluginManagementMessages.enableDesc,
+                    pluginManagementMessages.uploadTitle,
+                    pluginManagementMessages.installedTitle,
+                    pluginManagementMessages.installedDesc,
+                    pluginManagementMessages.uploadDesc,
+                    pluginManagementMessages.uploadDisabledDesc,
+                    pluginManagementMessages.enableMarketplace,
+                    pluginManagementMessages.enableMarketplaceDesc,
+                    pluginManagementMessages.enableRemoteMarketplace,
+                    pluginManagementMessages.enableRemoteMarketplaceDesc,
+                    pluginManagementMessages.automaticPrepackagedPlugins,
+                    pluginManagementMessages.automaticPrepackagedPluginsDesc,
+                    pluginManagementMessages.marketplaceUrl,
+                    pluginManagementMessages.marketplaceUrlDesc,
                 ],
                 isDisabled: it.not(it.userHasWritePermissionOnResource('plugins')),
                 schema: {
@@ -5463,16 +5470,16 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'compliance/data_retention_settings',
                 title: defineMessage({id: 'admin.sidebar.dataRetentionSettingsPolicies', defaultMessage: 'Data Retention Policies'}),
                 searchableStrings: [
-                    'admin.data_retention.title',
-                    'admin.data_retention.createJob.title',
-                    'admin.data_retention.settings.title',
-                    'admin.data_retention.globalPolicy.title',
-                    'admin.data_retention.globalPolicy.subTitle',
-                    'admin.data_retention.customPolicies.title',
-                    'admin.data_retention.customPolicies.subTitle',
-                    'admin.data_retention.jobCreation.title',
-                    'admin.data_retention.jobCreation.subTitle',
-                    'admin.data_retention.createJob.instructions',
+                    adminDefinitionMessages.data_retention_title,
+                    dataRetentionMessages.createJob_title,
+                    dataRetentionMessages.settings_title,
+                    dataRetentionMessages.globalPolicy_title,
+                    dataRetentionMessages.globalPolicy_subTitle,
+                    dataRetentionMessages.customPolicies_title,
+                    dataRetentionMessages.customPolicies_subTitle,
+                    dataRetentionMessages.jobCreation_title,
+                    dataRetentionMessages.jobCreation_subTitle,
+                    dataRetentionMessages.createJob_instructions,
                 ],
                 isHidden: it.any(
                     it.not(it.licensedForFeature('DataRetention')),
@@ -5495,7 +5502,7 @@ const AdminDefinition: AdminDefinitionType = {
                 ),
                 schema: {
                     id: 'DataRetentionSettings',
-                    name: defineMessage({id: 'admin.data_retention.title', defaultMessage: 'Data Retention Policy'}),
+                    name: adminDefinitionMessages.data_retention_title,
                     settings: [
                         {
                             type: 'custom',
@@ -5511,22 +5518,22 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'compliance/export',
                 title: defineMessage({id: 'admin.sidebar.complianceExport', defaultMessage: 'Compliance Export'}),
                 searchableStrings: [
-                    'admin.service.complianceExportTitle',
-                    'admin.service.complianceExportDesc',
-                    'admin.complianceExport.exportJobStartTime.title',
-                    'admin.complianceExport.exportJobStartTime.description',
-                    'admin.complianceExport.exportFormat.title',
-                    ['admin.complianceExport.exportFormat.description', {siteURL: ''}],
-                    'admin.complianceExport.createJob.title',
-                    'admin.complianceExport.createJob.help',
-                    'admin.complianceExport.globalRelayCustomerType.title',
-                    'admin.complianceExport.globalRelayCustomerType.description',
-                    'admin.complianceExport.globalRelaySMTPUsername.title',
-                    'admin.complianceExport.globalRelaySMTPUsername.description',
-                    'admin.complianceExport.globalRelaySMTPPassword.title',
-                    'admin.complianceExport.globalRelaySMTPPassword.description',
-                    'admin.complianceExport.globalRelayEmailAddress.title',
-                    'admin.complianceExport.globalRelayEmailAddress.description',
+                    messageExportMessages.complianceExportTitle,
+                    messageExportMessages.complianceExportDesc,
+                    messageExportMessages.exportJobStartTime_title,
+                    messageExportMessages.exportJobStartTime_description,
+                    messageExportMessages.exportFormat_title,
+                    [messageExportMessages.exportFormat_description, {siteURL: ''}],
+                    messageExportMessages.createJob_title,
+                    messageExportMessages.createJob_help,
+                    messageExportMessages.globalRelayCustomerType_title,
+                    messageExportMessages.globalRelayCustomerType_description,
+                    messageExportMessages.globalRelaySMTPUsername_title,
+                    messageExportMessages.globalRelaySMTPUsername_description,
+                    messageExportMessages.globalRelaySMTPPassword_title,
+                    messageExportMessages.globalRelaySMTPPassword_description,
+                    messageExportMessages.globalRelayEmailAddress_title,
+                    messageExportMessages.globalRelayEmailAddress_description,
                 ],
                 isHidden: it.any(
                     it.not(it.licensedForFeature('MessageExport')),
@@ -5570,8 +5577,7 @@ const AdminDefinition: AdminDefinitionType = {
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.COMPLIANCE.COMPLIANCE_MONITORING)),
                 searchableStrings: [
-                    'admin.audits.title',
-                    'admin.audits.reload',
+                    auditsMessages.reload,
                 ],
                 schema: {
                     id: 'Audits',
@@ -5637,13 +5643,13 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'compliance/custom_terms_of_service',
                 title: defineMessage({id: 'admin.sidebar.customTermsOfService', defaultMessage: 'Custom Terms of Service'}),
                 searchableStrings: [
-                    'admin.support.termsOfServiceTitle',
-                    'admin.support.enableTermsOfServiceTitle',
-                    'admin.support.enableTermsOfServiceHelp',
-                    'admin.support.termsOfServiceTextTitle',
-                    'admin.support.termsOfServiceTextHelp',
-                    'admin.support.termsOfServiceReAcceptanceTitle',
-                    'admin.support.termsOfServiceReAcceptanceHelp',
+                    customTermsOfServiceMessages.termsOfServiceTitle,
+                    customTermsOfServiceMessages.enableTermsOfServiceTitle,
+                    customTermsOfServiceMessages.enableTermsOfServiceHelp,
+                    customTermsOfServiceMessages.termsOfServiceTextTitle,
+                    customTermsOfServiceMessages.termsOfServiceTextHelp,
+                    customTermsOfServiceMessages.termsOfServiceReAcceptanceTitle,
+                    customTermsOfServiceMessages.termsOfServiceReAcceptanceHelp,
                 ],
                 isHidden: it.any(
                     it.not(it.licensedForFeature('CustomTermsOfService')),
@@ -5666,7 +5672,7 @@ const AdminDefinition: AdminDefinitionType = {
                 ),
                 schema: {
                     id: 'TermsOfServiceSettings',
-                    name: defineMessage({id: 'admin.support.termsOfServiceTitle', defaultMessage: 'Custom Terms of Service'}),
+                    name: defineMessage(customTermsOfServiceMessages.termsOfServiceTitle),
                     settings: [
                         {
                             type: 'custom',
@@ -6101,13 +6107,13 @@ const AdminDefinition: AdminDefinitionType = {
             },
             feature_flags: {
                 url: 'experimental/feature_flags',
-                title: defineMessage({id: 'admin.feature_flags.title', defaultMessage: 'Feature Flags'}),
+                title: defineMessage(featureFlagsMessages.title),
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURE_FLAGS)),
                 ),
                 isDisabled: true,
                 searchableStrings: [
-                    'admin.feature_flags.title',
+                    featureFlagsMessages.title,
                 ],
                 schema: {
                     id: 'Feature Flags',
@@ -6125,8 +6131,7 @@ const AdminDefinition: AdminDefinitionType = {
                 searchableStrings: [
                     'admin.bleve.title',
                     'admin.bleve.enableIndexingTitle',
-                    ['admin.bleve.enableIndexingDescription', {documentationLink: ''}],
-                    'admin.bleve.enableIndexingDescription.documentationLinkText',
+                    'admin.bleve.enableIndexingDescription',
                     'admin.bleve.bulkIndexingTitle',
                     'admin.bleve.createJob.help',
                     'admin.bleve.purgeIndexesHelpText',

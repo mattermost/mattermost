@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import './admin_panel.scss';
@@ -10,51 +11,52 @@ type Props = {
     id?: string;
     className?: string;
     onHeaderClick?: React.EventHandler<React.MouseEvent>;
-    titleId: string;
-    titleDefault: string;
-    subtitleId: string;
-    subtitleDefault: string;
+    title: MessageDescriptor;
+    subtitle: MessageDescriptor;
     subtitleValues?: any;
     button?: React.ReactNode;
     children?: React.ReactNode;
 };
 
-const AdminPanel: React.FC<Props> = (props: Props) => (
+const AdminPanel: React.FC<Props> = ({
+    subtitle,
+    title,
+    button,
+    children,
+    className = '',
+    id,
+    onHeaderClick,
+    subtitleValues,
+}: Props) => (
     <div
-        className={'AdminPanel clearfix ' + props.className}
-        id={props.id}
+        className={'AdminPanel clearfix ' + className}
+        id={id}
     >
         <div
             className='header'
-            onClick={props.onHeaderClick}
+            onClick={onHeaderClick}
         >
             <div>
                 <h3>
                     <FormattedMessage
-                        id={props.titleId}
-                        defaultMessage={props.titleDefault}
+                        {...title}
                     />
                 </h3>
                 <div className='mt-2'>
                     <FormattedMessage
-                        id={props.subtitleId}
-                        defaultMessage={props.subtitleDefault}
-                        values={props.subtitleValues}
+                        {...subtitle}
+                        values={subtitleValues}
                     />
                 </div>
             </div>
-            {props.button &&
+            {button &&
                 <div className='button'>
-                    {props.button}
+                    {button}
                 </div>
             }
         </div>
-        {props.children}
+        {children}
     </div>
 );
-
-AdminPanel.defaultProps = {
-    className: '',
-};
 
 export default AdminPanel;

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import FlexSearch from 'flexsearch/dist/flexsearch.es5';
-import type {IntlShape} from 'react-intl';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
 
 import type {PluginRedux} from '@mattermost/types/plugins';
 
@@ -29,24 +29,28 @@ export type Index = {
     search(query: string): string[];
 }
 
+function pushText(texts: Array<string | string[]>, value: string | MessageDescriptor, intl: IntlShape) {
+    if (typeof value === 'string') {
+        texts.push(value);
+    } else {
+        texts.push(intl.formatMessage(value));
+    }
+}
+
 function extractTextsFromSection(section: AdminDefinitionSubSection, intl: IntlShape) {
     const texts: Array<string | string[]> = [];
     if (section.title) {
-        texts.push(intl.formatMessage(section.title));
+        pushText(texts, section.title, intl);
     }
     if ('name' in section.schema && section.schema.name) {
-        if (typeof section.schema.name === 'string') {
-            texts.push(section.schema.name);
-        } else {
-            texts.push(intl.formatMessage(section.schema.name));
-        }
+        pushText(texts, section.schema.name, intl);
     }
     if (section.searchableStrings) {
         for (const searchableString of section.searchableStrings) {
-            if (typeof searchableString === 'string') {
-                texts.push(intl.formatMessage({id: searchableString, defaultMessage: searchableString}));
+            if (Array.isArray(searchableString)) {
+                texts.push(intl.formatMessage(searchableString[0], searchableString[1]));
             } else {
-                texts.push(intl.formatMessage({id: searchableString[0], defaultMessage: ''}, searchableString[1]));
+                pushText(texts, searchableString, intl);
             }
         }
     }
@@ -79,10 +83,10 @@ function extractTextFromSettings(settings: AdminDefinitionSetting[], intl: IntlS
             }
         }
         if ('remove_help_text' in setting && setting.remove_help_text) {
-            texts.push(intl.formatMessage(setting.remove_help_text));
+            pushText(texts, setting.remove_help_text, intl);
         }
         if ('remove_button_text' in setting && setting.remove_button_text) {
-            texts.push(intl.formatMessage(setting.remove_button_text));
+            pushText(texts, setting.remove_button_text, intl);
         }
     }
 

@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import MentionsIcon from 'components/widgets/icons/mentions_icon';
 
 type Props = {
     name?: string;
-    title: string;
-    titleDefault: string;
+    title: MessageDescriptor;
     customID?: string;
     isDisabled?: boolean;
     showAtMention: boolean;
@@ -21,7 +21,6 @@ export default class GroupProfile extends React.PureComponent<Props> {
         const {
             name,
             title,
-            titleDefault,
             customID,
             isDisabled,
             showAtMention,
@@ -36,8 +35,7 @@ export default class GroupProfile extends React.PureComponent<Props> {
                 <div className='group-profile-field form-group mb-0'>
                     <label className='control-label col-sm-4'>
                         <FormattedMessage
-                            id={title}
-                            defaultMessage={titleDefault}
+                            {...title}
                         />
                     </label>
                     <div className='col-sm-8'>

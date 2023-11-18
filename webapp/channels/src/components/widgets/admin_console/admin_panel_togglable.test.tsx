@@ -10,31 +10,43 @@ describe('components/widgets/admin_console/AdminPanelTogglable', () => {
     const defaultProps = {
         className: 'test-class-name',
         id: 'test-id',
-        titleId: 'test-title-id',
-        titleDefault: 'test-title-default',
-        subtitleId: 'test-subtitle-id',
-        subtitleDefault: 'test-subtitle-default',
+        title: {id: 'test-title-id', defaultMessage: 'test-title-default'},
+        subtitle: {
+            id: 'test-subtitle-id',
+            defaultMessage: 'test-subtitle-default',
+        },
         open: true,
         onToggle: jest.fn(),
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<AdminPanelTogglable {...defaultProps}>{'Test'}</AdminPanelTogglable>);
-        expect(wrapper).toMatchInlineSnapshot(`
-<AdminPanel
-  button={<AccordionToggleIcon />}
-  className="AdminPanelTogglable test-class-name"
-  id="test-id"
-  onHeaderClick={[MockFunction]}
-  subtitleDefault="test-subtitle-default"
-  subtitleId="test-subtitle-id"
-  titleDefault="test-title-default"
-  titleId="test-title-id"
->
-  Test
-</AdminPanel>
-`,
+        const wrapper = shallow(
+            <AdminPanelTogglable {...defaultProps}>
+                {'Test'}
+            </AdminPanelTogglable>,
         );
+        expect(wrapper).toMatchInlineSnapshot(`
+            <AdminPanel
+              button={<AccordionToggleIcon />}
+              className="AdminPanelTogglable test-class-name"
+              id="test-id"
+              onHeaderClick={[MockFunction]}
+              subtitle={
+                Object {
+                  "defaultMessage": "test-subtitle-default",
+                  "id": "test-subtitle-id",
+                }
+              }
+              title={
+                Object {
+                  "defaultMessage": "test-title-default",
+                  "id": "test-title-id",
+                }
+              }
+            >
+              Test
+            </AdminPanel>
+        `);
     });
 
     test('should match snapshot closed', () => {
@@ -44,21 +56,29 @@ describe('components/widgets/admin_console/AdminPanelTogglable', () => {
                 open={false}
             >
                 {'Test'}
-            </AdminPanelTogglable>);
-        expect(wrapper).toMatchInlineSnapshot(`
-<AdminPanel
-  button={<AccordionToggleIcon />}
-  className="AdminPanelTogglable test-class-name closed"
-  id="test-id"
-  onHeaderClick={[MockFunction]}
-  subtitleDefault="test-subtitle-default"
-  subtitleId="test-subtitle-id"
-  titleDefault="test-title-default"
-  titleId="test-title-id"
->
-  Test
-</AdminPanel>
-`,
+            </AdminPanelTogglable>,
         );
+        expect(wrapper).toMatchInlineSnapshot(`
+            <AdminPanel
+              button={<AccordionToggleIcon />}
+              className="AdminPanelTogglable test-class-name closed"
+              id="test-id"
+              onHeaderClick={[MockFunction]}
+              subtitle={
+                Object {
+                  "defaultMessage": "test-subtitle-default",
+                  "id": "test-subtitle-id",
+                }
+              }
+              title={
+                Object {
+                  "defaultMessage": "test-title-default",
+                  "id": "test-title-id",
+                }
+              }
+            >
+              Test
+            </AdminPanel>
+        `);
     });
 });

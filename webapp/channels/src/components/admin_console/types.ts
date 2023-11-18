@@ -32,7 +32,7 @@ type AdminDefinitionSettingCustom = Omit<AdminDefinitionSettingBase, 'label'> & 
 
 type AdminDefinitionSettingBase = {
     key?: string;
-    label: MessageDescriptor;
+    label: string | MessageDescriptor;
     label_values?: {[key: string]: any};
     help_text?: string | JSX.Element | MessageDescriptor;
     help_text_markdown?: boolean;
@@ -54,7 +54,7 @@ export type AdminDefinitionSettingBanner = AdminDefinitionSettingBase & {
 
 type AdminDefinitionSettingInput = AdminDefinitionSettingBase & {
     type: 'text' | 'bool' | 'longtext' | 'number' | 'color';
-    placeholder?: MessageDescriptor;
+    placeholder?: string | MessageDescriptor;
     validate?: Validator;
     setFromMetadataField?: string;
     dynamic_value?: (value: any, config: Partial<AdminConfig>, state: any) => string;
@@ -63,14 +63,14 @@ type AdminDefinitionSettingInput = AdminDefinitionSettingBase & {
 
 type AdminDefinitionSettingGenerated = AdminDefinitionSettingBase & {
     type: 'generated';
-    placeholder?: string;
+    placeholder?: string | MessageDescriptor;
     regenerate_help_text?: string;
 }
 
 export type AdminDefinitionSettingDropdownOption = {
     value: string;
-    display_name: MessageDescriptor;
-    help_text?: MessageDescriptor;
+    display_name: string | MessageDescriptor;
+    help_text?: string | MessageDescriptor;
     help_text_markdown?: boolean;
     help_text_values?: {[key: string]: any};
     isHidden?: Check;
@@ -84,10 +84,10 @@ type AdminDefinitionSettingDropdown = AdminDefinitionSettingBase & {
 
 type AdminDefinitionSettingFileUpload = AdminDefinitionSettingBase & {
     type: 'fileupload';
-    remove_help_text: MessageDescriptor;
-    remove_button_text: MessageDescriptor;
-    removing_text: MessageDescriptor;
-    uploading_text: MessageDescriptor;
+    remove_help_text: string | MessageDescriptor;
+    remove_button_text: string | MessageDescriptor;
+    removing_text: string | MessageDescriptor;
+    uploading_text: string | MessageDescriptor;
     fileType: string;
     upload_action: (file: File, success: (data: any) => void, error: (err: any) => void) => void;
     set_action?: () => void;
@@ -104,15 +104,15 @@ type AdminDefinitionSettingJobsTable = AdminDefinitionSettingBase & {
 type AdminDefinitionSettingLanguage = AdminDefinitionSettingBase & {
     type: 'language';
     multiple?: boolean;
-    no_result?: MessageDescriptor;
+    no_result?: string | MessageDescriptor;
 }
 
 type AdminDefinitionSettingButton = AdminDefinitionSettingBase & {
     type: 'button';
     action: (success: (data?: any) => void, error: (error: {message: string; detailed_error?: string}) => void, siteUrl: string) => void;
-    loading?: MessageDescriptor;
-    error_message: MessageDescriptor;
-    success_message?: MessageDescriptor;
+    loading?: string | MessageDescriptor;
+    error_message: string | MessageDescriptor;
+    success_message?: string | MessageDescriptor;
     sourceUrlKey?: string;
 }
 
@@ -146,16 +146,16 @@ type AdminDefinitionConfigSchemaSettings = {
     onConfigSave?: (displayVal: any) => any;
     settings?: AdminDefinitionSetting[];
     sections?: AdminDefinitionConfigSchemaSection[];
-    footer?: string;
-    header?: string;
+    footer?: string | MessageDescriptor;
+    header?: string | MessageDescriptor;
 }
 
 type AdminDefinitionConfigSchemaSection = {
     title: string;
     subtitle?: string;
     settings: AdminDefinitionSetting[];
-    header?: string;
-    footer?: string;
+    header?: string | MessageDescriptor;
+    footer?: string | MessageDescriptor;
 }
 
 type RestrictedIndicatorType = {
@@ -167,8 +167,8 @@ export type AdminDefinitionSubSectionSchema = AdminDefinitionConfigSchemaCompone
 
 export type AdminDefinitionSubSection = {
     url: string;
-    title?: MessageDescriptor;
-    searchableStrings?: Array<string|[string, {[key: string]: any}]>;
+    title?: string | MessageDescriptor;
+    searchableStrings?: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]>;
     isHidden?: Check;
     isDiscovery?: boolean;
     isDisabled?: Check;
@@ -178,7 +178,7 @@ export type AdminDefinitionSubSection = {
 
 export type AdminDefinitionSection = {
     icon: JSX.Element;
-    sectionTitle: MessageDescriptor;
+    sectionTitle: string | MessageDescriptor;
     isHidden: Check;
     id?: string;
     subsections: {[key: string]: AdminDefinitionSubSection};

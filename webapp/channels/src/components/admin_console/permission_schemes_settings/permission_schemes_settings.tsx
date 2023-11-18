@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {injectIntl, type MessageDescriptor, type WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {Scheme, SchemeScope, SchemesState} from '@mattermost/types/schemes';
@@ -17,7 +18,6 @@ import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {DocLinks, LicenseSkus} from 'utils/constants';
 import {t} from 'utils/i18n';
-import * as Utils from 'utils/utils';
 
 import PermissionsSchemeSummary from './permissions_scheme_summary';
 
@@ -37,7 +37,7 @@ export type Props = {
         loadSchemeTeams: (id: string) => Promise<ActionResult>;
     };
     isDisabled?: boolean;
-};
+} & WrappedComponentProps;
 
 type State = {
     loading: boolean;
@@ -45,7 +45,20 @@ type State = {
     page: number;
     phase2MigrationIsComplete: boolean;
 };
-export default class PermissionSchemesSettings extends React.PureComponent<Props & RouteComponentProps, State> {
+
+export const messages = defineMessages({
+    teamOverrideSchemesNoSchemes: {id: 'admin.permissions.teamOverrideSchemesNoSchemes', defaultMessage: 'No team override schemes created.'},
+    loadMoreSchemes: {id: 'admin.permissions.loadMoreSchemes', defaultMessage: 'Load more schemes'},
+    introBanner: {id: 'admin.permissions.introBanner', defaultMessage: 'Permission Schemes set the default permissions for Team Admins, Channel Admins and everyone else. Learn more about permission schemes in our <link>documentation</link>.'},
+    systemSchemeBannerTitle: {id: 'admin.permissions.systemSchemeBannerTitle', defaultMessage: 'System Scheme'},
+    systemSchemeBannerText: {id: 'admin.permissions.systemSchemeBannerText', defaultMessage: 'Set the default permissions inherited by all teams unless a <link>Team Override Scheme</link> is applied.'},
+    systemSchemeBannerButton: {id: 'admin.permissions.systemSchemeBannerButton', defaultMessage: 'Edit Scheme'},
+    teamOverrideSchemesTitle: {id: 'admin.permissions.teamOverrideSchemesTitle', defaultMessage: 'Team Override Schemes'},
+    teamOverrideSchemesBannerText: {id: 'admin.permissions.teamOverrideSchemesBannerText', defaultMessage: 'Use when specific teams need permission exceptions to the <link>System Scheme</link>'},
+    teamOverrideSchemesNewButton: {id: 'admin.permissions.teamOverrideSchemesNewButton', defaultMessage: 'New Team Override Scheme'},
+});
+
+class PermissionSchemesSettings extends React.PureComponent<Props & RouteComponentProps, State> {
     constructor(props: Props & RouteComponentProps) {
         super(props);
         this.state = {
@@ -98,41 +111,39 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
             return null;
         }
 
-        const docLink = (
-            <ExternalLink
-                href='https://docs.mattermost.com/administration/config-settings.html#jobs'
-                location='permission_scheme_settings'
-            >
-                <FormattedMessage
-                    id='admin.permissions.documentationLinkText'
-                    defaultMessage='documentation'
-                />
-            </ExternalLink>
-        );
-
         if (this.props.jobsAreEnabled && !this.props.clusterIsEnabled) {
             return this.teamOverrideUnavalableView(
-                t('admin.permissions.teamOverrideSchemesInProgress'),
-                'Migration job in progress: Team Override Schemes are not available until the job server completes the permissions migration. Learn more in the {documentationLink}.',
-                docLink,
+                defineMessage({
+                    id: 'admin.permissions.teamOverrideSchemesInProgress',
+                    defaultMessage: 'Migration job in progress: Team Override Schemes are not available until the job server completes the permissions migration. Learn more in the <link>documentation</link>.',
+                }),
             );
         }
 
         return this.teamOverrideUnavalableView(
-            t('admin.permissions.teamOverrideSchemesNoJobsEnabled'),
-            'Migration job on hold: Team Override Schemes are not available until the job server can execute the permissions migration. The job will be automatically started when the job server is enabled. Learn more in the {documentationLink}.',
-            docLink,
+            defineMessage({
+                id: 'admin.permissions.teamOverrideSchemesNoJobsEnabled',
+                defaultMessage: 'Migration job on hold: Team Override Schemes are not available until the job server can execute the permissions migration. The job will be automatically started when the job server is enabled. Learn more in the <link>documentation</link>.',
+            }),
         );
     };
 
-    teamOverrideUnavalableView = (id: string, defaultMsg: string, documentationLink: React.ReactNode) => {
+    teamOverrideUnavalableView = (message: MessageDescriptor) => {
         return (
             <div className='team-override-unavailable'>
                 <div className='team-override-unavailable__inner'>
                     <FormattedMessage
-                        id={id}
-                        defaultMessage={defaultMsg}
-                        values={{documentationLink}}
+                        {...message}
+                        values={{
+                            link: (chunks) => (
+                                <ExternalLink
+                                    href='https://docs.mattermost.com/administration/config-settings.html#jobs'
+                                    location='permission_scheme_settings'
+                                >
+                                    {chunks}
+                                </ExternalLink>
+                            ),
+                        }}
                     />
                 </div>
             </div>
@@ -158,10 +169,8 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
                 <AdminPanelWithLink
                     id='team-override-schemes'
                     className='permissions-block'
-                    titleId={t('admin.permissions.teamOverrideSchemesTitle')}
-                    titleDefault='Team Override Schemes'
-                    subtitleId={t('admin.permissions.teamOverrideSchemesBannerText')}
-                    subtitleDefault='Use when specific teams need permission exceptions to the <link>System Scheme</link>'
+                    title={messages.teamOverrideSchemesTitle}
+                    subtitle={messages.teamOverrideSchemesBannerText}
                     subtitleValues={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
@@ -174,14 +183,12 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
                     }}
                     url='/admin_console/user_management/permissions/team_override_scheme'
                     disabled={(teamOverrideView !== null) || this.props.isDisabled}
-                    linkTextId={t('admin.permissions.teamOverrideSchemesNewButton')}
-                    linkTextDefault='New Team Override Scheme'
+                    linkText={messages.teamOverrideSchemesNewButton}
                 >
                     {schemes.length === 0 && teamOverrideView === null &&
                         <div className='no-team-schemes'>
                             <FormattedMessage
-                                id='admin.permissions.teamOverrideSchemesNoSchemes'
-                                defaultMessage='No team override schemes created.'
+                                {...messages.teamOverrideSchemesNoSchemes}
                             />
                         </div>}
                     {teamOverrideView}
@@ -195,12 +202,9 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
                         >
                             <LoadingWrapper
                                 loading={this.state.loadingMore}
-                                text={Utils.localizeMessage('admin.permissions.loadingMoreSchemes', 'Loading...')}
+                                text={this.props.intl.formatMessage({id: 'admin.permissions.loadingMoreSchemes', defaultMessage: 'Loading...'})}
                             >
-                                <FormattedMessage
-                                    id='admin.permissions.loadMoreSchemes'
-                                    defaultMessage='Load more schemes'
-                                />
+                                <FormattedMessage {...messages.loadMoreSchemes}/>
                             </LoadingWrapper>
                         </button>}
                 </AdminPanelWithLink>
@@ -230,8 +234,7 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
                             <div className='banner__content'>
                                 <span>
                                     <FormattedMessage
-                                        id='admin.permissions.introBanner'
-                                        defaultMessage='Permission Schemes set the default permissions for Team Admins, Channel Admins and everyone else. Learn more about permission schemes in our <link>documentation</link>.'
+                                        {...messages.introBanner}
                                         values={{
                                             link: (msg: React.ReactNode) => (
                                                 <ExternalLink
@@ -249,10 +252,8 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
 
                         <AdminPanelWithLink
                             id='systemScheme'
-                            titleId={t('admin.permissions.systemSchemeBannerTitle')}
-                            titleDefault='System Scheme'
-                            subtitleId={t('admin.permissions.systemSchemeBannerText')}
-                            subtitleDefault='Set the default permissions inherited by all teams unless a <link>Team Override Scheme</link> is applied.'
+                            title={messages.systemSchemeBannerTitle}
+                            subtitle={messages.systemSchemeBannerText}
                             subtitleValues={{
                                 link: (msg: React.ReactNode) => (
                                     <ExternalLink
@@ -265,8 +266,7 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
                             }}
                             url='/admin_console/user_management/permissions/system_scheme'
                             disabled={teamOverrideView !== null}
-                            linkTextId={t('admin.permissions.systemSchemeBannerButton')}
-                            linkTextDefault='Edit Scheme'
+                            linkText={messages.systemSchemeBannerButton}
                         />
 
                         {this.renderTeamOverrideSchemes()}
@@ -276,6 +276,8 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
         );
     };
 }
+
+export default injectIntl(PermissionSchemesSettings);
 
 t('admin.permissions.group.delete_posts.description');
 t('admin.permissions.group.delete_posts.name');

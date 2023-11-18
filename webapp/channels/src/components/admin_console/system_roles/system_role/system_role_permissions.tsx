@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import type {Role} from '@mattermost/types/roles';
 
@@ -267,10 +268,8 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
         return (
             <AdminPanel
                 id='SystemRolePermissions'
-                titleId={t('admin.permissions.system_role_permissions.title')}
-                titleDefault='Privileges'
-                subtitleId={t('admin.permissions.system_role_permissions.description')}
-                subtitleDefault='Level of access to the system console.'
+                title={defineMessage({id: 'admin.permissions.system_role_permissions.title', defaultMessage: 'Privileges'})}
+                subtitle={defineMessage({id: 'admin.permissions.system_role_permissions.description', defaultMessage: 'Level of access to the system console.'})}
             >
                 <div className='SystemRolePermissions'>
                     {this.getRows(permissionsMap, permissionsToUpdate, visibleSections)}

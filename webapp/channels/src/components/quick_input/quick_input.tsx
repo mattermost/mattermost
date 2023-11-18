@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import type {ReactComponentLike} from 'prop-types';
 import React from 'react';
 import type {ReactNode} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import AutosizeTextarea from 'components/autosize_textarea';
@@ -78,7 +79,7 @@ export type Props = {
 
     maxLength?: number;
     className?: string;
-    placeholder?: string | { id: string; defaultMessage: string };
+    placeholder?: string | MessageDescriptor;
     autoFocus?: boolean;
     type?: string;
     id?: string;
