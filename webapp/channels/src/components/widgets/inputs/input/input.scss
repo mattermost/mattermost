@@ -17,6 +17,10 @@
 .Input_container {
     width: 100%;
 
+    textarea {
+        resize: none;
+    }
+
     .Input {
         position: relative;
         z-index: 2;

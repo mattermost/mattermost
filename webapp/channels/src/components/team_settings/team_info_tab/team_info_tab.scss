@@ -1,6 +1,12 @@
 .modal-info-tab-content {
     display: flex;
 
+    .description-section-input {
+        fieldset {
+            height: 100%;
+        }
+    }
+
     #teamName, #teamDescription {
         background-color: unset;
     }
