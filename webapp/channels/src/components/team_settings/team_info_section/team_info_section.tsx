@@ -16,7 +16,7 @@ import Constants from 'utils/constants';
 import {imageURLForTeam, localizeMessage, moveCursorToEnd} from 'utils/utils';
 
 import type {PropsFromRedux, OwnProps} from '.';
-import './team_info_tab.scss';
+import './team_info_section.scss';
 
 const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
 
@@ -335,9 +335,10 @@ export class InfoTab extends React.PureComponent<Props, State> {
             />
         );
 
+        // todo sinan: check mobile design view in Figma
         const modalSectionContent = (
             <div className='modal-info-tab-content' >
-                <div>
+                <div className='name-description-container' >
                     {nameSection}
                     {descriptionSection}
                 </div>

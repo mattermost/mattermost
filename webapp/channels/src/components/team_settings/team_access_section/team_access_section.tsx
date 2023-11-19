@@ -11,7 +11,7 @@ import SettingItemMax from 'components/setting_item_max';
 
 import {localizeMessage, moveCursorToEnd} from 'utils/utils';
 
-import OpenInvite from '../team_access_tab/open_invite';
+import OpenInvite from './open_invite';
 
 import type {PropsFromRedux, OwnProps} from '.';
 

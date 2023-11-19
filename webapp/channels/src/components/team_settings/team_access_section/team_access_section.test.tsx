@@ -8,7 +8,7 @@ import type {ComponentProps} from 'react';
 import {type MockIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
-import {AccessTab} from './team_access_tab';
+import {AccessTab} from './team_access_section';
 
 describe('components/TeamSettings', () => {
     const getTeam = jest.fn().mockResolvedValue({data: true});

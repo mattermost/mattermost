@@ -1,6 +1,10 @@
 .modal-info-tab-content {
     display: flex;
 
+    .name-description-container {
+        flex: 2;
+    }
+
     .description-section-input {
         fieldset {
             height: 100%;

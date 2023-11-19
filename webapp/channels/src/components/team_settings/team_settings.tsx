@@ -5,8 +5,8 @@ import React from 'react';
 
 import type {Team} from '@mattermost/types/teams';
 
-import AccessTab from './team_access_tab';
-import InfoTab from './team_info_tab';
+import AccessTab from './team_access_section';
+import InfoTab from './team_info_section';
 
 // todo sinan: why it is scrolled down in the tabs
 type Props = {

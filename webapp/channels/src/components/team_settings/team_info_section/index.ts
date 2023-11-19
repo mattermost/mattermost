@@ -18,7 +18,7 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import type {GlobalState} from 'types/store/index';
 
-import TeamInfoTab from './team_info_tab';
+import TeamInfoTab from './team_info_section';
 
 export type OwnProps = {
     team?: Team & { last_team_icon_update?: number };

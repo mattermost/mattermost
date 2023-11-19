@@ -8,7 +8,7 @@ import type {ChangeEvent, ComponentProps} from 'react';
 import {type MockIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
-import {InfoTab} from './team_info_tab';
+import {InfoTab} from './team_info_section';
 
 describe('components/TeamSettings', () => {
     const getTeam = jest.fn().mockResolvedValue({data: true});
@@ -27,7 +27,6 @@ describe('components/TeamSettings', () => {
         intl: {
             formatMessage: jest.fn(),
         } as MockIntl,
-        closeModal: jest.fn(),
         actions: baseActions,
         canInviteTeamMembers: true,
         isMobileView: false,
