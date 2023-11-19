@@ -56,7 +56,7 @@ describe('Search', () => {
         cy.uiGetChannelPinButton().click();
 
         // * Verify the pinned post RHS is open
-        cy.uiGetRHS().should('contain', 'Pinned Messages');
+        cy.uiGetRHS().should('contain', 'Pinned messages');
 
         // # Now click on the saved post button from the header
         cy.uiGetSavedPostButton().click();
