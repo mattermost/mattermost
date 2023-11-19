@@ -43,6 +43,8 @@
     }
 
     > button {
+        transition: transform 100ms ease-in-out;
+
         &:not(:first-child) {
             margin-left: var(--offset);
         }
@@ -51,6 +53,7 @@
         &:focus {
             z-index: 1;
             filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.08));
+            transform: scale(1.2);
         }
     }
 
