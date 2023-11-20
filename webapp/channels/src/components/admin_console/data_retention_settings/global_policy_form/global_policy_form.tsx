@@ -10,11 +10,11 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import {keepForeverOption, yearsOption, daysOption, FOREVER, YEARS, DAYS, hoursOption, HOURS} from 'components/admin_console/data_retention_settings/dropdown_options/dropdown_options';
+import SetByEnv from 'components/admin_console/set_by_env';
 import Card from 'components/card/card';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import DropdownInputHybrid from 'components/widgets/inputs/dropdown_input_hybrid';
-import SetByEnv from 'components/admin_console/set_by_env';
 
 import {getHistory} from 'utils/browser_history';
 import * as Utils from 'utils/utils';

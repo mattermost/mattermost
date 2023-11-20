@@ -11,8 +11,8 @@ import type {ServerError} from '@mattermost/types/errors';
 import {
     updateConfig,
 } from 'mattermost-redux/actions/admin';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getEnvironmentConfig} from 'mattermost-redux/selectors/entities/admin';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
