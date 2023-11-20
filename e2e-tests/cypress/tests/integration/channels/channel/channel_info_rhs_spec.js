@@ -248,7 +248,7 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // # Click on "Pinned Messages"
-                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Pinned Messages').should('be.visible').click();
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Pinned messages').should('be.visible').click();
 
                 // * Ensure we see the Pinned Post RHS
                 cy.uiGetRHS().findByText('Hello channel info rhs spec').should('be.visible');

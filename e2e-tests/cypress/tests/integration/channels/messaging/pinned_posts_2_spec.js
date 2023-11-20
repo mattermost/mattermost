@@ -12,7 +12,7 @@
 
 import {getAdminAccount} from '../../../support/env';
 
-describe('Pinned posts', () => {
+describe('pinned messages', () => {
     let testTeam;
     let testChannel;
     let testUser;
@@ -62,12 +62,12 @@ describe('Pinned posts', () => {
             // # Click pin icon
             cy.uiGetChannelPinButton().click();
 
-            // * Should not have any pinned posts
-            cy.get('#search-items-container .no-results__title').should('have.text', 'No pinned posts yet');
+            // * Should not have any pinned messages
+            cy.get('#search-items-container .no-results__title').should('have.text', 'No pinned messages yet');
         });
     });
 
-    it('MM-T2174 Switching channels in center also changes pinned posts RHS', () => {
+    it('MM-T2174 Switching channels in center also changes pinned messages RHS', () => {
         // # Login
         cy.apiLogin(testUser);
 
@@ -81,16 +81,16 @@ describe('Pinned posts', () => {
             // # Click pin icon
             cy.uiGetChannelPinButton().click();
 
-            // * Number of pinned posts in RHS should be 1
+            // * Number of pinned messages in RHS should be 1
             cy.findByTestId('search-item-container').should('have.length', 1);
 
             // # Go to town square
             cy.get('#sidebarItem_town-square').should('be.visible').click();
 
-            // * Should not have any pinned posts
-            cy.get('#search-items-container .no-results__title').should('have.text', 'No pinned posts yet');
+            // * Should not have any pinned messages
+            cy.get('#search-items-container .no-results__title').should('have.text', 'No pinned messages yet');
 
-            // * Number of pinned posts in RHS should be 0
+            // * Number of pinned messages in RHS should be 0
             cy.findByTestId('search-item-container').should('not.exist');
 
             // # Visit a test channel
@@ -117,7 +117,7 @@ describe('Pinned posts', () => {
 
             return cy.getLastPostId();
         }).then((postId) => {
-            // * Number of pinned posts in RHS should be 0
+            // * Number of pinned messages in RHS should be 0
             cy.findByTestId('search-item-container').should('not.exist');
 
             // # Pin the post
@@ -131,7 +131,7 @@ describe('Pinned posts', () => {
         });
     });
 
-    it('MM-T2177 Deleting pinned post while viewing RHS pinned posts removes post from RHS', () => {
+    it('MM-T2177 Deleting pinned post while viewing RHS pinned messages removes post from RHS', () => {
         // # Login
         cy.apiLogin(testUser);
 
@@ -141,8 +141,8 @@ describe('Pinned posts', () => {
         // # Click pin icon
         cy.uiGetChannelPinButton().click();
 
-        // * Should not have any pinned posts
-        cy.get('#search-items-container .no-results__title').should('have.text', 'No pinned posts yet');
+        // * Should not have any pinned messages
+        cy.get('#search-items-container .no-results__title').should('have.text', 'No pinned messages yet');
 
         // # Post a message
         cy.postMessage('Hello again');
@@ -162,8 +162,8 @@ describe('Pinned posts', () => {
             cy.get(`#delete_post_${postId}`).scrollIntoView().should('be.visible').click();
             cy.get('#deletePostModalButton').should('be.visible').click();
 
-            // * Should not have any pinned posts
-            cy.get('#search-items-container .no-results__title').should('have.text', 'No pinned posts yet');
+            // * Should not have any pinned messages
+            cy.get('#search-items-container .no-results__title').should('have.text', 'No pinned messages yet');
 
             // * Post should be deleted
             cy.get(`#post_${postId}`).should('not.exist');
@@ -200,15 +200,15 @@ describe('Pinned posts', () => {
             // # Click pin icon
             cy.uiGetChannelPinButton().click();
 
-            // * Should not have any pinned posts
-            cy.get('#search-items-container .no-results__title').should('have.text', 'No pinned posts yet');
+            // * Should not have any pinned messages
+            cy.get('#search-items-container .no-results__title').should('have.text', 'No pinned messages yet');
 
             // * The old post should be gone
             cy.get(`#post_${postId}`).should('not.exist');
         });
     });
 
-    it('MM-T2922 Pinned post count indicates the number of pinned posts in currently viewed channel', () => {
+    it('MM-T2922 Pinned post count indicates the number of pinned messages in currently viewed channel', () => {
         // # Login
         cy.apiLogin(testUser);
 
@@ -274,7 +274,7 @@ describe('Pinned posts', () => {
             // * Pinned count should be 1
             cy.get('#channelPinnedPostCountText').should('have.text', '1');
 
-            // * Number of pinned posts in RHS should also be 1
+            // * Number of pinned messages in RHS should also be 1
             cy.findByTestId('search-item-container').should('have.length', 1);
         });
     });
