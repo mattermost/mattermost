@@ -902,8 +902,6 @@
   "admin.experimental.experimentalPrimaryTeam.desc": "Nhóm chính mà người dùng trên máy chủ là thành viên. Khi một nhóm chính được đặt, các tùy chọn tham gia các nhóm khác hoặc rời khỏi nhóm chính sẽ bị vô hiệu hóa.",
   "admin.experimental.experimentalPrimaryTeam.example": "Ví dụ: \"teamname\"",
   "admin.experimental.experimentalPrimaryTeam.title": "Nhóm chính:",
-  "admin.experimental.experimentalTimezone.desc": "Chọn múi giờ được sử dụng cho dấu thời gian trong giao diện người dùng và thông báo qua email. Khi đúng, cài đặt Múi giờ sẽ hiển thị trong Cài đặt tài khoản và múi giờ tự động được chỉ định trong phiên hoạt động tiếp theo. Khi sai, cài đặt Múi giờ bị ẩn trong Cài đặt tài khoản.",
-  "admin.experimental.experimentalTimezone.title": "Múi giờ:",
   "admin.experimental.experimentalUseNewSAMLLibrary.desc": "Kích hoạt Thư viện SAML cập nhật, không yêu cầu cài đặt Thư viện bảo mật XML (xmlsec1). Cảnh báo: Không phải tất cả các nhà cung cấp đều đã được thử nghiệm. Nếu bạn gặp sự cố, vui lòng liên hệ với bộ phận hỗ trợ: <linkSupport>https://mattermost.com/support/</linkSupport>. Thay đổi cài đặt này yêu cầu khởi động lại máy chủ trước khi có hiệu lực.",
   "admin.experimental.experimentalUseNewSAMLLibrary.title": "Sử dụng Thư viện SAML được cải thiện (Beta):",
   "admin.experimental.ldapSettingsLoginButtonBorderColor.desc": "Chỉ định màu của đường viền nút đăng nhập AD / LDAP cho mục đích dán nhãn màu trắng. Sử dụng mã hex có ký hiệu # trước mã. Cài đặt này chỉ áp dụng cho các ứng dụng dành cho thiết bị di động.",

@@ -37,6 +37,7 @@ var excludedPluginHooks = []string{
 	"PluginHTTP",
 	"ServeHTTP",
 	"UploadData",
+	"ServeMetrics",
 }
 
 var excludedProductHooks = []string{

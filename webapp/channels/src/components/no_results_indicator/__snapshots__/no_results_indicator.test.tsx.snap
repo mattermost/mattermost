@@ -10,7 +10,7 @@ exports[`components/no_results_indicator should match snapshot when expanded 1`]
     <div
       className="no-results__variant-wrapper"
     >
-      <SearchIcon
+      <SearchSVG
         className="no-results__icon"
       />
     </div>
@@ -21,14 +21,14 @@ exports[`components/no_results_indicator should match snapshot when expanded 1`]
         className="no-results__title"
       >
         <MemoizedFormattedMessage
-          id="no_results.channel_search.title"
+          id="no_results.search.title"
         />
       </h3>
       <div
         className="no-results__subtitle"
       >
         <MemoizedFormattedMessage
-          id="no_results.channel_search.subtitle"
+          id="no_results.search.subtitle"
         />
       </div>
     </div>
@@ -224,14 +224,14 @@ exports[`components/no_results_indicator should match snapshot with variant Pinn
       className="no-results__title"
     >
       <MemoizedFormattedMessage
-        id="no_results.pinned_posts.title"
+        id="no_results.pinned_messages.title"
       />
     </h3>
     <div
       className="no-results__subtitle"
     >
       <MemoizedFormattedMessage
-        id="no_results.pinned_posts.subtitle"
+        id="no_results.pinned_messages.subtitle"
       />
     </div>
   </div>
