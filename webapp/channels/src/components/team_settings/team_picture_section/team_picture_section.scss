@@ -1,0 +1,21 @@
+.team-picture-section {
+    &__team-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--sidebar-header-bg);
+        border-radius: 24px;
+        width: 120px;
+        height: 120px;
+    }
+
+    &__team-name {
+        color: #FFF;
+        text-align: center;
+        font-family: Metropolis;
+        font-size: 56px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: 56px;
+    }
+}

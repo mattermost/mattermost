@@ -16,7 +16,9 @@ import Constants from 'utils/constants';
 import {imageURLForTeam, localizeMessage, moveCursorToEnd} from 'utils/utils';
 
 import type {PropsFromRedux, OwnProps} from '.';
+
 import './team_info_section.scss';
+import TeamPictureSection from '../team_picture_section/team_picture_section';
 
 const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
 
@@ -335,6 +337,25 @@ export class InfoTab extends React.PureComponent<Props, State> {
             />
         );
 
+        const teamPictureSection = (
+            <TeamPictureSection
+                src={imageURLForTeam(team || {} as Team)}
+                file={this.state.teamIconFile}
+                teamName={team?.display_name}
+            />
+        );
+
+        const teamIconSection1 = (
+
+            //todo sinan: add to en.json
+            <BaseSettingItem
+                title={{id: 'team_picture.title', description: 'Team icon'}}
+                description={{id: 'setting_picture.help.team', defaultMessage: 'Upload a team icon in BMP, JPG or PNG format.\nSquare images with a solid background color are recommended.'}}
+                content={teamPictureSection}
+                css={{flex: '1'}} // todo sinan: not working, fix the width
+            />
+        );
+
         // todo sinan: check mobile design view in Figma
         const modalSectionContent = (
             <div className='modal-info-tab-content' >
@@ -342,7 +363,8 @@ export class InfoTab extends React.PureComponent<Props, State> {
                     {nameSection}
                     {descriptionSection}
                 </div>
-                {teamIconSection}
+                {/* {teamIconSection} */}
+                {teamIconSection1}
             </div>
         );
 
