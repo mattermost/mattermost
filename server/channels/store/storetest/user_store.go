@@ -4904,6 +4904,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, rctx request.CTX, ss st
 		CreateAt: model.GetMillis(),
 	})
 	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	time.Sleep(time.Millisecond)
 
@@ -4913,6 +4914,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, rctx request.CTX, ss st
 		CreateAt: model.GetMillis(),
 	})
 	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{
 		UserId: u2.Id,
 		TeamId: t1.Id,
@@ -4939,6 +4941,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, rctx request.CTX, ss st
 		CreateAt: model.GetMillis(),
 	})
 	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{
 		UserId:   u3.Id,
 		TeamId:   t1.Id,
