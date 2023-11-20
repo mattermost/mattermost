@@ -119,7 +119,7 @@ export function Menu(props: Props) {
         if (isKeyPressed(event, Constants.KeyCodes.ENTER) || isKeyPressed(event, Constants.KeyCodes.SPACE)) {
             const target = event.target as HTMLElement;
             const ariaHasPopupAttribute = target?.getAttribute('aria-haspopup') === 'true';
-            const ariaHasExpandedAttribute = target?.getAttribute('aria-expanded') !== null ?? false;
+            const ariaHasExpandedAttribute = target?.getAttribute('aria-expanded') === 'true';
 
             if (ariaHasPopupAttribute && ariaHasExpandedAttribute) {
                 // Avoid closing the sub menu item on enter
