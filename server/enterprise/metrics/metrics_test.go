@@ -33,7 +33,6 @@ func TestMetrics(t *testing.T) {
 	th := api4.SetupEnterpriseWithStoreMock(t, app.StartMetrics)
 	defer th.TearDown()
 
-	fmt.Printf("\nTH started\n\n")
 	mockStore := th.App.Srv().Platform().Store.(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
@@ -47,7 +46,6 @@ func TestMetrics(t *testing.T) {
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
-	fmt.Printf("\nconfiguring metrics\n\n")
 	configureMetrics(th)
 	mi := th.App.Metrics()
 
