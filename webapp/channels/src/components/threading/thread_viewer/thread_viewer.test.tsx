@@ -102,6 +102,18 @@ describe('components/threading/ThreadViewer', () => {
         }).not.toThrowError("Cannot read property 'reply_count' of undefined");
     });
 
+    test('should not break if root post is ID only', () => {
+        const props = {
+            ...baseProps,
+            rootPostId: post.id,
+            selected: undefined,
+        };
+
+        expect(() => {
+            shallow(<ThreadViewer {...props}/>);
+        }).not.toThrowError("Cannot read property 'reply_count' of undefined");
+    });
+
     test('should call fetchThread when no thread on mount', (done) => {
         const {actions} = baseProps;
 
