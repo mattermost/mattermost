@@ -294,7 +294,6 @@
   "admin.user_grid.name": "ຊື່",
   "bot.create_token.close": "ປິດ",
   "channel_members_modal.addNew": "ສະມາຊິກທີມທັງໝົດ",
-  "channel_notifications.levels.none": "ບໍ່ມີ",
   "edit_post.time_limit_modal.option_label_time_limit.postinput": "ວິນາທີຫຼັງຈາກສົ່ງຂໍ້ຄວາມ",
   "edit_post.time_limit_modal.subscript": "ກໍານົດນະໂຍບາຍກ່ຽວກັບໄລຍະເວລາຂອງຜູ້ຂຽນທີ່ຕ້ອງແກ້ໄຂຂໍ້ຄວາມຂອງພວກເຂົາຫຼັງຈາກທີ່ສົ່ງຂໍ້ຄວາມ.",
   "emoji_list.delete.confirm.title": "ເປີດໃຊ້ງານການຕັ້ງຄ່າ Emoji:",
