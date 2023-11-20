@@ -1007,7 +1007,7 @@
         Retrieve the list of groups associated with a given team.
 
         ##### Permissions
-        Must have `manage_system` permission.
+        Must have the `list_team_channels` permission.
 
         __Minimum server version__: 5.11
       operationId: GetGroupsByTeam
@@ -1064,7 +1064,7 @@
           Retrieve the set of groups associated with the channels in the given team grouped by channel.
 
           ##### Permissions
-          Must have `manage_system` permission or can access only for current user
+          Must have the `list_team_channels` permission.
 
           __Minimum server version__: 5.11
         operationId: GetGroupsAssociatedToChannelsByTeam
