@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {AdminConfig} from '@mattermost/types/config';
+import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import type {ServerError} from '@mattermost/types/errors';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -14,6 +14,7 @@ import Card from 'components/card/card';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import DropdownInputHybrid from 'components/widgets/inputs/dropdown_input_hybrid';
+import SetByEnv from 'components/admin_console/set_by_env';
 
 import {getHistory} from 'utils/browser_history';
 import * as Utils from 'utils/utils';
@@ -28,6 +29,7 @@ type Props = {
     config: DeepPartial<AdminConfig>;
     messageRetentionHours: string | undefined;
     fileRetentionHours: string | undefined;
+    environmentConfig: EnvironmentConfig;
     actions: {
         updateConfig: (config: Record<string, any>) => Promise<{ data?: AdminConfig; error?: ServerError }>;
         setNavigationBlocked: (blocked: boolean) => void;
@@ -107,14 +109,14 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
         newConfig.DataRetentionSettings.EnableMessageDeletion = this.setDeletionEnabled(messageRetentionDropdownValue.value);
 
         const messageHours = this.setRetentionHours(messageRetentionDropdownValue.value, messageRetentionInputValue);
-        if (messageHours >= 1) {
+        if (messageHours >= 1 && !this.isMessageRetentionSetByEnv()) {
             newConfig.DataRetentionSettings.MessageRetentionHours = messageHours;
         }
 
         newConfig.DataRetentionSettings.EnableFileDeletion = this.setDeletionEnabled(fileRetentionDropdownValue.value);
 
         const fileHours = this.setRetentionHours(fileRetentionDropdownValue.value, fileRetentionInputValue);
-        if (fileHours >= 1) {
+        if (fileHours >= 1 && !this.isFileRetentionSetByEnv()) {
             newConfig.DataRetentionSettings.FileRetentionHours = fileHours;
         }
 
@@ -149,6 +151,30 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
         }
 
         return 0;
+    };
+
+    getConfigValue(config: DeepPartial<AdminConfig>, path: string) {
+        const pathParts = path.split('.');
+
+        return pathParts.reduce((obj, pathPart) => {
+            if (!obj) {
+                return null;
+            }
+
+            return obj[pathPart.replace(/\+/g, '.')];
+        }, config);
+    }
+
+    isSetByEnv = (path: string) => {
+        return Boolean(this.getConfigValue(this.props.environmentConfig, path));
+    };
+
+    isMessageRetentionSetByEnv = () => {
+        return (this.isSetByEnv('DataRetentionSettings.MessageRetentionDays') && this.props.config.DataRetentionSettings.MessageRetentionHours === 0) || this.isSetByEnv('DataRetentionSettings.MessageRetentionHours');
+    };
+
+    isFileRetentionSetByEnv = () => {
+        return (this.isSetByEnv('DataRetentionSettings.FileRetentionDays') && this.props.config.DataRetentionSettings.FileRetentionHours === 0) || this.isSetByEnv('DataRetentionSettings.FileRetentionHours');
     };
 
     render = () => {
@@ -193,6 +219,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                                             inputValue={this.state.messageRetentionInputValue}
                                             width={90}
                                             exceptionToInput={[FOREVER]}
+                                            disabled={this.isMessageRetentionSetByEnv()}
                                             defaultValue={keepForeverOption()}
                                             options={[hoursOption(), daysOption(), yearsOption(), keepForeverOption()]}
                                             legend={Utils.localizeMessage('admin.data_retention.form.channelAndDirectMessageRetention', 'Channel & direct message retention')}
@@ -202,6 +229,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                                             dropdownClassNamePrefix={'channel_message_retention_dropdown'}
                                             inputId={'channel_message_retention_input'}
                                         />
+                                        {this.isMessageRetentionSetByEnv() && <SetByEnv/>}
                                     </div>
                                     <div id='global_file_dropdown'>
                                         <DropdownInputHybrid
@@ -219,6 +247,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                                             inputValue={this.state.fileRetentionInputValue}
                                             width={90}
                                             exceptionToInput={[FOREVER]}
+                                            disabled={this.isFileRetentionSetByEnv()}
                                             defaultValue={keepForeverOption()}
                                             options={[daysOption(), yearsOption(), keepForeverOption()]}
                                             legend={Utils.localizeMessage('admin.data_retention.form.fileRetention', 'File retention')}
@@ -228,6 +257,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                                             dropdownClassNamePrefix={'file_retention_dropdown'}
                                             inputId={'file_retention_input'}
                                         />
+                                        {this.isFileRetentionSetByEnv() && <SetByEnv/>}
                                     </div>
                                 </div>
 

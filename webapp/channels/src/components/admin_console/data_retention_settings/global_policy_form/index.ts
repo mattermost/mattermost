@@ -12,6 +12,7 @@ import {
     updateConfig,
 } from 'mattermost-redux/actions/admin';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getEnvironmentConfig} from 'mattermost-redux/selectors/entities/admin';
 import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
@@ -32,6 +33,7 @@ function mapStateToProps(state: GlobalState) {
     return {
         messageRetentionHours,
         fileRetentionHours,
+        environmentConfig: getEnvironmentConfig(state),
     };
 }
 

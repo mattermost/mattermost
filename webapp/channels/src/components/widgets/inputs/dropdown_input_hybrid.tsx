@@ -44,6 +44,8 @@ const baseStyles = {
         boxShadow: 'none',
         padding: '0 2px',
         cursor: 'pointer',
+        minHeight: '40px',
+        borderRadius: '0',
     }),
     indicatorSeparator: (provided: CSSProperties) => ({
         ...provided,
@@ -206,6 +208,7 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                         className={classNames('Input form-control')}
                         ref={inputRef}
                         id={inputId}
+                        disabled={props.disabled}
                     />
                 </div>
                 <div
@@ -232,6 +235,7 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                         hideSelectedOptions={true}
                         isSearchable={false}
                         menuPortalTarget={document.body}
+                        isDisabled={props.disabled}
                         {...otherProps}
                     />
                 </div>
