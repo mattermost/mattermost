@@ -62,8 +62,7 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 		err := listOAuthAppsCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
-		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Failed to oauth2 apps", printer.GetErrorLines()[0])
+		s.EqualError(err, "Failed to fetch oauth2 apps: mock error")
 	})
 
 	s.Run("Unable to get users for oauth apps", func() {
@@ -91,7 +90,6 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 		err := listOAuthAppsCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
-		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Failed to fetch users for oauth2 apps", printer.GetErrorLines()[0])
+		s.EqualError(err, "Failed to fetch users for oauth2 apps: mock error")
 	})
 }

@@ -33,7 +33,7 @@ func listOAuthAppsCmdF(c client.Client, command *cobra.Command, args []string) e
 	// Fetch all apps with a very large limit so we get them all.
 	apps, _, err := c.GetOAuthApps(context.Background(), 0, 100000000)
 	if err != nil {
-		return errors.Wrap(err, "Failed to oauth2 apps")
+		return errors.Wrap(err, "Failed to fetch oauth2 apps")
 	}
 
 	userIds := []string{}
