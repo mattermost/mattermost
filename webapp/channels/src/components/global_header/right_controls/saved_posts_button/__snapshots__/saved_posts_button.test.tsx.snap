@@ -9,7 +9,7 @@ exports[`components/global/AtMentionsButton should match snapshot 1`] = `
       id="recentMentions"
     >
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Saved posts"
+        defaultMessage="Saved messages"
         id="channel_header.flagged"
       />
     </Tooltip>
@@ -25,7 +25,7 @@ exports[`components/global/AtMentionsButton should match snapshot 1`] = `
   <ForwardRef
     aria-controls="searchContainer"
     aria-expanded={false}
-    aria-label="Saved posts"
+    aria-label="Saved messages"
     compact={true}
     icon="bookmark-outline"
     inverted={true}
