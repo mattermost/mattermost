@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -147,16 +148,16 @@ func TestUpdateSessionsIsGuest(t *testing.T) {
 		session.Roles = "fake_role"
 		th.Service.SetSessionExpireInHours(session, 24)
 
-		session, _ = th.Service.CreateSession(th.Context, session)
+		session, _ = th.Service.CreateSession(session)
 
 		demotedUser, err := th.Service.Store.User().DemoteUserToGuest(user.Id)
 		require.NoError(t, err)
 		require.Equal(t, model.SystemGuestRoleId, demotedUser.Roles)
 
-		err = th.Service.UpdateSessionsIsGuest(th.Context, demotedUser, true)
+		err = th.Service.UpdateSessionsIsGuest(demotedUser, true)
 		require.NoError(t, err)
 
-		session, err = th.Service.GetSession(th.Context, session.Id)
+		session, err = th.Service.GetSession(session.Id)
 		require.NoError(t, err)
 		require.Equal(t, model.SystemGuestRoleId, session.Roles)
 		require.Equal(t, "true", session.Props[model.SessionPropIsGuest])
@@ -172,17 +173,17 @@ func TestUpdateSessionsIsGuest(t *testing.T) {
 		session.Roles = "fake_role"
 		th.Service.SetSessionExpireInHours(session, 24)
 
-		session, _ = th.Service.CreateSession(th.Context, session)
+		session, _ = th.Service.CreateSession(session)
 
 		err := th.Service.Store.User().PromoteGuestToUser(user.Id)
 		require.NoError(t, err)
 
-		promotedUser, err := th.Service.Store.User().Get(th.Context.Context(), user.Id)
+		promotedUser, err := th.Service.Store.User().Get(context.Background(), user.Id)
 		require.NoError(t, err)
-		err = th.Service.UpdateSessionsIsGuest(th.Context, promotedUser, false)
+		err = th.Service.UpdateSessionsIsGuest(promotedUser, false)
 		require.NoError(t, err)
 
-		session, err = th.Service.GetSession(th.Context, session.Id)
+		session, err = th.Service.GetSession(session.Id)
 		require.NoError(t, err)
 		require.Equal(t, model.SystemUserRoleId, session.Roles)
 		require.Equal(t, "false", session.Props[model.SessionPropIsGuest])
