@@ -1947,7 +1947,7 @@ func TestGetUsersForReporting(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		userReports, err := th.App.GetUsersForReporting("Username", false, 50, "", "", 1000, 0)
+		userReports, err := th.App.GetUsersForReporting("Username", false, 50, "", "", 1000, 500)
 		require.Error(t, err)
 		require.Nil(t, userReports)
 	})
