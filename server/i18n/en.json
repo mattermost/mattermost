@@ -7939,10 +7939,6 @@
     "translation": "An account with that username already exists. Please contact your Administrator."
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "error deleting team or channel memberships"
-  },
-  {
     "id": "ent.ldap.syncronize.get_all.app_error",
     "translation": "Unable to get all users using AD/LDAP."
   },

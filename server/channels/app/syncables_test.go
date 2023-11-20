@@ -4,13 +4,18 @@
 package app
 
 import (
+	"context"
+	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+//nolint:govet // The setup code leads to a lot of variable shadowing.
 func TestCreateDefaultMemberships(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -482,6 +487,46 @@ func TestCreateDefaultMemberships(t *testing.T) {
 			t.Errorf("expected 2 channel member on team1Channel1, got %d", len(team1Channel1Members))
 		}
 	})
+
+	t.Run("error should contain a information about all users that failed", func(t *testing.T) {
+		user1 := th.CreateUser()
+		_, err = th.App.UpsertGroupMember(scienceGroup.Id, user1.Id)
+		require.Nil(t, err)
+
+		user2 := th.CreateUser()
+		_, err = th.App.UpsertGroupMember(scienceGroup.Id, user2.Id)
+		require.Nil(t, err)
+
+		store := &mockStore{
+			Store: th.App.Srv().Store(),
+			us: &mokeUserStore{
+				UserStore: th.App.Srv().Store().User(),
+			},
+		}
+		require.Nil(t, err)
+		th.App.Srv().platform.Store = store
+
+		nErr = th.App.CreateDefaultMemberships(th.Context, model.CreateDefaultMembershipParams{Since: 0, ReAddRemovedMembers: false})
+		require.Error(t, nErr)
+		assert.ErrorContains(t, nErr, "Failed to add team member for default team membership")
+		assert.ErrorContains(t, nErr, user1.Id)
+		assert.ErrorContains(t, nErr, user2.Id)
+	})
+}
+
+type mockStore struct {
+	store.Store
+	us store.UserStore
+}
+
+func (fk *mockStore) User() store.UserStore { return fk.us }
+
+type mokeUserStore struct {
+	store.UserStore
+}
+
+func (us *mokeUserStore) Get(_ context.Context, id string) (*model.User, error) {
+	return nil, fmt.Errorf("some error for %s", id)
 }
 
 func TestDeleteGroupMemberships(t *testing.T) {
@@ -601,10 +646,10 @@ func TestSyncSyncableRoles(t *testing.T) {
 	_, err = th.App.UpdateGroupSyncable(channelSyncable)
 	require.Nil(t, err)
 
-	err = th.App.SyncSyncableRoles(channel.Id, model.GroupSyncableTypeChannel)
+	err = th.App.SyncSyncableRoles(th.Context, channel.Id, model.GroupSyncableTypeChannel)
 	require.Nil(t, err)
 
-	err = th.App.SyncSyncableRoles(team.Id, model.GroupSyncableTypeTeam)
+	err = th.App.SyncSyncableRoles(th.Context, team.Id, model.GroupSyncableTypeTeam)
 	require.Nil(t, err)
 
 	for _, user := range []*model.User{user1, user2} {

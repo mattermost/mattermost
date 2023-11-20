@@ -342,7 +342,7 @@ type AppIface interface {
 	// SyncSyncableRoles updates the SchemeAdmin field value of the given syncable's members based on the configuration of
 	// the member's group memberships and the configuration of those groups to the syncable. This method should only
 	// be invoked on group-synced (aka group-constrained) syncables.
-	SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError
+	SyncSyncableRoles(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType) *model.AppError
 	// TeamMembersMinusGroupMembers returns the set of users on the given team minus the set of users in the given
 	// groups.
 	//
