@@ -16,6 +16,7 @@ import configureStore from 'store';
 import ModalController from 'components/modal_controller';
 
 import IPFiltering from './index';
+import { Installation } from '@mattermost/types/src/cloud';
 
 jest.mock('mattermost-redux/client');
 
@@ -36,11 +37,13 @@ describe('IPFiltering', () => {
     const applyIPFiltersMock = jest.fn(() => Promise.resolve(ipFilters));
     const getIPFiltersMock = jest.fn(() => Promise.resolve(ipFilters));
     const getCurrentIPMock = jest.fn(() => Promise.resolve({ip: currentIP} as FetchIPResponse));
+    const getInstallationMock = jest.fn(() => Promise.resolve({id: 'abc123', state: 'stable'} as Installation));
 
     beforeEach(() => {
         Client4.applyIPFilters = applyIPFiltersMock;
         Client4.getIPFilters = getIPFiltersMock;
         Client4.getCurrentIP = getCurrentIPMock;
+        Client4.getInstallation = getInstallationMock;
     });
 
     const mockedStore = configureStore({
@@ -230,5 +233,40 @@ describe('IPFiltering', () => {
             expect(queryByText('Test IP Filter')).toBeNull();
             expect(getByTestId('saveSetting')).toBeDisabled();
         });
+    });
+
+    test('Save button is disabled with a spinner when the page is loaded with a not-stable installation', async () => {
+
+        const getInstallationNotStableMock = jest.fn(() => Promise.resolve({id: 'abc123', state: 'update-in-progress'} as Installation));
+        Client4.getInstallation = getInstallationNotStableMock;
+        
+        jest.useFakeTimers();
+        const {getByText, queryByText} = render(wrapWithIntlProviderAndStore(<IPFiltering/>));
+
+        await waitFor(() => {
+            expect(screen.getByTestId('filterToggle-button')).toBeInTheDocument();
+            expect(screen.getByRole('button', {pressed: true})).toBeInTheDocument();
+        });
+
+        fireEvent.click(screen.getByTestId('filterToggle-button'));
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', {pressed: false})).toBeInTheDocument();
+        });
+
+        await waitFor(() => {
+            expect(queryByText('Test IP Filter')).not.toBeInTheDocument();
+        });
+
+        expect(getByText('Applying previous filter changes...')).toBeInTheDocument();
+        expect(getByText('Applying previous filter changes...').closest('button')).toBeDisabled();
+
+        Client4.getInstallation = getInstallationMock;
+
+        jest.advanceTimersByTime(5100);
+        await waitFor(() => {
+            expect(getByText('Save')).toBeInTheDocument();
+        })
+
     });
 });

@@ -125,7 +125,6 @@ const IPFiltering = () => {
                 // This is the first load of the page, and the installation is not stable, so we must lock saving until it becomes stable
                 setInstallationStatus(data.state);
                 setSaving(true);
-                setSaveNeeded(true);
                 setSavingMessage(savingMessages.SAVING_PREVIOUS_CHANGE);
             }
             setInstallationStatus(data.state);
@@ -297,7 +296,7 @@ const IPFiltering = () => {
             </div>
             <SaveChangesPanel
                 saving={saving}
-                saveNeeded={saveNeeded}
+                saveNeeded={saveNeeded || installationStatus !== 'stable'}
                 isDisabled={!currentIPIsInRange() || installationStatus !== 'stable'}
                 onClick={handleSaveClick}
                 serverError={saveBarError()}
