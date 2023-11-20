@@ -137,11 +137,11 @@
     }
 
     .modal-footer {
-        background: var(--center-channel-bg);
         display: flex;
         flex-wrap: wrap;
         justify-content: end;
         grid-row-gap: 8px;
+        background: var(--center-channel-bg);
 
         &.modal-footer--invisible {
             overflow: hidden;
