@@ -12,7 +12,7 @@ exports[`components/post_view/PostFlagIcon should match snapshot 1`] = `
       id="flagTooltip"
     >
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Save"
+        defaultMessage="Save Message"
         id="flag_post.flag"
       />
     </Tooltip>
