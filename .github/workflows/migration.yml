@@ -22,10 +22,9 @@ jobs:
           docker compose --ansi never ps
       - name: Fix MySQL user permissions
         run: |
-          docker exec mattermost-mysql mysql -u root -pmostest -e \
-            "ALTER USER 'mmuser'@'%' IDENTIFIED WITH mysql_native_password BY 'mostest';"
-          docker exec mattermost-mysql mysql -u root -pmostest -e \
-            "ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'mostest';"
+          cd build
+          docker compose --ansi never exec -T mysql sh -c "mysql -u root -pmostest -e \"ALTER USER 'mmuser'@'%' IDENTIFIED WITH mysql_native_password BY 'mostest';\""
+          docker compose --ansi never exec -T mysql sh -c "mysql -u root -pmostest -e \"ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'mostest';\""
       - name: Generate test-data
         run: |
           docker run --net ${COMPOSE_PROJECT_NAME}_mm-test \
