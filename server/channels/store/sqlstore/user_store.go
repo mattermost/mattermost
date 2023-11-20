@@ -19,7 +19,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	pUtils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
@@ -33,8 +32,6 @@ var (
 	UserSearchTypeNames           = []string{"Username", "FirstName", "LastName", "Nickname"}
 	UserSearchTypeAllNoFullName   = []string{"Username", "Nickname", "Email"}
 	UserSearchTypeAll             = []string{"Username", "FirstName", "LastName", "Nickname", "Email"}
-
-	UserReportSortColumns = []string{"CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email"}
 )
 
 type SqlUserStore struct {
@@ -2278,13 +2275,9 @@ func (us SqlUserStore) GetUserReport(
 	lastUserId string,
 	startAt int64,
 	endAt int64,
-) ([]*model.UserReport, error) {
-	if !pUtils.Contains(UserReportSortColumns, sortColumn) {
-		return nil, errors.New("Invalid sort column provided")
-	}
-
-	selectColumns := []string{"u.Id", "u.LastLogin", "s.LastActivityAt"}
-	for _, column := range UserReportSortColumns {
+) ([]*model.UserReportQuery, error) {
+	selectColumns := []string{"u.Id", "u.LastLogin", "s.LastActivityAt AS LastStatusAt"}
+	for _, column := range model.UserReportSortColumns {
 		selectColumns = append(selectColumns, "u."+column)
 	}
 	if us.DriverName() == model.DatabaseDriverPostgres {
@@ -2343,7 +2336,7 @@ func (us SqlUserStore) GetUserReport(
 		}
 	}
 
-	userResults := []*model.UserReport{}
+	userResults := []*model.UserReportQuery{}
 	err := us.GetReplicaX().SelectBuilder(&userResults, query)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get users for reporting")

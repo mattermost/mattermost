@@ -67,6 +67,10 @@ const (
 	DesktopTokenTTL = time.Minute * 3
 )
 
+var (
+	UserReportSortColumns = []string{"CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email"}
+)
+
 //msgp:tuple User
 
 // User contains the details about the user.
@@ -1008,17 +1012,22 @@ type UsersWithGroupsAndCount struct {
 	Count int64             `json:"total_count"`
 }
 
+type UserPostStats struct {
+	LastLogin    int64  `json:"last_login_at,omitempty"`
+	LastStatusAt *int64 `json:"last_status_at,omitempty"`
+	LastPostDate *int64 `json:"last_post_date,omitempty"`
+	DaysActive   *int   `json:"days_active,omitempty"`
+	TotalPosts   *int   `json:"total_posts,omitempty"`
+}
+
+type UserReportQuery struct {
+	User
+	UserPostStats
+}
+
 type UserReport struct {
-	Id             string `json:"id"`
-	CreateAt       int64  `json:"create_at,omitempty"`
-	Username       string `json:"username"`
-	Email          string `json:"email"`
-	Nickname       string `json:"nickname"`
-	FirstName      string `json:"first_name"`
-	LastName       string `json:"last_name"`
-	LastLogin      int64  `json:"last_login_at,omitempty"`
-	LastActivityAt *int64 `json:"last_activity_at,omitempty"`
-	LastPostDate   *int64 `json:"last_post_date,omitempty"`
-	DaysActive     *int   `json:"days_active,omitempty"`
-	TotalPosts     *int   `json:"total_posts,omitempty"`
+	Id          string `json:"id"`
+	CreateAt    int64  `json:"create_at,omitempty"`
+	DisplayName string `json:"display_name"`
+	UserPostStats
 }

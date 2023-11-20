@@ -490,7 +490,7 @@ type UserStore interface {
 	GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error)
 	InsertUsers(users []*model.User) error
 	RefreshPostStatsForUsers() error
-	GetUserReport(sortColumn string, sortDesc bool, pageSize int, lastSortColumnValue string, lastUserId string, startAt int64, endAt int64) ([]*model.UserReport, error)
+	GetUserReport(sortColumn string, sortDesc bool, pageSize int, lastSortColumnValue string, lastUserId string, startAt int64, endAt int64) ([]*model.UserReportQuery, error)
 }
 
 type BotStore interface {

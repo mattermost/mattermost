@@ -13420,7 +13420,7 @@ func (s *RetryLayerUserStore) GetUnreadCountForChannel(userID string, channelID 
 
 }
 
-func (s *RetryLayerUserStore) GetUserReport(sortColumn string, sortDesc bool, pageSize int, lastSortColumnValue string, lastUserId string, startAt int64, endAt int64) ([]*model.UserReport, error) {
+func (s *RetryLayerUserStore) GetUserReport(sortColumn string, sortDesc bool, pageSize int, lastSortColumnValue string, lastUserId string, startAt int64, endAt int64) ([]*model.UserReportQuery, error) {
 
 	tries := 0
 	for {

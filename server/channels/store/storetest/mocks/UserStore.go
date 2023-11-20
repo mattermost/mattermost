@@ -1152,19 +1152,19 @@ func (_m *UserStore) GetUnreadCountForChannel(userID string, channelID string) (
 }
 
 // GetUserReport provides a mock function with given fields: sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt
-func (_m *UserStore) GetUserReport(sortColumn string, sortDesc bool, pageSize int, lastSortColumnValue string, lastUserId string, startAt int64, endAt int64) ([]*model.UserReport, error) {
+func (_m *UserStore) GetUserReport(sortColumn string, sortDesc bool, pageSize int, lastSortColumnValue string, lastUserId string, startAt int64, endAt int64) ([]*model.UserReportQuery, error) {
 	ret := _m.Called(sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt)
 
-	var r0 []*model.UserReport
+	var r0 []*model.UserReportQuery
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, bool, int, string, string, int64, int64) ([]*model.UserReport, error)); ok {
+	if rf, ok := ret.Get(0).(func(string, bool, int, string, string, int64, int64) ([]*model.UserReportQuery, error)); ok {
 		return rf(sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt)
 	}
-	if rf, ok := ret.Get(0).(func(string, bool, int, string, string, int64, int64) []*model.UserReport); ok {
+	if rf, ok := ret.Get(0).(func(string, bool, int, string, string, int64, int64) []*model.UserReportQuery); ok {
 		r0 = rf(sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.UserReport)
+			r0 = ret.Get(0).([]*model.UserReportQuery)
 		}
 	}
 
