@@ -60,7 +60,7 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 			Times(1)
 
 		err := listOAuthAppsCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Failed to oauth2 apps", printer.GetErrorLines()[0])
@@ -89,7 +89,7 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 			Times(1)
 
 		err := listOAuthAppsCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Failed to fetch users for oauth2 apps", printer.GetErrorLines()[0])
