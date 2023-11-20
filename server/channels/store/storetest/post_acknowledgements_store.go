@@ -9,16 +9,17 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestPostAcknowledgementsStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("Save", func(t *testing.T) { testPostAcknowledgementsStoreSave(t, ss) })
-	t.Run("GetForPost", func(t *testing.T) { testPostAcknowledgementsStoreGetForPost(t, ss) })
-	t.Run("GetForPosts", func(t *testing.T) { testPostAcknowledgementsStoreGetForPosts(t, ss) })
+func TestPostAcknowledgementsStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("Save", func(t *testing.T) { testPostAcknowledgementsStoreSave(t, rctx, ss) })
+	t.Run("GetForPost", func(t *testing.T) { testPostAcknowledgementsStoreGetForPost(t, rctx, ss) })
+	t.Run("GetForPosts", func(t *testing.T) { testPostAcknowledgementsStoreGetForPosts(t, rctx, ss) })
 }
 
-func testPostAcknowledgementsStoreSave(t *testing.T, ss store.Store) {
+func testPostAcknowledgementsStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId1 := model.NewId()
 
 	p1 := model.Post{}
@@ -61,7 +62,7 @@ func testPostAcknowledgementsStoreSave(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPostAcknowledgementsStoreGetForPost(t *testing.T, ss store.Store) {
+func testPostAcknowledgementsStoreGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId1 := model.NewId()
 	userId2 := model.NewId()
 	userId3 := model.NewId()
@@ -112,7 +113,7 @@ func testPostAcknowledgementsStoreGetForPost(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPostAcknowledgementsStoreGetForPosts(t *testing.T, ss store.Store) {
+func testPostAcknowledgementsStoreGetForPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId1 := model.NewId()
 	userId2 := model.NewId()
 	userId3 := model.NewId()

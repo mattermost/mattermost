@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {
-    removeReaction,
     addMessageIntoHistory,
     moveHistoryIndexBack,
 } from 'mattermost-redux/actions/posts';
@@ -17,7 +16,6 @@ import {
     updateCommentDraft,
     makeOnMoveHistoryIndex,
     submitPost,
-    submitReaction,
     submitCommand,
     makeOnSubmit,
     makeOnEditLatestPost,
@@ -63,6 +61,7 @@ jest.mock('actions/hooks', () => ({
 }));
 
 jest.mock('actions/post_actions', () => ({
+    submitReaction: (...args) => ({type: 'MOCK_SUBMIT_REACTION', args}),
     addReaction: (...args) => ({type: 'MOCK_ADD_REACTION', args}),
     createPost: jest.fn(() => ({type: 'MOCK_CREATE_POST'})),
     setEditingPost: (...args) => ({type: 'MOCK_SET_EDITING_POST', args}),
@@ -293,25 +292,6 @@ describe('rhs view actions', () => {
         });
     });
 
-    describe('submitReaction', () => {
-        test('it adds a reaction when action is +', () => {
-            store.dispatch(submitReaction('post_id_1', '+', 'emoji_name_1'));
-
-            const testStore = mockStore(initialState);
-            testStore.dispatch(PostActions.addReaction('post_id_1', 'emoji_name_1'));
-            expect(store.getActions()).toEqual(testStore.getActions());
-        });
-
-        test('it removes a reaction when action is -', () => {
-            store.dispatch(submitReaction('post_id_1', '-', 'emoji_name_1'));
-
-            const testStore = mockStore(initialState);
-            testStore.dispatch(removeReaction('post_id_1', 'emoji_name_1'));
-
-            expect(store.getActions()).toEqual(testStore.getActions());
-        });
-    });
-
     describe('submitCommand', () => {
         const args = {
             channel_id: channelId,
@@ -400,7 +380,7 @@ describe('rhs view actions', () => {
             }));
 
             const testStore = mockStore(initialState);
-            testStore.dispatch(submitReaction(latestPostId, '+', 'smile'));
+            testStore.dispatch(PostActions.submitReaction(latestPostId, '+', 'smile'));
 
             expect(store.getActions()).toEqual(
                 expect.arrayContaining(testStore.getActions()),

@@ -6331,6 +6331,10 @@
     "translation": "Unable to store the plugin signature to the configured file store."
   },
   {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Failed to parse SiteURL subpath"
+  },
+  {
     "id": "app.plugin.sync.list_filestore.app_error",
     "translation": "Error reading files from the plugins folder in the file store."
   },
@@ -10024,11 +10028,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 116+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 116+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
