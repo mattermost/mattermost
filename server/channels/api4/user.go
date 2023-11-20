@@ -110,7 +110,6 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/trigger-notify-admin-posts", api.APISessionRequired(handleTriggerNotifyAdminPosts)).Methods("POST")
 
 	api.BaseRoutes.Users.Handle("/report", api.APISessionRequired(getUsersForReporting)).Methods("GET")
-
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {

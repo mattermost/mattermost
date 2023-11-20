@@ -6343,5 +6343,4 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, 1, *userReport[2].DaysActive)
 		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[2].LastPostDate)
 	})
-
 }
