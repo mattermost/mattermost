@@ -123,13 +123,13 @@ func getOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Reque
 
 	c.RequireOutgoingOAuthConnectionId()
 
-	connections, err := service.GetConnection(c.AppContext, c.Params.OutgoingOAuthConnectionID)
+	connection, err := service.GetConnection(c.AppContext, c.Params.OutgoingOAuthConnectionID)
 	if err != nil {
 		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_conneciton.list_connections.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(connections); err != nil {
+	if err := json.NewEncoder(w).Encode(connection); err != nil {
 		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_conneciton.list_connections.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
