@@ -106,7 +106,7 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                 <Tooltip id='backToResultsTooltip'>
                     <FormattedMessage
                         id='rhs_header.backToFlaggedTooltip'
-                        defaultMessage='Back to saved posts'
+                        defaultMessage='Back to saved messages'
                     />
                 </Tooltip>
             );
@@ -116,7 +116,7 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                 <Tooltip id='backToResultsTooltip'>
                     <FormattedMessage
                         id='rhs_header.backToPinnedTooltip'
-                        defaultMessage='Back to pinned posts'
+                        defaultMessage='Back to pinned messages'
                     />
                 </Tooltip>
             );

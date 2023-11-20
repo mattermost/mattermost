@@ -7,7 +7,6 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -47,12 +46,17 @@ func zipDir(zipPath, dir string) error {
 
 func addToZip(zipWriter *zip.Writer, basedir, path string) error {
 	dirPath := filepath.Join(basedir, path)
-	fileInfos, err := ioutil.ReadDir(dirPath)
+	dirEntries, err := os.ReadDir(dirPath)
 	if err != nil {
 		return fmt.Errorf("cannot read directory %q: %w", dirPath, err)
 	}
 
-	for _, fileInfo := range fileInfos {
+	for _, dirEntry := range dirEntries {
+		fileInfo, err := dirEntry.Info()
+		if err != nil {
+			return fmt.Errorf("cannot get file info for directory entry %q: %w", dirEntry.Name(), err)
+		}
+
 		filePath := filepath.Join(path, fileInfo.Name())
 		if fileInfo.IsDir() {
 			filePath += "/"
