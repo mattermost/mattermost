@@ -1031,3 +1031,12 @@ type UserReport struct {
 	DisplayName string `json:"display_name"`
 	UserPostStats
 }
+
+func (u *UserReportQuery) ToReport() UserReport {
+	return UserReport{
+		Id:            u.Id,
+		CreateAt:      u.CreateAt,
+		DisplayName:   u.GetDisplayName(ShowNicknameFullName),
+		UserPostStats: u.UserPostStats,
+	}
+}

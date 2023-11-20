@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
@@ -2816,4 +2817,63 @@ func (a *App) UserIsFirstAdmin(user *model.User) bool {
 	}
 
 	return true
+}
+
+func (a *App) GetUsersForReporting(
+	sortColumn string,
+	sortDesc bool,
+	pageSize int,
+	lastSortColumnValue string,
+	lastUserId string,
+	startAt int64,
+	endAt int64,
+) ([]*model.UserReport, *model.AppError) {
+	// Don't allow fetching more than 100 users at a time from the normal query endpoint
+	if pageSize > 100 {
+		return nil, model.NewAppError("GetUsersForReporting", "app.user.get_users_for_reporting.invalid_page_size", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate date range
+	if startAt > endAt {
+		return nil, model.NewAppError("GetUsersForReporting", "app.user.get_users_for_reporting.bad_date_range", nil, "", http.StatusBadRequest)
+	}
+
+	return a.getUserReport(sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt)
+}
+
+func (a *App) GenerateFullUserReport(startAt int64, endAt int64) ([]*model.UserReport, *model.AppError) {
+	userReports, err := a.getUserReport("Username", false, 0, "", "", startAt, endAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return userReports, nil
+}
+
+func (a *App) getUserReport(
+	sortColumn string,
+	sortDesc bool,
+	pageSize int,
+	lastSortColumnValue string,
+	lastUserId string,
+	startAt int64,
+	endAt int64,
+) ([]*model.UserReport, *model.AppError) {
+	// Validate against the columns we allow sorting for
+	if !pUtils.Contains(model.UserReportSortColumns, sortColumn) {
+		return nil, model.NewAppError("GetUsersForReporting", "app.user.get_user_report.invalid_sort_column", nil, "", http.StatusBadRequest)
+	}
+
+	userReportQuery, err := a.Srv().Store().User().GetUserReport(sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt)
+	if err != nil {
+		return nil, model.NewAppError("GetUsersForReporting", "app.user.get_user_report.store_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	userReports := []*model.UserReport{}
+	for _, user := range userReportQuery {
+		report := user.ToReport()
+		userReports = append(userReports, &report)
+	}
+
+	return userReports, nil
 }

@@ -2311,8 +2311,11 @@ func (us SqlUserStore) GetUserReport(
 			},
 		}).
 		GroupBy("u.Id", "s.UserId").
-		OrderBy(sortColumnValue, "u.Id").
-		Limit(uint64(pageSize))
+		OrderBy(sortColumnValue, "u.Id")
+
+	if pageSize > 0 {
+		query = query.Limit(uint64(pageSize))
+	}
 
 	if us.DriverName() == model.DatabaseDriverPostgres {
 		query = query.LeftJoin("PostStats ps ON ps.UserId = u.Id")
