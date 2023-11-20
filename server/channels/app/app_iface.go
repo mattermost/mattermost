@@ -459,7 +459,7 @@ type AppIface interface {
 	CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError
 	CheckWebConn(userID, connectionID string) *platform.CheckConnResult
 	ClearChannelMembersCache(c request.CTX, channelID string) error
-	ClearLatestVersionCache()
+	ClearLatestVersionCache(rctx request.CTX)
 	ClearSessionCacheForAllUsers()
 	ClearSessionCacheForAllUsersSkipClusterSend()
 	ClearSessionCacheForUser(userID string)
@@ -630,7 +630,7 @@ type AppIface interface {
 	GetChannelsUserNotIn(c request.CTX, teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError)
 	GetCloudSession(token string) (*model.Session, *model.AppError)
 	GetClusterId() string
-	GetClusterStatus() []*model.ClusterInfo
+	GetClusterStatus(rctx request.CTX) []*model.ClusterInfo
 	GetCommand(commandID string) (*model.Command, *model.AppError)
 	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, *model.AppError)
 	GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError)
@@ -684,9 +684,9 @@ type AppIface interface {
 	GetJobsByTypes(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError)
 	GetJobsByTypesPage(c request.CTX, jobType []string, page int, perPage int) ([]*model.Job, *model.AppError)
 	GetLatestTermsOfService() (*model.TermsOfService, *model.AppError)
-	GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError)
-	GetLogs(c request.CTX, page, perPage int) ([]string, *model.AppError)
-	GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError)
+	GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError)
+	GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError)
+	GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError)
 	GetMemberCountsByGroup(rctx request.CTX, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError)
 	GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string
 	GetMultipleEmojiByName(c request.CTX, names []string) ([]*model.Emoji, *model.AppError)
@@ -954,9 +954,9 @@ type AppIface interface {
 	PublishUserTyping(userID, channelID, parentId string) *model.AppError
 	PurgeBleveIndexes() *model.AppError
 	PurgeElasticsearchIndexes() *model.AppError
-	QueryLogs(c request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError)
+	QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError)
 	ReadFile(path string) ([]byte, *model.AppError)
-	RecycleDatabaseConnection(c request.CTX)
+	RecycleDatabaseConnection(rctx request.CTX)
 	RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppError)
 	RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
@@ -1097,11 +1097,11 @@ type AppIface interface {
 	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError)
 	TelemetryId() string
 	TestElasticsearch(cfg *model.Config) *model.AppError
-	TestEmail(userID string, cfg *model.Config) *model.AppError
+	TestEmail(rctx request.CTX, userID string, cfg *model.Config) *model.AppError
 	TestFileStoreConnection() *model.AppError
 	TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError
 	TestLdap(rctx request.CTX) *model.AppError
-	TestSiteURL(siteURL string) *model.AppError
+	TestSiteURL(rctx request.CTX, siteURL string) *model.AppError
 	Timezones() *timezones.Timezones
 	ToggleMuteChannel(c request.CTX, channelID, userID string) (*model.ChannelMember, *model.AppError)
 	TotalWebsocketConnections() int
