@@ -140,8 +140,8 @@ type Routes struct {
 
 	IPFiltering *mux.Router // 'api/v4/ip_filtering'
 
-	OutgoingOAuthConnections *mux.Router // 'api/v4/oauth_outgoing_connections'
-	OutgoingOAuthConnection  *mux.Router // 'api/v4/oauth_outgoing_connections/{outgoing_oauth_connection_id:[A-Za-z0-9]+}'
+	OutgoingOAuthConnections *mux.Router // 'api/v4/oauth/outgoing_connections'
+	OutgoingOAuthConnection  *mux.Router // 'api/v4/oauth/outgoing_connections/{outgoing_oauth_connection_id:[A-Za-z0-9]+}'
 }
 
 type API struct {
