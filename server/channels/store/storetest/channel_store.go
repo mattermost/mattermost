@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -41,7 +42,7 @@ type SqlXExecutor interface {
 	Select(dest any, query string, args ...any) error
 }
 
-func cleanupChannels(t *testing.T, ss store.Store) {
+func cleanupChannels(t *testing.T, rctx request.CTX, ss store.Store) {
 	list, err := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.NoError(t, err, "error cleaning all channels", err)
 	for _, channel := range list {
@@ -64,95 +65,95 @@ func channelMemberToJSON(t *testing.T, cm *model.ChannelMember) string {
 	return string(js)
 }
 
-func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
+func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	createDefaultRoles(ss)
 
-	t.Run("Save", func(t *testing.T) { testChannelStoreSave(t, ss) })
-	t.Run("SaveDirectChannel", func(t *testing.T) { testChannelStoreSaveDirectChannel(t, ss, s) })
-	t.Run("CreateDirectChannel", func(t *testing.T) { testChannelStoreCreateDirectChannel(t, ss) })
-	t.Run("Update", func(t *testing.T) { testChannelStoreUpdate(t, ss) })
-	t.Run("GetChannelUnread", func(t *testing.T) { testGetChannelUnread(t, ss) })
-	t.Run("Get", func(t *testing.T) { testChannelStoreGet(t, ss, s) })
-	t.Run("GetMany", func(t *testing.T) { testChannelStoreGetMany(t, ss, s) })
-	t.Run("GetChannelsByIds", func(t *testing.T) { testChannelStoreGetChannelsByIds(t, ss) })
-	t.Run("GetChannelsWithTeamDataByIds", func(t *testing.T) { testGetChannelsWithTeamDataByIds(t, ss) })
-	t.Run("GetForPost", func(t *testing.T) { testChannelStoreGetForPost(t, ss) })
-	t.Run("Restore", func(t *testing.T) { testChannelStoreRestore(t, ss) })
-	t.Run("Delete", func(t *testing.T) { testChannelStoreDelete(t, ss) })
-	t.Run("GetByName", func(t *testing.T) { testChannelStoreGetByName(t, ss) })
-	t.Run("GetByNames", func(t *testing.T) { testChannelStoreGetByNames(t, ss) })
-	t.Run("GetByNamesIncludeDeleted", func(t *testing.T) { testChannelStoreGetByNamesIncludeDeleted(t, ss) })
-	t.Run("GetDeletedByName", func(t *testing.T) { testChannelStoreGetDeletedByName(t, ss) })
-	t.Run("GetDeleted", func(t *testing.T) { testChannelStoreGetDeleted(t, ss) })
-	t.Run("ChannelMemberStore", func(t *testing.T) { testChannelMemberStore(t, ss) })
-	t.Run("SaveMember", func(t *testing.T) { testChannelSaveMember(t, ss) })
-	t.Run("SaveMultipleMembers", func(t *testing.T) { testChannelSaveMultipleMembers(t, ss) })
-	t.Run("UpdateMember", func(t *testing.T) { testChannelUpdateMember(t, ss) })
-	t.Run("UpdateMemberNotifyProps", func(t *testing.T) { testChannelUpdateMemberNotifyProps(t, ss) })
-	t.Run("UpdateMultipleMembers", func(t *testing.T) { testChannelUpdateMultipleMembers(t, ss) })
-	t.Run("RemoveMember", func(t *testing.T) { testChannelRemoveMember(t, ss) })
-	t.Run("RemoveMembers", func(t *testing.T) { testChannelRemoveMembers(t, ss) })
-	t.Run("ChannelDeleteMemberStore", func(t *testing.T) { testChannelDeleteMemberStore(t, ss) })
-	t.Run("GetChannels", func(t *testing.T) { testChannelStoreGetChannels(t, ss) })
-	t.Run("GetChannelsByUser", func(t *testing.T) { testChannelStoreGetChannelsByUser(t, ss) })
-	t.Run("GetAllChannels", func(t *testing.T) { testChannelStoreGetAllChannels(t, ss, s) })
-	t.Run("GetMoreChannels", func(t *testing.T) { testChannelStoreGetMoreChannels(t, ss) })
-	t.Run("GetPrivateChannelsForTeam", func(t *testing.T) { testChannelStoreGetPrivateChannelsForTeam(t, ss) })
-	t.Run("GetPublicChannelsForTeam", func(t *testing.T) { testChannelStoreGetPublicChannelsForTeam(t, ss) })
-	t.Run("GetPublicChannelsByIdsForTeam", func(t *testing.T) { testChannelStoreGetPublicChannelsByIdsForTeam(t, ss) })
-	t.Run("GetChannelCounts", func(t *testing.T) { testChannelStoreGetChannelCounts(t, ss) })
-	t.Run("GetMembersForUser", func(t *testing.T) { testChannelStoreGetMembersForUser(t, ss) })
-	t.Run("GetMembersForUserWithPagination", func(t *testing.T) { testChannelStoreGetMembersForUserWithPagination(t, ss) })
-	t.Run("CountPostsAfter", func(t *testing.T) { testCountPostsAfter(t, ss) })
-	t.Run("CountUrgentPostsAfter", func(t *testing.T) { testCountUrgentPostsAfter(t, ss) })
-	t.Run("UpdateLastViewedAt", func(t *testing.T) { testChannelStoreUpdateLastViewedAt(t, ss) })
-	t.Run("IncrementMentionCount", func(t *testing.T) { testChannelStoreIncrementMentionCount(t, ss) })
-	t.Run("UpdateChannelMember", func(t *testing.T) { testUpdateChannelMember(t, ss) })
-	t.Run("GetMember", func(t *testing.T) { testGetMember(t, ss) })
-	t.Run("GetMemberForPost", func(t *testing.T) { testChannelStoreGetMemberForPost(t, ss) })
-	t.Run("GetMemberCount", func(t *testing.T) { testGetMemberCount(t, ss) })
-	t.Run("GetMemberCountsByGroup", func(t *testing.T) { testGetMemberCountsByGroup(t, ss) })
-	t.Run("GetGuestCount", func(t *testing.T) { testGetGuestCount(t, ss) })
-	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, ss) })
-	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss) })
-	t.Run("Autocomplete", func(t *testing.T) { testAutocomplete(t, ss, s) })
-	t.Run("SearchArchivedInTeam", func(t *testing.T) { testChannelStoreSearchArchivedInTeam(t, ss, s) })
-	t.Run("SearchForUserInTeam", func(t *testing.T) { testChannelStoreSearchForUserInTeam(t, ss) })
-	t.Run("SearchAllChannels", func(t *testing.T) { testChannelStoreSearchAllChannels(t, ss) })
-	t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, ss) })
-	t.Run("GetMembersByChannelIds", func(t *testing.T) { testChannelStoreGetMembersByChannelIds(t, ss) })
-	t.Run("GetMembersInfoByChannelIds", func(t *testing.T) { testChannelStoreGetMembersInfoByChannelIds(t, ss) })
-	t.Run("SearchGroupChannels", func(t *testing.T) { testChannelStoreSearchGroupChannels(t, ss) })
-	t.Run("AnalyticsDeletedTypeCount", func(t *testing.T) { testChannelStoreAnalyticsDeletedTypeCount(t, ss) })
-	t.Run("GetPinnedPosts", func(t *testing.T) { testChannelStoreGetPinnedPosts(t, ss) })
-	t.Run("GetPinnedPostCount", func(t *testing.T) { testChannelStoreGetPinnedPostCount(t, ss) })
-	t.Run("MaxChannelsPerTeam", func(t *testing.T) { testChannelStoreMaxChannelsPerTeam(t, ss) })
-	t.Run("GetChannelsByScheme", func(t *testing.T) { testChannelStoreGetChannelsByScheme(t, ss) })
-	t.Run("MigrateChannelMembers", func(t *testing.T) { testChannelStoreMigrateChannelMembers(t, ss) })
-	t.Run("ResetAllChannelSchemes", func(t *testing.T) { testResetAllChannelSchemes(t, ss) })
-	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testChannelStoreClearAllCustomRoleAssignments(t, ss) })
-	t.Run("MaterializedPublicChannels", func(t *testing.T) { testMaterializedPublicChannels(t, ss, s) })
-	t.Run("GetAllChannelsForExportAfter", func(t *testing.T) { testChannelStoreGetAllChannelsForExportAfter(t, ss) })
-	t.Run("GetChannelMembersForExport", func(t *testing.T) { testChannelStoreGetChannelMembersForExport(t, ss) })
-	t.Run("RemoveAllDeactivatedMembers", func(t *testing.T) { testChannelStoreRemoveAllDeactivatedMembers(t, ss, s) })
-	t.Run("ExportAllDirectChannels", func(t *testing.T) { testChannelStoreExportAllDirectChannels(t, ss, s) })
-	t.Run("ExportAllDirectChannelsExcludePrivateAndPublic", func(t *testing.T) { testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t, ss, s) })
-	t.Run("ExportAllDirectChannelsDeletedChannel", func(t *testing.T) { testChannelStoreExportAllDirectChannelsDeletedChannel(t, ss, s) })
-	t.Run("GetChannelsBatchForIndexing", func(t *testing.T) { testChannelStoreGetChannelsBatchForIndexing(t, ss) })
-	t.Run("GroupSyncedChannelCount", func(t *testing.T) { testGroupSyncedChannelCount(t, ss) })
-	t.Run("CreateInitialSidebarCategories", func(t *testing.T) { testCreateInitialSidebarCategories(t, ss) })
-	t.Run("CreateSidebarCategory", func(t *testing.T) { testCreateSidebarCategory(t, ss) })
-	t.Run("GetSidebarCategory", func(t *testing.T) { testGetSidebarCategory(t, ss, s) })
-	t.Run("GetSidebarCategories", func(t *testing.T) { testGetSidebarCategories(t, ss) })
-	t.Run("UpdateSidebarCategories", func(t *testing.T) { testUpdateSidebarCategories(t, ss) })
-	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, ss, s) })
-	t.Run("UpdateSidebarChannelsByPreferences", func(t *testing.T) { testUpdateSidebarChannelsByPreferences(t, ss) })
-	t.Run("SetShared", func(t *testing.T) { testSetShared(t, ss) })
-	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, ss) })
-	t.Run("GetChannelsWithUnreadsAndWithMentions", func(t *testing.T) { testGetChannelsWithUnreadsAndWithMentions(t, ss) })
+	t.Run("Save", func(t *testing.T) { testChannelStoreSave(t, rctx, ss) })
+	t.Run("SaveDirectChannel", func(t *testing.T) { testChannelStoreSaveDirectChannel(t, rctx, ss, s) })
+	t.Run("CreateDirectChannel", func(t *testing.T) { testChannelStoreCreateDirectChannel(t, rctx, ss) })
+	t.Run("Update", func(t *testing.T) { testChannelStoreUpdate(t, rctx, ss) })
+	t.Run("GetChannelUnread", func(t *testing.T) { testGetChannelUnread(t, rctx, ss) })
+	t.Run("Get", func(t *testing.T) { testChannelStoreGet(t, rctx, ss, s) })
+	t.Run("GetMany", func(t *testing.T) { testChannelStoreGetMany(t, rctx, ss, s) })
+	t.Run("GetChannelsByIds", func(t *testing.T) { testChannelStoreGetChannelsByIds(t, rctx, ss) })
+	t.Run("GetChannelsWithTeamDataByIds", func(t *testing.T) { testGetChannelsWithTeamDataByIds(t, rctx, ss) })
+	t.Run("GetForPost", func(t *testing.T) { testChannelStoreGetForPost(t, rctx, ss) })
+	t.Run("Restore", func(t *testing.T) { testChannelStoreRestore(t, rctx, ss) })
+	t.Run("Delete", func(t *testing.T) { testChannelStoreDelete(t, rctx, ss) })
+	t.Run("GetByName", func(t *testing.T) { testChannelStoreGetByName(t, rctx, ss) })
+	t.Run("GetByNames", func(t *testing.T) { testChannelStoreGetByNames(t, rctx, ss) })
+	t.Run("GetByNamesIncludeDeleted", func(t *testing.T) { testChannelStoreGetByNamesIncludeDeleted(t, rctx, ss) })
+	t.Run("GetDeletedByName", func(t *testing.T) { testChannelStoreGetDeletedByName(t, rctx, ss) })
+	t.Run("GetDeleted", func(t *testing.T) { testChannelStoreGetDeleted(t, rctx, ss) })
+	t.Run("ChannelMemberStore", func(t *testing.T) { testChannelMemberStore(t, rctx, ss) })
+	t.Run("SaveMember", func(t *testing.T) { testChannelSaveMember(t, rctx, ss) })
+	t.Run("SaveMultipleMembers", func(t *testing.T) { testChannelSaveMultipleMembers(t, rctx, ss) })
+	t.Run("UpdateMember", func(t *testing.T) { testChannelUpdateMember(t, rctx, ss) })
+	t.Run("UpdateMemberNotifyProps", func(t *testing.T) { testChannelUpdateMemberNotifyProps(t, rctx, ss) })
+	t.Run("UpdateMultipleMembers", func(t *testing.T) { testChannelUpdateMultipleMembers(t, rctx, ss) })
+	t.Run("RemoveMember", func(t *testing.T) { testChannelRemoveMember(t, rctx, ss) })
+	t.Run("RemoveMembers", func(t *testing.T) { testChannelRemoveMembers(t, rctx, ss) })
+	t.Run("ChannelDeleteMemberStore", func(t *testing.T) { testChannelDeleteMemberStore(t, rctx, ss) })
+	t.Run("GetChannels", func(t *testing.T) { testChannelStoreGetChannels(t, rctx, ss) })
+	t.Run("GetChannelsByUser", func(t *testing.T) { testChannelStoreGetChannelsByUser(t, rctx, ss) })
+	t.Run("GetAllChannels", func(t *testing.T) { testChannelStoreGetAllChannels(t, rctx, ss, s) })
+	t.Run("GetMoreChannels", func(t *testing.T) { testChannelStoreGetMoreChannels(t, rctx, ss) })
+	t.Run("GetPrivateChannelsForTeam", func(t *testing.T) { testChannelStoreGetPrivateChannelsForTeam(t, rctx, ss) })
+	t.Run("GetPublicChannelsForTeam", func(t *testing.T) { testChannelStoreGetPublicChannelsForTeam(t, rctx, ss) })
+	t.Run("GetPublicChannelsByIdsForTeam", func(t *testing.T) { testChannelStoreGetPublicChannelsByIdsForTeam(t, rctx, ss) })
+	t.Run("GetChannelCounts", func(t *testing.T) { testChannelStoreGetChannelCounts(t, rctx, ss) })
+	t.Run("GetMembersForUser", func(t *testing.T) { testChannelStoreGetMembersForUser(t, rctx, ss) })
+	t.Run("GetMembersForUserWithPagination", func(t *testing.T) { testChannelStoreGetMembersForUserWithPagination(t, rctx, ss) })
+	t.Run("CountPostsAfter", func(t *testing.T) { testCountPostsAfter(t, rctx, ss) })
+	t.Run("CountUrgentPostsAfter", func(t *testing.T) { testCountUrgentPostsAfter(t, rctx, ss) })
+	t.Run("UpdateLastViewedAt", func(t *testing.T) { testChannelStoreUpdateLastViewedAt(t, rctx, ss) })
+	t.Run("IncrementMentionCount", func(t *testing.T) { testChannelStoreIncrementMentionCount(t, rctx, ss) })
+	t.Run("UpdateChannelMember", func(t *testing.T) { testUpdateChannelMember(t, rctx, ss) })
+	t.Run("GetMember", func(t *testing.T) { testGetMember(t, rctx, ss) })
+	t.Run("GetMemberForPost", func(t *testing.T) { testChannelStoreGetMemberForPost(t, rctx, ss) })
+	t.Run("GetMemberCount", func(t *testing.T) { testGetMemberCount(t, rctx, ss) })
+	t.Run("GetMemberCountsByGroup", func(t *testing.T) { testGetMemberCountsByGroup(t, rctx, ss) })
+	t.Run("GetGuestCount", func(t *testing.T) { testGetGuestCount(t, rctx, ss) })
+	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, rctx, ss) })
+	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, rctx, ss) })
+	t.Run("Autocomplete", func(t *testing.T) { testAutocomplete(t, rctx, ss, s) })
+	t.Run("SearchArchivedInTeam", func(t *testing.T) { testChannelStoreSearchArchivedInTeam(t, rctx, ss, s) })
+	t.Run("SearchForUserInTeam", func(t *testing.T) { testChannelStoreSearchForUserInTeam(t, rctx, ss) })
+	t.Run("SearchAllChannels", func(t *testing.T) { testChannelStoreSearchAllChannels(t, rctx, ss) })
+	t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, rctx, ss) })
+	t.Run("GetMembersByChannelIds", func(t *testing.T) { testChannelStoreGetMembersByChannelIds(t, rctx, ss) })
+	t.Run("GetMembersInfoByChannelIds", func(t *testing.T) { testChannelStoreGetMembersInfoByChannelIds(t, rctx, ss) })
+	t.Run("SearchGroupChannels", func(t *testing.T) { testChannelStoreSearchGroupChannels(t, rctx, ss) })
+	t.Run("AnalyticsDeletedTypeCount", func(t *testing.T) { testChannelStoreAnalyticsDeletedTypeCount(t, rctx, ss) })
+	t.Run("GetPinnedPosts", func(t *testing.T) { testChannelStoreGetPinnedPosts(t, rctx, ss) })
+	t.Run("GetPinnedPostCount", func(t *testing.T) { testChannelStoreGetPinnedPostCount(t, rctx, ss) })
+	t.Run("MaxChannelsPerTeam", func(t *testing.T) { testChannelStoreMaxChannelsPerTeam(t, rctx, ss) })
+	t.Run("GetChannelsByScheme", func(t *testing.T) { testChannelStoreGetChannelsByScheme(t, rctx, ss) })
+	t.Run("MigrateChannelMembers", func(t *testing.T) { testChannelStoreMigrateChannelMembers(t, rctx, ss) })
+	t.Run("ResetAllChannelSchemes", func(t *testing.T) { testResetAllChannelSchemes(t, rctx, ss) })
+	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testChannelStoreClearAllCustomRoleAssignments(t, rctx, ss) })
+	t.Run("MaterializedPublicChannels", func(t *testing.T) { testMaterializedPublicChannels(t, rctx, ss, s) })
+	t.Run("GetAllChannelsForExportAfter", func(t *testing.T) { testChannelStoreGetAllChannelsForExportAfter(t, rctx, ss) })
+	t.Run("GetChannelMembersForExport", func(t *testing.T) { testChannelStoreGetChannelMembersForExport(t, rctx, ss) })
+	t.Run("RemoveAllDeactivatedMembers", func(t *testing.T) { testChannelStoreRemoveAllDeactivatedMembers(t, rctx, ss, s) })
+	t.Run("ExportAllDirectChannels", func(t *testing.T) { testChannelStoreExportAllDirectChannels(t, rctx, ss, s) })
+	t.Run("ExportAllDirectChannelsExcludePrivateAndPublic", func(t *testing.T) { testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t, rctx, ss, s) })
+	t.Run("ExportAllDirectChannelsDeletedChannel", func(t *testing.T) { testChannelStoreExportAllDirectChannelsDeletedChannel(t, rctx, ss, s) })
+	t.Run("GetChannelsBatchForIndexing", func(t *testing.T) { testChannelStoreGetChannelsBatchForIndexing(t, rctx, ss) })
+	t.Run("GroupSyncedChannelCount", func(t *testing.T) { testGroupSyncedChannelCount(t, rctx, ss) })
+	t.Run("CreateInitialSidebarCategories", func(t *testing.T) { testCreateInitialSidebarCategories(t, rctx, ss) })
+	t.Run("CreateSidebarCategory", func(t *testing.T) { testCreateSidebarCategory(t, rctx, ss) })
+	t.Run("GetSidebarCategory", func(t *testing.T) { testGetSidebarCategory(t, rctx, ss, s) })
+	t.Run("GetSidebarCategories", func(t *testing.T) { testGetSidebarCategories(t, rctx, ss) })
+	t.Run("UpdateSidebarCategories", func(t *testing.T) { testUpdateSidebarCategories(t, rctx, ss) })
+	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, rctx, ss, s) })
+	t.Run("UpdateSidebarChannelsByPreferences", func(t *testing.T) { testUpdateSidebarChannelsByPreferences(t, rctx, ss) })
+	t.Run("SetShared", func(t *testing.T) { testSetShared(t, rctx, ss) })
+	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, rctx, ss) })
+	t.Run("GetChannelsWithUnreadsAndWithMentions", func(t *testing.T) { testGetChannelsWithUnreadsAndWithMentions(t, rctx, ss) })
 }
 
-func testChannelStoreSave(t *testing.T, ss store.Store) {
+func testChannelStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
@@ -203,7 +204,7 @@ func testChannelStoreSave(t *testing.T, ss store.Store) {
 	require.True(t, errors.As(nErr, &cErr))
 }
 
-func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore) {
+func testChannelStoreSaveDirectChannel(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
@@ -245,6 +246,10 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	require.NoError(t, nErr)
 	require.Len(t, members, 2, "should have saved 2 members")
 
+	userIDs, nErr := ss.Channel().GetAllChannelMemberIdsByChannelId(o1.Id)
+	require.NoError(t, nErr)
+	require.ElementsMatch(t, []string{u1.Id, u2.Id}, userIDs)
+
 	_, nErr = ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 	require.Error(t, nErr, "shouldn't be a able to update from save")
 
@@ -281,11 +286,15 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	require.NoError(t, nErr)
 	require.Len(t, members, 1, "should have saved just 1 member")
 
+	userIDs, nErr = ss.Channel().GetAllChannelMemberIdsByChannelId(o1.Id)
+	require.NoError(t, nErr)
+	require.ElementsMatch(t, []string{u1.Id}, userIDs)
+
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
-func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
+func testChannelStoreCreateDirectChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
@@ -314,7 +323,7 @@ func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
 	require.Len(t, members, 2, "should have saved 2 members")
 }
 
-func testChannelStoreUpdate(t *testing.T, ss store.Store) {
+func testChannelStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Name"
@@ -359,7 +368,7 @@ func testChannelStoreUpdate(t *testing.T, ss store.Store) {
 	require.Equal(t, invalidInputErr.Field, "Name")
 }
 
-func testGetChannelUnread(t *testing.T, ss store.Store) {
+func testGetChannelUnread(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId1 := model.NewId()
 	teamId2 := model.NewId()
 
@@ -411,7 +420,7 @@ func testGetChannelUnread(t *testing.T, ss store.Store) {
 	require.EqualValues(t, 10, ch2.MsgCount, "wrong MsgCount for channel 2")
 }
 
-func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
+func testChannelStoreGet(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Name"
@@ -486,7 +495,7 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
-func testChannelStoreGetMany(t *testing.T, ss store.Store, s SqlStore) {
+func testChannelStoreGetMany(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	o1, nErr := ss.Channel().Save(&model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
@@ -520,7 +529,7 @@ func testChannelStoreGetMany(t *testing.T, ss store.Store, s SqlStore) {
 	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
-func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
+func testChannelStoreGetChannelsByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Name"
@@ -599,7 +608,7 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetChannelsWithTeamDataByIds(t *testing.T, ss store.Store) {
+func testGetChannelsWithTeamDataByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 	t1 := &model.Team{
 		DisplayName: "DisplayName",
 		Name:        NewTestId(),
@@ -684,7 +693,7 @@ func testGetChannelsWithTeamDataByIds(t *testing.T, ss store.Store) {
 	}
 }
 
-func testChannelStoreGetForPost(t *testing.T, ss store.Store) {
+func testChannelStoreGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	ch := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
@@ -706,7 +715,7 @@ func testChannelStoreGetForPost(t *testing.T, ss store.Store) {
 	require.Equal(t, o1.Id, channel.Id, "incorrect channel returned")
 }
 
-func testChannelStoreRestore(t *testing.T, ss store.Store) {
+func testChannelStoreRestore(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Channel1"
@@ -728,7 +737,7 @@ func testChannelStoreRestore(t *testing.T, ss store.Store) {
 	require.EqualValues(t, 0, c.DeleteAt, "should have been restored")
 }
 
-func testChannelStoreDelete(t *testing.T, ss store.Store) {
+func testChannelStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Channel1"
@@ -813,7 +822,7 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr, nErr)
 }
 
-func testChannelStoreGetByName(t *testing.T, ss store.Store) {
+func testChannelStoreGetByName(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Name"
@@ -845,7 +854,7 @@ func testChannelStoreGetByName(t *testing.T, ss store.Store) {
 	require.Error(t, err, "Deleted channel should not be returned by GetByName()")
 }
 
-func testChannelStoreGetByNames(t *testing.T, ss store.Store) {
+func testChannelStoreGetByNames(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
@@ -911,7 +920,7 @@ func testChannelStoreGetByNames(t *testing.T, ss store.Store) {
 	assert.Empty(t, channels)
 }
 
-func testChannelStoreGetByNamesIncludeDeleted(t *testing.T, ss store.Store) {
+func testChannelStoreGetByNamesIncludeDeleted(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
@@ -958,7 +967,7 @@ func testChannelStoreGetByNamesIncludeDeleted(t *testing.T, ss store.Store) {
 	}
 }
 
-func testChannelStoreGetDeletedByName(t *testing.T, ss store.Store) {
+func testChannelStoreGetDeletedByName(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := &model.Channel{}
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Name"
@@ -981,7 +990,7 @@ func testChannelStoreGetDeletedByName(t *testing.T, ss store.Store) {
 	require.Error(t, nErr, "missing id should have failed")
 }
 
-func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
+func testChannelStoreGetDeleted(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Channel1"
@@ -1038,7 +1047,7 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	require.Len(t, list, 1, "wrong list length")
 }
 
-func testChannelMemberStore(t *testing.T, ss store.Store) {
+func testChannelMemberStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	c1 := &model.Channel{}
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "NameName"
@@ -1126,7 +1135,7 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	assert.EqualValues(t, 0, c1t4.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 }
 
-func testChannelSaveMember(t *testing.T, ss store.Store) {
+func testChannelSaveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
@@ -1633,7 +1642,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
+func testChannelSaveMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
@@ -2182,7 +2191,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelUpdateMember(t *testing.T, ss store.Store) {
+func testChannelUpdateMember(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
@@ -2687,7 +2696,7 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
+func testChannelUpdateMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
@@ -3223,7 +3232,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelUpdateMemberNotifyProps(t *testing.T, ss store.Store) {
+func testChannelUpdateMemberNotifyProps(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
@@ -3273,7 +3282,7 @@ func testChannelUpdateMemberNotifyProps(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelRemoveMember(t *testing.T, ss store.Store) {
+func testChannelRemoveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
@@ -3320,7 +3329,7 @@ func testChannelRemoveMember(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelRemoveMembers(t *testing.T, ss store.Store) {
+func testChannelRemoveMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
@@ -3375,7 +3384,7 @@ func testChannelRemoveMembers(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
+func testChannelDeleteMemberStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	c1 := &model.Channel{}
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "NameName"
@@ -3439,7 +3448,7 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 	require.EqualValues(t, 0, count, "should have removed all members")
 }
 
-func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
+func testChannelStoreGetChannels(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := model.NewId()
 	o1 := &model.Channel{}
 	o1.TeamId = team
@@ -3616,7 +3625,7 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 	ss.Channel().InvalidateAllChannelMembersForUser(m1.UserId)
 }
 
-func testChannelStoreGetChannelsByUser(t *testing.T, ss store.Store) {
+func testChannelStoreGetChannelsByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := model.NewId()
 	team2 := model.NewId()
 	o1 := model.Channel{}
@@ -3707,8 +3716,8 @@ func testChannelStoreGetChannelsByUser(t *testing.T, ss store.Store) {
 	require.ElementsMatch(t, []string{o1.Id, o3.Id}, []string{list[0].Id, list[1].Id}, "channels did not match")
 }
 
-func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
-	cleanupChannels(t, ss)
+func testChannelStoreGetAllChannels(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	cleanupChannels(t, rctx, ss)
 
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
@@ -3853,7 +3862,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
-func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
+func testChannelStoreGetMoreChannels(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	otherTeamId := model.NewId()
 	userId := model.NewId()
@@ -4007,7 +4016,7 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelStoreGetPrivateChannelsForTeam(t *testing.T, ss store.Store) {
+func testChannelStoreGetPrivateChannelsForTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	// p1 is a private channel on the team
@@ -4099,7 +4108,7 @@ func testChannelStoreGetPrivateChannelsForTeam(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
+func testChannelStoreGetPublicChannelsForTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	// o1 is a public channel on the team
@@ -4191,7 +4200,7 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store) {
+func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	// oc1 is a public channel on the team
@@ -4273,7 +4282,7 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 	})
 }
 
-func testChannelStoreGetChannelCounts(t *testing.T, ss store.Store) {
+func testChannelStoreGetChannelCounts(t *testing.T, rctx request.CTX, ss store.Store) {
 	o2 := model.Channel{}
 	o2.TeamId = model.NewId()
 	o2.DisplayName = "Channel2"
@@ -4317,7 +4326,7 @@ func testChannelStoreGetChannelCounts(t *testing.T, ss store.Store) {
 	require.Len(t, counts.UpdateTimes, 1, "wrong number of update times")
 }
 
-func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
+func testChannelStoreGetMembersForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = NewTestId()
@@ -4414,7 +4423,7 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Store) {
+func testChannelStoreGetMembersForUserWithPagination(t *testing.T, rctx request.CTX, ss store.Store) {
 	t1 := model.Team{
 		DisplayName: "team1",
 		Name:        NewTestId(),
@@ -4479,7 +4488,7 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 	assert.Len(t, members, 1)
 }
 
-func testCountPostsAfter(t *testing.T, ss store.Store) {
+func testCountPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should count all posts with or without the given user ID", func(t *testing.T) {
 		userId1 := model.NewId()
 		userId2 := model.NewId()
@@ -4631,7 +4640,7 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 	})
 }
 
-func testCountUrgentPostsAfter(t *testing.T, ss store.Store) {
+func testCountUrgentPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should count all posts with or without the given user ID", func(t *testing.T) {
 		userId1 := model.NewId()
 		userId2 := model.NewId()
@@ -4706,7 +4715,7 @@ func testCountUrgentPostsAfter(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
+func testChannelStoreUpdateLastViewedAt(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Channel1"
@@ -4768,7 +4777,7 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	require.NoError(t, err, "failed to update")
 }
 
-func testChannelStoreIncrementMentionCount(t *testing.T, ss store.Store) {
+func testChannelStoreIncrementMentionCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "Channel1"
@@ -4798,7 +4807,7 @@ func testChannelStoreIncrementMentionCount(t *testing.T, ss store.Store) {
 	require.NoError(t, err, "failed to update")
 }
 
-func testUpdateChannelMember(t *testing.T, ss store.Store) {
+func testUpdateChannelMember(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 
 	c1 := &model.Channel{
@@ -4827,7 +4836,7 @@ func testUpdateChannelMember(t *testing.T, ss store.Store) {
 	require.Error(t, err, "bad user id - should fail")
 }
 
-func testGetMember(t *testing.T, ss store.Store) {
+func testGetMember(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 
 	c1 := &model.Channel{
@@ -4891,7 +4900,7 @@ func testGetMember(t *testing.T, ss store.Store) {
 	ss.Channel().InvalidateCacheForChannelMembersNotifyProps(c2.Id)
 }
 
-func testChannelStoreGetMemberForPost(t *testing.T, ss store.Store) {
+func testChannelStoreGetMemberForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	ch := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
@@ -4924,7 +4933,7 @@ func testChannelStoreGetMemberForPost(t *testing.T, ss store.Store) {
 	require.Error(t, err, "shouldn't have returned a member")
 }
 
-func testGetMemberCount(t *testing.T, ss store.Store) {
+func testGetMemberCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	c1 := model.Channel{
@@ -5032,7 +5041,7 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	require.EqualValuesf(t, 2, count, "got incorrect member count %v", count)
 }
 
-func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
+func testGetMemberCountsByGroup(t *testing.T, rctx request.CTX, ss store.Store) {
 	var memberCounts []*model.ChannelMemberCountByGroup
 	teamId := model.NewId()
 	g1 := &model.Group{
@@ -5247,7 +5256,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetGuestCount(t *testing.T, ss store.Store) {
+func testGetGuestCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	c1 := model.Channel{
@@ -5369,7 +5378,7 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
+func testChannelStoreSearchMore(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	otherTeamId := model.NewId()
 
@@ -5538,7 +5547,7 @@ func (s ByChannelDisplayName) Less(i, j int) bool {
 	return s[i].Id < s[j].Id
 }
 
-func testChannelStoreSearchArchivedInTeam(t *testing.T, ss store.Store, s SqlStore) {
+func testChannelStoreSearchArchivedInTeam(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	teamId := model.NewId()
 	userId := model.NewId()
 	o1 := model.Channel{}
@@ -5579,7 +5588,7 @@ func testChannelStoreSearchArchivedInTeam(t *testing.T, ss store.Store, s SqlSto
 	})
 }
 
-func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
+func testChannelStoreSearchInTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamID := model.NewId()
 	otherTeamID := model.NewId()
 
@@ -5798,7 +5807,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 	}
 }
 
-func testAutocomplete(t *testing.T, ss store.Store, s SqlStore) {
+func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t1 := &model.Team{
 		DisplayName: "t1",
 		Name:        NewTestId(),
@@ -6010,7 +6019,7 @@ func testAutocomplete(t *testing.T, ss store.Store, s SqlStore) {
 	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
-func testChannelStoreSearchForUserInTeam(t *testing.T, ss store.Store) {
+func testChannelStoreSearchForUserInTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 	teamId := model.NewId()
 	otherTeamId := model.NewId()
@@ -6116,8 +6125,8 @@ func testChannelStoreSearchForUserInTeam(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
-	cleanupChannels(t, ss)
+func testChannelStoreSearchAllChannels(t *testing.T, rctx request.CTX, ss store.Store) {
+	cleanupChannels(t, rctx, ss)
 
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
@@ -6374,7 +6383,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	}
 }
 
-func testChannelStoreGetMembersByIds(t *testing.T, ss store.Store) {
+func testChannelStoreGetMembersByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "ChannelA"
@@ -6408,7 +6417,7 @@ func testChannelStoreGetMembersByIds(t *testing.T, ss store.Store) {
 	require.Len(t, members, 0)
 }
 
-func testChannelStoreGetMembersByChannelIds(t *testing.T, ss store.Store) {
+func testChannelStoreGetMembersByChannelIds(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 
 	// Create a couple channels and add the user to them
@@ -6466,7 +6475,7 @@ func testChannelStoreGetMembersByChannelIds(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelStoreGetMembersInfoByChannelIds(t *testing.T, ss store.Store) {
+func testChannelStoreGetMembersInfoByChannelIds(t *testing.T, rctx request.CTX, ss store.Store) {
 	u, err := ss.User().Save(&model.User{
 		Username: "user.test",
 		Email:    MakeEmail(),
@@ -6522,7 +6531,7 @@ func testChannelStoreGetMembersInfoByChannelIds(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
+func testChannelStoreSearchGroupChannels(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Users
 	u1 := &model.User{}
 	u1.Username = "user.one"
@@ -6676,7 +6685,7 @@ func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
 	}
 }
 
-func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
+func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
 	o1.DisplayName = "ChannelA"
@@ -6756,7 +6765,7 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	assert.Equal(t, directStartCount+1, count, "Wrong direct channel deleted count.")
 }
 
-func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
+func testChannelStoreGetPinnedPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 	ch1 := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
@@ -6849,7 +6858,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	})
 }
 
-func testChannelStoreGetPinnedPostCount(t *testing.T, ss store.Store) {
+func testChannelStoreGetPinnedPostCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	ch1 := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
@@ -6909,7 +6918,7 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, ss store.Store) {
 	require.EqualValues(t, 0, count, "should return 0")
 }
 
-func testChannelStoreMaxChannelsPerTeam(t *testing.T, ss store.Store) {
+func testChannelStoreMaxChannelsPerTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Channel",
@@ -6926,7 +6935,7 @@ func testChannelStoreMaxChannelsPerTeam(t *testing.T, ss store.Store) {
 	assert.NoError(t, nErr)
 }
 
-func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
+func testChannelStoreGetChannelsByScheme(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Create some schemes.
 	s1 := &model.Scheme{
 		DisplayName: model.NewId(),
@@ -6991,7 +7000,7 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 	assert.Empty(t, d3)
 }
 
-func testChannelStoreMigrateChannelMembers(t *testing.T, ss store.Store) {
+func testChannelStoreMigrateChannelMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := model.NewId()
 	c1 := &model.Channel{
 		TeamId:      model.NewId(),
@@ -7063,7 +7072,7 @@ func testChannelStoreMigrateChannelMembers(t *testing.T, ss store.Store) {
 	assert.False(t, cm3b.SchemeAdmin)
 }
 
-func testResetAllChannelSchemes(t *testing.T, ss store.Store) {
+func testResetAllChannelSchemes(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
@@ -7105,7 +7114,7 @@ func testResetAllChannelSchemes(t *testing.T, ss store.Store) {
 	assert.Equal(t, "", *c2.SchemeId)
 }
 
-func testChannelStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
+func testChannelStoreClearAllCustomRoleAssignments(t *testing.T, rctx request.CTX, ss store.Store) {
 	c := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Name",
@@ -7170,7 +7179,7 @@ func testChannelStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store)
 
 // testMaterializedPublicChannels tests edge cases involving the triggers and stored procedures
 // that materialize the PublicChannels table.
-func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
+func testMaterializedPublicChannels(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	teamId := model.NewId()
 
 	// o1 is a public channel on the team
@@ -7326,7 +7335,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 	})
 }
 
-func testChannelStoreGetAllChannelsForExportAfter(t *testing.T, ss store.Store) {
+func testChannelStoreGetAllChannelsForExportAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = NewTestId()
@@ -7358,7 +7367,7 @@ func testChannelStoreGetAllChannelsForExportAfter(t *testing.T, ss store.Store) 
 	assert.True(t, found)
 }
 
-func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
+func testChannelStoreGetChannelMembersForExport(t *testing.T, rctx request.CTX, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = NewTestId()
@@ -7414,7 +7423,7 @@ func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, u1.Id, cmfe1.UserId)
 }
 
-func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store, s SqlStore) {
+func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	// Set up all the objects needed in the store.
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
@@ -7476,6 +7485,10 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store, s
 	assert.NoError(t, err)
 	assert.Len(t, d1, 3)
 
+	userIDs, nErr := ss.Channel().GetAllChannelMemberIdsByChannelId(c1.Id)
+	require.NoError(t, nErr)
+	require.ElementsMatch(t, []string{u1.Id, u2.Id, u3.Id}, userIDs)
+
 	// Deactivate users 1 & 2.
 	u1.DeleteAt = model.GetMillis()
 	u2.DeleteAt = model.GetMillis()
@@ -7493,11 +7506,15 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store, s
 	assert.Len(t, d2, 1)
 	assert.Equal(t, u3.Id, d2[0].UserId)
 
+	userIDs, nErr = ss.Channel().GetAllChannelMemberIdsByChannelId(c1.Id)
+	require.NoError(t, nErr)
+	require.ElementsMatch(t, []string{u3.Id}, userIDs)
+
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
-func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store, s SqlStore) {
+func testChannelStoreExportAllDirectChannels(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
@@ -7554,7 +7571,7 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store, s Sql
 	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
-func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T, ss store.Store, s SqlStore) {
+func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
@@ -7616,7 +7633,7 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
-func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss store.Store, s SqlStore) {
+func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
@@ -7666,7 +7683,7 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss stor
 	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
-func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
+func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Set up all the objects needed
 	c1 := &model.Channel{}
 	c1.DisplayName = "Channel1"
@@ -7732,7 +7749,7 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
 	assert.Len(t, channels, 0)
 }
 
-func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
+func testGroupSyncedChannelCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel1, nErr := ss.Channel().Save(&model.Channel{
 		DisplayName:      model.NewId(),
 		Name:             model.NewId(),
@@ -7766,7 +7783,7 @@ func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
 	require.GreaterOrEqual(t, countAfter, count+1)
 }
 
-func testSetShared(t *testing.T, ss store.Store) {
+func testSetShared(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "test_share_flag",
@@ -7796,7 +7813,7 @@ func testSetShared(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetTeamForChannel(t *testing.T, ss store.Store) {
+func testGetTeamForChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	team, err := ss.Team().Save(&model.Team{
 		Name:        "myteam",
 		DisplayName: "DisplayName",
@@ -7823,7 +7840,7 @@ func testGetTeamForChannel(t *testing.T, ss store.Store) {
 	require.True(t, errors.As(err, &nfErr))
 }
 
-func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, ss store.Store) {
+func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, rctx request.CTX, ss store.Store) {
 	setupMembership := func(
 		pushProp string,
 		withUnreads bool,

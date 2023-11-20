@@ -232,7 +232,7 @@ func (a *App) WriteExportFile(fr io.Reader, path string) (int64, *model.AppError
 
 func writeFileContext(ctx context.Context, backend filestore.FileBackend, fr io.Reader, path string) (int64, *model.AppError) {
 	// Check if we can provide a custom context, otherwise just use the default method.
-	written, err := filestore.TryWriteFileContext(backend, ctx, fr, path)
+	written, err := filestore.TryWriteFileContext(ctx, backend, fr, path)
 	if err != nil {
 		return written, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

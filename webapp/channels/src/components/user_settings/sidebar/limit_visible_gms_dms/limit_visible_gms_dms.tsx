@@ -13,7 +13,7 @@ import {Preferences} from 'mattermost-redux/constants';
 
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
-import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {localizeMessage} from 'utils/utils';
 

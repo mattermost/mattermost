@@ -8,24 +8,25 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestRemoteClusterStore(t *testing.T, ss store.Store) {
-	t.Run("RemoteClusterGetAllInChannel", func(t *testing.T) { testRemoteClusterGetAllInChannel(t, ss) })
-	t.Run("RemoteClusterGetAllNotInChannel", func(t *testing.T) { testRemoteClusterGetAllNotInChannel(t, ss) })
-	t.Run("RemoteClusterSave", func(t *testing.T) { testRemoteClusterSave(t, ss) })
-	t.Run("RemoteClusterDelete", func(t *testing.T) { testRemoteClusterDelete(t, ss) })
-	t.Run("RemoteClusterGet", func(t *testing.T) { testRemoteClusterGet(t, ss) })
-	t.Run("RemoteClusterGetAll", func(t *testing.T) { testRemoteClusterGetAll(t, ss) })
-	t.Run("RemoteClusterGetByTopic", func(t *testing.T) { testRemoteClusterGetByTopic(t, ss) })
-	t.Run("RemoteClusterUpdateTopics", func(t *testing.T) { testRemoteClusterUpdateTopics(t, ss) })
+func TestRemoteClusterStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("RemoteClusterGetAllInChannel", func(t *testing.T) { testRemoteClusterGetAllInChannel(t, rctx, ss) })
+	t.Run("RemoteClusterGetAllNotInChannel", func(t *testing.T) { testRemoteClusterGetAllNotInChannel(t, rctx, ss) })
+	t.Run("RemoteClusterSave", func(t *testing.T) { testRemoteClusterSave(t, rctx, ss) })
+	t.Run("RemoteClusterDelete", func(t *testing.T) { testRemoteClusterDelete(t, rctx, ss) })
+	t.Run("RemoteClusterGet", func(t *testing.T) { testRemoteClusterGet(t, rctx, ss) })
+	t.Run("RemoteClusterGetAll", func(t *testing.T) { testRemoteClusterGetAll(t, rctx, ss) })
+	t.Run("RemoteClusterGetByTopic", func(t *testing.T) { testRemoteClusterGetByTopic(t, rctx, ss) })
+	t.Run("RemoteClusterUpdateTopics", func(t *testing.T) { testRemoteClusterUpdateTopics(t, rctx, ss) })
 }
 
-func testRemoteClusterSave(t *testing.T, ss store.Store) {
+func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Save", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      "some_remote",
@@ -60,7 +61,7 @@ func testRemoteClusterSave(t *testing.T, ss store.Store) {
 	})
 }
 
-func testRemoteClusterDelete(t *testing.T, ss store.Store) {
+func testRemoteClusterDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Delete", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      "shortlived_remote",
@@ -82,7 +83,7 @@ func testRemoteClusterDelete(t *testing.T, ss store.Store) {
 	})
 }
 
-func testRemoteClusterGet(t *testing.T, ss store.Store) {
+func testRemoteClusterGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Get", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      "shortlived_remote_2",
@@ -103,7 +104,7 @@ func testRemoteClusterGet(t *testing.T, ss store.Store) {
 	})
 }
 
-func testRemoteClusterGetAll(t *testing.T, ss store.Store) {
+func testRemoteClusterGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, clearRemoteClusters(ss))
 
 	userId := model.NewId()
@@ -208,7 +209,7 @@ func testRemoteClusterGetAll(t *testing.T, ss store.Store) {
 	})
 }
 
-func testRemoteClusterGetAllInChannel(t *testing.T, ss store.Store) {
+func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, clearRemoteClusters(ss))
 	now := model.GetMillis()
 
@@ -316,7 +317,7 @@ func testRemoteClusterGetAllInChannel(t *testing.T, ss store.Store) {
 	})
 }
 
-func testRemoteClusterGetAllNotInChannel(t *testing.T, ss store.Store) {
+func testRemoteClusterGetAllNotInChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, clearRemoteClusters(ss))
 
 	userId := model.NewId()
@@ -421,7 +422,7 @@ func getIds(remotes []*model.RemoteCluster) []string {
 	return ids
 }
 
-func testRemoteClusterGetByTopic(t *testing.T, ss store.Store) {
+func testRemoteClusterGetByTopic(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, clearRemoteClusters(ss))
 
 	rcData := []*model.RemoteCluster{
@@ -466,7 +467,7 @@ func testRemoteClusterGetByTopic(t *testing.T, ss store.Store) {
 	}
 }
 
-func testRemoteClusterUpdateTopics(t *testing.T, ss store.Store) {
+func testRemoteClusterUpdateTopics(t *testing.T, rctx request.CTX, ss store.Store) {
 	remoteId := model.NewId()
 	rc := &model.RemoteCluster{
 		DisplayName: "Blap Inc",

@@ -791,8 +791,6 @@
   "admin.experimental.experimentalPrimaryTeam.desc": "Основният екип, на който потребителите на сървъра се членове. Когато е зададен основен отбор, опциите за присъединяване към други отбори или напускане на основния отбор са деактивирани.",
   "admin.experimental.experimentalPrimaryTeam.example": "Например: \"име на екип\"",
   "admin.experimental.experimentalPrimaryTeam.title": "Основен екип:",
-  "admin.experimental.experimentalTimezone.desc": "Изберете часовия пояс, използван за времеви отметки в потребителския интерфейс и известия по ел.поща. Когато е true, секцията за часовата зона е видима в Настройки и часовата зона се задава автоматично в следващата активна сесия. Когато е false, настройката на часовата зона е скрита в Настройки.",
-  "admin.experimental.experimentalTimezone.title": "Часова зона:",
   "admin.experimental.experimentalUseNewSAMLLibrary.desc": "Активирайте актуализирана SAML библиотека, която не изисква инсталиране на XML библиотека за сигурност (xmlsec1). Предупреждение: Не всички доставчици са тествани. Ако имате проблеми, моля, свържете се с поддръжката: <linkSupport>https://mattermost.com/support/</linkSupport>. Промяната на тази настройка изисква рестартиране на сървъра, преди да влезе в сила.",
   "admin.experimental.experimentalUseNewSAMLLibrary.title": "Използвайте подобрена библиотека SAML (бета):",
   "admin.experimental.ldapSettingsLoginButtonBorderColor.desc": "Посочете цвета за канта на бутона за влизане с AD/LDAP за целите на отличително маркиране. Използвайте шестнадесетичен код с #-знак преди кода. Тази настройка се отнася само за мобилните приложения.",

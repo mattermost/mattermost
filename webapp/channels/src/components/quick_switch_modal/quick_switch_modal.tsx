@@ -240,8 +240,8 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                         />
                         {!this.state.shouldShowLoadingSpinner && !this.state.hasSuggestions && this.state.text &&
                             <NoResultsIndicator
-                                variant={NoResultsVariant.ChannelSearch}
-                                titleValues={{channelName: `"${this.state.pretext}"`}}
+                                variant={NoResultsVariant.Search}
+                                titleValues={{channelName: `${this.state.pretext}`}}
                             />
                         }
                     </div>

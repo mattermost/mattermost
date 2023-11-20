@@ -847,8 +847,6 @@
   "admin.experimental.experimentalPrimaryTeam.desc": "Het basisteam waarvan gebruikers op de server lid zijn. Als een basisteam is ingesteld, zijn de opties voor het samenvoegen van andere teams of het verlaten van het basisteam uitgeschakeld.",
   "admin.experimental.experimentalPrimaryTeam.example": "Bijv.: \"teamnaam\"",
   "admin.experimental.experimentalPrimaryTeam.title": "Basisteam:",
-  "admin.experimental.experimentalTimezone.desc": "Selektearje de tiidsône dy’t brûkt wurdt foar tiidsoantsjuttingen yn de brûkersinterface en e-mailmeldingen. As dit ynskeakele is, is de tiidsône-ynstelling sichtber yn de Ynstellingen en wurdt der automatysk in tiidsône tawezen oan de folgjende aktive sesje. As dit útskeakele is, wurdt de tiidsône-ynstelling ferstoppe yn de Ynstellingen.",
-  "admin.experimental.experimentalTimezone.title": "Tijdzone:",
   "admin.experimental.experimentalUseNewSAMLLibrary.desc": "Schakel een bijgewerkte SAML-bibliotheek in, waarvoor de te installeren XML-beveiligingsbibliotheek (xmlsec1) niet vereist is. Waarschuwing: Niet alle providers zijn getest. Als je problemen ondervindt, neem dan contact op met de helpdesk: <linkSupport>https://mattermost.com/support/</linkSupport> . Als je deze instelling wijzigt, moet je eerst een herstart van de server uitvoeren.",
   "admin.experimental.experimentalUseNewSAMLLibrary.title": "Verbeterde SAML-bibliotheek gebruiken (Beta):",
   "admin.experimental.ldapSettingsLoginButtonBorderColor.desc": "Geef de kleur op van de rand van de AD/LDAP-aanmeldknop voor witte productdoeleinden. Gebruik een hex code met een #-teken voor de code. Deze instelling is alleen van toepassing op de mobiele apps.",
