@@ -2318,25 +2318,25 @@ func (us SqlUserStore) GetUserReport(
 	}
 
 	if us.DriverName() == model.DatabaseDriverPostgres {
-		query = query.LeftJoin("PostStats ps ON ps.UserId = u.Id")
-
+		joinQuery := "PostStats ps ON ps.UserId = u.Id"
 		if startAt > 0 {
 			startDate := time.UnixMilli(startAt)
-			query = query.Where(sq.GtOrEq{"ps.Day": startDate.Format("2006-01-02")})
+			joinQuery += fmt.Sprintf(" AND ps.Day >= '%s'", startDate.Format("2006-01-02"))
 		}
 		if endAt > 0 {
 			endDate := time.UnixMilli(endAt)
-			query = query.Where(sq.Lt{"ps.Day": endDate.Format("2006-01-02")})
+			joinQuery += fmt.Sprintf(" AND ps.Day < '%s'", endDate.Format("2006-01-02"))
 		}
+		query = query.LeftJoin(joinQuery)
 	} else {
-		query = query.LeftJoin("Posts p on p.UserId = u.Id")
-
+		joinQuery := "Posts p on p.UserId = u.Id"
 		if startAt > 0 {
-			query = query.Where(sq.GtOrEq{"p.CreateAt": startAt})
+			joinQuery += fmt.Sprintf(" AND p.CreateAt >= %d", startAt)
 		}
 		if endAt > 0 {
-			query = query.Where(sq.Lt{"p.CreateAt": endAt})
+			joinQuery += fmt.Sprintf(" AND p.CreateAt < %d", endAt)
 		}
+		query = query.LeftJoin(joinQuery)
 	}
 
 	userResults := []*model.UserReportQuery{}

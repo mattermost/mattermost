@@ -1027,6 +1027,8 @@ type UserReportQuery struct {
 
 type UserReport struct {
 	Id          string `json:"id"`
+	Username    string `json:"username"`
+	Email       string `json:"email"`
 	CreateAt    int64  `json:"create_at,omitempty"`
 	DisplayName string `json:"display_name"`
 	UserPostStats
@@ -1035,6 +1037,8 @@ type UserReport struct {
 func (u *UserReportQuery) ToReport() UserReport {
 	return UserReport{
 		Id:            u.Id,
+		Username:      u.Username,
+		Email:         u.Email,
 		CreateAt:      u.CreateAt,
 		DisplayName:   u.GetDisplayName(ShowNicknameFullName),
 		UserPostStats: u.UserPostStats,

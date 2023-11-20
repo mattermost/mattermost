@@ -6193,8 +6193,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	for i := 0; i < 5; i++ {
-		daysSince := -time.Hour * 24 * time.Duration(i)
-		p := model.Post{UserId: u1.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.Add(daysSince).UnixMilli()}
+		p := model.Post{UserId: u1.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.AddDate(0, 0, -i).UnixMilli()}
 		_, err = ss.Post().Save(&p)
 		require.NoError(t, err)
 	}
@@ -6206,8 +6205,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	for i := 0; i < 5; i++ {
-		daysSince := -time.Hour * 24 * time.Duration(i)
-		p := model.Post{UserId: u2.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.Add(daysSince).UnixMilli()}
+		p := model.Post{UserId: u2.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.AddDate(0, 0, -i).UnixMilli()}
 		_, err = ss.Post().Save(&p)
 		require.NoError(t, err)
 	}
@@ -6219,8 +6217,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
 
 	for i := 0; i < 5; i++ {
-		daysSince := -time.Hour * 24 * time.Duration(i)
-		p := model.Post{UserId: u3.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.Add(daysSince).UnixMilli()}
+		p := model.Post{UserId: u3.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.AddDate(0, 0, -i).UnixMilli()}
 		_, err = ss.Post().Save(&p)
 		require.NoError(t, err)
 	}
@@ -6304,7 +6301,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, 5, *userReport[2].DaysActive)
 		require.Equal(t, now.UnixMilli(), *userReport[2].LastPostDate)
 
-		userReport, err = ss.User().GetUserReport("Username", false, 50, "", "", now.Add(-time.Hour*48).UnixMilli(), 0)
+		userReport, err = ss.User().GetUserReport("Username", false, 50, "", "", now.AddDate(0, 0, -2).UnixMilli(), 0)
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
 
@@ -6318,33 +6315,33 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, 3, *userReport[2].DaysActive)
 		require.Equal(t, now.UnixMilli(), *userReport[2].LastPostDate)
 
-		userReport, err = ss.User().GetUserReport("Username", false, 50, "", "", 0, now.Add(-time.Hour*48).UnixMilli())
+		userReport, err = ss.User().GetUserReport("Username", false, 50, "", "", 0, now.AddDate(0, 0, -2).UnixMilli())
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
 
 		require.Equal(t, 2, *userReport[0].TotalPosts)
 		require.Equal(t, 2, *userReport[0].DaysActive)
-		require.Equal(t, now.Add(-time.Hour*72).UnixMilli(), *userReport[0].LastPostDate)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[0].LastPostDate)
 		require.Equal(t, 2, *userReport[1].TotalPosts)
 		require.Equal(t, 2, *userReport[1].DaysActive)
-		require.Equal(t, now.Add(-time.Hour*72).UnixMilli(), *userReport[1].LastPostDate)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[1].LastPostDate)
 		require.Equal(t, 2, *userReport[2].TotalPosts)
 		require.Equal(t, 2, *userReport[2].DaysActive)
-		require.Equal(t, now.Add(-time.Hour*72).UnixMilli(), *userReport[2].LastPostDate)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[2].LastPostDate)
 
-		userReport, err = ss.User().GetUserReport("Username", false, 50, "", "", now.Add(-time.Hour*72).UnixMilli(), now.Add(-time.Hour*48).UnixMilli())
+		userReport, err = ss.User().GetUserReport("Username", false, 50, "", "", now.AddDate(0, 0, -3).UnixMilli(), now.AddDate(0, 0, -2).UnixMilli())
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
 
 		require.Equal(t, 1, *userReport[0].TotalPosts)
 		require.Equal(t, 1, *userReport[0].DaysActive)
-		require.Equal(t, now.Add(-time.Hour*72).UnixMilli(), *userReport[0].LastPostDate)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[0].LastPostDate)
 		require.Equal(t, 1, *userReport[1].TotalPosts)
 		require.Equal(t, 1, *userReport[1].DaysActive)
-		require.Equal(t, now.Add(-time.Hour*72).UnixMilli(), *userReport[1].LastPostDate)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[1].LastPostDate)
 		require.Equal(t, 1, *userReport[2].TotalPosts)
 		require.Equal(t, 1, *userReport[2].DaysActive)
-		require.Equal(t, now.Add(-time.Hour*72).UnixMilli(), *userReport[2].LastPostDate)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[2].LastPostDate)
 	})
 
 }

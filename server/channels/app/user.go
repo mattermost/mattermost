@@ -2829,25 +2829,16 @@ func (a *App) GetUsersForReporting(
 	endAt int64,
 ) ([]*model.UserReport, *model.AppError) {
 	// Don't allow fetching more than 100 users at a time from the normal query endpoint
-	if pageSize > 100 {
+	if pageSize <= 0 || pageSize > 100 {
 		return nil, model.NewAppError("GetUsersForReporting", "app.user.get_users_for_reporting.invalid_page_size", nil, "", http.StatusBadRequest)
 	}
 
 	// Validate date range
-	if startAt > endAt {
+	if endAt > 0 && startAt > endAt {
 		return nil, model.NewAppError("GetUsersForReporting", "app.user.get_users_for_reporting.bad_date_range", nil, "", http.StatusBadRequest)
 	}
 
 	return a.getUserReport(sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt)
-}
-
-func (a *App) GenerateFullUserReport(startAt int64, endAt int64) ([]*model.UserReport, *model.AppError) {
-	userReports, err := a.getUserReport("Username", false, 0, "", "", startAt, endAt)
-	if err != nil {
-		return nil, err
-	}
-
-	return userReports, nil
 }
 
 func (a *App) getUserReport(

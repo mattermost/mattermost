@@ -108,6 +108,9 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.Users.Handle("/notify-admin", api.APISessionRequired(handleNotifyAdmin)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/trigger-notify-admin-posts", api.APISessionRequired(handleTriggerNotifyAdminPosts)).Methods("POST")
+
+	api.BaseRoutes.Users.Handle("/report", api.APISessionRequired(getUsersForReporting)).Methods("GET")
+
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -3441,5 +3444,54 @@ func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Reques
 	err := json.NewEncoder(w).Encode(users)
 	if err != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
+}
+
+func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !(c.IsSystemAdmin() && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers)) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
+		return
+	}
+
+	sortColumn := "Username"
+	if r.URL.Query().Get("sort_column") != "" {
+		sortColumn = r.URL.Query().Get("sort_column")
+	}
+
+	sortDesc := false
+	if r.URL.Query().Get("sort_direction") == "desc" {
+		sortDesc = true
+	}
+
+	pageSize := 50
+	if pageSizeStr, err := strconv.ParseInt(r.URL.Query().Get("page_size"), 10, 64); err == nil {
+		pageSize = int(pageSizeStr)
+	}
+
+	lastSortColumnValue := r.URL.Query().Get("last_column_value")
+	lastUserId := r.URL.Query().Get("last_id")
+
+	startAt := int64(0)
+	endAt := int64(0)
+	currentTime := time.Now()
+	dateRangeStr := r.URL.Query().Get("date_range")
+	if dateRangeStr == "last30days" {
+		startAt = currentTime.AddDate(0, 0, -30).UnixMilli()
+	} else if dateRangeStr == "previousmonth" {
+		startOfMonth := time.Date(currentTime.Year(), currentTime.Month(), 1, 0, 0, 0, 0, time.Local)
+		startAt = startOfMonth.AddDate(0, -1, 0).UnixMilli()
+		endAt = startOfMonth.UnixMilli()
+	} else if dateRangeStr == "last6months" {
+		startAt = currentTime.AddDate(0, -6, -0).UnixMilli()
+	}
+
+	userReports, err := c.App.GetUsersForReporting(sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if jsonErr := json.NewEncoder(w).Encode(userReports); jsonErr != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(jsonErr))
 	}
 }

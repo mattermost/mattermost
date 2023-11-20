@@ -7064,7 +7064,7 @@
   },
   {
     "id": "app.user.get_users_for_reporting.invalid_page_size",
-    "translation": "Page size is too large."
+    "translation": "Page size is invalid or too large."
   },
   {
     "id": "app.user.missing_account.const",

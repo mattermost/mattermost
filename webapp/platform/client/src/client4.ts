@@ -132,6 +132,7 @@ import {
     UserStatus,
     GetFilteredUsersStatsOpts,
     UserCustomStatus,
+    UserReport,
 } from '@mattermost/types/users';
 import {DeepPartial, RelationOneToOne} from '@mattermost/types/utilities';
 import {ProductNotices} from '@mattermost/types/product_notices';
@@ -980,6 +981,28 @@ export default class Client4 {
             {method: 'get'},
         );
     };
+
+    getUsersForReporting = (
+        dateRange?: 'alltime' | 'last30days' | 'previousmonth' | 'last6months',
+        sortColumn?: 'CreateAt' | 'Username' | 'FirstName' | 'LastName' | 'Nickname' | 'Email',
+        sortDirection?: 'asc' | 'desc',
+        pageSize?: number,
+        lastColumnValue?: string,
+        lastUserId?: string,
+    ) => {
+        const queryString = buildQueryString({
+            date_range: dateRange,
+            sort_column: sortColumn,
+            sort_direction: sortDirection,
+            page_size: pageSize,
+            last_column_value: lastColumnValue,
+            last_id: lastUserId,
+        });
+        return this.doFetch<UserReport[]>(
+            `${this.getUsersRoute()}/report${queryString}`,
+            {method: 'get'},
+        );
+    }
 
     /**
      * @deprecated
