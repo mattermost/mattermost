@@ -76,6 +76,7 @@ const baseProp: Props = {
         addMessageIntoHistory: jest.fn(),
         moveHistoryIndexBack: jest.fn(),
         moveHistoryIndexForward: jest.fn(),
+        submitReaction: jest.fn(),
         addReaction: jest.fn(),
         removeReaction: jest.fn(),
         clearDraftUploads: jest.fn(),
@@ -89,7 +90,9 @@ const baseProp: Props = {
         executeCommand: () => {
             return {data: true};
         },
-        getChannelTimezones: jest.fn(),
+        getChannelTimezones: jest.fn(() => {
+            return {data: '', error: ''};
+        }),
         runMessageWillBePostedHooks: (post: Post) => {
             return {data: post};
         },
@@ -107,7 +110,6 @@ const baseProp: Props = {
     emojiMap: new EmojiMap(new Map()),
     enableEmojiPicker: true,
     enableGifPicker: true,
-    isTimezoneEnabled: false,
     useLDAPGroupMentions: true,
     useCustomGroupMentions: true,
     canPost: true,
@@ -139,7 +141,7 @@ function advancedCreatePost(props?: Partial<Props>) {
 }
 
 describe('components/advanced_create_post', () => {
-    jest.useFakeTimers('legacy');
+    jest.useFakeTimers({legacyFakeTimers: true});
     let spy: jest.SpyInstance;
 
     beforeEach(() => {
@@ -379,18 +381,34 @@ describe('components/advanced_create_post', () => {
     //     expect(GlobalActions.emitLocalUserTypingEvent).toHaveBeenCalledWith(currentChannelProp.id, '');
     // });
 
-    it('onSubmit test for @here', () => {
-        const wrapper = shallow(advancedCreatePost());
+    it('onSubmit test for @all', async () => {
+        const result: ActionResult = {
+            data: [1, 2, 3, 4],
+        };
+        const wrapper = shallow(
+            advancedCreatePost({
+                actions: {
+                    ...baseProp.actions,
+                    getChannelTimezones: jest.fn(() => result),
+                },
+                currentChannelMembersCount: 9,
+            }),
+        );
 
         wrapper.setState({
-            message: 'test @here',
+            message: 'test @all',
         });
 
         const instance = wrapper.instance() as AdvancedCreatePost;
 
+        const showNotifyAllModal = instance.showNotifyAllModal;
+        instance.showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
+
         const form = wrapper.find('#create_post');
-        form.simulate('Submit', {preventDefault: jest.fn()});
+        await form.simulate('Submit', {preventDefault: jest.fn()});
+
         expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
+        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(['@all'], 4, 8);
 
         wrapper.setProps({
             currentChannelMembersCount: 2,
@@ -400,18 +418,34 @@ describe('components/advanced_create_post', () => {
         expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
     });
 
-    it('onSubmit test for @all', () => {
-        const wrapper = shallow(advancedCreatePost());
+    it('onSubmit test for @here', async () => {
+        const result: ActionResult = {
+            data: [1, 2, 3, 4],
+        };
+        const wrapper = shallow(
+            advancedCreatePost({
+                actions: {
+                    ...baseProp.actions,
+                    getChannelTimezones: jest.fn(() => result),
+                },
+                currentChannelMembersCount: 9,
+            }),
+        );
 
         wrapper.setState({
-            message: 'test @all',
+            message: 'test @here',
         });
 
         const instance = wrapper.instance() as AdvancedCreatePost;
 
+        const showNotifyAllModal = instance.showNotifyAllModal;
+        instance.showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
+
         const form = wrapper.find('#create_post');
-        form.simulate('Submit', {preventDefault: jest.fn()});
+        await form.simulate('Submit', {preventDefault: jest.fn()});
+
         expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
+        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(['@here'], 4, 8);
 
         wrapper.setProps({
             currentChannelMembersCount: 2,
@@ -633,76 +667,6 @@ describe('components/advanced_create_post', () => {
         expect(onSubmitPost.mock.calls[0][0]).toEqual(post);
     });
 
-    it('onSubmit test for @all with timezones', async () => {
-        const result: ActionResult = {
-            data: [1, 2, 3, 4],
-        };
-        const wrapper = shallow(
-            advancedCreatePost({
-                actions: {
-                    ...baseProp.actions,
-                    getChannelTimezones: jest.fn(() => result),
-                },
-                isTimezoneEnabled: true,
-                currentChannelMembersCount: 9,
-            }),
-        );
-
-        wrapper.setState({
-            message: 'test @all',
-        });
-
-        const instance = wrapper.instance() as AdvancedCreatePost;
-
-        const showNotifyAllModal = instance.showNotifyAllModal;
-        instance.showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
-
-        const form = wrapper.find('#create_post');
-        await form.simulate('Submit', {preventDefault: jest.fn()});
-
-        expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
-        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(['@all'], 4, 8);
-
-        wrapper.setProps({
-            currentChannelMembersCount: 2,
-        });
-
-        form.simulate('Submit', {preventDefault: jest.fn()});
-        expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
-    });
-
-    it('onSubmit test for @all with timezones disabled', () => {
-        const result: ActionResult = {
-            data: [],
-        };
-        const wrapper = shallow(
-            advancedCreatePost({
-                actions: {
-                    ...baseProp.actions,
-                    getChannelTimezones: jest.fn(() => result),
-                },
-                isTimezoneEnabled: false,
-            }),
-        );
-
-        wrapper.setState({
-            message: 'test @all',
-        });
-
-        const instance = wrapper.instance() as AdvancedCreatePost;
-
-        const form = wrapper.find('#create_post');
-        form.simulate('Submit', {preventDefault: jest.fn()});
-        expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
-
-        wrapper.setProps({
-            currentChannelMembersCount: 2,
-        });
-
-        form.simulate('Submit', {preventDefault: jest.fn()});
-        expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
-    });
-
     it('onSubmit test for "/header" message', () => {
         const openModal = jest.fn();
 
@@ -765,13 +729,13 @@ describe('components/advanced_create_post', () => {
     });
 
     it('onSubmit test for addReaction message', async () => {
-        const addReaction = jest.fn();
+        const submitReaction = jest.fn();
 
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
                     ...baseProp.actions,
-                    addReaction,
+                    submitReaction,
                 },
             }),
         );
@@ -781,17 +745,17 @@ describe('components/advanced_create_post', () => {
         });
 
         await (wrapper.instance() as AdvancedCreatePost).handleSubmit(submitEvent);
-        expect(addReaction).toHaveBeenCalledWith('a', 'smile');
+        expect(submitReaction).toHaveBeenCalledWith('a', '+', 'smile');
     });
 
-    it('onSubmit test for removeReaction message', () => {
-        const removeReaction = jest.fn();
+    it('onSubmit test for removeReaction message', async () => {
+        const submitReaction = jest.fn();
 
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
                     ...baseProp.actions,
-                    removeReaction,
+                    submitReaction,
                 },
             }),
         );
@@ -800,9 +764,8 @@ describe('components/advanced_create_post', () => {
             message: '-:smile:',
         });
 
-        const form = wrapper.find('#create_post');
-        form.simulate('Submit', {preventDefault: jest.fn()});
-        expect(removeReaction).toHaveBeenCalledWith('a', 'smile');
+        await (wrapper.instance() as AdvancedCreatePost).handleSubmit(submitEvent);
+        expect(submitReaction).toHaveBeenCalledWith('a', '-', 'smile');
     });
 
     /*it('check for postError state on handlePostError callback', () => {

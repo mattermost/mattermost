@@ -244,3 +244,9 @@ func (hooks *hooksTimerLayer) UserHasBeenDeactivated(c *Context, user *model.Use
 	hooks.hooksImpl.UserHasBeenDeactivated(c, user)
 	hooks.recordTime(startTime, "UserHasBeenDeactivated", true)
 }
+
+func (hooks *hooksTimerLayer) ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.ServeMetrics(c, w, r)
+	hooks.recordTime(startTime, "ServeMetrics", true)
+}

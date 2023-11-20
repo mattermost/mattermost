@@ -36,7 +36,7 @@ import type {ActionResult, GetStateFunc, DispatchFunc} from 'mattermost-redux/ty
 
 import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
-import {addReaction, createPost, setEditingPost, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import {addReaction, createPost, setEditingPost, emitShortcutReactToLastPostFrom, submitReaction} from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {scrollPostListToBottom} from 'actions/views/channel';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
@@ -80,7 +80,6 @@ function makeMapStateToProps() {
         const currentUserId = getCurrentUserId(state);
         const userIsOutOfOffice = getStatusForUserId(state, currentUserId) === UserStatuses.OUT_OF_OFFICE;
         const badConnection = connectionErrorCount(state) > 1;
-        const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
         const canPost = haveICurrentChannelPermission(state, Permissions.CREATE_POST);
         const useChannelMentions = haveICurrentChannelPermission(state, Permissions.USE_CHANNEL_MENTIONS);
         const isLDAPEnabled = license?.IsLicensed === 'true' && license?.LDAPGroups === 'true';
@@ -126,7 +125,6 @@ function makeMapStateToProps() {
             rhsOpen: getIsRhsOpen(state),
             emojiMap: getEmojiMap(state),
             badConnection,
-            isTimezoneEnabled,
             canPost,
             useChannelMentions,
             shouldShowPreview: showPreviewOnCreatePost(state),
@@ -155,6 +153,7 @@ type Actions = {
     addReaction: (postId: string, emojiName: string) => void;
     onSubmitPost: (post: Post, fileInfos: FileInfo[]) => void;
     removeReaction: (postId: string, emojiName: string) => void;
+    submitReaction: (postId: string, action: string, emojiName: string) => void;
     clearDraftUploads: () => void;
     runMessageWillBePostedHooks: (originalPost: Post) => ActionResult;
     runSlashCommandWillBePostedHooks: (originalMessage: string, originalArgs: CommandArgs) => ActionResult;
@@ -167,7 +166,7 @@ type Actions = {
     getChannelTimezones: (channelId: string) => ActionResult;
     scrollPostListToBottom: () => void;
     emitShortcutReactToLastPostFrom: (emittedFrom: string) => void;
-    getChannelMemberCountsByGroup: (channelId: string, includeTimezones: boolean) => void;
+    getChannelMemberCountsByGroup: (channelId: string) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
 }
@@ -204,6 +203,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             onSubmitPost,
             moveHistoryIndexBack,
             moveHistoryIndexForward,
+            submitReaction,
             addReaction,
             removeReaction,
             setDraft,

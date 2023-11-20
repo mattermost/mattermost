@@ -100,10 +100,10 @@ func (worker *Worker) DoJob(job *model.Job) {
 		return
 	}
 
-	cancelContext := request.EmptyContext(worker.logger)
+	var cancelContext request.CTX = request.EmptyContext(worker.logger)
 	cancelCtx, cancelCancelWatcher := context.WithCancel(context.Background())
 	cancelWatcherChan := make(chan struct{}, 1)
-	cancelContext.SetContext(cancelCtx)
+	cancelContext = cancelContext.WithContext(cancelCtx)
 	go worker.jobServer.CancellationWatcher(cancelContext, job.Id, cancelWatcherChan)
 	defer cancelCancelWatcher()
 

@@ -15,8 +15,18 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
+// Deprecated: Use GenericStoreResult instead.
 type StoreResult struct {
 	Data any
+
+	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
+	NErr error
+}
+
+// GenericStoreResult is a type safe version of StoreResult.
+// Once all the code is migrated to use GenericStoreResult, it should be renamed to StoreResult.
+type GenericStoreResult[T any] struct {
+	Data T
 
 	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
 	NErr error
@@ -36,6 +46,7 @@ type Store interface {
 	Compliance() ComplianceStore
 	Session() SessionStore
 	OAuth() OAuthStore
+	OutgoingOAuthConnection() OutgoingOAuthConnectionStore
 	System() SystemStore
 	Webhook() WebhookStore
 	Command() CommandStore
@@ -202,7 +213,7 @@ type ChannelStore interface {
 	GetDeleted(team_id string, offset int, limit int, userID string) (model.ChannelList, error)
 	GetChannels(teamID, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, error)
 	GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, error)
-	GetAllChannelMembersById(id string) ([]string, error)
+	GetAllChannelMemberIdsByChannelId(id string) ([]string, error)
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (model.ChannelListWithTeamData, error)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, error)
 	GetMoreChannels(teamID string, userID string, offset int, limit int) (model.ChannelList, error)
@@ -224,6 +235,9 @@ type ChannelStore interface {
 	UpdateMemberNotifyProps(channelID, userID string, props map[string]string) (*model.ChannelMember, error)
 	GetMembers(channelID string, offset, limit int) (model.ChannelMembers, error)
 	GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
+	// GetMemberOnly is a lite version of GetMember where it does not join
+	// with the different schemes tables.
+	GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
 	GetAllChannelMembersForUser(userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)
@@ -406,6 +420,7 @@ type UserStore interface {
 	UpdatePassword(userID, newPassword string) error
 	UpdateUpdateAt(userID string) (int64, error)
 	UpdateAuthData(userID string, service string, authData *string, email string, resetMfa bool) (string, error)
+	UpdateLastLogin(userID string, lastLogin int64) error
 	ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error)
 	UpdateMfaSecret(userID, secret string) error
 	UpdateMfaActive(userID string, active bool) error
@@ -475,6 +490,7 @@ type UserStore interface {
 	IsEmpty(excludeBots bool) (bool, error)
 	GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error)
 	InsertUsers(users []*model.User) error
+	RefreshPostStatsForUsers() error
 }
 
 type BotStore interface {
@@ -488,7 +504,7 @@ type BotStore interface {
 type SessionStore interface {
 	Get(c request.CTX, sessionIDOrToken string) (*model.Session, error)
 	Save(c request.CTX, session *model.Session) (*model.Session, error)
-	GetSessions(c *request.Context, userID string) ([]*model.Session, error)
+	GetSessions(c request.CTX, userID string) ([]*model.Session, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error
@@ -560,6 +576,14 @@ type OAuthStore interface {
 	GetPreviousAccessData(userID, clientId string) (*model.AccessData, error)
 	RemoveAccessData(token string) error
 	RemoveAllAccessData() error
+}
+
+type OutgoingOAuthConnectionStore interface {
+	SaveConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error)
+	UpdateConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error)
+	GetConnection(c request.CTX, id string) (*model.OutgoingOAuthConnection, error)
+	GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error)
+	DeleteConnection(c request.CTX, id string) error
 }
 
 type SystemStore interface {
@@ -736,12 +760,12 @@ type JobStore interface {
 	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
 	UpdateStatus(id string, status string) (*model.Job, error)
 	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error)
-	Get(c *request.Context, id string) (*model.Job, error)
-	GetAllByType(c *request.Context, jobType string) ([]*model.Job, error)
-	GetAllByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, error)
-	GetAllByTypePage(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, error)
-	GetAllByTypesPage(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, error)
-	GetAllByStatus(c *request.Context, status string) ([]*model.Job, error)
+	Get(c request.CTX, id string) (*model.Job, error)
+	GetAllByType(c request.CTX, jobType string) ([]*model.Job, error)
+	GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error)
+	GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error)
+	GetAllByTypesPage(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error)
+	GetAllByStatus(c request.CTX, status string) ([]*model.Job, error)
 	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error)
 	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error)
 	GetCountByStatusAndType(status string, jobType string) (int64, error)

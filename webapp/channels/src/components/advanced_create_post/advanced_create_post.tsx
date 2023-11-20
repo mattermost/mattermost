@@ -148,9 +148,6 @@ export type Props = {
     //If RHS open
     rhsOpen: boolean;
 
-    //To check if the timezones are enable on the server.
-    isTimezoneEnabled: boolean;
-
     canPost: boolean;
 
     //To determine if the current user can send special channel mentions
@@ -176,6 +173,8 @@ export type Props = {
 
         // func called for navigation through messages by Down arrow
         moveHistoryIndexForward: (index: string) => Promise<void>;
+
+        submitReaction: (postId: string, action: string, emojiName: string) => void;
 
         // func called for adding a reaction
         addReaction: (postId: string, emojiName: string) => void;
@@ -216,7 +215,7 @@ export type Props = {
         //Function to set or unset emoji picker for last message
         emitShortcutReactToLastPostFrom: (emittedFrom: string) => void;
 
-        getChannelMemberCountsByGroup: (channelId: string, includeTimezones: boolean) => void;
+        getChannelMemberCountsByGroup: (channelId: string) => void;
 
         //Function used to advance the tutorial forward
         savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
@@ -354,7 +353,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     }
 
     getChannelMemberCountsByGroup = () => {
-        const {useLDAPGroupMentions, useCustomGroupMentions, currentChannel, isTimezoneEnabled, actions, draft} = this.props;
+        const {useLDAPGroupMentions, useCustomGroupMentions, currentChannel, actions, draft} = this.props;
 
         if ((useLDAPGroupMentions || useCustomGroupMentions) && currentChannel.id) {
             const mentions = mentionsMinusSpecialMentionsInText(draft.message);
@@ -362,7 +361,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             if (mentions.length === 1) {
                 actions.searchAssociatedGroupsForReference(mentions[0], this.props.currentTeamId, currentChannel.id);
             } else if (mentions.length > 1) {
-                actions.getChannelMemberCountsByGroup(currentChannel.id, isTimezoneEnabled);
+                actions.getChannelMemberCountsByGroup(currentChannel.id);
             }
         }
     };
@@ -672,10 +671,8 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 }
             }
 
-            if (this.props.isTimezoneEnabled) {
-                const {data} = await this.props.actions.getChannelTimezones(this.props.currentChannel.id);
-                channelTimezoneCount = data ? data.length : 0;
-            }
+            const {data} = await this.props.actions.getChannelTimezones(this.props.currentChannel.id);
+            channelTimezoneCount = data ? data.length : 0;
         }
 
         const isDirectOrGroup =
@@ -804,10 +801,8 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         const emojiName = isReaction[2];
         const postId = this.props.latestReplyablePostId;
 
-        if (postId && action === '+') {
-            this.props.actions.addReaction(postId, emojiName);
-        } else if (postId && action === '-') {
-            this.props.actions.removeReaction(postId, emojiName);
+        if (postId) {
+            this.props.actions.submitReaction(postId, action, emojiName);
         }
 
         this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, null, channelId);

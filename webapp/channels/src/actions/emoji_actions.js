@@ -3,8 +3,7 @@
 
 import * as EmojiActions from 'mattermost-redux/actions/emojis';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getCustomEmojisByName as selectCustomEmojisByName, getCustomEmojisEnabled} from 'mattermost-redux/selectors/entities/emojis';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {getEmojiMap, getRecentEmojisData, getRecentEmojisNames, isCustomEmojiEnabled} from 'selectors/emojis';
@@ -15,23 +14,16 @@ import Constants, {ActionTypes, Preferences} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 
 export function loadRecentlyUsedCustomEmojis() {
-    return async (dispatch, getState) => {
+    return (dispatch, getState) => {
         const state = getState();
-        const config = getConfig(state);
 
-        if (config.EnableCustomEmoji !== 'true') {
+        if (!getCustomEmojisEnabled(state)) {
             return {data: true};
         }
 
-        const recentEmojis = getRecentEmojisNames(state);
-        const emojiMap = getEmojiMap(state);
-        const missingEmojis = recentEmojis.filter((name) => !emojiMap.has(name));
+        const recentEmojiNames = getRecentEmojisNames(state);
 
-        missingEmojis.forEach((name) => {
-            dispatch(EmojiActions.getCustomEmojiByName(name));
-        });
-
-        return {data: true};
+        return dispatch(EmojiActions.getCustomEmojisByName(recentEmojiNames));
     };
 }
 
@@ -153,7 +145,7 @@ export function loadCustomEmojisIfNeeded(emojis) {
         }
 
         const systemEmojis = EmojiIndicesByAlias;
-        const customEmojisByName = getCustomEmojisByName(state);
+        const customEmojisByName = selectCustomEmojisByName(state);
         const nonExistentCustomEmoji = state.entities.emojis.nonExistentEmoji;
         const emojisToLoad = [];
 
