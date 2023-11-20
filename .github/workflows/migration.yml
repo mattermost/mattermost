@@ -23,8 +23,10 @@ jobs:
       - name: Fix MySQL user permissions
         run: |
           cd build
+          docker exec ${COMPOSE_PROJECT_NAME}-mysql-1 sh -c "sed -i '/# default-authentication-plugin/c\default-authentication-plugin=mysql_native_password' /etc/my.cnf"
           docker exec ${COMPOSE_PROJECT_NAME}-mysql-1 sh -c "mysql -u root -pmostest -e \"ALTER USER 'mmuser'@'%' IDENTIFIED WITH mysql_native_password BY 'mostest';\""
           docker exec ${COMPOSE_PROJECT_NAME}-mysql-1 sh -c "mysql -u root -pmostest -e \"ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'mostest';\""
+          docker restart ${COMPOSE_PROJECT_NAME}-mysql-1 && sleep 10
       - name: Generate test-data
         run: |
           docker run --net ${COMPOSE_PROJECT_NAME}_mm-test \
