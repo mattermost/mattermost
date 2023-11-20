@@ -141,6 +141,8 @@ type State = {
     isSearchHintDismissed: boolean;
     isMobileView?: boolean;
     isNewMessageLineReached: boolean;
+    showScrollToBottomToast: boolean;
+    isScrollToBottomDismissed: boolean;
 }
 
 export default class PostList extends React.PureComponent<Props, State> {
@@ -175,6 +177,8 @@ export default class PostList extends React.PureComponent<Props, State> {
             showSearchHint: false,
             isSearchHintDismissed: false,
             isNewMessageLineReached: false,
+            showScrollToBottomToast: false,
+            isScrollToBottomDismissed: false,
         };
 
         this.listRef = React.createRef();
@@ -408,7 +412,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         const didUserScrollBackwards = scrollDirection === 'backward' && !scrollUpdateWasRequested;
         const didUserScrollForwards = scrollDirection === 'forward' && !scrollUpdateWasRequested;
         const isOffsetWithInRange = scrollOffset < HEIGHT_TRIGGER_FOR_MORE_POSTS;
-        const offsetFromBottom = (scrollHeight - clientHeight) - scrollOffset;
+        const offsetFromBottom = this.getOffsetFromBottom(scrollOffset, scrollHeight, clientHeight);
         const shouldLoadNewPosts = offsetFromBottom < HEIGHT_TRIGGER_FOR_MORE_POSTS;
 
         if (didUserScrollBackwards && isOffsetWithInRange && !this.props.atOldestPost) {
@@ -458,6 +462,8 @@ export default class PostList extends React.PureComponent<Props, State> {
                 showSearchHint: offsetFromBottom > this.showSearchHintThreshold,
             });
         }
+
+        this.updateScrollToBottomToastVisibility(scrollOffset, scrollHeight, clientHeight);
     };
 
     getShowSearchHintThreshold = () => {
@@ -468,9 +474,11 @@ export default class PostList extends React.PureComponent<Props, State> {
         this.updateAtBottom(this.isAtBottom(scrollOffset, scrollHeight, clientHeight));
     };
 
+    // Calculate how far the post list is from being scrolled to the bottom
+    getOffsetFromBottom = (scrollOffset: number, scrollHeight: number, clientHeight: number) => scrollHeight - clientHeight - scrollOffset;
+
     isAtBottom = (scrollOffset: number, scrollHeight: number, clientHeight: number) => {
-        // Calculate how far the post list is from being scrolled to the bottom
-        const offsetFromBottom = scrollHeight - clientHeight - scrollOffset;
+        const offsetFromBottom = this.getOffsetFromBottom(scrollOffset, scrollHeight, clientHeight);
 
         return offsetFromBottom <= BUFFER_TO_BE_CONSIDERED_BOTTOM && scrollHeight > 0;
     };
@@ -510,6 +518,40 @@ export default class PostList extends React.PureComponent<Props, State> {
             showSearchHint: false,
             isSearchHintDismissed: true,
         });
+    };
+
+    handleScrollToBottomToastDismiss = () => {
+        this.setState({
+            showScrollToBottomToast: false,
+            isScrollToBottomDismissed: true,
+        });
+    };
+
+    hideScrollToBottomToast = () => {
+        this.setState({
+            showScrollToBottomToast: false,
+        });
+    };
+
+    /*
+     * - Show the scroll-to-bottom toast at the same time as the search-hint toast.
+     * - Only show if the user hasn't dismissed it before, within a session.
+     * - Hide it if the user is at the bottom of the list.
+     */
+    updateScrollToBottomToastVisibility = (scrollOffset: number, scrollHeight: number, clientHeight: number) => {
+        if (this.state.showScrollToBottomToast && this.state.atBottom) {
+            this.setState({
+                showScrollToBottomToast: false,
+            });
+            return;
+        }
+
+        if (!this.state.isScrollToBottomDismissed) {
+            const offsetFromBottom = this.getOffsetFromBottom(scrollOffset, scrollHeight, clientHeight);
+            this.setState({
+                showScrollToBottomToast: offsetFromBottom > this.showSearchHintThreshold,
+            });
+        }
     };
 
     updateFloatingTimestamp = (visibleTopItem: number) => {
@@ -627,6 +669,9 @@ export default class PostList extends React.PureComponent<Props, State> {
                 initScrollOffsetFromBottom={this.state.initScrollOffsetFromBottom}
                 onSearchHintDismiss={this.handleSearchHintDismiss}
                 showSearchHintToast={this.state.showSearchHint}
+                showScrollToBottomToast={this.state.showScrollToBottomToast}
+                onScrollToBottomToastDismiss={this.handleScrollToBottomToastDismiss}
+                hideScrollToBottomToast={this.hideScrollToBottomToast}
             />
         );
     };

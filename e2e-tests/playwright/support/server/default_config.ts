@@ -180,6 +180,7 @@ const defaultServerConfig: AdminConfig = {
         EnableCustomGroups: true,
         SelfHostedPurchase: true,
         AllowSyncedDrafts: true,
+        RefreshPostStatsRunTime: '00:00',
     },
     TeamSettings: {
         SiteName: 'Mattermost',

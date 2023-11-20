@@ -379,6 +379,7 @@ export type ServiceSettings = {
     PersistentNotificationIntervalMinutes: number;
     PersistentNotificationMaxCount: number;
     PersistentNotificationMaxRecipients: number;
+    RefreshPostStatsRunTime: string;
 };
 
 export type TeamSettings = {
@@ -977,4 +978,18 @@ export enum ServiceEnvironment {
     PRODUCTION = 'production',
     TEST = 'test',
     DEV = 'dev',
+}
+
+
+export type AllowedIPRange = {
+    cidr_block: string;
+    description: string;
+    enabled: boolean;
+    owner_id: string;
+}
+
+export type AllowedIPRanges = AllowedIPRange[];
+
+export type FetchIPResponse = {
+    ip: string;
 }

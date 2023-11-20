@@ -3932,7 +3932,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Identitätsprovider Issuer URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
+    "translation": "Identitätsprovider Issuer URL darf nicht leer sein."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -4788,7 +4788,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 102+"
+    "translation": "Version 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -9183,7 +9183,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost ist eine Open Source Plattform für sicher Kommunikation, Zusammenarbeit und Koordination von Aufgaben über Werkzeuge und Teams hinweg.\nMattermost besteht aus drei Hauptwerkzeugen:\n\n**Channels** - Bleibe mit deinem Team in Verbindung mit 1:1- und Gruppen-Nachrichten.\n**[Playbooks](/playbooks)** - Erstelle und konfiguriere wiederholbare Prozesse um spezifische und vorhersagbare Ergebnisse zu bekommen.\n**[Boards](/boards)** - Verwalte Projekte und Aufgaben in einer Kanban-Board Struktur um dein Team beim Erreichen von Zielen zu unterstützen.\n\n[Zeige Dokumentation und Anleitungen]({{.HelpLink}})"
+    "translation": "Mattermost ist eine Open Source Plattform für sicher Kommunikation, Zusammenarbeit und Koordination von Aufgaben über Werkzeuge und Teams hinweg.\nMattermost besteht aus zwei Hauptwerkzeugen:\n\n**Channels** - Bleibe mit deinem Team in Verbindung mit 1:1- und Gruppen-Nachrichten.\n**[Playbooks](/playbooks)** - Erstelle und konfiguriere wiederholbare Prozesse um spezifische und vorhersagbare Ergebnisse zu bekommen.\n\n[Zeige Dokumentation und Anleitungen]({{.HelpLink}})"
   },
   {
     "id": "api.templates.delinquency_90.button",
@@ -9976,5 +9976,13 @@
   {
     "id": "api.emoji.get_multiple_by_name_too_many.request_error",
     "translation": "Es ist nicht möglich, so viele Emojis nach Namen zu erhalten. Es können nur {{.MaxNames}} Emojis auf einmal angefordert werden."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "JSON konnte nicht geparst werden: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Ungültiges Format: {{.Fehler}}"
   }
 ]
