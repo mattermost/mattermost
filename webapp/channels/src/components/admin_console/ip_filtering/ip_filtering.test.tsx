@@ -7,6 +7,7 @@ import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 import {BrowserRouter as Router} from 'react-router-dom';
 
+import type {Installation} from '@mattermost/types/cloud';
 import type {AllowedIPRange, FetchIPResponse} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
@@ -16,7 +17,6 @@ import configureStore from 'store';
 import ModalController from 'components/modal_controller';
 
 import IPFiltering from './index';
-import { Installation } from '@mattermost/types/src/cloud';
 
 jest.mock('mattermost-redux/client');
 
@@ -236,10 +236,9 @@ describe('IPFiltering', () => {
     });
 
     test('Save button is disabled with a spinner when the page is loaded with a not-stable installation', async () => {
-
         const getInstallationNotStableMock = jest.fn(() => Promise.resolve({id: 'abc123', state: 'update-in-progress'} as Installation));
         Client4.getInstallation = getInstallationNotStableMock;
-        
+
         jest.useFakeTimers();
         const {getByText, queryByText} = render(wrapWithIntlProviderAndStore(<IPFiltering/>));
 
@@ -266,7 +265,6 @@ describe('IPFiltering', () => {
         jest.advanceTimersByTime(5100);
         await waitFor(() => {
             expect(getByText('Save')).toBeInTheDocument();
-        })
-
+        });
     });
 });
