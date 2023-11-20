@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -23,16 +24,16 @@ func find_bookmark(slice []*model.ChannelBookmarkWithFileInfo, id string) *model
 	return nil
 }
 
-func TestChannelBookmarkStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("SaveChannelBookmark", func(t *testing.T) { testSaveChannelBookmark(t, ss) })
-	t.Run("UpdateChannelBookmark", func(t *testing.T) { testUpdateChannelBookmark(t, ss) })
-	t.Run("UpdateSortOrderChannelBookmark", func(t *testing.T) { testUpdateSortOrderChannelBookmark(t, ss) })
-	t.Run("DeleteChannelBookmark", func(t *testing.T) { testDeleteChannelBookmark(t, ss) })
-	t.Run("GetChannelBookmark", func(t *testing.T) { testGetChannelBookmark(t, ss) })
-	t.Run("GetBookmarksForAllChannelByIdSince", func(t *testing.T) { testGetBookmarksForAllChannelByIdSince(t, ss) })
+func TestChannelBookmarkStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("SaveChannelBookmark", func(t *testing.T) { testSaveChannelBookmark(t, rctx, ss) })
+	t.Run("UpdateChannelBookmark", func(t *testing.T) { testUpdateChannelBookmark(t, rctx, ss) })
+	t.Run("UpdateSortOrderChannelBookmark", func(t *testing.T) { testUpdateSortOrderChannelBookmark(t, rctx, ss) })
+	t.Run("DeleteChannelBookmark", func(t *testing.T) { testDeleteChannelBookmark(t, rctx, ss) })
+	t.Run("GetChannelBookmark", func(t *testing.T) { testGetChannelBookmark(t, rctx, ss) })
+	t.Run("GetBookmarksForAllChannelByIdSince", func(t *testing.T) { testGetBookmarksForAllChannelByIdSince(t, rctx, ss) })
 }
 
-func testSaveChannelBookmark(t *testing.T, ss store.Store) {
+func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 	channelId := model.NewId()
 	userId := model.NewId()
 
@@ -94,7 +95,7 @@ func testSaveChannelBookmark(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUpdateChannelBookmark(t *testing.T, ss store.Store) {
+func testUpdateChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 	channelId := model.NewId()
 	userId := model.NewId()
 
@@ -143,7 +144,7 @@ func testUpdateChannelBookmark(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUpdateSortOrderChannelBookmark(t *testing.T, ss store.Store) {
+func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 	channelId := model.NewId()
 	userId := model.NewId()
 
@@ -325,7 +326,7 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, ss store.Store) {
 	})
 }
 
-func testDeleteChannelBookmark(t *testing.T, ss store.Store) {
+func testDeleteChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 	channelId := model.NewId()
 	userId := model.NewId()
 
@@ -393,7 +394,7 @@ func testDeleteChannelBookmark(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetChannelBookmark(t *testing.T, ss store.Store) {
+func testGetChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 	channelId := model.NewId()
 	userId := model.NewId()
 
@@ -431,7 +432,7 @@ func testGetChannelBookmark(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetBookmarksForAllChannelByIdSince(t *testing.T, ss store.Store) {
+func testGetBookmarksForAllChannelByIdSince(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel1Id := model.NewId()
 	channel2Id := model.NewId()
 	userId := model.NewId()
