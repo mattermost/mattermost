@@ -623,8 +623,7 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	channelIds := model.ArrayFromJSON(r.Body)
-
+	channelIds := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
 	if len(channelIds) == 0 {
 		c.SetInvalidParam("channel_ids")
 		return
@@ -953,16 +952,11 @@ func requireGroupAccess(c *web.Context, groupID string) *model.AppError {
 }
 
 func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	var userIDs []string
-	err := json.NewDecoder(r.Body).Decode(&userIDs)
-	if err != nil || len(userIDs) == 0 {
-		c.SetInvalidParamWithErr("user_ids", err)
+	userIDs := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if len(userIDs) == 0 {
+		c.SetInvalidParam("user_ids")
 		return
 	}
-
-	// we remove the duplicate IDs as it can bring a significant load to the
-	// database.
-	userIDs = model.RemoveDuplicateStrings(userIDs)
 
 	sinceString := r.URL.Query().Get("since")
 
@@ -1002,10 +996,9 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
-	var usernames []string
-	err := json.NewDecoder(r.Body).Decode(&usernames)
-	if err != nil || len(usernames) == 0 {
-		c.SetInvalidParamWithErr("usernames", err)
+	usernames := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if len(usernames) == 0 {
+		c.SetInvalidParam("usernames")
 		return
 	}
 

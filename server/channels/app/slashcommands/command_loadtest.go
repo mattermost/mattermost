@@ -243,7 +243,7 @@ func (*LoadTestProvider) SetupCommand(a *app.App, c request.CTX, args *model.Com
 			numPosts, _ = strconv.Atoi(tokens[numArgs+2])
 		}
 	}
-	client := model.NewAPIv4Client(args.SiteURL)
+	client := model.NewAPIv4Client(args.SiteURL, *a.Config().ServiceSettings.MaximumPayloadSize)
 
 	if doTeams {
 		if err := CreateBasicUser(a, client); err != nil {
@@ -341,7 +341,7 @@ func (*LoadTestProvider) UsersCommand(a *app.App, c request.CTX, args *model.Com
 		}
 	}
 
-	client := model.NewAPIv4Client(args.SiteURL)
+	client := model.NewAPIv4Client(args.SiteURL, *a.Config().ServiceSettings.MaximumPayloadSize)
 	userCreator := NewAutoUserCreator(a, client, team)
 	userCreator.Fuzzy = doFuzz
 	userCreator.JoinTime = time
@@ -598,7 +598,7 @@ func (*LoadTestProvider) PostCommand(a *app.App, c request.CTX, args *model.Comm
 		return &model.CommandResponse{Text: "Failed to get a user", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
-	client := model.NewAPIv4Client(args.SiteURL)
+	client := model.NewAPIv4Client(args.SiteURL, *a.Config().ServiceSettings.MaximumPayloadSize)
 	_, _, nErr := client.LoginById(context.Background(), user.Id, passwd)
 	if nErr != nil {
 		return &model.CommandResponse{Text: "Failed to login a user", ResponseType: model.CommandResponseTypeEphemeral}, nErr

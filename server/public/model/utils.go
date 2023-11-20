@@ -481,15 +481,16 @@ func ArrayToJSON(objmap []string) string {
 	return string(b)
 }
 
-func ArrayFromJSON(data io.Reader) []string {
+func ArrayFromJSON(data io.Reader, maxSize int64) []string {
 	var objmap []string
-
-	json.NewDecoder(data).Decode(&objmap)
-	if objmap == nil {
+	lr := io.LimitedReader{N: maxSize, R: data}
+	err := json.NewDecoder(&lr).Decode(&objmap)
+	if err != nil || objmap == nil {
 		return make([]string, 0)
 	}
 
-	return objmap
+	// Remove duplicate IDs as it can bring a significant load to the database.
+	return RemoveDuplicateStrings(objmap)
 }
 
 func ArrayFromInterface(data any) []string {

@@ -15,6 +15,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
+const maxListSize = 1000
+
 func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(getAllChannels)).Methods("GET")
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(createChannel)).Methods("POST")
@@ -425,7 +427,7 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJSON(r.Body)
+	userIds := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
 	allowed := false
 
 	if len(userIds) != 2 {
@@ -511,7 +513,7 @@ func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJSON(r.Body)
+	userIds := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
 
 	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
@@ -697,7 +699,11 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	channelIDs := model.ArrayFromJSON(r.Body)
+	channelIDs := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if len(channelIDs) > maxListSize {
+		c.SetInvalidParam("channel_ids")
+		return
+	}
 	if !c.App.SessionHasPermissionToChannels(c.AppContext, *c.AppContext.Session(), channelIDs, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
@@ -886,8 +892,8 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	channelIds := model.ArrayFromJSON(r.Body)
-	if len(channelIds) == 0 {
+	channelIds := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if len(channelIds) == 0 || len(channelIds) > maxListSize {
 		c.SetInvalidParam("channel_ids")
 		return
 	}
@@ -1426,8 +1432,8 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userIds := model.ArrayFromJSON(r.Body)
-	if len(userIds) == 0 {
+	userIds := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if len(userIds) == 0 || len(userIds) > maxListSize {
 		c.SetInvalidParam("user_ids")
 		return
 	}
@@ -1550,9 +1556,9 @@ func readMultipleChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 
 	var channelIDs []string
-	err := json.NewDecoder(r.Body).Decode(&channelIDs)
-	if err != nil || len(channelIDs) == 0 {
-		c.SetInvalidParamWithErr("channel_ids", err)
+	channelIDs = model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if len(channelIDs) == 0 {
+		c.SetInvalidParam("channel_ids")
 		return
 	}
 

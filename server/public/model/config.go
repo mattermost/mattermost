@@ -394,7 +394,11 @@ type ServiceSettings struct {
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
+<<<<<<< HEAD
 	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
+=======
+	MaximumPayloadSize                                *int64  `access:"site_posts"`
+>>>>>>> 7e51fd4d4f (update ArrayFromJSON to use LimitedReader)
 }
 
 var MattermostGiphySdkKey string
@@ -888,6 +892,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.RefreshPostStatsRunTime == nil {
 		s.RefreshPostStatsRunTime = NewString("00:00")
+	}
+
+	if s.MaximumPayloadSize == nil {
+		s.MaximumPayloadSize = NewInt64(100000)
 	}
 }
 

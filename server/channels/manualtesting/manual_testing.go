@@ -62,7 +62,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create a client for tests to use
-	client := model.NewAPIv4Client("http://localhost" + *c.App.Config().ServiceSettings.ListenAddress)
+	client := model.NewAPIv4Client("http://localhost"+*c.App.Config().ServiceSettings.ListenAddress, *c.App.Config().ServiceSettings.MaximumPayloadSize)
 
 	// Check for username parameter and create a user if present
 	username, ok1 := params["username"]

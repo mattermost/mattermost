@@ -264,10 +264,9 @@ func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	var teamIDs []string
-	jsonErr := json.NewDecoder(r.Body).Decode(&teamIDs)
-	if jsonErr != nil {
-		c.SetInvalidParamWithErr("team_ids", jsonErr)
+	teamIDs := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if len(teamIDs) == 0 {
+		c.SetInvalidParam("team_ids")
 		return
 	}
 	auditRec := c.MakeAuditRecord("addTeamsToPolicy", audit.Fail)
@@ -292,10 +291,9 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	var teamIDs []string
-	jsonErr := json.NewDecoder(r.Body).Decode(&teamIDs)
-	if jsonErr != nil {
-		c.SetInvalidParamWithErr("team_ids", jsonErr)
+	teamIDs := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if len(teamIDs) == 0 {
+		c.SetInvalidParam("team_ids")
 		return
 	}
 	auditRec := c.MakeAuditRecord("removeTeamsFromPolicy", audit.Fail)
@@ -385,10 +383,9 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	var channelIDs []string
-	jsonErr := json.NewDecoder(r.Body).Decode(&channelIDs)
-	if jsonErr != nil {
-		c.SetInvalidParamWithErr("channel_ids", jsonErr)
+	channelIDs := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if len(channelIDs) == 0 {
+		c.SetInvalidParam("channel_ids")
 		return
 	}
 	auditRec := c.MakeAuditRecord("addChannelsToPolicy", audit.Fail)
@@ -414,10 +411,9 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	var channelIDs []string
-	jsonErr := json.NewDecoder(r.Body).Decode(&channelIDs)
-	if jsonErr != nil {
-		c.SetInvalidParamWithErr("channel_ids", jsonErr)
+	channelIDs := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if len(channelIDs) == 0 {
+		c.SetInvalidParam("channel_ids")
 		return
 	}
 	auditRec := c.MakeAuditRecord("removeChannelsFromPolicy", audit.Fail)
