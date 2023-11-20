@@ -1472,7 +1472,7 @@ func (a *OpenTracingAppLayer) ClearLatestVersionCache() {
 	}()
 
 	defer span.Finish()
-	a.app.ClearLatestVersionCache()
+	a.app.ClearLatestVersionCache(a.ctx)
 }
 
 func (a *OpenTracingAppLayer) ClearSessionCacheForAllUsers() {
@@ -5856,7 +5856,7 @@ func (a *OpenTracingAppLayer) GetClusterStatus() []*model.ClusterInfo {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GetClusterStatus()
+	resultVar0 := a.app.GetClusterStatus(a.ctx)
 
 	return resultVar0
 }
@@ -7222,7 +7222,7 @@ func (a *OpenTracingAppLayer) GetLatestVersion(latestVersionUrl string) (*model.
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetLatestVersion(latestVersionUrl)
+	resultVar0, resultVar1 := a.app.GetLatestVersion(a.ctx, latestVersionUrl)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7288,7 +7288,7 @@ func (a *OpenTracingAppLayer) GetLogsSkipSend(page int, perPage int, logFilter *
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetLogsSkipSend(page, perPage, logFilter)
+	resultVar0, resultVar1 := a.app.GetLogsSkipSend(a.ctx, page, perPage, logFilter)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -16867,7 +16867,7 @@ func (a *OpenTracingAppLayer) TestEmail(userID string, cfg *model.Config) *model
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.TestEmail(userID, cfg)
+	resultVar0 := a.app.TestEmail(a.ctx, userID, cfg)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -16955,7 +16955,7 @@ func (a *OpenTracingAppLayer) TestSiteURL(siteURL string) *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.TestSiteURL(siteURL)
+	resultVar0 := a.app.TestSiteURL(a.ctx, siteURL)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
