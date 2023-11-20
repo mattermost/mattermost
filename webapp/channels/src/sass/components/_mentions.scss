@@ -54,6 +54,13 @@ del .group-mention-link:focus {
     }
 }
 
+.non-notification-highlight {
+    padding: 0 1px;
+    background-color: var(--mention-highlight-bg);
+    border-radius: 4px;
+    color: var(--mention-highlight-link);
+}
+
 .group-mention-link {
     color: var(--link-color);
 }

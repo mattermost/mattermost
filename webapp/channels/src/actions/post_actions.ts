@@ -34,6 +34,7 @@ import {
     StoragePrefixes,
 } from 'utils/constants';
 import {matchEmoticons} from 'utils/emoticons';
+import {makeGetIsReactionAlreadyAddedToPost} from 'utils/post_utils';
 import * as UserAgent from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
@@ -137,6 +138,36 @@ function storeCommentDraft(rootPostId: string, draft: null) {
     return (dispatch: DispatchFunc) => {
         dispatch(StorageActions.setGlobalItem('comment_draft_' + rootPostId, draft));
         return {data: true};
+    };
+}
+
+export function submitReaction(postId: string, action: string, emojiName: string) {
+    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        const state = getState() as GlobalState;
+        const getIsReactionAlreadyAddedToPost = makeGetIsReactionAlreadyAddedToPost();
+
+        const isReactionAlreadyAddedToPost = getIsReactionAlreadyAddedToPost(state, postId, emojiName);
+
+        if (action === '+' && !isReactionAlreadyAddedToPost) {
+            dispatch(addReaction(postId, emojiName));
+        } else if (action === '-' && isReactionAlreadyAddedToPost) {
+            dispatch(PostActions.removeReaction(postId, emojiName));
+        }
+        return {data: true};
+    };
+}
+
+export function toggleReaction(postId: string, emojiName: string) {
+    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        const state = getState() as GlobalState;
+        const getIsReactionAlreadyAddedToPost = makeGetIsReactionAlreadyAddedToPost();
+
+        const isReactionAlreadyAddedToPost = getIsReactionAlreadyAddedToPost(state, postId, emojiName);
+
+        if (isReactionAlreadyAddedToPost) {
+            return dispatch(PostActions.removeReaction(postId, emojiName));
+        }
+        return dispatch(addReaction(postId, emojiName));
     };
 }
 

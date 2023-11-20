@@ -102,8 +102,10 @@ Object {
   "queryByTestId": [Function],
   "queryByText": [Function],
   "queryByTitle": [Function],
+  "replaceStoreState": [Function],
   "rerender": [Function],
   "unmount": [Function],
+  "updateStoreState": [Function],
 }
 `;
 
