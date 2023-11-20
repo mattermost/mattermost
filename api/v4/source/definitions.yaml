@@ -3531,8 +3531,7 @@ components:
           description: A unique identifier
           type: string
         allowed_ip_ranges:
-          description: A list of allowed ip ranges set for the installation
-          type: AllowedIPRange
+          $ref: "#/components/schemas/AllowedIPRange"
         state:
           description: The current state of the installation
           type: string
