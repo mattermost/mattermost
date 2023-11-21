@@ -41,6 +41,7 @@ jobs:
       - name: Migrate the DB and compare
         run: |
           docker run --net ${COMPOSE_PROJECT_NAME}_mm-test \
+          -u root
           --ulimit nofile=8096:8096 \
           --env-file=build/dotenv/migration.env \
           -v $(go env GOCACHE):/go/cache \
@@ -48,7 +49,7 @@ jobs:
           -v $PWD:/mattermost \
           -w /mattermost \
           $BUILD_IMAGE \
-          sudo apt-get update && sudo apt-get install -y pgloader && make test-migration
+          apt-get update && apt-get install -y pgloader && make test-migration
       - name: Upload artifacts
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
