@@ -394,11 +394,8 @@ type ServiceSettings struct {
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
-<<<<<<< HEAD
 	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
-=======
-	MaximumPayloadSize                                *int64  `access:"site_posts"`
->>>>>>> 7e51fd4d4f (update ArrayFromJSON to use LimitedReader)
+	MaximumPayloadSize                                *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 }
 
 var MattermostGiphySdkKey string
