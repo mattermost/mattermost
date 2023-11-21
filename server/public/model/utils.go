@@ -481,9 +481,9 @@ func ArrayToJSON(objmap []string) string {
 	return string(b)
 }
 
-func ArrayFromJSON(data io.Reader, maxSize int64) []string {
+func ArrayFromJSON(data io.Reader, maxBytes int64) []string {
 	var objmap []string
-	lr := io.LimitedReader{N: maxSize, R: data}
+	lr := io.LimitedReader{N: maxBytes, R: data}
 	err := json.NewDecoder(&lr).Decode(&objmap)
 	if err != nil || objmap == nil {
 		return make([]string, 0)

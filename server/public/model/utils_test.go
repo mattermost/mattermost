@@ -5,6 +5,7 @@ package model
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -193,6 +194,28 @@ func TestMapJson(t *testing.T) {
 
 	rm2 := MapFromJSON(strings.NewReader(""))
 	require.LessOrEqual(t, len(rm2), 0, "make should be invalid")
+}
+
+func TestArrayFromJson(t *testing.T) {
+	t.Run("Successful parse", func(t *testing.T) {
+		ids := []string{"a", "b"}
+		b, _ := json.Marshal(ids)
+		a := ArrayFromJSON(bytes.NewReader(b), 1000)
+		require.Equal(t, len(ids), len(a))
+	})
+
+	t.Run("Error too large", func(t *testing.T) {
+		var ids []string
+		for {
+			ids = append(ids, NewId())
+			if len(ids) > 1000 {
+				break
+			}
+		}
+		b, _ := json.Marshal(ids)
+		a := ArrayFromJSON(bytes.NewReader(b), 1000)
+		require.Equal(t, len(a), 0)
+	})
 }
 
 func TestIsValidEmail(t *testing.T) {
