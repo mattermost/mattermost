@@ -11,7 +11,7 @@ type Props = {
     canRemoveReactions: boolean;
     currentUserReacted: boolean;
     emojiName: string;
-    emojiIcon: React.ReactNode; // Add this line
+    emojiIcon: React.ReactNode;
     reactions: ReactionType[];
     users: string[];
 };
