@@ -140,7 +140,7 @@ func VerifyCertificates(rawCerts [][]byte, verifiedChains [][]*x509.Certificate)
 }
 
 func NewAPIv4Client(instanceURL string, allowInsecureSHA1, allowInsecureTLS bool) *model.Client4 {
-	client := model.NewAPIv4Client(instanceURL)
+	client := model.NewAPIv4Client(instanceURL, 100000)
 	userAgent := fmt.Sprintf("mmctl/%s (%s)", Version, runtime.GOOS)
 	client.HTTPHeader = map[string]string{"User-Agent": userAgent}
 
@@ -224,7 +224,7 @@ func InitUnixClient(socketPath string) (*model.Client4, error) {
 		return nil, err
 	}
 
-	return model.NewAPIv4SocketClient(socketPath), nil
+	return model.NewAPIv4SocketClient(socketPath, 100000), nil
 }
 
 func checkInsecureTLSError(err error, allowInsecureTLS bool) error {
