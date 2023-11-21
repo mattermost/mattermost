@@ -40,10 +40,16 @@ const IPFiltering = () => {
     const [filterToggle, setFilterToggle] = useState<boolean>(false);
     const [installationStatus, setInstallationStatus] = useState<string>('');
     const [savingMessage, setSavingMessage] = useState<string>('');
+    const [savingDescription, setSavingDescription] = useState<JSX.Element | null>(null);
 
-    const savingMessages = {
-        SAVING_PREVIOUS_CHANGE: formatMessage({id: 'admin.ip_filtering.saving_previous_change', defaultMessage: 'Applying previous filter changes...'}),
-        SAVING_CHANGES: formatMessage({id: 'admin.ip_filtering.saving_changes', defaultMessage: 'Applying filter changes...'}),
+    const savingButtonMessages = {
+        SAVING_PREVIOUS_CHANGE: formatMessage({id: 'admin.ip_filtering.saving_previous_change', defaultMessage: 'Other changes being applied...'}),
+        SAVING_CHANGES: formatMessage({id: 'admin.ip_filtering.saving_changes', defaultMessage: 'Applying changes...'}),
+    };
+
+    const savingDescriptionMessages = {
+        SAVING_PREVIOUS_CHANGE: formatMessage({id: 'admin.ip_filtering.saving_previous_change_description', defaultMessage: 'Please wait while changes from another admin are applied.'}),
+        SAVING_CHANGES: formatMessage({id: 'admin.ip_filtering.saving_changes_description', defaultMessage: 'Please wait while your changes are applied.'}),
     };
 
     useEffect(() => {
@@ -111,6 +117,7 @@ const IPFiltering = () => {
 
         if (installationStatus === 'stable') {
             setSaving(false);
+            setSavingDescription(null);
             clearInterval(interval);
         }
 
@@ -125,10 +132,22 @@ const IPFiltering = () => {
                 // This is the first load of the page, and the installation is not stable, so we must lock saving until it becomes stable
                 setInstallationStatus(data.state);
                 setSaving(true);
-                setSavingMessage(savingMessages.SAVING_PREVIOUS_CHANGE);
+
+                // Override the default messages for the save button and the error message to be communicative of the current state to the user
+                setSavingMessage(savingButtonMessages.SAVING_PREVIOUS_CHANGE);
+                changeSavingDescription(savingDescriptionMessages.SAVING_PREVIOUS_CHANGE);
             }
             setInstallationStatus(data.state);
         }
+    }
+
+    function changeSavingDescription(text: string) {
+        setSavingDescription((
+            <div className='saving-message-description'>
+                {text}
+            </div>
+        ),
+        );
     }
 
     function handleEditFilter(filter: AllowedIPRange, existingRange?: AllowedIPRange) {
@@ -195,12 +214,13 @@ const IPFiltering = () => {
 
     function handleSave() {
         setSaving(true);
-        setSavingMessage(savingMessages.SAVING_CHANGES);
+        setSavingMessage(savingButtonMessages.SAVING_CHANGES);
+        changeSavingDescription(savingDescriptionMessages.SAVING_CHANGES);
         dispatch(closeModal(ModalIdentifiers.IP_FILTERING_SAVE_CONFIRMATION_MODAL));
 
         const success = (data: AllowedIPRange[]) => {
             setIpFilters(data);
-            setSaveNeeded(false);
+            setOriginalIpFilters(data);
             setInstallationStatus('update-requested');
         };
 
@@ -260,6 +280,10 @@ const IPFiltering = () => {
     }
 
     const saveBarError = () => {
+        if (savingDescription !== null) {
+            return savingDescription;
+        }
+
         if (currentIPIsInRange()) {
             return undefined;
         }

@@ -257,9 +257,10 @@ describe('IPFiltering', () => {
             expect(queryByText('Test IP Filter')).not.toBeInTheDocument();
         });
 
-        expect(getByText('Applying previous filter changes...')).toBeInTheDocument();
-        expect(getByText('Applying previous filter changes...').closest('button')).toBeDisabled();
+        expect(getByText('Other changes being applied...')).toBeInTheDocument();
+        expect(getByText('Other changes being applied...').closest('button')).toBeDisabled();
 
+        // Adjust mock so it now returns a stable state
         Client4.getInstallation = getInstallationMock;
 
         jest.advanceTimersByTime(5100);
