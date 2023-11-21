@@ -27,8 +27,8 @@ type OutgoingOAuthConnection struct {
 	CreateAt            int64                            `json:"create_at"`
 	UpdateAt            int64                            `json:"update_at"`
 	Name                string                           `json:"name"`
-	ClientId            string                           `json:"client_id"`
-	ClientSecret        string                           `json:"client_secret"`
+	ClientId            string                           `json:"client_id,omitempty"`
+	ClientSecret        string                           `json:"client_secret,omitempty"`
 	CredentialsUsername *string                          `json:"credentials_username,omitempty"`
 	CredentialsPassword *string                          `json:"credentials_password,omitempty"`
 	OAuthTokenURL       string                           `json:"oauth_token_url"`
@@ -45,6 +45,14 @@ func (oa *OutgoingOAuthConnection) Auditable() map[string]interface{} {
 		"name":       oa.Name,
 		"grant_type": oa.GrantType,
 	}
+}
+
+// Sanitize removes any sensitive fields from the OutgoingOAuthConnection object.
+func (oa *OutgoingOAuthConnection) Sanitize() {
+	oa.ClientId = ""
+	oa.ClientSecret = ""
+	oa.CredentialsUsername = nil
+	oa.CredentialsPassword = nil
 }
 
 // IsValid validates the object and returns an error if it isn't properly configured
@@ -135,13 +143,6 @@ func (oa *OutgoingOAuthConnection) PreUpdate() {
 // Etag returns the ETag for the cache.
 func (oa *OutgoingOAuthConnection) Etag() string {
 	return Etag(oa.Id, oa.UpdateAt)
-}
-
-// Sanitize removes any sensitive fields from the OutgoingOAuthConnection object.
-func (oa *OutgoingOAuthConnection) Sanitize() {
-	oa.ClientSecret = ""
-	oa.CredentialsUsername = nil
-	oa.CredentialsPassword = nil
 }
 
 // OutgoingOAuthConnectionGetConnectionsFilter is used to filter outgoing connections

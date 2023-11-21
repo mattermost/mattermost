@@ -109,6 +109,8 @@ func listOutgoingOAuthConnections(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	service.SanitizeConnections(connections)
+
 	if errJSON := json.NewEncoder(w).Encode(connections); errJSON != nil {
 		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_conneciton.list_connections.app_error", nil, errJSON.Error(), http.StatusInternalServerError)
 		return
@@ -128,6 +130,8 @@ func getOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Reque
 		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_conneciton.list_connections.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	service.SanitizeConnection(connection)
 
 	if err := json.NewEncoder(w).Encode(connection); err != nil {
 		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_conneciton.list_connections.app_error", nil, err.Error(), http.StatusInternalServerError)

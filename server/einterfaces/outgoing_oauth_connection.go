@@ -14,4 +14,7 @@ type OutgoingOAuthConnectionInterface interface {
 	GetConnections(rctx request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, *model.AppError)
 	SaveConnection(rctx request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, *model.AppError)
 	UpdateConnection(rctx request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, *model.AppError)
+
+	SanitizeConnection(conn *model.OutgoingOAuthConnection)
+	SanitizeConnections(conns []*model.OutgoingOAuthConnection)
 }
