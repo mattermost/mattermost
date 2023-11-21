@@ -34,7 +34,7 @@ export function searchAndValidate(query, expectedResults = []) {
                 });
             } else {
                 // * If we expect no results, verify results message
-                cy.get('.no-results__title').should('be.visible').and('have.text', `No results for "${query}"`);
+                cy.get('.no-results__title').should('be.visible').and('have.text', `No results for “${query}”`);
             }
         });
 
