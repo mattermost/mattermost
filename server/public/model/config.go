@@ -2955,7 +2955,7 @@ func (s *DataRetentionSettings) GetMessageRetentionHours() int {
 	if s.MessageRetentionHours != nil && *s.MessageRetentionHours > 0 {
 		return *s.MessageRetentionHours
 	}
-	if s.MessageRetentionDays != nil {
+	if s.MessageRetentionDays != nil && *s.MessageRetentionDays > 0 {
 		return *s.MessageRetentionDays * 24
 	}
 	return DataRetentionSettingsDefaultMessageRetentionDays * 24
@@ -2967,7 +2967,7 @@ func (s *DataRetentionSettings) GetFileRetentionHours() int {
 	if s.FileRetentionHours != nil && *s.FileRetentionHours > 0 {
 		return *s.FileRetentionHours
 	}
-	if s.FileRetentionDays != nil {
+	if s.FileRetentionDays != nil && *s.FileRetentionDays > 0 {
 		return *s.FileRetentionDays * 24
 	}
 	return DataRetentionSettingsDefaultFileRetentionDays * 24
@@ -4085,7 +4085,7 @@ func (bs *BleveSettings) isValid() *AppError {
 }
 
 func (s *DataRetentionSettings) isValid() *AppError {
-	if *s.MessageRetentionDays <= 0 {
+	if *s.MessageRetentionDays < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -4093,12 +4093,28 @@ func (s *DataRetentionSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.FileRetentionDays <= 0 {
+	if *s.FileRetentionDays < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if s.FileRetentionHours != nil && *s.FileRetentionHours < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.MessageRetentionDays > 0 && *s.MessageRetentionHours > 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.FileRetentionDays > 0 && *s.FileRetentionHours > 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.MessageRetentionDays == 0 && *s.MessageRetentionHours == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_both_zero.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.FileRetentionDays == 0 && *s.FileRetentionHours == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_both_zero.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if _, err := time.Parse("15:04", *s.DeletionJobStartTime); err != nil {

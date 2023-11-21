@@ -29,7 +29,7 @@ type Props = {
     config: DeepPartial<AdminConfig>;
     messageRetentionHours: string | undefined;
     fileRetentionHours: string | undefined;
-    environmentConfig: EnvironmentConfig;
+    environmentConfig: Partial<EnvironmentConfig>;
     actions: {
         updateConfig: (config: Record<string, any>) => Promise<{ data?: AdminConfig; error?: ServerError }>;
         setNavigationBlocked: (blocked: boolean) => void;
@@ -108,16 +108,16 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
 
         newConfig.DataRetentionSettings.EnableMessageDeletion = this.setDeletionEnabled(messageRetentionDropdownValue.value);
 
-        const messageHours = this.setRetentionHours(messageRetentionDropdownValue.value, messageRetentionInputValue);
-        if (messageHours >= 1 && !this.isMessageRetentionSetByEnv()) {
-            newConfig.DataRetentionSettings.MessageRetentionHours = messageHours;
+        if (!this.isMessageRetentionSetByEnv()) {
+            newConfig.DataRetentionSettings.MessageRetentionDays = this.setRetentionDays(messageRetentionDropdownValue.value, messageRetentionInputValue);
+            newConfig.DataRetentionSettings.MessageRetentionHours = this.setRetentionHours(messageRetentionDropdownValue.value, messageRetentionInputValue);
         }
 
         newConfig.DataRetentionSettings.EnableFileDeletion = this.setDeletionEnabled(fileRetentionDropdownValue.value);
 
-        const fileHours = this.setRetentionHours(fileRetentionDropdownValue.value, fileRetentionInputValue);
-        if (fileHours >= 1 && !this.isFileRetentionSetByEnv()) {
-            newConfig.DataRetentionSettings.FileRetentionHours = fileHours;
+        if (!this.isFileRetentionSetByEnv()) {
+            newConfig.DataRetentionSettings.FileRetentionDays = this.setRetentionDays(fileRetentionDropdownValue.value, fileRetentionInputValue);
+            newConfig.DataRetentionSettings.FileRetentionHours = this.setRetentionHours(fileRetentionDropdownValue.value, fileRetentionInputValue);
         }
 
         const {error} = await this.props.actions.updateConfig(newConfig);
@@ -137,15 +137,19 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
         return true;
     };
 
-    setRetentionHours = (dropdownValue: string, value: string): number => {
+    setRetentionDays = (dropdownValue: string, value: string): number => {
         if (dropdownValue === YEARS) {
-            return parseInt(value, 10) * 24 * 365;
+            return parseInt(value, 10) * 365;
         }
 
         if (dropdownValue === DAYS) {
-            return parseInt(value, 10) * 24;
+            return parseInt(value, 10);
         }
 
+        return 0;
+    };
+
+    setRetentionHours = (dropdownValue: string, value: string): number => {
         if (dropdownValue === HOURS) {
             return parseInt(value, 10);
         }
@@ -153,15 +157,15 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
         return 0;
     };
 
-    getConfigValue(config: DeepPartial<AdminConfig>, path: string) {
+    getConfigValue(config: DeepPartial<AdminConfig> | Partial<EnvironmentConfig>, path: string) {
         const pathParts = path.split('.');
 
-        return pathParts.reduce((obj, pathPart) => {
+        return pathParts.reduce((obj: object | null, pathPart) => {
             if (!obj) {
                 return null;
             }
 
-            return obj[pathPart.replace(/\+/g, '.')];
+            return obj[pathPart as keyof object];
         }, config);
     }
 
@@ -170,11 +174,13 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
     };
 
     isMessageRetentionSetByEnv = () => {
-        return (this.isSetByEnv('DataRetentionSettings.MessageRetentionDays') && this.props.config.DataRetentionSettings.MessageRetentionHours === 0) || this.isSetByEnv('DataRetentionSettings.MessageRetentionHours');
+        return (this.isSetByEnv('DataRetentionSettings.MessageRetentionDays') && this.props.config.DataRetentionSettings?.MessageRetentionDays && this.props.config.DataRetentionSettings.MessageRetentionDays > 0) ||
+        (this.isSetByEnv('DataRetentionSettings.MessageRetentionHours') && this.props.config.DataRetentionSettings?.MessageRetentionHours && this.props.config.DataRetentionSettings.MessageRetentionHours > 0);
     };
 
     isFileRetentionSetByEnv = () => {
-        return (this.isSetByEnv('DataRetentionSettings.FileRetentionDays') && this.props.config.DataRetentionSettings.FileRetentionHours === 0) || this.isSetByEnv('DataRetentionSettings.FileRetentionHours');
+        return (this.isSetByEnv('DataRetentionSettings.FileRetentionDays') && this.props.config.DataRetentionSettings?.FileRetentionDays && this.props.config.DataRetentionSettings.FileRetentionDays > 0) ||
+        (this.isSetByEnv('DataRetentionSettings.FileRetentionHours') && this.props.config.DataRetentionSettings?.FileRetentionHours && this.props.config.DataRetentionSettings.FileRetentionHours > 0);
     };
 
     render = () => {
@@ -249,7 +255,7 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
                                             exceptionToInput={[FOREVER]}
                                             disabled={this.isFileRetentionSetByEnv()}
                                             defaultValue={keepForeverOption()}
-                                            options={[daysOption(), yearsOption(), keepForeverOption()]}
+                                            options={[hoursOption(), daysOption(), yearsOption(), keepForeverOption()]}
                                             legend={Utils.localizeMessage('admin.data_retention.form.fileRetention', 'File retention')}
                                             placeholder={Utils.localizeMessage('admin.data_retention.form.fileRetention', 'File retention')}
                                             name={'file_retention'}
