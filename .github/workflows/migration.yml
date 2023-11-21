@@ -41,7 +41,7 @@ jobs:
       - name: Migrate the DB and compare
         run: |
           docker run --net ${COMPOSE_PROJECT_NAME}_mm-test \
-          -u root
+          -u root \
           --ulimit nofile=8096:8096 \
           --env-file=build/dotenv/migration.env \
           -v $(go env GOCACHE):/go/cache \
