@@ -15,6 +15,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const maximumPayloadSize = 100000
+
 // https://github.com/mattermost/mattermost-plugin-starter-template/issues/115
 func TestClient4TrimTrailingSlash(t *testing.T) {
 	slashes := []int{0, 1, 5}
@@ -22,7 +24,7 @@ func TestClient4TrimTrailingSlash(t *testing.T) {
 
 	for _, s := range slashes {
 		testURL := baseURL + strings.Repeat("/", s)
-		client := NewAPIv4Client(testURL)
+		client := NewAPIv4Client(testURL, maximumPayloadSize)
 		assert.Equal(t, baseURL, client.URL)
 		assert.Equal(t, baseURL+APIURLSuffix, client.APIURL)
 	}
@@ -74,7 +76,7 @@ func TestClient4CreatePost(t *testing.T) {
 		assert.NoError(t, err)
 	}))
 
-	client := NewAPIv4Client(server.URL)
+	client := NewAPIv4Client(server.URL, maximumPayloadSize)
 	_, resp, err := client.CreatePost(context.Background(), post)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -99,7 +101,7 @@ func TestClient4SetToken(t *testing.T) {
 		assert.NoError(t, err)
 	}))
 
-	client := NewAPIv4Client(server.URL)
+	client := NewAPIv4Client(server.URL, maximumPayloadSize)
 	client.SetToken(expected)
 
 	_, resp, err := client.GetMe(context.Background(), "")
@@ -113,7 +115,7 @@ func TestClient4RequestCancellation(t *testing.T) {
 			t.Fatal("request should not hit the server")
 		}))
 
-		client := NewAPIv4Client(server.URL)
+		client := NewAPIv4Client(server.URL, maximumPayloadSize)
 
 		ctx, cancel := context.WithCancel(context.Background())
 
@@ -131,7 +133,7 @@ func TestClient4RequestCancellation(t *testing.T) {
 			t.Fatal("request should not hit the server")
 		}))
 
-		client := NewAPIv4Client(server.URL)
+		client := NewAPIv4Client(server.URL, maximumPayloadSize)
 
 		ctx, cancel := context.WithCancel(context.Background())
 
