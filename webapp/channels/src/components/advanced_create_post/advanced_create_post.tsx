@@ -174,6 +174,8 @@ export type Props = {
         // func called for navigation through messages by Down arrow
         moveHistoryIndexForward: (index: string) => Promise<void>;
 
+        submitReaction: (postId: string, action: string, emojiName: string) => void;
+
         // func called for adding a reaction
         addReaction: (postId: string, emojiName: string) => void;
 
@@ -799,10 +801,8 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         const emojiName = isReaction[2];
         const postId = this.props.latestReplyablePostId;
 
-        if (postId && action === '+') {
-            this.props.actions.addReaction(postId, emojiName);
-        } else if (postId && action === '-') {
-            this.props.actions.removeReaction(postId, emojiName);
+        if (postId) {
+            this.props.actions.submitReaction(postId, action, emojiName);
         }
 
         this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, null, channelId);
