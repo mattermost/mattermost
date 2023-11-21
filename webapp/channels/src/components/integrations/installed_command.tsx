@@ -157,6 +157,7 @@ export default class InstalledCommand extends React.PureComponent<Props> {
                                 {trigger}
                             </span>
                         </div>
+                        <span style={{marginLeft: '5px'}}/>
                         {actions}
                     </div>
                     {description}

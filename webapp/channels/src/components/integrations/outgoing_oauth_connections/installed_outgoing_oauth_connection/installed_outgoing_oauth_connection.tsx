@@ -284,13 +284,13 @@ export default class InstalledOutgoingOAuthConnection extends React.PureComponen
                             id='installed_integrations.client_id'
                             defaultMessage='Client ID: **{clientId}**'
                             values={{
-                                clientId: outgoingOAuthConnection.id,
+                                clientId: outgoingOAuthConnection.client_id,
                             }}
                         />
                         <CopyText
                             idMessage='integrations.copy_client_id'
                             defaultMessage='Copy Client Id'
-                            value={outgoingOAuthConnection.id}
+                            value={outgoingOAuthConnection.client_id}
                         />
                     </span>
                 </div>
@@ -321,6 +321,7 @@ export default class InstalledOutgoingOAuthConnection extends React.PureComponen
                         <strong className='item-details__name'>
                             {name}
                         </strong>
+                        <span style={{marginLeft: '5px'}}/>
                         {actions}
                     </div>
                     {error}

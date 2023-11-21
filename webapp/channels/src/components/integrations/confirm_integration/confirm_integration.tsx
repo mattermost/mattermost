@@ -175,8 +175,8 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
 
         headerText = (
             <FormattedMessage
-                id={'installed_oauth2_apps.header'}
-                defaultMessage='OAuth 2.0 Applications'
+                id='installed_oauth2_outgoing_oauth_connections.header'
+                defaultMessage='Outgoing OAuth Connections'
             />
         );
 

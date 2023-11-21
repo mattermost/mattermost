@@ -62,54 +62,34 @@ type Props = {
 
 type State = {
     name: string;
-
-    // description: string;
-    // homepage: string;
-    // icon_url: string;
+    oauthTokenUrl: string;
+    grantType: OutgoingOAuthConnection['grant_type'];
+    clientId: string;
+    clientSecret: string;
     audienceUrls: string;
-    // is_trusted: boolean;
-    // has_icon: boolean;
     saving: boolean;
     clientError: JSX.Element | null | string;
 };
 
 export default class AbstractOutgoingOAuthConnection extends React.PureComponent<Props, State> {
-    // private image: HTMLImageElement;
-    // private icon_url: React.RefObject<HTMLInputElement>;
-
     constructor(props: Props) {
         super(props);
-
-        // this.image = new Image();
-        // this.image.onload = this.imageLoaded;
-        // this.icon_url = React.createRef();
 
         this.state = this.getStateFromConnection(this.props.initialConnection || {} as OutgoingOAuthConnection);
     }
 
-    getStateFromConnection = (connection: OutgoingOAuthConnection) => {
+    getStateFromConnection = (connection: OutgoingOAuthConnection): State => {
         return {
             name: connection.name || '',
-
-            // description: connection.description || '',
-            // homepage: connection.homepage || '',
-            // icon_url: connection.icon_url || '',
-            // callbackUrls: connection.callback_urls ? connection.callback_urls.join('\n') : '',
-            // is_trusted: connection.is_trusted || false,
-            // has_icon: Boolean(connection.icon_url),
+            audienceUrls: connection.audiences ? connection.audiences.join('\n') : '',
+            oauthTokenUrl: connection.oauth_token_url || '',
+            clientId: connection.client_id || '',
+            clientSecret: connection.client_secret || '',
+            grantType: 'client_credentials',
             saving: false,
             clientError: null,
         };
     };
-
-    // imageLoaded = () => {
-    //     if (this.icon_url.current?.value) {
-    //         this.setState({
-    //             has_icon: true,
-    //             icon_url: this.icon_url.current.value,
-    //         });
-    //     }
-    // };
 
     handleSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -137,33 +117,61 @@ export default class AbstractOutgoingOAuthConnection extends React.PureComponent
             return;
         }
 
-        // if (!this.state.description) {
-        //     this.setState({
-        //         saving: false,
-        //         clientError: (
-        //             <FormattedMessage
-        //                 id='add_oauth_app.descriptionRequired'
-        //                 defaultMessage='Description for the OAuth 2.0 application is required.'
-        //             />
-        //         ),
-        //     });
+        if (!this.state.clientId) {
+            this.setState({
+                saving: false,
+                clientError: (
+                    <FormattedMessage
+                        id='add_oauth_app.client_id'
+                        defaultMessage='Client Id for the OAuth connection is required.'
+                    />
+                ),
+            });
 
-        //     return;
-        // }
+            return;
+        }
 
-        // if (!this.state.homepage) {
-        //     this.setState({
-        //         saving: false,
-        //         clientError: (
-        //             <FormattedMessage
-        //                 id='add_oauth_app.homepageRequired'
-        //                 defaultMessage='Homepage for the OAuth 2.0 application is required.'
-        //             />
-        //         ),
-        //     });
+        if (!this.state.clientSecret) {
+            this.setState({
+                saving: false,
+                clientError: (
+                    <FormattedMessage
+                        id='add_oauth_app.client_secret'
+                        defaultMessage='Client Secret for the OAuth connection is required.'
+                    />
+                ),
+            });
 
-        //     return;
-        // }
+            return;
+        }
+
+        if (!this.state.grantType) {
+            this.setState({
+                saving: false,
+                clientError: (
+                    <FormattedMessage
+                        id='add_oauth_app.grant_type'
+                        defaultMessage='Grant Type for the OAuth connection is required.'
+                    />
+                ),
+            });
+
+            return;
+        }
+
+        if (!this.state.oauthTokenUrl) {
+            this.setState({
+                saving: false,
+                clientError: (
+                    <FormattedMessage
+                        id='add_oauth_app.oauth_token_url'
+                        defaultMessage='OAuth Token URL for the OAuth connection is required.'
+                    />
+                ),
+            });
+
+            return;
+        }
 
         const audienceUrls = [];
         for (let audienceUrl of this.state.audienceUrls.split('\n')) {
@@ -191,11 +199,10 @@ export default class AbstractOutgoingOAuthConnection extends React.PureComponent
         const connection = {
             name: this.state.name,
             audiences: audienceUrls,
-
-            // homepage: this.state.homepage,
-            // description: this.state.description,
-            // is_trusted: this.state.is/_trusted,
-            // icon_url: this.state.icon_url,
+            client_id: this.state.clientId,
+            client_secret: this.state.clientSecret,
+            grant_type: this.state.grantType,
+            oauth_token_url: this.state.oauthTokenUrl,
         } as OutgoingOAuthConnection;
 
         this.props.action(connection).then(() => this.setState({saving: false}));
@@ -207,31 +214,23 @@ export default class AbstractOutgoingOAuthConnection extends React.PureComponent
         });
     };
 
-    // updateTrusted = (e: ChangeEvent<HTMLInputElement>) => {
-    //     this.setState({
-    //         is_trusted: e.target.value === 'true',
-    //     });
-    // };
+    updateClientId = (e: ChangeEvent<HTMLInputElement>) => {
+        this.setState({
+            clientId: e.target.value,
+        });
+    };
 
-    // updateDescription = (e: ChangeEvent<HTMLInputElement>) => {
-    //     this.setState({
-    //         description: e.target.value,
-    //     });
-    // };
+    updateClientSecret = (e: ChangeEvent<HTMLInputElement>) => {
+        this.setState({
+            clientSecret: e.target.value,
+        });
+    };
 
-    // updateHomepage = (e: ChangeEvent<HTMLInputElement>) => {
-    //     this.setState({
-    //         homepage: e.target.value,
-    //     });
-    // };
-
-    // updateIconUrl = (e: ChangeEvent<HTMLInputElement>) => {
-    //     this.setState({
-    //         has_icon: false,
-    //         icon_url: e.target.value,
-    //     });
-    //     this.image.src = e.target.value;
-    // };
+    updateOAuthTokenURL = (e: ChangeEvent<HTMLInputElement>) => {
+        this.setState({
+            oauthTokenUrl: e.target.value,
+        });
+    };
 
     updateAudienceUrls = (e: ChangeEvent<HTMLTextAreaElement>) => {
         this.setState({
@@ -244,75 +243,13 @@ export default class AbstractOutgoingOAuthConnection extends React.PureComponent
         const footerToRender = this.props.footer;
         const renderExtra = this.props.renderExtra;
 
-        let icon;
-        // if (this.state.has_icon) {
-        //     icon = (
-        //         <div className='integration__icon'>
-        //             <img
-        //                 alt={'integration icon'}
-        //                 src={this.state.icon_url}
-        //             />
-        //         </div>
-        //     );
-        // }
-
-        // const trusted = (
-        //     <SystemPermissionGate permissions={[Permissions.MANAGE_SYSTEM]}>
-        //         <div className='form-group'>
-        //             <label
-        //                 className='control-label col-sm-4'
-        //                 htmlFor='is_trusted'
-        //             >
-        //                 <FormattedMessage
-        //                     id='installed_oauth_apps.trusted'
-        //                     defaultMessage='Is Trusted'
-        //                 />
-        //             </label>
-        //             <div className='col-md-5 col-sm-8'>
-        //                 <label className='radio-inline'>
-        //                     <input
-        //                         type='radio'
-        //                         value='true'
-        //                         name='is_trusted'
-        //                         checked={this.state.is_trusted}
-        //                         onChange={this.updateTrusted}
-        //                     />
-        //                     <FormattedMessage
-        //                         id='installed_oauth_apps.trusted.yes'
-        //                         defaultMessage='Yes'
-        //                     />
-        //                 </label>
-        //                 <label className='radio-inline'>
-        //                     <input
-        //                         type='radio'
-        //                         value='false'
-        //                         name='is_trusted'
-        //                         checked={!this.state.is_trusted}
-        //                         onChange={this.updateTrusted}
-        //                     />
-        //                     <FormattedMessage
-        //                         id='installed_oauth_apps.trusted.no'
-        //                         defaultMessage='No'
-        //                     />
-        //                 </label>
-        //                 <div className='form__help'>
-        //                     <FormattedMessage
-        //                         id='add_oauth_app.trusted.help'
-        //                         defaultMessage='If true, the OAuth 2.0 application is considered trusted by the Mattermost server and does not require the user to accept authorization. If false, a window opens to ask the user to accept or deny the authorization.'
-        //                     />
-        //                 </div>
-        //             </div>
-        //         </div>
-        //     </SystemPermissionGate>
-        // );
-
         return (
             <div className='backstage-content'>
                 <BackstageHeader>
                     <Link to={`/${this.props.team.name}/integrations/outgoing-oauth2-connections`}>
                         <FormattedMessage
-                            id='installed_oauth_apps.header'
-                            defaultMessage='Installed Outgoing OAuth Connections'
+                            id='installed_outgoing_oauth_connections.header'
+                            defaultMessage='Outgoing OAuth Connections'
                         />
                     </Link>
                     <FormattedMessage
@@ -321,9 +258,7 @@ export default class AbstractOutgoingOAuthConnection extends React.PureComponent
                     />
                 </BackstageHeader>
                 <div className='backstage-form'>
-                    {icon}
                     <form className='form-horizontal'>
-                        {/* {trusted} */}
                         <div className='form-group'>
                             <label
                                 className='control-label col-sm-4'
@@ -346,93 +281,92 @@ export default class AbstractOutgoingOAuthConnection extends React.PureComponent
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_oauth_app.name.help'
-                                        defaultMessage='Specify the display name, of up to 64 characters, for your OAuth connection.'
+                                        defaultMessage='Specify the display name for your OAuth connection.'
                                     />
                                 </div>
                             </div>
                         </div>
-                        {/* <div className='form-group'>
+                        <div className='form-group'>
                             <label
                                 className='control-label col-sm-4'
-                                htmlFor='description'
+                                htmlFor='client_id'
                             >
                                 <FormattedMessage
-                                    id='installed_oauth_apps.description'
-                                    defaultMessage='Description'
+                                    id='installed_oauth_apps.client_id'
+                                    defaultMessage='Client ID'
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
                                 <input
-                                    id='description'
+                                    id='name'
                                     type='text'
-                                    maxLength={512}
+                                    maxLength={64}
                                     className='form-control'
-                                    value={this.state.description}
-                                    onChange={this.updateDescription}
+                                    value={this.state.clientId}
+                                    onChange={this.updateClientId}
                                 />
                                 <div className='form__help'>
                                     <FormattedMessage
-                                        id='add_oauth_app.description.help'
-                                        defaultMessage='Describe your OAuth 2.0 application.'
+                                        id='add_oauth_app.client_id.help'
+                                        defaultMessage='Specify the Client ID for your OAuth connection.'
                                     />
                                 </div>
                             </div>
-                        </div> */}
-                        {/* <div className='form-group'>
+                        </div>
+                        <div className='form-group'>
                             <label
                                 className='control-label col-sm-4'
-                                htmlFor='homepage'
+                                htmlFor='client_secret'
                             >
                                 <FormattedMessage
-                                    id='installed_oauth_apps.homepage'
-                                    defaultMessage='Homepage'
+                                    id='installed_oauth_apps.client_secret'
+                                    defaultMessage='Client Secret'
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
                                 <input
-                                    id='homepage'
-                                    type='url'
-                                    maxLength={256}
+                                    id='name'
+                                    type='text'
+                                    maxLength={64}
                                     className='form-control'
-                                    value={this.state.homepage}
-                                    onChange={this.updateHomepage}
+                                    value={'*'.repeat(this.state.clientSecret.length)}
+                                    onChange={this.updateClientSecret}
                                 />
                                 <div className='form__help'>
                                     <FormattedMessage
-                                        id='add_oauth_app.homepage.help'
-                                        defaultMessage='This is the URL for the homepage of the OAuth 2.0 application. Depending on your server configuration, use HTTP or HTTPS in the URL.'
+                                        id='add_oauth_app.client_secret.help'
+                                        defaultMessage='Specify the Client Secret for your OAuth connection.'
                                     />
                                 </div>
                             </div>
-                        </div> */}
-                        {/* <div className='form-group'>
+                        </div>
+                        <div className='form-group'>
                             <label
                                 className='control-label col-sm-4'
-                                htmlFor='icon_url'
+                                htmlFor='oauth_token_url'
                             >
                                 <FormattedMessage
-                                    id='installed_oauth_apps.iconUrl'
-                                    defaultMessage='Icon URL'
+                                    id='installed_oauth_apps.oauth_token_url'
+                                    defaultMessage='OAuth Token URL'
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
                                 <input
-                                    id='icon_url'
-                                    ref={this.icon_url}
-                                    type='url'
-                                    maxLength={512}
+                                    id='name'
+                                    type='text'
+                                    maxLength={64}
                                     className='form-control'
-                                    value={this.state.icon_url}
-                                    onChange={this.updateIconUrl}
+                                    value={this.state.oauthTokenUrl}
+                                    onChange={this.updateOAuthTokenURL}
                                 />
                                 <div className='form__help'>
                                     <FormattedMessage
-                                        id='add_oauth_app.icon.help'
-                                        defaultMessage='(Optional) The URL of the image used for your OAuth 2.0 application. Make sure you use HTTP or HTTPS in your URL.'
+                                        id='add_oauth_app.oauth_token_url.help'
+                                        defaultMessage='Specify the OAuth Token URL for your OAuth connection.'
                                     />
                                 </div>
                             </div>
-                        </div> */}
+                        </div>
                         <div className='form-group'>
                             <label
                                 className='control-label col-sm-4'
@@ -455,7 +389,7 @@ export default class AbstractOutgoingOAuthConnection extends React.PureComponent
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_oauth_app.audienceUrls.help'
-                                        defaultMessage='The redirect URIs to which the service will redirect users after accepting or denying authorization of your application, and which will handle authorization codes or access tokens. Must be a valid URL and start with http:// or https://.'
+                                        defaultMessage='The audience URIs which will receive requests with the OAuth token. Must be a valid URL and start with http:// or https://.'
                                     />
                                 </div>
                             </div>
