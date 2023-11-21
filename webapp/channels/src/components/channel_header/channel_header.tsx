@@ -226,7 +226,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
 
         if (headerPopoverTextMeasurerRect && headerDescriptionRect) {
             if (headerPopoverTextMeasurerRect.width > headerDescriptionRect.width || headerText.match(/\n{2,}/g)) {
-                const leftOffset = headerDescriptionRect.left - (this.props.hasMoreThanOneTeam ? 314 : 250);
+                const leftOffset = headerDescriptionRect.left - (this.props.hasMoreThanOneTeam ? 313 : 248);
                 this.setState({showChannelHeaderPopover: true, leftOffset});
             }
         }
