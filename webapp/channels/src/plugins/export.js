@@ -106,4 +106,4 @@ window.ProductApi = {
 };
 
 // Desktop App module containing the app info and a series of helpers to work with legacy code
-window.desktopApp = DesktopApp;
+window.DesktopApp = DesktopApp;

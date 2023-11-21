@@ -27,7 +27,7 @@ import faviconUnread32x32 from 'images/favicon/favicon-unread-32x32.png';
 import faviconUnread64x64 from 'images/favicon/favicon-unread-64x64.png';
 import faviconUnread96x96 from 'images/favicon/favicon-unread-96x96.png';
 import {Constants} from 'utils/constants';
-import {updateUnreadsAndMentions} from 'utils/desktop_api';
+import DesktopApp from 'utils/desktop_api';
 import * as UserAgent from 'utils/user_agent';
 
 enum BadgeStatus {
@@ -77,7 +77,7 @@ export class UnreadsStatusHandlerClass extends React.PureComponent<Props> {
         const {unreadStatus} = this.props;
         const {isUnread, unreadMentionCount} = basicUnreadMeta(unreadStatus);
 
-        updateUnreadsAndMentions(isUnread, unreadMentionCount);
+        DesktopApp.updateUnreadsAndMentions(isUnread, unreadMentionCount);
     };
 
     updateTitle = () => {

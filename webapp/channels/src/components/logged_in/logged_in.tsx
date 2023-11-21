@@ -14,7 +14,7 @@ import LoadingScreen from 'components/loading_screen';
 
 import WebSocketClient from 'client/web_websocket_client';
 import Constants from 'utils/constants';
-import {onNotificationClicked, onUserActivityUpdate} from 'utils/desktop_api';
+import DesktopApp from 'utils/desktop_api';
 import {isKeyPressed} from 'utils/keyboard';
 import {getBrowserTimezone} from 'utils/timezone';
 import * as UserAgent from 'utils/user_agent';
@@ -47,7 +47,7 @@ export type Props = {
 }
 
 export default class LoggedIn extends React.PureComponent<Props> {
-    private offDesktopListeners?: () => void;
+    private cleanupDesktopListeners?: () => void;
 
     constructor(props: Props) {
         super(props);
@@ -79,9 +79,9 @@ export default class LoggedIn extends React.PureComponent<Props> {
         }
 
         // Listen for user activity and notifications from the Desktop App (if applicable)
-        const offUserActivity = onUserActivityUpdate(this.updateActiveStatus);
-        const offNotificationClicked = onNotificationClicked(this.clickNotification);
-        this.offDesktopListeners = () => {
+        const offUserActivity = DesktopApp.onUserActivityUpdate(this.updateActiveStatus);
+        const offNotificationClicked = DesktopApp.onNotificationClicked(this.clickNotification);
+        this.cleanupDesktopListeners = () => {
             offUserActivity();
             offNotificationClicked();
         };
@@ -117,8 +117,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
         window.removeEventListener('focus', this.onFocusListener);
         window.removeEventListener('blur', this.onBlurListener);
 
-        this.offDesktopListeners?.();
-        delete this.offDesktopListeners;
+        this.cleanupDesktopListeners?.();
     }
 
     public render(): React.ReactNode {

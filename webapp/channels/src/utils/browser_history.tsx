@@ -5,7 +5,7 @@ import {createBrowserHistory} from 'history';
 import type {History} from 'history';
 
 import {getModule} from 'module_registry';
-import {doBrowserHistoryPush, onBrowserHistoryPush} from 'utils/desktop_api';
+import DesktopApp from 'utils/desktop_api';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {isDesktopApp, getDesktopVersion} from 'utils/user_agent';
 
@@ -15,7 +15,7 @@ const browserHistory = {
     ...b,
     push: (path: string | { pathname: string }, ...args: string[]) => {
         if (isDesktop) {
-            doBrowserHistoryPush(typeof path === 'object' ? path.pathname : path);
+            DesktopApp.doBrowserHistoryPush(typeof path === 'object' ? path.pathname : path);
         } else {
             b.push(path, ...args);
         }
@@ -23,7 +23,7 @@ const browserHistory = {
 };
 
 if (isDesktop) {
-    onBrowserHistoryPush((pathName) => b.push(pathName));
+    DesktopApp.onBrowserHistoryPush((pathName) => b.push(pathName));
 }
 
 /**

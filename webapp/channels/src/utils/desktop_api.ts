@@ -13,7 +13,7 @@ declare global {
     }
 }
 
-class DesktopApp {
+class DesktopAppAPI {
     private name?: string;
     private version?: string | null;
     private dev?: boolean;
@@ -51,6 +51,10 @@ class DesktopApp {
         });
     }
 
+    /*******************************************************
+     * Getters/setters for Desktop App specific information
+     *******************************************************/
+
     getAppName = () => {
         return this.name;
     };
@@ -75,6 +79,139 @@ class DesktopApp {
         );
     };
 
+    /**********************
+     * Exposed API methods
+     **********************/
+
+    /**
+     * Invokes
+     */
+
+    getBrowserHistoryStatus = async () => {
+        if (window.desktopAPI?.requestBrowserHistoryStatus) {
+            return window.desktopAPI.requestBrowserHistoryStatus();
+        }
+
+        const {enableBack, enableForward} = await this.invokeWithMessaging<void, {enableBack: boolean; enableForward: boolean}>(
+            'history-button',
+            undefined,
+            'history-button-return',
+        );
+
+        return {
+            canGoBack: enableBack,
+            canGoForward: enableForward,
+        };
+    };
+
+    /**
+     * Listeners
+     */
+
+    onUserActivityUpdate = (listener: (userIsActive: boolean, idleTime: number, isSystemEvent: boolean) => void) => {
+        if (window.desktopAPI?.onUserActivityUpdate) {
+            return window.desktopAPI.onUserActivityUpdate(listener);
+        }
+
+        const legacyListener = ({userIsActive, manual}: {userIsActive: boolean; manual: boolean}) => listener(userIsActive, 0, manual);
+        this.addPostMessageListener('user-activity-update', legacyListener);
+
+        return () => this.removePostMessageListener('user-activity-update', legacyListener);
+    };
+
+    onNotificationClicked = (listener: (channelId: string, teamId: string, url: string) => void) => {
+        if (window.desktopAPI?.onNotificationClicked) {
+            return window.desktopAPI.onNotificationClicked(listener);
+        }
+
+        const legacyListener = ({channel, teamId, url}: {channel: {id: string}; teamId: string; url: string}) => listener(channel.id, teamId, url);
+        this.addPostMessageListener('notification-clicked', legacyListener);
+
+        return () => this.removePostMessageListener('notification-clicked', legacyListener);
+    };
+
+    onBrowserHistoryPush = (listener: (pathName: string) => void) => {
+        if (window.desktopAPI?.onBrowserHistoryPush) {
+            return window.desktopAPI.onBrowserHistoryPush(listener);
+        }
+
+        const legacyListener = ({pathName}: {pathName: string}) => listener(pathName);
+        this.addPostMessageListener('browser-history-push-return', legacyListener);
+
+        return () => this.removePostMessageListener('browser-history-push-return', legacyListener);
+    };
+
+    onBrowserHistoryStatusUpdated = (listener: (enableBack: boolean, enableForward: boolean) => void) => {
+        if (window.desktopAPI?.onBrowserHistoryStatusUpdated) {
+            return window.desktopAPI.onBrowserHistoryStatusUpdated(listener);
+        }
+
+        const legacyListener = ({enableBack, enableForward}: {enableBack: boolean; enableForward: boolean}) => listener(enableBack, enableForward);
+        this.addPostMessageListener('history-button-return', legacyListener);
+
+        return () => this.removePostMessageListener('history-button-return', legacyListener);
+    };
+
+    /**
+     * One-ways
+     */
+
+    dispatchNotification = (
+        title: string,
+        body: string,
+        channelId: string,
+        teamId: string,
+        silent: boolean,
+        soundName: string,
+        url: string,
+    ) => {
+        if (window.desktopAPI?.sendNotification) {
+            window.desktopAPI.sendNotification(title, body, channelId, teamId, url, silent, soundName);
+            return;
+        }
+
+        // get the desktop app to trigger the notification
+        window.postMessage(
+            {
+                type: 'dispatch-notification',
+                message: {
+                    title,
+                    body,
+                    channel: {id: channelId},
+                    teamId,
+                    silent,
+                    data: {soundName},
+                    url,
+                },
+            },
+            window.location.origin,
+        );
+    };
+
+    doBrowserHistoryPush = (path: string) => {
+        if (window.desktopAPI?.sendBrowserHistoryPush) {
+            window.desktopAPI.sendBrowserHistoryPush(path);
+            return;
+        }
+
+        window.postMessage(
+            {
+                type: 'browser-history-push',
+                message: {path},
+            },
+            window.location.origin,
+        );
+    };
+
+    updateUnreadsAndMentions = (isUnread: boolean, mentionCount: number) =>
+        window.desktopAPI?.setUnreadsAndMentions && window.desktopAPI.setUnreadsAndMentions(isUnread, mentionCount);
+    setSessionExpired = (expired: boolean) => window.desktopAPI?.setSessionExpired && window.desktopAPI.setSessionExpired(expired);
+
+    /*********************************************************************
+     * Helper functions for legacy code
+     * Remove all of this once we have no use for message passing anymore
+     *********************************************************************/
+
     /**
      * @deprecated
      */
@@ -96,7 +233,7 @@ class DesktopApp {
     /**
      * @deprecated
      */
-    addPostMessageListener = (channel: string, listener: (message: any) => void) => {
+    private addPostMessageListener = (channel: string, listener: (message: any) => void) => {
         if (this.postMessageListeners?.has(channel)) {
             this.postMessageListeners.set(channel, this.postMessageListeners.get(channel)!.add(listener));
         } else {
@@ -107,7 +244,7 @@ class DesktopApp {
     /**
      * @deprecated
      */
-    removePostMessageListener = (channel: string, listener: (message: any) => void) => {
+    private removePostMessageListener = (channel: string, listener: (message: any) => void) => {
         const set = this.postMessageListeners?.get(channel);
         set?.delete(listener);
         if (set?.size) {
@@ -120,7 +257,7 @@ class DesktopApp {
     /**
      * @deprecated
      */
-    invokeWithMessaging = <T, T2>(
+    private invokeWithMessaging = <T, T2>(
         sendChannel: string,
         sendData?: T,
         receiveChannel?: string,
@@ -152,137 +289,5 @@ class DesktopApp {
     };
 }
 
-const desktopApp = new DesktopApp();
-export default desktopApp;
-
-/*******************************
- * API Methods
- *******************************/
-
-/**
- * Invokes
- */
-
-export const getBrowserHistoryStatus = async () => {
-    if (window.desktopAPI?.requestBrowserHistoryStatus) {
-        return window.desktopAPI.requestBrowserHistoryStatus();
-    }
-
-    const {enableBack, enableForward} = await desktopApp.invokeWithMessaging<void, {enableBack: boolean; enableForward: boolean}>(
-        'history-button',
-        undefined,
-        'history-button-return',
-    );
-
-    return {
-        canGoBack: enableBack,
-        canGoForward: enableForward,
-    };
-};
-
-/**
- * Listeners
- */
-
-export const onUserActivityUpdate = (listener: (userIsActive: boolean, idleTime: number, isSystemEvent: boolean) => void) => {
-    if (window.desktopAPI?.onUserActivityUpdate) {
-        window.desktopAPI.onUserActivityUpdate(listener);
-        return () => {};
-    }
-
-    const legacyListener = ({userIsActive, manual}: {userIsActive: boolean; manual: boolean}) => listener(userIsActive, 0, manual);
-    desktopApp.addPostMessageListener('user-activity-update', legacyListener);
-
-    return () => desktopApp.removePostMessageListener('user-activity-update', legacyListener);
-};
-
-export const onNotificationClicked = (listener: (channelId: string, teamId: string, url: string) => void) => {
-    if (window.desktopAPI?.onNotificationClicked) {
-        window.desktopAPI.onNotificationClicked(listener);
-        return () => {};
-    }
-
-    const legacyListener = ({channel, teamId, url}: {channel: {id: string}; teamId: string; url: string}) => listener(channel.id, teamId, url);
-    desktopApp.addPostMessageListener('notification-clicked', legacyListener);
-
-    return () => desktopApp.removePostMessageListener('notification-clicked', legacyListener);
-};
-
-export const onBrowserHistoryPush = (listener: (pathName: string) => void) => {
-    if (window.desktopAPI?.onBrowserHistoryPush) {
-        window.desktopAPI.onBrowserHistoryPush(listener);
-        return () => {};
-    }
-
-    const legacyListener = ({pathName}: {pathName: string}) => listener(pathName);
-    desktopApp.addPostMessageListener('browser-history-push-return', legacyListener);
-
-    return () => desktopApp.removePostMessageListener('browser-history-push-return', legacyListener);
-};
-
-export const onBrowserHistoryStatusUpdated = (listener: (enableBack: boolean, enableForward: boolean) => void) => {
-    if (window.desktopAPI?.onBrowserHistoryStatusUpdated) {
-        window.desktopAPI.onBrowserHistoryStatusUpdated(listener);
-        return () => {};
-    }
-
-    const legacyListener = ({enableBack, enableForward}: {enableBack: boolean; enableForward: boolean}) => listener(enableBack, enableForward);
-    desktopApp.addPostMessageListener('history-button-return', legacyListener);
-
-    return () => desktopApp.removePostMessageListener('history-button-return', legacyListener);
-};
-
-/**
- * One-ways
- */
-
-export const dispatchNotification = (
-    title: string,
-    body: string,
-    channelId: string,
-    teamId: string,
-    silent: boolean,
-    soundName: string,
-    url: string,
-) => {
-    if (window.desktopAPI?.sendNotification) {
-        window.desktopAPI.sendNotification(title, body, channelId, teamId, url, silent, soundName);
-        return;
-    }
-
-    // get the desktop app to trigger the notification
-    window.postMessage(
-        {
-            type: 'dispatch-notification',
-            message: {
-                title,
-                body,
-                channel: {id: channelId},
-                teamId,
-                silent,
-                data: {soundName},
-                url,
-            },
-        },
-        window.location.origin,
-    );
-};
-
-export const doBrowserHistoryPush = (path: string) => {
-    if (window.desktopAPI?.sendBrowserHistoryPush) {
-        window.desktopAPI.sendBrowserHistoryPush(path);
-        return;
-    }
-
-    window.postMessage(
-        {
-            type: 'browser-history-push',
-            message: {path},
-        },
-        window.location.origin,
-    );
-};
-
-export const updateUnreadsAndMentions = (isUnread: boolean, mentionCount: number) =>
-    window.desktopAPI?.setUnreadsAndMentions && window.desktopAPI.setUnreadsAndMentions(isUnread, mentionCount);
-export const setSessionExpired = (expired: boolean) => window.desktopAPI?.setSessionExpired && window.desktopAPI.setSessionExpired(expired);
+const DesktopApp = new DesktopAppAPI();
+export default DesktopApp;
