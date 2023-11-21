@@ -9,6 +9,8 @@ import {useSelector} from 'react-redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
+import ExternalLink from 'components/external_link';
+
 import {isFileAttachmentsEnabled} from 'utils/file_utils';
 
 interface SearchTerm {
@@ -46,11 +48,27 @@ const SearchHint = (props: Props): JSX.Element => {
                     className='search-hint__search-type-selector'
                     onMouseDown={props.onMouseDown}
                 >
-                    <div>
+                    <div className='search-hint_text-container'>
                         <FormattedMessage
                             id='search_bar.usage.search_type_question'
                             defaultMessage='What are you searching for?'
                         />
+                        <FormattedMessage
+                            id='search_bar.usage.searchLearn'
+                            defaultMessage='<a>Learn about search</a>'
+                            values={{
+                                a: (chunks) => (
+                                    <ExternalLink
+                                        className='search-hint_learn-search'
+                                        href='https://mattermost.com/pl/mattermost-academy-search-training'
+                                    >
+                                        <span>{chunks}</span>
+                                        <i className='icon icon-lightbulb-outline'/>
+                                    </ExternalLink>
+                                ),
+                            }}
+                        />
+
                     </div>
                     <div className='button-container'>
                         <button
@@ -65,7 +83,7 @@ const SearchHint = (props: Props): JSX.Element => {
                                 defaultMessage='Messages'
                             />
                         </button>
-                        { isFileAttachmentEnabled &&
+                        {isFileAttachmentEnabled &&
                             <button
                                 className={classNames({highlighted: props.highlightedIndex === 1})}
                                 onClick={() => props.onSearchTypeSelected && props.onSearchTypeSelected('files')}
