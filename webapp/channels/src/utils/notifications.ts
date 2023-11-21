@@ -6,8 +6,6 @@ import iconWS from 'images/icon_WS.png';
 import Constants from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 
-let requestedNotificationPermission = false;
-
 // showNotification displays a platform notification with the configured parameters.
 //
 // If successful in showing a notification, it resolves with a callback to manually close the
@@ -31,12 +29,7 @@ export async function showNotification(
         requireInteraction,
         silent,
         onClick,
-    }: ShowNotificationParams = {
-        title: '',
-        body: '',
-        requireInteraction: false,
-        silent: false,
-    },
+    }: ShowNotificationParams,
 ) {
     let icon = icon50;
     if (UserAgent.isEdge()) {
@@ -51,23 +44,15 @@ export async function showNotification(
         throw new Error('Notification.requestPermission not supported');
     }
 
-    if (Notification.permission !== 'granted' && requestedNotificationPermission) {
+    if (Notification.permission === 'default') {
+        const permission = await Notification.requestPermission();
+
+        if (permission !== 'granted') {
+            // User has denied notification for the site
+            return () => {};
+        }
+    } else if (Notification.permission === 'denied') {
         // User didn't allow notifications
-        return () => {};
-    }
-
-    requestedNotificationPermission = true;
-
-    let permission = await Notification.requestPermission();
-    if (typeof permission === 'undefined') {
-        // Handle browsers that don't support the promise-based syntax.
-        permission = await new Promise((resolve) => {
-            Notification.requestPermission(resolve);
-        });
-    }
-
-    if (permission !== 'granted') {
-        // User has denied notification for the site
         return () => {};
     }
 
