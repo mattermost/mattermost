@@ -53,8 +53,8 @@ jobs:
           -e GOCACHE=/go/cache \
           -v $PWD:/mattermost \
           -w /mattermost \
-          $BUILD_IMAGE \
-          apt-get update && apt-get install -y pgloader && make test-migration
+          $TEST_IMAGE \
+          make test-migration
       - name: Upload artifacts
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
