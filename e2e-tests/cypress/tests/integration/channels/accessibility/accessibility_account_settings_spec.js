@@ -34,8 +34,8 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
             {key: 'desktop', label: 'Desktop Notifications', type: 'radio'},
             {key: 'email', label: 'Email Notifications', type: 'radio'},
             {key: 'push', label: 'Mobile Push Notifications', type: 'radio'},
-            {key: 'keysWithNotification', label: 'Keywords that trigger Notifications', type: 'checkbox'},
-            {key: 'comments', label: 'Reply notifications', type: 'radio'},
+            {key: 'keysWithNotification', label: 'Keywords That Trigger Notifications', type: 'checkbox'},
+            {key: 'comments', label: 'Reply Notifications', type: 'radio'},
         ],
         display: [
             {key: 'theme', label: 'Theme', type: 'radio'},

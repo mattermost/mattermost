@@ -93,7 +93,7 @@ exports[`components/post_view/CommentedOn should match snapshot 3`] = `
       className="theme"
       onClick={[MockFunction]}
     >
-      <Connect(CommentedOnFilesMessage)
+      <Connect(Component)
         parentPostId="post_id"
       />
     </a>

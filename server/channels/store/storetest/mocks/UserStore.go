@@ -1308,6 +1308,20 @@ func (_m *UserStore) PromoteGuestToUser(userID string) error {
 	return r0
 }
 
+// RefreshPostStatsForUsers provides a mock function with given fields:
+func (_m *UserStore) RefreshPostStatsForUsers() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ResetAuthDataToEmailForUsers provides a mock function with given fields: service, userIDs, includeDeleted, dryRun
 func (_m *UserStore) ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error) {
 	ret := _m.Called(service, userIDs, includeDeleted, dryRun)
@@ -1611,6 +1625,20 @@ func (_m *UserStore) UpdateFailedPasswordAttempts(userID string, attempts int) e
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int) error); ok {
 		r0 = rf(userID, attempts)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateLastLogin provides a mock function with given fields: userID, lastLogin
+func (_m *UserStore) UpdateLastLogin(userID string, lastLogin int64) error {
+	ret := _m.Called(userID, lastLogin)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
+		r0 = rf(userID, lastLogin)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -2,17 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+
+import type {GlobalState} from 'types/store';
 
 import AboutAreaGM from './about_area_gm';
 
-const initialState = {
+const initialState: DeepPartial<GlobalState> = {
     entities: {
         channels: {
             currentChannelId: 'current_channel_id',
@@ -39,7 +40,7 @@ const initialState = {
                     name: 'current_user_id__existingId',
                     display_name: 'Default',
                     delete_at: 0,
-                    type: '0',
+                    type: 'D',
                     team_id: 'team_id',
                 },
             },
@@ -57,7 +58,7 @@ const initialState = {
                 'team-id': {
                     id: 'team_id',
                     name: 'team-1',
-                    displayName: 'Team 1',
+                    display_name: 'Team 1',
                 },
             },
             myMembers: {
@@ -105,7 +106,7 @@ const initialState = {
         general: {
             license: {IsLicensed: 'false'},
             serverVersion: '5.4.0',
-            config: {PostEditTimeLimit: -1},
+            config: {PostEditTimeLimit: '-1'},
         },
     },
     views: {
@@ -138,43 +139,35 @@ describe('channel_info_rhs/about_area_gm', () => {
         },
     };
 
-    test('should display users avatar', async () => {
-        const store = await mockStore(initialState);
-
-        renderWithIntl(
-            <Provider store={store}>
-                <AboutAreaGM
-                    {...defaultProps}
-                />
-            </Provider>,
+    test('should display users avatar', () => {
+        renderWithContext(
+            <AboutAreaGM
+                {...defaultProps}
+            />,
+            initialState,
         );
 
         expect(screen.getByAltText('my username profile image')).toBeInTheDocument();
         expect(screen.getByAltText('my username2 profile image')).toBeInTheDocument();
     });
 
-    test('should display user names', async () => {
-        const store = await mockStore(initialState);
-
-        renderWithIntl(
-            <Provider store={store}>
-                <AboutAreaGM
-                    {...defaultProps}
-                />
-            </Provider>,
+    test('should display user names', () => {
+        renderWithContext(
+            <AboutAreaGM
+                {...defaultProps}
+            />,
+            initialState,
         );
 
         expect(screen.getByLabelText('my username')).toBeInTheDocument();
     });
 
-    test('should display channel header', async () => {
-        const store = await mockStore(initialState);
-        renderWithIntl(
-            <Provider store={store}>
-                <AboutAreaGM
-                    {...defaultProps}
-                />
-            </Provider>,
+    test('should display channel header', () => {
+        renderWithContext(
+            <AboutAreaGM
+                {...defaultProps}
+            />,
+            initialState,
         );
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();
