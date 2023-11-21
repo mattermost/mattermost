@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -131,4 +132,60 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 
 	err = th.Service.RevokeAccessToken(accessData.Token)
 	require.NoError(t, err)
+}
+
+func TestUpdateSessionsIsGuest(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("Test session is demoted", func(t *testing.T) {
+		user := th.CreateUserOrGuest(false)
+
+		session := &model.Session{}
+		session.CreateAt = model.GetMillis()
+		session.UserId = user.Id
+		session.Token = model.NewId()
+		session.Roles = "fake_role"
+		th.Service.SetSessionExpireInHours(session, 24)
+
+		session, _ = th.Service.CreateSession(session)
+
+		demotedUser, err := th.Service.Store.User().DemoteUserToGuest(user.Id)
+		require.NoError(t, err)
+		require.Equal(t, model.SystemGuestRoleId, demotedUser.Roles)
+
+		err = th.Service.UpdateSessionsIsGuest(demotedUser, true)
+		require.NoError(t, err)
+
+		session, err = th.Service.GetSession(session.Id)
+		require.NoError(t, err)
+		require.Equal(t, model.SystemGuestRoleId, session.Roles)
+		require.Equal(t, "true", session.Props[model.SessionPropIsGuest])
+	})
+
+	t.Run("Test session is promoted", func(t *testing.T) {
+		user := th.CreateUserOrGuest(true)
+
+		session := &model.Session{}
+		session.CreateAt = model.GetMillis()
+		session.UserId = user.Id
+		session.Token = model.NewId()
+		session.Roles = "fake_role"
+		th.Service.SetSessionExpireInHours(session, 24)
+
+		session, _ = th.Service.CreateSession(session)
+
+		err := th.Service.Store.User().PromoteGuestToUser(user.Id)
+		require.NoError(t, err)
+
+		promotedUser, err := th.Service.Store.User().Get(context.Background(), user.Id)
+		require.NoError(t, err)
+		err = th.Service.UpdateSessionsIsGuest(promotedUser, false)
+		require.NoError(t, err)
+
+		session, err = th.Service.GetSession(session.Id)
+		require.NoError(t, err)
+		require.Equal(t, model.SystemUserRoleId, session.Roles)
+		require.Equal(t, "false", session.Props[model.SessionPropIsGuest])
+	})
 }
