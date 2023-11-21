@@ -87,6 +87,16 @@ func (_m *OutgoingOAuthConnectionInterface) GetConnections(rctx request.CTX, fil
 	return r0, r1
 }
 
+// SanitizeConnection provides a mock function with given fields: conn
+func (_m *OutgoingOAuthConnectionInterface) SanitizeConnection(conn *model.OutgoingOAuthConnection) {
+	_m.Called(conn)
+}
+
+// SanitizeConnections provides a mock function with given fields: conns
+func (_m *OutgoingOAuthConnectionInterface) SanitizeConnections(conns []*model.OutgoingOAuthConnection) {
+	_m.Called(conns)
+}
+
 // SaveConnection provides a mock function with given fields: rctx, conn
 func (_m *OutgoingOAuthConnectionInterface) SaveConnection(rctx request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, *model.AppError) {
 	ret := _m.Called(rctx, conn)
