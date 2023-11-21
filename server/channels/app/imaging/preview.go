@@ -38,15 +38,15 @@ func GenerateThumbnail(img image.Image, targetWidth, targetHeight int) image.Ima
 		ratio := float64(height) / float64(width)
 		if ratio < expectedRatio {
 			if height >= targetHeight {
-				thumb = imaging.Resize(img, 0, height, imaging.Lanczos)
+				thumb = imaging.Resize(img, 0, targetHeight, imaging.Lanczos)
 			} else {
-				thumb = imaging.Resize(img, width, 0, imaging.Lanczos)
+				thumb = imaging.Resize(img, targetWidth, 0, imaging.Lanczos)
 			}
 		} else {
 			if width >= targetWidth {
-				thumb = imaging.Resize(img, width, 0, imaging.Lanczos)
+				thumb = imaging.Resize(img, targetWidth, 0, imaging.Lanczos)
 			} else {
-				thumb = imaging.Resize(img, 0, height, imaging.Lanczos)
+				thumb = imaging.Resize(img, 0, targetHeight, imaging.Lanczos)
 			}
 		}
 	}
