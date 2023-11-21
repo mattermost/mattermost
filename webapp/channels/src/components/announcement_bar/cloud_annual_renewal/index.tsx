@@ -8,6 +8,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
@@ -44,6 +45,7 @@ const CloudAnnualRenewalAnnouncementBar = () => {
     const currentUserId = useSelector(getCurrentUserId);
     const hasDismissed60DayBanner = useSelector((state: GlobalState) => get(state, Preferences.CLOUD_ANNUAL_RENEWAL_BANNER, `${CloudBanners.ANNUAL_RENEWAL_60_DAY}_${getCurrentYearAsString()}`)) === 'true';
     const hasDismissed30DayBanner = useSelector((state: GlobalState) => get(state, Preferences.CLOUD_ANNUAL_RENEWAL_BANNER, `${CloudBanners.ANNUAL_RENEWAL_30_DAY}_${getCurrentYearAsString()}`)) === 'true';
+    const cloudAnnualRenewalsEnabled = useSelector(getConfig).FeatureFlags?.CloudAnnualRenewals;
 
     const daysUntilExpiration = useMemo(() => {
         if (!subscription || !subscription.end_at || !subscription.cancel_at) {
@@ -112,11 +114,11 @@ const CloudAnnualRenewalAnnouncementBar = () => {
             };
         }
 
-        return <AnnouncementBar {...bannerProps}/> ;
+        return <AnnouncementBar {...bannerProps}/>;
     }, [daysUntilExpiration, hasDismissed60DayBanner, hasDismissed30DayBanner]);
 
     // Delinquent subscriptions will have a cancel_at time, but the banner is handled separately
-    if (!subscription || !subscription.cancel_at || subscription.will_renew === "true" || isDelinquencySubscription() || !isAdmin || daysUntilExpiration > 60) {
+    if (!cloudAnnualRenewalsEnabled || !subscription || !subscription.cancel_at || subscription.will_renew === 'true' || isDelinquencySubscription() || !isAdmin || daysUntilExpiration > 60) {
         return null;
     }
 

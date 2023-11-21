@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 
 import CloudDelinquencyAnnouncementBar from './index';
@@ -69,7 +69,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             delinquent_since: null,
         };
 
-        const {queryByText} = renderWithIntlAndStore(
+        const {queryByText} = renderWithContext(
             <CloudDelinquencyAnnouncementBar/>,
             state,
         );
@@ -84,7 +84,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             cancel_at: null,
         };
 
-        const {queryByText} = renderWithIntlAndStore(
+        const {queryByText} = renderWithContext(
             <CloudDelinquencyAnnouncementBar/>,
             state,
         );
@@ -101,7 +101,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             },
         };
 
-        const {queryByText, getByText} = renderWithIntlAndStore(
+        const {queryByText, getByText} = renderWithContext(
             <CloudDelinquencyAnnouncementBar/>,
             state,
         );
@@ -113,7 +113,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
     it('Should show banner and CTA when user is admin', () => {
         const state = JSON.parse(JSON.stringify(initialState));
 
-        const {getByText} = renderWithIntlAndStore(
+        const {getByText} = renderWithContext(
             <CloudDelinquencyAnnouncementBar/>,
             state,
         );

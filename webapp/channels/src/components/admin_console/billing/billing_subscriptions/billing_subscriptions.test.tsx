@@ -4,7 +4,7 @@
 import React from 'react';
 
 import {unixTimestampFromNow} from 'tests/helpers/date';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 
 import {CloudAnnualRenewalBanner} from './billing_subscriptions';
@@ -56,7 +56,7 @@ describe('CloudAnnualRenewalBanner', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription = null;
 
-        const {queryByText} = renderWithIntlAndStore(<CloudAnnualRenewalBanner/>, state);
+        const {queryByText} = renderWithContext(<CloudAnnualRenewalBanner/>, state);
 
         expect(queryByText(/Your annual subscription expires in/)).not.toBeInTheDocument();
     });
@@ -67,7 +67,7 @@ describe('CloudAnnualRenewalBanner', () => {
             ...state.entities.cloud.subscription,
             end_at: unixTimestampFromNow(30),
         };
-        const {getByText} = renderWithIntlAndStore(<CloudAnnualRenewalBanner/>, state);
+        const {getByText} = renderWithContext(<CloudAnnualRenewalBanner/>, state);
 
         expect(getByText(/Your annual subscription expires in 31 days. Please renew now to avoid any disruption/)).toBeInTheDocument();
         expect(getByText(/Renew/)).toBeInTheDocument();
@@ -83,7 +83,7 @@ describe('CloudAnnualRenewalBanner', () => {
             ...state.entities.cloud.subscription,
             end_at: unixTimestampFromNow(4),
         };
-        const {getByText, getByTestId} = renderWithIntlAndStore(<CloudAnnualRenewalBanner/>, state);
+        const {getByText, getByTestId} = renderWithContext(<CloudAnnualRenewalBanner/>, state);
 
         expect(getByText(/Your annual subscription expires in 5 days. Please renew now to avoid any disruption/)).toBeInTheDocument();
         expect(getByText(/Renew/)).toBeInTheDocument();
@@ -98,7 +98,7 @@ describe('CloudAnnualRenewalBanner', () => {
             end_at: unixTimestampFromNow(-5),
             cancel_at: unixTimestampFromNow(5),
         };
-        const {getByText, getByTestId} = renderWithIntlAndStore(<CloudAnnualRenewalBanner/>, state);
+        const {getByText, getByTestId} = renderWithContext(<CloudAnnualRenewalBanner/>, state);
 
         expect(getByText(/Your subscription has expired. Your workspace will be deleted in 6 days. Please renew now to avoid any disruption/)).toBeInTheDocument();
         expect(getByText(/Renew/)).toBeInTheDocument();

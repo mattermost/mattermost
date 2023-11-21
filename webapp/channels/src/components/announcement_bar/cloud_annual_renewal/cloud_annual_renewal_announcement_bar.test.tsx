@@ -4,7 +4,7 @@
 import React from 'react';
 
 import {unixTimestampFromNow} from 'tests/helpers/date';
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {CloudBanners, CloudProducts, Preferences} from 'utils/constants';
 
 import CloudAnnualRenewalAnnouncementBar, {getCurrentYearAsString} from './index';
@@ -19,11 +19,19 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             },
         },
         entities: {
+            admin: {
+                config: {
+                    FeatureFlags: {
+                        CloudAnnualRenewals: true,
+                    },
+                },
+            },
             general: {
                 license: {
                     IsLicensed: 'true',
                     Cloud: 'true',
                 },
+
             },
             users: {
                 currentUserId: 'current_user_id',
@@ -59,6 +67,21 @@ describe('components/announcement_bar/cloud_delinquency', () => {
         },
     };
 
+    it('Should not show banner when feature flag is disabled time set', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.general.config = {
+            ...state.entities.admin.config,
+            CloudAnnualRenewals: false,
+        };
+
+        const {queryByText} = renderWithContext(
+            <CloudAnnualRenewalAnnouncementBar/>,
+            state,
+        );
+
+        expect(queryByText('Your annual subscription expires in')).not.toBeInTheDocument();
+    });
+
     it('Should not show banner when no cancel_at time set', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription = {
@@ -66,7 +89,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             cancel_at: null,
         };
 
-        const {queryByText} = renderWithIntlAndStore(
+        const {queryByText} = renderWithContext(
             <CloudAnnualRenewalAnnouncementBar/>,
             state,
         );
@@ -82,7 +105,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             end_at: unixTimestampFromNow(55),
         };
 
-        const {getByText} = renderWithIntlAndStore(
+        const {getByText} = renderWithContext(
             <CloudAnnualRenewalAnnouncementBar/>,
             state,
         );
@@ -105,7 +128,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             },
         };
 
-        const {queryByText} = renderWithIntlAndStore(
+        const {queryByText} = renderWithContext(
             <CloudAnnualRenewalAnnouncementBar/>,
             state,
         );
@@ -121,7 +144,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             end_at: unixTimestampFromNow(25),
         };
 
-        const {getByText} = renderWithIntlAndStore(
+        const {getByText} = renderWithContext(
             <CloudAnnualRenewalAnnouncementBar/>,
             state,
         );
@@ -144,7 +167,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             },
         };
 
-        const {queryByText} = renderWithIntlAndStore(
+        const {queryByText} = renderWithContext(
             <CloudAnnualRenewalAnnouncementBar/>,
             state,
         );
@@ -160,7 +183,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             end_at: unixTimestampFromNow(5),
         };
 
-        const {getByText} = renderWithIntlAndStore(
+        const {getByText} = renderWithContext(
             <CloudAnnualRenewalAnnouncementBar/>,
             state,
         );
@@ -183,7 +206,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             },
         };
 
-        const {queryByText} = renderWithIntlAndStore(
+        const {queryByText} = renderWithContext(
             <CloudAnnualRenewalAnnouncementBar/>,
             state,
         );
@@ -200,7 +223,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             delinquent_since: unixTimestampFromNow(5),
         };
 
-        const {queryByText} = renderWithIntlAndStore(
+        const {queryByText} = renderWithContext(
             <CloudAnnualRenewalAnnouncementBar/>,
             state,
         );
@@ -227,7 +250,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             },
         };
 
-        const {queryByText} = renderWithIntlAndStore(
+        const {queryByText} = renderWithContext(
             <CloudAnnualRenewalAnnouncementBar/>,
             state,
         );
@@ -254,7 +277,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             },
         };
 
-        const {queryByText} = renderWithIntlAndStore(
+        const {queryByText} = renderWithContext(
             <CloudAnnualRenewalAnnouncementBar/>,
             state,
         );
@@ -281,7 +304,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             },
         };
 
-        const {queryByText} = renderWithIntlAndStore(
+        const {queryByText} = renderWithContext(
             <CloudAnnualRenewalAnnouncementBar/>,
             state,
         );
@@ -308,7 +331,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             },
         };
 
-        const {queryByText} = renderWithIntlAndStore(
+        const {queryByText} = renderWithContext(
             <CloudAnnualRenewalAnnouncementBar/>,
             state,
         );
@@ -324,13 +347,13 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             end_at: unixTimestampFromNow(75),
         };
 
-        const {queryByText} = renderWithIntlAndStore(
+        const {queryByText} = renderWithContext(
             <CloudAnnualRenewalAnnouncementBar/>,
             state,
         );
 
         expect(queryByText('Your annual subscription expires in')).not.toBeInTheDocument();
-    })
+    });
 
     it('Should NOT show any banner if within renewal period but will_renew is set to "true"', () => {
         const state = JSON.parse(JSON.stringify(initialState));
@@ -341,11 +364,11 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             will_renew: 'true',
         };
 
-        const {queryByText} = renderWithIntlAndStore(
+        const {queryByText} = renderWithContext(
             <CloudAnnualRenewalAnnouncementBar/>,
             state,
         );
 
         expect(queryByText('Your annual subscription expires in')).not.toBeInTheDocument();
-    })
+    });
 });
