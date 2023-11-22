@@ -3184,15 +3184,15 @@ const AdminDefinition: AdminDefinitionType = {
                                     t('admin.customization.uniqueEmojiReactionLimitPerPost.maxValue'),
                                     'Cannot increase the limit to a value above 500.',
                                 )(value);
-                                if (!maxResult.isValid) {
+                                if (!maxResult.isValid()) {
                                     return maxResult;
                                 }
                                 const minResult = validators.minValue(0,
                                     t('admin.customization.uniqueEmojiReactionLimitPerPost.minValue'),
                                     'Cannot decrease the limit below 0.',
                                 )(value);
-                                if (!minResult.isValid) {
-                                    return maxResult;
+                                if (!minResult.isValid()) {
+                                    return minResult;
                                 }
 
                                 return new ValidationResult(true, '', '');
