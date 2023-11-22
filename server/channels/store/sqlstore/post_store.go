@@ -720,11 +720,14 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 			query = s.getQueryBuilder().
 				Select("p.*, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
 				From("Posts p").
-				Where(sq.Or{
-					sq.Eq{"p.Id": rootId},
-					sq.Eq{"p.RootId": rootId},
+				Where(sq.And{
+					sq.Or{
+						sq.Eq{"p.Id": rootId},
+						sq.Eq{"p.RootId": rootId},
+					},
 					sq.Eq{"p.DeleteAt": 0},
 				})
+
 		} else {
 			query = s.getQueryBuilder().
 				Select("p.*, replycount.num as ReplyCount").
@@ -739,9 +742,11 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 					}).Suffix(")"),
 				).
 				From("Posts p, replycount").
-				Where(sq.Or{
-					sq.Eq{"p.Id": rootId},
-					sq.Eq{"p.RootId": rootId},
+				Where(sq.And{
+					sq.Or{
+						sq.Eq{"p.Id": rootId},
+						sq.Eq{"p.RootId": rootId},
+					},
 					sq.Eq{"p.DeleteAt": 0},
 				})
 		}
