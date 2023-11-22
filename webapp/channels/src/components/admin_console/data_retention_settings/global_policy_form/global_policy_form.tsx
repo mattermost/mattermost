@@ -157,30 +157,14 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
         return 0;
     };
 
-    getConfigValue(config: DeepPartial<AdminConfig> | Partial<EnvironmentConfig>, path: string) {
-        const pathParts = path.split('.');
-
-        return pathParts.reduce((obj: object | null, pathPart) => {
-            if (!obj) {
-                return null;
-            }
-
-            return obj[pathPart as keyof object];
-        }, config);
-    }
-
-    isSetByEnv = (path: string) => {
-        return Boolean(this.getConfigValue(this.props.environmentConfig, path));
-    };
-
     isMessageRetentionSetByEnv = () => {
-        return (this.isSetByEnv('DataRetentionSettings.MessageRetentionDays') && this.props.config.DataRetentionSettings?.MessageRetentionDays && this.props.config.DataRetentionSettings.MessageRetentionDays > 0) ||
-        (this.isSetByEnv('DataRetentionSettings.MessageRetentionHours') && this.props.config.DataRetentionSettings?.MessageRetentionHours && this.props.config.DataRetentionSettings.MessageRetentionHours > 0);
+        return (this.props.environmentConfig.DataRetentionSettings?.MessageRetentionDays && this.props.config.DataRetentionSettings?.MessageRetentionDays && this.props.config.DataRetentionSettings.MessageRetentionDays > 0) ||
+        (this.props.environmentConfig.DataRetentionSettings?.MessageRetentionHours && this.props.config.DataRetentionSettings?.MessageRetentionHours && this.props.config.DataRetentionSettings.MessageRetentionHours > 0);
     };
 
     isFileRetentionSetByEnv = () => {
-        return (this.isSetByEnv('DataRetentionSettings.FileRetentionDays') && this.props.config.DataRetentionSettings?.FileRetentionDays && this.props.config.DataRetentionSettings.FileRetentionDays > 0) ||
-        (this.isSetByEnv('DataRetentionSettings.FileRetentionHours') && this.props.config.DataRetentionSettings?.FileRetentionHours && this.props.config.DataRetentionSettings.FileRetentionHours > 0);
+        return (this.props.environmentConfig.DataRetentionSettings?.FileRetentionDays && this.props.config.DataRetentionSettings?.FileRetentionDays && this.props.config.DataRetentionSettings.FileRetentionDays > 0) ||
+        (this.props.environmentConfig.DataRetentionSettings?.FileRetentionHours && this.props.config.DataRetentionSettings?.FileRetentionHours && this.props.config.DataRetentionSettings.FileRetentionHours > 0);
     };
 
     render = () => {
