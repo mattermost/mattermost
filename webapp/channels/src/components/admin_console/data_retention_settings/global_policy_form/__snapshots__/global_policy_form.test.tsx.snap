@@ -160,6 +160,14 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                   Array [
                     Object {
                       "label": <span
+                        className="option_hours"
+                      >
+                        Hours
+                      </span>,
+                      "value": "HOURS",
+                    },
+                    Object {
+                      "label": <span
                         className="option_days"
                       >
                         Days
