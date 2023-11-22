@@ -9,8 +9,46 @@ import {appBarEnabled, getAppBarAppBindings} from 'mattermost-redux/selectors/en
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {createShallowSelector} from 'mattermost-redux/utils/helpers';
 
+import type {PluginConfiguration} from 'components/user_settings/plugin/types';
+import {isValidPluginConfiguration} from 'components/user_settings/plugin/utils';
+
 import type {GlobalState} from 'types/store';
 import type {FileDropdownPluginComponent, PluginComponent} from 'types/store/plugins';
+
+export const getPluginUserSettings = createSelector(
+    'getPluginUserSettings',
+    (state: GlobalState) => state.plugins.userSettings,
+    (settings) => {
+        // Just for testing, to remove before merging
+        if (!settings || !Object.values(settings).length) {
+            settings = {
+                'com.mattermost.msteams-sync': {
+                    id: 'com.mattermost.msteams-sync',
+                    icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Microsoft_Office_Teams_%282018%E2%80%93present%29.svg/1200px-Microsoft_Office_Teams_%282018%E2%80%93present%29.svg.png',
+                    uiName: 'MS Teams Sync',
+                    settings: [{
+                        name: 'primary_platform',
+                        options: [
+                            {text: 'Mattermost will be my primary platform', value: 'mm'},
+                            {text: 'Microsoft Teams will be my primary platform', value: 'teams'}],
+                        title: 'Primary platform for communication',
+                        type: 'radio',
+                        helpText: 'When Mattermost is selected, you will need to disable notifications in Microsoft Teams to avoid duplicates.\n\n**[Learn more](http://google.com)**\n\nWhen Microsoft Teams is selected, notifications in Mattermost will be muted for linked channels and DMs to prevent duplicates. Unread statuses in linked channels and DMs will also be disabled in Mattermost.\n\n**[Learn more](http://google.com)**',
+                        default: 'mm',
+                    }],
+                },
+            };
+        }
+
+        return Object.keys(settings).reduce<{[pluginId: string]: PluginConfiguration}>((prev, curr) => {
+            const setting = settings[curr];
+            if (isValidPluginConfiguration(setting) && curr === setting.id) {
+                prev[curr] = setting;
+            }
+            return prev;
+        }, {});
+    },
+);
 
 export const getFilesDropdownPluginMenuItems = createSelector(
     'getFilesDropdownPluginMenuItems',

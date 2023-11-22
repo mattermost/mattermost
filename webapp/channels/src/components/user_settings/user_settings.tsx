@@ -9,6 +9,8 @@ import AdvancedTab from './advanced';
 import DisplayTab from './display';
 import GeneralTab from './general';
 import NotificationsTab from './notifications';
+import PluginTab from './plugin/plugin';
+import type {PluginConfiguration} from './plugin/types';
 import SecurityTab from './security';
 import SidebarTab from './sidebar';
 
@@ -22,6 +24,7 @@ export type Props = {
     collapseModal: () => void;
     setEnforceFocus: () => void;
     setRequireConfirm: () => void;
+    pluginSettings: {[tabName: string]: PluginConfiguration};
 };
 
 export default class UserSettings extends React.PureComponent<Props> {
@@ -97,6 +100,18 @@ export default class UserSettings extends React.PureComponent<Props> {
                         updateSection={this.props.updateSection}
                         closeModal={this.props.closeModal}
                         collapseModal={this.props.collapseModal}
+                    />
+                </div>
+            );
+        } else if (this.props.activeTab && this.props.pluginSettings[this.props.activeTab]) {
+            return (
+                <div>
+                    <PluginTab
+                        activeSection={this.props.activeSection}
+                        updateSection={this.props.updateSection}
+                        closeModal={this.props.closeModal}
+                        collapseModal={this.props.collapseModal}
+                        settings={this.props.pluginSettings[this.props.activeTab]}
                     />
                 </div>
             );
