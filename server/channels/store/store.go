@@ -46,6 +46,7 @@ type Store interface {
 	Compliance() ComplianceStore
 	Session() SessionStore
 	OAuth() OAuthStore
+	OutgoingOAuthConnection() OutgoingOAuthConnectionStore
 	System() SystemStore
 	Webhook() WebhookStore
 	Command() CommandStore
@@ -419,6 +420,7 @@ type UserStore interface {
 	UpdatePassword(userID, newPassword string) error
 	UpdateUpdateAt(userID string) (int64, error)
 	UpdateAuthData(userID string, service string, authData *string, email string, resetMfa bool) (string, error)
+	UpdateLastLogin(userID string, lastLogin int64) error
 	ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error)
 	UpdateMfaSecret(userID, secret string) error
 	UpdateMfaActive(userID string, active bool) error
@@ -488,6 +490,7 @@ type UserStore interface {
 	IsEmpty(excludeBots bool) (bool, error)
 	GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error)
 	InsertUsers(users []*model.User) error
+	RefreshPostStatsForUsers() error
 }
 
 type BotStore interface {
@@ -573,6 +576,14 @@ type OAuthStore interface {
 	GetPreviousAccessData(userID, clientId string) (*model.AccessData, error)
 	RemoveAccessData(token string) error
 	RemoveAllAccessData() error
+}
+
+type OutgoingOAuthConnectionStore interface {
+	SaveConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error)
+	UpdateConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error)
+	GetConnection(c request.CTX, id string) (*model.OutgoingOAuthConnection, error)
+	GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error)
+	DeleteConnection(c request.CTX, id string) error
 }
 
 type SystemStore interface {

@@ -37,7 +37,10 @@ func NewMigrator(settings model.SqlSettings, dryRun bool) (*Migrator, error) {
 		wgMonitor:   &sync.WaitGroup{},
 	}
 
-	ss.initConnection()
+	err := ss.initConnection()
+	if err != nil {
+		return nil, fmt.Errorf("error in initializing connection: %w", err)
+	}
 
 	ver, err := ss.GetDbVersion(true)
 	if err != nil {
