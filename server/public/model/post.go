@@ -327,7 +327,7 @@ type GetPostsSinceOptions struct {
 
 type GetPostsSinceForSyncCursor struct {
 	LastPostUpdateAt int64
-	LastPostId       string
+	LastPostUpdateID string
 }
 
 type GetPostsSinceForSyncOptions struct {

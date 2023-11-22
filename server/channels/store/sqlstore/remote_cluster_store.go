@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
+
+	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -147,6 +148,10 @@ func (s sqlRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]
 
 	if filter.OnlyConfirmed {
 		query = query.Where(sq.NotEq{"rc.SiteURL": ""})
+	}
+
+	if filter.PluginID != "" {
+		query = query.Where(sq.Eq{"rc.PluginID": filter.PluginID})
 	}
 
 	if filter.Topic != "" {

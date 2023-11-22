@@ -11,8 +11,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 
-	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
+
+	sq "github.com/mattermost/squirrel"
 )
 
 const (
@@ -333,8 +334,8 @@ func (s SqlSharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*m
 	}
 
 	query, args, err := s.getQueryBuilder().Insert("SharedChannelRemotes").
-		Columns("Id", "ChannelId", "CreatorId", "CreateAt", "UpdateAt", "IsInviteAccepted", "IsInviteConfirmed", "RemoteId", "LastPostUpdateAt", "LastPostId").
-		Values(remote.Id, remote.ChannelId, remote.CreatorId, remote.CreateAt, remote.UpdateAt, remote.IsInviteAccepted, remote.IsInviteConfirmed, remote.RemoteId, remote.LastPostUpdateAt, remote.LastPostId).
+		Columns("Id", "ChannelId", "CreatorId", "CreateAt", "UpdateAt", "IsInviteAccepted", "IsInviteConfirmed", "RemoteId", "LastPostUpdateAt", "LastPostUpdateId").
+		Values(remote.Id, remote.ChannelId, remote.CreatorId, remote.CreateAt, remote.UpdateAt, remote.IsInviteAccepted, remote.IsInviteConfirmed, remote.RemoteId, remote.LastPostUpdateAt, remote.LastPostUpdateID).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "savesharedchannelremote_tosql")
@@ -360,7 +361,7 @@ func (s SqlSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (
 		Set("IsInviteConfirmed", remote.IsInviteConfirmed).
 		Set("RemoteId", remote.RemoteId).
 		Set("LastPostUpdateAt", remote.LastPostUpdateAt).
-		Set("LastPostId", remote.LastPostId).
+		Set("LastPostUpdateId", remote.LastPostUpdateID).
 		Where(sq.And{
 			sq.Eq{"Id": remote.Id},
 			sq.Eq{"ChannelId": remote.ChannelId},
@@ -399,7 +400,7 @@ func sharedChannelRemoteFields(prefix string) []string {
 		prefix + "IsInviteConfirmed",
 		prefix + "RemoteId",
 		prefix + "LastPostUpdateAt",
-		prefix + "LastPostId",
+		prefix + "LastPostUpdateId",
 	}
 }
 
@@ -532,12 +533,12 @@ func (s SqlSharedChannelStore) GetRemoteForUser(remoteId string, userId string) 
 	return &rc, nil
 }
 
-// UpdateRemoteCursor updates the LastPostUpdateAt timestamp and LastPostId for the specified SharedChannelRemote.
+// UpdateRemoteCursor updates the LastPostUpdateAt timestamp and LastPostUpdateId for the specified SharedChannelRemote.
 func (s SqlSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
 	squery, args, err := s.getQueryBuilder().
 		Update("SharedChannelRemotes").
 		Set("LastPostUpdateAt", cursor.LastPostUpdateAt).
-		Set("LastPostId", cursor.LastPostId).
+		Set("LastPostUpdateId", cursor.LastPostUpdateID).
 		Where(sq.Eq{"Id": id}).
 		ToSql()
 	if err != nil {

@@ -770,7 +770,7 @@ func testUpdateSharedChannelRemoteCursor(t *testing.T, rctx request.CTX, ss stor
 
 	cursor := model.GetPostsSinceForSyncCursor{
 		LastPostUpdateAt: future,
-		LastPostId:       postID,
+		LastPostUpdateID: postID,
 	}
 
 	t.Run("Update NextSyncAt for remote", func(t *testing.T) {
@@ -780,7 +780,7 @@ func testUpdateSharedChannelRemoteCursor(t *testing.T, rctx request.CTX, ss stor
 		r, err := ss.SharedChannel().GetRemote(remoteSaved.Id)
 		require.NoError(t, err)
 		require.Equal(t, future, r.LastPostUpdateAt)
-		require.Equal(t, postID, r.LastPostId)
+		require.Equal(t, postID, r.LastPostUpdateID)
 	})
 
 	t.Run("Update NextSyncAt for non-existent shared channel remote", func(t *testing.T) {
