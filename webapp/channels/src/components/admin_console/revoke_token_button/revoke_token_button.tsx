@@ -2,11 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import { FormattedMessage } from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
-import type { ActionFunc, ActionResult } from 'mattermost-redux/types/actions';
+import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 
-import { trackEvent } from 'actions/telemetry_actions.jsx';
+import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 interface RevokeTokenButtonProps {
     actions: {
@@ -19,12 +19,11 @@ interface RevokeTokenButtonProps {
 }
 
 const RevokeTokenButton = (props: RevokeTokenButtonProps) => {
-
     const handleClick = async (e: React.MouseEvent) => {
         e.preventDefault();
 
         const response = await props.actions.revokeUserAccessToken(
-            props.tokenId
+            props.tokenId,
         );
         trackEvent('system_console', 'revoke_user_access_token');
 
@@ -34,8 +33,12 @@ const RevokeTokenButton = (props: RevokeTokenButtonProps) => {
     };
 
     return (
-        
-        <button type='button' className='btn btn-danger' onClick={handleClick}>
+
+        <button
+            type='button'
+            className='btn btn-danger'
+            onClick={handleClick}
+        >
             <FormattedMessage
                 id='admin.revoke_token_button.delete'
                 defaultMessage='Delete'
