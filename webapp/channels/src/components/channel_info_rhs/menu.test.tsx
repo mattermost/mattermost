@@ -133,7 +133,7 @@ describe('channel_info_rhs/menu', () => {
             props.actions.getChannelStats();
         });
 
-        const fileItem = screen.getByText('Pinned Messages');
+        const fileItem = screen.getByText('Pinned messages');
         expect(fileItem).toBeInTheDocument();
         expect(fileItem.parentElement).toHaveTextContent('12');
 
