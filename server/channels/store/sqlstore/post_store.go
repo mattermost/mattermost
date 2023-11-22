@@ -727,7 +727,6 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 					},
 					sq.Eq{"p.DeleteAt": 0},
 				})
-
 		} else {
 			query = s.getQueryBuilder().
 				Select("p.*, replycount.num as ReplyCount").
