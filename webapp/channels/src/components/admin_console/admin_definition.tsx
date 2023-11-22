@@ -3178,7 +3178,25 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: t('admin.customization.uniqueEmojiReactionLimitPerPostDesc'),
                             help_text_default: 'The number of unique emoji reactions that can be added to a post. Increasing this limit could lead to poor client performance. Maximum is 500.',
                             help_text_markdown: false,
-                            validate: validators.maxValue(500, t('admin.customization.uniqueEmojiReactionLimitPerPost.maxValue'), 'Cannot increase the limit to a value above 500.'),
+                            validate: (value) => {
+                                const maxResult = validators.maxValue(
+                                    500,
+                                    t('admin.customization.uniqueEmojiReactionLimitPerPost.maxValue'),
+                                    'Cannot increase the limit to a value above 500.',
+                                )(value);
+                                if (!maxResult.isValid) {
+                                    return maxResult;
+                                }
+                                const minResult = validators.minValue(0,
+                                    t('admin.customization.uniqueEmojiReactionLimitPerPost.minValue'),
+                                    'Cannot decrease the limit below 0.',
+                                )(value);
+                                if (!minResult.isValid) {
+                                    return maxResult;
+                                }
+
+                                return new ValidationResult(true, '', '');
+                            },
                         },
                     ],
                 },

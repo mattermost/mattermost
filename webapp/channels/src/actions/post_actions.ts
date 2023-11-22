@@ -39,7 +39,7 @@ import {
     StoragePrefixes,
 } from 'utils/constants';
 import {matchEmoticons} from 'utils/emoticons';
-import {makeGetUniqueReactionsToPost, makeGetIsReactionAlreadyAddedToPost} from 'utils/post_utils';
+import {makeGetUniqueReactionsToPost, makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
 import * as UserAgent from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
@@ -177,17 +177,14 @@ export function toggleReaction(postId: string, emojiName: string) {
 }
 
 export function addReaction(postId: string, emojiName: string) {
-    const getUniqueReactionsToPost = makeGetUniqueReactionsToPost();
+    const getUniqueEmojiNameReactionsForPost = makeGetUniqueEmojiNameReactionsForPost();
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
         const config = getConfig(state);
-        const reactions = Object.values(getUniqueReactionsToPost(state, postId) ?? {});
-        let reactionCount = reactions.length;
-        if (reactions.some((reaction) => reaction.emoji_name === emojiName)) {
-            reactionCount--;
-        }
+        const uniqueEmojiNames = getUniqueEmojiNameReactionsForPost(state, postId) ?? [];
 
-        if (reactionCount >= Number(config.UniqueEmojiReactionLimitPerPost)) {
+        // If we're adding a new reaction but we're already at or over the limit, stop
+        if (uniqueEmojiNames.length >= Number(config.UniqueEmojiReactionLimitPerPost) && !uniqueEmojiNames.some((name) => name === emojiName)) {
             dispatch(openModal({
                 modalId: ModalIdentifiers.REACTION_LIMIT_REACHED,
                 dialogType: ReactionLimitReachedModal,

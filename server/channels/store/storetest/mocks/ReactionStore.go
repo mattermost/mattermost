@@ -94,6 +94,30 @@ func (_m *ReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletio
 	return r0
 }
 
+// ExistsOnPost provides a mock function with given fields: postId, emojiName
+func (_m *ReactionStore) ExistsOnPost(postId string, emojiName string) (bool, error) {
+	ret := _m.Called(postId, emojiName)
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (bool, error)); ok {
+		return rf(postId, emojiName)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) bool); ok {
+		r0 = rf(postId, emojiName)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(postId, emojiName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetForPost provides a mock function with given fields: postID, allowFromCache
 func (_m *ReactionStore) GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error) {
 	ret := _m.Called(postID, allowFromCache)

@@ -40,14 +40,6 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check whether this is a valid emoji
-	if _, ok := model.GetSystemEmojiId(reaction.EmojiName); !ok {
-		if _, err := c.App.GetEmojiByName(c.AppContext, reaction.EmojiName); err != nil {
-			c.Err = err
-			return
-		}
-	}
-
 	re, err := c.App.SaveReactionForPost(c.AppContext, &reaction)
 	if err != nil {
 		c.Err = err

@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"time"
 
 	sq "github.com/mattermost/squirrel"
@@ -105,6 +106,25 @@ func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*mo
 		return nil, errors.Wrapf(err, "failed to get Reactions with postId=%s", postId)
 	}
 	return reactions, nil
+}
+
+func (s *SqlReactionStore) ExistsOnPost(postId string, emojiName string) (bool, error) {
+	query := s.getQueryBuilder().
+		Select("1").
+		From("Reactions").
+		Where(sq.Eq{"PostId": postId}).
+		Where(sq.Eq{"EmojiName": emojiName}).
+		Where(sq.Eq{"COALESCE(DeleteAt, 0)": 0})
+
+	var hasRows bool
+	if err := s.GetReplicaX().GetBuilder(&hasRows, query); err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, errors.Wrap(err, "failed to check for existing reaction")
+	}
+
+	return hasRows, nil
 }
 
 // GetForPostSince returns all reactions associated with `postId` updated after `since`.
