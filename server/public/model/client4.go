@@ -74,7 +74,7 @@ type Client4 struct {
 
 	// FalseString is the string value sent to the server for false boolean query parameters.
 	falseString        string
-	maximumPayloadSize int64
+	MaximumPayloadSize int64
 }
 
 // SetBoolString is a helper method for overriding how true and false query string parameters are
@@ -3070,7 +3070,7 @@ func (c *Client4) GetChannelMembersTimezones(ctx context.Context, channelId stri
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body, c.maximumPayloadSize), BuildResponse(r), nil
+	return ArrayFromJSON(r.Body, c.MaximumPayloadSize), BuildResponse(r), nil
 }
 
 // GetPinnedPosts gets a list of pinned posts.
@@ -5737,7 +5737,7 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body, c.maximumPayloadSize), BuildResponse(r), nil
+	return ArrayFromJSON(r.Body, c.MaximumPayloadSize), BuildResponse(r), nil
 }
 
 // PostLog is a convenience Web Service call so clients can log messages into
@@ -7811,7 +7811,7 @@ func (c *Client4) GetSidebarCategoryOrderForTeamForUser(ctx context.Context, use
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body, c.maximumPayloadSize), BuildResponse(r), nil
+	return ArrayFromJSON(r.Body, c.MaximumPayloadSize), BuildResponse(r), nil
 }
 
 func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, userID, teamID string, order []string) ([]string, *Response, error) {
@@ -7825,7 +7825,7 @@ func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body, c.maximumPayloadSize), BuildResponse(r), nil
+	return ArrayFromJSON(r.Body, c.MaximumPayloadSize), BuildResponse(r), nil
 }
 
 func (c *Client4) GetSidebarCategoryForTeamForUser(ctx context.Context, userID, teamID, categoryID, etag string) (*SidebarCategoryWithChannels, *Response, error) {
@@ -8285,7 +8285,7 @@ func (c *Client4) ListImports(ctx context.Context) ([]string, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body, c.maximumPayloadSize), BuildResponse(r), nil
+	return ArrayFromJSON(r.Body, c.MaximumPayloadSize), BuildResponse(r), nil
 }
 
 func (c *Client4) ListExports(ctx context.Context) ([]string, *Response, error) {
@@ -8294,7 +8294,7 @@ func (c *Client4) ListExports(ctx context.Context) ([]string, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body, c.maximumPayloadSize), BuildResponse(r), nil
+	return ArrayFromJSON(r.Body, c.MaximumPayloadSize), BuildResponse(r), nil
 }
 
 func (c *Client4) DeleteExport(ctx context.Context, name string) (*Response, error) {

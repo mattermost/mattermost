@@ -513,8 +513,9 @@ func (th *TestHelper) CreateLocalClient(socketPath string) *model.Client4 {
 	}
 
 	return &model.Client4{
-		APIURL:     "http://_" + model.APIURLSuffix,
-		HTTPClient: httpClient,
+		APIURL:             "http://_" + model.APIURLSuffix,
+		HTTPClient:         httpClient,
+		MaximumPayloadSize: 100000,
 	}
 }
 
