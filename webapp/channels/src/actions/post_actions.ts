@@ -39,7 +39,7 @@ import {
     StoragePrefixes,
 } from 'utils/constants';
 import {matchEmoticons} from 'utils/emoticons';
-import {makeGetUniqueReactionsToPost, makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
+import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
 import * as UserAgent from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';

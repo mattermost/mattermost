@@ -51,7 +51,7 @@ jest.mock('utils/user_agent', () => ({
 }));
 
 jest.mock('utils/post_utils', () => ({
-    makeGetUniqueReactionsToPost: () => jest.fn().mockReturnValue({}),
+    makeGetUniqueEmojiNameReactionsForPost: () => jest.fn().mockReturnValue([]),
     makeGetIsReactionAlreadyAddedToPost: jest.fn(),
 }));
 
