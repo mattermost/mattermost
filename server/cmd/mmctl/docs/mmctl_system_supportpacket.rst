@@ -1,22 +1,34 @@
-.. _mmctl_system:
+.. _mmctl_system_supportpacket:
 
-mmctl system
-------------
+mmctl system supportpacket
+--------------------------
 
-System management
+Download a Support Packet
 
 Synopsis
 ~~~~~~~~
 
 
-System management commands for interacting with the server state and configuration.
+Generate and download a Support Packet of the server to share it with Mattermost Support
+
+::
+
+  mmctl system supportpacket [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+    system supportpacket
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for system
+  -h, --help                 help for supportpacket
+  -o, --output-file string   Output file name (default "mattermost_support_packet_YYYY-MM-DD-HH-MM.zip")
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,11 +48,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl system clearbusy <mmctl_system_clearbusy.rst>`_ 	 - Clears the busy state
-* `mmctl system getbusy <mmctl_system_getbusy.rst>`_ 	 - Get the current busy state
-* `mmctl system setbusy <mmctl_system_setbusy.rst>`_ 	 - Set the busy state to true
-* `mmctl system status <mmctl_system_status.rst>`_ 	 - Prints the status of the server
-* `mmctl system supportpacket <mmctl_system_supportpacket.rst>`_ 	 - Download a Support Packet
-* `mmctl system version <mmctl_system_version.rst>`_ 	 - Prints the remote server version
+* `mmctl system <mmctl_system.rst>`_ 	 - System management
 
