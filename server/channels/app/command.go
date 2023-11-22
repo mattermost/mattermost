@@ -508,7 +508,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 	}
 
 	// Send the request
-	resp, err := a.HTTPService().MakeClient(false).Do(req)
+	resp, err := a.Srv().outgoingWebhookClient.Do(req)
 	if err != nil {
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]any{"Trigger": cmd.Trigger}, "", http.StatusInternalServerError).Wrap(err)
 	}
