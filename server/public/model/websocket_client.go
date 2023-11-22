@@ -111,7 +111,7 @@ func makeClient(dialer *websocket.Dialer, url, connectURL, authToken string, hea
 	client.configurePingHandling()
 	go client.writer()
 
-	client.SendMessage(WebsocketAuthenticationChallenge, map[string]any{"token": authToken})
+	client.SendMessage(string(WebsocketAuthenticationChallenge), map[string]any{"token": authToken})
 
 	return client, nil
 }
@@ -157,7 +157,7 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 	wsc.EventChannel = make(chan *WebSocketEvent, 100)
 	wsc.ResponseChannel = make(chan *WebSocketResponse, 100)
 
-	wsc.SendMessage(WebsocketAuthenticationChallenge, map[string]any{"token": wsc.AuthToken})
+	wsc.SendMessage(string(WebsocketAuthenticationChallenge), map[string]any{"token": wsc.AuthToken})
 
 	return nil
 }
