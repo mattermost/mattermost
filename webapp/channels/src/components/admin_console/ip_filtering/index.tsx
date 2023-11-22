@@ -39,8 +39,13 @@ const IPFiltering = () => {
     const [saving, setSaving] = useState<boolean>(false);
     const [filterToggle, setFilterToggle] = useState<boolean>(false);
     const [installationStatus, setInstallationStatus] = useState<string>('');
+
+    // savingMessage allows the component to change the label on the Save button in the SaveChangesPanel
     const [savingMessage, setSavingMessage] = useState<string>('');
+
+    // savingDescription is a JSX element that will be displayed in the serverError bar on the SaveChangesPanel. This allows us to provide more information on loading while previous changes are applied
     const [savingDescription, setSavingDescription] = useState<JSX.Element | null>(null);
+    const [installationFetchAttempts, setInstallationFetchAttempts] = useState<number>(0);
 
     const savingButtonMessages = {
         SAVING_PREVIOUS_CHANGE: formatMessage({id: 'admin.ip_filtering.saving_previous_change', defaultMessage: 'Other changes being applied...'}),
@@ -111,6 +116,16 @@ const IPFiltering = () => {
     }, [filterToggle]);
 
     useEffect(() => {
+        if (installationFetchAttempts > 15) {
+            // Average time for provisioner to update is around 30 seconds. This allows up to 75 seconds before it will stop fetching, displaying an error
+            setSavingDescription((
+                <>
+                    <AlertOutlineIcon size={16}/> {formatMessage({id: 'admin.ip_filtering.failed_to_fetch_installation_state', defaultMessage: 'Failed to fetch your workspaces status. Please try again later or contact support.'})}
+                </>
+            ));
+            return () => {};
+        }
+
         const interval = setInterval(() => {
             getInstallationStatus();
         }, 5000);
@@ -122,10 +137,11 @@ const IPFiltering = () => {
         }
 
         return () => clearInterval(interval);
-    }, [installationStatus]);
+    }, [installationStatus, installationFetchAttempts]);
 
     async function getInstallationStatus() {
         const result = await dispatch(getInstallation());
+        setInstallationFetchAttempts(installationFetchAttempts + 1);
         if (result.data) {
             const {data} = result;
             if (installationStatus === '' && data.state !== 'stable') {
@@ -136,6 +152,7 @@ const IPFiltering = () => {
                 // Override the default messages for the save button and the error message to be communicative of the current state to the user
                 setSavingMessage(savingButtonMessages.SAVING_PREVIOUS_CHANGE);
                 changeSavingDescription(savingDescriptionMessages.SAVING_PREVIOUS_CHANGE);
+                setInstallationFetchAttempts(0);
             }
             setInstallationStatus(data.state);
         }
