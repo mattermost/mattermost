@@ -504,7 +504,7 @@ func TestConnectFakeWebSocket(t *testing.T) {
 	msg := model.NewWebSocketEvent(model.WebsocketEventPosted, teamID, "", "", nil, "")
 	th.App.Publish(msg)
 
-	msg = model.NewWebSocketEvent("test_event_with_data", "", "", userID, nil, "")
+	msg = model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", "", userID, nil, "")
 	msg.Add("key1", "value1")
 	msg.Add("key2", 2)
 	msg.Add("key3", []string{"three", "trois"})
@@ -515,7 +515,7 @@ func TestConnectFakeWebSocket(t *testing.T) {
 	assert.Equal(t, teamID, received.GetBroadcast().TeamId)
 
 	received = <-messages
-	require.Equal(t, "test_event_with_data", received.EventType())
+	require.Equal(t, model.WebsocketEventPostEdited, received.EventType())
 	assert.Equal(t, userID, received.GetBroadcast().UserId)
 	// These type changes are annoying but unavoidable because event data is untyped
 	assert.Equal(t, map[string]any{
