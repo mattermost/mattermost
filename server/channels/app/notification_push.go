@@ -377,11 +377,11 @@ func (hub *PushNotificationsHub) start(c request.CTX) {
 				case notificationTypeUpdateBadge:
 					err = hub.app.updateMobileAppBadgeSync(c, notification.userID)
 				default:
-					mlog.Debug("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
+					mlog.Debug("Invalid notification type", mlog.String("notification_type", notification.notificationType))
 				}
 
 				if err != nil {
-					mlog.Error("Unable to send push notification", mlog.String("notification_type", string(notification.notificationType)), mlog.Err(err))
+					mlog.Error("Unable to send push notification", mlog.String("notification_type", notification.notificationType), mlog.Err(err))
 				}
 			}(notification)
 		case <-hub.stopChan:
