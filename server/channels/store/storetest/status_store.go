@@ -10,16 +10,17 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestStatusStore(t *testing.T, ss store.Store) {
-	t.Run("", func(t *testing.T) { testStatusStore(t, ss) })
-	t.Run("ActiveUserCount", func(t *testing.T) { testActiveUserCount(t, ss) })
-	t.Run("UpdateExpiredDNDStatuses", func(t *testing.T) { testUpdateExpiredDNDStatuses(t, ss) })
+func TestStatusStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("", func(t *testing.T) { testStatusStore(t, rctx, ss) })
+	t.Run("ActiveUserCount", func(t *testing.T) { testActiveUserCount(t, rctx, ss) })
+	t.Run("UpdateExpiredDNDStatuses", func(t *testing.T) { testUpdateExpiredDNDStatuses(t, rctx, ss) })
 }
 
-func testStatusStore(t *testing.T, ss store.Store) {
+func testStatusStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	status := &model.Status{UserId: model.NewId(), Status: model.StatusOnline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	require.NoError(t, ss.Status().SaveOrUpdate(status))
 
@@ -49,7 +50,7 @@ func testStatusStore(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testActiveUserCount(t *testing.T, ss store.Store) {
+func testActiveUserCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	status := &model.Status{UserId: model.NewId(), Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 	require.NoError(t, ss.Status().SaveOrUpdate(status))
 
@@ -64,7 +65,7 @@ func (s ByUserId) Len() int           { return len(s) }
 func (s ByUserId) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s ByUserId) Less(i, j int) bool { return s[i].UserId < s[j].UserId }
 
-func testUpdateExpiredDNDStatuses(t *testing.T, ss store.Store) {
+func testUpdateExpiredDNDStatuses(t *testing.T, rctx request.CTX, ss store.Store) {
 	userID := NewTestId()
 
 	status := &model.Status{UserId: userID, Status: model.StatusDnd, Manual: true,
