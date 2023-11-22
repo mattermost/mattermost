@@ -1892,7 +1892,7 @@ exports[`components/Menu should match snapshot with plugins 1`] = `
       </div>
     </Memo(MenuGroup)>
   </Memo(MenuGroup)>
-  <Memo(MenuGroup) />
+  <Memo(MenuGroup)>
     <MenuItemAction
       icon={false}
       id="plugin-id-1_pluginmenuitem"
