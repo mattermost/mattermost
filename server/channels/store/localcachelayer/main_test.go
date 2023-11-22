@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
@@ -28,7 +29,7 @@ func getMockCacheProvider() cache.Provider {
 	return &mockCacheProvider
 }
 
-func getMockStore() *mocks.Store {
+func getMockStore(t *testing.T) *mocks.Store {
 	mockStore := mocks.Store{}
 
 	fakeReaction := model.Reaction{PostId: "123"}
@@ -74,14 +75,14 @@ func getMockStore() *mocks.Store {
 	mockEmojiStore := mocks.EmojiStore{}
 	mockEmojiStore.On("Get", mock.Anything, "123", true).Return(&fakeEmoji, nil)
 	mockEmojiStore.On("Get", mock.Anything, "123", false).Return(&fakeEmoji, nil)
-	mockEmojiStore.On("Get", context.Background(), "master", true).Return(&ctxEmoji, nil)
-	mockEmojiStore.On("Get", sqlstore.WithMaster(context.Background()), "master", true).Return(&ctxEmoji, nil)
+	mockEmojiStore.On("Get", mock.IsType(&request.Context{}), "master", true).Return(&ctxEmoji, nil)
+	mockEmojiStore.On("Get", sqlstore.RequestContextWithMaster(request.TestContext(t)), "master", true).Return(&ctxEmoji, nil)
 	mockEmojiStore.On("GetByName", mock.Anything, "name123", true).Return(&fakeEmoji, nil)
 	mockEmojiStore.On("GetByName", mock.Anything, "name123", false).Return(&fakeEmoji, nil)
-	mockEmojiStore.On("GetMultipleByName", context.Background(), []string{"name123"}).Return([]*model.Emoji{&fakeEmoji}, nil)
-	mockEmojiStore.On("GetMultipleByName", context.Background(), []string{"name123", "name321"}).Return([]*model.Emoji{&fakeEmoji, &fakeEmoji2}, nil)
-	mockEmojiStore.On("GetByName", context.Background(), "master", true).Return(&ctxEmoji, nil)
-	mockEmojiStore.On("GetByName", sqlstore.WithMaster(context.Background()), "master", false).Return(&ctxEmoji, nil)
+	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"name123"}).Return([]*model.Emoji{&fakeEmoji}, nil)
+	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"name123", "name321"}).Return([]*model.Emoji{&fakeEmoji, &fakeEmoji2}, nil)
+	mockEmojiStore.On("GetByName", mock.IsType(&request.Context{}), "master", true).Return(&ctxEmoji, nil)
+	mockEmojiStore.On("GetByName", sqlstore.RequestContextWithMaster(request.TestContext(t)), "master", false).Return(&ctxEmoji, nil)
 	mockEmojiStore.On("Delete", &fakeEmoji, int64(0)).Return(nil)
 	mockEmojiStore.On("Delete", &ctxEmoji, int64(0)).Return(nil)
 	mockStore.On("Emoji").Return(&mockEmojiStore)

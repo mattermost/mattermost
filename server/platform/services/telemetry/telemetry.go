@@ -17,7 +17,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
@@ -102,7 +101,6 @@ type ServerIface interface {
 	License() *model.License
 	GetRoleByName(context.Context, string) (*model.Role, *model.AppError)
 	GetSchemes(string, int, int) ([]*model.Scheme, *model.AppError)
-	HooksManager() *product.HooksManager
 }
 
 type TelemetryService struct {
@@ -199,7 +197,6 @@ func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 		ts.trackGroups()
 		ts.trackChannelModeration()
 		ts.trackWarnMetrics()
-		ts.trackProducts()
 	}
 }
 
@@ -283,17 +280,17 @@ func (ts *TelemetryService) trackActivity() {
 	var incomingWebhooksCount int64
 	var outgoingWebhooksCount int64
 
-	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
+	activeUsersDailyCountChan := make(chan store.GenericStoreResult[int64], 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersDailyCountChan <- store.StoreResult{Data: count, NErr: err}
+		activeUsersDailyCountChan <- store.GenericStoreResult[int64]{Data: count, NErr: err}
 		close(activeUsersDailyCountChan)
 	}()
 
-	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
+	activeUsersMonthlyCountChan := make(chan store.GenericStoreResult[int64], 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, NErr: err}
+		activeUsersMonthlyCountChan <- store.GenericStoreResult[int64]{Data: count, NErr: err}
 		close(activeUsersMonthlyCountChan)
 	}()
 
@@ -364,12 +361,12 @@ func (ts *TelemetryService) trackActivity() {
 
 	var activeUsersDailyCount int64
 	if r := <-activeUsersDailyCountChan; r.NErr == nil {
-		activeUsersDailyCount = r.Data.(int64)
+		activeUsersDailyCount = r.Data
 	}
 
 	var activeUsersMonthlyCount int64
 	if r := <-activeUsersMonthlyCountChan; r.NErr == nil {
-		activeUsersMonthlyCount = r.Data.(int64)
+		activeUsersMonthlyCount = r.Data
 	}
 
 	activity := map[string]any{
@@ -495,6 +492,7 @@ func (ts *TelemetryService) trackConfig() {
 		"persistent_notification_max_recipients":                  *cfg.ServiceSettings.PersistentNotificationMaxRecipients,
 		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
+		"refresh_post_stats_run_time":                             *cfg.ServiceSettings.RefreshPostStatsRunTime,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
@@ -852,7 +850,6 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigDisplay, map[string]any{
-		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
 		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomURLSchemes) != 0,
 		"isdefault_max_markdown_nodes": isDefault(*cfg.DisplaySettings.MaxMarkdownNodes, 0),
 	})
@@ -982,18 +979,6 @@ func (ts *TelemetryService) trackPlugins() {
 	})
 
 	pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-		hooks.OnSendDailyTelemetry()
-		return true
-	}, plugin.OnSendDailyTelemetryID)
-}
-
-func (ts *TelemetryService) trackProducts() {
-	hm := ts.srv.HooksManager()
-	if hm == nil {
-		return
-	}
-
-	hm.RunMultiHook(func(hooks plugin.Hooks) bool {
 		hooks.OnSendDailyTelemetry()
 		return true
 	}, plugin.OnSendDailyTelemetryID)

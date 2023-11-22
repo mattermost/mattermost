@@ -49,6 +49,7 @@ type Filters = {
     exclude_roles?: string[];
     channel_roles?: string[];
     team_roles?: string[];
+    exclude_bots?: boolean;
 };
 
 export function getUserIdsInChannels(state: GlobalState): RelationOneToManyUnique<Channel, UserProfile> {
@@ -223,6 +224,26 @@ export const getCurrentUserMentionKeys: (state: GlobalState) => UserMentionKey[]
     },
 );
 
+export type HighlightWithoutNotificationKey = {
+    key: string;
+}
+
+export const getHighlightWithoutNotificationKeys: (state: GlobalState) => HighlightWithoutNotificationKey[] = createSelector(
+    'getHighlightWithoutNotificationKeys',
+    getCurrentUser,
+    (user: UserProfile) => {
+        const highlightKeys: HighlightWithoutNotificationKey[] = [];
+
+        if (user?.notify_props?.highlight_keys?.length > 0) {
+            user.notify_props.highlight_keys.split(',').forEach((key) => {
+                highlightKeys.push({key});
+            });
+        }
+
+        return highlightKeys;
+    },
+);
+
 export const getProfileSetInCurrentChannel: (state: GlobalState) => Set<UserProfile['id']> = createSelector(
     'getProfileSetInCurrentChannel',
     getCurrentChannelId,
@@ -302,6 +323,10 @@ export function filterProfiles(profiles: IDMappedObjects<UserProfile>, filters?:
         users = users.filter((user) => {
             return user.roles.length > 0 && applyRolesFilters(user, filterRoles, excludeRoles, memberships?.[user.id]);
         });
+    }
+
+    if (filters.exclude_bots) {
+        users = users.filter((user) => !user.is_bot);
     }
 
     if (filters.inactive) {

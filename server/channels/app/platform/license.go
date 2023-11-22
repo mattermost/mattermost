@@ -16,7 +16,9 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
@@ -47,6 +49,8 @@ func (ps *PlatformService) License() *model.License {
 }
 
 func (ps *PlatformService) LoadLicense() {
+	c := request.EmptyContext(ps.logger)
+
 	// ENV var overrides all other sources of license.
 	licenseStr := os.Getenv(LicenseEnv)
 	if licenseStr != "" {
@@ -95,7 +99,7 @@ func (ps *PlatformService) LoadLicense() {
 		}
 	}
 
-	record, nErr := ps.Store.License().Get(licenseId)
+	record, nErr := ps.Store.License().Get(sqlstore.RequestContextWithMaster(c), licenseId)
 	if nErr != nil {
 		ps.logger.Error("License key from https://mattermost.com required to unlock enterprise features.", mlog.Err(nErr))
 		ps.SetLicense(nil)
@@ -166,7 +170,7 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 	record.Id = license.Id
 	record.Bytes = string(licenseBytes)
 
-	_, nErr := ps.Store.License().Save(record)
+	nErr := ps.Store.License().Save(record)
 	if nErr != nil {
 		ps.RemoveLicense()
 		var appErr *model.AppError

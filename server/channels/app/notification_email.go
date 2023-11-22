@@ -9,6 +9,7 @@ import (
 	"html"
 	"html/template"
 	"io"
+	"strconv"
 	"strings"
 	"time"
 
@@ -343,9 +344,9 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 
 	return formattedPostTime{
 		Time:     localTime,
-		Year:     fmt.Sprintf("%d", localTime.Year()),
+		Year:     strconv.Itoa(localTime.Year()),
 		Month:    translateFunc(localTime.Month().String()),
-		Day:      fmt.Sprintf("%d", localTime.Day()),
+		Day:      strconv.Itoa(localTime.Day()),
 		Hour:     hour,
 		Minute:   fmt.Sprintf("%02d"+period, localTime.Minute()),
 		TimeZone: zone,

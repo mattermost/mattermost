@@ -7,13 +7,14 @@ import (
 	"io"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 type OAuthProvider interface {
-	GetUserFromJSON(data io.Reader, tokenUser *model.User) (*model.User, error)
-	GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error)
-	GetUserFromIdToken(idToken string) (*model.User, error)
-	IsSameUser(dbUser, oAuthUser *model.User) bool
+	GetUserFromJSON(c request.CTX, data io.Reader, tokenUser *model.User) (*model.User, error)
+	GetSSOSettings(c request.CTX, config *model.Config, service string) (*model.SSOSettings, error)
+	GetUserFromIdToken(c request.CTX, idToken string) (*model.User, error)
+	IsSameUser(c request.CTX, dbUser, oAuthUser *model.User) bool
 }
 
 var oauthProviders = make(map[string]OAuthProvider)

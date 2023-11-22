@@ -225,7 +225,7 @@ Object {
               >
                 <div
                   class="DropdownInput Input_container"
-                  data-testid=""
+                  data-testid="CountrySelector"
                 >
                   <fieldset
                     class="Input_fieldset"
@@ -389,7 +389,9 @@ Object {
   "queryByTestId": [Function],
   "queryByText": [Function],
   "queryByTitle": [Function],
+  "replaceStoreState": [Function],
   "rerender": [Function],
   "unmount": [Function],
+  "updateStoreState": [Function],
 }
 `;

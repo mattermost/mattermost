@@ -14,53 +14,63 @@ on:
       logsartifact:
         required: true
         type: string
-env:
-  go-version: "1.20.7"
+
 jobs:
   test:
     name: ${{ inputs.name }}
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-22.04
     env:
       COMPOSE_PROJECT_NAME: ghactions
       BUILD_IMAGE: mattermost/mattermost-build-server:20230904_golang-1.20.7
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Calculate Golang Version
+        id: go
+        working-directory: ./server
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
+          cache-dependency-path: server/go.sum
       - name: Run setup-go-work
         run: |
           cd server
           make setup-go-work
-      - name: Setup needed prepackaged plugins 
+      - name: Setup needed prepackaged plugins
         run: |
           cd server
           make prepackaged-plugins PLUGIN_PACKAGES=mattermost-plugin-jira-v3.2.5
       - name: Run docker compose
         run: |
           cd server/build
-          docker-compose --ansi never run --rm start_dependencies
-          cat ../tests/test-data.ldif | docker-compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-          docker-compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
-          docker-compose --ansi never ps
+          docker compose --ansi never run --rm start_dependencies
+          cat ../tests/test-data.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+          docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+          docker compose --ansi never ps
       - name: Run mmctl Tests
         run: |
+          if [[ ${{ github.ref_name }} == 'master' ]]; then
+            export TESTFLAGS="-timeout 90m -race"
+          else
+            export TESTFLAGS="-timeout 30m"
+          fi
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
+            --env MMCTL_TESTFLAGS="$TESTFLAGS" \
             -v $(go env GOCACHE):/go/cache \
             -e GOCACHE=/go/cache \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
-            make test-mmctl-coverage BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+            make test-mmctl BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
       - name: Stop docker compose
         run: |
           cd server/build
-          docker-compose --ansi never stop
+          docker compose --ansi never stop
       - name: Archive logs
         if: ${{ always() }}
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2

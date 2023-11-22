@@ -4,7 +4,7 @@
 import emojiRegex from 'emoji-regex';
 
 import {getEmojiMap} from 'selectors/emojis';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import EmojiMap from 'utils/emoji_map';
 import LinkOnlyRenderer from 'utils/markdown/link_only_renderer';
@@ -14,7 +14,9 @@ import {
     highlightSearchTerms,
     handleUnicodeEmoji,
     highlightCurrentMentions,
-    parseSearchTerms, autolinkChannelMentions,
+    highlightWithoutNotificationKeywords,
+    parseSearchTerms,
+    autolinkChannelMentions,
 } from 'utils/text_formatting';
 import type {ChannelNamesMap} from 'utils/text_formatting';
 
@@ -301,6 +303,101 @@ describe('highlightCurrentMentions', () => {
 
         // note that the string output $MM_SELFMENTION{idx} will be used by doFormatText to add the highlight later in the format process
         expect(highlightedText).toContain(expectedOutput);
+    });
+});
+
+describe('highlightWithoutNotificationKeywords', () => {
+    test('should replace highlight keywords with tokens', () => {
+        const text = 'This is a test message with some keywords';
+        const tokens = new Map();
+        const highlightKeys = [
+            {key: 'test message'},
+            {key: 'keywords'},
+        ];
+
+        const expectedOutput = 'This is a $MM_HIGHLIGHTKEYWORD0$ with some $MM_HIGHLIGHTKEYWORD1$';
+        const expectedTokens = new Map([
+            ['$MM_HIGHLIGHTKEYWORD0$', {
+                value: '<span class="non-notification-highlight">test message</span>',
+                originalText: 'test message',
+            }],
+            ['$MM_HIGHLIGHTKEYWORD1$', {
+                value: '<span class="non-notification-highlight">keywords</span>',
+                originalText: 'keywords',
+            }],
+        ]);
+
+        const output = highlightWithoutNotificationKeywords(text, tokens, highlightKeys);
+
+        expect(output).toBe(expectedOutput);
+        expect(tokens).toEqual(expectedTokens);
+    });
+
+    test('should handle empty highlightKeys array', () => {
+        const text = 'This is a test message';
+        const tokens = new Map();
+        const highlightKeys = [] as Array<{key: string}>;
+
+        const expectedOutput = 'This is a test message';
+        const expectedTokens = new Map();
+
+        const output = highlightWithoutNotificationKeywords(text, tokens, highlightKeys);
+
+        expect(output).toBe(expectedOutput);
+        expect(tokens).toEqual(expectedTokens);
+    });
+
+    test('should handle empty text', () => {
+        const text = '';
+        const tokens = new Map();
+        const highlightKeys = [
+            {key: 'test'},
+            {key: 'keywords'},
+        ];
+
+        const expectedOutput = '';
+        const expectedTokens = new Map();
+
+        const output = highlightWithoutNotificationKeywords(text, tokens, highlightKeys);
+
+        expect(output).toBe(expectedOutput);
+        expect(tokens).toEqual(expectedTokens);
+    });
+
+    test('should handle Chinese, Korean, Russian, and Japanese words', () => {
+        const text = 'This is a test message with some keywords: привет, こんにちは, 안녕하세요, 你好';
+        const tokens = new Map();
+        const highlightKeys = [
+            {key: 'こんにちは'}, // Japanese hello
+            {key: '안녕하세요'}, // Korean hello
+            {key: 'привет'}, // Russian hello
+            {key: '你好'}, // Chinese hello
+        ];
+
+        const expectedOutput = 'This is a test message with some keywords: $MM_HIGHLIGHTKEYWORD0$, $MM_HIGHLIGHTKEYWORD1$, $MM_HIGHLIGHTKEYWORD2$, $MM_HIGHLIGHTKEYWORD3$';
+        const expectedTokens = new Map([
+            ['$MM_HIGHLIGHTKEYWORD0$', {
+                value: '<span class="non-notification-highlight">привет</span>',
+                originalText: 'привет',
+            }],
+            ['$MM_HIGHLIGHTKEYWORD1$', {
+                value: '<span class="non-notification-highlight">こんにちは</span>',
+                originalText: 'こんにちは',
+            }],
+            ['$MM_HIGHLIGHTKEYWORD2$', {
+                value: '<span class="non-notification-highlight">안녕하세요</span>',
+                originalText: '안녕하세요',
+            }],
+            ['$MM_HIGHLIGHTKEYWORD3$', {
+                value: '<span class="non-notification-highlight">你好</span>',
+                originalText: '你好',
+            }],
+        ]);
+
+        const output = highlightWithoutNotificationKeywords(text, tokens, highlightKeys);
+
+        expect(output).toBe(expectedOutput);
+        expect(tokens).toEqual(expectedTokens);
     });
 });
 

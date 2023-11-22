@@ -15,23 +15,23 @@ type MessageExportInterface struct {
 	mock.Mock
 }
 
-// RunExport provides a mock function with given fields: format, since, limit
-func (_m *MessageExportInterface) RunExport(format string, since int64, limit int) (int64, *model.AppError) {
-	ret := _m.Called(format, since, limit)
+// RunExport provides a mock function with given fields: c, format, since, limit
+func (_m *MessageExportInterface) RunExport(c request.CTX, format string, since int64, limit int) (int64, *model.AppError) {
+	ret := _m.Called(c, format, since, limit)
 
 	var r0 int64
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int64, int) (int64, *model.AppError)); ok {
-		return rf(format, since, limit)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, int64, int) (int64, *model.AppError)); ok {
+		return rf(c, format, since, limit)
 	}
-	if rf, ok := ret.Get(0).(func(string, int64, int) int64); ok {
-		r0 = rf(format, since, limit)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, int64, int) int64); ok {
+		r0 = rf(c, format, since, limit)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, int64, int) *model.AppError); ok {
-		r1 = rf(format, since, limit)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, int64, int) *model.AppError); ok {
+		r1 = rf(c, format, since, limit)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -42,15 +42,15 @@ func (_m *MessageExportInterface) RunExport(format string, since int64, limit in
 }
 
 // StartSynchronizeJob provides a mock function with given fields: c, exportFromTimestamp
-func (_m *MessageExportInterface) StartSynchronizeJob(c *request.Context, exportFromTimestamp int64) (*model.Job, *model.AppError) {
+func (_m *MessageExportInterface) StartSynchronizeJob(c request.CTX, exportFromTimestamp int64) (*model.Job, *model.AppError) {
 	ret := _m.Called(c, exportFromTimestamp)
 
 	var r0 *model.Job
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, int64) (*model.Job, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, int64) (*model.Job, *model.AppError)); ok {
 		return rf(c, exportFromTimestamp)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, int64) *model.Job); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, int64) *model.Job); ok {
 		r0 = rf(c, exportFromTimestamp)
 	} else {
 		if ret.Get(0) != nil {
@@ -58,7 +58,7 @@ func (_m *MessageExportInterface) StartSynchronizeJob(c *request.Context, export
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, int64) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, int64) *model.AppError); ok {
 		r1 = rf(c, exportFromTimestamp)
 	} else {
 		if ret.Get(1) != nil {

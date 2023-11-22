@@ -14,7 +14,7 @@ import {useGatherIntent} from './useGatherIntent';
 
 import './gather_intent.scss';
 
-interface GatherIntentProps {
+export interface GatherIntentProps {
     typeGatherIntent: keyof typeof TypePurchases;
     gatherIntentText: React.ReactNode;
     modalComponent: JSXElementConstructor<GatherIntentModalProps>;

@@ -296,7 +296,7 @@ export function makeGetPostsInChannel(): (state: GlobalState, channelId: Channel
             for (let i = 0; i < postIds.length; i++) {
                 const post = allPosts[postIds[i]];
 
-                if (shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '')) {
+                if (!post || shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '')) {
                     continue;
                 }
 
@@ -750,10 +750,6 @@ export const makeIsPostCommentMention = (): ((state: GlobalState, postId: Post['
         },
     );
 };
-
-export function getExpandedLink(state: GlobalState, link: string): string {
-    return state.entities.posts.expandedURLs[link];
-}
 
 export function getLimitedViews(state: GlobalState): GlobalState['entities']['posts']['limitedViews'] {
     return state.entities.posts.limitedViews;

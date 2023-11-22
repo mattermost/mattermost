@@ -16,56 +16,57 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("SaveMultiple", func(t *testing.T) { testPostStoreSaveMultiple(t, ss) })
-	t.Run("Save", func(t *testing.T) { testPostStoreSave(t, ss) })
-	t.Run("SaveAndUpdateChannelMsgCounts", func(t *testing.T) { testPostStoreSaveChannelMsgCounts(t, ss) })
-	t.Run("Get", func(t *testing.T) { testPostStoreGet(t, ss) })
-	t.Run("GetSingle", func(t *testing.T) { testPostStoreGetSingle(t, ss) })
-	t.Run("Update", func(t *testing.T) { testPostStoreUpdate(t, ss) })
-	t.Run("Delete", func(t *testing.T) { testPostStoreDelete(t, ss) })
-	t.Run("PermDelete1Level", func(t *testing.T) { testPostStorePermDelete1Level(t, ss) })
-	t.Run("PermDelete1Level2", func(t *testing.T) { testPostStorePermDelete1Level2(t, ss) })
-	t.Run("GetWithChildren", func(t *testing.T) { testPostStoreGetWithChildren(t, ss) })
-	t.Run("GetPostsWithDetails", func(t *testing.T) { testPostStoreGetPostsWithDetails(t, ss) })
-	t.Run("GetPostsBeforeAfter", func(t *testing.T) { testPostStoreGetPostsBeforeAfter(t, ss) })
-	t.Run("GetPostsSince", func(t *testing.T) { testPostStoreGetPostsSince(t, ss) })
-	t.Run("GetPosts", func(t *testing.T) { testPostStoreGetPosts(t, ss) })
-	t.Run("GetPostBeforeAfter", func(t *testing.T) { testPostStoreGetPostBeforeAfter(t, ss) })
-	t.Run("UserCountsWithPostsByDay", func(t *testing.T) { testUserCountsWithPostsByDay(t, ss) })
-	t.Run("PostCountsByDuration", func(t *testing.T) { testPostCountsByDay(t, ss) })
-	t.Run("PostCounts", func(t *testing.T) { testPostCounts(t, ss) })
-	t.Run("GetFlaggedPostsForTeam", func(t *testing.T) { testPostStoreGetFlaggedPostsForTeam(t, ss, s) })
-	t.Run("GetFlaggedPosts", func(t *testing.T) { testPostStoreGetFlaggedPosts(t, ss) })
-	t.Run("GetFlaggedPostsForChannel", func(t *testing.T) { testPostStoreGetFlaggedPostsForChannel(t, ss) })
-	t.Run("GetPostsCreatedAt", func(t *testing.T) { testPostStoreGetPostsCreatedAt(t, ss) })
-	t.Run("Overwrite", func(t *testing.T) { testPostStoreOverwrite(t, ss) })
-	t.Run("OverwriteMultiple", func(t *testing.T) { testPostStoreOverwriteMultiple(t, ss) })
-	t.Run("GetPostsByIds", func(t *testing.T) { testPostStoreGetPostsByIds(t, ss) })
-	t.Run("GetPostsBatchForIndexing", func(t *testing.T) { testPostStoreGetPostsBatchForIndexing(t, ss) })
-	t.Run("PermanentDeleteBatch", func(t *testing.T) { testPostStorePermanentDeleteBatch(t, ss) })
-	t.Run("GetOldest", func(t *testing.T) { testPostStoreGetOldest(t, ss) })
-	t.Run("TestGetMaxPostSize", func(t *testing.T) { testGetMaxPostSize(t, ss) })
-	t.Run("GetParentsForExportAfter", func(t *testing.T) { testPostStoreGetParentsForExportAfter(t, ss) })
-	t.Run("GetRepliesForExport", func(t *testing.T) { testPostStoreGetRepliesForExport(t, ss) })
-	t.Run("GetDirectPostParentsForExportAfter", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfter(t, ss, s) })
-	t.Run("GetDirectPostParentsForExportAfterDeleted", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterDeleted(t, ss, s) })
-	t.Run("GetDirectPostParentsForExportAfterBatched", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterBatched(t, ss, s) })
-	t.Run("GetForThread", func(t *testing.T) { testPostStoreGetForThread(t, ss) })
-	t.Run("HasAutoResponsePostByUserSince", func(t *testing.T) { testHasAutoResponsePostByUserSince(t, ss) })
-	t.Run("GetPostsSinceForSync", func(t *testing.T) { testGetPostsSinceForSync(t, ss, s) })
-	t.Run("SetPostReminder", func(t *testing.T) { testSetPostReminder(t, ss, s) })
-	t.Run("GetPostReminders", func(t *testing.T) { testGetPostReminders(t, ss, s) })
-	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, ss, s) })
-	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, ss) })
-	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, ss) })
+func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("SaveMultiple", func(t *testing.T) { testPostStoreSaveMultiple(t, rctx, ss) })
+	t.Run("Save", func(t *testing.T) { testPostStoreSave(t, rctx, ss) })
+	t.Run("SaveAndUpdateChannelMsgCounts", func(t *testing.T) { testPostStoreSaveChannelMsgCounts(t, rctx, ss) })
+	t.Run("Get", func(t *testing.T) { testPostStoreGet(t, rctx, ss) })
+	t.Run("GetSingle", func(t *testing.T) { testPostStoreGetSingle(t, rctx, ss) })
+	t.Run("Update", func(t *testing.T) { testPostStoreUpdate(t, rctx, ss) })
+	t.Run("Delete", func(t *testing.T) { testPostStoreDelete(t, rctx, ss) })
+	t.Run("PermDelete1Level", func(t *testing.T) { testPostStorePermDelete1Level(t, rctx, ss) })
+	t.Run("PermDelete1Level2", func(t *testing.T) { testPostStorePermDelete1Level2(t, rctx, ss) })
+	t.Run("GetWithChildren", func(t *testing.T) { testPostStoreGetWithChildren(t, rctx, ss) })
+	t.Run("GetPostsWithDetails", func(t *testing.T) { testPostStoreGetPostsWithDetails(t, rctx, ss) })
+	t.Run("GetPostsBeforeAfter", func(t *testing.T) { testPostStoreGetPostsBeforeAfter(t, rctx, ss) })
+	t.Run("GetPostsSince", func(t *testing.T) { testPostStoreGetPostsSince(t, rctx, ss) })
+	t.Run("GetPosts", func(t *testing.T) { testPostStoreGetPosts(t, rctx, ss) })
+	t.Run("GetPostBeforeAfter", func(t *testing.T) { testPostStoreGetPostBeforeAfter(t, rctx, ss) })
+	t.Run("UserCountsWithPostsByDay", func(t *testing.T) { testUserCountsWithPostsByDay(t, rctx, ss) })
+	t.Run("PostCountsByDuration", func(t *testing.T) { testPostCountsByDay(t, rctx, ss) })
+	t.Run("PostCounts", func(t *testing.T) { testPostCounts(t, rctx, ss) })
+	t.Run("GetFlaggedPostsForTeam", func(t *testing.T) { testPostStoreGetFlaggedPostsForTeam(t, rctx, ss, s) })
+	t.Run("GetFlaggedPosts", func(t *testing.T) { testPostStoreGetFlaggedPosts(t, rctx, ss) })
+	t.Run("GetFlaggedPostsForChannel", func(t *testing.T) { testPostStoreGetFlaggedPostsForChannel(t, rctx, ss) })
+	t.Run("GetPostsCreatedAt", func(t *testing.T) { testPostStoreGetPostsCreatedAt(t, rctx, ss) })
+	t.Run("Overwrite", func(t *testing.T) { testPostStoreOverwrite(t, rctx, ss) })
+	t.Run("OverwriteMultiple", func(t *testing.T) { testPostStoreOverwriteMultiple(t, rctx, ss) })
+	t.Run("GetPostsByIds", func(t *testing.T) { testPostStoreGetPostsByIds(t, rctx, ss) })
+	t.Run("GetPostsBatchForIndexing", func(t *testing.T) { testPostStoreGetPostsBatchForIndexing(t, rctx, ss) })
+	t.Run("PermanentDeleteBatch", func(t *testing.T) { testPostStorePermanentDeleteBatch(t, rctx, ss) })
+	t.Run("GetOldest", func(t *testing.T) { testPostStoreGetOldest(t, rctx, ss) })
+	t.Run("TestGetMaxPostSize", func(t *testing.T) { testGetMaxPostSize(t, rctx, ss) })
+	t.Run("GetParentsForExportAfter", func(t *testing.T) { testPostStoreGetParentsForExportAfter(t, rctx, ss) })
+	t.Run("GetRepliesForExport", func(t *testing.T) { testPostStoreGetRepliesForExport(t, rctx, ss) })
+	t.Run("GetDirectPostParentsForExportAfter", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfter(t, rctx, ss, s) })
+	t.Run("GetDirectPostParentsForExportAfterDeleted", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterDeleted(t, rctx, ss, s) })
+	t.Run("GetDirectPostParentsForExportAfterBatched", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterBatched(t, rctx, ss, s) })
+	t.Run("GetForThread", func(t *testing.T) { testPostStoreGetForThread(t, rctx, ss) })
+	t.Run("HasAutoResponsePostByUserSince", func(t *testing.T) { testHasAutoResponsePostByUserSince(t, rctx, ss) })
+	t.Run("GetPostsSinceForSync", func(t *testing.T) { testGetPostsSinceForSync(t, rctx, ss, s) })
+	t.Run("SetPostReminder", func(t *testing.T) { testSetPostReminder(t, rctx, ss, s) })
+	t.Run("GetPostReminders", func(t *testing.T) { testGetPostReminders(t, rctx, ss, s) })
+	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, rctx, ss, s) })
+	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, rctx, ss) })
+	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
 }
 
-func testPostStoreSave(t *testing.T, ss store.Store) {
+func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Save post", func(t *testing.T) {
 		o1 := model.Post{}
 		o1.ChannelId = model.NewId()
@@ -265,7 +266,7 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
+func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 	p1 := model.Post{}
 	p1.ChannelId = model.NewId()
 	p1.UserId = model.NewId()
@@ -577,7 +578,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
+func testPostStoreSaveChannelMsgCounts(t *testing.T, rctx request.CTX, ss store.Store) {
 	c1 := &model.Channel{Name: model.NewId(), DisplayName: "posttestchannel", Type: model.ChannelTypeOpen, TeamId: model.NewId()}
 	_, err := ss.Channel().Save(c1, 1000000)
 	require.NoError(t, err)
@@ -623,7 +624,7 @@ func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
 	assert.Equal(t, oldLastPostAt, c1.LastPostAt, "LastPostAt should not update for old message save")
 }
 
-func testPostStoreGet(t *testing.T, ss store.Store) {
+func testPostStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -657,7 +658,7 @@ func testPostStoreGet(t *testing.T, ss store.Store) {
 	require.Error(t, err, "should fail for blank post ids")
 }
 
-func testPostStoreGetForThread(t *testing.T, ss store.Store) {
+func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Post thread is followed", func(t *testing.T) {
 		teamId := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
@@ -744,7 +745,6 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Pagination", func(t *testing.T) {
-		t.Skip("MM-46134")
 		teamId := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
@@ -754,15 +754,16 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}, -1)
 		require.NoError(t, err)
 
-		o1, err := ss.Post().Save(&model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: NewTestId()})
+		now := model.GetMillis()
+		o1, err := ss.Post().Save(&model.Post{CreateAt: now, ChannelId: channel.Id, UserId: model.NewId(), Message: NewTestId()})
 		require.NoError(t, err)
-		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		_, err = ss.Post().Save(&model.Post{CreateAt: now + 1, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
-		m1, err := ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		m1, err := ss.Post().Save(&model.Post{CreateAt: now + 2, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
-		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		_, err = ss.Post().Save(&model.Post{CreateAt: now + 3, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
-		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
+		_, err = ss.Post().Save(&model.Post{CreateAt: now + 4, ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
 		require.NoError(t, err)
 
 		opts := model.GetPostsOptions{
@@ -772,7 +773,8 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err := ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Posts, 3)
 		assert.True(t, r1.HasNext)
 
 		lastPostID := r1.Order[len(r1.Order)-1]
@@ -787,7 +789,8 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Posts, 3)
 		assert.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].CreateAt, lastPostCreateAt)
 		assert.False(t, r1.HasNext)
 
@@ -802,7 +805,8 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Order, 3) // including the root post
+		require.Len(t, r1.Posts, 3)
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
 		assert.False(t, r1.HasNext)
 
@@ -816,7 +820,8 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Posts, 2)
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, m1.CreateAt)
 		assert.True(t, r1.HasNext)
 
@@ -829,7 +834,8 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Posts, 2)
 		assert.True(t, r1.HasNext)
 
 		lastPostID = r1.Order[len(r1.Order)-1]
@@ -845,7 +851,8 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 4) // including the root post
+		require.Len(t, r1.Order, 4) // including the root post
+		require.Len(t, r1.Posts, 4)
 		assert.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].CreateAt, lastPostCreateAt)
 		assert.False(t, r1.HasNext)
 
@@ -861,7 +868,8 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Posts, 2)
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
 		assert.False(t, r1.HasNext)
 
@@ -875,13 +883,14 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Order, 2) // including the root post
+		require.Len(t, r1.Posts, 2)
 		assert.GreaterOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, m1.CreateAt)
 		assert.True(t, r1.HasNext)
 	})
 }
 
-func testPostStoreGetSingle(t *testing.T, ss store.Store) {
+func testPostStoreGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -949,7 +958,7 @@ func testPostStoreGetSingle(t *testing.T, ss store.Store) {
 	require.Error(t, err, "Missing id should have failed")
 }
 
-func testPostStoreUpdate(t *testing.T, ss store.Store) {
+func testPostStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -1063,7 +1072,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	require.Len(t, ro4a.FileIds, 1, "Failed to set FileIds")
 }
 
-func testPostStoreDelete(t *testing.T, ss store.Store) {
+func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("single post, no replies", func(t *testing.T) {
 		teamId := model.NewId()
 		channel, err := ss.Channel().Save(&model.Channel{
@@ -1386,7 +1395,7 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
+func testPostStorePermDelete1Level(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	channel, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -1557,7 +1566,7 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	require.Error(t, err, "Deleted id should have failed")
 }
 
-func testPostStorePermDelete1Level2(t *testing.T, ss store.Store) {
+func testPostStorePermDelete1Level2(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -1610,7 +1619,7 @@ func testPostStorePermDelete1Level2(t *testing.T, ss store.Store) {
 	require.NoError(t, err, "Deleted id should have failed")
 }
 
-func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
+func testPostStoreGetWithChildren(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -1665,7 +1674,7 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	require.Len(t, pl.Posts, 1, "invalid returned post")
 }
 
-func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
+func testPostStoreGetPostsWithDetails(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -1768,7 +1777,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	assert.Equal(t, 7, len(r3.Order))
 }
 
-func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
+func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("without threads", func(t *testing.T) {
 		teamId := model.NewId()
 		channel1, err := ss.Channel().Save(&model.Channel{
@@ -2198,7 +2207,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
+func testPostStoreGetPostsSince(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should return posts created after the given time", func(t *testing.T) {
 		teamId := model.NewId()
 		channel1, err := ss.Channel().Save(&model.Channel{
@@ -2348,7 +2357,7 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPostStoreGetPosts(t *testing.T, ss store.Store) {
+func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -2536,7 +2545,7 @@ func testPostStoreGetPosts(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
+func testPostStoreGetPostBeforeAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -2653,7 +2662,7 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
+func testUserCountsWithPostsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	t1 := &model.Team{}
 	t1.DisplayName = "DisplayName"
 	t1.Name = NewTestId()
@@ -2712,7 +2721,7 @@ func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
 	require.Equal(t, float64(1), row2.Value, "wrong value")
 }
 
-func testPostCountsByDay(t *testing.T, ss store.Store) {
+func testPostCountsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	t1 := &model.Team{}
 	t1.DisplayName = "DisplayName"
 	t1.Name = NewTestId()
@@ -2824,7 +2833,7 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	assert.Equal(t, float64(1), r1[0].Value)
 }
 
-func testPostCounts(t *testing.T, ss store.Store) {
+func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
 	now := time.Now()
 	twentyMinAgo := now.Add(-20 * time.Minute).UnixMilli()
 	fifteenMinAgo := now.Add(-15 * time.Minute).UnixMilli()
@@ -2987,7 +2996,7 @@ func testPostCounts(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(3), c)
 }
 
-func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlStore) {
+func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	c1 := &model.Channel{}
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "Channel1"
@@ -3047,7 +3056,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlStor
 
 	c2 := &model.Channel{}
 	c2.DisplayName = "DMChannel1"
-	c2.Name = NewTestId()
+	c2.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	c2.Type = model.ChannelTypeDirect
 
 	m1 := &model.ChannelMember{}
@@ -3206,7 +3215,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlStor
 	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
-func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
+func testPostStoreGetFlaggedPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 	c1 := &model.Channel{}
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "Channel1"
@@ -3346,7 +3355,7 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 	require.Len(t, r4.Order, 2, "should have 2 posts")
 }
 
-func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
+func testPostStoreGetFlaggedPostsForChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	c1 := &model.Channel{}
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "Channel1"
@@ -3496,7 +3505,7 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	require.Len(t, r.Order, 0, "should have 0 posts")
 }
 
-func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {
+func testPostStoreGetPostsCreatedAt(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -3553,7 +3562,7 @@ func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {
 	assert.Equal(t, 2, len(r1))
 }
 
-func testPostStoreOverwriteMultiple(t *testing.T, ss store.Store) {
+func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -3703,7 +3712,7 @@ func testPostStoreOverwriteMultiple(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPostStoreOverwrite(t *testing.T, ss store.Store) {
+func testPostStoreOverwrite(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -3820,7 +3829,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
+func testPostStoreGetPostsByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -3881,7 +3890,7 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 	require.Len(t, posts, 3, "Expected 3 posts in results. Got %v", len(posts))
 }
 
-func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
+func testPostStoreGetPostsBatchForIndexing(t *testing.T, rctx request.CTX, ss store.Store) {
 	c1 := &model.Channel{}
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "Channel1"
@@ -3941,7 +3950,7 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 	require.Len(t, r, 0, "Expected 0 post in results. Got %v", len(r))
 }
 
-func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
+func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {
 	team, err := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
 		Name:        "team" + model.NewId(),
@@ -4193,7 +4202,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPostStoreGetOldest(t *testing.T, ss store.Store) {
+func testPostStoreGetOldest(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	channel1, err := ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -4233,12 +4242,12 @@ func testPostStoreGetOldest(t *testing.T, ss store.Store) {
 	assert.EqualValues(t, o2.Id, r1.Id)
 }
 
-func testGetMaxPostSize(t *testing.T, ss store.Store) {
+func testGetMaxPostSize(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Equal(t, model.PostMessageMaxRunesV2, ss.Post().GetMaxPostSize())
 	assert.Equal(t, model.PostMessageMaxRunesV2, ss.Post().GetMaxPostSize())
 }
 
-func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
+func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = NewTestId()
@@ -4330,7 +4339,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
+func testPostStoreGetRepliesForExport(t *testing.T, rctx request.CTX, ss store.Store) {
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = NewTestId()
@@ -4394,16 +4403,15 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, reply1.Id, p2.Id)
 	assert.Equal(t, reply1.Message, p2.Message)
 	assert.Equal(t, reply1.Username, u1.Username)
-
 }
 
-func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, ss store.Store, s SqlStore) {
+func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
 	o1.TeamId = teamId
 	o1.DisplayName = "Name"
-	o1.Name = NewTestId()
+	o1.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o1.Type = model.ChannelTypeDirect
 
 	u1 := &model.User{}
@@ -4451,13 +4459,13 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, ss store.Stor
 	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
-func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss store.Store, s SqlStore) {
+func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
 	o1.TeamId = teamId
 	o1.DisplayName = "Name"
-	o1.Name = NewTestId()
+	o1.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o1.Type = model.ChannelTypeDirect
 
 	u1 := &model.User{}
@@ -4517,13 +4525,13 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss sto
 	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
-func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, ss store.Store, s SqlStore) {
+func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
 	o1.TeamId = teamId
 	o1.DisplayName = "Name"
-	o1.Name = NewTestId()
+	o1.Name = model.GetDMNameFromIds(NewTestId(), NewTestId())
 	o1.Type = model.ChannelTypeDirect
 
 	var postIds []string
@@ -4593,7 +4601,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, ss sto
 	s.GetMasterX().Exec("TRUNCATE Channels")
 }
 
-func testHasAutoResponsePostByUserSince(t *testing.T, ss store.Store) {
+func testHasAutoResponsePostByUserSince(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should return posts created after the given time", func(t *testing.T) {
 		teamId := model.NewId()
 		channel1, err := ss.Channel().Save(&model.Channel{
@@ -4647,7 +4655,7 @@ func testHasAutoResponsePostByUserSince(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetPostsSinceForSync(t *testing.T, ss store.Store, s SqlStore) {
+func testGetPostsSinceForSync(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	// create some posts.
 	channelID := model.NewId()
 	remoteID := model.NewString(model.NewId())
@@ -4750,7 +4758,7 @@ func testGetPostsSinceForSync(t *testing.T, ss store.Store, s SqlStore) {
 	})
 }
 
-func testSetPostReminder(t *testing.T, ss store.Store, s SqlStore) {
+func testSetPostReminder(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	// Basic
 	userID := NewTestId()
 
@@ -4792,7 +4800,7 @@ func testSetPostReminder(t *testing.T, ss store.Store, s SqlStore) {
 	assert.Equal(t, reminder, &out)
 }
 
-func testGetPostReminders(t *testing.T, ss store.Store, s SqlStore) {
+func testGetPostReminders(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	times := []int64{100, 101, 102}
 	for _, tt := range times {
 		userID := NewTestId()
@@ -4830,7 +4838,7 @@ func testGetPostReminders(t *testing.T, ss store.Store, s SqlStore) {
 	require.Len(t, reminders, 0)
 }
 
-func testGetPostReminderMetadata(t *testing.T, ss store.Store, s SqlStore) {
+func testGetPostReminderMetadata(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	team := &model.Team{
 		Name:        "teamname",
 		DisplayName: "display",
@@ -4910,7 +4918,7 @@ func getPostIds(posts []*model.Post, morePosts ...*model.Post) []string {
 	return ids
 }
 
-func testGetNthRecentPostTime(t *testing.T, ss store.Store) {
+func testGetNthRecentPostTime(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err := ss.Post().GetNthRecentPostTime(0)
 	assert.Error(t, err)
 	_, err = ss.Post().GetNthRecentPostTime(-1)
@@ -5005,7 +5013,7 @@ func testGetNthRecentPostTime(t *testing.T, ss store.Store) {
 	assert.IsType(t, &store.ErrNotFound{}, err)
 }
 
-func testGetEditHistoryForPost(t *testing.T, ss store.Store) {
+func testGetEditHistoryForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should return edit history for post", func(t *testing.T) {
 		// create a post
 		post := &model.Post{
@@ -5087,5 +5095,4 @@ func testGetEditHistoryForPost(t *testing.T, ss store.Store) {
 		_, err = ss.Post().GetEditHistoryForPost(savedUpdatedPost.Id)
 		require.NoError(t, err)
 	})
-
 }

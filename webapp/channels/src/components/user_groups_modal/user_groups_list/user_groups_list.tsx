@@ -119,8 +119,8 @@ const UserGroupsList = (props: Props) => {
         if (groups.length === 0 && searchTerm) {
             return (
                 <NoResultsIndicator
-                    variant={NoResultsVariant.ChannelSearch}
-                    titleValues={{channelName: `"${searchTerm}"`}}
+                    variant={NoResultsVariant.Search}
+                    titleValues={{channelName: `${searchTerm}`}}
                 />
             );
         }
@@ -164,7 +164,7 @@ const UserGroupsList = (props: Props) => {
                             stopPropagationOnToggle={true}
                             id={`customWrapper-${group.id}`}
                         >
-                            <button className='action-wrapper'>
+                            <button className='btn btn-icon btn-xs'>
                                 <i className='icon icon-dots-vertical'/>
                             </button>
                             <Menu

@@ -50,7 +50,6 @@ func TestConfigDefaults(t *testing.T) {
 				if assert.False(t, v.IsNil(), "%s should be non-nil after SetDefaults()", name) {
 					recursivelyUninitialize(config, fmt.Sprintf("(*%s)", name), v.Elem())
 				}
-
 			} else if v.Type().Kind() == reflect.Struct {
 				for i := 0; i < v.NumField(); i++ {
 					recursivelyUninitialize(config, fmt.Sprintf("%s.%s", name, v.Type().Field(i).Name), v.Field(i))
@@ -728,7 +727,6 @@ func TestDisplaySettingsIsValidCustomURLSchemes(t *testing.T) {
 }
 
 func TestListenAddressIsValidated(t *testing.T) {
-
 	testValues := map[string]bool{
 		":8065":                true,
 		":9917":                true,
@@ -766,7 +764,6 @@ func TestListenAddressIsValidated(t *testing.T) {
 			require.Equal(t, "model.config.is_valid.listen_address.app_error", appErr.Message)
 		}
 	}
-
 }
 
 func TestImageProxySettingsSetDefaults(t *testing.T) {
@@ -1211,6 +1208,115 @@ func TestLdapSettingsIsValid(t *testing.T) {
 	}
 }
 
+func TestLogSettingsIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		LogSettings LogSettings
+		ExpectError bool
+	}{
+		"empty": {
+			LogSettings: LogSettings{},
+			ExpectError: false,
+		},
+		"AdvancedLoggingJSON contains empty string": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(``),
+			},
+			ExpectError: false,
+		},
+		"AdvancedLoggingJSON contains empty JSON": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`{}`),
+			},
+			ExpectError: false,
+		},
+		"AdvancedLoggingJSON has JSON error ": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"foo": "bar",
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON has missing target": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"foo": "bar",
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON has an unknown Type": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+							"Type": "XYZ",
+							"Format": "json",
+							"Levels": [
+							  {"ID": 10, "Name": "stdlog", "Stacktrace": false},
+									{"ID": 5, "Name": "debug", "Stacktrace": false},
+									{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
+									{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
+									{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31},
+									{"ID": 1, "Name": "fatal", "Stacktrace": true},
+									{"ID": 0, "Name": "panic", "Stacktrace": true}
+							],
+							"Options": {
+									"Out": "stdout"
+							},
+							"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON is valid": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+							"Type": "console",
+							"Format": "json",
+							"Levels": [
+								{"ID": 5, "Name": "debug", "Stacktrace": false},
+								{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
+								{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
+								{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31}
+							],
+							"Options": {
+									"Out": "stdout"
+							},
+							"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: false,
+		},
+		"AdvancedLoggingConfig contains filepath": {
+			LogSettings: LogSettings{
+				AdvancedLoggingConfig: sToP("/some/Path"),
+			},
+			ExpectError: false,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			test.LogSettings.SetDefaults()
+
+			appErr := test.LogSettings.isValid()
+			if test.ExpectError {
+				assert.NotNil(t, appErr)
+			} else {
+				assert.Nil(t, appErr)
+			}
+		})
+	}
+}
+
 func TestConfigSanitize(t *testing.T) {
 	c := Config{}
 	c.SetDefaults()
@@ -1332,7 +1438,6 @@ func TestSetDefaultFeatureFlagBehaviour(t *testing.T) {
 	cfg.SetDefaults()
 	require.NotNil(t, cfg.FeatureFlags)
 	require.Equal(t, "somevalue", cfg.FeatureFlags.TestFeature)
-
 }
 
 func TestConfigImportSettingsDefaults(t *testing.T) {

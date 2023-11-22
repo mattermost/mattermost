@@ -21,7 +21,20 @@ const (
 	CancelWatcherPollingInterval = 5000
 )
 
-func (srv *JobServer) CreateJob(c *request.Context, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
+// JobLoggerFields returns the logger annotations reflecting the given job metadata.
+func JobLoggerFields(job *model.Job) []mlog.Field {
+	if job == nil {
+		return nil
+	}
+
+	return []mlog.Field{
+		mlog.String("job_id", job.Id),
+		mlog.String("job_type", job.Type),
+		mlog.Millis("job_create_at", job.CreateAt),
+	}
+}
+
+func (srv *JobServer) CreateJob(c request.CTX, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job, appErr := srv._createJob(c, jobType, jobData)
 	if appErr != nil {
 		return nil, appErr
@@ -34,7 +47,7 @@ func (srv *JobServer) CreateJob(c *request.Context, jobType string, jobData map[
 	return job, nil
 }
 
-func (srv *JobServer) CreateJobOnce(c *request.Context, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
+func (srv *JobServer) CreateJobOnce(c request.CTX, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job, appErr := srv._createJob(c, jobType, jobData)
 	if appErr != nil {
 		return nil, appErr
@@ -47,7 +60,7 @@ func (srv *JobServer) CreateJobOnce(c *request.Context, jobType string, jobData 
 	return job, nil
 }
 
-func (srv *JobServer) _createJob(c *request.Context, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
+func (srv *JobServer) _createJob(c request.CTX, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job := model.Job{
 		Id:       model.NewId(),
 		Type:     jobType,
@@ -55,8 +68,6 @@ func (srv *JobServer) _createJob(c *request.Context, jobType string, jobData map
 		Status:   model.JobStatusPending,
 		Data:     jobData,
 	}
-
-	job.InitLogger(c.Logger())
 
 	if err := job.IsValid(); err != nil {
 		return nil, err
@@ -69,7 +80,7 @@ func (srv *JobServer) _createJob(c *request.Context, jobType string, jobData map
 	return &job, nil
 }
 
-func (srv *JobServer) GetJob(c *request.Context, id string) (*model.Job, *model.AppError) {
+func (srv *JobServer) GetJob(c request.CTX, id string) (*model.Job, *model.AppError) {
 	job, err := srv.Store.Job().Get(c, id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -208,16 +219,10 @@ func (srv *JobServer) UpdateInProgressJobData(job *model.Job) *model.AppError {
 
 // HandleJobPanic is used to handle panics during the execution of a job. It logs the panic and sets the status for the job.
 // After handling, the method repanics! This method is supposed to be `defer`'d at the start of the job.
-func (srv *JobServer) HandleJobPanic(job *model.Job) {
+func (srv *JobServer) HandleJobPanic(logger mlog.LoggerIFace, job *model.Job) {
 	r := recover()
 	if r == nil {
 		return
-	}
-
-	var logger mlog.LoggerIFace = job.Logger
-	if job.Logger == nil {
-		// Fall back to JobServer logger
-		logger = srv.logger
 	}
 
 	sb := &strings.Builder{}
@@ -237,7 +242,7 @@ func (srv *JobServer) HandleJobPanic(job *model.Job) {
 	panic(r)
 }
 
-func (srv *JobServer) RequestCancellation(c *request.Context, jobId string) *model.AppError {
+func (srv *JobServer) RequestCancellation(c request.CTX, jobId string) *model.AppError {
 	updated, err := srv.Store.Job().UpdateStatusOptimistically(jobId, model.JobStatusPending, model.JobStatusCanceled)
 	if err != nil {
 		return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -267,7 +272,7 @@ func (srv *JobServer) RequestCancellation(c *request.Context, jobId string) *mod
 	return model.NewAppError("RequestCancellation", "jobs.request_cancellation.status.error", nil, "id="+jobId, http.StatusInternalServerError)
 }
 
-func (srv *JobServer) CancellationWatcher(c *request.Context, jobId string, cancelChan chan struct{}) {
+func (srv *JobServer) CancellationWatcher(c request.CTX, jobId string, cancelChan chan struct{}) {
 	for {
 		select {
 		case <-c.Context().Done():
@@ -306,7 +311,7 @@ func (srv *JobServer) CheckForPendingJobsByType(jobType string) (bool, *model.Ap
 	return count > 0, nil
 }
 
-func (srv *JobServer) GetJobsByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, *model.AppError) {
+func (srv *JobServer) GetJobsByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, *model.AppError) {
 	jobs, err := srv.Store.Job().GetAllByTypeAndStatus(c, jobType, status)
 	if err != nil {
 		return nil, model.NewAppError("GetJobsByTypeAndStatus", "app.job.get_all_jobs_by_type_and_status.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

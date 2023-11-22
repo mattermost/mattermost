@@ -15,8 +15,18 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
+// Deprecated: Use GenericStoreResult instead.
 type StoreResult struct {
 	Data any
+
+	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
+	NErr error
+}
+
+// GenericStoreResult is a type safe version of StoreResult.
+// Once all the code is migrated to use GenericStoreResult, it should be renamed to StoreResult.
+type GenericStoreResult[T any] struct {
+	Data T
 
 	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
 	NErr error
@@ -36,6 +46,7 @@ type Store interface {
 	Compliance() ComplianceStore
 	Session() SessionStore
 	OAuth() OAuthStore
+	OutgoingOAuthConnection() OutgoingOAuthConnectionStore
 	System() SystemStore
 	Webhook() WebhookStore
 	Command() CommandStore
@@ -138,12 +149,12 @@ type TeamStore interface {
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
 	UpdateMember(member *model.TeamMember) (*model.TeamMember, error)
 	UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error)
-	GetMember(ctx context.Context, teamID string, userID string) (*model.TeamMember, error)
+	GetMember(c request.CTX, teamID string, userID string) (*model.TeamMember, error)
 	GetMembers(teamID string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, error)
 	GetMembersByIds(teamID string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error)
 	GetTotalMemberCount(teamID string, restrictions *model.ViewUsersRestrictions) (int64, error)
 	GetActiveMemberCount(teamID string, restrictions *model.ViewUsersRestrictions) (int64, error)
-	GetTeamsForUser(ctx context.Context, userID, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error)
+	GetTeamsForUser(c request.CTX, userID, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error)
 	GetTeamsForUserWithPagination(userID string, page, perPage int) ([]*model.TeamMember, error)
 	GetChannelUnreadsForAllTeams(excludeTeamID, userID string) ([]*model.ChannelUnread, error)
 	GetChannelUnreadsForTeam(teamID, userID string) ([]*model.ChannelUnread, error)
@@ -174,6 +185,8 @@ type TeamStore interface {
 	// GetCommonTeamIDsForTwoUsers returns the intersection of all the teams to which the specified
 	// users belong.
 	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error)
+
+	GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]string, error)
 }
 
 type ChannelStore interface {
@@ -199,9 +212,8 @@ type ChannelStore interface {
 	GetDeletedByName(team_id string, name string) (*model.Channel, error)
 	GetDeleted(team_id string, offset int, limit int, userID string) (model.ChannelList, error)
 	GetChannels(teamID, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, error)
-	GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, error)
 	GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, error)
-	GetAllChannelMembersById(id string) ([]string, error)
+	GetAllChannelMemberIdsByChannelId(id string) ([]string, error)
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (model.ChannelListWithTeamData, error)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, error)
 	GetMoreChannels(teamID string, userID string, offset int, limit int) (model.ChannelList, error)
@@ -223,6 +235,9 @@ type ChannelStore interface {
 	UpdateMemberNotifyProps(channelID, userID string, props map[string]string) (*model.ChannelMember, error)
 	GetMembers(channelID string, offset, limit int) (model.ChannelMembers, error)
 	GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
+	// GetMemberOnly is a lite version of GetMember where it does not join
+	// with the different schemes tables.
+	GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
 	GetAllChannelMembersForUser(userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)
@@ -247,14 +262,13 @@ type ChannelStore interface {
 	PermanentDeleteMembersByChannel(channelID string) error
 	UpdateLastViewedAt(channelIds []string, userID string) (map[string]int64, error)
 	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot, urgentMentionCount int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error)
-	CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error)
-	CountUrgentPostsAfter(channelID string, timestamp int64, userID string) (int, error)
+	CountPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, int, error)
+	CountUrgentPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, error)
 	IncrementMentionCount(channelID string, userIDs []string, isRoot, isUrgent bool) error
 	AnalyticsTypeCount(teamID string, channelType model.ChannelType) (int64, error)
 	GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error)
 	GetTeamMembersForChannel(channelID string) ([]string, error)
 	GetMembersForUserWithPagination(userID string, page, perPage int) (model.ChannelMembersWithTeamData, error)
-	GetMembersForUserWithCursor(userID, teamID string, opts *ChannelMemberGraphQLSearchOpts) (model.ChannelMembers, error)
 	Autocomplete(userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error)
 	AutocompleteInTeam(teamID, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error)
 	AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error)
@@ -276,7 +290,7 @@ type ChannelStore interface {
 	MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error)
 	ResetAllChannelSchemes() error
 	ClearAllCustomRoleAssignments() error
-	CreateInitialSidebarCategories(userID string, opts *SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
+	CreateInitialSidebarCategories(c request.CTX, userID string, opts *SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategoriesForTeamForUser(userID, teamID string) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategories(userID string, opts *SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)
 	GetSidebarCategory(categoryID string) (*model.SidebarCategoryWithChannels, error)
@@ -287,6 +301,7 @@ type ChannelStore interface {
 	UpdateSidebarChannelsByPreferences(preferences model.Preferences) error
 	DeleteSidebarChannelsByPreferences(preferences model.Preferences) error
 	DeleteSidebarCategory(categoryID string) error
+	DeleteAllSidebarChannelForChannel(channelID string) error
 	GetAllChannelsForExportAfter(limit int, afterID string) ([]*model.ChannelForExport, error)
 	GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error)
 	GetChannelMembersForExport(userID string, teamID string, includeArchivedChannel bool) ([]*model.ChannelMemberForExport, error)
@@ -405,6 +420,7 @@ type UserStore interface {
 	UpdatePassword(userID, newPassword string) error
 	UpdateUpdateAt(userID string) (int64, error)
 	UpdateAuthData(userID string, service string, authData *string, email string, resetMfa bool) (string, error)
+	UpdateLastLogin(userID string, lastLogin int64) error
 	ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error)
 	UpdateMfaSecret(userID, secret string) error
 	UpdateMfaActive(userID string, active bool) error
@@ -474,6 +490,7 @@ type UserStore interface {
 	IsEmpty(excludeBots bool) (bool, error)
 	GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error)
 	InsertUsers(users []*model.User) error
+	RefreshPostStatsForUsers() error
 }
 
 type BotStore interface {
@@ -485,9 +502,9 @@ type BotStore interface {
 }
 
 type SessionStore interface {
-	Get(ctx context.Context, sessionIDOrToken string) (*model.Session, error)
-	Save(session *model.Session) (*model.Session, error)
-	GetSessions(userID string) ([]*model.Session, error)
+	Get(c request.CTX, sessionIDOrToken string) (*model.Session, error)
+	Save(c request.CTX, session *model.Session) (*model.Session, error)
+	GetSessions(c request.CTX, userID string) ([]*model.Session, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error
@@ -534,7 +551,7 @@ type ComplianceStore interface {
 	Get(id string) (*model.Compliance, error)
 	GetAll(offset, limit int) (model.Compliances, error)
 	ComplianceExport(compliance *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error)
-	MessageExport(ctx context.Context, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error)
+	MessageExport(c request.CTX, cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error)
 }
 
 type OAuthStore interface {
@@ -559,6 +576,14 @@ type OAuthStore interface {
 	GetPreviousAccessData(userID, clientId string) (*model.AccessData, error)
 	RemoveAccessData(token string) error
 	RemoveAllAccessData() error
+}
+
+type OutgoingOAuthConnectionStore interface {
+	SaveConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error)
+	UpdateConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error)
+	GetConnection(c request.CTX, id string) (*model.OutgoingOAuthConnection, error)
+	GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error)
+	DeleteConnection(c request.CTX, id string) error
 }
 
 type SystemStore interface {
@@ -638,8 +663,8 @@ type PreferenceStore interface {
 }
 
 type LicenseStore interface {
-	Save(license *model.LicenseRecord) (*model.LicenseRecord, error)
-	Get(id string) (*model.LicenseRecord, error)
+	Save(license *model.LicenseRecord) error
+	Get(c request.CTX, id string) (*model.LicenseRecord, error)
 	GetAll() ([]*model.LicenseRecord, error)
 }
 
@@ -654,7 +679,7 @@ type TokenStore interface {
 
 type DesktopTokensStore interface {
 	GetUserId(token string, minCreatedAt int64) (*string, error)
-	Insert(token string, createdAt int64, userId string) error
+	Insert(token string, createAt int64, userId string) error
 	Delete(token string) error
 	DeleteByUserId(userId string) error
 	DeleteOlderThan(minCreatedAt int64) error
@@ -662,9 +687,9 @@ type DesktopTokensStore interface {
 
 type EmojiStore interface {
 	Save(emoji *model.Emoji) (*model.Emoji, error)
-	Get(ctx context.Context, id string, allowFromCache bool) (*model.Emoji, error)
-	GetByName(ctx context.Context, name string, allowFromCache bool) (*model.Emoji, error)
-	GetMultipleByName(ctx context.Context, names []string) ([]*model.Emoji, error)
+	Get(c request.CTX, id string, allowFromCache bool) (*model.Emoji, error)
+	GetByName(c request.CTX, name string, allowFromCache bool) (*model.Emoji, error)
+	GetMultipleByName(c request.CTX, names []string) ([]*model.Emoji, error)
 	GetList(offset, limit int, sort string) ([]*model.Emoji, error)
 	Delete(emoji *model.Emoji, timestamp int64) error
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error)
@@ -709,7 +734,7 @@ type FileInfoStore interface {
 type UploadSessionStore interface {
 	Save(session *model.UploadSession) (*model.UploadSession, error)
 	Update(session *model.UploadSession) error
-	Get(ctx context.Context, id string) (*model.UploadSession, error)
+	Get(c request.CTX, id string) (*model.UploadSession, error)
 	GetForUser(userID string) ([]*model.UploadSession, error)
 	Delete(id string) error
 }
@@ -735,12 +760,12 @@ type JobStore interface {
 	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
 	UpdateStatus(id string, status string) (*model.Job, error)
 	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error)
-	Get(c *request.Context, id string) (*model.Job, error)
-	GetAllByType(c *request.Context, jobType string) ([]*model.Job, error)
-	GetAllByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, error)
-	GetAllByTypePage(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, error)
-	GetAllByTypesPage(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, error)
-	GetAllByStatus(c *request.Context, status string) ([]*model.Job, error)
+	Get(c request.CTX, id string) (*model.Job, error)
+	GetAllByType(c request.CTX, jobType string) ([]*model.Job, error)
+	GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error)
+	GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error)
+	GetAllByTypesPage(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error)
+	GetAllByStatus(c request.CTX, status string) ([]*model.Job, error)
 	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error)
 	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error)
 	GetCountByStatusAndType(status string, jobType string) (int64, error)
@@ -985,6 +1010,8 @@ type DraftStore interface {
 	Get(userID, channelID, rootID string, includeDeleted bool) (*model.Draft, error)
 	Delete(userID, channelID, rootID string) error
 	GetDraftsForUser(userID, teamID string) ([]*model.Draft, error)
+	GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt int64, userId string) (int64, string, error)
+	DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userId string) error
 }
 
 type PostAcknowledgementStore interface {
@@ -1076,16 +1103,6 @@ type ThreadMembershipOpts struct {
 	UpdateParticipants bool
 }
 
-// ChannelMemberGraphQLSearchOpts contains the options for a graphQL query
-// to get the channel members.
-type ChannelMemberGraphQLSearchOpts struct {
-	AfterChannel string
-	AfterUser    string
-	Limit        int
-	LastUpdateAt int
-	ExcludeTeam  bool
-}
-
 // PostReminderMetadata contains some info needed to send
 // the reminder message to the user.
 type PostReminderMetadata struct {
@@ -1100,6 +1117,7 @@ type PostReminderMetadata struct {
 type SidebarCategorySearchOpts struct {
 	TeamID      string
 	ExcludeTeam bool
+	Type        model.SidebarCategoryType
 }
 
 // Ensure store service adapter implements `product.StoreService`

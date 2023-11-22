@@ -19,11 +19,10 @@ func TestTermsOfServiceStore(t *testing.T) {
 }
 
 func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
-
 	fakeTermsOfService := model.TermsOfService{Id: "123", CreateAt: 11111, UserId: "321", Text: "Terms of service test"}
 
 	t.Run("first call by latest not cached, second cached and returning same data", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -39,7 +38,7 @@ func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
 	})
 
 	t.Run("first call by id not cached, second cached and returning same data", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -55,7 +54,7 @@ func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
 	})
 
 	t.Run("first call by id not cached, second force no cached", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -67,7 +66,7 @@ func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
 	})
 
 	t.Run("first call latest not cached, second force no cached", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -79,7 +78,7 @@ func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
 	})
 
 	t.Run("first call by id force no cached, second not cached, third cached", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -93,7 +92,7 @@ func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
 	})
 
 	t.Run("first call latest force no cached, second not cached, third cached", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -107,7 +106,7 @@ func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
 	})
 
 	t.Run("first call latest, second call by id cached", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -119,7 +118,7 @@ func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
 	})
 
 	t.Run("first call by id not cached, save, and then not cached again", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -132,7 +131,7 @@ func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
 	})
 
 	t.Run("first get latest not cached, save new, then get latest, returning different data", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)

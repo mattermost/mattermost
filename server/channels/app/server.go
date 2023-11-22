@@ -40,6 +40,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_empty_drafts_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
@@ -54,6 +55,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/plugins"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/post_persistent_notifications"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/product_notices"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/refresh_post_stats"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/s3_path_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
@@ -140,7 +142,8 @@ type Server struct {
 	// startSearchEngine bool
 	skipPostInit bool
 
-	Cloud einterfaces.CloudInterface
+	Cloud       einterfaces.CloudInterface
+	IPFiltering einterfaces.IPFilteringInterface
 
 	tracer *tracing.Tracer
 
@@ -148,8 +151,6 @@ type Server struct {
 
 	products map[string]product.Product
 	services map[product.ServiceKey]any
-
-	hooksManager *product.HooksManager
 }
 
 func (s *Server) Store() store.Store {
@@ -245,8 +246,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
-	s.hooksManager = product.NewHooksManager(s.GetMetrics())
-
 	// ensure app implements `product.UserService`
 	var _ product.UserService = (*App)(nil)
 
@@ -273,7 +272,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 4: Start platform
-	s.platform.Start()
+	s.platform.Start(s.makeBroadcastHooks())
 
 	// NOTE: There should be no call to App.Srv().Channels() before step 5 is done
 	// otherwise it will throw a panic.
@@ -399,6 +398,10 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.initJobs()
 
+	if ipFilteringInterface != nil {
+		s.IPFiltering = ipFilteringInterface(app)
+	}
+
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
 		if s.Jobs != nil {
@@ -424,6 +427,11 @@ func NewServer(options ...Option) (*Server, error) {
 		s.EmailService.InitEmailBatching()
 	})
 
+	isTrial := false
+	if licence := s.License(); licence != nil {
+		isTrial = licence.IsTrial
+	}
+
 	logCurrentVersion := fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
 	mlog.Info(
 		logCurrentVersion,
@@ -435,7 +443,11 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.String("service_environment", model.GetServiceEnvironment()),
 	)
 	if model.BuildEnterpriseReady == "true" {
-		mlog.Info("Enterprise Build", mlog.Bool("enterprise_build", true))
+		mlog.Info(
+			"Enterprise Build",
+			mlog.Bool("enterprise_build", true),
+			mlog.Bool("is_trial", isTrial),
+		)
 	} else {
 		mlog.Info("Team Edition Build", mlog.Bool("enterprise_build", false))
 	}
@@ -1035,7 +1047,6 @@ func (s *Server) Start() error {
 	go func() {
 		var err error
 		if *s.platform.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTLS {
-
 			tlsConfig := &tls.Config{
 				PreferServerCipherSuites: true,
 				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
@@ -1467,7 +1478,6 @@ func (s *Server) doLicenseExpirationCheck() {
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
 // to renew the user license
 func (s *Server) SendRemoveExpiredLicenseEmail(email, ctaText, ctaLink, locale, siteURL string) *model.AppError {
-
 	if err := s.EmailService.SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL); err != nil {
 		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1576,6 +1586,11 @@ func (s *Server) initJobs() {
 		nil)
 
 	s.Jobs.RegisterJobType(
+		model.JobTypeDeleteEmptyDraftsMigration,
+		delete_empty_drafts_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil)
+
+	s.Jobs.RegisterJobType(
 		model.JobTypeExportDelete,
 		export_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		export_delete.MakeScheduler(s.Jobs),
@@ -1649,8 +1664,14 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeCleanupDesktopTokens,
-		cleanup_desktop_tokens.MakeWorker(s.Jobs, s.Store()),
+		cleanup_desktop_tokens.MakeWorker(s.Jobs),
 		cleanup_desktop_tokens.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeRefreshPostStats,
+		refresh_post_stats.MakeWorker(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
+		refresh_post_stats.MakeScheduler(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
 	)
 
 	s.platform.Jobs = s.Jobs

@@ -54,15 +54,15 @@ func (_m *JobStore) Delete(id string) (string, error) {
 }
 
 // Get provides a mock function with given fields: c, id
-func (_m *JobStore) Get(c *request.Context, id string) (*model.Job, error) {
+func (_m *JobStore) Get(c request.CTX, id string) (*model.Job, error) {
 	ret := _m.Called(c, id)
 
 	var r0 *model.Job
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*request.Context, string) (*model.Job, error)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.Job, error)); ok {
 		return rf(c, id)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, string) *model.Job); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.Job); ok {
 		r0 = rf(c, id)
 	} else {
 		if ret.Get(0) != nil {
@@ -70,7 +70,7 @@ func (_m *JobStore) Get(c *request.Context, id string) (*model.Job, error) {
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, string) error); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
 		r1 = rf(c, id)
 	} else {
 		r1 = ret.Error(1)
@@ -80,15 +80,15 @@ func (_m *JobStore) Get(c *request.Context, id string) (*model.Job, error) {
 }
 
 // GetAllByStatus provides a mock function with given fields: c, status
-func (_m *JobStore) GetAllByStatus(c *request.Context, status string) ([]*model.Job, error) {
+func (_m *JobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Job, error) {
 	ret := _m.Called(c, status)
 
 	var r0 []*model.Job
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*request.Context, string) ([]*model.Job, error)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]*model.Job, error)); ok {
 		return rf(c, status)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, string) []*model.Job); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) []*model.Job); ok {
 		r0 = rf(c, status)
 	} else {
 		if ret.Get(0) != nil {
@@ -96,7 +96,7 @@ func (_m *JobStore) GetAllByStatus(c *request.Context, status string) ([]*model.
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, string) error); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
 		r1 = rf(c, status)
 	} else {
 		r1 = ret.Error(1)
@@ -106,15 +106,15 @@ func (_m *JobStore) GetAllByStatus(c *request.Context, status string) ([]*model.
 }
 
 // GetAllByType provides a mock function with given fields: c, jobType
-func (_m *JobStore) GetAllByType(c *request.Context, jobType string) ([]*model.Job, error) {
+func (_m *JobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job, error) {
 	ret := _m.Called(c, jobType)
 
 	var r0 []*model.Job
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*request.Context, string) ([]*model.Job, error)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]*model.Job, error)); ok {
 		return rf(c, jobType)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, string) []*model.Job); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) []*model.Job); ok {
 		r0 = rf(c, jobType)
 	} else {
 		if ret.Get(0) != nil {
@@ -122,7 +122,7 @@ func (_m *JobStore) GetAllByType(c *request.Context, jobType string) ([]*model.J
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, string) error); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
 		r1 = rf(c, jobType)
 	} else {
 		r1 = ret.Error(1)
@@ -132,15 +132,15 @@ func (_m *JobStore) GetAllByType(c *request.Context, jobType string) ([]*model.J
 }
 
 // GetAllByTypeAndStatus provides a mock function with given fields: c, jobType, status
-func (_m *JobStore) GetAllByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, error) {
+func (_m *JobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error) {
 	ret := _m.Called(c, jobType, status)
 
 	var r0 []*model.Job
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*request.Context, string, string) ([]*model.Job, error)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) ([]*model.Job, error)); ok {
 		return rf(c, jobType, status)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, string, string) []*model.Job); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) []*model.Job); ok {
 		r0 = rf(c, jobType, status)
 	} else {
 		if ret.Get(0) != nil {
@@ -148,7 +148,7 @@ func (_m *JobStore) GetAllByTypeAndStatus(c *request.Context, jobType string, st
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, string, string) error); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
 		r1 = rf(c, jobType, status)
 	} else {
 		r1 = ret.Error(1)
@@ -158,15 +158,15 @@ func (_m *JobStore) GetAllByTypeAndStatus(c *request.Context, jobType string, st
 }
 
 // GetAllByTypePage provides a mock function with given fields: c, jobType, offset, limit
-func (_m *JobStore) GetAllByTypePage(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, error) {
+func (_m *JobStore) GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error) {
 	ret := _m.Called(c, jobType, offset, limit)
 
 	var r0 []*model.Job
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*request.Context, string, int, int) ([]*model.Job, error)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string, int, int) ([]*model.Job, error)); ok {
 		return rf(c, jobType, offset, limit)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, string, int, int) []*model.Job); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string, int, int) []*model.Job); ok {
 		r0 = rf(c, jobType, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
@@ -174,7 +174,7 @@ func (_m *JobStore) GetAllByTypePage(c *request.Context, jobType string, offset 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, string, int, int) error); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string, int, int) error); ok {
 		r1 = rf(c, jobType, offset, limit)
 	} else {
 		r1 = ret.Error(1)
@@ -184,15 +184,15 @@ func (_m *JobStore) GetAllByTypePage(c *request.Context, jobType string, offset 
 }
 
 // GetAllByTypesPage provides a mock function with given fields: c, jobTypes, offset, limit
-func (_m *JobStore) GetAllByTypesPage(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
+func (_m *JobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
 	ret := _m.Called(c, jobTypes, offset, limit)
 
 	var r0 []*model.Job
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*request.Context, []string, int, int) ([]*model.Job, error)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, []string, int, int) ([]*model.Job, error)); ok {
 		return rf(c, jobTypes, offset, limit)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, []string, int, int) []*model.Job); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, []string, int, int) []*model.Job); ok {
 		r0 = rf(c, jobTypes, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
@@ -200,7 +200,7 @@ func (_m *JobStore) GetAllByTypesPage(c *request.Context, jobTypes []string, off
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, []string, int, int) error); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, []string, int, int) error); ok {
 		r1 = rf(c, jobTypes, offset, limit)
 	} else {
 		r1 = ret.Error(1)

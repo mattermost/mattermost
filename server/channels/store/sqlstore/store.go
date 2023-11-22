@@ -78,6 +78,7 @@ type SqlStoreStores struct {
 	compliance                 store.ComplianceStore
 	session                    store.SessionStore
 	oauth                      store.OAuthStore
+	outgoingOAuthConnection    store.OutgoingOAuthConnectionStore
 	system                     store.SystemStore
 	webhook                    store.WebhookStore
 	command                    store.CommandStore
@@ -199,6 +200,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) (*Sql
 	store.stores.compliance = newSqlComplianceStore(store)
 	store.stores.session = newSqlSessionStore(store)
 	store.stores.oauth = newSqlOAuthStore(store)
+	store.stores.outgoingOAuthConnection = newSqlOutgoingOAuthConnectionStore(store)
 	store.stores.system = newSqlSystemStore(store)
 	store.stores.webhook = newSqlWebhookStore(store, metrics)
 	store.stores.command = newSqlCommandStore(store)
@@ -440,7 +442,6 @@ func (ss *SqlStore) GetDbVersion(numerical bool) (string, error) {
 	}
 
 	return version, nil
-
 }
 
 func (ss *SqlStore) GetMasterX() *sqlxDBWrapper {
@@ -654,7 +655,6 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 		}
 
 		return count > 0
-
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		var count int64
 		err := ss.GetMasterX().Get(&count,
@@ -674,7 +674,6 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 		}
 
 		return count > 0
-
 	} else {
 		mlog.Fatal("Failed to check if column exists because of missing driver")
 		return false
@@ -703,7 +702,6 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		}
 
 		return count > 0
-
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		var count int64
 		err := ss.GetMasterX().Get(&count,
@@ -724,7 +722,6 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		}
 
 		return count > 0
-
 	} else {
 		mlog.Fatal("Failed to check if column exists because of missing driver")
 		return false
@@ -748,7 +745,6 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 		}
 
 		return count > 0
-
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		var count int64
 		err := ss.GetMasterX().Get(&count, `
@@ -766,7 +762,6 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 		}
 
 		return count > 0
-
 	} else {
 		mlog.Fatal("Failed to check if column exists because of missing driver")
 		return false
@@ -774,7 +769,6 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 }
 
 func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string, mySqlColType string, postgresColType string, defaultValue string) bool {
-
 	if ss.DoesColumnExist(tableName, columnName) {
 		return false
 	}
@@ -786,7 +780,6 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 		}
 
 		return true
-
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		_, err := ss.GetMasterX().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
@@ -794,7 +787,6 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 		}
 
 		return true
-
 	} else {
 		mlog.Fatal("Failed to create column because of missing driver")
 		return false
@@ -958,6 +950,10 @@ func (ss *SqlStore) OAuth() store.OAuthStore {
 	return ss.stores.oauth
 }
 
+func (ss *SqlStore) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
+	return ss.stores.outgoingOAuthConnection
+}
+
 func (ss *SqlStore) System() store.SystemStore {
 	return ss.stores.system
 }
@@ -1106,7 +1102,6 @@ func (ss *SqlStore) DropAllTables() {
 		for _, t := range tables {
 			if t != "db_migrations" {
 				ss.masterX.Exec(`TRUNCATE TABLE ` + t)
-
 			}
 		}
 	}

@@ -208,6 +208,7 @@
             max-width: 100%;
             min-height: 40px;
             max-height: $max-image-height;
+            border-color: rgba(var(--center-channel-color-rgb), 0.12);
             border-radius: 4px;
             transition: all 0.1s linear;
 
@@ -634,8 +635,10 @@
             width: 30px;
             height: 30px;
             border: 1px solid;
+            border-color: rgba(var(--center-channel-color-rgb), 0.35);
             border-radius: 50%;
             opacity: 0.7;
+            stroke: rgba(var(--center-channel-color-rgb), 0.4);
             transition: all 0.1s linear;
 
             &:hover {
