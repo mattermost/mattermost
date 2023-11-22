@@ -1280,3 +1280,10 @@ func (api *apiTimerLayer) SendPushNotification(notification *model.PushNotificat
 	api.recordTime(startTime, "SendPushNotification", _returnsA == nil)
 	return _returnsA
 }
+
+func (api *apiTimerLayer) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdateUserAuth(userID, userAuth)
+	api.recordTime(startTime, "UpdateUserAuth", _returnsB == nil)
+	return _returnsA, _returnsB
+}
