@@ -5815,11 +5815,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 116+"
+    "translation": "版本 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 116+"
+    "translation": "版本 118+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9968,5 +9968,13 @@
   {
     "id": "api.emoji.get_multiple_by_name_too_many.request_error",
     "translation": "无法根据名称获取过多的表情符。每次最多只能请求 {{.MaxNames}} 个表情符。"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "解析 JSON 失败：{{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "无效的格式：{{.Error}}"
   }
 ]
