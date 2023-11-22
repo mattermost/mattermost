@@ -36,9 +36,9 @@ func listOAuthAppsCmdF(c client.Client, command *cobra.Command, args []string) e
 		return errors.Wrap(err, "Failed to fetch oauth2 apps")
 	}
 
-	userIds := []string{}
-	for _, app := range apps {
-		userIds = append(userIds, app.CreatorId)
+	userIds := make([]string, len(apps))
+	for i := range apps {
+		userIds[i] = apps[i].CreatorId
 	}
 
 	users, _, err := c.GetUsersByIds(context.Background(), userIds)
