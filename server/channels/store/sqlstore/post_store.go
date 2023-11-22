@@ -723,8 +723,8 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 				Where(sq.Or{
 					sq.Eq{"p.Id": rootId},
 					sq.Eq{"p.RootId": rootId},
-				}).
-				Where(sq.Eq{"p.DeleteAt": 0})
+					sq.Eq{"p.DeleteAt": 0},
+				})
 		} else {
 			query = s.getQueryBuilder().
 				Select("p.*, replycount.num as ReplyCount").
@@ -742,8 +742,8 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 				Where(sq.Or{
 					sq.Eq{"p.Id": rootId},
 					sq.Eq{"p.RootId": rootId},
-				}).
-				Where(sq.Eq{"p.DeleteAt": 0})
+					sq.Eq{"p.DeleteAt": 0},
+				})
 		}
 
 		var sort string
