@@ -198,23 +198,44 @@ func TestMapJson(t *testing.T) {
 
 func TestArrayFromJson(t *testing.T) {
 	t.Run("Successful parse", func(t *testing.T) {
-		ids := []string{"a", "b"}
+		ids := []string{NewId(), NewId(), NewId()}
 		b, _ := json.Marshal(ids)
 		a := ArrayFromJSON(bytes.NewReader(b), 1000)
 		require.Equal(t, len(ids), len(a))
+	})
+
+	t.Run("Empty Array", func(t *testing.T) {
+		ids := []string{}
+		b, _ := json.Marshal(ids)
+		a := ArrayFromJSON(bytes.NewReader(b), 1000)
+		require.Equal(t, 0, len(a))
 	})
 
 	t.Run("Error too large", func(t *testing.T) {
 		var ids []string
 		for {
 			ids = append(ids, NewId())
-			if len(ids) > 1000 {
+			if len(ids) > 100 {
 				break
 			}
 		}
 		b, _ := json.Marshal(ids)
 		a := ArrayFromJSON(bytes.NewReader(b), 1000)
 		require.Equal(t, len(a), 0)
+	})
+
+	t.Run("Duplicate keys, returns one", func(t *testing.T) {
+		var ids []string
+		id := NewId()
+		for {
+			ids = append(ids, id)
+			if len(ids) > 10 {
+				break
+			}
+		}
+		b, _ := json.Marshal(ids)
+		a := ArrayFromJSON(bytes.NewReader(b), 26000)
+		require.Equal(t, len(a), 1)
 	})
 }
 
