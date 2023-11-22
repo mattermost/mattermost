@@ -1,3 +1,4 @@
+dummy test commit
 # E2E testing for the Mattermost web client
 
 This directory contains the E2E testing code for the Mattermost web client.
