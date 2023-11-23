@@ -101,7 +101,7 @@ func (awsm *AwsMeter) GetUserCategoryUsage(dimensions []string, startTime time.T
 		case model.AwsMeteringDimensionUsageHrs:
 			userCount, err = awsm.store.User().AnalyticsActiveCountForPeriod(model.GetMillisForTime(startTime), model.GetMillisForTime(endTime), model.UserCountOptions{})
 			if err != nil {
-				mlog.Warn("Failed to obtain usage data", mlog.String("dimension", dimension), mlog.String("start", startTime.String()), mlog.Int64("count", userCount), mlog.Err(err))
+				mlog.Warn("Failed to obtain usage data", mlog.String("dimension", dimension), mlog.Time("start", startTime), mlog.Int("count", userCount), mlog.Err(err))
 				continue
 			}
 		default:
@@ -148,7 +148,7 @@ func sendReportToMeteringService(ams *AWSMeterService, report *AWSMeterReport) e
 		return errors.Wrap(err, "Invalid metering service id.")
 	}
 
-	mlog.Debug("Sent record to AWS metering service", mlog.String("dimension", report.Dimension), mlog.Int64("value", report.Value), mlog.String("timestamp", report.Timestamp.String()))
+	mlog.Debug("Sent record to AWS metering service", mlog.String("dimension", report.Dimension), mlog.Int("value", report.Value), mlog.String("timestamp", report.Timestamp.String()))
 
 	return nil
 }
