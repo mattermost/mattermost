@@ -33,7 +33,6 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
           channelId="channel_id"
           hasMention={false}
           isEmoji={false}
-          isRHS={false}
           popoverPlacement="right"
           size="md"
           src="/api/v4/users/user_id/image?_=0"
@@ -50,7 +49,6 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                 className="user-profile-popover"
                 hasMention={false}
                 hide={[Function]}
-                isRHS={false}
                 src="/api/v4/users/user_id/image?_=0"
                 userId="user_id"
               />
@@ -110,7 +108,6 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                       "wrapRichTextChunksInFragment": undefined,
                     }
                   }
-                  isRHS={false}
                   src="/api/v4/users/user_id/image?_=0"
                   userId="user_id"
                 />
@@ -234,7 +231,6 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                 }
                 channelNamesMap={Object {}}
                 dispatch={[Function]}
-                editedAt={0}
                 emojiMap={
                   EmojiMap {
                     "customEmojis": Map {},
@@ -243,8 +239,6 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                 }
                 enableFormatting={true}
                 hasImageProxy={false}
-                imagesMetadata={Object {}}
-                isRHS={false}
                 managedResourcePaths={Array []}
                 mentionKeys={Array []}
                 message="message"
@@ -255,8 +249,6 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                     "mentionHighlight": false,
                   }
                 }
-                postId=""
-                proxyImages={true}
                 siteURL="http://localhost:8065"
                 team={
                   Object {
@@ -314,7 +306,6 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
           channelId="channel_id"
           hasMention={false}
           isEmoji={false}
-          isRHS={false}
           popoverPlacement="right"
           size="md"
           src="/api/v4/users/user_id/image?_=0"
@@ -331,7 +322,6 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                 className="user-profile-popover"
                 hasMention={false}
                 hide={[Function]}
-                isRHS={false}
                 src="/api/v4/users/user_id/image?_=0"
                 userId="user_id"
               />
@@ -391,7 +381,6 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                       "wrapRichTextChunksInFragment": undefined,
                     }
                   }
-                  isRHS={false}
                   src="/api/v4/users/user_id/image?_=0"
                   userId="user_id"
                 />
@@ -515,7 +504,6 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                 }
                 channelNamesMap={Object {}}
                 dispatch={[Function]}
-                editedAt={0}
                 emojiMap={
                   EmojiMap {
                     "customEmojis": Map {},
@@ -524,8 +512,6 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                 }
                 enableFormatting={true}
                 hasImageProxy={false}
-                imagesMetadata={Object {}}
-                isRHS={false}
                 managedResourcePaths={Array []}
                 mentionKeys={Array []}
                 message="message"
@@ -536,8 +522,6 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                     "mentionHighlight": false,
                   }
                 }
-                postId=""
-                proxyImages={true}
                 siteURL="http://localhost:8065"
                 team={
                   Object {
@@ -601,7 +585,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
           channelId="channel_id"
           hasMention={false}
           isEmoji={false}
-          isRHS={false}
           popoverPlacement="right"
           size="md"
           src="/api/v4/users/user_id/image?_=0"
@@ -618,7 +601,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                 className="user-profile-popover"
                 hasMention={false}
                 hide={[Function]}
-                isRHS={false}
                 src="/api/v4/users/user_id/image?_=0"
                 userId="user_id"
               />
@@ -678,7 +660,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                       "wrapRichTextChunksInFragment": undefined,
                     }
                   }
-                  isRHS={false}
                   src="/api/v4/users/user_id/image?_=0"
                   userId="user_id"
                 />
@@ -864,7 +845,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                 }
                 channelNamesMap={Object {}}
                 dispatch={[Function]}
-                editedAt={0}
                 emojiMap={
                   EmojiMap {
                     "customEmojis": Map {},
@@ -873,8 +853,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                 }
                 enableFormatting={true}
                 hasImageProxy={false}
-                imagesMetadata={Object {}}
-                isRHS={false}
                 managedResourcePaths={Array []}
                 mentionKeys={Array []}
                 message="message"
@@ -885,8 +863,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                     "mentionHighlight": false,
                   }
                 }
-                postId=""
-                proxyImages={true}
                 siteURL="http://localhost:8065"
                 team={
                   Object {
@@ -950,7 +926,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
           channelId="channel_id"
           hasMention={false}
           isEmoji={false}
-          isRHS={false}
           popoverPlacement="right"
           size="md"
           src="/api/v4/users/user_id/image?_=0"
@@ -967,7 +942,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                 className="user-profile-popover"
                 hasMention={false}
                 hide={[Function]}
-                isRHS={false}
                 src="/api/v4/users/user_id/image?_=0"
                 userId="user_id"
               />
@@ -1027,7 +1001,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                       "wrapRichTextChunksInFragment": undefined,
                     }
                   }
-                  isRHS={false}
                   src="/api/v4/users/user_id/image?_=0"
                   userId="user_id"
                 />
@@ -1292,7 +1265,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                 }
                 channelNamesMap={Object {}}
                 dispatch={[Function]}
-                editedAt={0}
                 emojiMap={
                   EmojiMap {
                     "customEmojis": Map {},
@@ -1301,8 +1273,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                 }
                 enableFormatting={true}
                 hasImageProxy={false}
-                imagesMetadata={Object {}}
-                isRHS={false}
                 managedResourcePaths={Array []}
                 mentionKeys={Array []}
                 message="message"
@@ -1313,8 +1283,6 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                     "mentionHighlight": false,
                   }
                 }
-                postId=""
-                proxyImages={true}
                 siteURL="http://localhost:8065"
                 team={
                   Object {

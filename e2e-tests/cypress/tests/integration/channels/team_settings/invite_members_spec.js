@@ -172,7 +172,7 @@ function inviteUser(user) {
     cy.get('.users-emails-input__menu').children().eq(0).should('contain', user.username).click();
 
     // # Click Invite Members
-    cy.get('#inviteMembersButton').scrollIntoView().click();
+    cy.findByTestId('inviteButton').scrollIntoView().click();
 }
 
 function inviteUserToTeamAsMember(testUser, testTeam, user) {

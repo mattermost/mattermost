@@ -51,6 +51,7 @@ var PermissionDeletePublicChannel *Permission
 var PermissionDeletePrivateChannel *Permission
 var PermissionEditOtherUsers *Permission
 var PermissionReadChannel *Permission
+var PermissionReadChannelContent *Permission
 var PermissionReadPublicChannelGroups *Permission
 var PermissionReadPrivateChannelGroups *Permission
 var PermissionReadPublicChannel *Permission
@@ -265,6 +266,9 @@ var PermissionSysconsoleWriteSitePublicLinks *Permission
 
 var PermissionSysconsoleReadSiteNotices *Permission
 var PermissionSysconsoleWriteSiteNotices *Permission
+
+var PermissionSysconsoleReadIPFilters *Permission
+var PermissionSysconsoleWriteIPFilters *Permission
 
 var PermissionSysconsoleReadAuthentication *Permission
 var PermissionSysconsoleWriteAuthentication *Permission
@@ -559,6 +563,12 @@ func initializePermissions() {
 		"read_channel",
 		"authentication.permissions.read_channel.name",
 		"authentication.permissions.read_channel.description",
+		PermissionScopeChannel,
+	}
+	PermissionReadChannelContent = &Permission{
+		"read_channel_content",
+		"authentication.permissions.read_channel_content.name",
+		"authentication.permissions.read_channel_content.description",
 		PermissionScopeChannel,
 	}
 	PermissionReadPublicChannelGroups = &Permission{
@@ -1639,6 +1649,20 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PermissionSysconsoleReadIPFilters = &Permission{
+		"sysconsole_read_site_ip_filters",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PermissionSysconsoleWriteIPFilters = &Permission{
+		"sysconsole_write_site_ip_filters",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
 	// Deprecated
 	PermissionSysconsoleReadAuthentication = &Permission{
 		"sysconsole_read_authentication",
@@ -2153,6 +2177,7 @@ func initializePermissions() {
 		PermissionSysconsoleReadExperimentalFeatureFlags,
 		PermissionSysconsoleReadExperimentalBleve,
 		PermissionSysconsoleReadProductsBoards,
+		PermissionSysconsoleReadIPFilters,
 	}
 
 	SysconsoleWritePermissions = []*Permission{
@@ -2211,6 +2236,7 @@ func initializePermissions() {
 		PermissionSysconsoleWriteExperimentalFeatureFlags,
 		PermissionSysconsoleWriteExperimentalBleve,
 		PermissionSysconsoleWriteProductsBoards,
+		PermissionSysconsoleWriteIPFilters,
 	}
 
 	SystemScopedPermissionsMinusSysconsole := []*Permission{
@@ -2329,6 +2355,7 @@ func initializePermissions() {
 		PermissionDeletePublicChannel,
 		PermissionDeletePrivateChannel,
 		PermissionReadChannel,
+		PermissionReadChannelContent,
 		PermissionReadPublicChannelGroups,
 		PermissionReadPrivateChannelGroups,
 		PermissionAddReaction,

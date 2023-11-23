@@ -9,8 +9,8 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -122,7 +122,7 @@ func (cfg *AutoUserCreator) createRandomUser(c request.CTX) (*model.User, error)
 	}
 
 	if cfg.JoinTime != 0 {
-		teamMember, appErr := cfg.app.GetTeamMember(cfg.team.Id, ruser.Id)
+		teamMember, appErr := cfg.app.GetTeamMember(c, cfg.team.Id, ruser.Id)
 		if appErr != nil {
 			return nil, appErr
 		}

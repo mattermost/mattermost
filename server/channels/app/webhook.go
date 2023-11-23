@@ -16,7 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -657,7 +657,7 @@ func (a *App) RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.Out
 	return webhook, nil
 }
 
-func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *model.IncomingWebhookRequest) *model.AppError {
+func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.IncomingWebhookRequest) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -775,7 +775,7 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, "", http.StatusForbidden).Wrap(result.NErr)
 	}
 
-	if channel.Type != model.ChannelTypeOpen && !a.HasPermissionToChannel(c, hook.UserId, channel.Id, model.PermissionReadChannel) {
+	if channel.Type != model.ChannelTypeOpen && !a.HasPermissionToChannel(c, hook.UserId, channel.Id, model.PermissionReadChannelContent) {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "", http.StatusForbidden)
 	}
 
@@ -813,12 +813,11 @@ func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*
 		default:
 			return nil, model.NewAppError("CreateCommandWebhook", "app.command_webhook.create_command_webhook.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-
 	}
 	return savedHook, nil
 }
 
-func (a *App) HandleCommandWebhook(c *request.Context, hookID string, response *model.CommandResponse) *model.AppError {
+func (a *App) HandleCommandWebhook(c request.CTX, hookID string, response *model.CommandResponse) *model.AppError {
 	if response == nil {
 		return model.NewAppError("HandleCommandWebhook", "app.command_webhook.handle_command_webhook.parse", nil, "", http.StatusBadRequest)
 	}

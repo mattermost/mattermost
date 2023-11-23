@@ -1,0 +1,530 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/AdvancedCreateComment should match snapshot when cannot post 1`] = `
+<form
+  onSubmit={[Function]}
+>
+  <AdvanceTextEditor
+    additionalControls={Array []}
+    applyMarkdown={[Function]}
+    badConnection={false}
+    canPost={false}
+    canUploadFiles={true}
+    caretPosition={12}
+    channelId="g6139tbospd18cmxroesdk3kkc"
+    ctrlSend={false}
+    currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    draft={
+      Object {
+        "channelId": "",
+        "createAt": 0,
+        "fileInfos": Array [
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+        ],
+        "message": "Test message",
+        "rootId": "",
+        "updateAt": 0,
+        "uploadsInProgress": Array [],
+      }
+    }
+    emitTypingEvent={[Function]}
+    enableEmojiPicker={true}
+    enableGifPicker={true}
+    errorClass={null}
+    fileUploadRef={
+      Object {
+        "current": null,
+      }
+    }
+    getFileUploadTarget={[Function]}
+    handleBlur={[Function]}
+    handleChange={[Function]}
+    handleEmojiClick={[Function]}
+    handleFileUploadChange={[Function]}
+    handleFileUploadComplete={[Function]}
+    handleGifClick={[Function]}
+    handleMouseUpKeyUp={[Function]}
+    handlePostError={[Function]}
+    handleSubmit={[Function]}
+    handleUploadError={[Function]}
+    handleUploadProgress={[Function]}
+    handleUploadStart={[Function]}
+    hideEmojiPicker={[Function]}
+    isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
+    location="RHS_COMMENT"
+    maxPostSize={4000}
+    message="Test message"
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
+    postId=""
+    postMsgKeyPress={[Function]}
+    removePreview={[Function]}
+    serverError={null}
+    setShowPreview={[Function]}
+    shouldShowPreview={false}
+    showEmojiPicker={false}
+    textboxRef={
+      Object {
+        "current": null,
+      }
+    }
+    toggleAdvanceTextEditor={[Function]}
+    toggleEmojiPicker={[Function]}
+    uploadsProgressPercent={Object {}}
+    useChannelMentions={true}
+  />
+</form>
+`;
+
+exports[`components/AdvancedCreateComment should match snapshot, comment with message 1`] = `
+<form
+  onSubmit={[Function]}
+>
+  <AdvanceTextEditor
+    additionalControls={Array []}
+    applyMarkdown={[Function]}
+    badConnection={false}
+    canPost={true}
+    canUploadFiles={true}
+    caretPosition={12}
+    channelId="g6139tbospd18cmxroesdk3kkc"
+    ctrlSend={true}
+    currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    draft={
+      Object {
+        "channelId": "",
+        "createAt": 0,
+        "fileInfos": Array [],
+        "message": "Test message",
+        "rootId": "",
+        "updateAt": 0,
+        "uploadsInProgress": Array [],
+      }
+    }
+    emitTypingEvent={[Function]}
+    enableEmojiPicker={true}
+    enableGifPicker={true}
+    errorClass={null}
+    fileUploadRef={
+      Object {
+        "current": null,
+      }
+    }
+    getFileUploadTarget={[Function]}
+    handleBlur={[Function]}
+    handleChange={[Function]}
+    handleEmojiClick={[Function]}
+    handleFileUploadChange={[Function]}
+    handleFileUploadComplete={[Function]}
+    handleGifClick={[Function]}
+    handleMouseUpKeyUp={[Function]}
+    handlePostError={[Function]}
+    handleSubmit={[Function]}
+    handleUploadError={[Function]}
+    handleUploadProgress={[Function]}
+    handleUploadStart={[Function]}
+    hideEmojiPicker={[Function]}
+    isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
+    location="RHS_COMMENT"
+    maxPostSize={4000}
+    message="Test message"
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
+    postId=""
+    postMsgKeyPress={[Function]}
+    removePreview={[Function]}
+    serverError={null}
+    setShowPreview={[Function]}
+    shouldShowPreview={false}
+    showEmojiPicker={false}
+    textboxRef={
+      Object {
+        "current": null,
+      }
+    }
+    toggleAdvanceTextEditor={[Function]}
+    toggleEmojiPicker={[Function]}
+    uploadsProgressPercent={Object {}}
+    useChannelMentions={true}
+  />
+</form>
+`;
+
+exports[`components/AdvancedCreateComment should match snapshot, emoji picker disabled 1`] = `
+<form
+  onSubmit={[Function]}
+>
+  <FileLimitStickyBanner />
+  <AdvanceTextEditor
+    additionalControls={Array []}
+    applyMarkdown={[Function]}
+    badConnection={false}
+    canPost={true}
+    canUploadFiles={true}
+    caretPosition={12}
+    channelId="g6139tbospd18cmxroesdk3kkc"
+    ctrlSend={false}
+    currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    draft={
+      Object {
+        "channelId": "",
+        "createAt": 0,
+        "fileInfos": Array [
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+        ],
+        "message": "Test message",
+        "rootId": "",
+        "updateAt": 0,
+        "uploadsInProgress": Array [],
+      }
+    }
+    emitTypingEvent={[Function]}
+    enableEmojiPicker={false}
+    enableGifPicker={true}
+    errorClass={null}
+    fileUploadRef={
+      Object {
+        "current": null,
+      }
+    }
+    getFileUploadTarget={[Function]}
+    handleBlur={[Function]}
+    handleChange={[Function]}
+    handleEmojiClick={[Function]}
+    handleFileUploadChange={[Function]}
+    handleFileUploadComplete={[Function]}
+    handleGifClick={[Function]}
+    handleMouseUpKeyUp={[Function]}
+    handlePostError={[Function]}
+    handleSubmit={[Function]}
+    handleUploadError={[Function]}
+    handleUploadProgress={[Function]}
+    handleUploadStart={[Function]}
+    hideEmojiPicker={[Function]}
+    isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
+    location="RHS_COMMENT"
+    maxPostSize={4000}
+    message="Test message"
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
+    postId=""
+    postMsgKeyPress={[Function]}
+    removePreview={[Function]}
+    serverError={null}
+    setShowPreview={[Function]}
+    shouldShowPreview={false}
+    showEmojiPicker={false}
+    textboxRef={
+      Object {
+        "current": null,
+      }
+    }
+    toggleAdvanceTextEditor={[Function]}
+    toggleEmojiPicker={[Function]}
+    uploadsProgressPercent={Object {}}
+    useChannelMentions={true}
+  />
+</form>
+`;
+
+exports[`components/AdvancedCreateComment should match snapshot, empty comment 1`] = `
+<form
+  onSubmit={[Function]}
+>
+  <AdvanceTextEditor
+    additionalControls={Array []}
+    applyMarkdown={[Function]}
+    badConnection={false}
+    canPost={true}
+    canUploadFiles={true}
+    caretPosition={0}
+    channelId="g6139tbospd18cmxroesdk3kkc"
+    ctrlSend={true}
+    currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    draft={
+      Object {
+        "channelId": "",
+        "createAt": 0,
+        "fileInfos": Array [],
+        "message": "",
+        "rootId": "",
+        "updateAt": 0,
+        "uploadsInProgress": Array [],
+      }
+    }
+    emitTypingEvent={[Function]}
+    enableEmojiPicker={true}
+    enableGifPicker={true}
+    errorClass={null}
+    fileUploadRef={
+      Object {
+        "current": null,
+      }
+    }
+    getFileUploadTarget={[Function]}
+    handleBlur={[Function]}
+    handleChange={[Function]}
+    handleEmojiClick={[Function]}
+    handleFileUploadChange={[Function]}
+    handleFileUploadComplete={[Function]}
+    handleGifClick={[Function]}
+    handleMouseUpKeyUp={[Function]}
+    handlePostError={[Function]}
+    handleSubmit={[Function]}
+    handleUploadError={[Function]}
+    handleUploadProgress={[Function]}
+    handleUploadStart={[Function]}
+    hideEmojiPicker={[Function]}
+    isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
+    location="RHS_COMMENT"
+    maxPostSize={4000}
+    message=""
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
+    postId=""
+    postMsgKeyPress={[Function]}
+    removePreview={[Function]}
+    serverError={null}
+    setShowPreview={[Function]}
+    shouldShowPreview={false}
+    showEmojiPicker={false}
+    textboxRef={
+      Object {
+        "current": null,
+      }
+    }
+    toggleAdvanceTextEditor={[Function]}
+    toggleEmojiPicker={[Function]}
+    uploadsProgressPercent={Object {}}
+    useChannelMentions={true}
+  />
+</form>
+`;
+
+exports[`components/AdvancedCreateComment should match snapshot, non-empty message and uploadsInProgress + fileInfos 1`] = `
+<form
+  onSubmit={[Function]}
+>
+  <FileLimitStickyBanner />
+  <AdvanceTextEditor
+    additionalControls={Array []}
+    applyMarkdown={[Function]}
+    badConnection={false}
+    canPost={true}
+    canUploadFiles={true}
+    caretPosition={12}
+    channelId="g6139tbospd18cmxroesdk3kkc"
+    ctrlSend={false}
+    currentUserId="zaktnt8bpbgu8mb6ez9k64r7sa"
+    draft={
+      Object {
+        "channelId": "",
+        "createAt": 0,
+        "fileInfos": Array [
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+          Object {
+            "archived": false,
+            "clientId": "client_id",
+            "create_at": 1,
+            "delete_at": 1,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 200,
+            "id": "file_info_id",
+            "mime_type": "mime_type",
+            "name": "name",
+            "size": 1,
+            "update_at": 1,
+            "user_id": "user_id",
+            "width": 350,
+          },
+        ],
+        "message": "Test message",
+        "rootId": "",
+        "updateAt": 0,
+        "uploadsInProgress": Array [],
+      }
+    }
+    emitTypingEvent={[Function]}
+    enableEmojiPicker={true}
+    enableGifPicker={true}
+    errorClass={null}
+    fileUploadRef={
+      Object {
+        "current": null,
+      }
+    }
+    getFileUploadTarget={[Function]}
+    handleBlur={[Function]}
+    handleChange={[Function]}
+    handleEmojiClick={[Function]}
+    handleFileUploadChange={[Function]}
+    handleFileUploadComplete={[Function]}
+    handleGifClick={[Function]}
+    handleMouseUpKeyUp={[Function]}
+    handlePostError={[Function]}
+    handleSubmit={[Function]}
+    handleUploadError={[Function]}
+    handleUploadProgress={[Function]}
+    handleUploadStart={[Function]}
+    hideEmojiPicker={[Function]}
+    isFormattingBarHidden={false}
+    loadNextMessage={[Function]}
+    loadPrevMessage={[Function]}
+    location="RHS_COMMENT"
+    maxPostSize={4000}
+    message="Test message"
+    onEditLatestPost={[Function]}
+    onMessageChange={[Function]}
+    postId=""
+    postMsgKeyPress={[Function]}
+    removePreview={[Function]}
+    serverError={null}
+    setShowPreview={[Function]}
+    shouldShowPreview={false}
+    showEmojiPicker={false}
+    textboxRef={
+      Object {
+        "current": null,
+      }
+    }
+    toggleAdvanceTextEditor={[Function]}
+    toggleEmojiPicker={[Function]}
+    uploadsProgressPercent={Object {}}
+    useChannelMentions={true}
+  />
+</form>
+`;

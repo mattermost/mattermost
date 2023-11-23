@@ -6,6 +6,8 @@ package model
 import (
 	"net/http"
 	"strings"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -81,8 +83,8 @@ func (c *Compliance) PreSave() {
 }
 
 func (c *Compliance) DeepCopy() *Compliance {
-	copy := *c
-	return &copy
+	cCopy := *c
+	return &cCopy
 }
 
 func (c *Compliance) JobName() string {
@@ -122,4 +124,18 @@ func (c *Compliance) IsValid() *AppError {
 	}
 
 	return nil
+}
+
+// LoggerFields returns the logger annotations reflecting the given compliance job metadata.
+func (c *Compliance) LoggerFields() []mlog.Field {
+	if c == nil {
+		return nil
+	}
+
+	return []mlog.Field{
+		mlog.String("job_id", c.Id),
+		mlog.String("job_type", c.Type),
+		mlog.String("job_name", c.JobName()),
+		mlog.Millis("job_create_at", c.CreateAt),
+	}
 }

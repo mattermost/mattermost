@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 
@@ -17,28 +18,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFileInfoStore(t *testing.T, ss store.Store, s SqlStore) {
+func TestFileInfoStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Cleanup(func() {
 		s.GetMasterX().Exec("TRUNCATE FileInfo")
 	})
-	t.Run("FileInfoSaveGet", func(t *testing.T) { testFileInfoSaveGet(t, ss) })
-	t.Run("FileInfoSaveGetByPath", func(t *testing.T) { testFileInfoSaveGetByPath(t, ss) })
-	t.Run("FileInfoGetForPost", func(t *testing.T) { testFileInfoGetForPost(t, ss) })
-	t.Run("FileInfoGetForUser", func(t *testing.T) { testFileInfoGetForUser(t, ss) })
-	t.Run("FileInfoGetWithOptions", func(t *testing.T) { testFileInfoGetWithOptions(t, ss) })
-	t.Run("FileInfoAttachToPost", func(t *testing.T) { testFileInfoAttachToPost(t, ss) })
-	t.Run("FileInfoDeleteForPost", func(t *testing.T) { testFileInfoDeleteForPost(t, ss) })
-	t.Run("FileInfoPermanentDelete", func(t *testing.T) { testFileInfoPermanentDelete(t, ss) })
-	t.Run("FileInfoPermanentDeleteBatch", func(t *testing.T) { testFileInfoPermanentDeleteBatch(t, ss) })
-	t.Run("FileInfoPermanentDeleteByUser", func(t *testing.T) { testFileInfoPermanentDeleteByUser(t, ss) })
-	t.Run("FileInfoUpdateMinipreview", func(t *testing.T) { testFileInfoUpdateMinipreview(t, ss) })
-	t.Run("GetFilesBatchForIndexing", func(t *testing.T) { testFileInfoStoreGetFilesBatchForIndexing(t, ss) })
-	t.Run("CountAll", func(t *testing.T) { testFileInfoStoreCountAll(t, ss) })
-	t.Run("GetStorageUsage", func(t *testing.T) { testFileInfoGetStorageUsage(t, ss) })
-	t.Run("GetUptoNSizeFileTime", func(t *testing.T) { testGetUptoNSizeFileTime(t, ss, s) })
+	t.Run("FileInfoSaveGet", func(t *testing.T) { testFileInfoSaveGet(t, rctx, ss) })
+	t.Run("FileInfoSaveGetByPath", func(t *testing.T) { testFileInfoSaveGetByPath(t, rctx, ss) })
+	t.Run("FileInfoGetForPost", func(t *testing.T) { testFileInfoGetForPost(t, rctx, ss) })
+	t.Run("FileInfoGetForUser", func(t *testing.T) { testFileInfoGetForUser(t, rctx, ss) })
+	t.Run("FileInfoGetWithOptions", func(t *testing.T) { testFileInfoGetWithOptions(t, rctx, ss) })
+	t.Run("FileInfoAttachToPost", func(t *testing.T) { testFileInfoAttachToPost(t, rctx, ss) })
+	t.Run("FileInfoDeleteForPost", func(t *testing.T) { testFileInfoDeleteForPost(t, rctx, ss) })
+	t.Run("FileInfoPermanentDelete", func(t *testing.T) { testFileInfoPermanentDelete(t, rctx, ss) })
+	t.Run("FileInfoPermanentDeleteBatch", func(t *testing.T) { testFileInfoPermanentDeleteBatch(t, rctx, ss) })
+	t.Run("FileInfoPermanentDeleteByUser", func(t *testing.T) { testFileInfoPermanentDeleteByUser(t, rctx, ss) })
+	t.Run("FileInfoUpdateMinipreview", func(t *testing.T) { testFileInfoUpdateMinipreview(t, rctx, ss) })
+	t.Run("GetFilesBatchForIndexing", func(t *testing.T) { testFileInfoStoreGetFilesBatchForIndexing(t, rctx, ss) })
+	t.Run("CountAll", func(t *testing.T) { testFileInfoStoreCountAll(t, rctx, ss) })
+	t.Run("GetStorageUsage", func(t *testing.T) { testFileInfoGetStorageUsage(t, rctx, ss) })
+	t.Run("GetUptoNSizeFileTime", func(t *testing.T) { testGetUptoNSizeFileTime(t, rctx, ss, s) })
 }
 
-func testFileInfoSaveGet(t *testing.T, ss store.Store) {
+func testFileInfoSaveGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	info := &model.FileInfo{
 		CreatorId: model.NewId(),
 		Path:      "file.txt",
@@ -71,7 +72,7 @@ func testFileInfoSaveGet(t *testing.T, ss store.Store) {
 	}()
 }
 
-func testFileInfoSaveGetByPath(t *testing.T, ss store.Store) {
+func testFileInfoSaveGetByPath(t *testing.T, rctx request.CTX, ss store.Store) {
 	info := &model.FileInfo{
 		CreatorId: model.NewId(),
 		Path:      fmt.Sprintf("%v/file.txt", model.NewId()),
@@ -103,7 +104,7 @@ func testFileInfoSaveGetByPath(t *testing.T, ss store.Store) {
 	}()
 }
 
-func testFileInfoGetForPost(t *testing.T, ss store.Store) {
+func testFileInfoGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 	postId := model.NewId()
 	channelId := model.NewId()
@@ -221,12 +222,11 @@ func testFileInfoGetForPost(t *testing.T, ss store.Store) {
 			)
 			require.NoError(t, err)
 			assert.Len(t, postInfos, tc.ExpectedPosts)
-
 		})
 	}
 }
 
-func testFileInfoGetForUser(t *testing.T, ss store.Store) {
+func testFileInfoGetForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 	userId2 := model.NewId()
 	postId := model.NewId()
@@ -277,7 +277,7 @@ func testFileInfoGetForUser(t *testing.T, ss store.Store) {
 	assert.Len(t, userPosts, 1)
 }
 
-func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
+func testFileInfoGetWithOptions(t *testing.T, rctx request.CTX, ss store.Store) {
 	makePost := func(chId string, user string) *model.Post {
 		post := model.Post{}
 		post.ChannelId = chId
@@ -423,7 +423,7 @@ func (a byFileInfoId) Len() int           { return len(a) }
 func (a byFileInfoId) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byFileInfoId) Less(i, j int) bool { return a[i].Id < a[j].Id }
 
-func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
+func testFileInfoAttachToPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should attach files", func(t *testing.T) {
 		userId := model.NewId()
 		postId := model.NewId()
@@ -521,7 +521,7 @@ func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
 	})
 }
 
-func testFileInfoDeleteForPost(t *testing.T, ss store.Store) {
+func testFileInfoDeleteForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 	postId := model.NewId()
 	channelId := model.NewId()
@@ -571,7 +571,7 @@ func testFileInfoDeleteForPost(t *testing.T, ss store.Store) {
 	assert.Empty(t, infos)
 }
 
-func testFileInfoPermanentDelete(t *testing.T, ss store.Store) {
+func testFileInfoPermanentDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	info, err := ss.FileInfo().Save(&model.FileInfo{
 		PostId:    model.NewId(),
 		ChannelId: model.NewId(),
@@ -584,7 +584,7 @@ func testFileInfoPermanentDelete(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testFileInfoPermanentDeleteBatch(t *testing.T, ss store.Store) {
+func testFileInfoPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {
 	postId := model.NewId()
 	channelId := model.NewId()
 
@@ -627,7 +627,7 @@ func testFileInfoPermanentDeleteBatch(t *testing.T, ss store.Store) {
 	assert.Len(t, postFiles, 1)
 }
 
-func testFileInfoPermanentDeleteByUser(t *testing.T, ss store.Store) {
+func testFileInfoPermanentDeleteByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 	postId := model.NewId()
 	channelId := model.NewId()
@@ -644,7 +644,7 @@ func testFileInfoPermanentDeleteByUser(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testFileInfoUpdateMinipreview(t *testing.T, ss store.Store) {
+func testFileInfoUpdateMinipreview(t *testing.T, rctx request.CTX, ss store.Store) {
 	info := &model.FileInfo{
 		CreatorId: model.NewId(),
 		Path:      "image.png",
@@ -677,7 +677,7 @@ func testFileInfoUpdateMinipreview(t *testing.T, ss store.Store) {
 	require.Equal(t, *tinfo.MiniPreview, miniPreview)
 }
 
-func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
+func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, rctx request.CTX, ss store.Store) {
 	c1 := &model.Channel{}
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "Channel1"
@@ -748,26 +748,34 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
 		ss.FileInfo().PermanentDelete(f3.Id)
 	}()
 
+	// Soft-deleting one file info
+	_, err = ss.FileInfo().DeleteForPost(f1.PostId)
+	require.NoError(t, err)
+
 	// Getting all
-	r, err := ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt-1, "", 100)
+	r, err := ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt-1, "", true, 100)
 	require.NoError(t, err)
 	require.Len(t, r, 3, "Expected 3 posts in results. Got %v", len(r))
 
-	// Testing pagination
-	r, err = ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt-1, "", 2)
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt-1, "", false, 100)
 	require.NoError(t, err)
 	require.Len(t, r, 2, "Expected 2 posts in results. Got %v", len(r))
 
-	r, err = ss.FileInfo().GetFilesBatchForIndexing(r[1].CreateAt, r[1].Id, 2)
+	// Testing pagination
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(f1.CreateAt-1, "", true, 2)
+	require.NoError(t, err)
+	require.Len(t, r, 2, "Expected 2 posts in results. Got %v", len(r))
+
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(r[1].CreateAt, r[1].Id, true, 2)
 	require.NoError(t, err)
 	require.Len(t, r, 1, "Expected 1 post in results. Got %v", len(r))
 
-	r, err = ss.FileInfo().GetFilesBatchForIndexing(r[0].CreateAt, r[0].Id, 2)
+	r, err = ss.FileInfo().GetFilesBatchForIndexing(r[0].CreateAt, r[0].Id, true, 2)
 	require.NoError(t, err)
 	require.Len(t, r, 0, "Expected 0 posts in results. Got %v", len(r))
 }
 
-func testFileInfoStoreCountAll(t *testing.T, ss store.Store) {
+func testFileInfoStoreCountAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err := ss.FileInfo().PermanentDeleteBatch(model.GetMillis(), 100000)
 	require.NoError(t, err)
 	f1, err := ss.FileInfo().Save(&model.FileInfo{
@@ -804,7 +812,7 @@ func testFileInfoStoreCountAll(t *testing.T, ss store.Store) {
 	require.Equal(t, int64(2), count)
 }
 
-func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
+func testFileInfoGetStorageUsage(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err := ss.FileInfo().PermanentDeleteBatch(model.GetMillis(), 100000)
 	require.NoError(t, err)
 
@@ -850,7 +858,9 @@ func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
 	require.Equal(t, int64(30), usage)
 }
 
-func testGetUptoNSizeFileTime(t *testing.T, ss store.Store, s SqlStore) {
+func testGetUptoNSizeFileTime(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Skip("MM-53905")
+
 	_, err := ss.FileInfo().GetUptoNSizeFileTime(0)
 	assert.Error(t, err)
 	_, err = ss.FileInfo().GetUptoNSizeFileTime(-1)

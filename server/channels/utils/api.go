@@ -16,6 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 func CheckOrigin(r *http.Request, allowedOrigins string) bool {
@@ -39,6 +40,16 @@ func OriginChecker(allowedOrigins string) func(*http.Request) bool {
 	return func(r *http.Request) bool {
 		return CheckOrigin(r, allowedOrigins)
 	}
+}
+
+// CheckEmbeddedCookie returns true if the MMEMBED cookie is set to 1.
+// MMEMBED is set via any plugin that facilitates Mattermost embedded in an iframe (e.g. mattermost-plugin-msteams-sync).
+func CheckEmbeddedCookie(r *http.Request) bool {
+	cookie, err := r.Cookie("MMEMBED")
+	if err != nil {
+		return false
+	}
+	return cookie.Value == "1"
 }
 
 func RenderWebAppError(config *model.Config, w http.ResponseWriter, r *http.Request, err *model.AppError, s crypto.Signer) {
@@ -102,13 +113,8 @@ func RenderMobileAuthComplete(w http.ResponseWriter, redirectURL string) {
 
 func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.AppError, redirectURL string) {
 	var link = template.HTMLEscapeString(redirectURL)
-	var invalidSchemes = map[string]bool{
-		"data":       true,
-		"javascript": true,
-		"vbscript":   true,
-	}
 	u, redirectErr := url.Parse(redirectURL)
-	if redirectErr != nil || invalidSchemes[u.Scheme] {
+	if redirectErr != nil || !utils.Contains(config.NativeAppSettings.AppCustomURLSchemes, u.Scheme) {
 		link = *config.ServiceSettings.SiteURL
 	}
 	RenderMobileMessage(w, `

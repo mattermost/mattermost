@@ -11,20 +11,21 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestSchemeStore(t *testing.T, ss store.Store) {
+func TestSchemeStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	createDefaultRoles(ss)
 
-	t.Run("Save", func(t *testing.T) { testSchemeStoreSave(t, ss) })
-	t.Run("Get", func(t *testing.T) { testSchemeStoreGet(t, ss) })
-	t.Run("GetAllPage", func(t *testing.T) { testSchemeStoreGetAllPage(t, ss) })
-	t.Run("Delete", func(t *testing.T) { testSchemeStoreDelete(t, ss) })
-	t.Run("PermanentDeleteAll", func(t *testing.T) { testSchemeStorePermanentDeleteAll(t, ss) })
-	t.Run("GetByName", func(t *testing.T) { testSchemeStoreGetByName(t, ss) })
-	t.Run("CountByScope", func(t *testing.T) { testSchemeStoreCountByScope(t, ss) })
-	t.Run("CountWithoutPermission", func(t *testing.T) { testCountWithoutPermission(t, ss) })
+	t.Run("Save", func(t *testing.T) { testSchemeStoreSave(t, rctx, ss) })
+	t.Run("Get", func(t *testing.T) { testSchemeStoreGet(t, rctx, ss) })
+	t.Run("GetAllPage", func(t *testing.T) { testSchemeStoreGetAllPage(t, rctx, ss) })
+	t.Run("Delete", func(t *testing.T) { testSchemeStoreDelete(t, rctx, ss) })
+	t.Run("PermanentDeleteAll", func(t *testing.T) { testSchemeStorePermanentDeleteAll(t, rctx, ss) })
+	t.Run("GetByName", func(t *testing.T) { testSchemeStoreGetByName(t, rctx, ss) })
+	t.Run("CountByScope", func(t *testing.T) { testSchemeStoreCountByScope(t, rctx, ss) })
+	t.Run("CountWithoutPermission", func(t *testing.T) { testCountWithoutPermission(t, rctx, ss) })
 }
 
 func createDefaultRoles(ss store.Store) {
@@ -67,6 +68,7 @@ func createDefaultRoles(ss store.Store) {
 		DisplayName: model.ChannelUserRoleId,
 		Permissions: []string{
 			model.PermissionReadChannel.Id,
+			model.PermissionReadChannelContent.Id,
 			model.PermissionCreatePost.Id,
 		},
 	})
@@ -76,6 +78,7 @@ func createDefaultRoles(ss store.Store) {
 		DisplayName: model.ChannelGuestRoleId,
 		Permissions: []string{
 			model.PermissionReadChannel.Id,
+			model.PermissionReadChannelContent.Id,
 			model.PermissionCreatePost.Id,
 		},
 	})
@@ -113,7 +116,7 @@ func createDefaultRoles(ss store.Store) {
 	})
 }
 
-func testSchemeStoreSave(t *testing.T, ss store.Store) {
+func testSchemeStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Save a new scheme.
 	s1 := &model.Scheme{
 		DisplayName: model.NewId(),
@@ -158,7 +161,7 @@ func testSchemeStoreSave(t *testing.T, ss store.Store) {
 
 	role4, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelUserRole)
 	assert.NoError(t, err)
-	assert.Equal(t, role4.Permissions, []string{"read_channel", "create_post"})
+	assert.Equal(t, role4.Permissions, []string{"read_channel", "read_channel_content", "create_post"})
 	assert.True(t, role4.SchemeManaged)
 
 	role5, err := ss.Role().GetByName(context.Background(), d1.DefaultTeamGuestRole)
@@ -168,7 +171,7 @@ func testSchemeStoreSave(t *testing.T, ss store.Store) {
 
 	role6, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelGuestRole)
 	assert.NoError(t, err)
-	assert.Equal(t, role6.Permissions, []string{"read_channel", "create_post"})
+	assert.Equal(t, role6.Permissions, []string{"read_channel", "read_channel_content", "create_post"})
 	assert.True(t, role6.SchemeManaged)
 
 	// Change the scheme description and update.
@@ -204,7 +207,7 @@ func testSchemeStoreSave(t *testing.T, ss store.Store) {
 	assert.Error(t, err)
 }
 
-func testSchemeStoreGet(t *testing.T, ss store.Store) {
+func testSchemeStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Save a scheme to test with.
 	s1 := &model.Scheme{
 		DisplayName: model.NewId(),
@@ -240,7 +243,7 @@ func testSchemeStoreGet(t *testing.T, ss store.Store) {
 	assert.Error(t, err)
 }
 
-func testSchemeStoreGetByName(t *testing.T, ss store.Store) {
+func testSchemeStoreGetByName(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Save a scheme to test with.
 	s1 := &model.Scheme{
 		DisplayName: model.NewId(),
@@ -276,7 +279,7 @@ func testSchemeStoreGetByName(t *testing.T, ss store.Store) {
 	assert.Error(t, err)
 }
 
-func testSchemeStoreGetAllPage(t *testing.T, ss store.Store) {
+func testSchemeStoreGetAllPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Save a scheme to test with.
 	schemes := []*model.Scheme{
 		{
@@ -341,7 +344,7 @@ func testSchemeStoreGetAllPage(t *testing.T, ss store.Store) {
 	}
 }
 
-func testSchemeStoreDelete(t *testing.T, ss store.Store) {
+func testSchemeStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Save a new scheme.
 	s1 := &model.Scheme{
 		DisplayName: model.NewId(),
@@ -386,7 +389,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 
 	role4, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelUserRole)
 	assert.NoError(t, err)
-	assert.Equal(t, role4.Permissions, []string{"read_channel", "create_post"})
+	assert.Equal(t, role4.Permissions, []string{"read_channel", "read_channel_content", "create_post"})
 	assert.True(t, role4.SchemeManaged)
 
 	role5, err := ss.Role().GetByName(context.Background(), d1.DefaultTeamGuestRole)
@@ -396,7 +399,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 
 	role6, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelGuestRole)
 	assert.NoError(t, err)
-	assert.Equal(t, role6.Permissions, []string{"read_channel", "create_post"})
+	assert.Equal(t, role6.Permissions, []string{"read_channel", "read_channel_content", "create_post"})
 	assert.True(t, role6.SchemeManaged)
 
 	// Delete the scheme.
@@ -488,7 +491,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	assert.Equal(t, "", *c6.SchemeId)
 }
 
-func testSchemeStorePermanentDeleteAll(t *testing.T, ss store.Store) {
+func testSchemeStorePermanentDeleteAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
@@ -522,7 +525,7 @@ func testSchemeStorePermanentDeleteAll(t *testing.T, ss store.Store) {
 	assert.Empty(t, schemes)
 }
 
-func testSchemeStoreCountByScope(t *testing.T, ss store.Store) {
+func testSchemeStoreCountByScope(t *testing.T, rctx request.CTX, ss store.Store) {
 	testCounts := func(expectedTeamCount, expectedChannelCount int) {
 		actualCount, err := ss.Scheme().CountByScope(model.SchemeScopeTeam)
 		require.NoError(t, err)
@@ -555,7 +558,7 @@ func testSchemeStoreCountByScope(t *testing.T, ss store.Store) {
 	testCounts(2, 2)
 }
 
-func testCountWithoutPermission(t *testing.T, ss store.Store) {
+func testCountWithoutPermission(t *testing.T, rctx request.CTX, ss store.Store) {
 	perm := model.PermissionCreatePost.Id
 
 	createScheme := func(scope string) *model.Scheme {

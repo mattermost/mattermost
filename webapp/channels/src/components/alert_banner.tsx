@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
 import classNames from 'classnames';
-
+import React, {useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
+
 import {
     AlertOutlineIcon,
     CheckIcon,
@@ -14,6 +14,7 @@ import {
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
+
 import Constants from 'utils/constants';
 
 import './alert_banner.scss';
@@ -24,12 +25,14 @@ export type AlertBannerProps = {
     id?: string;
     mode: ModeType;
     title?: React.ReactNode;
+    customIcon?: React.ReactNode;
     message?: React.ReactNode;
     children?: React.ReactNode;
     className?: string;
     hideIcon?: boolean;
     actionButtonLeft?: React.ReactNode;
     actionButtonRight?: React.ReactNode;
+    footerMessage?: React.ReactNode;
     closeBtnTooltip?: React.ReactNode;
     onDismiss?: () => void;
     variant?: 'sys' | 'app';
@@ -39,6 +42,7 @@ const AlertBanner = ({
     id,
     mode,
     title,
+    customIcon,
     message,
     className,
     variant = 'sys',
@@ -46,13 +50,18 @@ const AlertBanner = ({
     actionButtonLeft,
     actionButtonRight,
     closeBtnTooltip,
+    footerMessage,
     hideIcon,
     children,
 }: AlertBannerProps) => {
     const {formatMessage} = useIntl();
+    const closeText = formatMessage({id: 'alert_banner.tooltipCloseBtn', defaultMessage: 'Close'});
     const [tooltipId] = useState(`alert_banner_close_btn_tooltip_${Math.random()}`);
 
     const bannerIcon = useCallback(() => {
+        if (customIcon) {
+            return customIcon;
+        }
         if (mode === 'danger' || mode === 'warning') {
             return (
                 <AlertOutlineIcon
@@ -68,7 +77,7 @@ const AlertBanner = ({
             <InformationOutlineIcon
                 size={24}
             />);
-    }, [mode]);
+    }, [mode, customIcon]);
 
     return (
         <div
@@ -103,6 +112,13 @@ const AlertBanner = ({
                         {actionButtonRight}
                     </div>
                 )}
+                {
+                    footerMessage && (
+                        <div className='AlertBanner__footerMessage'>
+                            {footerMessage}
+                        </div>
+                    )
+                }
             </div>
             {onDismiss && (
                 <OverlayTrigger
@@ -110,12 +126,11 @@ const AlertBanner = ({
                     delayShow={Constants.OVERLAY_TIME_DELAY}
                     placement='left'
                     overlay={closeBtnTooltip || (
-                        <Tooltip id={tooltipId}>
-                            {formatMessage({id: 'alert_banner.tooltipCloseBtn', defaultMessage: 'Close'})}
-                        </Tooltip>
+                        <Tooltip id={tooltipId}>{closeText}</Tooltip>
                     )}
                 >
                     <button
+                        aria-label={closeText}
                         className='AlertBanner__closeButton'
                         onClick={onDismiss}
                     >

@@ -10,8 +10,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -62,7 +62,7 @@ func (*msgProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs
 		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
-	canSee, err := a.UserCanSeeOtherUser(args.UserId, userProfile.Id)
+	canSee, err := a.UserCanSeeOtherUser(c, args.UserId, userProfile.Id)
 	if err != nil {
 		mlog.Error(err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}

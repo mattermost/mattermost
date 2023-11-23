@@ -6,7 +6,7 @@
 # Typically run the local server with:
 cd server && make run
 
-# Or build and distribute webapp including channels, boards and playbooks
+# Or build and distribute webapp including channels and playbooks
 # so that their product URLs do not rely on Webpack dev server.
 # Especially important when running test inside the Playwright's docker container.
 cd webapp && make dist
@@ -45,7 +45,7 @@ npm run test
 Change to root directory, run docker container
 
 ```
-docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.32.0-focal /bin/bash
+docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.38.1-jammy /bin/bash
 ```
 
 #### 2. Inside the docker container

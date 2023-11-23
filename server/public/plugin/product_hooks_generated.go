@@ -9,6 +9,7 @@ package plugin
 import (
 	"errors"
 	"io"
+	"net/http"
 	"reflect"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -48,6 +49,14 @@ type MessageHasBeenPostedIFace interface {
 
 type MessageHasBeenUpdatedIFace interface {
 	MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
+}
+
+type MessagesWillBeConsumedIFace interface {
+	MessagesWillBeConsumed(posts []*model.Post) []*model.Post
+}
+
+type MessageHasBeenDeletedIFace interface {
+	MessageHasBeenDeleted(c *Context, post *model.Post)
 }
 
 type ChannelHasBeenCreatedIFace interface {
@@ -114,32 +123,20 @@ type OnCloudLimitsUpdatedIFace interface {
 	OnCloudLimitsUpdated(limits *model.ProductLimits)
 }
 
-type UserHasPermissionToCollectionIFace interface {
-	UserHasPermissionToCollection(c *Context, userID string, collectionType, collectionId string, permission *model.Permission) (bool, error)
-}
-
-type GetAllCollectionIDsForUserIFace interface {
-	GetAllCollectionIDsForUser(c *Context, userID, collectionType string) ([]string, error)
-}
-
-type GetAllUserIdsForCollectionIFace interface {
-	GetAllUserIdsForCollection(c *Context, collectionType, collectionID string) ([]string, error)
-}
-
-type GetTopicRedirectIFace interface {
-	GetTopicRedirect(c *Context, topicType, topicID string) (string, error)
-}
-
-type GetCollectionMetadataByIdsIFace interface {
-	GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]*model.CollectionMetadata, error)
-}
-
-type GetTopicMetadataByIdsIFace interface {
-	GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error)
-}
-
 type ConfigurationWillBeSavedIFace interface {
 	ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error)
+}
+
+type NotificationWillBePushedIFace interface {
+	NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string)
+}
+
+type UserHasBeenDeactivatedIFace interface {
+	UserHasBeenDeactivated(c *Context, user *model.User)
+}
+
+type ServeMetricsIFace interface {
+	ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
 type HooksAdapter struct {
@@ -234,6 +231,24 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		a.implemented[MessageHasBeenUpdatedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("MessageHasBeenUpdated"); ok {
 		return nil, errors.New("hook has MessageHasBeenUpdated method but does not implement plugin.MessageHasBeenUpdated interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements MessagesWillBeConsumed interface.
+	tt = reflect.TypeOf((*MessagesWillBeConsumedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[MessagesWillBeConsumedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("MessagesWillBeConsumed"); ok {
+		return nil, errors.New("hook has MessagesWillBeConsumed method but does not implement plugin.MessagesWillBeConsumed interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements MessageHasBeenDeleted interface.
+	tt = reflect.TypeOf((*MessageHasBeenDeletedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[MessageHasBeenDeletedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("MessageHasBeenDeleted"); ok {
+		return nil, errors.New("hook has MessageHasBeenDeleted method but does not implement plugin.MessageHasBeenDeleted interface")
 	}
 
 	// Assessing the type of the productHooks if it individually implements ChannelHasBeenCreated interface.
@@ -380,60 +395,6 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		return nil, errors.New("hook has OnCloudLimitsUpdated method but does not implement plugin.OnCloudLimitsUpdated interface")
 	}
 
-	// Assessing the type of the productHooks if it individually implements UserHasPermissionToCollection interface.
-	tt = reflect.TypeOf((*UserHasPermissionToCollectionIFace)(nil)).Elem()
-
-	if ft.Implements(tt) {
-		a.implemented[UserHasPermissionToCollectionID] = struct{}{}
-	} else if _, ok := ft.MethodByName("UserHasPermissionToCollection"); ok {
-		return nil, errors.New("hook has UserHasPermissionToCollection method but does not implement plugin.UserHasPermissionToCollection interface")
-	}
-
-	// Assessing the type of the productHooks if it individually implements GetAllCollectionIDsForUser interface.
-	tt = reflect.TypeOf((*GetAllCollectionIDsForUserIFace)(nil)).Elem()
-
-	if ft.Implements(tt) {
-		a.implemented[GetAllCollectionIDsForUserID] = struct{}{}
-	} else if _, ok := ft.MethodByName("GetAllCollectionIDsForUser"); ok {
-		return nil, errors.New("hook has GetAllCollectionIDsForUser method but does not implement plugin.GetAllCollectionIDsForUser interface")
-	}
-
-	// Assessing the type of the productHooks if it individually implements GetAllUserIdsForCollection interface.
-	tt = reflect.TypeOf((*GetAllUserIdsForCollectionIFace)(nil)).Elem()
-
-	if ft.Implements(tt) {
-		a.implemented[GetAllUserIdsForCollectionID] = struct{}{}
-	} else if _, ok := ft.MethodByName("GetAllUserIdsForCollection"); ok {
-		return nil, errors.New("hook has GetAllUserIdsForCollection method but does not implement plugin.GetAllUserIdsForCollection interface")
-	}
-
-	// Assessing the type of the productHooks if it individually implements GetTopicRedirect interface.
-	tt = reflect.TypeOf((*GetTopicRedirectIFace)(nil)).Elem()
-
-	if ft.Implements(tt) {
-		a.implemented[GetTopicRedirectID] = struct{}{}
-	} else if _, ok := ft.MethodByName("GetTopicRedirect"); ok {
-		return nil, errors.New("hook has GetTopicRedirect method but does not implement plugin.GetTopicRedirect interface")
-	}
-
-	// Assessing the type of the productHooks if it individually implements GetCollectionMetadataByIds interface.
-	tt = reflect.TypeOf((*GetCollectionMetadataByIdsIFace)(nil)).Elem()
-
-	if ft.Implements(tt) {
-		a.implemented[GetCollectionMetadataByIdsID] = struct{}{}
-	} else if _, ok := ft.MethodByName("GetCollectionMetadataByIds"); ok {
-		return nil, errors.New("hook has GetCollectionMetadataByIds method but does not implement plugin.GetCollectionMetadataByIds interface")
-	}
-
-	// Assessing the type of the productHooks if it individually implements GetTopicMetadataByIds interface.
-	tt = reflect.TypeOf((*GetTopicMetadataByIdsIFace)(nil)).Elem()
-
-	if ft.Implements(tt) {
-		a.implemented[GetTopicMetadataByIdsID] = struct{}{}
-	} else if _, ok := ft.MethodByName("GetTopicMetadataByIds"); ok {
-		return nil, errors.New("hook has GetTopicMetadataByIds method but does not implement plugin.GetTopicMetadataByIds interface")
-	}
-
 	// Assessing the type of the productHooks if it individually implements ConfigurationWillBeSaved interface.
 	tt = reflect.TypeOf((*ConfigurationWillBeSavedIFace)(nil)).Elem()
 
@@ -441,6 +402,33 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		a.implemented[ConfigurationWillBeSavedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("ConfigurationWillBeSaved"); ok {
 		return nil, errors.New("hook has ConfigurationWillBeSaved method but does not implement plugin.ConfigurationWillBeSaved interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements NotificationWillBePushed interface.
+	tt = reflect.TypeOf((*NotificationWillBePushedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[NotificationWillBePushedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("NotificationWillBePushed"); ok {
+		return nil, errors.New("hook has NotificationWillBePushed method but does not implement plugin.NotificationWillBePushed interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements UserHasBeenDeactivated interface.
+	tt = reflect.TypeOf((*UserHasBeenDeactivatedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[UserHasBeenDeactivatedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("UserHasBeenDeactivated"); ok {
+		return nil, errors.New("hook has UserHasBeenDeactivated method but does not implement plugin.UserHasBeenDeactivated interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements ServeMetrics interface.
+	tt = reflect.TypeOf((*ServeMetricsIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[ServeMetricsID] = struct{}{}
+	} else if _, ok := ft.MethodByName("ServeMetrics"); ok {
+		return nil, errors.New("hook has ServeMetrics method but does not implement plugin.ServeMetrics interface")
 	}
 
 	return a, nil
@@ -524,6 +512,24 @@ func (a *HooksAdapter) MessageHasBeenUpdated(c *Context, newPost, oldPost *model
 	}
 
 	a.productHooks.(MessageHasBeenUpdatedIFace).MessageHasBeenUpdated(c, newPost, oldPost)
+
+}
+
+func (a *HooksAdapter) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+	if _, ok := a.implemented[MessagesWillBeConsumedID]; !ok {
+		panic("product hooks must implement MessagesWillBeConsumed")
+	}
+
+	return a.productHooks.(MessagesWillBeConsumedIFace).MessagesWillBeConsumed(posts)
+
+}
+
+func (a *HooksAdapter) MessageHasBeenDeleted(c *Context, post *model.Post) {
+	if _, ok := a.implemented[MessageHasBeenDeletedID]; !ok {
+		panic("product hooks must implement MessageHasBeenDeleted")
+	}
+
+	a.productHooks.(MessageHasBeenDeletedIFace).MessageHasBeenDeleted(c, post)
 
 }
 
@@ -671,65 +677,38 @@ func (a *HooksAdapter) OnCloudLimitsUpdated(limits *model.ProductLimits) {
 
 }
 
-func (a *HooksAdapter) UserHasPermissionToCollection(c *Context, userID string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
-	if _, ok := a.implemented[UserHasPermissionToCollectionID]; !ok {
-		panic("product hooks must implement UserHasPermissionToCollection")
-	}
-
-	return a.productHooks.(UserHasPermissionToCollectionIFace).UserHasPermissionToCollection(c, userID, collectionType, collectionId, permission)
-
-}
-
-func (a *HooksAdapter) GetAllCollectionIDsForUser(c *Context, userID, collectionType string) ([]string, error) {
-	if _, ok := a.implemented[GetAllCollectionIDsForUserID]; !ok {
-		panic("product hooks must implement GetAllCollectionIDsForUser")
-	}
-
-	return a.productHooks.(GetAllCollectionIDsForUserIFace).GetAllCollectionIDsForUser(c, userID, collectionType)
-
-}
-
-func (a *HooksAdapter) GetAllUserIdsForCollection(c *Context, collectionType, collectionID string) ([]string, error) {
-	if _, ok := a.implemented[GetAllUserIdsForCollectionID]; !ok {
-		panic("product hooks must implement GetAllUserIdsForCollection")
-	}
-
-	return a.productHooks.(GetAllUserIdsForCollectionIFace).GetAllUserIdsForCollection(c, collectionType, collectionID)
-
-}
-
-func (a *HooksAdapter) GetTopicRedirect(c *Context, topicType, topicID string) (string, error) {
-	if _, ok := a.implemented[GetTopicRedirectID]; !ok {
-		panic("product hooks must implement GetTopicRedirect")
-	}
-
-	return a.productHooks.(GetTopicRedirectIFace).GetTopicRedirect(c, topicType, topicID)
-
-}
-
-func (a *HooksAdapter) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]*model.CollectionMetadata, error) {
-	if _, ok := a.implemented[GetCollectionMetadataByIdsID]; !ok {
-		panic("product hooks must implement GetCollectionMetadataByIds")
-	}
-
-	return a.productHooks.(GetCollectionMetadataByIdsIFace).GetCollectionMetadataByIds(c, collectionType, collectionIds)
-
-}
-
-func (a *HooksAdapter) GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error) {
-	if _, ok := a.implemented[GetTopicMetadataByIdsID]; !ok {
-		panic("product hooks must implement GetTopicMetadataByIds")
-	}
-
-	return a.productHooks.(GetTopicMetadataByIdsIFace).GetTopicMetadataByIds(c, topicType, topicIds)
-
-}
-
 func (a *HooksAdapter) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error) {
 	if _, ok := a.implemented[ConfigurationWillBeSavedID]; !ok {
 		panic("product hooks must implement ConfigurationWillBeSaved")
 	}
 
 	return a.productHooks.(ConfigurationWillBeSavedIFace).ConfigurationWillBeSaved(newCfg)
+
+}
+
+func (a *HooksAdapter) NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string) {
+	if _, ok := a.implemented[NotificationWillBePushedID]; !ok {
+		panic("product hooks must implement NotificationWillBePushed")
+	}
+
+	return a.productHooks.(NotificationWillBePushedIFace).NotificationWillBePushed(pushNotification, userID)
+
+}
+
+func (a *HooksAdapter) UserHasBeenDeactivated(c *Context, user *model.User) {
+	if _, ok := a.implemented[UserHasBeenDeactivatedID]; !ok {
+		panic("product hooks must implement UserHasBeenDeactivated")
+	}
+
+	a.productHooks.(UserHasBeenDeactivatedIFace).UserHasBeenDeactivated(c, user)
+
+}
+
+func (a *HooksAdapter) ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request) {
+	if _, ok := a.implemented[ServeMetricsID]; !ok {
+		panic("product hooks must implement ServeMetrics")
+	}
+
+	a.productHooks.(ServeMetricsIFace).ServeMetrics(c, w, r)
 
 }

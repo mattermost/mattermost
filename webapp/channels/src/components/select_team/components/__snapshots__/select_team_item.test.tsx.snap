@@ -15,15 +15,8 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
     >
       team_display_name
     </span>
-    <LocalizedIcon
+    <span
       className="fa fa-refresh fa-spin right signup-team__icon"
-      component="span"
-      title={
-        Object {
-          "defaultMessage": "Loading Icon",
-          "id": "generic_icons.loading",
-        }
-      }
     />
   </a>
 </div>
@@ -44,24 +37,11 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
     >
       team_display_name
     </span>
-    <LocalizedIcon
+    <i
       className="fa fa-lock light"
-      title={
-        Object {
-          "defaultMessage": "Private team",
-          "id": "select_team.private.icon",
-        }
-      }
     />
-    <LocalizedIcon
+    <span
       className="fa fa-angle-right right signup-team__icon"
-      component="span"
-      title={
-        Object {
-          "defaultMessage": "Join Team Icon",
-          "id": "select_team.join.icon",
-        }
-      }
     />
   </a>
 </div>
@@ -81,14 +61,8 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
     >
       team_display_name
     </span>
-    <LocalizedIcon
+    <i
       className="fa fa-lock light"
-      title={
-        Object {
-          "defaultMessage": "Private team",
-          "id": "select_team.private.icon",
-        }
-      }
     />
   </a>
 </div>
@@ -109,15 +83,8 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
     >
       team_display_name
     </span>
-    <LocalizedIcon
+    <span
       className="fa fa-angle-right right signup-team__icon"
-      component="span"
-      title={
-        Object {
-          "defaultMessage": "Join Team Icon",
-          "id": "select_team.join.icon",
-        }
-      }
     />
   </a>
 </div>
@@ -153,6 +120,24 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
         "props": Object {
           "canJoinPrivateTeams": false,
           "canJoinPublicTeams": true,
+          "intl": Object {
+            "formatMessage": [MockFunction] {
+              "calls": Array [
+                Array [
+                  Object {
+                    "defaultMessage": "Join Team Icon",
+                    "id": "select_team.join.icon",
+                  },
+                ],
+              ],
+              "results": Array [
+                Object {
+                  "type": "return",
+                  "value": undefined,
+                },
+              ],
+            },
+          },
           "loading": false,
           "onTeamClick": [MockFunction],
           "team": Object {
@@ -192,6 +177,26 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
             "_element": <SelectTeamItem
               canJoinPrivateTeams={false}
               canJoinPublicTeams={true}
+              intl={
+                Object {
+                  "formatMessage": [MockFunction] {
+                    "calls": Array [
+                      Array [
+                        Object {
+                          "defaultMessage": "Join Team Icon",
+                          "id": "select_team.join.icon",
+                        },
+                      ],
+                    ],
+                    "results": Array [
+                      Object {
+                        "type": "return",
+                        "value": undefined,
+                      },
+                    ],
+                  },
+                }
+              }
               loading={false}
               onTeamClick={[MockFunction]}
               team={
@@ -248,15 +253,8 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
                 >
                   team_display_name
                 </span>
-                <LocalizedIcon
+                <span
                   className="fa fa-angle-right right signup-team__icon"
-                  component="span"
-                  title={
-                    Object {
-                      "defaultMessage": "Join Team Icon",
-                      "id": "select_team.join.icon",
-                    }
-                  }
                 />
               </a>
             </div>,
@@ -300,15 +298,8 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
     >
       team_display_name
     </span>
-    <LocalizedIcon
+    <span
       className="fa fa-angle-right right signup-team__icon"
-      component="span"
-      title={
-        Object {
-          "defaultMessage": "Join Team Icon",
-          "id": "select_team.join.icon",
-        }
-      }
     />
   </a>
 </div>

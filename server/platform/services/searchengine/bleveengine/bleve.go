@@ -219,6 +219,10 @@ func (b *BleveEngine) Stop() *model.AppError {
 	return b.closeIndexes()
 }
 
+func (b *BleveEngine) IsEnabled() bool {
+	return b.IsIndexingEnabled()
+}
+
 func (b *BleveEngine) IsActive() bool {
 	return atomic.LoadInt32(&b.ready) == 1
 }

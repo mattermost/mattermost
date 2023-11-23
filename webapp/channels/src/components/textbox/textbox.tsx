@@ -1,29 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, ElementType, FocusEvent, KeyboardEvent, MouseEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
 import classNames from 'classnames';
+import React from 'react';
+import type {ChangeEvent, ElementType, FocusEvent, KeyboardEvent, MouseEvent} from 'react';
+import {FormattedMessage} from 'react-intl';
 
-import {Channel} from '@mattermost/types/channels';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AutosizeTextarea from 'components/autosize_textarea';
 import PostMarkdown from 'components/post_markdown';
-import Provider from 'components/suggestion/provider';
 import AtMentionProvider from 'components/suggestion/at_mention_provider';
 import ChannelMentionProvider from 'components/suggestion/channel_mention_provider';
 import AppCommandProvider from 'components/suggestion/command_provider/app_provider';
 import CommandProvider from 'components/suggestion/command_provider/command_provider';
 import EmoticonProvider from 'components/suggestion/emoticon_provider';
+import type Provider from 'components/suggestion/provider';
 import SuggestionBox from 'components/suggestion/suggestion_box';
-import SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
-import SuggestionList from 'components/suggestion/suggestion_list.jsx';
+import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
+import SuggestionList from 'components/suggestion/suggestion_list';
 
 import * as Utils from 'utils/utils';
 
-import {TextboxElement} from './index';
+import type {TextboxElement} from './index';
 
 const ALL = ['all'];
 
@@ -40,7 +42,6 @@ export type Props = {
     onWidthChange?: (width: number) => void;
     createMessage: string;
     onKeyDown?: (e: KeyboardEvent<TextboxElement>) => void;
-    onSelect?: (e: React.SyntheticEvent<TextboxElement>) => void;
     onMouseUp?: (e: React.MouseEvent<TextboxElement>) => void;
     onKeyUp?: (e: React.KeyboardEvent<TextboxElement>) => void;
     onBlur?: (e: FocusEvent<TextboxElement>) => void;
@@ -52,11 +53,9 @@ export type Props = {
     suggestionListPosition?: React.ComponentProps<typeof SuggestionList>['position'];
     alignWithTextbox?: boolean;
     emojiEnabled?: boolean;
-    isRHS?: boolean;
     characterLimit: number;
     disabled?: boolean;
     badConnection?: boolean;
-    listenForMentionKeyClick?: boolean;
     currentUserId: string;
     currentTeamId: string;
     preview?: boolean;
@@ -85,8 +84,6 @@ export default class Textbox extends React.PureComponent<Props> {
 
     static defaultProps = {
         supportsCommands: true,
-        isRHS: false,
-        listenForMentionKeyClick: false,
         inputComponent: AutosizeTextarea,
         suggestionList: SuggestionList,
     };
@@ -229,8 +226,6 @@ export default class Textbox extends React.PureComponent<Props> {
         this.props.onKeyDown?.(e as KeyboardEvent<TextboxElement>);
     };
 
-    handleSelect = (e: React.SyntheticEvent<TextboxElement>) => this.props.onSelect?.(e);
-
     handleMouseUp = (e: MouseEvent<TextboxElement>) => this.props.onMouseUp?.(e);
 
     handleKeyUp = (e: KeyboardEvent<TextboxElement>) => this.props.onKeyUp?.(e);
@@ -268,10 +263,7 @@ export default class Textbox extends React.PureComponent<Props> {
     };
 
     render() {
-        let preview = null;
-
-        let textboxClassName = 'form-control custom-textarea';
-        let textWrapperClass = 'textarea-wrapper';
+        let textboxClassName = 'form-control custom-textarea textbox-edit-area';
         if (this.props.emojiEnabled) {
             textboxClassName += ' custom-textarea--emoji-picker';
         }
@@ -281,11 +273,12 @@ export default class Textbox extends React.PureComponent<Props> {
         if (this.props.hasLabels) {
             textboxClassName += ' textarea--has-labels';
         }
-        if (this.props.preview) {
-            textboxClassName += ' custom-textarea--preview';
-            textWrapperClass += ' textarea-wrapper--preview';
 
-            preview = (
+        return (
+            <div
+                ref={this.wrapper}
+                className={classNames('textarea-wrapper', {'textarea-wrapper-preview': this.props.preview})}
+            >
                 <div
                     tabIndex={this.props.tabIndex || 0}
                     ref={this.preview}
@@ -295,30 +288,21 @@ export default class Textbox extends React.PureComponent<Props> {
                     onBlur={this.handleBlur}
                 >
                     <PostMarkdown
-                        isRHS={this.props.isRHS}
                         message={this.props.value}
-                        mentionKeys={[]}
                         channelId={this.props.channelId}
                         imageProps={{hideUtilities: true}}
                     />
                 </div>
-            );
-        }
-
-        return (
-            <div
-                ref={this.wrapper}
-                className={textWrapperClass}
-            >
                 <SuggestionBox
-                    id={this.props.id}
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
                     ref={this.message}
+                    id={this.props.id}
                     className={textboxClassName}
                     spellCheck='true'
                     placeholder={this.props.createMessage}
                     onChange={this.handleChange}
                     onKeyPress={this.props.onKeyPress}
-                    onSelect={this.handleSelect}
                     onKeyDown={this.handleKeyDown}
                     onMouseUp={this.handleMouseUp}
                     onKeyUp={this.handleKeyUp}
@@ -333,17 +317,13 @@ export default class Textbox extends React.PureComponent<Props> {
                     listComponent={this.props.suggestionList}
                     listPosition={this.props.suggestionListPosition}
                     providers={this.suggestionProviders}
-                    channelId={this.props.channelId}
                     value={this.props.value}
                     renderDividers={ALL}
-                    isRHS={this.props.isRHS}
                     disabled={this.props.disabled}
                     contextId={this.props.channelId}
-                    listenForMentionKeyClick={this.props.listenForMentionKeyClick}
                     openWhenEmpty={this.props.openWhenEmpty}
                     alignWithTextbox={this.props.alignWithTextbox}
                 />
-                {preview}
             </div>
         );
     }

@@ -1,13 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import expect from 'expect';
-
-import {Post, PostOrderBlock} from '@mattermost/types/posts';
+import type {Post, PostOrderBlock} from '@mattermost/types/posts';
 
 import {
     ChannelTypes,
-    GeneralTypes,
     PostTypes,
     ThreadTypes,
     CloudTypes,
@@ -15,6 +12,7 @@ import {
 import {Posts} from 'mattermost-redux/constants';
 import * as reducers from 'mattermost-redux/reducers/entities/posts';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
+
 import {TestHelper} from 'utils/test_helper';
 
 function toPostsRecord(partials: Record<string, Partial<Post>>): Record<string, Post> {
@@ -4090,41 +4088,6 @@ describe('opengraph', () => {
     });
 });
 
-describe('expandedURLs', () => {
-    it('should store the URLs on REDIRECT_LOCATION_SUCCESS', () => {
-        const state = deepFreeze({});
-        const action = {
-            type: GeneralTypes.REDIRECT_LOCATION_SUCCESS,
-            data: {
-                url: 'a',
-                location: 'b',
-            },
-        };
-
-        const nextState = reducers.expandedURLs(state, action);
-        expect(state).not.toEqual(nextState);
-        expect(nextState).toEqual({
-            a: 'b',
-        });
-    });
-
-    it('should store the non-expanded URL on REDIRECT_LOCATION_FAILURE', () => {
-        const state = deepFreeze({});
-        const action = {
-            type: GeneralTypes.REDIRECT_LOCATION_FAILURE,
-            data: {
-                url: 'b',
-            },
-        };
-
-        const nextState = reducers.expandedURLs(state, action);
-        expect(state).not.toEqual(nextState);
-        expect(nextState).toEqual({
-            b: 'b',
-        });
-    });
-});
-
 describe('removeNonRecentEmptyPostBlocks', () => {
     it('should filter empty blocks', () => {
         const blocks = [{
@@ -4431,24 +4394,5 @@ describe('limitedViews', () => {
 
             expect(nextState).toEqual(zeroState);
         });
-    });
-
-    it('makes no changes if events type is not listened to', () => {
-        const initialState = {
-            channels: {
-                channelId: 123,
-            },
-            threads: {
-                rootId: 124,
-            },
-        };
-        const nextState = reducers.limitedViews(initialState, {
-            type: GeneralTypes.REDIRECT_LOCATION_FAILURE,
-            data: {
-                url: 'http://failed-location-failure.com',
-            },
-        });
-
-        expect(nextState).toEqual(initialState);
     });
 });

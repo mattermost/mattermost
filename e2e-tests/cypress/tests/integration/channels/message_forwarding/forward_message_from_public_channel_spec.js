@@ -30,10 +30,6 @@ describe('Forward Message', () => {
     const replyMessage = 'Forward this reply';
 
     before(() => {
-        // # Testing Forwarding from Insights view requires a license
-        cy.apiRequireLicense();
-        cy.shouldHaveFeatureFlag('InsightsEnabled', true);
-
         cy.apiUpdateConfig({
             ServiceSettings: {
                 ThreadAutoFollow: true,
@@ -196,32 +192,6 @@ describe('Forward Message', () => {
 
         // * Assert switch to testchannel
         cy.get('#channelHeaderTitle', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible').should('contain', otherChannel.display_name);
-
-        // * Assert post has been forwarded
-        verifyForwardedMessage({post: replyPost});
-    });
-
-    it('MM-T4934_5 Forward public channel post while viewing Insights', () => {
-        // # Open the RHS with replies to the root post
-        cy.uiClickPostDropdownMenu(testPost.id, 'Reply', 'CENTER');
-
-        // * Assert RHS is open
-        cy.get('#rhsContainer').should('be.visible');
-
-        // # Visit global threads
-        cy.uiClickSidebarItem('insights');
-
-        // # Click on ... button of reply post
-        cy.clickPostDotMenu(replyPost.id, 'RHS_COMMENT');
-
-        // * Assert availability of the Forward menu-item
-        cy.findByText('Forward').click();
-
-        // * Forward Post
-        forwardPost({channelId: privateChannel.id});
-
-        // * Assert switch to testchannel
-        cy.get('#channelHeaderTitle', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible').should('contain', privateChannel.display_name);
 
         // * Assert post has been forwarded
         verifyForwardedMessage({post: replyPost});

@@ -50,7 +50,7 @@ func TestGetPreferences(t *testing.T) {
 	prefs, _, err := client.GetPreferences(context.Background(), user1.Id)
 	require.NoError(t, err)
 
-	// 6 because we have 3 initial preferences insights, tutorial_step and recommended_next_steps added when creating a new user
+	// 6 because we have 3 initial preferences tutorial_step, recommended_next_steps and system_notification are added when creating a new user
 	require.Equal(t, len(prefs), 6, "received the wrong number of preferences")
 
 	for _, preference := range prefs {
@@ -192,7 +192,6 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	_, resp, err = client.GetPreferenceByCategoryAndName(context.Background(), user.Id, preferences[0].Category, preferences[0].Name)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
-
 }
 
 func TestUpdatePreferences(t *testing.T) {

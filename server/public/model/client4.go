@@ -467,10 +467,6 @@ func (c *Client4) oAuthAppRoute(appId string) string {
 	return fmt.Sprintf("/oauth/apps/%v", appId)
 }
 
-func (c *Client4) openGraphRoute() string {
-	return "/opengraph"
-}
-
 func (c *Client4) jobsRoute() string {
 	return "/jobs"
 }
@@ -557,6 +553,10 @@ func (c *Client4) exportRoute(name string) string {
 
 func (c *Client4) sharedChannelsRoute() string {
 	return "/sharedchannels"
+}
+
+func (c *Client4) ipFiltersRoute() string {
+	return "/ip_filtering"
 }
 
 func (c *Client4) permissionsRoute() string {
@@ -3047,6 +3047,21 @@ func (c *Client4) GetChannelStats(ctx context.Context, channelId string, etag st
 	return &stats, BuildResponse(r), nil
 }
 
+// GetChannelsMemberCount get channel member count for a given array of channel ids
+func (c *Client4) GetChannelsMemberCount(ctx context.Context, channelIDs []string) (map[string]int64, *Response, error) {
+	route := c.channelsRoute() + "/stats/member_count"
+	r, err := c.DoAPIPost(ctx, route, ArrayToJSON(channelIDs))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var counts map[string]int64
+	if err := json.NewDecoder(r.Body).Decode(&counts); err != nil {
+		return nil, nil, NewAppError("GetChannelsMemberCount", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return counts, BuildResponse(r), nil
+}
+
 // GetChannelMembersTimezones gets a list of timezones for a channel.
 func (c *Client4) GetChannelMembersTimezones(ctx context.Context, channelId string) ([]string, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/timezones", "")
@@ -3525,6 +3540,27 @@ func (c *Client4) ViewChannel(ctx context.Context, userId string, view *ChannelV
 	return ch, BuildResponse(r), nil
 }
 
+// ReadMultipleChannels performs a view action on several channels at the same time for a user.
+func (c *Client4) ReadMultipleChannels(ctx context.Context, userId string, channelIds []string) (*ChannelViewResponse, *Response, error) {
+	url := fmt.Sprintf(c.channelsRoute()+"/members/%v/mark_read", userId)
+	buf, err := json.Marshal(channelIds)
+	if err != nil {
+		return nil, nil, NewAppError("ReadMultipleChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(ctx, url, buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch *ChannelViewResponse
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("ReadMultipleChannels", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
 // GetChannelUnread will return a ChannelUnread object that contains the number of
 // unread messages and mentions for a user.
 func (c *Client4) GetChannelUnread(ctx context.Context, channelId, userId string) (*ChannelUnread, *Response, error) {
@@ -3653,76 +3689,6 @@ func (c *Client4) AutocompleteChannelsForTeamForSearch(ctx context.Context, team
 		return nil, BuildResponse(r), NewAppError("AutocompleteChannelsForTeamForSearch", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return ch, BuildResponse(r), nil
-}
-
-// GetTopChannelsForTeamSince will return an ordered list of the top channels in a given team.
-func (c *Client4) GetTopChannelsForTeamSince(ctx context.Context, teamId string, timeRange string, page int, perPage int) (*TopChannelList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.teamRoute(teamId)+"/top/channels"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topChannels *TopChannelList
-	if err := json.NewDecoder(r.Body).Decode(&topChannels); err != nil {
-		return nil, nil, NewAppError("GetTopChannelsForTeamSince", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topChannels, BuildResponse(r), nil
-}
-
-// GetTopChannelsForUserSince will return an ordered list of your top channels in a given team.
-func (c *Client4) GetTopChannelsForUserSince(ctx context.Context, teamId string, timeRange string, page int, perPage int) (*TopChannelList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-
-	if teamId != "" {
-		query += fmt.Sprintf("&team_id=%v", teamId)
-	}
-
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/me/top/channels"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topChannels *TopChannelList
-	if err := json.NewDecoder(r.Body).Decode(&topChannels); err != nil {
-		return nil, nil, NewAppError("GetTopChannelsForUserSince", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topChannels, BuildResponse(r), nil
-}
-
-// GetTopInactiveChannelsForTeamSince will return an ordered list of the top channels in a given team.
-func (c *Client4) GetTopInactiveChannelsForTeamSince(ctx context.Context, teamId string, timeRange string, page int, perPage int) (*TopInactiveChannelList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.teamRoute(teamId)+"/top/inactive_channels"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topInactiveChannels *TopInactiveChannelList
-	if jsonErr := json.NewDecoder(r.Body).Decode(&topInactiveChannels); jsonErr != nil {
-		return nil, nil, NewAppError("GetTopInactiveChannelsForTeamSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-	}
-	return topInactiveChannels, BuildResponse(r), nil
-}
-
-// GetTopInactiveChannelsForUserSince will return an ordered list of your top channels in a given team.
-func (c *Client4) GetTopInactiveChannelsForUserSince(ctx context.Context, teamId string, timeRange string, page int, perPage int) (*TopInactiveChannelList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-
-	if teamId != "" {
-		query += fmt.Sprintf("&team_id=%v", teamId)
-	}
-
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/me/top/inactive_channels"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topInactiveChannels *TopInactiveChannelList
-	if jsonErr := json.NewDecoder(r.Body).Decode(&topInactiveChannels); jsonErr != nil {
-		return nil, nil, NewAppError("GetTopInactiveChannelsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-	}
-	return topInactiveChannels, BuildResponse(r), nil
 }
 
 // Post Section
@@ -4305,41 +4271,6 @@ func (c *Client4) DoPostActionWithCookie(ctx context.Context, postId, actionId, 
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
-}
-
-// GetTopThreadsForTeamSince will return an ordered list of the top channels in a given team.
-func (c *Client4) GetTopThreadsForTeamSince(ctx context.Context, teamId string, timeRange string, page int, perPage int) (*TopThreadList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.teamRoute(teamId)+"/top/threads"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topThreads *TopThreadList
-	if err := json.NewDecoder(r.Body).Decode(&topThreads); err != nil {
-		return nil, nil, NewAppError("GetTopThreadsForTeamSince", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topThreads, BuildResponse(r), nil
-}
-
-// GetTopThreadsForUserSince will return an ordered list of your top channels in a given team.
-func (c *Client4) GetTopThreadsForUserSince(ctx context.Context, teamId string, timeRange string, page int, perPage int) (*TopThreadList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-
-	if teamId != "" {
-		query += fmt.Sprintf("&team_id=%v", teamId)
-	}
-
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/me/top/threads"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topThreads *TopThreadList
-	if err := json.NewDecoder(r.Body).Decode(&topThreads); err != nil {
-		return nil, nil, NewAppError("GetTopThreadsForUserSince", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topThreads, BuildResponse(r), nil
 }
 
 // OpenInteractiveDialog sends a WebSocket event to a user's clients to
@@ -5583,7 +5514,7 @@ func (c *Client4) GetGroupsAssociatedToChannelsByTeam(ctx context.Context, teamI
 // GetGroups retrieves Mattermost Groups
 func (c *Client4) GetGroups(ctx context.Context, opts GroupSearchOpts) ([]*Group, *Response, error) {
 	path := fmt.Sprintf(
-		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v&filter_parent_team_permitted=%v&group_source=%v&include_channel_member_count=%v&include_timezones=%v",
+		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v&filter_parent_team_permitted=%v&group_source=%v&include_channel_member_count=%v&include_timezones=%v&include_archived=%v&filter_archived=%v",
 		c.groupsRoute(),
 		opts.IncludeMemberCount,
 		opts.NotAssociatedToTeam,
@@ -5594,6 +5525,8 @@ func (c *Client4) GetGroups(ctx context.Context, opts GroupSearchOpts) ([]*Group
 		opts.Source,
 		opts.IncludeChannelMemberCount,
 		opts.IncludeTimezones,
+		opts.IncludeArchived,
+		opts.FilterArchived,
 	)
 	if opts.Since > 0 {
 		path = fmt.Sprintf("%s&since=%v", path, opts.Since)
@@ -6689,6 +6622,26 @@ func (c *Client4) GetSortedEmojiList(ctx context.Context, page, perPage int, sor
 	return list, BuildResponse(r), nil
 }
 
+// GetEmojisByNames takes an array of custom emoji names and returns an array of those emojis.
+func (c *Client4) GetEmojisByNames(ctx context.Context, names []string) ([]*Emoji, *Response, error) {
+	buf, err := json.Marshal(names)
+	if err != nil {
+		return nil, nil, NewAppError("GetEmojisByNames", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPostBytes(ctx, c.emojisRoute()+"/names", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var list []*Emoji
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetEmojisByNames", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
 // DeleteEmoji delete an custom emoji on the provided emoji id string.
 func (c *Client4) DeleteEmoji(ctx context.Context, emojiId string) (*Response, error) {
 	r, err := c.DoAPIDelete(ctx, c.emojiRoute(emojiId))
@@ -6834,54 +6787,6 @@ func (c *Client4) GetBulkReactions(ctx context.Context, postIds []string) (map[s
 	return reactions, BuildResponse(r), nil
 }
 
-func (c *Client4) GetTopReactionsForTeamSince(ctx context.Context, teamId string, timeRange string, page int, perPage int) (*TopReactionList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.teamRoute(teamId)+"/top/reactions"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topReactions *TopReactionList
-	if err := json.NewDecoder(r.Body).Decode(&topReactions); err != nil {
-		return nil, nil, NewAppError("GetTopReactionsForTeamSince", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topReactions, BuildResponse(r), nil
-}
-
-func (c *Client4) GetTopReactionsForUserSince(ctx context.Context, teamId string, timeRange string, page int, perPage int) (*TopReactionList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-
-	if teamId != "" {
-		query += fmt.Sprintf("&team_id=%v", teamId)
-	}
-
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/me/top/reactions"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topReactions *TopReactionList
-	if err := json.NewDecoder(r.Body).Decode(&topReactions); err != nil {
-		return nil, nil, NewAppError("GetTopReactionsForUserSince", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return topReactions, BuildResponse(r), nil
-}
-
-func (c *Client4) GetTopDMsForUserSince(ctx context.Context, timeRange string, page int, perPage int) (*TopDMList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/me/top/dms"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var topDMs *TopDMList
-	if jsonErr := json.NewDecoder(r.Body).Decode(&topDMs); jsonErr != nil {
-		return nil, nil, NewAppError("GetTopReactionsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-	}
-	return topDMs, BuildResponse(r), nil
-}
-
 // Timezone Section
 
 // GetSupportedTimezone returns a page of supported timezones on the system.
@@ -6894,21 +6799,6 @@ func (c *Client4) GetSupportedTimezone(ctx context.Context) ([]string, *Response
 	var timezones []string
 	json.NewDecoder(r.Body).Decode(&timezones)
 	return timezones, BuildResponse(r), nil
-}
-
-// Open Graph Metadata Section
-
-// OpenGraph return the open graph metadata for a particular url if the site have the metadata.
-func (c *Client4) OpenGraph(ctx context.Context, url string) (map[string]string, *Response, error) {
-	requestBody := make(map[string]string)
-	requestBody["url"] = url
-
-	r, err := c.DoAPIPost(ctx, c.openGraphRoute(), MapToJSON(requestBody))
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return MapFromJSON(r.Body), BuildResponse(r), nil
 }
 
 // Jobs Section
@@ -8142,6 +8032,52 @@ func (c *Client4) GetProductLimits(ctx context.Context) (*ProductLimits, *Respon
 	return productLimits, BuildResponse(r), nil
 }
 
+func (c *Client4) GetIPFilters(ctx context.Context) (*AllowedIPRanges, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.ipFiltersRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+
+	var allowedIPRanges *AllowedIPRanges
+	json.NewDecoder(r.Body).Decode(&allowedIPRanges)
+	return allowedIPRanges, BuildResponse(r), nil
+}
+
+func (c *Client4) ApplyIPFilters(ctx context.Context, allowedRanges *AllowedIPRanges) (*AllowedIPRanges, *Response, error) {
+	payload, err := json.Marshal(allowedRanges)
+	if err != nil {
+		return nil, nil, NewAppError("ApplyIPFilters", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPostBytes(ctx, c.ipFiltersRoute(), payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+
+	var allowedIPRanges *AllowedIPRanges
+	json.NewDecoder(r.Body).Decode(&allowedIPRanges)
+
+	return allowedIPRanges, BuildResponse(r), nil
+}
+
+func (c *Client4) GetMyIP(ctx context.Context) (*GetIPAddressResponse, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.ipFiltersRoute()+"/my_ip", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+
+	var response *GetIPAddressResponse
+	json.NewDecoder(r.Body).Decode(&response)
+
+	return response, BuildResponse(r), nil
+}
+
 func (c *Client4) CreateCustomerPayment(ctx context.Context) (*StripeSetupIntent, *Response, error) {
 	r, err := c.DoAPIPost(ctx, c.cloudRoute()+"/payment", "")
 	if err != nil {
@@ -8388,6 +8324,22 @@ func (c *Client4) DownloadExport(ctx context.Context, name string, wr io.Writer,
 	return n, BuildResponse(r), nil
 }
 
+func (c *Client4) GeneratePresignedURL(ctx context.Context, name string) (*PresignURLResponse, *Response, error) {
+	r, err := c.DoAPIRequest(ctx, http.MethodPost, c.APIURL+c.exportRoute(name)+"/presign-url", "", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	res := &PresignURLResponse{}
+	err = json.NewDecoder(r.Body).Decode(res)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GeneratePresignedURL", "model.client.json_decode.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return res, BuildResponse(r), nil
+}
+
 func (c *Client4) GetUserThreads(ctx context.Context, userId, teamId string, options GetUserThreadsOpts) (*Threads, *Response, error) {
 	v := url.Values{}
 	if options.Since != 0 {
@@ -8612,20 +8564,6 @@ func (c *Client4) GetTeamsUsage(ctx context.Context) (*TeamsUsage, *Response, er
 	var usage *TeamsUsage
 	err = json.NewDecoder(r.Body).Decode(&usage)
 	return usage, BuildResponse(r), err
-}
-
-func (c *Client4) GetNewTeamMembersSince(ctx context.Context, teamID string, timeRange string, page int, perPage int) (*NewTeamMembersList, *Response, error) {
-	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
-	r, err := c.DoAPIGet(ctx, c.teamRoute(teamID)+"/top/team_members"+query, "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	var newTeamMembersList *NewTeamMembersList
-	if jsonErr := json.NewDecoder(r.Body).Decode(&newTeamMembersList); jsonErr != nil {
-		return nil, nil, NewAppError("GetNewTeamMembersSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-	}
-	return newTeamMembersList, BuildResponse(r), nil
 }
 
 func (c *Client4) SelfHostedSignupAvailable(ctx context.Context) (*Response, error) {

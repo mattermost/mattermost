@@ -10,6 +10,7 @@ on:
 jobs:
   build-docker:
     name: cd/Push mirrored docker images
+    if: github.repository_owner == 'mattermost'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost project

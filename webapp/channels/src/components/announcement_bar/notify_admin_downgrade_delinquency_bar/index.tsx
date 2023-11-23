@@ -2,26 +2,28 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect} from 'react';
-
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {t} from 'utils/i18n';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
+
+import {trackEvent} from 'actions/telemetry_actions';
+
+import {useDelinquencySubscription} from 'components/common/hooks/useDelinquencySubscription';
+import {NotifyStatus, useGetNotifyAdmin} from 'components/common/hooks/useGetNotifyAdmin';
+
 import {
     AnnouncementBarTypes, CloudProducts, CloudProductToSku, MattermostFeatures, Preferences, TELEMETRY_CATEGORIES,
 } from 'utils/constants';
+import {t} from 'utils/i18n';
 
-import {GlobalState} from 'types/store';
-import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {trackEvent} from 'actions/telemetry_actions';
-import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-import {NotifyStatus, useGetNotifyAdmin} from 'components/common/hooks/useGetNotifyAdmin';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
+import type {GlobalState} from 'types/store';
 
 import AnnouncementBar from '../default_announcement_bar';
-import {useDelinquencySubscription} from 'components/common/hooks/useDelinquencySubscription';
 
 export const BannerPreferenceName = 'notify_upgrade_workspace_banner';
 

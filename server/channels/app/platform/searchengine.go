@@ -9,7 +9,7 @@ import (
 )
 
 func (ps *PlatformService) StartSearchEngine() (string, string) {
-	if ps.SearchEngine.ElasticsearchEngine != nil && ps.SearchEngine.ElasticsearchEngine.IsActive() {
+	if ps.SearchEngine.ElasticsearchEngine != nil && ps.SearchEngine.ElasticsearchEngine.IsEnabled() {
 		ps.Go(func() {
 			if err := ps.SearchEngine.ElasticsearchEngine.Start(); err != nil {
 				ps.Log().Error(err.Error())

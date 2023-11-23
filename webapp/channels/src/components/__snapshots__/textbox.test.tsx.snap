@@ -2,24 +2,54 @@
 
 exports[`components/TextBox should match snapshot with additional, optional props 1`] = `
 <div
-  className="textarea-wrapper textarea-wrapper--preview"
+  className="textarea-wrapper textarea-wrapper-preview"
 >
+  <div
+    className="form-control custom-textarea textbox-preview-area"
+    onBlur={[Function]}
+    onKeyDown={[Function]}
+    onKeyPress={[Function]}
+    tabIndex={0}
+  >
+    <Connect(PostMarkdown)
+      channelId="channelId"
+      imageProps={
+        Object {
+          "hideUtilities": true,
+        }
+      }
+      message="some test text"
+    />
+  </div>
   <Connect(SuggestionBox)
-    channelId="channelId"
-    className="form-control custom-textarea custom-textarea--emoji-picker bad-connection custom-textarea--preview"
+    className="form-control custom-textarea textbox-edit-area custom-textarea--emoji-picker bad-connection"
     contextId="channelId"
     disabled={true}
     id="someid"
     inputComponent={
       Object {
-        "$$typeof": Symbol(react.forward_ref),
-        "render": [Function],
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": Object {
+          "$$typeof": Symbol(react.forward_ref),
+          "propTypes": Object {
+            "className": [Function],
+            "defaultValue": [Function],
+            "disabled": [Function],
+            "id": [Function],
+            "onChange": [Function],
+            "onHeightChange": [Function],
+            "onInput": [Function],
+            "onWidthChange": [Function],
+            "placeholder": [Function],
+            "value": [Function],
+          },
+          "render": [Function],
+        },
       }
     }
-    isRHS={true}
     listComponent={[Function]}
     listPosition="top"
-    listenForMentionKeyClick={true}
     onBlur={[Function]}
     onChange={[Function]}
     onComposition={[Function]}
@@ -28,7 +58,6 @@ exports[`components/TextBox should match snapshot with additional, optional prop
     onKeyPress={[Function]}
     onKeyUp={[Function]}
     onMouseUp={[Function]}
-    onSelect={[Function]}
     openWhenEmpty={true}
     placeholder="placeholder text"
     providers={
@@ -96,6 +125,13 @@ exports[`components/TextBox should match snapshot with additional, optional prop
     }
     value="some test text"
   />
+</div>
+`;
+
+exports[`components/TextBox should match snapshot with required props 1`] = `
+<div
+  className="textarea-wrapper"
+>
   <div
     className="form-control custom-textarea textbox-preview-area"
     onBlur={[Function]}
@@ -110,39 +146,42 @@ exports[`components/TextBox should match snapshot with additional, optional prop
           "hideUtilities": true,
         }
       }
-      isRHS={true}
-      mentionKeys={Array []}
       message="some test text"
     />
   </div>
-</div>
-`;
-
-exports[`components/TextBox should match snapshot with required props 1`] = `
-<div
-  className="textarea-wrapper"
->
   <Connect(SuggestionBox)
-    channelId="channelId"
-    className="form-control custom-textarea"
+    className="form-control custom-textarea textbox-edit-area"
     contextId="channelId"
     id="someid"
     inputComponent={
       Object {
-        "$$typeof": Symbol(react.forward_ref),
-        "render": [Function],
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": Object {
+          "$$typeof": Symbol(react.forward_ref),
+          "propTypes": Object {
+            "className": [Function],
+            "defaultValue": [Function],
+            "disabled": [Function],
+            "id": [Function],
+            "onChange": [Function],
+            "onHeightChange": [Function],
+            "onInput": [Function],
+            "onWidthChange": [Function],
+            "placeholder": [Function],
+            "value": [Function],
+          },
+          "render": [Function],
+        },
       }
     }
-    isRHS={false}
     listComponent={[Function]}
-    listenForMentionKeyClick={false}
     onBlur={[Function]}
     onChange={[Function]}
     onKeyDown={[Function]}
     onKeyPress={[Function]}
     onKeyUp={[Function]}
     onMouseUp={[Function]}
-    onSelect={[Function]}
     placeholder="placeholder text"
     providers={
       Array [
@@ -216,27 +255,56 @@ exports[`components/TextBox should throw error when new property is too long 1`]
 <div
   className="textarea-wrapper"
 >
+  <div
+    className="form-control custom-textarea textbox-preview-area"
+    onBlur={[Function]}
+    onKeyDown={[Function]}
+    onKeyPress={[Function]}
+    tabIndex={0}
+  >
+    <Connect(PostMarkdown)
+      channelId="channelId"
+      imageProps={
+        Object {
+          "hideUtilities": true,
+        }
+      }
+      message="some test text that exceeds char limit"
+    />
+  </div>
   <Connect(SuggestionBox)
-    channelId="channelId"
-    className="form-control custom-textarea"
+    className="form-control custom-textarea textbox-edit-area"
     contextId="channelId"
     id="someid"
     inputComponent={
       Object {
-        "$$typeof": Symbol(react.forward_ref),
-        "render": [Function],
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": Object {
+          "$$typeof": Symbol(react.forward_ref),
+          "propTypes": Object {
+            "className": [Function],
+            "defaultValue": [Function],
+            "disabled": [Function],
+            "id": [Function],
+            "onChange": [Function],
+            "onHeightChange": [Function],
+            "onInput": [Function],
+            "onWidthChange": [Function],
+            "placeholder": [Function],
+            "value": [Function],
+          },
+          "render": [Function],
+        },
       }
     }
-    isRHS={false}
     listComponent={[Function]}
-    listenForMentionKeyClick={false}
     onBlur={[Function]}
     onChange={[Function]}
     onKeyDown={[Function]}
     onKeyPress={[Function]}
     onKeyUp={[Function]}
     onMouseUp={[Function]}
-    onSelect={[Function]}
     placeholder="placeholder text"
     providers={
       Array [
@@ -310,27 +378,56 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
 <div
   className="textarea-wrapper"
 >
+  <div
+    className="form-control custom-textarea textbox-preview-area"
+    onBlur={[Function]}
+    onKeyDown={[Function]}
+    onKeyPress={[Function]}
+    tabIndex={0}
+  >
+    <Connect(PostMarkdown)
+      channelId="channelId"
+      imageProps={
+        Object {
+          "hideUtilities": true,
+        }
+      }
+      message="some test text that exceeds char limit"
+    />
+  </div>
   <Connect(SuggestionBox)
-    channelId="channelId"
-    className="form-control custom-textarea"
+    className="form-control custom-textarea textbox-edit-area"
     contextId="channelId"
     id="someid"
     inputComponent={
       Object {
-        "$$typeof": Symbol(react.forward_ref),
-        "render": [Function],
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": Object {
+          "$$typeof": Symbol(react.forward_ref),
+          "propTypes": Object {
+            "className": [Function],
+            "defaultValue": [Function],
+            "disabled": [Function],
+            "id": [Function],
+            "onChange": [Function],
+            "onHeightChange": [Function],
+            "onInput": [Function],
+            "onWidthChange": [Function],
+            "placeholder": [Function],
+            "value": [Function],
+          },
+          "render": [Function],
+        },
       }
     }
-    isRHS={false}
     listComponent={[Function]}
-    listenForMentionKeyClick={false}
     onBlur={[Function]}
     onChange={[Function]}
     onKeyDown={[Function]}
     onKeyPress={[Function]}
     onKeyUp={[Function]}
     onMouseUp={[Function]}
-    onSelect={[Function]}
     placeholder="placeholder text"
     providers={
       Array [

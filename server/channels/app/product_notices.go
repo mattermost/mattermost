@@ -6,8 +6,6 @@ package app
 import (
 	"net/http"
 	"reflect"
-	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -17,7 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -28,22 +26,6 @@ const MinSecondsBetweenRepeatViewings = 60 * 60
 
 // http request cache
 var noticesCache = utils.RequestCache{}
-
-var rcStripRegexp = regexp.MustCompile(`(.*?)(-rc\d+)(.*?)`)
-
-func cleanupVersion(originalVersion string) string {
-	// clean up BuildNumber to remove release- prefix, -rc suffix and a hash part of the version
-	version := strings.Replace(originalVersion, "release-", "", 1)
-	version = rcStripRegexp.ReplaceAllString(version, `$1$3`)
-	versionParts := strings.Split(version, ".")
-	var versionPartsOut []string
-	for _, part := range versionParts {
-		if _, err := strconv.ParseInt(part, 10, 16); err == nil {
-			versionPartsOut = append(versionPartsOut, part)
-		}
-	}
-	return strings.Join(versionPartsOut, ".")
-}
 
 func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userID string,
 	client model.NoticeClientType, clientVersion string, postCount int64, userCount int64, isSystemAdmin bool,
@@ -94,10 +76,9 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 
 	// check if current server version is notice range
 	if !isCloud && cnd.ServerVersion != nil {
-		version := cleanupVersion(model.BuildNumber)
-		serverVersion, err := semver.NewVersion(version)
+		serverVersion, err := semver.NewVersion(model.CurrentVersion)
 		if err != nil {
-			mlog.Warn("Build number is not in semver format", mlog.String("build_number", version))
+			mlog.Warn("Version number is not in semver format", mlog.String("version_number", model.CurrentVersion))
 			return false, nil
 		}
 		for _, v := range cnd.ServerVersion {
@@ -123,7 +104,6 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 		if !cnd.Audience.Matches(isSystemAdmin, isTeamAdmin) {
 			return false, nil
 		}
-
 	}
 
 	// check user count condition against previously calculated total user count
@@ -230,7 +210,7 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue any) boo
 }
 
 // GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
-func (a *App) GetProductNotices(c *request.Context, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
+func (a *App) GetProductNotices(c request.CTX, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
 	isSystemAdmin := a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem)
 	isTeamAdmin := a.SessionHasPermissionToTeam(*c.Session(), teamID, model.PermissionManageTeam)
 

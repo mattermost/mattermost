@@ -122,7 +122,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
           >
             <hr />
             <SaveButton
-              btnClass="btn-primary"
+              btnClass=""
               defaultMessage={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Save"
@@ -141,14 +141,14 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
               }
             >
               <button
-                className="save-button btn btn-primary"
+                className="btn btn-primary "
                 data-testid="saveSetting"
                 disabled={false}
                 id="saveSetting"
                 onClick={[Function]}
                 type="submit"
               >
-                <LoadingWrapper
+                <Memo(LoadingWrapper)
                   loading={false}
                   text={
                     <Memo(MemoizedFormattedMessage)
@@ -167,11 +167,11 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
                       </span>
                     </FormattedMessage>
                   </span>
-                </LoadingWrapper>
+                </Memo(LoadingWrapper)>
               </button>
             </SaveButton>
             <button
-              className="btn btn-sm btn-cancel cursor--pointer style--none"
+              className="btn btn-tertiary"
               id="cancelSetting"
               onClick={[Function]}
             >
@@ -359,7 +359,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
           >
             <hr />
             <SaveButton
-              btnClass="btn-primary"
+              btnClass=""
               defaultMessage={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Save"
@@ -378,14 +378,14 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
               }
             >
               <button
-                className="save-button btn btn-primary"
+                className="btn btn-primary "
                 data-testid="saveSetting"
                 disabled={false}
                 id="saveSetting"
                 onClick={[Function]}
                 type="submit"
               >
-                <LoadingWrapper
+                <Memo(LoadingWrapper)
                   loading={false}
                   text={
                     <Memo(MemoizedFormattedMessage)
@@ -404,11 +404,11 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
                       </span>
                     </FormattedMessage>
                   </span>
-                </LoadingWrapper>
+                </Memo(LoadingWrapper)>
               </button>
             </SaveButton>
             <button
-              className="btn btn-sm btn-cancel cursor--pointer style--none"
+              className="btn btn-tertiary"
               id="cancelSetting"
               onClick={[Function]}
             >

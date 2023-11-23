@@ -45,6 +45,7 @@ const (
 	PostTypeChannelRestored        = "system_channel_restored"
 	PostTypeEphemeral              = "system_ephemeral"
 	PostTypeChangeChannelPrivacy   = "system_change_chan_privacy"
+	PostTypeGMConvertedToChannel   = "system_gm_to_channel"
 	PostTypeAddBotTeamsChannels    = "add_bot_teams_channels"
 	PostTypeSystemWarnMetricStatus = "warn_metric_status"
 	PostTypeMe                     = "me"
@@ -62,24 +63,22 @@ const (
 
 	PropsAddChannelMember = "add_channel_member"
 
-	PostPropsAddedUserId       = "addedUserId"
-	PostPropsDeleteBy          = "deleteBy"
-	PostPropsOverrideIconURL   = "override_icon_url"
-	PostPropsOverrideIconEmoji = "override_icon_emoji"
-
+	PostPropsAddedUserId              = "addedUserId"
+	PostPropsDeleteBy                 = "deleteBy"
+	PostPropsOverrideIconURL          = "override_icon_url"
+	PostPropsOverrideIconEmoji        = "override_icon_emoji"
+	PostPropsOverrideUsername         = "override_username"
+	PostPropsFromWebhook              = "from_webhook"
+	PostPropsFromBot                  = "from_bot"
+	PostPropsFromOAuthApp             = "from_oauth_app"
+	PostPropsWebhookDisplayName       = "webhook_display_name"
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
-
-	PostPropsPreviewedPost = "previewed_post"
+	PostPropsPreviewedPost            = "previewed_post"
 
 	PostPriorityUrgent               = "urgent"
 	PostPropsRequestedAck            = "requested_ack"
 	PostPropsPersistentNotifications = "persistent_notifications"
-)
-
-const (
-	ModifierMessages string = "messages"
-	ModifierFiles    string = "files"
 )
 
 type Post struct {
@@ -147,6 +146,10 @@ func (o *Post) Auditable() map[string]interface{} {
 	}
 }
 
+func (o *Post) LogClone() any {
+	return o.Auditable()
+}
+
 type PostEphemeral struct {
 	UserID string `json:"user_id"`
 	Post   *Post  `json:"post"`
@@ -197,7 +200,6 @@ type SearchParameter struct {
 	Page                   *int    `json:"page"`
 	PerPage                *int    `json:"per_page"`
 	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
-	Modifier               *string `json:"modifier"` // whether it's messages or file
 }
 
 type AnalyticsPostCountsOptions struct {
@@ -207,11 +209,11 @@ type AnalyticsPostCountsOptions struct {
 }
 
 func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
-	copy := *o //nolint:revive
-	if copy.Message != nil {
-		*copy.Message = RewriteImageURLs(*o.Message, f)
+	pCopy := *o //nolint:revive
+	if pCopy.Message != nil {
+		*pCopy.Message = RewriteImageURLs(*o.Message, f)
 	}
-	return &copy
+	return &pCopy
 }
 
 func (o *PostPatch) Auditable() map[string]interface{} {
@@ -296,15 +298,15 @@ func (o *Post) ShallowCopy(dst *Post) error {
 
 // Clone shallowly copies the post and returns the copy.
 func (o *Post) Clone() *Post {
-	copy := &Post{} //nolint:revive
-	o.ShallowCopy(copy)
-	return copy
+	pCopy := &Post{} //nolint:revive
+	o.ShallowCopy(pCopy)
+	return pCopy
 }
 
 func (o *Post) ToJSON() (string, error) {
-	copy := o.Clone() //nolint:revive
-	copy.StripActionIntegrations()
-	b, err := json.Marshal(copy)
+	pCopy := o.Clone() //nolint:revive
+	pCopy.StripActionIntegrations()
+	b, err := json.Marshal(pCopy)
 	return string(b), err
 }
 
@@ -434,7 +436,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeAddBotTeamsChannels,
 		PostTypeSystemWarnMetricStatus,
 		PostTypeReminder,
-		PostTypeMe:
+		PostTypeMe,
+		PostTypeGMConvertedToChannel:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
@@ -472,6 +475,39 @@ func (o *Post) SanitizeProps() {
 	for _, p := range o.Participants {
 		p.Sanitize(map[string]bool{})
 	}
+}
+
+func (o *Post) ContainsIntegrationsReservedProps() []string {
+	return containsIntegrationsReservedProps(o.GetProps())
+}
+
+func (o *PostPatch) ContainsIntegrationsReservedProps() []string {
+	if o == nil || o.Props == nil {
+		return nil
+	}
+	return containsIntegrationsReservedProps(*o.Props)
+}
+
+func containsIntegrationsReservedProps(props StringInterface) []string {
+	foundProps := []string{}
+
+	if props != nil {
+		reservedProps := []string{
+			PostPropsFromWebhook,
+			PostPropsOverrideUsername,
+			PostPropsWebhookDisplayName,
+			PostPropsOverrideIconURL,
+			PostPropsOverrideIconEmoji,
+		}
+
+		for _, key := range reservedProps {
+			if _, ok := props[key]; ok {
+				foundProps = append(foundProps, key)
+			}
+		}
+	}
+
+	return foundProps
 }
 
 func (o *Post) PreSave() {
@@ -707,12 +743,12 @@ var markdownDestinationEscaper = strings.NewReplacer(
 // WithRewrittenImageURLs returns a new shallow copy of the post where the message has been
 // rewritten via RewriteImageURLs.
 func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
-	copy := o.Clone()
-	copy.Message = RewriteImageURLs(o.Message, f)
-	if copy.MessageSource == "" && copy.Message != o.Message {
-		copy.MessageSource = o.Message
+	pCopy := o.Clone()
+	pCopy.Message = RewriteImageURLs(o.Message, f)
+	if pCopy.MessageSource == "" && pCopy.Message != o.Message {
+		pCopy.MessageSource = o.Message
 	}
-	return copy
+	return pCopy
 }
 
 // RewriteImageURLs takes a message and returns a copy that has all of the image URLs replaced

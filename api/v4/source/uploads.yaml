@@ -1,0 +1,129 @@
+  "/api/v4/uploads":
+    post:
+      tags:
+        - uploads
+      summary: Create an upload
+      description: >
+        Creates a new upload session.
+
+
+        __Minimum server version__: 5.28
+
+        ##### Permissions
+
+        Must have `upload_file` permission.
+
+      operationId: CreateUpload
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channel_id
+                - filename
+                - file_size
+              properties:
+                channel_id:
+                  description: The ID of the channel to upload to.
+                  type: string
+                filename:
+                  description: The name of the file to upload.
+                  type: string
+                file_size:
+                  description: The size of the file to upload in bytes.
+                  type: integer
+                  format: int64
+        required: true
+      responses:
+        "201":
+          description: Upload creation successful.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadSession"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/TooLarge"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/uploads/{upload_id}":
+    get:
+      tags:
+        - uploads
+      summary: Get an upload session
+      description: |
+        Gets an upload session that has been previously created.
+
+        ##### Permissions
+        Must be logged in as the user who created the upload session.
+      operationId: GetUpload
+      parameters:
+        - name: upload_id
+          in: path
+          description: The ID of the upload session to get.
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    post:
+      tags:
+        - uploads
+      summary: Perform a file upload
+      description: |
+        Starts or resumes a file upload.  
+        To resume an existing (incomplete) upload, data should be sent starting from the offset specified in the upload session object.
+
+        The request body can be in one of two formats:
+        - Binary file content streamed in request's body
+        - multipart/form-data
+
+        ##### Permissions
+        Must be logged in as the user who created the upload session.
+      operationId: UploadData
+      parameters:
+        - name: upload_id
+          in: path
+          description: The ID of the upload session the data belongs to.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Upload successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileInfo"
+        "204":
+          description: Upload incomplete
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/TooLarge"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

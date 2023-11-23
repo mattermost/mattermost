@@ -23,9 +23,9 @@ func MakePostSearchResults(posts *PostList, matches PostSearchMatches) *PostSear
 }
 
 func (o *PostSearchResults) ToJSON() (string, error) {
-	copy := *o
-	copy.PostList.StripActionIntegrations()
-	b, err := json.Marshal(&copy)
+	psCopy := *o
+	psCopy.PostList.StripActionIntegrations()
+	b, err := json.Marshal(&psCopy)
 	return string(b), err
 }
 
@@ -35,7 +35,7 @@ func (o *PostSearchResults) EncodeJSON(w io.Writer) error {
 }
 
 func (o *PostSearchResults) ForPlugin() *PostSearchResults {
-	copy := *o
-	copy.PostList = copy.PostList.ForPlugin()
-	return &copy
+	plCopy := *o
+	plCopy.PostList = plCopy.PostList.ForPlugin()
+	return &plCopy
 }

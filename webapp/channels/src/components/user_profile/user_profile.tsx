@@ -3,46 +3,45 @@
 
 import React, {PureComponent} from 'react';
 
-import GuestTag from 'components/widgets/tag/guest_tag';
+import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 
-import BotTag from 'components/widgets/tag/bot_tag';
-
-import {UserProfile as UserProfileType} from '@mattermost/types/users';
-
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import {imageURLForUser, isMobile} from 'utils/utils';
-
-import OverlayTrigger, {BaseOverlayTrigger} from 'components/overlay_trigger';
+import OverlayTrigger from 'components/overlay_trigger';
+import type {BaseOverlayTrigger} from 'components/overlay_trigger';
 import ProfilePopover from 'components/profile_popover';
-
 import SharedUserIndicator from 'components/shared_user_indicator';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
+
+import {imageURLForUser} from 'utils/utils';
 
 import {generateColor} from './utils';
 
-export type UserProfileProps = {
+export type Props = {
+    user?: UserProfileType;
     userId: string;
     displayName?: string;
     isBusy?: boolean;
     isShared?: boolean;
     overwriteName?: React.ReactNode;
     overwriteIcon?: string;
-    user?: UserProfileType;
     disablePopover?: boolean;
     displayUsername?: boolean;
     colorize?: boolean;
     hasMention?: boolean;
     hideStatus?: boolean;
+    isMobileView: boolean;
     isRHS?: boolean;
     channelId?: string;
     theme?: Theme;
 }
 
-export default class UserProfile extends PureComponent<UserProfileProps> {
+export default class UserProfile extends PureComponent<Props> {
     private overlay?: BaseOverlayTrigger;
 
-    static defaultProps: Partial<UserProfileProps> = {
+    static defaultProps: Partial<Props> = {
         disablePopover: false,
         displayUsername: false,
         hasMention: false,
@@ -68,6 +67,7 @@ export default class UserProfile extends PureComponent<UserProfileProps> {
             displayName,
             displayUsername,
             isBusy,
+            isMobileView,
             isRHS,
             isShared,
             hasMention,
@@ -110,7 +110,7 @@ export default class UserProfile extends PureComponent<UserProfileProps> {
         }
 
         let placement = 'right';
-        if (isRHS && !isMobile()) {
+        if (isRHS && !isMobileView) {
             placement = 'left';
         }
 
@@ -145,7 +145,6 @@ export default class UserProfile extends PureComponent<UserProfileProps> {
                             isBusy={isBusy}
                             hide={this.hideProfilePopover}
                             hideStatus={hideStatus}
-                            isRHS={isRHS}
                             hasMention={hasMention}
                             overwriteName={overwriteName}
                             overwriteIcon={overwriteIcon}

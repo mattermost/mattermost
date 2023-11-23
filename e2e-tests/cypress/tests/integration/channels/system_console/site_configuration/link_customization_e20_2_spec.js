@@ -53,8 +53,8 @@ describe('SupportSettings', () => {
         cy.uiOpenProductMenu(`About ${siteName}`);
 
         // * Verify that links do not change and they open to default pages
-        cy.get('#tosLink').should('contain', 'Terms of Use').and('have.attr', 'href').and('equal', FixedPublicLinks.TermsOfService);
-        cy.get('#privacyLink').should('contain', 'Privacy Policy').and('have.attr', 'href').and('equal', FixedPublicLinks.PrivacyPolicy);
+        cy.get('#tosLink').should('contain', 'Terms of Use').and('have.attr', 'href').and('match', new RegExp(`${FixedPublicLinks.TermsOfService}/*`));
+        cy.get('#privacyLink').should('contain', 'Privacy Policy').and('have.attr', 'href').and('match', new RegExp(`${FixedPublicLinks.PrivacyPolicy}/*`));
     });
 
     it('MM-T1034 - Customization: Blank TOS link field (About modal)', () => {
@@ -69,7 +69,7 @@ describe('SupportSettings', () => {
         cy.uiOpenProductMenu(`About ${siteName}`);
 
         // * Verify that tos link is set to default
-        cy.get('#tosLink').should('contain', 'Terms of Use').and('have.attr', 'href').and('equal', FixedPublicLinks.TermsOfService);
+        cy.get('#tosLink').should('contain', 'Terms of Use').and('have.attr', 'href').and('match', new RegExp(`${FixedPublicLinks.TermsOfService}/*`));
     });
 
     it('MM-T1035 - Customization Blank Privacy hides the link', () => {
@@ -86,7 +86,7 @@ describe('SupportSettings', () => {
         cy.get('#tosLink').should('be.visible').and('contain', 'Terms of Use');
 
         // * Verify that privacy link is there
-        cy.get('#privacyLink').should('contain', 'Privacy Policy').and('have.attr', 'href').and('equal', FixedPublicLinks.PrivacyPolicy);
+        cy.get('#privacyLink').should('contain', 'Privacy Policy').and('have.attr', 'href').and('match', new RegExp(`${FixedPublicLinks.PrivacyPolicy}/*`));
 
         // # Logout
         cy.apiLogout();

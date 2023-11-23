@@ -61,6 +61,7 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	// Unset environment variables commonly set for development that interfere with tests.
 	os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 	os.Unsetenv("MM_SERVICESETTINGS_LISTENADDRESS")
+	os.Unsetenv("MM_SERVICESETTINGS_CONNECTIONSECURITY")
 	os.Unsetenv("MM_SERVICESETTINGS_ENABLEDEVELOPER")
 
 	var mainHelper MainHelper
@@ -118,7 +119,12 @@ func (h *MainHelper) setupStore(withReadReplica bool) {
 
 	h.SearchEngine = searchengine.NewBroker(config)
 	h.ClusterInterface = &FakeClusterInterface{}
-	h.SQLStore = sqlstore.New(*h.Settings, nil)
+
+	var err error
+	h.SQLStore, err = sqlstore.New(*h.Settings, nil)
+	if err != nil {
+		panic(err)
+	}
 	h.Store = searchlayer.NewSearchLayer(&TestStore{
 		h.SQLStore,
 	}, h.SearchEngine, config)
@@ -130,7 +136,12 @@ func (h *MainHelper) ToggleReplicasOff() {
 	}
 	h.Settings.DataSourceReplicas = []string{}
 	lic := h.SQLStore.GetLicense()
-	h.SQLStore = sqlstore.New(*h.Settings, nil)
+
+	var err error
+	h.SQLStore, err = sqlstore.New(*h.Settings, nil)
+	if err != nil {
+		panic(err)
+	}
 	h.SQLStore.UpdateLicense(lic)
 }
 
@@ -140,7 +151,13 @@ func (h *MainHelper) ToggleReplicasOn() {
 	}
 	h.Settings.DataSourceReplicas = h.replicas
 	lic := h.SQLStore.GetLicense()
-	h.SQLStore = sqlstore.New(*h.Settings, nil)
+
+	var err error
+	h.SQLStore, err = sqlstore.New(*h.Settings, nil)
+	if err != nil {
+		panic(err)
+	}
+
 	h.SQLStore.UpdateLicense(lic)
 }
 
@@ -171,7 +188,12 @@ func (h *MainHelper) PreloadMigrations() {
 
 	basePath := os.Getenv("MM_SERVER_PATH")
 	if basePath == "" {
-		basePath = "mattermost-server/server"
+		_, errFile := os.Stat("mattermost-server/server")
+		if os.IsNotExist(errFile) {
+			basePath = "mattermost/server"
+		} else {
+			basePath = "mattermost-server/server"
+		}
 	}
 	relPath := "channels/testlib/testdata"
 	switch *h.Settings.DriverName {
@@ -192,62 +214,6 @@ func (h *MainHelper) PreloadMigrations() {
 	_, err = handle.Exec(string(buf))
 	if err != nil {
 		panic(errors.Wrap(err, "Error preloading migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly"))
-	}
-
-	h.PreloadBoardsMigrationsIfNeeded()
-}
-
-// PreloadBoardsMigrationsIfNeeded loads boards migrations if the
-// focalboard_schema_migrations table exists already.
-// Besides this, the same compatibility and breaking conditions that
-// PreloadMigrations has apply here.
-//
-// Re-generate the files with:
-// pg_dump -a -h localhost -U mmuser -d <> --no-comments --inserts -t focalboard_system_settings
-// mysqldump -u root -p <> --no-create-info --extended-insert=FALSE focalboard_system_settings
-func (h *MainHelper) PreloadBoardsMigrationsIfNeeded() {
-	tableSchemaFn := "current_schema()"
-	if *h.Settings.DriverName == model.DatabaseDriverMysql {
-		tableSchemaFn = "DATABASE()"
-	}
-
-	basePath := os.Getenv("MM_SERVER_PATH")
-	if basePath == "" {
-		basePath = "mattermost-server/server"
-	}
-	relPath := "channels/testlib/testdata"
-
-	handle := h.SQLStore.GetMasterX()
-	var boardsTableCount int
-	gErr := handle.Get(&boardsTableCount, `
-      SELECT COUNT(*)
-        FROM INFORMATION_SCHEMA.TABLES
-       WHERE TABLE_SCHEMA = `+tableSchemaFn+`
-         AND TABLE_NAME = 'focalboard_schema_migrations'`)
-	if gErr != nil {
-		panic(errors.Wrap(gErr, "Error preloading migrations. Cannot query INFORMATION_SCHEMA table to check for focalboard_schema_migrations table"))
-	}
-
-	var buf []byte
-	var err error
-	if boardsTableCount != 0 {
-		switch *h.Settings.DriverName {
-		case model.DatabaseDriverPostgres:
-			boardsFinalPath := filepath.Join(basePath, relPath, "boards_postgres_migration_warmup.sql")
-			buf, err = os.ReadFile(boardsFinalPath)
-			if err != nil {
-				panic(fmt.Errorf("cannot read file: %v", err))
-			}
-		case model.DatabaseDriverMysql:
-			boardsFinalPath := filepath.Join(basePath, relPath, "boards_mysql_migration_warmup.sql")
-			buf, err = os.ReadFile(boardsFinalPath)
-			if err != nil {
-				panic(fmt.Errorf("cannot read file: %v", err))
-			}
-		}
-		if _, err := handle.Exec(string(buf)); err != nil {
-			panic(errors.Wrap(err, "Error preloading boards migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly"))
-		}
 	}
 }
 

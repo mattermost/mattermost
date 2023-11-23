@@ -291,6 +291,40 @@ func (s *hooksRPCServer) MessageHasBeenUpdated(args *Z_MessageHasBeenUpdatedArgs
 }
 
 func init() {
+	hookNameToId["MessageHasBeenDeleted"] = MessageHasBeenDeletedID
+}
+
+type Z_MessageHasBeenDeletedArgs struct {
+	A *Context
+	B *model.Post
+}
+
+type Z_MessageHasBeenDeletedReturns struct {
+}
+
+func (g *hooksRPCClient) MessageHasBeenDeleted(c *Context, post *model.Post) {
+	_args := &Z_MessageHasBeenDeletedArgs{c, post}
+	_returns := &Z_MessageHasBeenDeletedReturns{}
+	if g.implemented[MessageHasBeenDeletedID] {
+		if err := g.client.Call("Plugin.MessageHasBeenDeleted", _args, _returns); err != nil {
+			g.log.Error("RPC call MessageHasBeenDeleted to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) MessageHasBeenDeleted(args *Z_MessageHasBeenDeletedArgs, returns *Z_MessageHasBeenDeletedReturns) error {
+	if hook, ok := s.impl.(interface {
+		MessageHasBeenDeleted(c *Context, post *model.Post)
+	}); ok {
+		hook.MessageHasBeenDeleted(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook MessageHasBeenDeleted called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
 	hookNameToId["ChannelHasBeenCreated"] = ChannelHasBeenCreatedID
 }
 
@@ -808,236 +842,6 @@ func (s *hooksRPCServer) OnCloudLimitsUpdated(args *Z_OnCloudLimitsUpdatedArgs, 
 }
 
 func init() {
-	hookNameToId["UserHasPermissionToCollection"] = UserHasPermissionToCollectionID
-}
-
-type Z_UserHasPermissionToCollectionArgs struct {
-	A *Context
-	B string
-	C string
-	D string
-	E *model.Permission
-}
-
-type Z_UserHasPermissionToCollectionReturns struct {
-	A bool
-	B error
-}
-
-func (g *hooksRPCClient) UserHasPermissionToCollection(c *Context, userID string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
-	_args := &Z_UserHasPermissionToCollectionArgs{c, userID, collectionType, collectionId, permission}
-	_returns := &Z_UserHasPermissionToCollectionReturns{}
-	if g.implemented[UserHasPermissionToCollectionID] {
-		if err := g.client.Call("Plugin.UserHasPermissionToCollection", _args, _returns); err != nil {
-			g.log.Error("RPC call UserHasPermissionToCollection to plugin failed.", mlog.Err(err))
-		}
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *hooksRPCServer) UserHasPermissionToCollection(args *Z_UserHasPermissionToCollectionArgs, returns *Z_UserHasPermissionToCollectionReturns) error {
-	if hook, ok := s.impl.(interface {
-		UserHasPermissionToCollection(c *Context, userID string, collectionType, collectionId string, permission *model.Permission) (bool, error)
-	}); ok {
-		returns.A, returns.B = hook.UserHasPermissionToCollection(args.A, args.B, args.C, args.D, args.E)
-		returns.B = encodableError(returns.B)
-	} else {
-		return encodableError(fmt.Errorf("Hook UserHasPermissionToCollection called but not implemented."))
-	}
-	return nil
-}
-
-func init() {
-	hookNameToId["GetAllCollectionIDsForUser"] = GetAllCollectionIDsForUserID
-}
-
-type Z_GetAllCollectionIDsForUserArgs struct {
-	A *Context
-	B string
-	C string
-}
-
-type Z_GetAllCollectionIDsForUserReturns struct {
-	A []string
-	B error
-}
-
-func (g *hooksRPCClient) GetAllCollectionIDsForUser(c *Context, userID, collectionType string) ([]string, error) {
-	_args := &Z_GetAllCollectionIDsForUserArgs{c, userID, collectionType}
-	_returns := &Z_GetAllCollectionIDsForUserReturns{}
-	if g.implemented[GetAllCollectionIDsForUserID] {
-		if err := g.client.Call("Plugin.GetAllCollectionIDsForUser", _args, _returns); err != nil {
-			g.log.Error("RPC call GetAllCollectionIDsForUser to plugin failed.", mlog.Err(err))
-		}
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *hooksRPCServer) GetAllCollectionIDsForUser(args *Z_GetAllCollectionIDsForUserArgs, returns *Z_GetAllCollectionIDsForUserReturns) error {
-	if hook, ok := s.impl.(interface {
-		GetAllCollectionIDsForUser(c *Context, userID, collectionType string) ([]string, error)
-	}); ok {
-		returns.A, returns.B = hook.GetAllCollectionIDsForUser(args.A, args.B, args.C)
-		returns.B = encodableError(returns.B)
-	} else {
-		return encodableError(fmt.Errorf("Hook GetAllCollectionIDsForUser called but not implemented."))
-	}
-	return nil
-}
-
-func init() {
-	hookNameToId["GetAllUserIdsForCollection"] = GetAllUserIdsForCollectionID
-}
-
-type Z_GetAllUserIdsForCollectionArgs struct {
-	A *Context
-	B string
-	C string
-}
-
-type Z_GetAllUserIdsForCollectionReturns struct {
-	A []string
-	B error
-}
-
-func (g *hooksRPCClient) GetAllUserIdsForCollection(c *Context, collectionType, collectionID string) ([]string, error) {
-	_args := &Z_GetAllUserIdsForCollectionArgs{c, collectionType, collectionID}
-	_returns := &Z_GetAllUserIdsForCollectionReturns{}
-	if g.implemented[GetAllUserIdsForCollectionID] {
-		if err := g.client.Call("Plugin.GetAllUserIdsForCollection", _args, _returns); err != nil {
-			g.log.Error("RPC call GetAllUserIdsForCollection to plugin failed.", mlog.Err(err))
-		}
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *hooksRPCServer) GetAllUserIdsForCollection(args *Z_GetAllUserIdsForCollectionArgs, returns *Z_GetAllUserIdsForCollectionReturns) error {
-	if hook, ok := s.impl.(interface {
-		GetAllUserIdsForCollection(c *Context, collectionType, collectionID string) ([]string, error)
-	}); ok {
-		returns.A, returns.B = hook.GetAllUserIdsForCollection(args.A, args.B, args.C)
-		returns.B = encodableError(returns.B)
-	} else {
-		return encodableError(fmt.Errorf("Hook GetAllUserIdsForCollection called but not implemented."))
-	}
-	return nil
-}
-
-func init() {
-	hookNameToId["GetTopicRedirect"] = GetTopicRedirectID
-}
-
-type Z_GetTopicRedirectArgs struct {
-	A *Context
-	B string
-	C string
-}
-
-type Z_GetTopicRedirectReturns struct {
-	A string
-	B error
-}
-
-func (g *hooksRPCClient) GetTopicRedirect(c *Context, topicType, topicID string) (string, error) {
-	_args := &Z_GetTopicRedirectArgs{c, topicType, topicID}
-	_returns := &Z_GetTopicRedirectReturns{}
-	if g.implemented[GetTopicRedirectID] {
-		if err := g.client.Call("Plugin.GetTopicRedirect", _args, _returns); err != nil {
-			g.log.Error("RPC call GetTopicRedirect to plugin failed.", mlog.Err(err))
-		}
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *hooksRPCServer) GetTopicRedirect(args *Z_GetTopicRedirectArgs, returns *Z_GetTopicRedirectReturns) error {
-	if hook, ok := s.impl.(interface {
-		GetTopicRedirect(c *Context, topicType, topicID string) (string, error)
-	}); ok {
-		returns.A, returns.B = hook.GetTopicRedirect(args.A, args.B, args.C)
-		returns.B = encodableError(returns.B)
-	} else {
-		return encodableError(fmt.Errorf("Hook GetTopicRedirect called but not implemented."))
-	}
-	return nil
-}
-
-func init() {
-	hookNameToId["GetCollectionMetadataByIds"] = GetCollectionMetadataByIdsID
-}
-
-type Z_GetCollectionMetadataByIdsArgs struct {
-	A *Context
-	B string
-	C []string
-}
-
-type Z_GetCollectionMetadataByIdsReturns struct {
-	A map[string]*model.CollectionMetadata
-	B error
-}
-
-func (g *hooksRPCClient) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]*model.CollectionMetadata, error) {
-	_args := &Z_GetCollectionMetadataByIdsArgs{c, collectionType, collectionIds}
-	_returns := &Z_GetCollectionMetadataByIdsReturns{}
-	if g.implemented[GetCollectionMetadataByIdsID] {
-		if err := g.client.Call("Plugin.GetCollectionMetadataByIds", _args, _returns); err != nil {
-			g.log.Error("RPC call GetCollectionMetadataByIds to plugin failed.", mlog.Err(err))
-		}
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *hooksRPCServer) GetCollectionMetadataByIds(args *Z_GetCollectionMetadataByIdsArgs, returns *Z_GetCollectionMetadataByIdsReturns) error {
-	if hook, ok := s.impl.(interface {
-		GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]*model.CollectionMetadata, error)
-	}); ok {
-		returns.A, returns.B = hook.GetCollectionMetadataByIds(args.A, args.B, args.C)
-		returns.B = encodableError(returns.B)
-	} else {
-		return encodableError(fmt.Errorf("Hook GetCollectionMetadataByIds called but not implemented."))
-	}
-	return nil
-}
-
-func init() {
-	hookNameToId["GetTopicMetadataByIds"] = GetTopicMetadataByIdsID
-}
-
-type Z_GetTopicMetadataByIdsArgs struct {
-	A *Context
-	B string
-	C []string
-}
-
-type Z_GetTopicMetadataByIdsReturns struct {
-	A map[string]*model.TopicMetadata
-	B error
-}
-
-func (g *hooksRPCClient) GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error) {
-	_args := &Z_GetTopicMetadataByIdsArgs{c, topicType, topicIds}
-	_returns := &Z_GetTopicMetadataByIdsReturns{}
-	if g.implemented[GetTopicMetadataByIdsID] {
-		if err := g.client.Call("Plugin.GetTopicMetadataByIds", _args, _returns); err != nil {
-			g.log.Error("RPC call GetTopicMetadataByIds to plugin failed.", mlog.Err(err))
-		}
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *hooksRPCServer) GetTopicMetadataByIds(args *Z_GetTopicMetadataByIdsArgs, returns *Z_GetTopicMetadataByIdsReturns) error {
-	if hook, ok := s.impl.(interface {
-		GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error)
-	}); ok {
-		returns.A, returns.B = hook.GetTopicMetadataByIds(args.A, args.B, args.C)
-		returns.B = encodableError(returns.B)
-	} else {
-		return encodableError(fmt.Errorf("Hook GetTopicMetadataByIds called but not implemented."))
-	}
-	return nil
-}
-
-func init() {
 	hookNameToId["ConfigurationWillBeSaved"] = ConfigurationWillBeSavedID
 }
 
@@ -1069,6 +873,76 @@ func (s *hooksRPCServer) ConfigurationWillBeSaved(args *Z_ConfigurationWillBeSav
 		returns.B = encodableError(returns.B)
 	} else {
 		return encodableError(fmt.Errorf("Hook ConfigurationWillBeSaved called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["NotificationWillBePushed"] = NotificationWillBePushedID
+}
+
+type Z_NotificationWillBePushedArgs struct {
+	A *model.PushNotification
+	B string
+}
+
+type Z_NotificationWillBePushedReturns struct {
+	A *model.PushNotification
+	B string
+}
+
+func (g *hooksRPCClient) NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string) {
+	_args := &Z_NotificationWillBePushedArgs{pushNotification, userID}
+	_returns := &Z_NotificationWillBePushedReturns{}
+	if g.implemented[NotificationWillBePushedID] {
+		if err := g.client.Call("Plugin.NotificationWillBePushed", _args, _returns); err != nil {
+			g.log.Error("RPC call NotificationWillBePushed to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) NotificationWillBePushed(args *Z_NotificationWillBePushedArgs, returns *Z_NotificationWillBePushedReturns) error {
+	if hook, ok := s.impl.(interface {
+		NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string)
+	}); ok {
+		returns.A, returns.B = hook.NotificationWillBePushed(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook NotificationWillBePushed called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["UserHasBeenDeactivated"] = UserHasBeenDeactivatedID
+}
+
+type Z_UserHasBeenDeactivatedArgs struct {
+	A *Context
+	B *model.User
+}
+
+type Z_UserHasBeenDeactivatedReturns struct {
+}
+
+func (g *hooksRPCClient) UserHasBeenDeactivated(c *Context, user *model.User) {
+	_args := &Z_UserHasBeenDeactivatedArgs{c, user}
+	_returns := &Z_UserHasBeenDeactivatedReturns{}
+	if g.implemented[UserHasBeenDeactivatedID] {
+		if err := g.client.Call("Plugin.UserHasBeenDeactivated", _args, _returns); err != nil {
+			g.log.Error("RPC call UserHasBeenDeactivated to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) UserHasBeenDeactivated(args *Z_UserHasBeenDeactivatedArgs, returns *Z_UserHasBeenDeactivatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserHasBeenDeactivated(c *Context, user *model.User)
+	}); ok {
+		hook.UserHasBeenDeactivated(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook UserHasBeenDeactivated called but not implemented."))
 	}
 	return nil
 }
@@ -4505,6 +4379,35 @@ func (s *apiRPCServer) GetFileInfo(args *Z_GetFileInfoArgs, returns *Z_GetFileIn
 	return nil
 }
 
+type Z_SetFileSearchableContentArgs struct {
+	A string
+	B string
+}
+
+type Z_SetFileSearchableContentReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SetFileSearchableContent(fileID string, content string) *model.AppError {
+	_args := &Z_SetFileSearchableContentArgs{fileID, content}
+	_returns := &Z_SetFileSearchableContentReturns{}
+	if err := g.client.Call("Plugin.SetFileSearchableContent", _args, _returns); err != nil {
+		log.Printf("RPC call to SetFileSearchableContent API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SetFileSearchableContent(args *Z_SetFileSearchableContentArgs, returns *Z_SetFileSearchableContentReturns) error {
+	if hook, ok := s.impl.(interface {
+		SetFileSearchableContent(fileID string, content string) *model.AppError
+	}); ok {
+		returns.A = hook.SetFileSearchableContent(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SetFileSearchableContent called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetFileInfosArgs struct {
 	A int
 	B int
@@ -6061,6 +5964,65 @@ func (s *apiRPCServer) GetUploadSession(args *Z_GetUploadSessionArgs, returns *Z
 		returns.B = encodableError(returns.B)
 	} else {
 		return encodableError(fmt.Errorf("API GetUploadSession called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SendPushNotificationArgs struct {
+	A *model.PushNotification
+	B string
+}
+
+type Z_SendPushNotificationReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SendPushNotification(notification *model.PushNotification, userID string) *model.AppError {
+	_args := &Z_SendPushNotificationArgs{notification, userID}
+	_returns := &Z_SendPushNotificationReturns{}
+	if err := g.client.Call("Plugin.SendPushNotification", _args, _returns); err != nil {
+		log.Printf("RPC call to SendPushNotification API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SendPushNotification(args *Z_SendPushNotificationArgs, returns *Z_SendPushNotificationReturns) error {
+	if hook, ok := s.impl.(interface {
+		SendPushNotification(notification *model.PushNotification, userID string) *model.AppError
+	}); ok {
+		returns.A = hook.SendPushNotification(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SendPushNotification called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UpdateUserAuthArgs struct {
+	A string
+	B *model.UserAuth
+}
+
+type Z_UpdateUserAuthReturns struct {
+	A *model.UserAuth
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
+	_args := &Z_UpdateUserAuthArgs{userID, userAuth}
+	_returns := &Z_UpdateUserAuthReturns{}
+	if err := g.client.Call("Plugin.UpdateUserAuth", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateUserAuth API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdateUserAuth(args *Z_UpdateUserAuthArgs, returns *Z_UpdateUserAuthReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdateUserAuth(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateUserAuth called but not implemented."))
 	}
 	return nil
 }

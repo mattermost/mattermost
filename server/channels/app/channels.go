@@ -14,8 +14,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -35,22 +35,21 @@ type licenseSvc interface {
 
 // Channels contains all channels related state.
 type Channels struct {
-	srv        *Server
-	cfgSvc     product.ConfigService
-	filestore  filestore.FileBackend
-	licenseSvc licenseSvc
-	routerSvc  *routerService
+	srv             *Server
+	cfgSvc          product.ConfigService
+	filestore       filestore.FileBackend
+	exportFilestore filestore.FileBackend
+	licenseSvc      licenseSvc
+	routerSvc       *routerService
 
 	postActionCookieSecret []byte
 
-	pluginCommandsLock     sync.RWMutex
-	pluginCommands         []*PluginCommand
-	pluginsLock            sync.RWMutex
-	pluginsEnvironment     *plugin.Environment
-	pluginConfigListenerID string
-
-	productCommandsLock sync.RWMutex
-	productCommands     []*ProductCommand
+	pluginCommandsLock            sync.RWMutex
+	pluginCommands                []*PluginCommand
+	pluginsLock                   sync.RWMutex
+	pluginsEnvironment            *plugin.Environment
+	pluginConfigListenerID        string
+	pluginClusterLeaderListenerID string
 
 	imageProxy *imageproxy.ImageProxy
 
@@ -83,12 +82,6 @@ type Channels struct {
 
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
-
-	// collectionTypes maps from collection types to the registering plugin id
-	collectionTypes map[string]string
-	// topicTypes maps from topic types to collection types
-	topicTypes                 map[string]string
-	collectionAndTopicTypesMut sync.Mutex
 }
 
 func init() {
@@ -97,10 +90,11 @@ func init() {
 			return NewChannels(services)
 		},
 		Dependencies: map[product.ServiceKey]struct{}{
-			ServerKey:            {},
-			product.ConfigKey:    {},
-			product.LicenseKey:   {},
-			product.FilestoreKey: {},
+			ServerKey:                  {},
+			product.ConfigKey:          {},
+			product.LicenseKey:         {},
+			product.FilestoreKey:       {},
+			product.ExportFilestoreKey: {},
 		},
 	})
 }
@@ -111,11 +105,9 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 		return nil, errors.New("server not passed")
 	}
 	ch := &Channels{
-		srv:             s,
-		imageProxy:      imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
-		uploadLockMap:   map[string]bool{},
-		collectionTypes: map[string]string{},
-		topicTypes:      map[string]string{},
+		srv:           s,
+		imageProxy:    imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
+		uploadLockMap: map[string]bool{},
 	}
 
 	// To get another service:
@@ -127,6 +119,7 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 		product.ConfigKey,
 		product.LicenseKey,
 		product.FilestoreKey,
+		product.ExportFilestoreKey,
 	}
 	for _, svcKey := range requiredServices {
 		svc, ok := services[svcKey]
@@ -147,6 +140,12 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 				return nil, errors.New("Filestore service did not satisfy FileBackend interface")
 			}
 			ch.filestore = filestore
+		case product.ExportFilestoreKey:
+			exportFilestore, ok := svc.(filestore.FileBackend)
+			if !ok {
+				return nil, errors.New("Export filestore service did not satisfy FileBackend interface")
+			}
+			ch.exportFilestore = exportFilestore
 		case product.LicenseKey:
 			svc, ok := svc.(licenseSvc)
 			if !ok {
@@ -179,12 +178,12 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 	}
 	if samlInterfaceNew != nil {
 		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))
-		if err := ch.Saml.ConfigureSP(); err != nil {
+		if err := ch.Saml.ConfigureSP(request.EmptyContext(s.Log())); err != nil {
 			s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 		}
 
 		ch.AddConfigListener(func(_, _ *model.Config) {
-			if err := ch.Saml.ConfigureSP(); err != nil {
+			if err := ch.Saml.ConfigureSP(request.EmptyContext(s.Log())); err != nil {
 				s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})
@@ -237,10 +236,6 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 		app: &App{ch: ch},
 	}
 
-	services[product.HooksKey] = &hooksService{
-		ch: ch,
-	}
-
 	services[product.UserKey] = &App{ch: ch}
 
 	services[product.PreferencesKey] = &preferencesServiceWrapper{
@@ -285,7 +280,6 @@ func (ch *Channels) Start() error {
 				ch.ShutDownPlugins()
 			}
 		}
-
 	})
 
 	// TODO: This should be moved to the platform service.
@@ -333,28 +327,10 @@ func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAcce
 		receiveEmailsAccepted)
 }
 
-func (a *App) HooksManager() *product.HooksManager {
-	return a.ch.srv.hooksManager
-}
-
-// Ensure hooksService implements `product.HooksService`
-var _ product.HooksService = (*hooksService)(nil)
-
-type hooksService struct {
-	ch *Channels
-}
-
-func (s *hooksService) RegisterHooks(productID string, hooks any) error {
-	return s.ch.srv.hooksManager.AddProduct(productID, hooks)
-}
-
 func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
 	if env := ch.GetPluginsEnvironment(); env != nil {
 		env.RunMultiPluginHook(hookRunnerFunc, hookId)
 	}
-
-	// run hook for the products
-	ch.srv.hooksManager.RunMultiHook(hookRunnerFunc, hookId)
 }
 
 func (ch *Channels) HooksForPluginOrProduct(id string) (plugin.Hooks, error) {
@@ -366,11 +342,6 @@ func (ch *Channels) HooksForPluginOrProduct(id string) (plugin.Hooks, error) {
 		if hooks != nil {
 			return hooks, nil
 		}
-	}
-
-	hooks = ch.srv.hooksManager.HooksForProduct(id)
-	if hooks != nil {
-		return hooks, nil
 	}
 
 	return nil, fmt.Errorf("could not find hooks for id %s", id)

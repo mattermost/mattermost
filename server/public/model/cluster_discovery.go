@@ -76,14 +76,14 @@ func (o *ClusterDiscovery) IsEqual(in *ClusterDiscovery) bool {
 }
 
 func FilterClusterDiscovery(vs []*ClusterDiscovery, f func(*ClusterDiscovery) bool) []*ClusterDiscovery {
-	copy := make([]*ClusterDiscovery, 0)
+	cdCopy := make([]*ClusterDiscovery, 0)
 	for _, v := range vs {
 		if f(v) {
-			copy = append(copy, v)
+			cdCopy = append(cdCopy, v)
 		}
 	}
 
-	return copy
+	return cdCopy
 }
 
 func (o *ClusterDiscovery) IsValid() *AppError {

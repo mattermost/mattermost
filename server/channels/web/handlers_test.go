@@ -171,7 +171,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	}
 	session.GenerateCSRF()
 	th.App.SetSessionExpireInHours(session, 24)
-	session, err := th.App.CreateSession(session)
+	session, err := th.App.CreateSession(th.Context, session)
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
 	}
@@ -340,7 +340,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com js.stripe.com/v3"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors " + frameAncestors + "; script-src 'self' cdn.rudderlabs.com js.stripe.com/v3"}, response.Header()["Content-Security-Policy"])
 	})
 
 	t.Run("static, without subpath or SelfHostedPurchase, does not allow Stripe in CSP", func(t *testing.T) {
@@ -363,7 +363,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors " + frameAncestors + "; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
 	})
 
 	t.Run("static, with subpath", func(t *testing.T) {
@@ -404,7 +404,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com js.stripe.com/v3"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors " + frameAncestors + "; script-src 'self' cdn.rudderlabs.com js.stripe.com/v3"}, response.Header()["Content-Security-Policy"])
 
 		// TODO: It's hard to unit test this now that the CSP directive is effectively
 		// decided in Setup(). Circle back to this in master once the memory store is
@@ -419,7 +419,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response = httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com js.stripe.com/v3"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors " + frameAncestors + "; script-src 'self' cdn.rudderlabs.com js.stripe.com/v3"}, response.Header()["Content-Security-Policy"])
 		// TODO: See above.
 		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='", "csp header incorrectly changed after subpath changed")
 	})
@@ -449,9 +449,8 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com js.stripe.com/v3 'unsafe-eval' 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors " + frameAncestors + "; script-src 'self' cdn.rudderlabs.com js.stripe.com/v3 'unsafe-eval' 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
 	})
-
 }
 
 func TestGenerateDevCSP(t *testing.T) {
@@ -558,7 +557,7 @@ func TestGenerateDevCSP(t *testing.T) {
 			*cfg.ServiceSettings.DeveloperFlags = ""
 		})
 
-		logger := mlog.CreateConsoleTestLogger(false, mlog.LvlWarn)
+		logger := mlog.CreateConsoleTestLogger(t)
 		buf := &mlog.Buffer{}
 		require.NoError(t, mlog.AddWriterTarget(logger, buf, false, mlog.LvlWarn))
 
@@ -569,8 +568,6 @@ func TestGenerateDevCSP(t *testing.T) {
 		}
 
 		generateDevCSP(*c)
-
-		require.NoError(t, logger.Shutdown())
 
 		assert.Equal(t, "", buf.String())
 	})
@@ -884,4 +881,72 @@ func TestCheckCSRFToken(t *testing.T) {
 		assert.True(t, passed)
 		assert.Nil(t, c.Err)
 	})
+}
+
+func TestOriginClient(t *testing.T) {
+	testCases := []struct {
+		name           string
+		userAgent      string
+		mobilev2       bool
+		expectedClient OriginClient
+	}{
+		{
+			name:           "No user agent - unknown client",
+			userAgent:      "",
+			expectedClient: OriginClientUnknown,
+		},
+		{
+			name:           "Mozilla user agent",
+			userAgent:      "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/118.0",
+			expectedClient: OriginClientWeb,
+		},
+		{
+			name:           "Chrome user agent",
+			userAgent:      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+			expectedClient: OriginClientWeb,
+		},
+		{
+			name:           "Mobile post v2",
+			userAgent:      "someother-agent/3.2.4",
+			mobilev2:       true,
+			expectedClient: OriginClientMobile,
+		},
+		{
+			name:           "Mobile Android",
+			userAgent:      "rnbeta/2.0.0.441 someother-agent/3.2.4",
+			expectedClient: OriginClientMobile,
+		},
+		{
+			name:           "Mobile iOS",
+			userAgent:      "Mattermost/2.0.0.441 someother-agent/3.2.4",
+			expectedClient: OriginClientMobile,
+		},
+		{
+			name:           "Desktop user agent",
+			userAgent:      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.5481.177 Electron/23.1.2 Safari/537.36 Mattermost/5.3.1",
+			expectedClient: OriginClientDesktop,
+		},
+	}
+
+	for _, tc := range testCases {
+		req, err := http.NewRequest(http.MethodGet, "example.com", nil)
+		require.NoError(t, err)
+
+		// Set User-Agent header, if any
+		if tc.userAgent != "" {
+			req.Header.Set("User-Agent", tc.userAgent)
+		}
+
+		// Set mobilev2 query if needed
+		if tc.mobilev2 {
+			q := req.URL.Query()
+			q.Add("mobilev2", "true")
+			req.URL.RawQuery = q.Encode()
+		}
+
+		// Compute origin client
+		actualClient := originClient(req)
+
+		require.Equal(t, tc.expectedClient, actualClient)
+	}
 }

@@ -17,7 +17,7 @@ describe('components/MarkdownImageExpand', () => {
                 isExpanded={false}
                 imageKey={'1'}
                 onToggle={toggleHandler}
-                actions={{toggleInlineImageVisibility: imageCollapseHandler}}
+                toggleInlineImageVisibility={imageCollapseHandler}
             >{'An image to expand'}</MarkdownImageExpand>,
         );
 
@@ -34,7 +34,7 @@ describe('components/MarkdownImageExpand', () => {
                 isExpanded={true}
                 imageKey={'1'}
                 onToggle={toggleHandler}
-                actions={{toggleInlineImageVisibility: imageCollapseHandler}}
+                toggleInlineImageVisibility={imageCollapseHandler}
             >{'An image to expand'}</MarkdownImageExpand>,
         );
 
@@ -51,7 +51,7 @@ describe('components/MarkdownImageExpand', () => {
                 isExpanded={true}
                 imageKey={'1'}
                 onToggle={toggleHandler}
-                actions={{toggleInlineImageVisibility: imageCollapseHandler}}
+                toggleInlineImageVisibility={imageCollapseHandler}
             >{'An image to expand'}</MarkdownImageExpand>,
         );
 
@@ -70,7 +70,7 @@ describe('components/MarkdownImageExpand', () => {
                 isExpanded={false}
                 imageKey={'1'}
                 onToggle={toggleHandler}
-                actions={{toggleInlineImageVisibility: imageCollapseHandler}}
+                toggleInlineImageVisibility={imageCollapseHandler}
             >{'An image to expand'}</MarkdownImageExpand>,
         );
 

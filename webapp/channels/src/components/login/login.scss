@@ -73,13 +73,13 @@
 
                     .login-body-message-subtitle,
                     .login-body-custom-branding-markdown {
-                        text-align: center;
+                        text-align: left;
                     }
                 }
 
                 .login-body-custom-branding-image {
-                    max-height: 540px;
-                    align-self: center;
+                    max-height: 240px;
+                    align-self: self-start;
                     margin-bottom: 28px;
                     border-radius: 8px;
                 }

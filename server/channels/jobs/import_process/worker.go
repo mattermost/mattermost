@@ -14,13 +14,11 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
-
-const jobName = "ImportProcess"
 
 type AppIface interface {
 	configservice.ConfigService
@@ -28,17 +26,19 @@ type AppIface interface {
 	FileExists(path string) (bool, *model.AppError)
 	FileSize(path string) (int64, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
-	BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
+	BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
 	Log() *mlog.Logger
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
-	appContext := request.EmptyContext(app.Log())
+func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
+	const workerName = "ImportProcess"
+
+	appContext := request.EmptyContext(jobServer.Logger())
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
-	execute := func(job *model.Job) error {
-		defer jobServer.HandleJobPanic(job)
+	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+		defer jobServer.HandleJobPanic(logger, job)
 
 		importFileName, ok := job.Data["import_file"]
 		if !ok {
@@ -113,6 +113,6 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		}
 		return nil
 	}
-	worker := jobs.NewSimpleWorker(jobName, jobServer, execute, isEnabled)
+	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
 }

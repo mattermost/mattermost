@@ -2,13 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {injectIntl, IntlShape, MessageDescriptor} from 'react-intl';
+import {injectIntl} from 'react-intl';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
 
 import {Posts} from 'mattermost-redux/constants';
 
-import {t} from 'utils/i18n';
 import Markdown from 'components/markdown';
-import {TextFormattingOptions} from 'utils/text_formatting';
+
+import {t} from 'utils/i18n';
+import type {TextFormattingOptions} from 'utils/text_formatting';
 
 const typeMessage = {
     [Posts.POST_TYPES.ADD_TO_CHANNEL]: {
@@ -22,6 +24,10 @@ const typeMessage = {
     [Posts.POST_TYPES.LEAVE_CHANNEL]: {
         id: t('last_users_message.left_channel.type'),
         defaultMessage: '**left the channel**.',
+    },
+    [Posts.POST_TYPES.JOIN_LEAVE_CHANNEL]: {
+        id: t('last_users_message.joined_left_channel.type'),
+        defaultMessage: '**joined and left the channel**.',
     },
     [Posts.POST_TYPES.REMOVE_FROM_CHANNEL]: {
         id: t('last_users_message.removed_from_channel.type'),

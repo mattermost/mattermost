@@ -1,0 +1,177 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/InstalledOutgoingWebhook Should match snapshot of makeDisplayName 1`] = `"hook display name"`;
+
+exports[`components/integrations/InstalledOutgoingWebhook Should match snapshot of makeDisplayName 2`] = `"channel display name"`;
+
+exports[`components/integrations/InstalledOutgoingWebhook Should match snapshot of makeDisplayName 3`] = `"name"`;
+
+exports[`components/integrations/InstalledOutgoingWebhook should match snapshot 1`] = `
+<div
+  className="backstage-list__item"
+>
+  <div
+    className="item-details"
+  >
+    <div
+      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+    >
+      <strong
+        className="item-details__name"
+      >
+        build
+      </strong>
+      <div
+        className="item-actions"
+      >
+        <button
+          className="style--none color--link"
+          onClick={[Function]}
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Regenerate Token"
+            id="installed_integrations.regenToken"
+          />
+        </button>
+         - 
+        <Link
+          to="/test/integrations/outgoing_webhooks/edit?id=7h88x419ubbyuxzs7dfwtgkffr"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Edit"
+            id="installed_integrations.edit"
+          />
+        </Link>
+         - 
+        <Connect(DeleteIntegrationLink)
+          modalMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="This action permanently deletes the outgoing webhook and breaks any integrations using it. Are you sure you want to delete it?"
+              id="installed_outgoing_webhooks.delete.confirm"
+            />
+          }
+          onDelete={[Function]}
+        />
+      </div>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__description"
+      >
+        build status
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__content_type"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Content-Type: {contentType}"
+          id="installed_integrations.content_type"
+          values={
+            Object {
+              "contentType": "application/x-www-form-urlencoded",
+            }
+          }
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__trigger-words"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Trigger Words: {triggerWords}"
+          id="installed_integrations.triggerWords"
+          values={
+            Object {
+              "triggerWords": "build",
+            }
+          }
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__trigger-when"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Trigger When: {triggerWhen}"
+          id="installed_integrations.triggerWhen"
+          values={
+            Object {
+              "triggerWhen": <Memo(MemoizedFormattedMessage)
+                defaultMessage="First word matches a trigger word exactly"
+                id="add_outgoing_webhook.triggerWordsTriggerWhenFullWord"
+              />,
+            }
+          }
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__token"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Token: {token}"
+          id="installed_integrations.token"
+          values={
+            Object {
+              "token": "xoxz1z7c3tgi9xhrfudn638q9r",
+            }
+          }
+        />
+        <Memo(CopyText)
+          value="xoxz1z7c3tgi9xhrfudn638q9r"
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__creation"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Created by {creator} on {createAt, date, full}"
+          id="installed_integrations.creation"
+          values={
+            Object {
+              "createAt": 1508327769020,
+              "creator": "some-user",
+            }
+          }
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__url word-break--all"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Callback URLs: {urls}"
+          id="installed_integrations.callback_urls"
+          values={
+            Object {
+              "urls": "http://adsfdasd.com",
+            }
+          }
+        />
+      </span>
+    </div>
+  </div>
+</div>
+`;

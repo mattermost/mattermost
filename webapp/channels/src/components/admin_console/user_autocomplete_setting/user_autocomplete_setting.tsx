@@ -3,13 +3,13 @@
 
 import React, {useCallback, useRef} from 'react';
 
-import {UserProfile} from '@mattermost/types/users';
-import {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {UserProfile} from '@mattermost/types/users';
 
-import GenericUserProvider from 'components/suggestion/generic_user_provider';
 import Setting from 'components/admin_console/setting';
+import GenericUserProvider from 'components/suggestion/generic_user_provider';
 import SuggestionBox from 'components/suggestion/suggestion_box';
-import SuggestionList from 'components/suggestion/suggestion_list.jsx';
+import SuggestionList from 'components/suggestion/suggestion_list';
 
 export type Props = {
     id: string;

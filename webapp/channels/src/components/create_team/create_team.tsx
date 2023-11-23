@@ -2,17 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Route, Switch, Redirect, RouteComponentProps} from 'react-router-dom';
 import {FormattedMessage} from 'react-intl';
+import {Route, Switch, Redirect} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
 
-import {Channel} from '@mattermost/types/channels';
-import {CloudUsage} from '@mattermost/types/cloud';
-import {Team} from '@mattermost/types/teams';
+import type {Channel} from '@mattermost/types/channels';
+import type {CloudUsage} from '@mattermost/types/cloud';
+import type {Team} from '@mattermost/types/teams';
 
 import AnnouncementBar from 'components/announcement_bar';
 import BackButton from 'components/common/back_button';
-import DisplayName from 'components/create_team/components/display_name';
 import SiteNameAndDescription from 'components/common/site_name_and_description';
+import DisplayName from 'components/create_team/components/display_name';
 import TeamUrl from 'components/create_team/components/team_url';
 
 export type Props = {

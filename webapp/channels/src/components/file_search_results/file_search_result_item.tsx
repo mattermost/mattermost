@@ -4,21 +4,21 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import Tag from 'components/widgets/tag/tag';
+import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
-import {fileSizeToString, copyToClipboard, localizeMessage} from 'utils/utils';
-import {getHistory} from 'utils/browser_history';
-import {getSiteURL} from 'utils/url';
-import Constants, {ModalIdentifiers} from 'utils/constants';
-
+import FileThumbnail from 'components/file_attachment/file_thumbnail';
+import FilePreviewModal from 'components/file_preview_modal';
 import OverlayTrigger from 'components/overlay_trigger';
+import Timestamp, {RelativeRanges} from 'components/timestamp';
 import Tooltip from 'components/tooltip';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import FileThumbnail from 'components/file_attachment/file_thumbnail';
-import Timestamp, {RelativeRanges} from 'components/timestamp';
+import Tag from 'components/widgets/tag/tag';
 
-import FilePreviewModal from 'components/file_preview_modal';
+import {getHistory} from 'utils/browser_history';
+import Constants, {ModalIdentifiers} from 'utils/constants';
+import {getSiteURL} from 'utils/url';
+import {fileSizeToString, copyToClipboard, localizeMessage} from 'utils/utils';
 
 import type {PropsFromRedux, OwnProps} from './index';
 
@@ -193,7 +193,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                     >
                         <a
                             className='action-icon download-icon'
-                            href={`/api/v4/files/${fileInfo.id}?download=1`}
+                            href={getFileDownloadUrl(fileInfo.id)}
                             onClick={this.stopPropagation}
                         >
                             <i className='icon icon-download-outline'/>

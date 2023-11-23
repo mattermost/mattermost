@@ -39,7 +39,7 @@ func (c *SearchChannelStore) indexChannel(channel *model.Channel) {
 	var userIDs, teamMemberIDs []string
 	var err error
 	if channel.Type == model.ChannelTypePrivate {
-		userIDs, err = c.GetAllChannelMembersById(channel.Id)
+		userIDs, err = c.GetAllChannelMemberIdsByChannelId(channel.Id)
 		if err != nil {
 			mlog.Warn("Encountered error while indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 			return

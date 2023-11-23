@@ -3,6 +3,7 @@
 
 import nock from 'nock';
 
+import type {GetGroupsParams} from '@mattermost/types/groups';
 import {SyncableType} from '@mattermost/types/groups';
 
 import * as Actions from 'mattermost-redux/actions/groups';
@@ -275,7 +276,12 @@ describe('Actions.Groups', () => {
             get('/groups?filter_allow_reference=true&page=0&per_page=0').
             reply(200, response1.groups);
 
-        await Actions.getGroups(true, 0, 0)(store.dispatch, store.getState);
+        const groupParams: GetGroupsParams = {
+            filter_allow_reference: true,
+            page: 0,
+            per_page: 0,
+        };
+        await Actions.getGroups(groupParams)(store.dispatch, store.getState);
 
         const state = store.getState();
 
@@ -876,4 +882,3 @@ describe('Actions.Groups', () => {
         expect(JSON.stringify(response) === JSON.stringify(stats[groupID])).toBeTruthy();
     });
 });
-

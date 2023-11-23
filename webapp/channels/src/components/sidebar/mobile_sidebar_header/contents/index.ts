@@ -2,15 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
-
-import {GlobalState} from 'types/store';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {GenericAction} from 'mattermost-redux/types/actions';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
+
+import type {GlobalState} from 'types/store';
 
 import Contents from './contents';
 

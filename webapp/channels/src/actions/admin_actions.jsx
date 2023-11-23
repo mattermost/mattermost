@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import * as AdminActions from 'mattermost-redux/actions/admin';
-import * as UserActions from 'mattermost-redux/actions/users';
-import * as TeamActions from 'mattermost-redux/actions/teams';
-import {Client4} from 'mattermost-redux/client';
 import {bindClientFunc} from 'mattermost-redux/actions/helpers';
-
-import {trackEvent} from 'actions/telemetry_actions.jsx';
+import * as TeamActions from 'mattermost-redux/actions/teams';
+import * as UserActions from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
+import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getOnNavigationConfirmed} from 'selectors/views/admin';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
+
 import {ActionTypes} from 'utils/constants';
 
 const dispatch = store.dispatch;
@@ -88,6 +88,33 @@ export async function samlCertificateStatus(success, error) {
         success(data);
     } else if (err && error) {
         error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function getIPFilters(success, error) {
+    const {data, error: err} = await AdminActions.getIPFilters()(dispatch, getState);
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error(err);
+    }
+}
+
+export async function getCurrentIP(success, error) {
+    const {data, error: err} = await AdminActions.getCurrentIP()(dispatch, getState);
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error(err);
+    }
+}
+
+export async function applyIPFilters(ipList, success, error) {
+    const {data, error: err} = await AdminActions.applyIPFilters(ipList)(dispatch, getState);
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error(err);
     }
 }
 
@@ -444,9 +471,9 @@ export function restartServer() {
     };
 }
 
-export function ping() {
+export function ping(getServerStatus, deviceId) {
     return async () => {
-        const data = await Client4.ping();
+        const data = await Client4.ping(getServerStatus, deviceId);
         return data;
     };
 }

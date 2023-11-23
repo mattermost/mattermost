@@ -822,11 +822,11 @@ THE SOFTWARE.
 
 ---
 
-## dgrijalva/jwt-go
+## golang-jwt/jwt
 
-This product contains 'dgrijalva/jwt-go' by Dave Grijalva.
+This product contains 'golang-jwt/jwt' by golang-jwt maintainers.
 
-ARCHIVE - Golang implementation of JSON Web Tokens (JWT). This project is now maintained at:
+A go (or 'golang' for search engine friendliness) implementation of JSON Web Tokens.
 
 * HOMEPAGE:
   * https://github.com/golang-jwt/jwt

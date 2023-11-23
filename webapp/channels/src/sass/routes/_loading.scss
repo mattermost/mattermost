@@ -42,7 +42,7 @@
             height: 4px;
             margin: 0 2px;
             animation: move 0.75s infinite linear;
-            background-color: #444;
+            background-color: var(--center-channel-color);
             border-radius: 10px;
             opacity: 0.1;
         }

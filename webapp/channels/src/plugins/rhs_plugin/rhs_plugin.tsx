@@ -7,37 +7,30 @@ import SearchResultsHeader from 'components/search_results_header';
 
 import Pluggable from 'plugins/pluggable';
 
-import AutoShowLinkedBoardTourTip from './auto_show_linked_board_tourtip';
-
 export type Props = {
     showPluggable: boolean;
     pluggableId: string;
     title: React.ReactNode;
 }
 
-export default class RhsPlugin extends React.PureComponent<Props> {
-    render() {
-        const autoLinkedBoardTourTip = (<AutoShowLinkedBoardTourTip/>);
+const RhsPlugin = ({showPluggable, pluggableId, title}: Props) => {
+    return (
+        <div
+            id='rhsContainer'
+            className='sidebar-right__body'
+        >
+            <SearchResultsHeader>
+                {title}
+            </SearchResultsHeader>
+            {
+                showPluggable &&
+                <Pluggable
+                    pluggableName='RightHandSidebarComponent'
+                    pluggableId={pluggableId}
+                />
+            }
+        </div>
+    );
+};
 
-        return (
-            <div
-                id='rhsContainer'
-                className='sidebar-right__body'
-            >
-                <SearchResultsHeader>
-                    {autoLinkedBoardTourTip}
-                    {this.props.title}
-                </SearchResultsHeader>
-                {
-                    this.props.showPluggable &&
-                    <>
-                        <Pluggable
-                            pluggableName='RightHandSidebarComponent'
-                            pluggableId={this.props.pluggableId}
-                        />
-                    </>
-                }
-            </div>
-        );
-    }
-}
+export default React.memo(RhsPlugin);

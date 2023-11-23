@@ -4,9 +4,7 @@
 package api4
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -21,7 +19,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	graphql "github.com/graph-gophers/graphql-go"
 	s3 "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/stretchr/testify/require"
@@ -29,8 +26,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
@@ -47,7 +44,6 @@ type TestHelper struct {
 
 	Context              *request.Context
 	Client               *model.Client4
-	GraphQLClient        *graphQLClient
 	BasicUser            *model.User
 	BasicUser2           *model.User
 	TeamAdminUser        *model.User
@@ -144,13 +140,12 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s.Channels())),
 		Server:            s,
+		Context:           request.EmptyContext(testLogger),
 		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,
-		Context:           request.EmptyContext(testLogger),
 		TestLogger:        testLogger,
 		LogBuffer:         buffer,
 	}
-	th.Context.SetLogger(testLogger)
 
 	if s.Platform().SearchEngine != nil && s.Platform().SearchEngine.BleveEngine != nil && searchEngine != nil {
 		searchEngine.BleveEngine = s.Platform().SearchEngine.BleveEngine
@@ -196,7 +191,6 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 
 	th.Client = th.CreateClient()
-	th.GraphQLClient = newGraphQLClient(fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port))
 	th.SystemAdminClient = th.CreateClient()
 	th.SystemManagerClient = th.CreateClient()
 
@@ -206,7 +200,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	falseValues := []string{"0", "f", "F", "FALSE", "false", "False"}
 	trueString := trueValues[rand.Intn(len(trueValues))]
 	falseString := falseValues[rand.Intn(len(falseValues))]
-	mlog.Debug("Configured Client4 bool string values", mlog.String("true", trueString), mlog.String("false", falseString))
+	testLogger.Debug("Configured Client4 bool string values", mlog.String("true", trueString), mlog.String("false", falseString))
 	th.Client.SetBoolString(true, trueString)
 	th.Client.SetBoolString(false, falseString)
 
@@ -289,7 +283,6 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadBoardsMigrationsIfNeeded()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(dbStore, searchEngine, false, true, updateConfig, nil)
 	th.InitLogin()
@@ -812,16 +805,10 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 
 func (th *TestHelper) LoginBasic() {
 	th.LoginBasicWithClient(th.Client)
-	if os.Getenv("MM_FEATUREFLAGS_GRAPHQL") == "true" {
-		th.LoginBasicWithGraphQL()
-	}
 }
 
 func (th *TestHelper) LoginBasic2() {
 	th.LoginBasic2WithClient(th.Client)
-	if os.Getenv("MM_FEATUREFLAGS_GRAPHQL") == "true" {
-		th.LoginBasicWithGraphQL()
-	}
 }
 
 func (th *TestHelper) LoginTeamAdmin() {
@@ -838,13 +825,6 @@ func (th *TestHelper) LoginSystemManager() {
 
 func (th *TestHelper) LoginBasicWithClient(client *model.Client4) {
 	_, _, err := client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (th *TestHelper) LoginBasicWithGraphQL() {
-	_, _, err := th.GraphQLClient.login(th.BasicUser.Email, th.BasicUser.Password)
 	if err != nil {
 		panic(err)
 	}
@@ -1176,7 +1156,7 @@ func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 }
 
 func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
-	if tm, err := th.App.Srv().Store().Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
+	if tm, err := th.App.Srv().Store().Team().GetMember(th.Context, team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = true
 		if _, err = th.App.Srv().Store().Team().UpdateMember(tm); err != nil {
 			panic(err)
@@ -1187,7 +1167,7 @@ func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 }
 
 func (th *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
-	if tm, err := th.App.Srv().Store().Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
+	if tm, err := th.App.Srv().Store().Team().GetMember(th.Context, team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = false
 		if _, err = th.App.Srv().Store().Team().UpdateMember(tm); err != nil {
 			panic(err)
@@ -1301,23 +1281,4 @@ func (th *TestHelper) SetupScheme(scope string) *model.Scheme {
 		panic(err)
 	}
 	return scheme
-}
-
-func (th *TestHelper) MakeGraphQLRequest(input *graphQLInput) (*graphql.Response, error) {
-	url := fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port) + model.APIURLSuffixV5 + "/graphql"
-
-	buf, err := json.Marshal(input)
-	if err != nil {
-		panic(err)
-	}
-
-	resp, err := th.GraphQLClient.doAPIRequest("POST", url, bytes.NewReader(buf), map[string]string{})
-	if err != nil {
-		panic(err)
-	}
-	defer closeBody(resp)
-
-	var gqlResp *graphql.Response
-	err = json.NewDecoder(resp.Body).Decode(&gqlResp)
-	return gqlResp, err
 }

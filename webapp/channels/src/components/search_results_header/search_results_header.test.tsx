@@ -3,16 +3,16 @@
 
 import React from 'react';
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
-
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {RHSStates} from 'utils/constants';
-import {RhsState} from 'types/store/rhs';
+
+import type {RhsState} from 'types/store/rhs';
 
 import Header from './search_results_header';
 
 describe('search_results_header', () => {
     test('should display back button when the parent is channel info', () => {
-        renderWithIntl(
+        renderWithContext(
             <Header
                 previousRhsState={RHSStates.CHANNEL_INFO as RhsState}
                 canGoBack={true}
@@ -30,7 +30,7 @@ describe('search_results_header', () => {
         expect(screen.getByLabelText('Back Icon')).toBeInTheDocument();
     });
     test('should NOT diplay expand when the parent is channel info', () => {
-        renderWithIntl(
+        renderWithContext(
             <Header
                 previousRhsState={RHSStates.CHANNEL_INFO as RhsState}
                 canGoBack={true}
@@ -48,7 +48,7 @@ describe('search_results_header', () => {
         expect(screen.queryByLabelText('Expand Sidebar Icon')).not.toBeInTheDocument();
     });
     test('should diplay expand when the parent is NOT channel info', () => {
-        renderWithIntl(
+        renderWithContext(
             <Header
                 previousRhsState={RHSStates.FLAG as RhsState}
                 canGoBack={true}

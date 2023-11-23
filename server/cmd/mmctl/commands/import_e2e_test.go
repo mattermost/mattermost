@@ -251,7 +251,7 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 	s.SetupTestHelper().InitBasic()
 
-	job, appErr := s.th.App.CreateJob(&model.Job{
+	job, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 		Type: model.JobTypeImportProcess,
 		Data: map[string]string{"import_file": "import1.zip"},
 	})
@@ -260,7 +260,7 @@ func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 	s.Run("no permissions", func() {
 		printer.Clean()
 
-		job1, appErr := s.th.App.CreateJob(&model.Job{
+		job1, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import1.zip"},
 		})
@@ -336,7 +336,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		cmd.Flags().Int("per-page", perPage, "")
 		cmd.Flags().Bool("all", false, "")
 
-		_, appErr := s.th.App.CreateJob(&model.Job{
+		_, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import1.zip"},
 		})
@@ -344,7 +344,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 
 		time.Sleep(time.Millisecond)
 
-		job2, appErr := s.th.App.CreateJob(&model.Job{
+		job2, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import2.zip"},
 		})
@@ -352,7 +352,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 
 		time.Sleep(time.Millisecond)
 
-		job3, appErr := s.th.App.CreateJob(&model.Job{
+		job3, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import3.zip"},
 		})

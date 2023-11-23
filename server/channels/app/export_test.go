@@ -93,7 +93,7 @@ func TestExportUserChannels(t *testing.T) {
 		Value:    "true",
 	}
 
-	_, appErr := th.App.MarkChannelsAsViewed(th.Context, []string{th.BasicPost.ChannelId}, user.Id, "", true)
+	_, appErr := th.App.MarkChannelsAsViewed(th.Context, []string{th.BasicPost.ChannelId}, user.Id, "", true, th.App.IsCRTEnabledForUser(th.Context, user.Id))
 	require.Nil(t, appErr)
 
 	var preferences model.Preferences
@@ -102,7 +102,7 @@ func TestExportUserChannels(t *testing.T) {
 	require.NoError(t, err)
 
 	th.App.UpdateChannelMemberNotifyProps(th.Context, notifyProps, channel.Id, user.Id)
-	exportData, appErr := th.App.buildUserChannelMemberships(user.Id, team.Id)
+	exportData, appErr := th.App.buildUserChannelMemberships(user.Id, team.Id, false)
 	require.Nil(t, appErr)
 	assert.Equal(t, len(*exportData), 3)
 	for _, data := range *exportData {
@@ -766,4 +766,39 @@ func TestExportDeletedTeams(t *testing.T) {
 		assert.NotContains(t, team.Name, team1.Name)
 		assert.NotContains(t, team.Id, team1.Id)
 	}
+}
+
+func TestExportArchivedChannels(t *testing.T) {
+	th1 := Setup(t).InitBasic()
+	defer th1.TearDown()
+
+	archivedChannel := th1.CreateChannel(th1.Context, th1.BasicTeam)
+	th1.CreatePost(archivedChannel)
+	appErr := th1.App.DeleteChannel(th1.Context, archivedChannel, th1.SystemAdminUser.Id)
+	require.Nil(t, appErr)
+
+	var b bytes.Buffer
+	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{
+		IncludeArchivedChannels: true,
+	})
+	require.Nil(t, appErr)
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, i)
+
+	channels2, err := th2.App.GetAllChannels(th1.Context, 0, 10, model.ChannelSearchOpts{
+		IncludeDeleted: true,
+	})
+	assert.Nil(t, err)
+	found := false
+	for i := range channels2 {
+		if channels2[i].Name == archivedChannel.Name {
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "archived channel not found after import")
 }

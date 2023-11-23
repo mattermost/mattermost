@@ -8,8 +8,7 @@ import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selecto
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {isDevModeEnabled} from 'selectors/general';
-
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 const SUPPORTS_CLEAR_MARKS = isSupported([performance.clearMarks]);
 const SUPPORTS_MARK = isSupported([performance.mark]);
@@ -19,6 +18,8 @@ const SUPPORTS_MEASURE_METHODS = isSupported([
     performance.getEntriesByName,
     performance.clearMeasures,
 ]);
+
+const HEADER_X_PAGE_LOAD_CONTEXT = 'X-Page-Load-Context';
 
 export function isTelemetryEnabled(state) {
     const config = getConfig(state);
@@ -239,7 +240,7 @@ function initRequestCountingIfNecessary() {
         for (const entry of entries.getEntries()) {
             const url = entry.name;
 
-            if (!url.includes('/api/v4/') && !url.includes('/api/v5/')) {
+            if (!url.includes('/api/v4/')) {
                 // Don't count requests made outside of the MM server's API
                 continue;
             }
@@ -263,3 +264,16 @@ function updateRequestCountAtMark(name) {
 function getRequestCountAtMark(name) {
     return requestCountAtMark[name] ?? 0;
 }
+
+/**
+ * This allows the server to know that a given HTTP request occurred during page load or reconnect.
+ * The server then uses this information to store metrics fields based on the request context.
+ * The setTimeout approach is a "best effort" approach that will produce false positives.
+ * A more accurate approach will result in more obtrusive code, which would add risk and maintenance cost.
+ */
+export const temporarilySetPageLoadContext = (pageLoadContext) => {
+    Client4.setHeader(HEADER_X_PAGE_LOAD_CONTEXT, pageLoadContext);
+    setTimeout(() => {
+        Client4.removeHeader(HEADER_X_PAGE_LOAD_CONTEXT);
+    }, 5000);
+};
