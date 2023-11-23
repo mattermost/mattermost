@@ -230,6 +230,7 @@ const IPFiltering = () => {
     }
 
     function handleSave() {
+        setInstallationStatus('update-requested');
         setSaving(true);
         setSavingMessage(savingButtonMessages.SAVING_CHANGES);
         changeSavingDescription(savingDescriptionMessages.SAVING_CHANGES);
@@ -238,7 +239,6 @@ const IPFiltering = () => {
         const success = (data: AllowedIPRange[]) => {
             setIpFilters(data);
             setOriginalIpFilters(data);
-            setInstallationStatus('update-requested');
         };
 
         applyIPFilters(ipFilters ?? [], success);
