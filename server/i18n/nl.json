@@ -9996,5 +9996,33 @@
   {
     "id": "model.config.is_valid.log.advanced_logging.parse",
     "translation": "Ongeldig formaat: {{.Error}}"
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Er is een fout opgetreden tijdens het toepassen van de IP-filters"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Er is een fout opgetreden bij het ophalen van de IP-filters"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Er is een fout opgetreden bij het ophalen van het IP-adres van de client"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP-filtering is niet beschikbaar op deze server"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Wijzigingen bekijken"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{ .InitiatingUsername }} heeft de IP-filterinstellingen voor jouw werkruimte gewijzigd op de URL: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Wijzigingen in de IP-filters van je werkruimte"
   }
 ]

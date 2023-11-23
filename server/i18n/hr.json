@@ -1010,5 +1010,81 @@
   {
     "id": "web.error.unsupported_browser.system_browser_or",
     "translation": "ili"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.title",
+    "translation": "Višefaktorska autentifikacija je dodana"
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.info",
+    "translation": "Višefaktorska autentifikacija je uklonjena iz tvog računa na {{ .SiteURL }}."
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.title",
+    "translation": "Višefaktorska autentifikacija je uklonjena"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.title",
+    "translation": "Aktualizirao/la si svoj način prijave"
+  },
+  {
+    "id": "api.templates.signin_change_email.subject",
+    "translation": "[{{ .SiteName }}] Tvoj način prijave je aktualiziran"
+  },
+  {
+    "id": "api.templates.reset_subject",
+    "translation": "[{{ .SiteName }}] Resetiraj tvoju lozinku"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.method_email",
+    "translation": "e-mail i lozinka"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "[{{ .SiteName }}] Tvoje korisničko ime se promijenilo"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Pritisni dolje za potvrđivanje tvoje e-mail adresu."
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.registered_users_header",
+    "translation": "Ukupni broj aktivnih korisnika: "
+  },
+  {
+    "id": "api.templates.verify_body.title",
+    "translation": "Potvrdi tvoju e-mail adresu"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.contact_name_header",
+    "translation": "Kontakt: "
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.site_url_header",
+    "translation": "URL stranice: "
+  },
+  {
+    "id": "api.templates.welcome_body.title",
+    "translation": "Dobro došao, dobro došla u tim"
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Pritisni dolje za potvrđivanje tvoje e-mail adresu."
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Greška pri izradi zip datoteke."
+  },
+  {
+    "id": "api.templates.signin_change_email.body.info",
+    "translation": "Aktualizirao/la si svoj način prijave na {{ .SiteName }} u {{.Method}}."
+  },
+  {
+    "id": "api.templates.mfa_activated_body.info",
+    "translation": "Višefaktorska autentifikacija je dodana tvom računu na {{ .SiteURL }}."
+  },
+  {
+    "id": "api.command_open.name",
+    "translation": "otvori"
   }
 ]
