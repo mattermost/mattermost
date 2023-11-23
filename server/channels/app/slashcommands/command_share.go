@@ -10,8 +10,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
 type ShareProvider struct {
@@ -72,7 +72,6 @@ func (sp *ShareProvider) GetAutoCompleteListItems(c request.CTX, a *app.App, com
 	case strings.Contains(parsed, " uninvite "):
 
 		return sp.getAutoCompleteUnInviteRemote(a, commandArgs, arg)
-
 	}
 	return nil, errors.New("invalid action")
 }

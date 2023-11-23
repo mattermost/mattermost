@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 import QuickInput from 'components/quick_input';
+
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
@@ -20,7 +21,7 @@ export default class SuggestionBox extends React.PureComponent {
         /**
          * The list component to render, usually SuggestionList
          */
-        listComponent: PropTypes.func.isRequired,
+        listComponent: PropTypes.any.isRequired,
 
         /**
          * Where the list will be displayed relative to the input box, defaults to 'top'
@@ -35,7 +36,7 @@ export default class SuggestionBox extends React.PureComponent {
         /**
          * The date component to render
          */
-        dateComponent: PropTypes.func,
+        dateComponent: PropTypes.any,
 
         /**
          * The value of in the input
@@ -151,6 +152,26 @@ export default class SuggestionBox extends React.PureComponent {
         actions: PropTypes.shape({
             addMessageIntoHistory: PropTypes.func.isRequired,
         }).isRequired,
+
+        /**
+         * Props for input
+         */
+        id: PropTypes.string,
+        className: PropTypes.string,
+        placeholder: PropTypes.string,
+        maxLength: PropTypes.string,
+        delayInputUpdate: PropTypes.bool,
+        spellCheck: PropTypes.string,
+        onMouseUp: PropTypes.func,
+        onKeyUp: PropTypes.func,
+        onHeightChange: PropTypes.func,
+        onWidthChange: PropTypes.func,
+        onPaste: PropTypes.func,
+        style: PropTypes.object,
+        tabIndex: PropTypes.string,
+        type: PropTypes.string,
+        clearable: PropTypes.bool,
+        onClear: PropTypes.func,
     };
 
     static defaultProps = {

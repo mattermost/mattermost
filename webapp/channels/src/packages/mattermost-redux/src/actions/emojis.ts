@@ -1,21 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from 'mattermost-redux/client';
+import type {AnyAction} from 'redux';
+import {batchActions} from 'redux-batched-actions';
+
+import type {CustomEmoji} from '@mattermost/types/emojis';
+import type {GlobalState} from '@mattermost/types/store';
+
 import {EmojiTypes} from 'mattermost-redux/action_types';
-import {General, Emoji} from '../constants';
-
+import {Client4} from 'mattermost-redux/client';
 import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import {parseNeededCustomEmojisFromText} from 'mattermost-redux/utils/emoji_utils';
-
-import {GetStateFunc, DispatchFunc, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
-
-import {CustomEmoji} from '@mattermost/types/emojis';
+import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
+import {parseEmojiNamesFromText} from 'mattermost-redux/utils/emoji_utils';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
-
 import {getProfilesByIds} from './users';
+
+import {General, Emoji} from '../constants';
 
 export let systemEmojis: Set<string> = new Set();
 export function setSystemEmojis(emojis: Set<string>) {
@@ -71,32 +73,73 @@ export function getCustomEmojiByName(name: string): ActionFunc {
 }
 
 export function getCustomEmojisByName(names: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
-        if (!names || names.length === 0) {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        const neededNames = filterNeededCustomEmojis(getState(), names);
+
+        if (neededNames.length === 0) {
             return {data: true};
         }
 
-        const promises: Array<Promise<ActionResult|ActionResult[]>> = [];
-        names.forEach((name) => promises.push(dispatch(getCustomEmojiByName(name))));
+        // If necessary, split up the list of names into batches based on api4.GetEmojisByNamesMax on the server
+        const batchSize = 200;
 
-        await Promise.all(promises);
-        return {data: true};
+        const batches = [];
+        for (let i = 0; i < names.length; i += batchSize) {
+            batches.push(neededNames.slice(i, i + batchSize));
+        }
+
+        let results;
+        try {
+            results = await Promise.all(batches.map((batch) => {
+                return Client4.getCustomEmojisByNames(batch);
+            }));
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        const data = results.flat();
+        const actions: AnyAction[] = [{
+            type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
+            data,
+        }];
+
+        if (data.length !== neededNames.length) {
+            const foundNames = new Set(data.map((emoji) => emoji.name));
+
+            for (const name of neededNames) {
+                if (foundNames.has(name)) {
+                    continue;
+                }
+
+                actions.push({
+                    type: EmojiTypes.CUSTOM_EMOJI_DOES_NOT_EXIST,
+                    data: name,
+                });
+            }
+        }
+
+        return dispatch(actions.length > 1 ? batchActions(actions) : actions[0]);
     };
 }
 
+function filterNeededCustomEmojis(state: GlobalState, names: string[]) {
+    const nonExistentEmoji = state.entities.emojis.nonExistentEmoji;
+    const customEmojisByName = selectCustomEmojisByName(state);
+
+    return names.filter((name) => {
+        return !systemEmojis.has(name) && !nonExistentEmoji.has(name) && !customEmojisByName.has(name);
+    });
+}
+
 export function getCustomEmojisInText(text: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return (dispatch: DispatchFunc) => {
         if (!text) {
             return {data: true};
         }
 
-        const state = getState();
-        const nonExistentEmoji = state.entities.emojis.nonExistentEmoji;
-        const customEmojisByName = selectCustomEmojisByName(state);
-
-        const emojisToLoad = parseNeededCustomEmojisFromText(text, systemEmojis, customEmojisByName, nonExistentEmoji);
-
-        return getCustomEmojisByName(Array.from(emojisToLoad))(dispatch, getState);
+        return dispatch(getCustomEmojisByName(parseEmojiNamesFromText(text)));
     };
 }
 

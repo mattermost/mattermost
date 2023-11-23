@@ -34,6 +34,7 @@ func genStore() *mocks.Store {
 	mock.On("LinkMetadata").Return(&mocks.LinkMetadataStore{})
 	mock.On("SharedChannel").Return(&mocks.SharedChannelStore{})
 	mock.On("OAuth").Return(&mocks.OAuthStore{})
+	mock.On("OutgoingOAuthConnection").Return(&mocks.OutgoingOAuthConnectionStore{})
 	mock.On("Plugin").Return(&mocks.PluginStore{})
 	mock.On("Post").Return(&mocks.PostStore{})
 	mock.On("Thread").Return(&mocks.ThreadStore{})
@@ -59,6 +60,7 @@ func genStore() *mocks.Store {
 	mock.On("PostAcknowledgement").Return(&mocks.PostAcknowledgementStore{})
 	mock.On("PostPersistentNotification").Return(&mocks.PostPersistentNotificationStore{})
 	mock.On("TrueUpReview").Return(&mocks.TrueUpReviewStore{})
+	mock.On("DesktopTokens").Return(&mocks.DesktopTokensStore{})
 	return mock
 }
 

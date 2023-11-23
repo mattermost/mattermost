@@ -5,11 +5,13 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {GlobalState} from 'types/store';
+import {useMeasurePunchouts} from '@mattermost/components';
+
 import {getIsMobileView} from 'selectors/views/browser';
+
 import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
 
-import {useMeasurePunchouts} from '@mattermost/components';
+import type {GlobalState} from 'types/store';
 
 import CRTTourTip from './crt_tour_tip';
 

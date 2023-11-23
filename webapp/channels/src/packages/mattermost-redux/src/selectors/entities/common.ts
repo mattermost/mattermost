@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelMembership, Channel} from '@mattermost/types/channels';
-import {TeamMembership} from '@mattermost/types/teams';
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile} from '@mattermost/types/users';
-import {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilities';
+import type {ChannelMembership, Channel} from '@mattermost/types/channels';
+import type {GlobalState} from '@mattermost/types/store';
+import type {TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilities';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
@@ -71,10 +71,10 @@ export function getUsers(state: GlobalState): IDMappedObjects<UserProfile> {
 
 // Calls
 
-export function getCalls(state: GlobalState): Record<string, UserProfile[]> {
+export function getProfilesInCalls(state: GlobalState): Record<string, Record<string, UserProfile>> {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    return state[CALLS_PLUGIN].voiceConnectedProfiles || {};
+    return state[CALLS_PLUGIN].profiles || {};
 }
 
 export function getCallsConfig(state: GlobalState): CallsConfig {

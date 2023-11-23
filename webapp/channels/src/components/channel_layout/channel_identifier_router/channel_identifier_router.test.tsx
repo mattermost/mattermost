@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import {getHistory} from 'utils/browser_history';
 
 import ChannelIdentifierRouter from './channel_identifier_router';
 
-jest.useFakeTimers('legacy');
+jest.useFakeTimers({legacyFakeTimers: true});
 
 describe('components/channel_layout/CenterChannel', () => {
     const baseProps = {

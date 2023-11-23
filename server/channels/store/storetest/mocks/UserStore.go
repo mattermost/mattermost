@@ -541,6 +541,32 @@ func (_m *UserStore) GetByEmail(email string) (*model.User, error) {
 	return r0, r1
 }
 
+// GetByRemoteID provides a mock function with given fields: remoteID
+func (_m *UserStore) GetByRemoteID(remoteID string) (*model.User, error) {
+	ret := _m.Called(remoteID)
+
+	var r0 *model.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.User, error)); ok {
+		return rf(remoteID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.User); ok {
+		r0 = rf(remoteID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(remoteID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByUsername provides a mock function with given fields: username
 func (_m *UserStore) GetByUsername(username string) (*model.User, error) {
 	ret := _m.Called(username)
@@ -1282,6 +1308,20 @@ func (_m *UserStore) PromoteGuestToUser(userID string) error {
 	return r0
 }
 
+// RefreshPostStatsForUsers provides a mock function with given fields:
+func (_m *UserStore) RefreshPostStatsForUsers() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ResetAuthDataToEmailForUsers provides a mock function with given fields: service, userIDs, includeDeleted, dryRun
 func (_m *UserStore) ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error) {
 	ret := _m.Called(service, userIDs, includeDeleted, dryRun)
@@ -1585,6 +1625,20 @@ func (_m *UserStore) UpdateFailedPasswordAttempts(userID string, attempts int) e
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int) error); ok {
 		r0 = rf(userID, attempts)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateLastLogin provides a mock function with given fields: userID, lastLogin
+func (_m *UserStore) UpdateLastLogin(userID string, lastLogin int64) error {
+	ret := _m.Called(userID, lastLogin)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
+		r0 = rf(userID, lastLogin)
 	} else {
 		r0 = ret.Error(0)
 	}

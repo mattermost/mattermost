@@ -1,16 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
 import classNames from 'classnames';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {EmoticonPlusOutlineIcon} from '@mattermost/compass-icons/components';
 
-import {Post} from '@mattermost/types/posts';
-import {Emoji, SystemEmoji} from '@mattermost/types/emojis';
+import {EmoticonPlusOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
+import type {Post} from '@mattermost/types/posts';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import DeletePostModal from 'components/delete_post_modal';
+import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
+import Textbox from 'components/textbox';
+import type {TextboxClass, TextboxElement} from 'components/textbox';
 
 import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
+import {applyMarkdown} from 'utils/markdown/apply_markdown';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {
     formatGithubCodePaste,
     formatMarkdownMessage,
@@ -19,17 +28,12 @@ import {
     isGitHubCodeBlock,
 } from 'utils/paste';
 import {postMessageOnKeyPress, splitMessageBasedOnCaretPosition} from 'utils/post_utils';
-import {applyMarkdown, ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import * as Utils from 'utils/utils';
 
-import DeletePostModal from 'components/delete_post_modal';
-import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
-import Textbox, {TextboxClass, TextboxElement} from 'components/textbox';
-import {ModalData} from 'types/actions';
-import {PostDraft} from '../../types/store/draft';
+import type {ModalData} from 'types/actions';
+import type {PostDraft} from 'types/store/draft';
 
 import EditPostFooter from './edit_post_footer';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 type DialogProps = {
     post?: Post;
@@ -322,11 +326,13 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             Keyboard.isKeyPressed(e, KeyCodes.ENTER) &&
             ctrlOrMetaKeyPressed;
         const markdownLinkKey = Keyboard.isKeyPressed(e, KeyCodes.K);
+        const ctrlShiftCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.shiftKey;
+        const lastMessageReactionKeyCombo = ctrlShiftCombo && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
 
         // listen for line break key combo and insert new line character
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
             e.stopPropagation(); // perhaps this should happen in all of these cases? or perhaps Modal should not be listening?
-            setEditText(Utils.insertLineBreakFromKeyEvent(e as React.KeyboardEvent<HTMLTextAreaElement>));
+            setEditText(Utils.insertLineBreakFromKeyEvent(e.nativeEvent));
         } else if (ctrlEnterKeyCombo) {
             handleEdit();
         } else if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE) && !showEmojiPicker) {
@@ -352,6 +358,10 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 selectionEnd: e.currentTarget.selectionEnd,
                 message: e.currentTarget.value,
             });
+        } else if (lastMessageReactionKeyCombo) {
+            // Stop document from handling the hotkey and opening the reaction
+            e.stopPropagation();
+            e.preventDefault();
         }
     };
 
@@ -442,10 +452,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const getEmojiTargetRef = useCallback(() => emojiButtonRef.current, [emojiButtonRef]);
 
     let emojiPicker = null;
-    const emojiButtonAriaLabel = formatMessage({
-        id: 'emoji_picker.emojiPicker',
-        defaultMessage: 'Emoji Picker',
-    }).toLowerCase();
 
     if (config.EnableEmojiPicker === 'true') {
         emojiPicker = (
@@ -462,7 +468,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                     rightOffset={RIGHT_OFFSET}
                 />
                 <button
-                    aria-label={emojiButtonAriaLabel}
+                    aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                     id='editPostEmoji'
                     ref={emojiButtonRef}
                     className='style--none post-action'
@@ -477,6 +483,11 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         );
     }
 
+    let rootId = '';
+    if (editingPost.post) {
+        rootId = editingPost.post.root_id || editingPost.post.id;
+    }
+
     return (
         <div
             className={classNames('post--editing__wrapper', {
@@ -486,7 +497,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         >
             <Textbox
                 tabIndex={0}
-                rootId={editingPost.post ? Utils.getRootId(editingPost.post) : ''}
+                rootId={rootId}
                 onChange={handleChange}
                 onKeyPress={handleEditKeyPress}
                 onKeyDown={handleKeyDown}

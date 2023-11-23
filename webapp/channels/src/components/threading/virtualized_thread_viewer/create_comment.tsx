@@ -5,18 +5,20 @@ import React, {memo, forwardRef, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
 import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Post} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
 
+import {Posts} from 'mattermost-redux/constants';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
-import {UserProfile} from '@mattermost/types/users';
-import {Post} from '@mattermost/types/posts';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import Constants from 'utils/constants';
-import {Posts} from 'mattermost-redux/constants';
-import {GlobalState} from 'types/store';
 import AdvancedCreateComment from 'components/advanced_create_comment';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import BasicSeparator from 'components/widgets/separator/basic-separator';
+
+import Constants from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
     focusOnMount: boolean;
@@ -24,6 +26,7 @@ type Props = {
     threadId: string;
     latestPostId: Post['id'];
     isThreadView?: boolean;
+    placeholder?: string;
 };
 
 const CreateComment = forwardRef<HTMLDivElement, Props>(({
@@ -32,6 +35,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
     threadId,
     latestPostId,
     isThreadView,
+    placeholder,
 }: Props, ref) => {
     const getChannel = useMemo(makeGetChannel, []);
     const rootPost = useSelector((state: GlobalState) => getPost(state, threadId));
@@ -90,8 +94,10 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
         <div
             className='post-create__container'
             ref={ref}
+            data-testid='comment-create'
         >
             <AdvancedCreateComment
+                placeholder={placeholder}
                 focusOnMount={focusOnMount}
                 channelId={channel.id}
                 latestPostId={latestPostId}

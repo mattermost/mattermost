@@ -1,21 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
-import * as reactRedux from 'react-redux';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
-import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+
 import {trackEvent} from 'actions/telemetry_actions';
-import configureStore from 'store';
+
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {ModalIdentifiers, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
 
-import DeliquencyModal from './delinquency_modal';
-
-type RenderComponentArgs = {
-    props?: Partial<ComponentProps<typeof DeliquencyModal>>;
-    store?: any;
-}
+import DelinquencyModal from './delinquency_modal';
 
 jest.mock('mattermost-redux/actions/preferences', () => ({
     savePreferences: jest.fn(),
@@ -35,7 +31,7 @@ jest.mock('react-redux', () => ({
 }));
 
 describe('components/deliquency_modal/deliquency_modal', () => {
-    const initialStates = {
+    const initialState = {
         views: {
             modals: {
                 modalState: {
@@ -47,7 +43,7 @@ describe('components/deliquency_modal/deliquency_modal', () => {
                             closeModal: () => {},
                             isAdminConsole: false,
                         },
-                        dialogType: React.Fragment,
+                        dialogType: React.Fragment as any,
                     },
                 },
                 showLaunchingWorkspace: false,
@@ -63,38 +59,23 @@ describe('components/deliquency_modal/deliquency_modal', () => {
         },
     };
 
-    const renderComponent = ({props = {}, store = configureStore(initialStates)}: RenderComponentArgs) => {
-        const defaultProps: ComponentProps<typeof DeliquencyModal> = {
-            closeModal: jest.fn(),
-            onExited: jest.fn(),
-            planName: 'planName',
-            isAdminConsole: false,
-        };
-
-        return renderWithIntl(
-            <reactRedux.Provider store={store}>
-                <DeliquencyModal
-                    {...defaultProps}
-                    {...props}
-                />
-            </reactRedux.Provider>,
-        );
+    const baseProps: ComponentProps<typeof DelinquencyModal> = {
+        closeModal: jest.fn(),
+        onExited: jest.fn(),
+        planName: 'planName',
+        isAdminConsole: false,
     };
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should save preferences and track stayOnFremium if admin click Stay on Free', () => {
-        renderComponent({});
+        renderWithContext(<DelinquencyModal {...baseProps}/>, initialState);
 
         fireEvent.click(screen.getByText('Stay on Free'));
 
         expect(savePreferences).toBeCalledTimes(1);
-        expect(savePreferences).toBeCalledWith(initialStates.entities.users.profiles.current_user_id.id, [{
+        expect(savePreferences).toBeCalledWith(initialState.entities.users.profiles.current_user_id.id, [{
             category: Preferences.DELINQUENCY_MODAL_CONFIRMED,
             name: ModalIdentifiers.DELINQUENCY_MODAL_DOWNGRADE,
-            user_id: initialStates.entities.users.profiles.current_user_id.id,
+            user_id: initialState.entities.users.profiles.current_user_id.id,
             value: 'stayOnFremium',
         }]);
 
@@ -103,15 +84,15 @@ describe('components/deliquency_modal/deliquency_modal', () => {
     });
 
     it('should save preferences and track update Billing if admin click Update Billing', () => {
-        renderComponent({});
+        renderWithContext(<DelinquencyModal {...baseProps}/>, initialState);
 
         fireEvent.click(screen.getByText('Update Billing'));
 
         expect(savePreferences).toBeCalledTimes(1);
-        expect(savePreferences).toBeCalledWith(initialStates.entities.users.profiles.current_user_id.id, [{
+        expect(savePreferences).toBeCalledWith(initialState.entities.users.profiles.current_user_id.id, [{
             category: Preferences.DELINQUENCY_MODAL_CONFIRMED,
             name: ModalIdentifiers.DELINQUENCY_MODAL_DOWNGRADE,
-            user_id: initialStates.entities.users.profiles.current_user_id.id,
+            user_id: initialState.entities.users.profiles.current_user_id.id,
             value: 'updateBilling',
         }]);
 

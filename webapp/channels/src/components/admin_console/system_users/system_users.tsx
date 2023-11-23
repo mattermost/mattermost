@@ -1,29 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from 'react';
+import type {ChangeEvent} from 'react';
+import {FormattedMessage, type IntlShape, injectIntl} from 'react-intl';
+
+import type {ServerError} from '@mattermost/types/errors';
+import type {Team} from '@mattermost/types/teams';
+import type {GetFilteredUsersStatsOpts, UserProfile, UsersStats} from '@mattermost/types/users';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {Permissions} from 'mattermost-redux/constants';
-import {ActionFunc} from 'mattermost-redux/types/actions';
-
-import {ServerError} from '@mattermost/types/errors';
-import {Team} from '@mattermost/types/teams';
-import {GetFilteredUsersStatsOpts, UserProfile, UsersStats} from '@mattermost/types/users';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
-import {Constants, UserSearchOptions, SearchUserTeamFilter, UserFilters} from 'utils/constants';
-import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
-import {getUserOptionsFromFilter, searchUserOptionsFromFilter} from 'utils/filter_users';
-
-import LocalizedInput from 'components/localized_input/localized_input';
+import ConfirmModal from 'components/confirm_modal';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
-import ConfirmModal from 'components/confirm_modal';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+
+import {Constants, UserSearchOptions, SearchUserTeamFilter, UserFilters} from 'utils/constants';
+import {getUserOptionsFromFilter, searchUserOptionsFromFilter} from 'utils/filter_users';
+import * as Utils from 'utils/utils';
 
 import SystemUsersList from './list';
 
@@ -31,6 +30,8 @@ const USER_ID_LENGTH = 26;
 const USERS_PER_PAGE = 50;
 
 type Props = {
+
+    intl: IntlShape;
 
     /**
      * Array of team objects
@@ -113,7 +114,7 @@ type State = {
     term?: string;
 };
 
-export default class SystemUsers extends React.PureComponent<Props, State> {
+export class SystemUsers extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -317,10 +318,10 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
         return (
             <div className='system-users__filter-row'>
                 <div className='system-users__filter'>
-                    <LocalizedInput
+                    <input
                         id='searchUsers'
                         className='form-control filter-textbox'
-                        placeholder={{id: t('filtered_user_list.search'), defaultMessage: 'Search users'}}
+                        placeholder={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
                         onInput={doSearch}
                     />
                 </div>
@@ -406,7 +407,7 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
                                 <button
                                     id='revoke-all-users'
                                     type='button'
-                                    className='btn btn-default'
+                                    className='btn btn-tertiary'
                                     onClick={() => this.handleShowRevokeAllSessionsModal()}
                                     disabled={this.props.isDisabled}
                                 >
@@ -423,3 +424,5 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(SystemUsers);

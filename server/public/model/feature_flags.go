@@ -27,20 +27,12 @@ type FeatureFlags struct {
 	// CallsEnabled controls whether or not the Calls plugin should be enabled
 	CallsEnabled bool
 
-	// Enable DataRetention for Boards
-	BoardsDataRetention bool
-
 	NormalizeLdapDNs bool
-
-	// Enable GraphQL feature
-	GraphQL bool
 
 	PostPriority bool
 
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
-
-	PeopleProduct bool
 
 	OnboardingTourTips bool
 
@@ -50,7 +42,10 @@ type FeatureFlags struct {
 
 	EnableExportDirectDownload bool
 
-	DataRetentionConcurrencyEnabled bool
+	StreamlinedMarketplace bool
+
+	CloudIPFiltering bool
+	ConsumePostHook  bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -58,17 +53,16 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestBoolFeature = false
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = true
-	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
-	f.GraphQL = false
 	f.CallsEnabled = true
-	f.PeopleProduct = false
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
-	f.DataRetentionConcurrencyEnabled = true
+	f.StreamlinedMarketplace = true
+	f.CloudIPFiltering = false
+	f.ConsumePostHook = false
 }
 
 // ToMap returns the feature flags as a map[string]string

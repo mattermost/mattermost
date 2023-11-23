@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -22,6 +23,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
+
+// Regex to get quoted strings
+var quotedStringsRegex = regexp.MustCompile(`("[^"]*")`)
 
 type SqlPostStore struct {
 	*SqlStore
@@ -636,7 +640,6 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 						sq.Lt{"Posts.Id": opts.FromPost},
 					},
 				})
-
 			} else {
 				query = query.Where(direction)
 			}
@@ -758,7 +761,6 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 							sq.Lt{"p.Id": opts.FromPost},
 						},
 					})
-
 				} else {
 					query = query.Where(direction)
 				}
@@ -929,24 +931,31 @@ func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) (err
 	return nil
 }
 
-func (s *SqlPostStore) permanentDelete(postId string) (err error) {
-	var post model.Post
+func (s *SqlPostStore) permanentDelete(postIds []string) (err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	err = transaction.Get(&post, "SELECT * FROM Posts WHERE Id = ?", postId)
-	if err != nil && err != sql.ErrNoRows {
-		return errors.Wrapf(err, "failed to get Post with id=%s", postId)
-	}
-	if err = s.permanentDeleteThreads(transaction, post.Id); err != nil {
-		return errors.Wrapf(err, "failed to cleanup threads for Post with id=%s", postId)
+	if err = s.permanentDeleteThreads(transaction, postIds); err != nil {
+		return err
 	}
 
-	if _, err = transaction.NamedExec("DELETE FROM Posts WHERE Id = :id OR RootId = :rootid", map[string]any{"id": postId, "rootid": postId}); err != nil {
-		return errors.Wrapf(err, "failed to delete Post with id=%s", postId)
+	if err = s.permanentDeleteReactions(transaction, postIds); err != nil {
+		return err
+	}
+
+	query := s.getQueryBuilder().
+		Delete("Posts").
+		Where(
+			sq.Or{
+				sq.Eq{"Id": postIds},
+				sq.Eq{"RootId": postIds},
+			},
+		)
+	if _, err = transaction.ExecBuilder(query); err != nil {
+		return errors.Wrap(err, "failed to delete Posts")
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -980,10 +989,17 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) (err error
 		return errors.Wrapf(err, "failed to delete Posts with userId=%s", userId)
 	}
 
+	postIds := []string{}
 	for _, ids := range results {
 		if err = s.updateThreadAfterReplyDeletion(transaction, ids.RootId, userId); err != nil {
 			return err
 		}
+		postIds = append(postIds, ids.Id)
+	}
+
+	// Delete all the reactions on the comments
+	if err = s.permanentDeleteReactions(transaction, postIds); err != nil {
+		return err
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -1005,22 +1021,20 @@ func (s *SqlPostStore) PermanentDeleteByUser(userId string) error {
 
 	// Now attempt to delete all the root posts for a user. This will also
 	// delete all the comments for each post
-	found := true
 	count := 0
-
-	for found {
+	for {
 		var ids []string
 		err := s.GetMasterX().Select(&ids, "SELECT Id FROM Posts WHERE UserId = ? LIMIT 1000", userId)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find Posts with userId=%s", userId)
 		}
 
-		found = false
-		for _, id := range ids {
-			found = true
-			if err = s.permanentDelete(id); err != nil {
-				return err
-			}
+		if len(ids) == 0 {
+			break
+		}
+
+		if err = s.permanentDelete(ids); err != nil {
+			return err
 		}
 
 		// This is a fail safe, give up if more than 10k messages
@@ -1035,6 +1049,7 @@ func (s *SqlPostStore) PermanentDeleteByUser(userId string) error {
 
 // Permanent deletes all channel root posts and comments,
 // deletes all threads and thread memberships
+// deletes all reactions
 // no thread comment cleanup needed, since we are deleting threads and thread memberships
 func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) (err error) {
 	transaction, err := s.GetMasterX().Beginx()
@@ -1043,20 +1058,39 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) (err error) {
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	results := []postIds{}
-	err = transaction.Select(&results, "SELECT Id, RootId, UserId FROM Posts WHERE ChannelId = ?", channelId)
-	if err != nil {
-		return errors.Wrapf(err, "failed to fetch Posts with channelId=%s", channelId)
-	}
+	id := ""
+	for {
+		ids := []string{}
+		err = transaction.Select(&ids, "SELECT Id FROM Posts WHERE ChannelId = ? AND Id > ? ORDER BY Id ASC LIMIT 500", channelId, id)
+		if err != nil {
+			return errors.Wrapf(err, "failed to fetch Posts with channelId=%s", channelId)
+		}
 
-	for _, ids := range results {
-		if err = s.permanentDeleteThreads(transaction, ids.Id); err != nil {
+		if len(ids) == 0 {
+			break
+		}
+
+		id = ids[len(ids)-1]
+
+		if err = s.permanentDeleteThreads(transaction, ids); err != nil {
 			return err
 		}
-	}
+		time.Sleep(10 * time.Millisecond)
 
-	if _, err = transaction.Exec("DELETE FROM Posts WHERE ChannelId = ?", channelId); err != nil {
-		return errors.Wrapf(err, "failed to delete Posts with channelId=%s", channelId)
+		if err = s.permanentDeleteReactions(transaction, ids); err != nil {
+			return err
+		}
+		time.Sleep(10 * time.Millisecond)
+
+		query := s.getQueryBuilder().
+			Delete("Posts").
+			Where(
+				sq.Eq{"Id": ids},
+			)
+		if _, err = transaction.ExecBuilder(query); err != nil {
+			return errors.Wrap(err, "failed to delete Posts")
+		}
+		time.Sleep(10 * time.Millisecond)
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -1172,16 +1206,16 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool, sanitizeO
 	}
 	offset := options.PerPage * options.Page
 
-	rpc := make(chan store.StoreResult, 1)
+	rpc := make(chan store.GenericStoreResult[[]*model.Post], 1)
 	go func() {
 		posts, err := s.getRootPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads, options.IncludeDeleted)
-		rpc <- store.StoreResult{Data: posts, NErr: err}
+		rpc <- store.GenericStoreResult[[]*model.Post]{Data: posts, NErr: err}
 		close(rpc)
 	}()
-	cpc := make(chan store.StoreResult, 1)
+	cpc := make(chan store.GenericStoreResult[[]*model.Post], 1)
 	go func() {
 		posts, err := s.getParentsPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads, options.IncludeDeleted)
-		cpc <- store.StoreResult{Data: posts, NErr: err}
+		cpc <- store.GenericStoreResult[[]*model.Post]{Data: posts, NErr: err}
 		close(cpc)
 	}()
 
@@ -1197,8 +1231,8 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool, sanitizeO
 		return nil, cpr.NErr
 	}
 
-	posts := rpr.Data.([]*model.Post)
-	parents := cpr.Data.([]*model.Post)
+	posts := rpr.Data
+	parents := cpr.Data
 
 	for _, p := range posts {
 		list.AddPost(p)
@@ -1998,27 +2032,38 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
 		}
 
-		excludeClause := ""
-		if excludedTerms != "" {
-			excludeClause = " & !(" + strings.Join(strings.Fields(excludedTerms), " | ") + ")"
-		}
-
-		var termsClause string
-		if params.OrTerms {
-			termsClause = "(" + strings.Join(strings.Fields(terms), " | ") + ")" + excludeClause
-		} else if strings.HasPrefix(terms, `"`) && strings.HasSuffix(terms, `"`) {
-			termsClause = "(" + strings.Join(strings.Fields(terms), " <-> ") + ")" + excludeClause
-		} else {
-			tsVectorSearchQuery := strings.Join(strings.Fields(terms), " & ")
-			if params.IsHashtag {
-				tsVectorSearchQuery = terms
+		// Replace spaces with to_tsquery symbols
+		replaceSpaces := func(input string, excludedInput bool) string {
+			if input == "" {
+				return input
 			}
 
-			termsClause = "(" + tsVectorSearchQuery + ")" + excludeClause
+			// Remove extra spaces
+			input = strings.Join(strings.Fields(input), " ")
+
+			// Replace spaces within quoted strings with '<->'
+			input = quotedStringsRegex.ReplaceAllStringFunc(input, func(match string) string {
+				return strings.Replace(match, " ", "<->", -1)
+			})
+
+			// Replace spaces outside of quoted substrings with '&' or '|'
+			replacer := "&"
+			if excludedInput || params.OrTerms {
+				replacer = "|"
+			}
+			input = strings.Replace(input, " ", replacer, -1)
+
+			return input
+		}
+
+		tsQueryClause := replaceSpaces(terms, false)
+		excludedClause := replaceSpaces(excludedTerms, true)
+		if excludedClause != "" {
+			tsQueryClause += " &!(" + excludedClause + ")"
 		}
 
 		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", s.pgDefaultTextSearchConfig, searchType)
-		baseQuery = baseQuery.Where(searchClause, termsClause)
+		baseQuery = baseQuery.Where(searchClause, tsQueryClause)
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		if searchType == "Message" {
 			terms, err = removeMysqlStopWordsFromTerms(terms)
@@ -2187,7 +2232,6 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 
 // TODO: convert to squirrel HW
 func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error) {
-
 	var args []any
 	query :=
 		`SELECT
@@ -2419,46 +2463,8 @@ func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolic
 		NowMillis:           now,
 		GlobalPolicyEndTime: globalPolicyEndTime,
 		Limit:               limit,
+		StoreDeletedIds:     true,
 	}, s.SqlStore, cursor)
-}
-
-// DeleteOrphanedRows removes entries from Posts when a corresponding channel no longer exists.
-func (s *SqlPostStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	var query string
-	// We need the extra level of nesting to deal with MySQL's locking
-	if s.DriverName() == model.DatabaseDriverMysql {
-		// MySQL fails to do a proper antijoin if the selecting column
-		// and the joining column are different. In that case, doing a subquery
-		// leads to a faster plan because MySQL materializes the sub-query
-		// and does a covering index scan on Posts table. More details on the PR with
-		// this commit.
-		query = `
-		DELETE FROM Posts WHERE Id IN (
-			SELECT * FROM (
-				SELECT Posts.Id FROM Posts
-				WHERE Posts.ChannelId NOT IN (SELECT Id FROM Channels USE INDEX (PRIMARY))
-				LIMIT ?
-			) AS A
-		)`
-	} else {
-		query = `
-		DELETE FROM Posts WHERE Id IN (
-			SELECT * FROM (
-				SELECT Posts.Id FROM Posts
-				LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
-				WHERE Channels.Id IS NULL
-				LIMIT ?
-			) AS A
-		)`
-
-	}
-
-	result, err := s.GetMasterX().Exec(query, limit)
-	if err != nil {
-		return
-	}
-	deleted, err = result.RowsAffected()
-	return
 }
 
 func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
@@ -2556,7 +2562,7 @@ func (s *SqlPostStore) GetMaxPostSize() int {
 	return s.maxPostSizeCached
 }
 
-func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, error) {
+func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, includeArchivedChannel bool) ([]*model.PostForExport, error) {
 	for {
 		rootIds := []string{}
 		err := s.GetReplicaX().Select(&rootIds,
@@ -2580,16 +2586,20 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*m
 			return postsForExport, nil
 		}
 
+		excludeDeletedCond := sq.And{
+			sq.Eq{"Teams.DeleteAt": 0},
+		}
+		if !includeArchivedChannel {
+			excludeDeletedCond = append(excludeDeletedCond, sq.Eq{"Channels.DeleteAt": 0})
+		}
+
 		builder := s.getQueryBuilder().
 			Select("p1.*, Users.Username as Username, Teams.Name as TeamName, Channels.Name as ChannelName").
 			FromSelect(sq.Select("*").From("Posts").Where(sq.Eq{"Posts.Id": rootIds}), "p1").
 			InnerJoin("Channels ON p1.ChannelId = Channels.Id").
 			InnerJoin("Teams ON Channels.TeamId = Teams.Id").
 			InnerJoin("Users ON p1.UserId = Users.Id").
-			Where(sq.And{
-				sq.Eq{"Channels.DeleteAt": 0},
-				sq.Eq{"Teams.DeleteAt": 0},
-			}).
+			Where(excludeDeletedCond).
 			OrderBy("p1.Id")
 
 		query, args, err := builder.ToSql()
@@ -2718,7 +2728,7 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 
 	var wg sync.WaitGroup
 
-	pchan := make(chan store.StoreResult, len(paramsList))
+	pchan := make(chan store.GenericStoreResult[*model.PostList], len(paramsList))
 
 	for _, params := range paramsList {
 		// remove any unquoted term that contains only non-alphanumeric chars
@@ -2730,7 +2740,7 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 		go func(params *model.SearchParams) {
 			defer wg.Done()
 			postList, err := s.search(teamId, userId, params, false, false)
-			pchan <- store.StoreResult{Data: postList, NErr: err}
+			pchan <- store.GenericStoreResult[*model.PostList]{Data: postList, NErr: err}
 		}(params)
 	}
 
@@ -2743,8 +2753,7 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 		if result.NErr != nil {
 			return nil, result.NErr
 		}
-		data := result.Data.(*model.PostList)
-		posts.Extend(data)
+		posts.Extend(result.Data)
 	}
 
 	posts.SortByCreateAt()
@@ -2775,13 +2784,37 @@ func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, error) {
 }
 
 // Deletes a thread and a thread membership if the postId is a root post
-func (s *SqlPostStore) permanentDeleteThreads(transaction *sqlxTxWrapper, postId string) error {
-	if _, err := transaction.Exec("DELETE FROM Threads WHERE PostId = ?", postId); err != nil {
+func (s *SqlPostStore) permanentDeleteThreads(transaction *sqlxTxWrapper, postIds []string) error {
+	query := s.getQueryBuilder().
+		Delete("Threads").
+		Where(
+			sq.Eq{"PostId": postIds},
+		)
+	if _, err := transaction.ExecBuilder(query); err != nil {
 		return errors.Wrap(err, "failed to delete Threads")
 	}
-	if _, err := transaction.Exec("DELETE FROM ThreadMemberships WHERE PostId = ?", postId); err != nil {
+
+	query = s.getQueryBuilder().
+		Delete("ThreadMemberships").
+		Where(
+			sq.Eq{"PostId": postIds},
+		)
+	if _, err := transaction.ExecBuilder(query); err != nil {
 		return errors.Wrap(err, "failed to delete ThreadMemberships")
 	}
+	return nil
+}
+
+func (s *SqlPostStore) permanentDeleteReactions(transaction *sqlxTxWrapper, postIds []string) error {
+	query := s.getQueryBuilder().
+		Delete("Reactions").
+		Where(
+			sq.Eq{"PostId": postIds},
+		)
+	if _, err := transaction.ExecBuilder(query); err != nil {
+		return errors.Wrap(err, "failed to delete Reactions")
+	}
+
 	return nil
 }
 

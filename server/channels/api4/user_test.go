@@ -161,7 +161,6 @@ func TestCreateUserInputFilter(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("DomainRestriction", func(t *testing.T) {
-
 		enableAPIUserDeletion := th.App.Config().ServiceSettings.EnableAPIUserDeletion
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.TeamSettings.EnableOpenServer = true
@@ -354,7 +353,6 @@ func TestCreateUserWithToken(t *testing.T) {
 	})
 
 	t.Run("EnableUserCreationDisable", func(t *testing.T) {
-
 		enableUserCreation := th.App.Config().TeamSettings.EnableUserCreation
 		defer func() {
 			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = enableUserCreation })
@@ -375,7 +373,6 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorID(t, err, "api.user.create_user.signup_email_disabled.app_error")
-
 	})
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		enableUserCreation := th.App.Config().TeamSettings.EnableUserCreation
@@ -1725,6 +1722,13 @@ func TestGetUsersByIds(t *testing.T) {
 
 			require.Len(t, users, 1, "1 user should be returned")
 		})
+
+		t.Run("should only return unique users when multiple IDs are requested", func(t *testing.T) {
+			users, _, err := client.GetUsersByIds(context.Background(), []string{th.BasicUser.Id, th.BasicUser.Id, th.BasicUser.Id})
+			require.NoError(t, err)
+
+			require.Len(t, users, 1, "1 user should be returned")
+		})
 	})
 
 	t.Run("should return error when not logged in", func(t *testing.T) {
@@ -1998,14 +2002,14 @@ func TestPatchUser(t *testing.T) {
 	require.Equal(t, "America/New_York", ruser.Timezone["automaticTimezone"], "automaticTimezone should update properly")
 	require.Empty(t, ruser.Timezone["manualTimezone"], "manualTimezone should update properly")
 
-	appErr := th.App.CheckPasswordAndAllCriteria(ruser, *patch.Password, "")
+	appErr := th.App.CheckPasswordAndAllCriteria(th.Context, user, *patch.Password, "")
 	require.NotNil(t, appErr, "Password should not match")
 
 	currentPassword := user.Password
 	user, appErr = th.App.GetUser(ruser.Id)
 	require.Nil(t, appErr)
 
-	appErr = th.App.CheckPasswordAndAllCriteria(user, currentPassword, "")
+	appErr = th.App.CheckPasswordAndAllCriteria(th.Context, user, currentPassword, "")
 	require.Nil(t, appErr, "Password should still match")
 
 	patch = &model.UserPatch{}
@@ -2415,17 +2419,17 @@ func TestUpdateUserRoles(t *testing.T) {
 	})
 }
 
-func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, event string, test func(*model.WebSocketEvent)) {
+func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, event model.WebsocketEventType, test func(*model.WebSocketEvent)) {
 	for {
 		select {
 		case resp, ok := <-client.EventChannel:
-			require.Truef(t, ok, "channel closed before receiving expected event %s", event)
+			require.Truef(t, ok, "channel closed before receiving expected event %s", string(event))
 			if resp.EventType() == event {
 				test(resp)
 				return
 			}
 		case <-time.After(5 * time.Second):
-			require.Failf(t, "failed to receive expected event %s", event)
+			require.Failf(t, "failed to receive expected event %s", string(event))
 		}
 	}
 }
@@ -3046,7 +3050,6 @@ func TestGetUsersInGroup(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, len(users), 0)
 	})
-
 }
 
 func TestGetUsersInGroupByDisplayName(t *testing.T) {
@@ -3104,7 +3107,6 @@ func TestGetUsersInGroupByDisplayName(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, users[0].Id, user1.Id)
 	})
-
 }
 
 func TestUpdateUserMfa(t *testing.T) {
@@ -3473,7 +3475,7 @@ func TestRevokeSessions(t *testing.T) {
 
 	th.LoginBasic()
 
-	sessions, _ = th.App.GetSessions(th.SystemAdminUser.Id)
+	sessions, _ = th.App.GetSessions(th.Context, th.SystemAdminUser.Id)
 	session = sessions[0]
 
 	resp, err = th.Client.RevokeSession(context.Background(), user.Id, session.Id)
@@ -3557,10 +3559,10 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 	th.Client.Login(context.Background(), user.Email, user.Password)
 	admin := th.SystemAdminUser
 	th.Client.Login(context.Background(), admin.Email, admin.Password)
-	sessions, err := th.Server.Store().Session().GetSessions(user.Id)
+	sessions, err := th.Server.Store().Session().GetSessions(th.Context, user.Id)
 	require.NotEmpty(t, sessions)
 	require.NoError(t, err)
-	sessions, err = th.Server.Store().Session().GetSessions(admin.Id)
+	sessions, err = th.Server.Store().Session().GetSessions(th.Context, admin.Id)
 	require.NotEmpty(t, sessions)
 	require.NoError(t, err)
 	_, err = th.Client.RevokeSessionsFromAllUsers(context.Background())
@@ -3572,14 +3574,13 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	sessions, err = th.Server.Store().Session().GetSessions(user.Id)
+	sessions, err = th.Server.Store().Session().GetSessions(th.Context, user.Id)
 	require.Empty(t, sessions)
 	require.NoError(t, err)
 
-	sessions, err = th.Server.Store().Session().GetSessions(admin.Id)
+	sessions, err = th.Server.Store().Session().GetSessions(th.Context, admin.Id)
 	require.Empty(t, sessions)
 	require.NoError(t, err)
-
 }
 
 func TestAttachDeviceId(t *testing.T) {
@@ -3600,7 +3601,6 @@ func TestAttachDeviceId(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Description, func(t *testing.T) {
-
 				th.App.UpdateConfig(func(cfg *model.Config) {
 					*cfg.ServiceSettings.SiteURL = tc.SiteURL
 				})
@@ -3611,7 +3611,7 @@ func TestAttachDeviceId(t *testing.T) {
 				cookies := resp.Header.Get("Set-Cookie")
 				assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
 
-				sessions, appErr := th.App.GetSessions(th.BasicUser.Id)
+				sessions, appErr := th.App.GetSessions(th.Context, th.BasicUser.Id)
 				require.Nil(t, appErr)
 				assert.Equal(t, deviceId, sessions[0].DeviceId, "Missing device Id")
 			})
@@ -3842,6 +3842,18 @@ func TestLogin(t *testing.T) {
 		CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
 	})
 
+	t.Run("remote user login rejected", func(t *testing.T) {
+		email := th.GenerateTestEmail()
+		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId, RemoteId: model.NewString("remote-id")}
+		ruser, _, _ := th.Client.CreateUser(context.Background(), &user)
+
+		_, err := th.SystemAdminClient.UpdateUserPassword(context.Background(), ruser.Id, "", "password")
+		require.NoError(t, err)
+
+		_, _, err = th.Client.Login(context.Background(), ruser.Email, "password")
+		CheckErrorID(t, err, "api.user.login.remote_users.login.error")
+	})
+
 	t.Run("login with terms_of_service set", func(t *testing.T) {
 		termsOfService, appErr := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
 		require.Nil(t, appErr)
@@ -3877,7 +3889,7 @@ func TestLoginWithLag(t *testing.T) {
 		mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("ldap"))
 		mainHelper.ToggleReplicasOff()
 
-		appErr := th.App.RevokeAllSessions(th.BasicUser.Id)
+		appErr := th.App.RevokeAllSessions(th.Context, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		mainHelper.ToggleReplicasOn()
@@ -6611,7 +6623,6 @@ func TestThreadSocketEvents(t *testing.T) {
 						require.EqualValues(t, float64(1), data["previous_unread_mentions"])
 						require.EqualValues(t, float64(0), data["unread_replies"])
 						require.EqualValues(t, float64(0), data["unread_mentions"])
-
 					}
 				case <-time.After(1 * time.Second):
 					return
@@ -6641,7 +6652,6 @@ func TestThreadSocketEvents(t *testing.T) {
 						require.EqualValues(t, float64(0), data["previous_unread_mentions"])
 						require.EqualValues(t, float64(1), data["unread_replies"])
 						require.EqualValues(t, float64(1), data["unread_mentions"])
-
 					}
 				case <-time.After(1 * time.Second):
 					return
@@ -6833,7 +6843,6 @@ func TestFollowThreads(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, uss.Threads, 1)
 		require.GreaterOrEqual(t, uss.Threads[0].LastViewedAt, uss.Threads[0].LastReplyAt)
-
 	})
 
 	t.Run("No permission to channel", func(t *testing.T) {
@@ -6948,7 +6957,6 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 
 	// should have 2 unread replies now
 	checkThreadListReplies(t, th, th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1, &model.GetUserThreadsOpts{Unread: true})
-
 }
 
 func TestThreadCounts(t *testing.T) {
@@ -7148,7 +7156,6 @@ func TestReadThreads(t *testing.T) {
 	})
 	client := th.Client
 	t.Run("all threads", func(t *testing.T) {
-
 		rpost, resp, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
@@ -7309,9 +7316,10 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 		ldapMock := &mocks.LdapInterface{}
 		ldapMock.Mock.On(
 			"CheckProviderAttributes",
-			mock.Anything, // app.AppIface
-			mock.Anything, // *model.User
-			mock.Anything, // *model.Patch
+			mock.AnythingOfType("*request.Context"),
+			mock.AnythingOfType("*model.LdapSettings"),
+			mock.AnythingOfType("*model.User"),
+			mock.AnythingOfType("*model.UserPatch"),
 		).Return("")
 		th.App.Channels().Ldap = ldapMock
 		// CheckProviderAttributes should be called for both Patch and Update
@@ -7332,7 +7340,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 			user := th.CreateUserWithAuth(model.UserAuthServiceSaml)
 			ldapMock := &mocks.LdapInterface{}
 			ldapMock.Mock.On(
-				"CheckProviderAttributes", mock.Anything, mock.Anything, mock.Anything,
+				"CheckProviderAttributes", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.LdapSettings"), mock.AnythingOfType("*model.User"), mock.AnythingOfType("*model.UserPatch"),
 			).Return("")
 			th.App.Channels().Ldap = ldapMock
 			th.SystemAdminClient.PatchUser(context.Background(), user.Id, &model.UserPatch{})
@@ -7346,7 +7354,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 			user := th.CreateUserWithAuth(model.UserAuthServiceSaml)
 			samlMock := &mocks.SamlInterface{}
 			samlMock.Mock.On(
-				"CheckProviderAttributes", mock.Anything, mock.Anything, mock.Anything,
+				"CheckProviderAttributes", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.SamlSettings"), mock.AnythingOfType("*model.User"), mock.AnythingOfType("*model.UserPatch"),
 			).Return("")
 			th.App.Channels().Saml = samlMock
 			th.SystemAdminClient.PatchUser(context.Background(), user.Id, &model.UserPatch{})
@@ -7366,7 +7374,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 		} {
 			patch := user.ToPatch()
 			patch.SetField(fieldName, "something new")
-			conflictField := th.App.CheckProviderAttributes(user, patch)
+			conflictField := th.App.CheckProviderAttributes(th.Context, user, patch)
 			require.NotEqual(t, "", conflictField)
 		}
 	})
@@ -7381,7 +7389,7 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 		} {
 			user := th.CreateUserWithAuth(authService)
 			patch := &model.UserPatch{Username: model.NewString("something new")}
-			conflictField := th.App.CheckProviderAttributes(user, patch)
+			conflictField := th.App.CheckProviderAttributes(th.Context, user, patch)
 			require.NotEqual(t, "", conflictField)
 		}
 	})

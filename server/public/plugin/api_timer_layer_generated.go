@@ -852,6 +852,13 @@ func (api *apiTimerLayer) GetFileInfo(fileId string) (*model.FileInfo, *model.Ap
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) SetFileSearchableContent(fileID string, content string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.SetFileSearchableContent(fileID, content)
+	api.recordTime(startTime, "SetFileSearchableContent", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetFileInfos(page, perPage, opt)
@@ -1264,5 +1271,19 @@ func (api *apiTimerLayer) GetUploadSession(uploadID string) (*model.UploadSessio
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetUploadSession(uploadID)
 	api.recordTime(startTime, "GetUploadSession", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) SendPushNotification(notification *model.PushNotification, userID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.SendPushNotification(notification, userID)
+	api.recordTime(startTime, "SendPushNotification", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdateUserAuth(userID, userAuth)
+	api.recordTime(startTime, "UpdateUserAuth", _returnsB == nil)
 	return _returnsA, _returnsB
 }

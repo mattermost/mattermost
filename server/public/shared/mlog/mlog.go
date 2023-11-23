@@ -7,7 +7,6 @@ package mlog
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -15,6 +14,8 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/logr/v2"
 	logrcfg "github.com/mattermost/logr/v2/config"
@@ -40,6 +41,7 @@ type LoggerIFace interface {
 	LogM([]Level, string, ...Field)
 	With(fields ...Field) *Logger
 	Flush() error
+	Sugar(fields ...Field) Sugar
 	StdLogger(level Level) *log.Logger
 }
 
@@ -65,6 +67,21 @@ func (lc LoggerConfiguration) Append(cfg LoggerConfiguration) {
 	for k, v := range cfg {
 		lc[k] = v
 	}
+}
+
+func (lc LoggerConfiguration) IsValid() error {
+	logger, err := logr.New()
+	if err != nil {
+		return errors.Wrap(err, "failed to create logger")
+	}
+	defer logger.Shutdown()
+
+	err = logrcfg.ConfigureTargets(logger, lc, nil)
+	if err != nil {
+		return errors.Wrap(err, "logger configuration is invalid")
+	}
+
+	return nil
 }
 
 func (lc LoggerConfiguration) toTargetCfg() map[string]logrcfg.TargetCfg {

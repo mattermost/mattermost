@@ -11,7 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func TestParseStaticListArgument(t *testing.T) {
@@ -198,7 +198,6 @@ func TestParseNamedArguments(t *testing.T) {
 	assert.False(t, found)
 	assert.Equal(t, "bla", parsed)
 	assert.Equal(t, "", toBeParsed)
-
 }
 
 func TestSuggestions(t *testing.T) {

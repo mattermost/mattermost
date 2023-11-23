@@ -70,6 +70,7 @@ export type ClientConfig = {
     EnableGifPicker: string;
     EnableGuestAccounts: string;
     EnableIncomingWebhooks: string;
+    EnableJoinLeaveMessageByDefault: string;
     EnableLatex: string;
     EnableInlineLatex: string;
     EnableLdap: string;
@@ -114,15 +115,12 @@ export type ClientConfig = {
     ExperimentalEnablePostMetadata: string;
     ExperimentalGroupUnreadChannels: string;
     ExperimentalPrimaryTeam: string;
-    ExperimentalTimezone: string;
     ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
-    FeatureFlagGraphQL: string;
     ForgotPasswordLink: string;
-    GfycatAPIKey: string;
-    GfycatAPISecret: string;
+    GiphySdkKey: string;
     GoogleDeveloperKey: string;
     GuestAccountsEnforceMultifactorAuthentication: string;
     HasImageProxy: string;
@@ -334,8 +332,7 @@ export type ServiceSettings = {
     EnableCustomEmoji: boolean;
     EnableEmojiPicker: boolean;
     EnableGifPicker: boolean;
-    GfycatAPIKey: string;
-    GfycatAPISecret: string;
+    GiphySdkKey: string;
     PostEditTimeLimit: number;
     TimeBetweenUserTypingUpdatesMilliseconds: number;
     EnablePostSearch: boolean;
@@ -381,6 +378,7 @@ export type ServiceSettings = {
     PersistentNotificationIntervalMinutes: number;
     PersistentNotificationMaxCount: number;
     PersistentNotificationMaxRecipients: number;
+    RefreshPostStatsRunTime: string;
 };
 
 export type TeamSettings = {
@@ -406,6 +404,7 @@ export type TeamSettings = {
     ExperimentalPrimaryTeam: string;
     ExperimentalDefaultChannels: string[];
     EnableLastActiveTime: boolean;
+    EnableJoinLeaveMessageByDefault: boolean;
 };
 
 export type ClientRequirements = {
@@ -430,6 +429,7 @@ export type SqlSettings = {
     DisableDatabaseSearch: boolean;
     MigrationsStatementTimeoutSeconds: number;
     ReplicaLagSettings: ReplicaLagSetting[];
+    ReplicaMonitorIntervalSeconds: number;
 };
 
 export type LogSettings = {
@@ -446,6 +446,7 @@ export type LogSettings = {
     VerboseDiagnostics: boolean;
     EnableSentry: boolean;
     AdvancedLoggingConfig: string;
+    AdvancedLoggingJSON: Record<string, any>;
 };
 
 export type ExperimentalAuditSettings = {
@@ -457,6 +458,7 @@ export type ExperimentalAuditSettings = {
     FileCompress: boolean;
     FileMaxQueueSize: number;
     AdvancedLoggingConfig: string;
+    AdvancedLoggingJSON: Record<string, any>;
 };
 
 export type NotificationLogSettings = {
@@ -469,6 +471,7 @@ export type NotificationLogSettings = {
     FileJson: boolean;
     FileLocation: string;
     AdvancedLoggingConfig: string;
+    AdvancedLoggingJSON: Record<string, any>;
 };
 
 export type PasswordSettings = {
@@ -505,6 +508,21 @@ export type FileSettings = {
     AmazonS3SSE: boolean;
     AmazonS3Trace: boolean;
     AmazonS3RequestTimeoutMilliseconds: number;
+    DedicatedExportStore: boolean;
+    ExportDriverName: string;
+    ExportDirectory: string;
+    ExportAmazonS3AccessKeyId: string;
+    ExportAmazonS3SecretAccessKey: string;
+    ExportAmazonS3Bucket: string;
+    ExportAmazonS3PathPrefix: string;
+    ExportAmazonS3Region: string;
+    ExportAmazonS3Endpoint: string;
+    ExportAmazonS3SSL: boolean;
+    ExportAmazonS3SignV2: boolean;
+    ExportAmazonS3SSE: boolean;
+    ExportAmazonS3Trace: boolean;
+    ExportAmazonS3RequestTimeoutMilliseconds: number;
+    ExportAmazonS3PresignExpiresSeconds: number;
 };
 
 export type EmailSettings = {
@@ -790,12 +808,14 @@ export type BleveSettings = {
 export type DataRetentionSettings = {
     EnableMessageDeletion: boolean;
     EnableFileDeletion: boolean;
-    EnableBoardsDeletion: boolean;
     MessageRetentionDays: number;
     FileRetentionDays: number;
-    BoardsRetentionDays: number;
     DeletionJobStartTime: string;
     BatchSize: number;
+    EnableBoardsDeletion: boolean,
+    BoardsRetentionDays: number;
+    TimeBetweenBatchesMilliseconds: number;
+    RetentionIdsBatchSize: number;
 };
 
 export type MessageExportSettings = {
@@ -844,7 +864,7 @@ export type PluginSettings = {
 
 export type DisplaySettings = {
     CustomURLSchemes: string[];
-    ExperimentalTimezone: boolean;
+    MaxMarkdownNodes: number;
 };
 
 export type GuestAccountsSettings = {
@@ -865,6 +885,7 @@ export type ImageProxySettings = {
 export type CloudSettings = {
     CWSURL: string;
     CWSAPIURL: string;
+    CWSMock: boolean;
 };
 
 export type FeatureFlags = Record<string, string | boolean>;
@@ -956,4 +977,18 @@ export enum ServiceEnvironment {
     PRODUCTION = 'production',
     TEST = 'test',
     DEV = 'dev',
+}
+
+
+export type AllowedIPRange = {
+    cidr_block: string;
+    description: string;
+    enabled: boolean;
+    owner_id: string;
+}
+
+export type AllowedIPRanges = AllowedIPRange[];
+
+export type FetchIPResponse = {
+    ip: string;
 }
