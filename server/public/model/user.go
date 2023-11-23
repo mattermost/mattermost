@@ -1034,8 +1034,8 @@ type UserReport struct {
 	UserPostStats
 }
 
-func (u *UserReportQuery) ToReport() UserReport {
-	return UserReport{
+func (u *UserReportQuery) ToReport() *UserReport {
+	return &UserReport{
 		Id:            u.Id,
 		Username:      u.Username,
 		Email:         u.Email,

@@ -2860,10 +2860,9 @@ func (a *App) getUserReport(
 		return nil, model.NewAppError("GetUsersForReporting", "app.user.get_user_report.store_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	userReports := []*model.UserReport{}
-	for _, user := range userReportQuery {
-		report := user.ToReport()
-		userReports = append(userReports, &report)
+	userReports := make([]*model.UserReport, len(userReportQuery))
+	for i, user := range userReportQuery {
+		userReports[i] = user.ToReport()
 	}
 
 	return userReports, nil
