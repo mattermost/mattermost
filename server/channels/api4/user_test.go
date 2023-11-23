@@ -2419,17 +2419,17 @@ func TestUpdateUserRoles(t *testing.T) {
 	})
 }
 
-func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, event string, test func(*model.WebSocketEvent)) {
+func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, event model.WebsocketEventType, test func(*model.WebSocketEvent)) {
 	for {
 		select {
 		case resp, ok := <-client.EventChannel:
-			require.Truef(t, ok, "channel closed before receiving expected event %s", event)
+			require.Truef(t, ok, "channel closed before receiving expected event %s", string(event))
 			if resp.EventType() == event {
 				test(resp)
 				return
 			}
 		case <-time.After(5 * time.Second):
-			require.Failf(t, "failed to receive expected event %s", event)
+			require.Failf(t, "failed to receive expected event %s", string(event))
 		}
 	}
 }
