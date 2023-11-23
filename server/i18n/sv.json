@@ -433,7 +433,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Service Provider Issuer URL måste vara en giltig URL, och starta med http:// eller https://."
+    "translation": "Identity Provider Issuer URL kan inte vara en tom sträng."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
