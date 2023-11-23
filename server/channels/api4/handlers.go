@@ -201,7 +201,7 @@ func (api *API) RateLimitedHandler(apiHandler http.Handler, settings model.RateL
 
 	rateLimiter, err := app.NewRateLimiter(&settings, []string{})
 	if err != nil {
-		mlog.Error("getRateLimitedHandler", mlog.Err(err))
+		api.srv.Log().Error("getRateLimitedHandler", mlog.Err(err))
 		return nil
 	}
 	return rateLimiter.RateLimitHandler(apiHandler)

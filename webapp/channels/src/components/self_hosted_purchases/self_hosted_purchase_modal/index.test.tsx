@@ -9,7 +9,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {
     fireEvent,
-    renderWithIntlAndStore,
+    renderWithContext,
     screen,
     waitFor,
 } from 'tests/react_testing_utils';
@@ -254,7 +254,7 @@ function fillForm(form: PurchaseForm) {
 
 describe('SelfHostedPurchaseModal', () => {
     it('renders the form', () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
+        renderWithContext(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
 
         // check title, and some of the most prominent details and secondary actions
         screen.getByText('Provide your payment details');
@@ -267,13 +267,13 @@ describe('SelfHostedPurchaseModal', () => {
     });
 
     it('filling the form enables signup', () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
+        renderWithContext(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
         expect(screen.getByText('Upgrade')).toBeDisabled();
         fillForm(defaultSuccessForm);
     });
 
     it('disables signup if too few seats chosen', () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
+        renderWithContext(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
         fillForm(defaultSuccessForm);
 
         const tooFewSeats = existingUsers - 1;
@@ -283,7 +283,7 @@ describe('SelfHostedPurchaseModal', () => {
     });
 
     it('Minimum of 10 seats is required for sign up', () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
+        renderWithContext(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
         fillForm(defaultSuccessForm);
 
         const tooFewSeats = 9;
@@ -293,7 +293,7 @@ describe('SelfHostedPurchaseModal', () => {
     });
 
     it('happy path submit shows success screen', async () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
+        renderWithContext(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
         expect(screen.getByText('Upgrade')).toBeDisabled();
         const upgradeButton = fillForm(defaultSuccessForm);
 
@@ -302,7 +302,7 @@ describe('SelfHostedPurchaseModal', () => {
     });
 
     it('sad path submit shows error screen', async () => {
-        renderWithIntlAndStore(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
+        renderWithContext(<div id='root-portal'><SelfHostedPurchaseModal productId={'prod_professional'}/></div>, initialState);
         expect(screen.getByText('Upgrade')).toBeDisabled();
         fillForm(defaultSuccessForm);
         changeByPlaceholder('Organization Name', failOrg);
