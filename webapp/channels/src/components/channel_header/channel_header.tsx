@@ -99,6 +99,7 @@ export type Props = {
 type State = {
     titleMenuOpen: boolean;
     showChannelHeaderPopover: boolean;
+    channelHeaderPoverWidth: number;
     leftOffset: number;
     topOffset: number;
 };
@@ -120,6 +121,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
 
         this.state = {
             showChannelHeaderPopover: false,
+            channelHeaderPoverWidth: 0,
             leftOffset: 0,
             topOffset: 0,
             titleMenuOpen: false,
@@ -224,14 +226,17 @@ class ChannelHeader extends React.PureComponent<Props, State> {
 
         if (headerPopoverTextMeasurerRect && headerDescriptionRect) {
             if (headerPopoverTextMeasurerRect.width > headerDescriptionRect.width || headerText.match(/\n{2,}/g)) {
-                this.setState({showChannelHeaderPopover: true, leftOffset: this.headerDescriptionRef.current?.offsetLeft || 0});
+                const leftOffset = headerDescriptionRect.left - (this.props.hasMoreThanOneTeam ? 313 : 248);
+                this.setState({showChannelHeaderPopover: true, leftOffset});
             }
         }
 
         // add 40px to take the global header into account
         const topOffset = (announcementBarSize * this.props.announcementBarCount) + 40;
+        const channelHeaderPoverWidth = this.headerDescriptionRef.current?.clientWidth || 0 - (this.props.hasMoreThanOneTeam ? 64 : 0);
 
         this.setState({topOffset});
+        this.setState({channelHeaderPoverWidth});
     };
 
     toggleChannelMembersRHS = () => {
@@ -526,7 +531,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     id='header-popover'
                     popoverStyle='info'
                     popoverSize='lg'
-                    style={{transform: `translate(${this.state.leftOffset}px, ${this.state.topOffset}px)`}}
+                    style={{transform: `translate(${this.state.leftOffset}px, ${this.state.topOffset}px)`, maxWidth: this.state.channelHeaderPoverWidth}}
                     placement='bottom'
                     className={classNames('channel-header__popover', {'chanel-header__popover--lhs_offset': this.props.hasMoreThanOneTeam})}
                 >
@@ -579,7 +584,8 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             message={headerText.replace(/\n+/g, ' ')}
                             options={this.getHeaderMarkdownOptions(channelNamesMap)}
                             imageProps={imageProps}
-                        /></div>
+                        />
+                    </div>
                     <span
                         className='header-description__text'
                         onClick={this.handleFormattedTextClick}
@@ -587,7 +593,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                         onMouseOut={() => this.setState({showChannelHeaderPopover: false})}
                         ref={this.headerDescriptionRef}
                     >
-
                         <Overlay
                             show={this.state.showChannelHeaderPopover}
                             placement='bottom'

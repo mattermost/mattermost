@@ -120,7 +120,7 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 			if err != nil {
 				return fmt.Errorf("invalid config source for audit, %w", err)
 			}
-			s.Log().Debug("Loaded audit configuration", mlog.String("source", string(dsn)))
+			s.Log().Debug("Loaded audit configuration", mlog.String("source", dsn))
 		} else {
 			s.Log().Debug("Advanced logging config not provided for audit")
 		}

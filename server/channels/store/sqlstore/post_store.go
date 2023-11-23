@@ -2549,7 +2549,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 		maxPostSize = model.PostMessageMaxRunesV1
 	}
 
-	mlog.Info("Post.Message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int32("max_bytes", maxPostSizeBytes))
+	mlog.Info("Post.Message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int("max_bytes", maxPostSizeBytes))
 
 	return maxPostSize
 }

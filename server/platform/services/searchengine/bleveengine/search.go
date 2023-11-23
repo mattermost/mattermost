@@ -270,7 +270,7 @@ func (b *BleveEngine) DeleteChannelPosts(rctx request.CTX, channelID string) *mo
 			err.Error(), http.StatusInternalServerError)
 	}
 
-	rctx.Logger().Info("Posts for channel deleted", mlog.String("channel_id", channelID), mlog.Int64("deleted", deleted))
+	rctx.Logger().Info("Posts for channel deleted", mlog.String("channel_id", channelID), mlog.Int("deleted", deleted))
 
 	return nil
 }
@@ -289,7 +289,7 @@ func (b *BleveEngine) DeleteUserPosts(rctx request.CTX, userID string) *model.Ap
 			err.Error(), http.StatusInternalServerError)
 	}
 
-	rctx.Logger().Info("Posts for user deleted", mlog.String("user_id", userID), mlog.Int64("deleted", deleted))
+	rctx.Logger().Info("Posts for user deleted", mlog.String("user_id", userID), mlog.Int("deleted", deleted))
 
 	return nil
 }
@@ -833,7 +833,7 @@ func (b *BleveEngine) DeleteUserFiles(rctx request.CTX, userID string) *model.Ap
 			err.Error(), http.StatusInternalServerError)
 	}
 
-	rctx.Logger().Info("Files for user deleted", mlog.String("user_id", userID), mlog.Int64("deleted", deleted))
+	rctx.Logger().Info("Files for user deleted", mlog.String("user_id", userID), mlog.Int("deleted", deleted))
 
 	return nil
 }
@@ -852,7 +852,7 @@ func (b *BleveEngine) DeletePostFiles(rctx request.CTX, postID string) *model.Ap
 			err.Error(), http.StatusInternalServerError)
 	}
 
-	rctx.Logger().Info("Files for post deleted", mlog.String("post_id", postID), mlog.Int64("deleted", deleted))
+	rctx.Logger().Info("Files for post deleted", mlog.String("post_id", postID), mlog.Int("deleted", deleted))
 
 	return nil
 }
@@ -874,7 +874,7 @@ func (b *BleveEngine) DeleteFilesBatch(rctx request.CTX, endTime, limit int64) *
 			err.Error(), http.StatusInternalServerError)
 	}
 
-	rctx.Logger().Info("Files in batch deleted", mlog.Int64("endTime", endTime), mlog.Int64("limit", limit), mlog.Int64("deleted", deleted))
+	rctx.Logger().Info("Files in batch deleted", mlog.Int("endTime", endTime), mlog.Int("limit", limit), mlog.Int("deleted", deleted))
 
 	return nil
 }

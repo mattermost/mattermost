@@ -544,6 +544,10 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
     &.selected,
     &:hover {
         background-color: rgba(var(--center-channel-color-rgb), 0.16);
+
+        img {
+            transform: scale(1.35);
+        }
     }
 
     &:active {
@@ -556,6 +560,8 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
 
     img {
         position: relative;
+        transform: scale(1);
+        transition: transform 0.2s ease-in-out;
 
         &.emoji-category--custom {
             top: auto;
