@@ -297,7 +297,7 @@ func TestOutgoingOAuthConnectionAPIHandlers(t *testing.T) {
 	t.Run("getOutgoingOAuthConnection", func(t *testing.T) {
 		req, err := http.NewRequest("GET", "/", nil)
 		if err != nil {
-			t.Fatal(err)
+			t.Error(err)
 		}
 
 		c.Params = &web.Params{
@@ -324,7 +324,7 @@ func TestOutgoingOAuthConnectionAPIHandlers(t *testing.T) {
 	t.Run("listOutgoingOAuthConnections", func(t *testing.T) {
 		req, err := http.NewRequest("GET", "/", nil)
 		if err != nil {
-			t.Fatal(err)
+			t.Error(err)
 		}
 
 		conns := []*model.OutgoingOAuthConnection{conn}
