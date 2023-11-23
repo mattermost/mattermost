@@ -4,15 +4,15 @@
 package searchtest
 
 import (
-	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 type SearchTestHelper struct {
@@ -275,10 +275,10 @@ func (th *SearchTestHelper) createChannel(teamID, name, displayName, purpose str
 	return channel, nil
 }
 
-func (th *SearchTestHelper) createDirectChannel(teamID, name, displayName string, users []*model.User) (*model.Channel, error) {
+func (th *SearchTestHelper) createDirectChannel(teamID, displayName string, users []*model.User) (*model.Channel, error) {
 	channel := &model.Channel{
 		TeamId:      teamID,
-		Name:        name,
+		Name:        model.GetDMNameFromIds(users[0].Id, users[1].Id),
 		DisplayName: displayName,
 		Type:        model.ChannelTypeDirect,
 	}
@@ -290,7 +290,7 @@ func (th *SearchTestHelper) createDirectChannel(teamID, name, displayName string
 
 	m2 := &model.ChannelMember{}
 	m2.ChannelId = channel.Id
-	m2.UserId = users[0].Id
+	m2.UserId = users[1].Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
 	channel, err := th.Store.Channel().SaveDirectChannel(channel, m1, m2)
@@ -301,7 +301,7 @@ func (th *SearchTestHelper) createDirectChannel(teamID, name, displayName string
 }
 
 func (th *SearchTestHelper) createGroupChannel(teamID, displayName string, users []*model.User) (*model.Channel, error) {
-	userIDS := make([]string, len(users))
+	userIDS := make([]string, 0, len(users))
 	for _, user := range users {
 		userIDS = append(userIDS, user.Id)
 	}
@@ -326,7 +326,6 @@ func (th *SearchTestHelper) createGroupChannel(teamID, displayName string, users
 	}
 
 	return channel, nil
-
 }
 
 func (th *SearchTestHelper) deleteChannel(channel *model.Channel) error {
@@ -353,7 +352,7 @@ func (th *SearchTestHelper) createPostModel(userID, channelID, message, hashtags
 	return &model.Post{
 		Message:       message,
 		ChannelId:     channelID,
-		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		PendingPostId: model.NewId() + ":" + strconv.FormatInt(model.GetMillis(), 10),
 		UserId:        userID,
 		Hashtags:      hashtags,
 		IsPinned:      pinned,
@@ -464,7 +463,7 @@ func (th *SearchTestHelper) assertUsersMatchInAnyOrder(t *testing.T, expected, a
 
 func (th *SearchTestHelper) checkPostInSearchResults(t *testing.T, postID string, searchResults map[string]*model.Post) {
 	t.Helper()
-	postIDS := make([]string, len(searchResults))
+	postIDS := make([]string, 0, len(searchResults))
 	for ID := range searchResults {
 		postIDS = append(postIDS, ID)
 	}
@@ -473,7 +472,7 @@ func (th *SearchTestHelper) checkPostInSearchResults(t *testing.T, postID string
 
 func (th *SearchTestHelper) checkFileInfoInSearchResults(t *testing.T, fileID string, searchResults map[string]*model.FileInfo) {
 	t.Helper()
-	fileIDS := make([]string, len(searchResults))
+	fileIDS := make([]string, 0, len(searchResults))
 	for ID := range searchResults {
 		fileIDS = append(fileIDS, ID)
 	}

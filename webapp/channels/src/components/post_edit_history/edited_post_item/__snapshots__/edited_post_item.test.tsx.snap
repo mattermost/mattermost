@@ -1,273 +1,281 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/post_edit_history/edited_post_item should match snapshot 1`] = `
-<div
-  className="edit-post-history__container"
-  onClick={[Function]}
+<CompassThemeProvider
+  theme={Object {}}
 >
-  <PostAriaLabelDiv
-    className="a11y__section post"
-    id="searchResult_post_id"
-    post={
-      Object {
-        "channel_id": "",
-        "create_at": 0,
-        "delete_at": 0,
-        "edit_at": 0,
-        "hashtags": "",
-        "id": "post_id",
-        "is_pinned": false,
-        "message": "post message",
-        "metadata": Object {
-          "embeds": Array [],
-          "emojis": Array [],
-          "files": Array [],
-          "images": Object {},
-          "reactions": Array [],
-        },
-        "original_id": "",
-        "pending_post_id": "",
-        "props": Object {},
-        "reply_count": 0,
-        "root_id": "",
-        "type": "system_add_remove",
-        "update_at": 0,
-        "user_id": "user_id",
-      }
-    }
+  <div
+    className="edit-post-history__container"
+    onClick={[Function]}
   >
-    <div
-      aria-hidden="true"
-      className="edit-post-history__title__container"
+    <PostAriaLabelDiv
+      className="a11y__section post"
+      id="searchResult_post_id"
+      post={
+        Object {
+          "channel_id": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "edit_at": 0,
+          "hashtags": "",
+          "id": "post_id",
+          "is_pinned": false,
+          "message": "post message",
+          "metadata": Object {
+            "embeds": Array [],
+            "emojis": Array [],
+            "files": Array [],
+            "images": Object {},
+            "reactions": Array [],
+          },
+          "original_id": "",
+          "pending_post_id": "",
+          "props": Object {},
+          "reply_count": 0,
+          "root_id": "",
+          "type": "system_add_remove",
+          "update_at": 0,
+          "user_id": "user_id",
+        }
+      }
     >
       <div
-        className="edit-post-history__date__badge__container"
+        aria-hidden="true"
+        className="edit-post-history__title__container"
       >
-        <ForwardRef
-          aria-label="Toggle to see an old message."
-          className="edit-post-history__icon__button"
-          compact={true}
-          icon="chevron-right"
-          size="sm"
-        />
-        <span
-          className="edit-post-history__date"
+        <div
+          className="edit-post-history__date__badge__container"
         >
-          <Connect(injectIntl(Timestamp))
-            ranges={
-              Array [
-                Object {
-                  "display": <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Today"
-                    id="date_separator.today"
-                  />,
-                  "equals": Array [
-                    "day",
-                    0,
-                  ],
-                },
-                Object {
-                  "display": <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Yesterday"
-                    id="date_separator.yesterday"
-                  />,
-                  "equals": Array [
-                    "day",
-                    -1,
-                  ],
-                },
-              ]
-            }
-            value={0}
+          <ForwardRef
+            aria-label="Toggle to see an old message."
+            className="edit-post-history__icon__button"
+            compact={true}
+            icon="chevron-right"
+            size="sm"
           />
-        </span>
-      </div>
-      <OverlayTrigger
-        defaultOverlayShown={false}
-        delayShow={400}
-        overlay={
-          <Tooltip
-            className="hidden-xs"
-            id="editPostRestoreTooltip"
+          <span
+            className="edit-post-history__date"
           >
-            Restore this version
-          </Tooltip>
-        }
-        placement="left"
-        trigger={
-          Array [
-            "hover",
-            "focus",
-          ]
-        }
-      >
-        <ForwardRef
-          aria-label="Select to restore an old message."
-          className="edit-post-history__icon__button restore-icon"
-          compact={true}
-          icon="restore"
-          onClick={[Function]}
-          size="sm"
-        />
-      </OverlayTrigger>
-    </div>
-  </PostAriaLabelDiv>
-</div>
+            <Connect(injectIntl(Timestamp))
+              ranges={
+                Array [
+                  Object {
+                    "display": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Today"
+                      id="date_separator.today"
+                    />,
+                    "equals": Array [
+                      "day",
+                      0,
+                    ],
+                  },
+                  Object {
+                    "display": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Yesterday"
+                      id="date_separator.yesterday"
+                    />,
+                    "equals": Array [
+                      "day",
+                      -1,
+                    ],
+                  },
+                ]
+              }
+              value={0}
+            />
+          </span>
+        </div>
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delayShow={400}
+          overlay={
+            <Tooltip
+              className="hidden-xs"
+              id="editPostRestoreTooltip"
+            >
+              Restore this version
+            </Tooltip>
+          }
+          placement="left"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <ForwardRef
+            aria-label="Select to restore an old message."
+            className="edit-post-history__icon__button restore-icon"
+            compact={true}
+            icon="restore"
+            onClick={[Function]}
+            size="sm"
+          />
+        </OverlayTrigger>
+      </div>
+    </PostAriaLabelDiv>
+  </div>
+</CompassThemeProvider>
 `;
 
 exports[`components/post_edit_history/edited_post_item should match snapshot when isCurrent is true 1`] = `
-<div
-  className="edit-post-history__container edit-post-history__container__background"
-  onClick={[Function]}
+<CompassThemeProvider
+  theme={Object {}}
 >
-  <PostAriaLabelDiv
-    className="a11y__section post"
-    id="searchResult_post_id"
-    post={
-      Object {
-        "channel_id": "",
-        "create_at": 0,
-        "delete_at": 0,
-        "edit_at": 0,
-        "hashtags": "",
-        "id": "post_id",
-        "is_pinned": false,
-        "message": "post message",
-        "metadata": Object {
-          "embeds": Array [],
-          "emojis": Array [],
-          "files": Array [],
-          "images": Object {},
-          "reactions": Array [],
-        },
-        "original_id": "",
-        "pending_post_id": "",
-        "props": Object {},
-        "reply_count": 0,
-        "root_id": "",
-        "type": "system_add_remove",
-        "update_at": 0,
-        "user_id": "user_id",
-      }
-    }
+  <div
+    className="edit-post-history__container edit-post-history__container__background"
+    onClick={[Function]}
   >
-    <div
-      aria-hidden="true"
-      className="edit-post-history__title__container"
+    <PostAriaLabelDiv
+      className="a11y__section post"
+      id="searchResult_post_id"
+      post={
+        Object {
+          "channel_id": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "edit_at": 0,
+          "hashtags": "",
+          "id": "post_id",
+          "is_pinned": false,
+          "message": "post message",
+          "metadata": Object {
+            "embeds": Array [],
+            "emojis": Array [],
+            "files": Array [],
+            "images": Object {},
+            "reactions": Array [],
+          },
+          "original_id": "",
+          "pending_post_id": "",
+          "props": Object {},
+          "reply_count": 0,
+          "root_id": "",
+          "type": "system_add_remove",
+          "update_at": 0,
+          "user_id": "user_id",
+        }
+      }
     >
       <div
-        className="edit-post-history__date__badge__container"
+        aria-hidden="true"
+        className="edit-post-history__title__container"
       >
-        <ForwardRef
-          aria-label="Toggle to see an old message."
-          className="edit-post-history__icon__button"
-          compact={true}
-          icon="chevron-down"
-          size="sm"
-        />
-        <span
-          className="edit-post-history__date"
-        >
-          <Connect(injectIntl(Timestamp))
-            ranges={
-              Array [
-                Object {
-                  "display": <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Today"
-                    id="date_separator.today"
-                  />,
-                  "equals": Array [
-                    "day",
-                    0,
-                  ],
-                },
-                Object {
-                  "display": <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Yesterday"
-                    id="date_separator.yesterday"
-                  />,
-                  "equals": Array [
-                    "day",
-                    -1,
-                  ],
-                },
-              ]
-            }
-            value={0}
-          />
-        </span>
         <div
-          className="edit-post-history__current__indicator"
+          className="edit-post-history__date__badge__container"
         >
-          Current Version
-        </div>
-      </div>
-    </div>
-    <div
-      className="edit-post-history__content_container"
-    >
-      <div
-        className="edit-post-history__header"
-      >
-        <span
-          className="profile-icon"
-        >
-          <Memo(Avatar)
-            className="avatar-post-preview"
+          <ForwardRef
+            aria-label="Toggle to see an old message."
+            className="edit-post-history__icon__button"
+            compact={true}
+            icon="chevron-down"
             size="sm"
-            url="/api/v4/users/user_id/image?_=0"
           />
-        </span>
-        <div
-          className="edit-post-history__header__username"
-        >
-          <Connect(UserProfile)
-            disablePopover={true}
-            hasMention={true}
-            userId="user_id"
-          />
+          <span
+            className="edit-post-history__date"
+          >
+            <Connect(injectIntl(Timestamp))
+              ranges={
+                Array [
+                  Object {
+                    "display": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Today"
+                      id="date_separator.today"
+                    />,
+                    "equals": Array [
+                      "day",
+                      0,
+                    ],
+                  },
+                  Object {
+                    "display": <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Yesterday"
+                      id="date_separator.yesterday"
+                    />,
+                    "equals": Array [
+                      "day",
+                      -1,
+                    ],
+                  },
+                ]
+              }
+              value={0}
+            />
+          </span>
+          <div
+            className="edit-post-history__current__indicator"
+          >
+            Current Version
+          </div>
         </div>
       </div>
       <div
-        className="post__content"
+        className="edit-post-history__content_container"
       >
         <div
-          className="search-item-snippet post__body"
+          className="edit-post-history__header"
         >
-          <Connect(PostMessageView)
-            isRHS={true}
-            post={
-              Object {
-                "channel_id": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "edit_at": 0,
-                "hashtags": "",
-                "id": "post_id",
-                "is_pinned": false,
-                "message": "post message",
-                "metadata": Object {
-                  "embeds": Array [],
-                  "emojis": Array [],
-                  "files": Array [],
-                  "images": Object {},
-                  "reactions": Array [],
-                },
-                "original_id": "",
-                "pending_post_id": "",
-                "props": Object {},
-                "reply_count": 0,
-                "root_id": "",
-                "type": "system_add_remove",
-                "update_at": 0,
-                "user_id": "user_id",
+          <span
+            className="profile-icon"
+          >
+            <Memo(Avatar)
+              className="avatar-post-preview"
+              size="sm"
+              url="/api/v4/users/user_id/image?_=0"
+            />
+          </span>
+          <div
+            className="edit-post-history__header__username"
+          >
+            <Connect(UserProfile)
+              disablePopover={true}
+              hasMention={true}
+              userId="user_id"
+            />
+          </div>
+        </div>
+        <div
+          className="post__content"
+        >
+          <div
+            className="search-item-snippet post__body"
+          >
+            <Connect(PostMessageView)
+              isRHS={true}
+              post={
+                Object {
+                  "channel_id": "",
+                  "create_at": 0,
+                  "delete_at": 0,
+                  "edit_at": 0,
+                  "hashtags": "",
+                  "id": "post_id",
+                  "is_pinned": false,
+                  "message": "post message",
+                  "metadata": Object {
+                    "embeds": Array [],
+                    "emojis": Array [],
+                    "files": Array [],
+                    "images": Object {},
+                    "reactions": Array [],
+                  },
+                  "original_id": "",
+                  "pending_post_id": "",
+                  "props": Object {},
+                  "reply_count": 0,
+                  "root_id": "",
+                  "type": "system_add_remove",
+                  "update_at": 0,
+                  "user_id": "user_id",
+                }
               }
-            }
-            showPostEditedIndicator={false}
-          />
+              showPostEditedIndicator={false}
+            />
+          </div>
         </div>
       </div>
-    </div>
-  </PostAriaLabelDiv>
-</div>
+    </PostAriaLabelDiv>
+  </div>
+</CompassThemeProvider>
 `;

@@ -33,6 +33,10 @@ describe('Compliance Export', () => {
                 teamName = team.name;
             });
 
+            // # Visit a channel and post a message so it has something to be exported initially
+            cy.visit('/');
+            cy.postMessage('hello');
+
             // # Go to compliance page, enable export and do initial export
             cy.uiGoToCompliancePage();
             cy.uiEnableComplianceExport();
@@ -144,7 +148,7 @@ describe('Compliance Export', () => {
         cy.findByTestId('enableComplianceExportfalse').click();
 
         // * Verify that exported button is disabled
-        cy.findByRole('button', {name: /run compliance export job now/i}).should('be.disabled');
+        cy.findByRole('button', {name: /run compliance export job now/i}).should('be.enabled');
     });
 
     it('MM-T1167 - Compliance Export job can be canceled', () => {

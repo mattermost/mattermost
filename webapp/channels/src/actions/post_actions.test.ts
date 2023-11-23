@@ -1,20 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
-import {FileInfo} from '@mattermost/types/files';
+import type {FileInfo} from '@mattermost/types/files';
+import type {Post} from '@mattermost/types/posts';
 
-import {GlobalState} from 'types/store';
 import {ChannelTypes, SearchTypes} from 'mattermost-redux/action_types';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {Posts} from 'mattermost-redux/constants';
 
 import * as Actions from 'actions/post_actions';
-import {Constants, ActionTypes, RHSStates} from 'utils/constants';
 
 import mockStore from 'tests/test_store';
+import {Constants, ActionTypes, RHSStates} from 'utils/constants';
+import * as PostUtils from 'utils/post_utils';
+
+import type {GlobalState} from 'types/store';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
+    removeReaction: (...args: any[]) => ({type: 'MOCK_REMOVE_REACTION', args}),
     addReaction: (...args: any[]) => ({type: 'MOCK_ADD_REACTION', args}),
     createPost: (...args: any[]) => ({type: 'MOCK_CREATE_POST', args}),
     createPostImmediately: (...args: any[]) => ({type: 'MOCK_CREATE_POST_IMMEDIATELY', args}),
@@ -27,6 +30,7 @@ jest.mock('mattermost-redux/actions/posts', () => ({
 
 jest.mock('actions/emoji_actions', () => ({
     addRecentEmoji: (...args: any[]) => ({type: 'MOCK_ADD_RECENT_EMOJI', args}),
+    addRecentEmojis: (...args: any[]) => ({type: 'MOCK_ADD_RECENT_EMOJIS', args}),
 }));
 
 jest.mock('actions/notification_actions', () => ({
@@ -45,6 +49,8 @@ jest.mock('utils/user_agent', () => ({
     isIosClassic: jest.fn().mockReturnValueOnce(true).mockReturnValue(false),
     isDesktopApp: jest.fn().mockReturnValue(false),
 }));
+
+const mockMakeGetIsReactionAlreadyAddedToPost = jest.spyOn(PostUtils, 'makeGetIsReactionAlreadyAddedToPost');
 
 const POST_CREATED_TIME = Date.now();
 
@@ -376,8 +382,8 @@ describe('Actions.Posts', () => {
             const files: FileInfo[] = [];
 
             const immediateExpectedState = [{
-                args: ['+1'],
-                type: 'MOCK_ADD_RECENT_EMOJI',
+                args: [['+1']],
+                type: 'MOCK_ADD_RECENT_EMOJIS',
             }, {
                 args: [newPost, files],
                 type: 'MOCK_CREATE_POST',
@@ -396,8 +402,8 @@ describe('Actions.Posts', () => {
             const files: FileInfo[] = [];
 
             const immediateExpectedState = [{
-                args: ['cake'],
-                type: 'MOCK_ADD_RECENT_EMOJI',
+                args: [['cake']],
+                type: 'MOCK_ADD_RECENT_EMOJIS',
             }, {
                 args: [newPost, files],
                 type: 'MOCK_CREATE_POST',
@@ -416,11 +422,8 @@ describe('Actions.Posts', () => {
             const files: FileInfo[] = [];
 
             const immediateExpectedState = [{
-                args: ['cake'],
-                type: 'MOCK_ADD_RECENT_EMOJI',
-            }, {
-                args: ['+1'],
-                type: 'MOCK_ADD_RECENT_EMOJI',
+                args: [['cake', '+1']],
+                type: 'MOCK_ADD_RECENT_EMOJIS',
             }, {
                 args: [newPost, files],
                 type: 'MOCK_CREATE_POST',
@@ -431,6 +434,84 @@ describe('Actions.Posts', () => {
 
             await testStore.dispatch(Actions.createPost(newPost, files));
             expect(testStore.getActions()).toEqual(immediateExpectedState);
+        });
+    });
+
+    describe('submitReaction', () => {
+        describe('addReaction', () => {
+            test('should add reaction when the action is + and the reaction is not added', async () => {
+                const testStore = mockStore(initialState);
+
+                mockMakeGetIsReactionAlreadyAddedToPost.mockReturnValueOnce(() => false);
+
+                testStore.dispatch(Actions.submitReaction('post_id_1', '+', 'emoji_name_1'));
+
+                expect(testStore.getActions()).toEqual([
+                    {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
+                    {args: ['emoji_name_1'], type: 'MOCK_ADD_RECENT_EMOJI'},
+                ]);
+            });
+
+            test('should take no action when the action is + and the reaction has already been added', async () => {
+                const testStore = mockStore(initialState);
+
+                mockMakeGetIsReactionAlreadyAddedToPost.mockReturnValueOnce(() => true);
+
+                testStore.dispatch(Actions.submitReaction('post_id_1', '+', 'emoji_name_1'));
+
+                expect(testStore.getActions()).toEqual([]);
+            });
+        });
+
+        describe('removeReaction', () => {
+            test('should remove reaction when the action is - and the reaction has already been added', async () => {
+                const testStore = mockStore(initialState);
+
+                mockMakeGetIsReactionAlreadyAddedToPost.mockReturnValueOnce(() => true);
+
+                testStore.dispatch(Actions.submitReaction('post_id_1', '-', 'emoji_name_1'));
+
+                expect(testStore.getActions()).toEqual([
+                    {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_REMOVE_REACTION'},
+                ]);
+            });
+
+            test('should take no action when the action is - and the reaction is not added', async () => {
+                const testStore = mockStore(initialState);
+
+                mockMakeGetIsReactionAlreadyAddedToPost.mockReturnValueOnce(() => false);
+
+                testStore.dispatch(Actions.submitReaction('post_id_1', '-', 'emoji_name_1'));
+
+                expect(testStore.getActions()).toEqual([]);
+            });
+        });
+    });
+
+    describe('toggleReaction', () => {
+        test('should add reaction when the reaction is not added', async () => {
+            const testStore = mockStore(initialState);
+
+            mockMakeGetIsReactionAlreadyAddedToPost.mockReturnValueOnce(() => false);
+
+            testStore.dispatch(Actions.toggleReaction('post_id_1', 'emoji_name_1'));
+
+            expect(testStore.getActions()).toEqual([
+                {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
+                {args: ['emoji_name_1'], type: 'MOCK_ADD_RECENT_EMOJI'},
+            ]);
+        });
+
+        test('should remove reaction when the reaction has already been added', async () => {
+            const testStore = mockStore(initialState);
+
+            mockMakeGetIsReactionAlreadyAddedToPost.mockReturnValueOnce(() => true);
+
+            testStore.dispatch(Actions.toggleReaction('post_id_1', 'emoji_name_1'));
+
+            expect(testStore.getActions()).toEqual([
+                {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_REMOVE_REACTION'},
+            ]);
         });
     });
 

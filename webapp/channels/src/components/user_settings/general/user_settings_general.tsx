@@ -4,91 +4,90 @@
 /* eslint-disable max-lines */
 
 import React from 'react';
-import {defineMessages, FormattedDate, FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import {defineMessages, FormattedDate, FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import SettingItemMax from 'components/setting_item_max';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
-import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
 
-import LocalizedIcon from 'components/localized_icon';
+import SettingItem from 'components/setting_item';
+import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
 
-import {UserProfile} from '@mattermost/types/users';
-import SettingItem from 'components/setting_item';
+import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 const holders = defineMessages({
     usernameReserved: {
-        id: t('user.settings.general.usernameReserved'),
+        id: 'user.settings.general.usernameReserved',
         defaultMessage: 'This username is reserved, please choose a new one.',
     },
     usernameGroupNameUniqueness: {
-        id: t('user.settings.general.usernameGroupNameUniqueness'),
+        id: 'user.settings.general.usernameGroupNameUniqueness',
         defaultMessage: 'This username conflicts with an existing group name.',
     },
     usernameRestrictions: {
-        id: t('user.settings.general.usernameRestrictions'),
+        id: 'user.settings.general.usernameRestrictions',
         defaultMessage: "Username must begin with a letter, and contain between {min} to {max} lowercase characters made up of numbers, letters, and the symbols '.', '-', and '_'.",
     },
     validEmail: {
-        id: t('user.settings.general.validEmail'),
+        id: 'user.settings.general.validEmail',
         defaultMessage: 'Please enter a valid email address.',
     },
     emailMatch: {
-        id: t('user.settings.general.emailMatch'),
+        id: 'user.settings.general.emailMatch',
         defaultMessage: 'The new emails you entered do not match.',
     },
     incorrectPassword: {
-        id: t('user.settings.general.incorrectPassword'),
+        id: 'user.settings.general.incorrectPassword',
         defaultMessage: 'Your password is incorrect.',
     },
     emptyPassword: {
-        id: t('user.settings.general.emptyPassword'),
+        id: 'user.settings.general.emptyPassword',
         defaultMessage: 'Please enter your current password.',
     },
     validImage: {
-        id: t('user.settings.general.validImage'),
+        id: 'user.settings.general.validImage',
         defaultMessage: 'Only BMP, JPG, JPEG, or PNG images may be used for profile pictures',
     },
     imageTooLarge: {
-        id: t('user.settings.general.imageTooLarge'),
+        id: 'user.settings.general.imageTooLarge',
         defaultMessage: 'Unable to upload profile image. File is too large.',
     },
     uploadImage: {
-        id: t('user.settings.general.uploadImage'),
+        id: 'user.settings.general.uploadImage',
         defaultMessage: "Click 'Edit' to upload an image.",
     },
     uploadImageMobile: {
-        id: t('user.settings.general.mobile.uploadImage'),
+        id: 'user.settings.general.mobile.uploadImage',
         defaultMessage: 'Click to upload an image',
     },
     fullName: {
-        id: t('user.settings.general.fullName'),
+        id: 'user.settings.general.fullName',
         defaultMessage: 'Full Name',
     },
     nickname: {
-        id: t('user.settings.general.nickname'),
+        id: 'user.settings.general.nickname',
         defaultMessage: 'Nickname',
     },
     username: {
-        id: t('user.settings.general.username'),
+        id: 'user.settings.general.username',
         defaultMessage: 'Username',
     },
     profilePicture: {
-        id: t('user.settings.general.profilePicture'),
+        id: 'user.settings.general.profilePicture',
         defaultMessage: 'Profile Picture',
     },
     close: {
-        id: t('user.settings.general.close'),
+        id: 'user.settings.general.close',
         defaultMessage: 'Close',
     },
     position: {
-        id: t('user.settings.general.position'),
+        id: 'user.settings.general.position',
         defaultMessage: 'Position',
     },
 });
@@ -101,6 +100,7 @@ export type Props = {
     activeSection?: string;
     closeModal: () => void;
     collapseModal: () => void;
+    isMobileView: boolean;
     maxFileSize: number;
     actions: {
         logError: ({message, type}: {message: any; type: string}, status: boolean) => void;
@@ -934,7 +934,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                     defaultMessage="Click 'Edit' to add your full name"
                 />
             );
-            if (Utils.isMobile()) {
+            if (this.props.isMobileView) {
                 describe = (
                     <FormattedMessage
                         id='user.settings.general.mobile.emptyName'
@@ -984,7 +984,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         defaultMessage='Nickname'
                     />
                 );
-                if (Utils.isMobile()) {
+                if (this.props.isMobileView) {
                     nicknameLabel = '';
                 }
 
@@ -1046,7 +1046,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                     defaultMessage="Click 'Edit' to add a nickname"
                 />
             );
-            if (Utils.isMobile()) {
+            if (this.props.isMobileView) {
                 describe = (
                     <FormattedMessage
                         id='user.settings.general.mobile.emptyNickname'
@@ -1086,7 +1086,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         defaultMessage='Username'
                     />
                 );
-                if (Utils.isMobile()) {
+                if (this.props.isMobileView) {
                     usernameLabel = '';
                 }
 
@@ -1187,7 +1187,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         defaultMessage='Position'
                     />
                 );
-                if (Utils.isMobile()) {
+                if (this.props.isMobileView) {
                     positionLabel = '';
                 }
 
@@ -1250,7 +1250,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                     defaultMessage="Click 'Edit' to add your job title / position"
                 />
             );
-            if (Utils.isMobile()) {
+            if (this.props.isMobileView) {
                 describe = (
                     <FormattedMessage
                         id='user.settings.general.mobile.emptyPosition'
@@ -1301,7 +1301,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                 imgSrc = Utils.imageURLForUser(user.id, user.last_picture_update);
                 helpText = (
                     <FormattedMessage
-                        id={'setting_picture.help.profile'}
+                        id='setting_picture.help.profile'
                         defaultMessage='Upload a picture in BMP, JPG, JPEG, or PNG format. Maximum file size: {max}'
                         values={{max: Utils.fileSizeToString(this.props.maxFileSize)}}
                     />
@@ -1332,10 +1332,10 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         }
 
         let minMessage: JSX.Element|string = formatMessage(holders.uploadImage);
-        if (Utils.isMobile()) {
+        if (this.props.isMobileView) {
             minMessage = formatMessage(holders.uploadImageMobile);
         }
-        if (user.last_picture_update) {
+        if (user.last_picture_update > 0) {
             minMessage = (
                 <FormattedMessage
                     id='user.settings.general.imageUpdated'
@@ -1391,9 +1391,9 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                     </button>
                     <h4 className='modal-title'>
                         <div className='modal-back'>
-                            <LocalizedIcon
+                            <i
                                 className='fa fa-angle-left'
-                                title={{id: t('generic_icons.collapse'), defaultMessage: 'Collapse Icon'}}
+                                title={this.props.intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
                                 onClick={this.props.collapseModal}
                             />
                         </div>

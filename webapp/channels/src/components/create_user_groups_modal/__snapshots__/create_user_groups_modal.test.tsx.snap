@@ -38,7 +38,7 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
   >
     <button
       aria-label="Back"
-      className="modal-header-back-button btn-icon"
+      className="modal-header-back-button btn btn-icon"
       onClick={[Function]}
       type="button"
     >
@@ -65,7 +65,6 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
   </ModalHeader>
   <ModalBody
     bsClass="modal-body"
-    className="overflow--visible"
     componentClass="div"
   >
     <div
@@ -184,7 +183,6 @@ exports[`component/create_user_groups_modal should match snapshot without back b
   </ModalHeader>
   <ModalBody
     bsClass="modal-body"
-    className="overflow--visible"
     componentClass="div"
   >
     <div

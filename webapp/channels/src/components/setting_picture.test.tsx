@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
 import {shallow} from 'enzyme';
-
+import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import SettingPicture from 'components/setting_picture';
 
 const helpText: ReactNode = (
     <FormattedMessage
-        id={'setting_picture.help.profile'}
+        id={'setting_picture.help.profile.example'}
         defaultMessage='Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}'
         values={{max: 52428800}}
     />

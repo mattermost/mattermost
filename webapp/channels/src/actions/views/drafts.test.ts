@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {setGlobalItem} from 'actions/storage';
-import {PostDraft} from 'types/store/draft';
-import {StoragePrefixes} from 'utils/constants';
-
-import mockStore from 'tests/test_store';
-
+import {Client4} from 'mattermost-redux/client';
 import {Posts, Preferences} from 'mattermost-redux/constants';
-
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import {Client4} from 'mattermost-redux/client';
+import {setGlobalItem} from 'actions/storage';
 
-import {removeDraft, updateDraft} from './drafts';
+import mockStore from 'tests/test_store';
+import {StoragePrefixes} from 'utils/constants';
+
+import type {PostDraft} from 'types/store/draft';
+
+import {removeDraft, setGlobalDraftSource, updateDraft} from './drafts';
 
 jest.mock('mattermost-redux/client', () => {
     const original = jest.requireActual('mattermost-redux/client');
@@ -102,7 +101,6 @@ describe('draft actions', () => {
             general: {
                 config: {
                     EnableCustomEmoji: 'true',
-                    FeatureFlagGlobalDrafts: 'true',
                     AllowSyncedDrafts: 'true',
                 },
             },
@@ -139,19 +137,20 @@ describe('draft actions', () => {
         const draft = {message: 'test', channelId, fileInfos: [{id: 1}], uploadsInProgress: [2, 3]} as unknown as PostDraft;
 
         it('calls setGlobalItem action correctly', async () => {
-            jest.useFakeTimers('modern');
+            jest.useFakeTimers();
             jest.setSystemTime(42);
 
             await store.dispatch(updateDraft(key, draft, '', false));
 
             const testStore = mockStore(initialState);
 
-            testStore.dispatch(setGlobalItem(StoragePrefixes.DRAFT + channelId, {
+            const expectedKey = StoragePrefixes.DRAFT + channelId;
+            testStore.dispatch(setGlobalItem(expectedKey, {
                 ...draft,
                 createAt: 42,
                 updateAt: 42,
-                remote: false,
             }));
+            testStore.dispatch(setGlobalDraftSource(expectedKey, false));
 
             expect(store.getActions()).toEqual(testStore.getActions());
             jest.useRealTimers();

@@ -1,40 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import PropTypes from 'prop-types';
-import {FormattedMessage} from 'react-intl';
+import React from 'react';
 import {Overlay} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import * as I18n from 'i18n/i18n.jsx';
+import BooleanSetting from 'components/admin_console/boolean_setting';
+import ColorSetting from 'components/admin_console/color_setting';
+import DropdownSetting from 'components/admin_console/dropdown_setting';
+import FileUploadSetting from 'components/admin_console/file_upload_setting';
+import GeneratedSetting from 'components/admin_console/generated_setting';
+import JobsTable from 'components/admin_console/jobs';
+import MultiSelectSetting from 'components/admin_console/multiselect_settings';
+import RadioSetting from 'components/admin_console/radio_setting';
+import RemoveFileSetting from 'components/admin_console/remove_file_setting';
+import RequestButton from 'components/admin_console/request_button/request_button';
+import SchemaText from 'components/admin_console/schema_text';
+import SettingsGroup from 'components/admin_console/settings_group';
+import TextSetting from 'components/admin_console/text_setting';
+import UserAutocompleteSetting from 'components/admin_console/user_autocomplete_setting';
+import FormError from 'components/form_error';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import SaveButton from 'components/save_button';
+import Tooltip from 'components/tooltip';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
+import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
+import * as I18n from 'i18n/i18n.jsx';
 import Constants from 'utils/constants';
 import {rolesFromMapping, mappingValueFromRoles} from 'utils/policy_roles_adapter';
 import * as Utils from 'utils/utils';
-import RequestButton from 'components/admin_console/request_button/request_button';
-import BooleanSetting from 'components/admin_console/boolean_setting';
-import TextSetting from 'components/admin_console/text_setting';
-import DropdownSetting from 'components/admin_console/dropdown_setting.jsx';
-import MultiSelectSetting from 'components/admin_console/multiselect_settings.jsx';
-import RadioSetting from 'components/admin_console/radio_setting';
-import ColorSetting from 'components/admin_console/color_setting';
-import GeneratedSetting from 'components/admin_console/generated_setting';
-import UserAutocompleteSetting from 'components/admin_console/user_autocomplete_setting';
-import SettingsGroup from 'components/admin_console/settings_group.jsx';
-import JobsTable from 'components/admin_console/jobs';
-import FileUploadSetting from 'components/admin_console/file_upload_setting.jsx';
-import RemoveFileSetting from 'components/admin_console/remove_file_setting.jsx';
-import SchemaText from 'components/admin_console/schema_text';
-import SaveButton from 'components/save_button';
-import FormError from 'components/form_error';
-import Tooltip from 'components/tooltip';
-import WarningIcon from 'components/widgets/icons/fa_warning_icon';
-
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
-import AdminHeader from 'components/widgets/admin_console/admin_header';
-import FormattedAdminHeader from 'components/widgets/admin_console/formatted_admin_header';
 
 import Setting from './setting';
 
@@ -282,10 +279,12 @@ export default class SchemaAdminSettings extends React.PureComponent {
             );
         }
         return (
-            <FormattedAdminHeader
-                id={this.props.schema.name || this.props.schema.id}
-                defaultMessage={this.props.schema.name_default || this.props.schema.id}
-            />
+            <AdminHeader>
+                <FormattedMessage
+                    id={this.props.schema.name || this.props.schema.id}
+                    defaultMessage={this.props.schema.name_default || this.props.schema.id}
+                />
+            </AdminHeader>
         );
     };
 
@@ -447,7 +446,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
             inputType = 'textarea';
         }
 
-        let value = this.state[setting.key] || '';
+        let value = this.state[setting.key] ?? '';
         if (setting.dynamic_value) {
             value = setting.dynamic_value(value, this.props.config, this.state, this.props.license);
         }
@@ -671,7 +670,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
     };
 
     handleGeneratedChange = (id, s) => {
-        this.handleChange(id, s.replace('+', '-').replace('/', '_'));
+        this.handleChange(id, s.replace(/\+/g, '-').replace(/\//g, '_'));
     };
 
     handleChange = (id, value, confirm = false, doSubmit = false, warning = false) => {

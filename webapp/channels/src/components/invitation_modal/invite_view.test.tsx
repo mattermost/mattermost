@@ -2,18 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
+import {act} from 'react-dom/test-utils';
 import {Provider} from 'react-redux';
 
-import store from 'stores/redux_store.jsx';
-import {mountWithThemedIntl} from 'tests/helpers/themed-intl-test-helper';
+import type {Team} from '@mattermost/types/teams';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
-import {Team} from '@mattermost/types/teams';
+
+import store from 'stores/redux_store';
+
+import {mountWithThemedIntl} from 'tests/helpers/themed-intl-test-helper';
+import {SelfHostedProducts} from 'utils/constants';
+import {TestHelper as TH} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
 import InviteAs, {InviteType} from './invite_as';
-import InviteView, {Props} from './invite_view';
+import InviteView from './invite_view';
+import type {Props} from './invite_view';
 
 const defaultProps: Props = deepFreeze({
     setInviteAs: jest.fn(),
@@ -99,6 +104,19 @@ describe('InviteView', () => {
             preferences: {
                 myPreferences: {},
             },
+            hostedCustomer: {
+                products: {
+                    productsLoaded: true,
+                    products: {
+                        prod_professional: TH.getProductMock({
+                            id: 'prod_professional',
+                            name: 'Professional',
+                            sku: SelfHostedProducts.PROFESSIONAL,
+                            price_per_seat: 7.5,
+                        }),
+                    },
+                },
+            },
         },
     };
 
@@ -108,40 +126,46 @@ describe('InviteView', () => {
         props = defaultProps;
     });
 
-    it('shows InviteAs component when user can choose to invite guests or users', () => {
-        const wrapper = mountWithThemedIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
-        );
-        expect(wrapper.find(InviteAs).length).toBe(1);
+    it('shows InviteAs component when user can choose to invite guests or users', async () => {
+        await act(async () => {
+            const wrapper = mountWithThemedIntl(
+                <Provider store={store}>
+                    <InviteView {...props}/>
+                </Provider>,
+            );
+            expect(wrapper.find(InviteAs).length).toBe(1);
+        });
     });
 
-    it('hides InviteAs component when user can not choose members option', () => {
+    it('hides InviteAs component when user can not choose members option', async () => {
         props = {
             ...defaultProps,
             canAddUsers: false,
         };
 
-        const wrapper = mountWithThemedIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
-        );
-        expect(wrapper.find(InviteAs).length).toBe(0);
+        await act(async () => {
+            const wrapper = mountWithThemedIntl(
+                <Provider store={store}>
+                    <InviteView {...props}/>
+                </Provider>,
+            );
+            expect(wrapper.find(InviteAs).length).toBe(0);
+        });
     });
 
-    it('hides InviteAs component when user can not choose guests option', () => {
+    it('hides InviteAs component when user can not choose guests option', async () => {
         props = {
             ...defaultProps,
             canInviteGuests: false,
         };
 
-        const wrapper = mountWithThemedIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
-        );
-        expect(wrapper.find(InviteAs).length).toBe(0);
+        await act(async () => {
+            const wrapper = mountWithThemedIntl(
+                <Provider store={store}>
+                    <InviteView {...props}/>
+                </Provider>,
+            );
+            expect(wrapper.find(InviteAs).length).toBe(0);
+        });
     });
 });

@@ -1,21 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as PostActions from 'mattermost-redux/actions/posts';
-
-import {Permissions} from 'mattermost-redux/constants';
 import {logError} from 'mattermost-redux/actions/errors';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {haveIChannelPermission, haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import * as PostActions from 'mattermost-redux/actions/posts';
+import {Permissions} from 'mattermost-redux/constants';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selectors/entities/groups';
+import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {haveIChannelPermission, haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import * as Utils from 'utils/utils';
-import {getSiteURL} from 'utils/url';
-import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
+import {getPermalinkURL} from 'selectors/urls';
+
 import {ActionTypes, AnnouncementBarTypes} from 'utils/constants';
+import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
+import {getSiteURL} from 'utils/url';
+import {getTimestamp} from 'utils/utils';
 
 import {runMessageWillBePostedHooks} from '../hooks';
 
@@ -40,7 +41,7 @@ export function forwardPost(post, channel, message = '') {
         const currentUserId = getCurrentUserId(state);
         const currentTeam = getCurrentTeam(state);
 
-        const relativePermaLink = Utils.getPermalinkURL(state, currentTeam.id, post.id);
+        const relativePermaLink = getPermalinkURL(state, currentTeam.id, post.id);
         const permaLink = `${getSiteURL()}${relativePermaLink}`;
 
         const license = getLicense(state);
@@ -54,7 +55,7 @@ export function forwardPost(post, channel, message = '') {
 
         newPost.channel_id = channelId;
 
-        const time = Utils.getTimestamp();
+        const time = getTimestamp();
         const userId = currentUserId;
 
         newPost.message = message ? `${message}\n${permaLink}` : permaLink;

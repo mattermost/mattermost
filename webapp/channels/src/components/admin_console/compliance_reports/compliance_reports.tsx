@@ -2,16 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedTime, type IntlShape, injectIntl} from 'react-intl';
+
+import type {Compliance} from '@mattermost/types/compliance';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
-import {Compliance} from '@mattermost/types/compliance';
-import {UserProfile} from '@mattermost/types/users';
 
 import LoadingScreen from 'components/loading_screen';
 import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
-import LocalizedInput from 'components/localized_input/localized_input';
-import {t} from 'utils/i18n';
 
 type Props = {
 
@@ -38,6 +37,8 @@ type Props = {
 
     readOnly?: boolean;
 
+    intl: IntlShape;
+
     actions: {
 
         /*
@@ -57,7 +58,7 @@ type State = {
     runningReport?: boolean;
 }
 
-export default class ComplianceReports extends React.PureComponent<Props, State> {
+class ComplianceReports extends React.PureComponent<Props, State> {
     private descInput: React.RefObject<HTMLInputElement>;
     private emailsInput: React.RefObject<HTMLInputElement>;
     private fromInput: React.RefObject<HTMLInputElement>;
@@ -343,12 +344,12 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                                 defaultMessage='Job Name:'
                             />
                         </label>
-                        <LocalizedInput
+                        <input
                             type='text'
                             className='form-control'
                             id='desc'
                             ref={this.descInput}
-                            placeholder={{id: t('admin.compliance_reports.desc_placeholder'), defaultMessage: 'E.g. "Audit 445 for HR"'}}
+                            placeholder={this.props.intl.formatMessage({id: 'admin.compliance_reports.desc_placeholder', defaultMessage: 'E.g. "Audit 445 for HR"'})}
                             disabled={this.props.readOnly}
                         />
                     </div>
@@ -359,12 +360,12 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                                 defaultMessage='From:'
                             />
                         </label>
-                        <LocalizedInput
+                        <input
                             type='text'
                             className='form-control'
                             id='from'
                             ref={this.fromInput}
-                            placeholder={{id: t('admin.compliance_reports.from_placeholder'), defaultMessage: 'E.g. "2016-03-11"'}}
+                            placeholder={this.props.intl.formatMessage({id: 'admin.compliance_reports.from_placeholder', defaultMessage: 'E.g. "2016-03-11"'})}
                             disabled={this.props.readOnly}
                         />
                     </div>
@@ -375,12 +376,12 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                                 defaultMessage='To:'
                             />
                         </label>
-                        <LocalizedInput
+                        <input
                             type='text'
                             className='form-control'
                             id='to'
                             ref={this.toInput}
-                            placeholder={{id: t('admin.compliance_reports.to_placeholder'), defaultMessage: 'E.g. "2016-03-15"'}}
+                            placeholder={this.props.intl.formatMessage({id: 'admin.compliance_reports.to_placeholder', defaultMessage: 'E.g. "2016-03-15"'})}
                             disabled={this.props.readOnly}
                         />
                     </div>
@@ -393,12 +394,12 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                                 defaultMessage='Emails:'
                             />
                         </label>
-                        <LocalizedInput
+                        <input
                             type='text'
                             className='form-control'
                             id='emails'
                             ref={this.emailsInput}
-                            placeholder={{id: t('admin.compliance_reports.emails_placeholder'), defaultMessage: 'E.g. "bill@example.com, bob@example.com"'}}
+                            placeholder={this.props.intl.formatMessage({id: 'admin.compliance_reports.emails_placeholder', defaultMessage: 'E.g. "bill@example.com, bob@example.com"'})}
                             disabled={this.props.readOnly}
                         />
                     </div>
@@ -409,12 +410,12 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                                 defaultMessage='Keywords:'
                             />
                         </label>
-                        <LocalizedInput
+                        <input
                             type='text'
                             className='form-control'
                             id='keywords'
                             ref={this.keywordsInput}
-                            placeholder={{id: t('admin.compliance_reports.keywords_placeholder'), defaultMessage: 'E.g. "shorting stock"'}}
+                            placeholder={this.props.intl.formatMessage({id: 'admin.compliance_reports.keywords_placeholder', defaultMessage: 'E.g. "shorting stock"'})}
                             disabled={this.props.readOnly}
                         />
                     </div>
@@ -437,7 +438,7 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                 <div className='text-right'>
                     <button
                         type='submit'
-                        className='btn btn-link'
+                        className='btn btn-tertiary'
                         disabled={this.state.runningReport}
                         onClick={this.reload}
                     >
@@ -464,3 +465,5 @@ const style: Record<string, React.CSSProperties> = {
     date: {whiteSpace: 'nowrap'},
     serverError: {marginTop: '10px'},
 };
+
+export default injectIntl(ComplianceReports);

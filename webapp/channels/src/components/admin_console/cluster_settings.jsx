@@ -6,16 +6,16 @@ import {FormattedMessage} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
 
-import * as Utils from 'utils/utils';
-
+import ExternalLink from 'components/external_link';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
-import ExternalLink from 'components/external_link';
+import DocLinks from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 import AdminSettings from './admin_settings';
 import BooleanSetting from './boolean_setting';
-import ClusterTableContainer from './cluster_table_container.jsx';
-import SettingsGroup from './settings_group.jsx';
+import ClusterTableContainer from './cluster_table_container';
+import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
 export default class ClusterSettings extends AdminSettings {
@@ -87,7 +87,7 @@ export default class ClusterSettings extends AdminSettings {
                             link: (msg) => (
                                 <ExternalLink
                                     location='cluster_settings'
-                                    href='http://docs.mattermost.com/deployment/cluster.html'
+                                    href={DocLinks.HIGH_AVAILABILITY_CLUSTER}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -114,7 +114,7 @@ export default class ClusterSettings extends AdminSettings {
                             link: (msg) => (
                                 <ExternalLink
                                     location='cluster_settings'
-                                    href='http://docs.mattermost.com/deployment/cluster.html'
+                                    href={DocLinks.HIGH_AVAILABILITY_CLUSTER}
                                 >
                                     {msg}
                                 </ExternalLink>
@@ -157,7 +157,7 @@ export default class ClusterSettings extends AdminSettings {
                                 link: (msg) => (
                                     <ExternalLink
                                         location='cluster_settings'
-                                        href='http://docs.mattermost.com/deployment/cluster.html'
+                                        href={DocLinks.HIGH_AVAILABILITY_CLUSTER}
                                     >
                                         {msg}
                                     </ExternalLink>

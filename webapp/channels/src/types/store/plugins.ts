@@ -1,22 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import type React from 'react';
 
-import {TIconGlyph} from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
+import type {WebSocketClient} from '@mattermost/client';
+import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
+import type {PluginAnalyticsRow} from '@mattermost/types/admin';
+import type {Channel} from '@mattermost/types/channels';
+import type {FileInfo} from '@mattermost/types/files';
+import type {ClientPluginManifest} from '@mattermost/types/plugins';
+import type {Post, PostEmbed} from '@mattermost/types/posts';
+import type {ProductScope} from '@mattermost/types/products';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
-import {ProductScope} from '@mattermost/types/products';
+import type {NewPostMessageProps} from 'actions/new_post';
 
-import {ClientPluginManifest} from '@mattermost/types/plugins';
-import {PluginAnalyticsRow} from '@mattermost/types/admin';
-import {FileInfo} from '@mattermost/types/files';
-import {Post, PostEmbed} from '@mattermost/types/posts';
-import {IDMappedObjects} from '@mattermost/types/utilities';
-import {TopBoardResponse} from '@mattermost/types/insights';
-
-import {WebSocketClient} from '@mattermost/client';
-
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 export type PluginSiteStatsHandler = () => Promise<Record<string, PluginAnalyticsRow>>;
 
@@ -28,6 +27,10 @@ export type PluginsState = {
         Product: ProductComponent[];
         CallButton: PluginComponent[];
         PostDropdownMenu: PluginComponent[];
+        PostAction: PluginComponent[];
+        PostEditorAction: PluginComponent[];
+        CodeBlockAction: PluginComponent[];
+        NewMessagesSeparatorAction: PluginComponent[];
         FilePreview: PluginComponent[];
         MainMenu: PluginComponent[];
         LinkTooltip: PluginComponent[];
@@ -39,6 +42,7 @@ export type PluginsState = {
         FilesWillUploadHook: PluginComponent[];
         NeedsTeamComponent: NeedsTeamComponent[];
         CreateBoardFromTemplate: PluginComponent[];
+        DesktopNotificationHooks: DesktopNotificationHook[];
     };
 
     postTypes: {
@@ -59,15 +63,12 @@ export type PluginsState = {
     siteStatsHandlers: {
         [pluginId: string]: PluginSiteStatsHandler;
     };
-    insightsHandlers: {
-        [pluginId: string]: (timeRange: string, page: number, perPage: number, teamId: string, insightType: string) => Promise<TopBoardResponse>;
-    };
 };
 
 export type Menu = {
     id: string;
     parentMenuId?: string;
-    text?: React.ReactElement|string;
+    text?: React.ReactElement | string;
     selectedValueText?: string;
     subMenu?: Menu[];
     filter?: (id?: string) => boolean;
@@ -97,6 +98,7 @@ export type PluginComponent = {
     filter?: (id: string) => boolean;
     action?: (...args: any) => void; // TODO Add more concrete types?
     shouldRender?: (state: GlobalState) => boolean;
+    hook?: (post: Post, message?: string) => string;
 };
 
 export type AppBarComponent = PluginComponent & {
@@ -115,7 +117,7 @@ export type FilePreviewComponent = {
     id: string;
     pluginId: string;
     override: (fileInfo: FileInfo, post?: Post) => boolean;
-    component: React.ComponentType<{fileInfo: FileInfo; post?: Post; onModalDismissed: () => void}>;
+    component: React.ComponentType<{ fileInfo: FileInfo; post?: Post; onModalDismissed: () => void }>;
 }
 
 export type FileDropdownPluginComponent = {
@@ -165,7 +167,7 @@ export type ProductComponent = {
     /**
      * A compass-icon glyph to display as the icon in the product switcher
      */
-    switcherIcon: TIconGlyph;
+    switcherIcon: IconGlyphTypes;
 
     /**
      * A string or React element to display in the product switcher
@@ -222,3 +224,19 @@ export type ProductComponent = {
      */
     wrapped: boolean;
 };
+
+export type DesktopNotificationArgs = {
+    title: string;
+    body: string;
+    silent: boolean;
+    soundName: string;
+    url: string;
+    notify: boolean;
+};
+
+export type DesktopNotificationHook = PluginComponent & {
+    hook: (post: Post, msgProps: NewPostMessageProps, channel: Channel, teamId: string, args: DesktopNotificationArgs) => Promise<{
+        error?: string;
+        args?: DesktopNotificationArgs;
+    }>;
+}

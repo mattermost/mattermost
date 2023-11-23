@@ -11,9 +11,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/jsonutils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 var (
@@ -258,7 +258,7 @@ func (s *Store) Load() error {
 	loadedCfg := &model.Config{}
 	if len(configBytes) != 0 {
 		if err = json.Unmarshal(configBytes, &loadedCfg); err != nil {
-			return jsonutils.HumanizeJSONError(err, configBytes)
+			return utils.HumanizeJSONError(err, configBytes)
 		}
 	}
 

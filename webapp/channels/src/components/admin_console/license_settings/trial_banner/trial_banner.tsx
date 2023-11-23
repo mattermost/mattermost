@@ -2,27 +2,29 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {PreferenceType} from '@mattermost/types/preferences';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {PreferenceType} from '@mattermost/types/preferences';
 import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
+import store from 'stores/redux_store';
 
 import AlertBanner from 'components/alert_banner';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import withOpenStartTrialFormModal from 'components/common/hocs/cloud/with_open_start_trial_form_modal';
-import {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
-
-import {format} from 'utils/markdown';
+import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
+import ExternalLink from 'components/external_link';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {AboutLinks, LicenseLinks, Preferences, Unique} from 'utils/constants';
+import {format} from 'utils/markdown';
 
-import {GlobalState} from 'types/store';
-import store from 'stores/redux_store.jsx';
-import ExternalLink from 'components/external_link';
+import type {GlobalState} from 'types/store';
 
 interface TrialBannerProps {
     isDisabled: boolean;
@@ -106,7 +108,7 @@ const TrialBanner = ({
 
     const dispatch = useDispatch();
 
-    const btnText = (status: TrialLoadStatus): string => {
+    const btnText = (status: TrialLoadStatus) => {
         switch (status) {
         case TrialLoadStatus.Started:
             return formatMessage({id: 'start_trial.modal.gettingTrial', defaultMessage: 'Getting Trial...'});
@@ -115,7 +117,22 @@ const TrialBanner = ({
         case TrialLoadStatus.Failed:
             return formatMessage({id: 'start_trial.modal.failed', defaultMessage: 'Failed'});
         case TrialLoadStatus.Embargoed:
-            return formatMessage({id: 'admin.license.trial-request.embargoed'});
+            return formatMessage<ReactNode>(
+                {
+                    id: 'admin.license.trial-request.embargoed',
+                    defaultMessage: 'We were unable to process the request due to limitations for embargoed countries. <link>Learn more in our documentation</link>, or reach out to legal@mattermost.com for questions around export limitations.',
+                },
+                {
+                    link: (text: string) => (
+                        <ExternalLink
+                            location='trial_banner'
+                            href={LicenseLinks.EMBARGOED_COUNTRIES}
+                        >
+                            {text}
+                        </ExternalLink>
+                    ),
+                },
+            );
         default:
             return formatMessage({id: 'admin.license.trial-request.startTrial', defaultMessage: 'Start trial'});
         }

@@ -38,7 +38,7 @@ describe('Image Link Preview', () => {
     });
 
     it('MM-T331 Image link preview - Collapse and expand', () => {
-        const link = 'https://raw.githubusercontent.com/furqanmlk/furqanmlk.github.io/main/images/small-image.png';
+        const link = 'https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/small-image.png';
 
         // # Post a link to an externally hosted image
         cy.postMessage(link);
@@ -178,13 +178,13 @@ describe('Image Link Preview', () => {
             {
                 filename: 'image-1000x40.jpg',
                 originalSize: {width: 1000, height: 40},
-                thumbnailSize: {width: 948, height: 38},
+                thumbnailSize: {width: 899, height: 36},
                 containerSize: {height: 46},
             },
             {
                 filename: 'image-1600x40.jpg',
                 originalSize: {width: 1600, height: 40},
-                thumbnailSize: {width: 948, height: 24},
+                thumbnailSize: {width: 899, height: 23},
                 previewSize: {width: 1204, height: 30},
                 containerSize: {height: 46},
             },

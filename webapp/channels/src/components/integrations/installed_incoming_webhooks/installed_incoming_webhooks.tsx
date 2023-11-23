@@ -4,21 +4,21 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import InstalledIncomingWebhook, {matchesFilter} from 'components/integrations/installed_incoming_webhook';
+import type {Channel} from '@mattermost/types/channels';
+import type {IncomingWebhook} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
-import {Team} from '@mattermost/types/teams';
-import {Channel} from '@mattermost/types/channels';
-import {IncomingWebhook} from '@mattermost/types/integrations';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {UserProfile} from '@mattermost/types/users';
-import {IDMappedObjects} from '@mattermost/types/utilities';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageList from 'components/backstage/components/backstage_list';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
-import Constants from 'utils/constants';
-import * as Utils from 'utils/utils';
 import ExternalLink from 'components/external_link';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import InstalledIncomingWebhook, {matchesFilter} from 'components/integrations/installed_incoming_webhook';
+
+import {Constants, DeveloperLinks} from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 type Props = {
     team: Team;
@@ -136,7 +136,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                             buildYourOwn: (
                                 <ExternalLink
                                     location='installed_incoming_webhooks'
-                                    href='https://developers.mattermost.com/integrate/admin-guide/admin-webhooks-incoming/'
+                                    href={DeveloperLinks.SETUP_INCOMING_WEBHOOKS}
                                 >
                                     <FormattedMessage
                                         id='installed_incoming_webhooks.help.buildYourOwn'

@@ -8,9 +8,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/platform"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/config"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/config"
 )
 
 const (
@@ -39,34 +39,43 @@ func (p *productB) Start() error { return nil }
 func (p *productB) Stop() error  { return nil }
 
 func TestInitializeProducts(t *testing.T) {
-	ps, err := platform.New(platform.ServiceConfig{ConfigStore: config.NewTestMemoryStore()})
+	configStore := config.NewTestMemoryStore()
+	memoryConfig := configStore.Get()
+	memoryConfig.SqlSettings = *mainHelper.GetSQLSettings()
+	configStore.Set(memoryConfig)
+
+	ps, err := platform.New(platform.ServiceConfig{ConfigStore: configStore})
 	require.NoError(t, err)
+	defer ps.Shutdown()
 
 	t.Run("2 products and no circular dependency", func(t *testing.T) {
 		serviceMap := map[product.ServiceKey]any{
-			product.ConfigKey:    nil,
-			product.LicenseKey:   nil,
-			product.FilestoreKey: nil,
-			product.ClusterKey:   nil,
+			product.ConfigKey:          nil,
+			product.LicenseKey:         nil,
+			product.FilestoreKey:       nil,
+			product.ExportFilestoreKey: nil,
+			product.ClusterKey:         nil,
 		}
 
 		products := map[string]product.Manifest{
 			"productA": {
 				Initializer: newProductA,
 				Dependencies: map[product.ServiceKey]struct{}{
-					product.ConfigKey:    {},
-					product.LicenseKey:   {},
-					product.FilestoreKey: {},
-					product.ClusterKey:   {},
+					product.ConfigKey:          {},
+					product.LicenseKey:         {},
+					product.FilestoreKey:       {},
+					product.ExportFilestoreKey: {},
+					product.ClusterKey:         {},
 				},
 			},
 			"productB": {
 				Initializer: newProductB,
 				Dependencies: map[product.ServiceKey]struct{}{
-					product.ConfigKey:    {},
-					testSrvKey1:          {},
-					product.FilestoreKey: {},
-					product.ClusterKey:   {},
+					product.ConfigKey:          {},
+					testSrvKey1:                {},
+					product.FilestoreKey:       {},
+					product.ExportFilestoreKey: {},
+					product.ClusterKey:         {},
 				},
 			},
 		}
@@ -83,30 +92,33 @@ func TestInitializeProducts(t *testing.T) {
 
 	t.Run("2 products and circular dependency", func(t *testing.T) {
 		serviceMap := map[product.ServiceKey]any{
-			product.ConfigKey:    nil,
-			product.LicenseKey:   nil,
-			product.FilestoreKey: nil,
-			product.ClusterKey:   nil,
+			product.ConfigKey:          nil,
+			product.LicenseKey:         nil,
+			product.FilestoreKey:       nil,
+			product.ExportFilestoreKey: nil,
+			product.ClusterKey:         nil,
 		}
 
 		products := map[string]product.Manifest{
 			"productA": {
 				Initializer: newProductA,
 				Dependencies: map[product.ServiceKey]struct{}{
-					product.ConfigKey:    {},
-					product.LicenseKey:   {},
-					product.FilestoreKey: {},
-					product.ClusterKey:   {},
-					testSrvKey2:          {},
+					product.ConfigKey:          {},
+					product.LicenseKey:         {},
+					product.FilestoreKey:       {},
+					product.ExportFilestoreKey: {},
+					product.ClusterKey:         {},
+					testSrvKey2:                {},
 				},
 			},
 			"productB": {
 				Initializer: newProductB,
 				Dependencies: map[product.ServiceKey]struct{}{
-					product.ConfigKey:    {},
-					testSrvKey1:          {},
-					product.FilestoreKey: {},
-					product.ClusterKey:   {},
+					product.ConfigKey:          {},
+					testSrvKey1:                {},
+					product.FilestoreKey:       {},
+					product.ExportFilestoreKey: {},
+					product.ClusterKey:         {},
 				},
 			},
 		}
@@ -121,10 +133,11 @@ func TestInitializeProducts(t *testing.T) {
 
 	t.Run("2 products and one w/o any dependency", func(t *testing.T) {
 		serviceMap := map[product.ServiceKey]any{
-			product.ConfigKey:    nil,
-			product.LicenseKey:   nil,
-			product.FilestoreKey: nil,
-			product.ClusterKey:   nil,
+			product.ConfigKey:          nil,
+			product.LicenseKey:         nil,
+			product.FilestoreKey:       nil,
+			product.ExportFilestoreKey: nil,
+			product.ClusterKey:         nil,
 		}
 
 		products := map[string]product.Manifest{
@@ -147,25 +160,5 @@ func TestInitializeProducts(t *testing.T) {
 		err := server.initializeProducts(products, serviceMap)
 		require.NoError(t, err)
 		require.Len(t, server.products, 2)
-	})
-
-	t.Run("boards product to be blocked", func(t *testing.T) {
-		products := map[string]product.Manifest{
-			"productA": {
-				Initializer: newProductA,
-			},
-			"boards": {
-				Initializer: newProductB,
-			},
-		}
-
-		server := &Server{
-			products: make(map[string]product.Product),
-			platform: ps,
-		}
-
-		err := server.initializeProducts(products, map[product.ServiceKey]any{})
-		require.NoError(t, err)
-		require.Len(t, server.products, 1)
 	})
 }

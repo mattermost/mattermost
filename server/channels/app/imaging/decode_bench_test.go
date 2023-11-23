@@ -10,7 +10,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 
 	"github.com/stretchr/testify/require"
 )

@@ -147,10 +147,10 @@ exports[`components/post_view/CombinedSystemMessage should match snapshot, "remo
 </Fragment>
 `;
 
-exports[`components/post_view/CombinedSystemMessage should match snapshot, combining users removed from channel by all actors 1`] = `
+exports[`components/post_view/CombinedSystemMessage should render messages in chronological order 1`] = `
 <Fragment>
   <Connect(Markdown)
-    message="@removed_username_1 and @removed_username_2 were **removed from the channel**."
+    message="@removed_username_1 was **removed from the channel**."
     options={
       Object {
         "atMentions": true,
@@ -158,39 +158,12 @@ exports[`components/post_view/CombinedSystemMessage should match snapshot, combi
         "mentionKeys": Array [
           Object {
             "key": "@removed_username_1",
-          },
-          Object {
-            "key": "@removed_username_2",
-          },
-          Object {
-            "key": "you",
-          },
-        ],
-        "singleline": true,
-      }
-    }
-  />
-  <br />
-</Fragment>
-`;
-
-exports[`components/post_view/CombinedSystemMessage should match snapshot, when current user is removed from then rejoined the channel 1`] = `
-<Fragment>
-  <Connect(Markdown)
-    message="You **joined the channel**."
-    options={
-      Object {
-        "atMentions": true,
-        "mentionHighlight": false,
-        "mentionKeys": Array [
-          Object {
-            "key": "You",
           },
           Object {
             "key": undefined,
           },
           Object {
-            "key": "",
+            "key": "you",
           },
         ],
         "singleline": true,
@@ -198,39 +171,91 @@ exports[`components/post_view/CombinedSystemMessage should match snapshot, when 
     }
   />
   <br />
-  <injectIntl(LastUsers)
-    actor="you"
-    expandedLocale={
-      Object {
-        "defaultMessage": "{users} and {lastUser} were **removed from the channel**.",
-        "id": "combined_system_message.removed_from_channel.many_expanded",
-      }
-    }
-    formatOptions={
+  <Connect(Markdown)
+    message="@removed_username_2 **added to the channel** by Someone."
+    options={
       Object {
         "atMentions": true,
         "mentionHighlight": false,
         "mentionKeys": Array [
           Object {
-            "key": "You",
+            "key": "@removed_username_2",
           },
           Object {
-            "key": "@removed_username_1",
+            "key": undefined,
           },
           Object {
-            "key": "you",
+            "key": "Someone",
           },
         ],
         "singleline": true,
       }
     }
-    postType="system_remove_from_channel"
-    usernames={
-      Array [
-        "You",
-        "@removed_username_1",
-        "@removed_username_2",
-      ]
+  />
+  <br />
+  <Connect(Markdown)
+    message="@removed_username_2 was **removed from the channel**."
+    options={
+      Object {
+        "atMentions": true,
+        "mentionHighlight": false,
+        "mentionKeys": Array [
+          Object {
+            "key": "@removed_username_2",
+          },
+          Object {
+            "key": undefined,
+          },
+          Object {
+            "key": "Someone",
+          },
+        ],
+        "singleline": true,
+      }
+    }
+  />
+  <br />
+  <Connect(Markdown)
+    message="@User2 **added to the channel** by @User1."
+    options={
+      Object {
+        "atMentions": true,
+        "mentionHighlight": false,
+        "mentionKeys": Array [
+          Object {
+            "key": "@User2",
+          },
+          Object {
+            "key": undefined,
+          },
+          Object {
+            "key": "@User1",
+          },
+        ],
+        "singleline": true,
+      }
+    }
+  />
+  <br />
+  <Connect(Markdown)
+    message="Someone **joined the channel**."
+    options={
+      Object {
+        "atMentions": true,
+        "mentionHighlight": false,
+        "mentionKeys": Array [
+          Object {
+            "key": "Someone",
+          },
+          Object {
+            "key": undefined,
+          },
+          Object {
+            "key": "Someone",
+          },
+        ],
+        "singleline": true,
+      }
     }
   />
   <br />

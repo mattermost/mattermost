@@ -10,7 +10,7 @@ import {Preferences} from 'utils/constants';
 import PostList from './post_list';
 
 interface Props {
-    lastViewedAt: number;
+    lastViewedAt?: number;
     channelLoading: boolean;
     channelId: string;
     focusedPostId?: string;
@@ -18,7 +18,7 @@ interface Props {
 }
 
 interface State {
-    unreadChunkTimeStamp: number;
+    unreadChunkTimeStamp?: number;
     loaderForChangeOfPostsChunk: boolean;
     channelLoading: boolean;
     shouldStartFromBottomWhenUnread: boolean;

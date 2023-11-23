@@ -13,10 +13,10 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
@@ -208,6 +208,8 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		if (session != nil && session.Id != "") && err == nil && csrfCheckPassed {
 			r.Header.Set("Mattermost-User-Id", session.UserId)
 			context.SessionId = session.Id
+
+			r.Header.Del(model.HeaderAuth)
 		}
 	}
 
@@ -218,7 +220,6 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 			r.AddCookie(c)
 		}
 	}
-	r.Header.Del(model.HeaderAuth)
 	r.Header.Del("Referer")
 
 	params := mux.Vars(r)

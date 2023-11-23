@@ -10,12 +10,15 @@
 // Stage: @prod
 // Group: @channels @custom_status
 
+import moment from 'moment-timezone';
+
 describe('Custom Status - CTAs for New Users', () => {
     before(() => {
         cy.apiUpdateConfig({TeamSettings: {EnableCustomUserStatuses: true}});
 
-        // # Login as test user and visit channel
-        cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
+        // # Create a user from more than 7 days ago, log and visit channel
+        const userCreateAt = moment().subtract(8, 'day').unix();
+        cy.apiInitSetup({loginAfter: true, userCreateAt}).then(({team, channel}) => {
             cy.visit(`/${team.name}/channels/${channel.name}`);
         });
     });

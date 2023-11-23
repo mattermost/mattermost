@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
-import Icon from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
+import React from 'react';
 
 import {TopLevelProducts} from 'utils/constants';
-
 import * as productUtils from 'utils/products';
 import {TestHelper} from 'utils/test_helper';
 
@@ -21,7 +19,6 @@ describe('components/ProductBranding', () => {
             <ProductBranding/>,
         );
 
-        expect(wrapper.find(Icon).prop('glyph')).toEqual('product-channels');
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -32,7 +29,6 @@ describe('components/ProductBranding', () => {
             <ProductBranding/>,
         );
 
-        expect(wrapper.find(Icon).prop('glyph')).toEqual('product-playbooks');
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -44,7 +40,6 @@ describe('components/ProductBranding', () => {
             <ProductBranding/>,
         );
 
-        expect(wrapper.find(Icon).prop('glyph')).toEqual('product-boards');
         expect(wrapper).toMatchSnapshot();
     });
 });

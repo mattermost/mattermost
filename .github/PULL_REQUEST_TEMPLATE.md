@@ -12,11 +12,10 @@ A description of what this pull request does, as well as QA test steps (if appli
 
 #### Ticket Link
 <!--
-If this pull request addresses a Help Wanted ticket, please link the relevant GitHub issue, e.g.
+If applicable, please include both or either of the following links:
 
-  Fixes https://github.com/mattermost/mattermost-server/issues/XXXXX
-
-Otherwise, link the JIRA ticket.
+Fixes https://github.com/mattermost/mattermost/issues/XXX
+Jira https://mattermost.atlassian.net/browse/MM-XXX
 -->
 
 #### Screenshots

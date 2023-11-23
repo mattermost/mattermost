@@ -2,41 +2,38 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import {RouteComponentProps} from 'react-router-dom';
+import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
+import type {RouteComponentProps} from 'react-router-dom';
 
-import {PermissionsScope, ModalIdentifiers} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
-import {t} from 'utils/i18n';
+import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
+import type {Role} from '@mattermost/types/roles';
+import type {Scheme, SchemePatch} from '@mattermost/types/schemes';
+import type {Team} from '@mattermost/types/teams';
 
-import SaveButton from 'components/save_button';
-import LoadingScreen from 'components/loading_screen';
-import FormError from 'components/form_error';
-import TeamSelectorModal from 'components/team_selector_modal';
+import GeneralConstants from 'mattermost-redux/constants/general';
+import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+
 import BlockableLink from 'components/admin_console/blockable_link';
+import ExternalLink from 'components/external_link';
+import FormError from 'components/form_error';
+import LoadingScreen from 'components/loading_screen';
+import SaveButton from 'components/save_button';
+import TeamSelectorModal from 'components/team_selector_modal';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import AdminPanelTogglable from 'components/widgets/admin_console/admin_panel_togglable';
 import AdminPanelWithButton from 'components/widgets/admin_console/admin_panel_with_button';
 
-import PermissionsTree, {EXCLUDED_PERMISSIONS} from '../permissions_tree';
-import GuestPermissionsTree, {GUEST_INCLUDED_PERMISSIONS} from '../guest_permissions_tree';
-
-import LocalizedInput from 'components/localized_input/localized_input';
-
-import {Scheme, SchemePatch} from '@mattermost/types/schemes';
-import {Role} from '@mattermost/types/roles';
-import {ClientConfig, ClientLicense} from '@mattermost/types/config';
-import {Team} from '@mattermost/types/teams';
-import {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
-import {ServerError} from '@mattermost/types/errors';
-
-import PermissionsTreePlaybooks from '../permissions_tree_playbooks';
-
-import GeneralConstants from 'mattermost-redux/constants/general';
-
-import ExternalLink from 'components/external_link';
+import {PermissionsScope, ModalIdentifiers, DocLinks} from 'utils/constants';
+import {t} from 'utils/i18n';
+import {localizeMessage} from 'utils/utils';
 
 import TeamInList from './team_in_list';
+
+import GuestPermissionsTree, {GUEST_INCLUDED_PERMISSIONS} from '../guest_permissions_tree';
+import PermissionsTree, {EXCLUDED_PERMISSIONS} from '../permissions_tree';
+import PermissionsTreePlaybooks from '../permissions_tree_playbooks';
 
 type RolesMap = {
     [x: string]: Role;
@@ -50,6 +47,7 @@ export type Props = {
     teams: Team[];
     isDisabled: boolean;
     config: Partial<ClientConfig>;
+    intl: IntlShape;
     actions: {
         loadRolesIfNeeded: (roles: Iterable<string>) => ActionFunc;
         loadScheme: (schemeId: string) => Promise<ActionResult>;
@@ -84,7 +82,7 @@ type State = {
     schemeDescription: string | undefined;
 };
 
-export default class PermissionTeamSchemeSettings extends React.PureComponent<Props & RouteComponentProps, State> {
+export class PermissionTeamSchemeSettings extends React.PureComponent<Props & RouteComponentProps, State> {
     constructor(props: Props & RouteComponentProps) {
         super(props);
         this.state = {
@@ -591,7 +589,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                         alreadySelected={teams.map((team) => team.id)}
                     />
                 }
-                <div className='admin-console__header with-back'>
+                <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
                             to='/admin_console/user_management/permissions'
@@ -602,7 +600,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                             defaultMessage='Team Scheme'
                         />
                     </div>
-                </div>
+                </AdminHeader>
 
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
@@ -615,7 +613,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                                         values={{
                                             linkTeamOverride: (msg: React.ReactNode) => (
                                                 <ExternalLink
-                                                    href='https://docs.mattermost.com/onboard/advanced-permissions.html'
+                                                    href={DocLinks.ONBOARD_ADVANCED_PERMISSIONS}
                                                     location='permission_team_scheme_settings'
                                                 >
                                                     {msg}
@@ -623,7 +621,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                                             ),
                                             linkSystemScheme: (msg: React.ReactNode) => (
                                                 <ExternalLink
-                                                    href='https://mattermost.com/pl/advanced-permissions/'
+                                                    href={DocLinks.ONBOARD_ADVANCED_PERMISSIONS}
                                                     location='permission_team_scheme_settings'
                                                 >
                                                     {msg}
@@ -652,14 +650,14 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                                             defaultMessage='Scheme Name:'
                                         />
                                     </label>
-                                    <LocalizedInput
-                                        id='scheme-name'
+                                    <input
                                         className='form-control'
+                                        disabled={this.props.isDisabled}
+                                        id='scheme-name'
+                                        placeholder={this.props.intl.formatMessage({id: 'admin.permissions.teamScheme.schemeNamePlaceholder', defaultMessage: 'Scheme Name'})}
                                         type='text'
                                         value={schemeName}
-                                        placeholder={{id: t('admin.permissions.teamScheme.schemeNamePlaceholder'), defaultMessage: 'Scheme Name'}}
                                         onChange={this.handleNameChange}
-                                        disabled={this.props.isDisabled}
                                     />
                                 </div>
                                 <div className='form-group'>
@@ -846,3 +844,5 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
         );
     };
 }
+
+export default injectIntl(PermissionTeamSchemeSettings);

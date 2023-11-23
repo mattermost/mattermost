@@ -4,14 +4,14 @@
 package sqlstore
 
 import (
-	"context"
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // dbSelecter is an interface used to enable some internal store methods
@@ -20,14 +20,14 @@ type dbSelecter interface {
 	Select(i any, query string, args ...any) error
 }
 
-func (s SqlChannelStore) CreateInitialSidebarCategories(userId string, opts *store.SidebarCategorySearchOpts) (_ *model.OrderedSidebarCategories, err error) {
+func (s SqlChannelStore) CreateInitialSidebarCategories(c request.CTX, userId string, opts *store.SidebarCategorySearchOpts) (_ *model.OrderedSidebarCategories, err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	teamsWithExclude, err := s.SqlStore.stores.team.GetTeamsForUser(context.Background(), userId, opts.TeamID, false)
+	teamsWithExclude, err := s.SqlStore.stores.team.GetTeamsForUser(c, userId, opts.TeamID, false)
 	if err != nil {
 		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: GetTeamsForUser")
 	}
@@ -335,7 +335,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 		Id:          newCategoryId,
 		UserId:      userId,
 		TeamId:      teamId,
-		Sorting:     model.SidebarCategorySortDefault,
+		Sorting:     newCategory.Sorting,
 		SortOrder:   int64(model.MinimalSidebarSortDistance * len(newOrder)), // first we place it at the end of the list
 		Type:        model.SidebarCategoryCustom,
 		Muted:       newCategory.Muted,
@@ -551,6 +551,10 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opt
 		query = query.Where(sq.NotEq{"SidebarCategories.TeamId": opts.TeamID})
 	} else {
 		query = query.Where(sq.Eq{"SidebarCategories.TeamId": opts.TeamID})
+	}
+
+	if opts.Type != "" {
+		query = query.Where(sq.Eq{"SidebarCategories.Type": opts.Type})
 	}
 
 	sql, args, err := query.ToSql()
@@ -1124,4 +1128,19 @@ func (s SqlChannelStore) DeleteSidebarCategory(categoryId string) (err error) {
 	}
 
 	return nil
+}
+
+func (s SqlChannelStore) DeleteAllSidebarChannelForChannel(channelID string) error {
+	query, args, err := s.getQueryBuilder().
+		Delete("SidebarChannels").
+		Where(sq.Eq{
+			"ChannelId": channelID,
+		}).ToSql()
+
+	if err != nil {
+		return errors.Wrap(err, "delete_all_sidebar_channel_for_channel_to_sql")
+	}
+
+	_, err = s.GetMasterX().Exec(query, args...)
+	return err
 }

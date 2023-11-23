@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {RefObject} from 'react';
+import React from 'react';
+import type {RefObject} from 'react';
 
-import * as UserAgent from 'utils/user_agent';
 import Constants from 'utils/constants';
-import {a11yFocus, isKeyPressed} from 'utils/utils';
+import {isKeyPressed} from 'utils/keyboard';
+import * as UserAgent from 'utils/user_agent';
+import {a11yFocus} from 'utils/utils';
 
 export type Tab = {
     icon: string;

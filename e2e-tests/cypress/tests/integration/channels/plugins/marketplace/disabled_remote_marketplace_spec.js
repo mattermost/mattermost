@@ -7,7 +7,7 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Group: @channels @not_cloud @plugin_marketplace @plugin
+// Group: @channels @not_cloud @plugin_marketplace @plugin @plugins_uninstall
 
 import {githubPlugin} from '../../../../utils/plugins';
 

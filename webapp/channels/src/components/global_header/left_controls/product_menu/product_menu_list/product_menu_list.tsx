@@ -4,24 +4,33 @@
 import React, {useEffect} from 'react';
 import {useIntl} from 'react-intl';
 
-import Icon from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
+import {
+    AccountMultipleOutlineIcon,
+    ApplicationCogIcon,
+    DownloadOutlineIcon,
+    InformationOutlineIcon,
+    ViewGridPlusOutlineIcon,
+    WebhookIncomingIcon,
+} from '@mattermost/compass-icons/components';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
 
 import AboutBuildModal from 'components/about_build_modal';
+import {VisitSystemConsoleTour} from 'components/onboarding_tasks';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
+import UserGroupsModal from 'components/user_groups_modal';
 import Menu from 'components/widgets/menu/menu';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
-import {VisitSystemConsoleTour} from 'components/onboarding_tasks';
-import UserGroupsModal from 'components/user_groups_modal';
+
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
 import {makeUrlSafe} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
-import {ModalData} from 'types/actions';
-import {UserProfile} from '@mattermost/types/users';
+
+import type {ModalData} from 'types/actions';
 
 import './product_menu_list.scss';
 
@@ -128,12 +137,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                                 )}
                             </>
                         )}
-                        icon={
-                            <Icon
-                                size={16}
-                                glyph={'application-cog'}
-                            />
-                        }
+                        icon={<ApplicationCogIcon size={18}/>}
                     />
                 </SystemPermissionGate>
                 <Menu.ItemLink
@@ -141,12 +145,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                     show={isMessaging && showIntegrations}
                     to={'/' + teamName + '/integrations'}
                     text={formatMessage({id: 'navbar_dropdown.integrations', defaultMessage: 'Integrations'})}
-                    icon={
-                        <Icon
-                            size={16}
-                            glyph={'webhook-incoming'}
-                        />
-                    }
+                    icon={<WebhookIncomingIcon size={18}/>}
                 />
                 <Menu.ItemToggleModalRedux
                     id='userGroups'
@@ -157,12 +156,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                         backButtonAction: openGroupsModal,
                     }}
                     text={formatMessage({id: 'navbar_dropdown.userGroups', defaultMessage: 'User Groups'})}
-                    icon={
-                        <Icon
-                            size={16}
-                            glyph={'account-multiple-outline'}
-                        />
-                    }
+                    icon={<AccountMultipleOutlineIcon size={18}/>}
                     disabled={isStarterFree}
                     sibling={(isStarterFree || isFreeTrial) && (
                         <RestrictedIndicator
@@ -215,12 +209,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                         dialogType={MarketplaceModal}
                         dialogProps={{openedFrom: 'product_menu'}}
                         text={formatMessage({id: 'navbar_dropdown.marketplace', defaultMessage: 'App Marketplace'})}
-                        icon={
-                            <Icon
-                                size={16}
-                                glyph='view-grid-plus-outline'
-                            />
-                        }
+                        icon={<ViewGridPlusOutlineIcon size={18}/>}
                     />
                 </TeamPermissionGate>
                 <Menu.ItemExternalLink
@@ -228,24 +217,14 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                     show={appDownloadLink && !UserAgent.isMobileApp()}
                     url={makeUrlSafe(appDownloadLink)}
                     text={formatMessage({id: 'navbar_dropdown.nativeApps', defaultMessage: 'Download Apps'})}
-                    icon={
-                        <Icon
-                            size={16}
-                            glyph={'download-outline'}
-                        />
-                    }
+                    icon={<DownloadOutlineIcon size={18}/>}
                 />
                 <Menu.ItemToggleModalRedux
                     id='about'
                     modalId={ModalIdentifiers.ABOUT}
                     dialogType={AboutBuildModal}
                     text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About {appTitle}'}, {appTitle: siteName})}
-                    icon={
-                        <Icon
-                            size={16}
-                            glyph={'information-outline'}
-                        />
-                    }
+                    icon={<InformationOutlineIcon size={18}/>}
                 />
             </div>
         </Menu.Group>

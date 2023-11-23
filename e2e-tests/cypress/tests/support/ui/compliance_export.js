@@ -4,12 +4,17 @@
 import * as TIMEOUTS from '../../fixtures/timeouts';
 
 Cypress.Commands.add('uiEnableComplianceExport', (exportFormat = 'csv') => {
+    // * Verify that the page is loaded
+    cy.findByText('Enable Compliance Export:').should('be.visible');
+    cy.findByText('Compliance Export time:').should('be.visible');
+    cy.findByText('Export Format:').should('be.visible');
+
     // # Enable compliance export
     cy.findByRole('radio', {name: /false/i}).click();
     cy.findByRole('radio', {name: /true/i}).click();
 
     // # Change export format
-    cy.findByRole('combobox', {name: /export format:/i}).select(exportFormat);
+    cy.findByTestId('exportFormatdropdown').should('be.visible').select(exportFormat);
 
     // # Save settings
     cy.uiSaveConfig({confirm: true});

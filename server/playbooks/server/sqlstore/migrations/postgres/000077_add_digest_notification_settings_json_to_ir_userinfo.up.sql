@@ -1,1 +1,0 @@
-ALTER TABLE IR_UserInfo ADD COLUMN IF NOT EXISTS DigestNotificationSettingsJSON JSON;

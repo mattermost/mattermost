@@ -7,13 +7,13 @@ package mocks
 import (
 	io "io"
 
-	i18n "github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
+	i18n "github.com/mattermost/mattermost/server/public/shared/i18n"
 
 	mock "github.com/stretchr/testify/mock"
 
-	model "github.com/mattermost/mattermost-server/v6/model"
+	model "github.com/mattermost/mattermost/server/public/model"
 
-	templates "github.com/mattermost/mattermost-server/v6/server/platform/shared/templates"
+	templates "github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 
 	throttled "github.com/throttled/throttled"
 )
@@ -303,6 +303,20 @@ func (_m *ServiceInterface) SendGuestInviteEmails(team *model.Team, channels []*
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*model.Team, []*model.Channel, string, string, []byte, []string, string, string, bool, bool, bool) error); ok {
 		r0 = rf(team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, message, errorWhenNotSent, isSystemAdmin, isFirstAdmin)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SendIPFiltersChangedEmail provides a mock function with given fields: _a0, userWhoChangedFilter, siteURL, portalURL, locale, isWorkspaceOwner
+func (_m *ServiceInterface) SendIPFiltersChangedEmail(_a0 string, userWhoChangedFilter *model.User, siteURL string, portalURL string, locale string, isWorkspaceOwner bool) error {
+	ret := _m.Called(_a0, userWhoChangedFilter, siteURL, portalURL, locale, isWorkspaceOwner)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, *model.User, string, string, string, bool) error); ok {
+		r0 = rf(_a0, userWhoChangedFilter, siteURL, portalURL, locale, isWorkspaceOwner)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -6,9 +6,10 @@ import {FormattedMessage} from 'react-intl';
 
 import './file_preview_modal_main_nav.scss';
 
-import OverlayTrigger from '../../overlay_trigger';
-import Tooltip from '../../tooltip';
-import Constants from '../../../utils/constants';
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
+
+import Constants from 'utils/constants';
 
 interface Props {
     fileIndex: number;
@@ -26,7 +27,7 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
             overlay={
                 <Tooltip id='close-icon-tooltip'>
                     <FormattedMessage
-                        id='generic.previous'
+                        id='generic.close'
                         defaultMessage='Close'
                     />
                 </Tooltip>

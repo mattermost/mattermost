@@ -17,18 +17,20 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/cache"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/upgrader"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/web"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/web"
 )
 
 const (
-	RedirectLocationCacheSize = 10000
-	DefaultServerBusySeconds  = 3600
-	MaxServerBusySeconds      = 86400
+	RedirectLocationCacheSize     = 10000
+	RedirectLocationMaximumLength = 2100
+	RedirectLocationCacheExpiry   = 1 * time.Hour
+	DefaultServerBusySeconds      = 3600
+	MaxServerBusySeconds          = 86400
 )
 
 var redirectLocationDataCache = cache.NewLRU(cache.LRUOptions{
@@ -96,7 +98,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileDatas := c.App.GenerateSupportPacket()
+	fileDatas := c.App.GenerateSupportPacket(c.AppContext)
 
 	// Constructing the ZIP file name as per spec (mattermost_support_packet_YYYY-MM-DD-HH-MM.zip)
 	now := time.Now()
@@ -144,33 +146,33 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	actualGoroutines := runtime.NumGoroutine()
 	if *c.App.Config().ServiceSettings.GoroutineHealthThreshold > 0 && actualGoroutines >= *c.App.Config().ServiceSettings.GoroutineHealthThreshold {
-		mlog.Warn("The number of running goroutines is over the health threshold", mlog.Int("goroutines", actualGoroutines), mlog.Int("health_threshold", *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
+		c.Logger.Warn("The number of running goroutines is over the health threshold", mlog.Int("goroutines", actualGoroutines), mlog.Int("health_threshold", *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
 		s[model.STATUS] = model.StatusUnhealthy
 	}
 
 	// Enhanced ping health check:
 	// If an extra form value is provided then perform extra health checks for
 	// database and file storage backends.
-	if r.FormValue("get_server_status") != "" {
+	if r.FormValue("get_server_status") == "true" {
 		dbStatusKey := "database_status"
 		s[dbStatusKey] = model.StatusOk
 
 		writeErr := c.App.DBHealthCheckWrite()
 		if writeErr != nil {
-			mlog.Warn("Unable to write to database.", mlog.Err(writeErr))
+			c.Logger.Warn("Unable to write to database.", mlog.Err(writeErr))
 			s[dbStatusKey] = model.StatusUnhealthy
 			s[model.STATUS] = model.StatusUnhealthy
 		}
 
 		writeErr = c.App.DBHealthCheckDelete()
 		if writeErr != nil {
-			mlog.Warn("Unable to remove ping health check value from database.", mlog.Err(writeErr))
+			c.Logger.Warn("Unable to remove ping health check value from database.", mlog.Err(writeErr))
 			s[dbStatusKey] = model.StatusUnhealthy
 			s[model.STATUS] = model.StatusUnhealthy
 		}
 
 		if s[dbStatusKey] == model.StatusOk {
-			mlog.Debug("Able to write to database.")
+			c.Logger.Debug("Able to write to database.")
 		}
 
 		filestoreStatusKey := "filestore_status"
@@ -189,6 +191,8 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	if deviceID := r.FormValue("device_id"); deviceID != "" {
 		s["CanReceiveNotifications"] = c.App.SendTestPushNotification(deviceID)
 	}
+
+	s["ActiveSearchBackend"] = c.App.ActiveSearchBackend()
 
 	if s[model.STATUS] != model.StatusOk {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -266,7 +270,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audits, appErr := c.App.GetAuditsPage("", c.Params.Page, c.Params.PerPage)
+	audits, appErr := c.App.GetAuditsPage(c.AppContext, "", c.Params.Page, c.Params.PerPage)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -295,7 +299,7 @@ func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.RecycleDatabaseConnection()
+	c.App.RecycleDatabaseConnection(c.AppContext)
 
 	auditRec.Success()
 	ReturnStatusOK(w)
@@ -343,12 +347,12 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var logFilter *model.LogFilter
 	err := json.NewDecoder(r.Body).Decode(&logFilter)
-	if err != nil {
+	if err != nil || logFilter == nil {
 		c.Err = model.NewAppError("queryLogs", "api.system.logs.invalidFilter", nil, "", http.StatusInternalServerError)
 		return
 	}
 
-	logs, logerr := c.App.QueryLogs(c.Params.Page, c.Params.LogsPerPage, logFilter)
+	logs, logerr := c.App.QueryLogs(c.AppContext, c.Params.Page, c.Params.LogsPerPage, logFilter)
 	if logerr != nil {
 		c.Err = logerr
 		return
@@ -362,7 +366,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 			if err2 == nil {
 				logsJSON[node] = append(logsJSON[node], result)
 			} else {
-				mlog.Warn("Error parsing log line in Server Logs")
+				c.Logger.Warn("Error parsing log line in Server Logs")
 			}
 		}
 	}
@@ -387,7 +391,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lines, appErr := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage)
+	lines, appErr := c.App.GetLogs(c.AppContext, c.Params.Page, c.Params.LogsPerPage)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -587,7 +591,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	res, err := client.Head(url)
 	if err != nil {
 		// Cache failures to prevent retries.
-		redirectLocationDataCache.SetWithExpiry(url, "", 1*time.Hour)
+		redirectLocationDataCache.SetWithExpiry(url, "", RedirectLocationCacheExpiry)
 		// Always return a success status and a JSON string to limit information returned to client.
 		w.Write([]byte(model.MapToJSON(m)))
 		return
@@ -598,7 +602,17 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	}()
 
 	location = res.Header.Get("Location")
-	redirectLocationDataCache.SetWithExpiry(url, location, 1*time.Hour)
+
+	// If the location length is > 2100, we can probably ignore. Fixes https://mattermost.atlassian.net/browse/MM-54219
+	if len(location) > RedirectLocationMaximumLength {
+		// Treating as a "failure". Cache failures to prevent retries.
+		redirectLocationDataCache.SetWithExpiry(url, "", RedirectLocationCacheExpiry)
+		// Always return a success status and a JSON string to limit information returned to client.
+		w.Write([]byte(model.MapToJSON(m)))
+		return
+	}
+
+	redirectLocationDataCache.SetWithExpiry(url, location, RedirectLocationCacheExpiry)
 	m["location"] = location
 
 	w.Write([]byte(model.MapToJSON(m)))
@@ -647,7 +661,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			msg, appError := notificationInterface.GetNotificationMessage(&ack, c.AppContext.Session().UserId)
+			msg, appError := notificationInterface.GetNotificationMessage(c.AppContext, &ack, c.AppContext.Session().UserId)
 			if appError != nil {
 				c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
 				return
@@ -689,7 +703,7 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "seconds", i)
 
 	c.App.Srv().Platform().Busy.Set(time.Second * time.Duration(i))
-	mlog.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
+	c.Logger.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
 
 	auditRec.Success()
 	ReturnStatusOK(w)
@@ -705,7 +719,7 @@ func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	c.App.Srv().Platform().Busy.Clear()
-	mlog.Info("server busy state cleared - non-critical services enabled")
+	c.Logger.Info("server busy state cleared - non-critical services enabled")
 
 	auditRec.Success()
 	ReturnStatusOK(w)
@@ -721,11 +735,11 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 	// along with doing some computations.
 	sbsJSON, jsonErr := c.App.Srv().Platform().Busy.ToJSON()
 	if jsonErr != nil {
-		mlog.Warn(jsonErr.Error())
+		c.Logger.Warn(jsonErr.Error())
 	}
 
 	if _, err := w.Write(sbsJSON); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -839,11 +853,11 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	license := c.App.Channels().License()
 	if license != nil {
-		mlog.Debug("License is present, skip.")
+		c.Logger.Debug("License is present, skip.")
 		return
 	}
 
-	status, appErr := c.App.GetWarnMetricsStatus()
+	status, appErr := c.App.GetWarnMetricsStatus(c.AppContext)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -870,7 +884,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	license := c.App.Channels().License()
 	if license != nil {
-		mlog.Debug("License is present, skip.")
+		c.Logger.Debug("License is present, skip.")
 		return
 	}
 
@@ -886,7 +900,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	appErr = c.App.NotifyAndSetWarnMetricAck(c.Params.WarnMetricId, user, ack.ForceAck, false)
+	appErr = c.App.NotifyAndSetWarnMetricAck(c.AppContext, c.Params.WarnMetricId, user, ack.ForceAck, false)
 	if appErr != nil {
 		c.Err = appErr
 	}
@@ -906,13 +920,13 @@ func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *h
 	}
 
 	if model.BuildEnterpriseReady != "true" {
-		mlog.Debug("Not Enterprise Edition, skip.")
+		c.Logger.Debug("Not Enterprise Edition, skip.")
 		return
 	}
 
 	license := c.App.Channels().License()
 	if license != nil {
-		mlog.Debug("License is present, skip.")
+		c.Logger.Debug("License is present, skip.")
 		return
 	}
 
@@ -933,7 +947,7 @@ func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	client, parseError := model.NoticeClientTypeFromString(r.URL.Query().Get("client"))
 	if parseError != nil {
-		c.SetInvalidParam("client")
+		c.SetInvalidParamWithErr("client", parseError)
 		return
 	}
 	clientVersion := r.URL.Query().Get("clientVersion")

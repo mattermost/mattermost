@@ -1,6 +1,0 @@
-ALTER TABLE IR_Playbook ADD COLUMN IF NOT EXISTS UpdateAt BIGINT NOT NULL DEFAULT 0;
-
-UPDATE IR_Playbook
-SET UpdateAt = CreateAt;
-
-CREATE INDEX IF NOT EXISTS IR_Playbook_UpdateAt ON IR_Playbook (UpdateAt);

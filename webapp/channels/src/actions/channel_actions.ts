@@ -3,34 +3,21 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Channel, ChannelMembership, ServerChannel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {ServerError} from '@mattermost/types/errors';
-import {Role} from '@mattermost/types/roles';
+import type {Channel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {Client4} from 'mattermost-redux/client';
-import {ChannelTypes, PreferenceTypes, RoleTypes} from 'mattermost-redux/action_types';
+import {PreferenceTypes} from 'mattermost-redux/action_types';
 import * as ChannelActions from 'mattermost-redux/actions/channels';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {ActionFunc} from 'mattermost-redux/types/actions';
-import {logError} from 'mattermost-redux/actions/errors';
-import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {getChannelByName, getUnreadChannelIds, getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded, loadProfilesForSidebar} from 'actions/user_actions';
-import {
-    getChannelsAndChannelMembersQueryString,
-    transformToReceivedChannelsReducerPayload,
-    transformToReceivedChannelMembersReducerPayload,
-    ChannelsAndChannelMembersQueryResponseType,
-    GraphQLChannel,
-    GraphQLChannelMember,
-    CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE,
-} from 'actions/channel_queries';
 
 import {getHistory} from 'utils/browser_history';
 import {Constants, Preferences, NotificationLevels} from 'utils/constants';
@@ -94,7 +81,7 @@ export function loadChannelsForCurrentUser(): ActionFunc {
         const state = getState();
         const unreads = getUnreadChannelIds(state);
 
-        await dispatch(ChannelActions.fetchMyChannelsAndMembersREST(getCurrentTeamId(state)));
+        await dispatch(ChannelActions.fetchChannelsAndMembers(getCurrentTeamId(state)));
         for (const id of unreads) {
             const channel = getChannel(state, id);
             if (channel && channel.type === Constants.DM_CHANNEL) {
@@ -109,7 +96,7 @@ export function loadChannelsForCurrentUser(): ActionFunc {
     };
 }
 
-export function searchMoreChannels(term: string, showArchivedChannels: boolean): ActionFunc<Channel[], ServerError> {
+export function searchMoreChannels(term: string, showArchivedChannels: boolean, hideJoinedChannels: boolean): ActionFunc<Channel[], ServerError> {
     return async (dispatch, getState) => {
         const state = getState();
         const teamId = getCurrentTeamId(state);
@@ -121,9 +108,7 @@ export function searchMoreChannels(term: string, showArchivedChannels: boolean):
         const {data, error} = await dispatch(ChannelActions.searchChannels(teamId, term, showArchivedChannels));
         if (data) {
             const myMembers = getMyChannelMemberships(state);
-
-            // When searching public channels, only get channels user is not a member of
-            const channels = showArchivedChannels ? data : (data as Channel[]).filter((c) => !myMembers[c.id]);
+            const channels = hideJoinedChannels ? (data as Channel[]).filter((channel) => !myMembers[channel.id]) : data;
             return {data: channels};
         }
 
@@ -191,90 +176,4 @@ export function muteChannel(userId: UserProfile['id'], channelId: Channel['id'])
     return ChannelActions.updateChannelNotifyProps(userId, channelId, {
         mark_unread: NotificationLevels.MENTION,
     });
-}
-
-/**
- * Fetches channels and channel members with graphql and then dispatches the result to redux store.
- * @param teamId If team id is provided, only channels and channel members in that team will be fetched. Otherwise, all channels and all channel members will be fetched.
- */
-export function fetchChannelsAndMembers(teamId: Team['id'] = ''): ActionFunc<{channels: ServerChannel[]; channelMembers: ChannelMembership[]}> {
-    return async (dispatch, getState) => {
-        const state = getState();
-        const currentUserId = getCurrentUserId(state);
-
-        let channelsResponse: GraphQLChannel[] = [];
-        let channelMembersResponse: GraphQLChannelMember[] = [];
-
-        try {
-            let channelsCursor = '';
-            let channelMembersCursor = '';
-            let page = 1;
-            let responsesPerPage: number;
-
-            do {
-                // eslint-disable-next-line no-await-in-loop
-                const {data, errors} = await Client4.fetchWithGraphQL<ChannelsAndChannelMembersQueryResponseType>(getChannelsAndChannelMembersQueryString(teamId, channelsCursor, channelMembersCursor));
-
-                if (errors || !data) {
-                    throw new Error(`Failed to fetch channels and channel members at page ${page}`);
-                } else if (data.channels.length === 0 || data.channelMembers.length === 0) {
-                    break;
-                }
-
-                // Based on the fact that the number of channels and channel members returned by the server is the same
-                responsesPerPage = data.channels.length;
-                channelsCursor = data.channels[responsesPerPage - 1].cursor;
-                channelMembersCursor = data.channelMembers[responsesPerPage - 1].cursor;
-                page += 1;
-
-                channelsResponse = [...channelsResponse, ...data.channels];
-                channelMembersResponse = [...channelMembersResponse, ...data.channelMembers];
-            } while (responsesPerPage === CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE);
-        } catch (error) {
-            dispatch(logError(error as ServerError));
-            return {error: error as ServerError};
-        }
-
-        let roles: Role[] = [];
-        channelMembersResponse.forEach((channelMembers) => {
-            if (channelMembers?.roles?.length) {
-                channelMembers.roles.forEach((role) => {
-                    roles = [...roles, role];
-                });
-            }
-        });
-
-        const channels = transformToReceivedChannelsReducerPayload(channelsResponse);
-        const channelMembers = transformToReceivedChannelMembersReducerPayload(channelMembersResponse, currentUserId);
-
-        const actions = [];
-        if (teamId) {
-            actions.push({
-                type: ChannelTypes.RECEIVED_CHANNELS,
-                teamId,
-                data: channels,
-            });
-            actions.push({
-                type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
-                data: channelMembers,
-            });
-            actions.push({
-                type: RoleTypes.RECEIVED_ROLES,
-                data: roles,
-            });
-        } else {
-            actions.push({
-                type: ChannelTypes.RECEIVED_ALL_CHANNELS,
-                data: channels,
-            });
-            actions.push({
-                type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
-                data: channelMembers,
-            });
-        }
-
-        await dispatch(batchActions(actions));
-
-        return {data: {channels, channelMembers, roles}};
-    };
 }

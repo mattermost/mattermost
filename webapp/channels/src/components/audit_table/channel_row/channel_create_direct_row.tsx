@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {useIntl} from 'react-intl';
-
 import {useSelector} from 'react-redux';
 
-import {Audit} from '@mattermost/types/audits';
-import {Channel} from '@mattermost/types/channels';
+import type {Audit} from '@mattermost/types/audits';
+import type {Channel} from '@mattermost/types/channels';
+
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
+
 import AuditRow from '../audit_row/audit_row';
 import holders from '../holders';
 

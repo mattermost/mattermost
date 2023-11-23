@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import classNames from 'classnames';
+import React from 'react';
 
 import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
 
-import {isMac} from 'utils/utils';
-import {isDesktopApp} from 'utils/user_agent';
+import {isDesktopApp, isMac} from 'utils/user_agent';
 
 import './search_shortcut.scss';
 

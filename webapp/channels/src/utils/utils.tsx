@@ -1,20 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable max-lines */
-
-import React, {LinkHTMLAttributes} from 'react';
-import {FormattedMessage, IntlShape} from 'react-intl';
-
-import cssVars from 'css-vars-ponyfill';
-
-import moment from 'moment';
-
-import type {Locale} from 'date-fns';
-
 import {getName} from 'country-list';
+import crypto from 'crypto';
+import cssVars from 'css-vars-ponyfill';
+import type {Locale} from 'date-fns';
+import {isNil} from 'lodash';
+import moment from 'moment';
+import React from 'react';
+import type {LinkHTMLAttributes} from 'react';
+import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes, A11yFocusEventDetail} from 'utils/constants';
+import type {Channel} from '@mattermost/types/channels';
+import type {Address} from '@mattermost/types/cloud';
+import type {ClientConfig} from '@mattermost/types/config';
+import type {FileInfo} from '@mattermost/types/files';
+import type {Group} from '@mattermost/types/groups';
+import type {GlobalState} from '@mattermost/types/store';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {
     getChannel as getChannelAction,
@@ -25,60 +30,38 @@ import {
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {getTeamByName as getTeamByNameAction} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
-import {Posts, Preferences, General} from 'mattermost-redux/constants';
+import {Preferences, General} from 'mattermost-redux/constants';
 import {
     getChannel,
     getChannelsNameMapInTeam,
     getMyChannelMemberships,
-    getRedirectChannelNameForTeam,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getBool, getTeammateNameDisplaySetting, Theme, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import {blendColors, changeOpacity} from 'mattermost-redux/utils/theme_utils';
-import {displayUsername, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
+import {getBool, getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {
-    getCurrentRelativeTeamUrl,
-    getCurrentTeam,
-    getCurrentTeamId,
-    getTeam,
     getTeamByName,
     getTeamMemberships,
     isTeamSameWithCurrentTeam,
 } from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import {blendColors, changeOpacity} from 'mattermost-redux/utils/theme_utils';
+import {displayUsername, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
-import {addUserToTeam} from 'actions/team_actions';
 import {searchForTerm} from 'actions/post_actions';
-import {getHistory} from 'utils/browser_history';
-import * as UserAgent from 'utils/user_agent';
-import {isDesktopApp} from 'utils/user_agent';
-import bing from 'sounds/bing.mp3';
-import crackle from 'sounds/crackle.mp3';
-import down from 'sounds/down.mp3';
-import hello from 'sounds/hello.mp3';
-import ripple from 'sounds/ripple.mp3';
-import upstairs from 'sounds/upstairs.mp3';
-import {t} from 'utils/i18n';
-import store from 'stores/redux_store.jsx';
-
+import {addUserToTeam} from 'actions/team_actions';
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
-import {getIsMobileView} from 'selectors/views/browser';
-
-import {FileInfo} from '@mattermost/types/files';
-import {Team} from '@mattermost/types/teams';
-import {Post} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
-
-import {ClientConfig} from '@mattermost/types/config';
-
-import {GlobalState} from '@mattermost/types/store';
+import store from 'stores/redux_store';
 
 import {focusPost} from 'components/permalink_view/actions';
+import type {TextboxElement} from 'components/textbox';
 
-import {TextboxElement} from '../components/textbox';
-
-import {Address} from '@mattermost/types/cloud';
+import {getHistory} from 'utils/browser_history';
+import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes} from 'utils/constants';
+import type {A11yFocusEventDetail} from 'utils/constants';
+import {t} from 'utils/i18n';
+import * as Keyboard from 'utils/keyboard';
+import * as UserAgent from 'utils/user_agent';
 
 import {joinPrivateChannelPrompt} from './channel_utils';
 
@@ -108,14 +91,6 @@ export enum TimeInformation {
 export type TimeUnit = Exclude<TimeInformation, TimeInformation.FUTURE | TimeInformation.PAST>;
 export type TimeDirection = TimeInformation.FUTURE | TimeInformation.PAST;
 
-export function isMac() {
-    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-}
-
-export function isLinux() {
-    return navigator.platform.toUpperCase().indexOf('LINUX') >= 0;
-}
-
 export function createSafeId(prop: {props: {defaultMessage: string}} | string): string | undefined {
     let str = '';
 
@@ -128,42 +103,14 @@ export function createSafeId(prop: {props: {defaultMessage: string}} | string): 
     return str.replace(new RegExp(' ', 'g'), '_');
 }
 
-export function cmdOrCtrlPressed(e: React.KeyboardEvent | KeyboardEvent, allowAlt = false) {
-    if (allowAlt) {
-        return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey);
-    }
-    return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey && !e.altKey);
-}
-
-export function isKeyPressed(event: React.KeyboardEvent | KeyboardEvent, key: [string, number]) {
-    // There are two types of keyboards
-    // 1. English with different layouts(Ex: Dvorak)
-    // 2. Different language keyboards(Ex: Russian)
-
-    if (event.keyCode === Constants.KeyCodes.COMPOSING[1]) {
-        return false;
-    }
-
-    // checks for event.key for older browsers and also for the case of different English layout keyboards.
-    if (typeof event.key !== 'undefined' && event.key !== 'Unidentified' && event.key !== 'Dead') {
-        const isPressedByCode = event.key === key[0] || event.key === key[0].toUpperCase();
-        if (isPressedByCode) {
-            return true;
-        }
-    }
-
-    // used for different language keyboards to detect the position of keys
-    return event.keyCode === key[1];
-}
-
 /**
  * check keydown event for line break combo. Should catch alt/option + enter not all browsers except Safari
  */
 export function isUnhandledLineBreakKeyCombo(e: React.KeyboardEvent | KeyboardEvent): boolean {
     return Boolean(
-        isKeyPressed(e, Constants.KeyCodes.ENTER) &&
+        Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) &&
         !e.shiftKey && // shift + enter is already handled everywhere, so don't handle again
-        (e.altKey && !UserAgent.isSafari() && !cmdOrCtrlPressed(e)), // alt/option + enter is already handled in Safari, so don't handle again
+        (e.altKey && !UserAgent.isSafari() && !Keyboard.cmdOrCtrlPressed(e)), // alt/option + enter is already handled in Safari, so don't handle again
     );
 }
 
@@ -171,7 +118,7 @@ export function isUnhandledLineBreakKeyCombo(e: React.KeyboardEvent | KeyboardEv
  * insert a new line character at keyboard cursor (or overwrites selection)
  * WARNING: HAS DOM SIDE EFFECTS
  */
-export function insertLineBreakFromKeyEvent(e: React.KeyboardEvent<TextboxElement>): string {
+export function insertLineBreakFromKeyEvent(e: KeyboardEvent): string {
     const el = e.target as TextboxElement;
     const {selectionEnd, selectionStart, value} = el;
 
@@ -184,83 +131,6 @@ export function insertLineBreakFromKeyEvent(e: React.KeyboardEvent<TextboxElemen
 
     // return the updated string so that component state can be updated
     return newValue;
-}
-
-export function isInRole(roles: string, inRole: string): boolean {
-    if (roles) {
-        const parts = roles.split(' ');
-        for (let i = 0; i < parts.length; i++) {
-            if (parts[i] === inRole) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-export function getTeamRelativeUrl(team: Team) {
-    if (!team) {
-        return '';
-    }
-
-    return '/' + team.name;
-}
-
-export function getPermalinkURL(state: GlobalState, teamId: Team['id'], postId: Post['id']): string {
-    let team = getTeam(state, teamId);
-    if (!team) {
-        team = getCurrentTeam(state);
-    }
-    return `${getTeamRelativeUrl(team)}/pl/${postId}`;
-}
-
-export function getChannelURL(state: GlobalState, channel: Channel, teamId: string): string {
-    let notificationURL;
-    if (channel && (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL)) {
-        notificationURL = getCurrentRelativeTeamUrl(state) + '/channels/' + channel.name;
-    } else if (channel) {
-        const team = getTeam(state, teamId);
-        notificationURL = getTeamRelativeUrl(team) + '/channels/' + channel.name;
-    } else if (teamId) {
-        const team = getTeam(state, teamId);
-        const redirectChannel = getRedirectChannelNameForTeam(state, teamId);
-        notificationURL = getTeamRelativeUrl(team) + `/channels/${redirectChannel}`;
-    } else {
-        const currentTeamId = getCurrentTeamId(state);
-        const redirectChannel = getRedirectChannelNameForTeam(state, currentTeamId);
-        notificationURL = getCurrentRelativeTeamUrl(state) + `/channels/${redirectChannel}`;
-    }
-    return notificationURL;
-}
-
-export const notificationSounds = new Map([
-    ['Bing', bing],
-    ['Crackle', crackle],
-    ['Down', down],
-    ['Hello', hello],
-    ['Ripple', ripple],
-    ['Upstairs', upstairs],
-]);
-
-let canDing = true;
-export function ding(name: string) {
-    if (hasSoundOptions() && canDing) {
-        tryNotificationSound(name);
-        canDing = false;
-        setTimeout(() => {
-            canDing = true;
-        }, 3000);
-    }
-}
-
-export function tryNotificationSound(name: string) {
-    const audio = new Audio(notificationSounds.get(name) ?? notificationSounds.get('Bing'));
-    audio.play();
-}
-
-export function hasSoundOptions() {
-    return (!UserAgent.isEdge());
 }
 
 export function getDateForUnixTicks(ticks: number): Date {
@@ -432,13 +302,6 @@ export function getIconClassName(fileTypeIn: string) {
     return 'generic';
 }
 
-export function getMenuItemIcon(name: string, dangerous?: boolean) {
-    const colorClass = dangerous ? 'MenuItem__compass-icon-dangerous' : 'MenuItem__compass-icon';
-    return (
-        <span className={`${name} ${colorClass}`}/>
-    );
-}
-
 export function toTitleCase(str: string): string {
     function doTitleCase(txt: string) {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
@@ -458,36 +321,11 @@ export function toRgbValues(hexStr: string): string {
 
 export function applyTheme(theme: Theme) {
     if (theme.centerChannelColor) {
-        changeCss('.app__body .bg-text-200', 'background:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.app__body .user-popover__role', 'background:' + changeOpacity(theme.centerChannelColor, 0.3));
-        changeCss('.app__body .svg-text-color', 'fill:' + theme.centerChannelColor);
-        changeCss('.app__body .suggestion-list__icon .status.status--group, .app__body .multi-select__note', 'background:' + changeOpacity(theme.centerChannelColor, 0.12));
-        changeCss('.app__body .modal-tabs .nav-tabs > li, .app__body .system-notice, .app__body .file-view--single .file__image .image-loaded, .app__body .post .MenuWrapper .dropdown-menu button, .app__body .member-list__popover .more-modal__body, .app__body .alert.alert-transparent, .app__body .table > thead > tr > th, .app__body .table > tbody > tr > td', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.12));
-        changeCss('.app__body .post-list__arrows', 'fill:' + changeOpacity(theme.centerChannelColor, 0.3));
-        changeCss('.app__body .post .card-icon__container', 'color:' + changeOpacity(theme.centerChannelColor, 0.3));
-        changeCss('.app__body .post-image__details .post-image__download svg', 'stroke:' + changeOpacity(theme.centerChannelColor, 0.4));
-        changeCss('.app__body .post-image__details .post-image__download svg', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.35));
-        changeCss('.app__body .channel-header__links .icon, .app__body .sidebar--right .sidebar--right__subheader .usage__icon, .app__body .more-modal__header svg, .app__body .icon--body', 'fill:' + theme.centerChannelColor);
-        changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .post-menu, .app__body .post.post--hovered .post__header .post-menu, .app__body .post.a11y--active .post__header .post-menu', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.app__body .help-text, .app__body .post .post-waiting, .app__body .post.post--system .post__body', 'color:' + changeOpacity(theme.centerChannelColor, 0.6));
-        changeCss('.app__body .nav-tabs, .app__body .nav-tabs > li.active > a, pp__body .input-group-addon, .app__body .app__content, .app__body .post-create__container .post-create-body .btn-file, .app__body .post-create__container .post-create-footer .msg-typing, .app__body .dropdown-menu, .app__body .popover, .app__body .suggestion-list__item .suggestion-list__ellipsis .suggestion-list__main, .app__body .tip-overlay, .app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'color:' + theme.centerChannelColor);
-        changeCss('.app__body .post .post__link', 'color:' + changeOpacity(theme.centerChannelColor, 0.65));
-        changeCss('.app__body #archive-link-home, .video-div .video-thumbnail__error', 'background:' + changeOpacity(theme.centerChannelColor, 0.15));
-        changeCss('.app__body #post-create', 'color:' + theme.centerChannelColor);
-        changeCss('.app__body .mentions--top', 'box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px');
-        changeCss('.app__body .mentions--top', '-webkit-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px');
-        changeCss('.app__body .mentions--top', '-moz-box-shadow:' + changeOpacity(theme.centerChannelColor, 0.2) + ' 1px -3px 12px');
-        changeCss('.app__body .shadow--2', 'box-shadow: 0 20px 30px 0' + changeOpacity(theme.centerChannelColor, 0.1) + ', 0 14px 20px 0 ' + changeOpacity(theme.centerChannelColor, 0.1));
-        changeCss('.app__body .shadow--2', '-moz-box-shadow: 0  20px 30px 0 ' + changeOpacity(theme.centerChannelColor, 0.1) + ', 0 14px 20px 0 ' + changeOpacity(theme.centerChannelColor, 0.1));
-        changeCss('.app__body .shadow--2', '-webkit-box-shadow: 0  20px 30px 0 ' + changeOpacity(theme.centerChannelColor, 0.1) + ', 0 14px 20px 0 ' + changeOpacity(theme.centerChannelColor, 0.1));
-        changeCss('.app__body .shortcut-key, .app__body .post__body hr, .app__body .loading-screen .loading__content .round, .app__body .tutorial__circles .circle', 'background:' + theme.centerChannelColor);
-        changeCss('.app__body .channel-header .heading', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('.app__body .channel-header__info .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
-        changeCss('.app__body .post-create__container .post-create-body .send-button.disabled i', 'color:' + changeOpacity(theme.centerChannelColor, 0.4));
         changeCss('.app__body .channel-header .pinned-posts-button svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.6));
         changeCss('.app__body .channel-header .channel-header_plugin-dropdown svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.6));
-        changeCss('.app__body .file-preview, .app__body .post-image__details, .app__body .markdown__table th, .app__body .markdown__table td, .app__body .modal .settings-modal .settings-table .settings-content .divider-light, .app__body .webhooks__container, .app__body .dropdown-menu, .app__body .modal .modal-header', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .file-preview, .app__body .post-image__details, .app__body .markdown__table th, .app__body .markdown__table td, .app__body .webhooks__container, .app__body .dropdown-menu', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.emoji-picker .emoji-picker__header', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .popover.bottom>.arrow', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.25));
         changeCss('.app__body .btn.btn-transparent', 'color:' + changeOpacity(theme.centerChannelColor, 0.7));
@@ -508,14 +346,14 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .date-separator .separator__hr, .app__body .modal-footer, .app__body .modal .custom-textarea', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .search-item-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1));
         changeCss('.app__body .modal .custom-textarea:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3));
-        changeCss('.app__body .channel-intro, .app__body .modal .settings-modal .settings-table .settings-content .divider-dark, .app__body hr, .app__body .modal .settings-modal .settings-table .settings-links, .app__body .modal .settings-modal .settings-table .settings-content .appearance-section .theme-elements__header, .app__body .user-settings .authorized-app:not(:last-child)', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .channel-intro, .app__body hr, .app__body .modal .settings-modal .settings-table .settings-content .appearance-section .theme-elements__header, .app__body .user-settings .authorized-app:not(:last-child)', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .post.post--comment.other--root.current--user .post-comment, .app__body pre', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
         changeCss('.app__body .post.post--comment.other--root.current--user .post-comment, .app__body .more-modal__list .more-modal__row, .app__body .member-div:first-child, .app__body .member-div, .app__body .access-history__table .access__report, .app__body .activity-log__table', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1));
         changeCss('@media(max-width: 1800px){.app__body .inner-wrap.move--left .post.post--comment.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('.app__body .post.post--hovered', 'background:' + changeOpacity(theme.centerChannelColor, 0.08));
         changeCss('.app__body .attachment__body__wrap.btn-close', 'background:' + changeOpacity(theme.centerChannelColor, 0.08));
         changeCss('.app__body .attachment__body__wrap.btn-close', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('@media(min-width: 768px){.app__body .post.a11y--active, .app__body .modal .settings-modal .settings-table .settings-content .section-min:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.08));
+        changeCss('@media(min-width: 768px){.app__body .post.a11y--active, .app__body .modal .settings-modal .settings-table .settings-content .section-min:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.04));
         changeCss('@media(min-width: 768px){.app__body .post.post--editing', 'background:' + changeOpacity(theme.buttonBg, 0.08));
         changeCss('@media(min-width: 768px){.app__body .post.current--user:hover .post__body ', 'background: transparent;');
         changeCss('.app__body .more-modal__row.more-modal__row--selected, .app__body .date-separator.hovered--before:after, .app__body .date-separator.hovered--after:before, .app__body .new-separator.hovered--after:before, .app__body .new-separator.hovered--before:after', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
@@ -523,13 +361,9 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'background:' + changeOpacity(theme.centerChannelColor, 0.1));
         changeCss('.app__body .sidebar--right', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .modal .settings-modal .settings-table .settings-content .appearance-section .theme-elements__body', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
-        if (!UserAgent.isFirefox() && !UserAgent.isInternetExplorer() && !UserAgent.isEdge()) {
-            changeCss('body.app__body ::-webkit-scrollbar-thumb', 'background:' + changeOpacity(theme.centerChannelColor, 0.4));
-        }
         changeCss('body', 'scrollbar-arrow-color:' + theme.centerChannelColor);
-        changeCss('.app__body .post-create__container .post-create-body .btn-file svg, .app__body .post.post--compact .post-image__column .post-image__details svg, .app__body .modal .about-modal .about-modal__logo svg, .app__body .status svg, .app__body .edit-post__actions .icon svg', 'fill:' + theme.centerChannelColor);
+        changeCss('.app__body .post.post--compact .post-image__column .post-image__details svg, .app__body .modal .about-modal .about-modal__logo svg, .app__body .status svg, .app__body .edit-post__actions .icon svg', 'fill:' + theme.centerChannelColor);
         changeCss('.app__body .post-list__new-messages-below', 'background:' + changeColor(theme.centerChannelColor, 0.5));
-        changeCss('.app__body .post.post--comment .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('@media(min-width: 768px){.app__body .post.post--compact.same--root.post--comment .post__content', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker', 'color:' + theme.centerChannelColor);
@@ -550,16 +384,15 @@ export function applyTheme(theme: Theme) {
     }
 
     if (theme.linkColor) {
-        changeCss('.app__body .more-modal__list .a11y--focused, .app__body .post.a11y--focused, .app__body .channel-header.a11y--focused, .app__body .post-create.a11y--focused, .app__body .user-popover.a11y--focused, .app__body .post-message__text.a11y--focused, #archive-link-home>a.a11y--focused', 'box-shadow: inset 0 0 1px 3px ' + changeOpacity(theme.linkColor, 0.5) + ', inset 0 0 0 1px ' + theme.linkColor);
+        changeCss('.app__body .more-modal__list .a11y--focused, .app__body .post.a11y--focused, .app__body .channel-header.a11y--focused, .app__body .post-create.a11y--focused, .app__body .user-popover.a11y--focused, .app__body .post-message__text.a11y--focused', 'box-shadow: inset 0 0 1px 3px ' + changeOpacity(theme.linkColor, 0.5) + ', inset 0 0 0 1px ' + theme.linkColor);
         changeCss('.app__body .a11y--focused', 'box-shadow: 0 0 1px 3px ' + changeOpacity(theme.linkColor, 0.5) + ', 0 0 0 1px ' + theme.linkColor);
-        changeCss('.app__body .channel-header .channel-header__favorites.inactive:hover, .app__body .channel-header__links > a.active, .app__body a, .app__body a:focus, .app__body a:hover, .app__body .channel-header__links > .color--link.active, .app__body .color--link, .app__body a:focus, .app__body .color--link:hover, .app__body .btn, .app__body .btn:focus, .app__body .btn:hover', 'color:' + theme.linkColor);
+        changeCss('.app__body .channel-header .channel-header__favorites.inactive:hover, .app__body a, .app__body a:focus, .app__body a:hover, .app__body .color--link, .app__body a:focus, .app__body .color--link:hover', 'color:' + theme.linkColor);
         changeCss('.app__body .attachment .attachment__container', 'border-left-color:' + changeOpacity(theme.linkColor, 0.5));
-        changeCss('.app__body .channel-header .channel-header_plugin-dropdown a:hover, .app__body .member-list__popover .more-modal__list .more-modal__row:hover', 'background:' + changeOpacity(theme.linkColor, 0.08));
-        changeCss('.app__body .channel-header__links .icon:hover, .app__body .channel-header__links > a.active .icon, .app__body .post .post__reply', 'fill:' + theme.linkColor);
-        changeCss('.app__body .channel-header__links .icon:hover, .app__body .post .card-icon__container.active svg, .app__body .post .post__reply', 'fill:' + theme.linkColor);
+        changeCss('.app__body .channel-header .channel-header_plugin-dropdown a:hover', 'background:' + changeOpacity(theme.linkColor, 0.08));
+        changeCss('.app__body .post .post__reply', 'fill:' + theme.linkColor);
+        changeCss('.app__body .post .card-icon__container.active svg, .app__body .post .post__reply', 'fill:' + theme.linkColor);
         changeCss('.app__body .channel-header .pinned-posts-button:hover svg', 'fill:' + changeOpacity(theme.linkColor, 0.6));
-        changeCss('.app__body .member-list__popover .more-modal__actions svg', 'fill:' + theme.linkColor);
-        changeCss('.app__body .modal-tabs .nav-tabs > li.active, .app__body .channel-header .channel-header_plugin-dropdown a:hover, .app__body .member-list__popover .more-modal__list .more-modal__row:hover', 'border-color:' + theme.linkColor);
+        changeCss('.app__body .channel-header .channel-header_plugin-dropdown a:hover', 'border-color:' + theme.linkColor);
         changeCss('.app__body .channel-header .channel-header_plugin-dropdown a:hover svg', 'fill:' + theme.linkColor);
         changeCss('.app__body .channel-header .dropdown-toggle:hover .heading, .app__body .channel-header .dropdown-toggle:hover .header-dropdown__icon, .app__body .channel-header__title .open .heading, .app__body .channel-header__info .channel-header__title .open .header-dropdown__icon, .app__body .channel-header__title .open .heading, .app__body .channel-header__info .channel-header__title .open .heading', 'color:' + theme.linkColor);
         changeCss('.emoji-picker__container .icon--emoji.active svg', 'fill:' + theme.linkColor);
@@ -570,27 +403,29 @@ export function applyTheme(theme: Theme) {
     }
 
     if (theme.buttonBg) {
-        changeCss('.app__body .modal .settings-modal .profile-img__remove:hover, .app__body .DayPicker:not(.DayPicker--interactionDisabled) .DayPicker-Day:not(.DayPicker-Day--disabled):not(.DayPicker-Day--selected):not(.DayPicker-Day--outside):hover:before, .app__body .modal .settings-modal .team-img__remove:hover, .app__body .btn.btn-transparent:hover, .app__body .btn.btn-transparent:active, .app__body .post-image__details .post-image__download svg:hover, .app__body .file-view--single .file__download:hover, .app__body .new-messages__button div, .app__body .btn.btn-primary, .app__body .tutorial__circles .circle.active', 'background:' + theme.buttonBg);
+        changeCss('.app__body .modal .settings-modal .profile-img__remove:hover, .app__body .DayPicker:not(.DayPicker--interactionDisabled) .DayPicker-Day:not(.DayPicker-Day--disabled):not(.DayPicker-Day--selected):not(.DayPicker-Day--outside):hover:before, .app__body .modal .settings-modal .team-img__remove:hover, .app__body .btn.btn-transparent:hover, .app__body .btn.btn-transparent:active, .app__body .post-image__details .post-image__download svg:hover, .app__body .file-view--single .file__download:hover, .app__body .new-messages__button div, .app__body .tutorial__circles .circle.active', 'background:' + theme.buttonBg);
         changeCss('.app__body .system-notice__logo svg', 'fill:' + theme.buttonBg);
         changeCss('.app__body .post-image__details .post-image__download svg:hover', 'border-color:' + theme.buttonBg);
-        changeCss('.app__body .btn.btn-primary:hover, .app__body .btn.btn-primary:active, .app__body .btn.btn-primary:focus', 'background:' + changeColor(theme.buttonBg, -0.15));
         changeCss('.app__body .emoji-picker .nav-tabs li.active a, .app__body .emoji-picker .nav-tabs li a:hover', 'fill:' + theme.buttonBg);
         changeCss('.app__body .emoji-picker .nav-tabs > li.active > a', 'border-bottom-color:' + theme.buttonBg + '!important;');
+        changeCss('.app__body .btn-primary:hover', 'background:' + blendColors(theme.buttonBg, '#000000', 0.1));
+        changeCss('.app__body .btn-primary:active', 'background:' + blendColors(theme.buttonBg, '#000000', 0.2));
     }
 
     if (theme.buttonColor) {
-        changeCss('.app__body .DayPicker:not(.DayPicker--interactionDisabled) .DayPicker-Day:not(.DayPicker-Day--disabled):not(.DayPicker-Day--selected):not(.DayPicker-Day--outside):hover, .app__body .modal .settings-modal .team-img__remove:hover, .app__body .btn.btn-transparent:hover, .app__body .btn.btn-transparent:active, .app__body .new-messages__button div, .app__body .btn.btn-primary', 'color:' + theme.buttonColor);
+        changeCss('.app__body .DayPicker:not(.DayPicker--interactionDisabled) .DayPicker-Day:not(.DayPicker-Day--disabled):not(.DayPicker-Day--selected):not(.DayPicker-Day--outside):hover, .app__body .modal .settings-modal .team-img__remove:hover, .app__body .btn.btn-transparent:hover, .app__body .btn.btn-transparent:active, .app__body .new-messages__button div', 'color:' + theme.buttonColor);
         changeCss('.app__body .new-messages__button svg', 'fill:' + theme.buttonColor);
         changeCss('.app__body .post-image__details .post-image__download svg:hover, .app__body .file-view--single .file__download svg', 'stroke:' + theme.buttonColor);
     }
 
     if (theme.errorTextColor) {
         changeCss('.app__body .error-text, .app__body .modal .settings-modal .settings-table .settings-content .has-error, .app__body .modal .input__help.error, .app__body .color--error, .app__body .has-error .help-block, .app__body .has-error .control-label, .app__body .has-error .radio, .app__body .has-error .checkbox, .app__body .has-error .radio-inline, .app__body .has-error .checkbox-inline, .app__body .has-error.radio label, .app__body .has-error.checkbox label, .app__body .has-error.radio-inline label, .app__body .has-error.checkbox-inline label', 'color:' + theme.errorTextColor);
+        changeCss('.app__body .btn-danger:hover', 'background:' + blendColors(theme.errorTextColor, '#000000', 0.1));
+        changeCss('.app__body .btn-danger:active', 'background:' + blendColors(theme.errorTextColor, '#000000', 0.2));
     }
 
     if (theme.mentionHighlightBg) {
         changeCss('.app__body .search-highlight', 'background:' + theme.mentionHighlightBg);
-        changeCss('.app__body .post.post--comment .post__body.mention-comment', 'border-color:' + theme.mentionHighlightBg);
         changeCss('.app__body .post.post--highlight', 'background:' + changeOpacity(theme.mentionHighlightBg, 0.5));
     }
 
@@ -763,12 +598,12 @@ function changeCss(className: string, classValue: string) {
     }
 }
 
-function updateCodeTheme(userTheme: string) {
+function updateCodeTheme(codeTheme: string) {
     let cssPath = '';
     Constants.THEME_ELEMENTS.forEach((element) => {
         if (element.id === 'codeTheme') {
-            (element.themes as any).forEach((theme: Theme) => {
-                if (userTheme === theme.id) {
+            element.themes?.forEach((theme) => {
+                if (codeTheme === theme.id) {
                     cssPath = theme.cssURL!;
                 }
             });
@@ -979,10 +814,6 @@ export function setCaretPosition(input: HTMLInputElement, pos: number) {
     setSelectionRange(input, pos, pos);
 }
 
-export function scrollbarWidth(el: HTMLElement) {
-    return el.offsetWidth - el.clientWidth;
-}
-
 export function isValidUsername(name: string) {
     let error;
     if (!name) {
@@ -1028,10 +859,6 @@ export function isValidBotUsername(name: string) {
     }
 
     return error;
-}
-
-export function isMobile() {
-    return getIsMobileView(store.getState());
 }
 
 export function loadImage(
@@ -1359,18 +1186,9 @@ export function clearFileInput(elm: HTMLInputElement) {
     }
 }
 
-export function isPostEphemeral(post: Post) {
-    return post.type === Constants.PostTypes.EPHEMERAL || post.state === Posts.POST_DELETED;
-}
-
-export function getRootId(post: Post) {
-    return post.root_id === '' ? post.id : post.root_id;
-}
-
-export function getRootPost(postList: Post[]) {
-    return postList.find((post) => post.root_id === '');
-}
-
+/**
+ * @deprecated Use react-intl instead, only place its usage can be justified is in the redux actions
+ */
 export function localizeMessage(id: string, defaultMessage?: string) {
     const state = store.getState();
 
@@ -1384,6 +1202,9 @@ export function localizeMessage(id: string, defaultMessage?: string) {
     return translations[id];
 }
 
+/**
+ * @deprecated If possible, use intl.formatMessage instead. If you have to use this, remember to mark the id using `t`
+ */
 export function localizeAndFormatMessage(id: string, defaultMessage: string, template: { [name: string]: any } | undefined) {
     const base = localizeMessage(id, defaultMessage);
 
@@ -1489,7 +1310,7 @@ export function isValidPassword(password: string, passwordConfig: ReturnType<typ
 }
 
 function isChannelOrPermalink(link: string) {
-    let match = (/\/([^/]+)\/channels\/(\S+)/).exec(link);
+    let match = (/\/([a-z0-9\-_]+)\/channels\/([a-z0-9\-__][a-z0-9\-__.]+)/).exec(link);
     if (match) {
         return {
             type: 'channel',
@@ -1497,7 +1318,7 @@ function isChannelOrPermalink(link: string) {
             channelName: match[2],
         };
     }
-    match = (/\/([^/]+)\/pl\/(\w+)/).exec(link);
+    match = (/\/([a-z0-9\-__]+)\/pl\/([a-z0-9]+)/).exec(link);
     if (match) {
         return {
             type: 'permalink',
@@ -1670,19 +1491,6 @@ export function moveCursorToEnd(e: React.MouseEvent | React.FocusEvent) {
     }
 }
 
-export function compareChannels(a: Channel, b: Channel) {
-    const aDisplayName = a.display_name.toUpperCase();
-    const bDisplayName = b.display_name.toUpperCase();
-    const result = aDisplayName.localeCompare(bDisplayName);
-    if (result !== 0) {
-        return result;
-    }
-
-    const aName = a.name.toUpperCase();
-    const bName = b.name.toUpperCase();
-    return aName.localeCompare(bName);
-}
-
 export function setCSRFFromCookie() {
     if (typeof document !== 'undefined' && typeof document.cookie !== 'undefined') {
         const cookies = document.cookie.split(';');
@@ -1693,68 +1501,6 @@ export function setCSRFFromCookie() {
                 break;
             }
         }
-    }
-}
-
-/**
- * Get closest parent which match selector
- */
-export function getClosestParent(elem: HTMLElement, selector: string) {
-    // Element.matches() polyfill
-    if (!Element.prototype.matches) {
-        Element.prototype.matches =
-            (Element.prototype as any).matchesSelector ||
-            (Element.prototype as any).mozMatchesSelector ||
-            (Element.prototype as any).msMatchesSelector ||
-            (Element.prototype as any).oMatchesSelector ||
-            (Element.prototype as any).webkitMatchesSelector ||
-            ((s) => {
-                // @ts-expect-error // TODO: resolve this typing and see if using function this is necessary
-                const matches = (this.document || this.ownerDocument).querySelectorAll(s);
-                let i = matches.length - 1;
-
-                // @ts-expect-error // TODO: resolve this typing and see if using function this is necessary
-                while (i >= 0 && matches.item(i) !== this) {
-                    i--;
-                }
-                return i > -1;
-            });
-    }
-
-    // Get the closest matching element
-    let currentElem = elem;
-
-    // @ts-expect-error // TODO: resolve this typing and see if using function this is necessary
-    for (; currentElem && currentElem !== document; currentElem = currentElem.parentNode) {
-        if (currentElem.matches(selector)) {
-            return currentElem;
-        }
-    }
-    return null;
-}
-
-/**
- * Adjust selection to correct text when there is Italic markdown (_) around selected text.
- */
-export function adjustSelection(inputBox: HTMLInputElement, e: React.SyntheticEvent<TextboxElement>) {
-    const el = e.target as TextboxElement;
-    const {selectionEnd, selectionStart, value} = el;
-
-    if (selectionStart === selectionEnd) {
-        // nothing selected.
-        return;
-    }
-
-    e.preventDefault();
-
-    const firstUnderscore = value.charAt(selectionStart!) === '_';
-    const lastUnderscore = value.charAt(selectionEnd! - 1) === '_';
-
-    const spaceBefore = value.charAt(selectionStart! - 1) === ' ';
-    const spaceAfter = value.charAt(selectionEnd!) === ' ';
-
-    if (firstUnderscore && lastUnderscore && (spaceBefore || spaceAfter)) {
-        setSelectionRange(inputBox, selectionStart! + 1, selectionEnd! - 1);
     }
 }
 
@@ -1781,6 +1527,26 @@ export function deleteKeysFromObject(value: Record<string, any>, keys: string[])
 function isSelection() {
     const selection = window.getSelection();
     return selection!.type === 'Range';
+}
+
+export function isTextSelectedInPostOrReply(e: React.KeyboardEvent | KeyboardEvent) {
+    const {id} = e.target as HTMLElement;
+
+    const isTypingInPost = id === 'post_textbox';
+    const isTypingInReply = id === 'reply_textbox';
+
+    if (!isTypingInPost && !isTypingInReply) {
+        return false;
+    }
+
+    const {
+        selectionStart,
+        selectionEnd,
+    } = e.target as TextboxElement;
+
+    const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
+
+    return hasSelection;
 }
 
 /*
@@ -1924,9 +1690,9 @@ const TrackFlowSources: Record<string, string> = {
 };
 
 function getTrackFlowSource() {
-    if (isMobile()) {
+    if (UserAgent.isMobile()) {
         return TrackFlowSources.wm;
-    } else if (isDesktopApp()) {
+    } else if (UserAgent.isDesktopApp()) {
         return TrackFlowSources.d;
     }
     return TrackFlowSources.wd;
@@ -1960,4 +1726,24 @@ export function getBlankAddressWithCountry(country?: string): Address {
         postal_code: '',
         state: '',
     };
+}
+
+export function generateSlug(): string {
+    return crypto.randomBytes(16).toString('hex');
+}
+export function sortUsersAndGroups(a: UserProfile | Group, b: UserProfile | Group) {
+    let aSortString = '';
+    let bSortString = '';
+    if ('username' in a) {
+        aSortString = a.username;
+    } else {
+        aSortString = a.name;
+    }
+    if ('username' in b) {
+        bSortString = b.username;
+    } else {
+        bSortString = b.name;
+    }
+
+    return aSortString.localeCompare(bSortString);
 }

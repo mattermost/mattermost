@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 var randomJPEG []byte
@@ -89,7 +89,6 @@ func BenchmarkUploadFile(b *testing.B) {
 				}
 				th.App.Srv().Store().FileInfo().PermanentDelete(info1.Id)
 				th.App.RemoveFile(info1.Path)
-
 			},
 		},
 		{

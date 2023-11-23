@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {shallow} from 'enzyme';
 
 import RequestButton from 'components/admin_console/request_button/request_button';
 
@@ -18,13 +18,13 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
                 requestAction={emptyFunction}
                 helpText={
                     <FormattedMessage
-                        id='test'
+                        id='test1'
                         defaultMessage='Help Text'
                     />
                 }
                 buttonText={
                     <FormattedMessage
-                        id='test'
+                        id='test2'
                         defaultMessage='Button Text'
                     />
                 }
@@ -42,13 +42,13 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
                 requestAction={requestActionSuccess}
                 helpText={
                     <FormattedMessage
-                        id='test'
+                        id='test1'
                         defaultMessage='Help Text'
                     />
                 }
                 buttonText={
                     <FormattedMessage
-                        id='test'
+                        id='test2'
                         defaultMessage='Button Text'
                     />
                 }
@@ -72,13 +72,13 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
                 requestAction={requestActionSuccess}
                 helpText={
                     <FormattedMessage
-                        id='test'
+                        id='test1'
                         defaultMessage='Help Text'
                     />
                 }
                 buttonText={
                     <FormattedMessage
-                        id='test'
+                        id='test2'
                         defaultMessage='Button Text'
                     />
                 }
@@ -102,13 +102,13 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
                 requestAction={requestActionSuccess}
                 helpText={
                     <FormattedMessage
-                        id='test'
+                        id='test1'
                         defaultMessage='Help Text'
                     />
                 }
                 buttonText={
                     <FormattedMessage
-                        id='test'
+                        id='test2'
                         defaultMessage='Button Text'
                     />
                 }
@@ -129,13 +129,13 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
                 requestAction={requestActionSuccess}
                 helpText={
                     <FormattedMessage
-                        id='test'
+                        id='test1'
                         defaultMessage='Help Text'
                     />
                 }
                 buttonText={
                     <FormattedMessage
-                        id='test'
+                        id='test2'
                         defaultMessage='Button Text'
                     />
                 }
@@ -164,13 +164,13 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
                 requestAction={requestActionFailure}
                 helpText={
                     <FormattedMessage
-                        id='test'
+                        id='test1'
                         defaultMessage='Help Text'
                     />
                 }
                 buttonText={
                     <FormattedMessage
-                        id='test'
+                        id='test2'
                         defaultMessage='Button Text'
                     />
                 }
@@ -191,13 +191,13 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
                 requestAction={requestActionFailure}
                 helpText={
                     <FormattedMessage
-                        id='test'
+                        id='test1'
                         defaultMessage='Help Text'
                     />
                 }
                 buttonText={
                     <FormattedMessage
-                        id='test'
+                        id='test2'
                         defaultMessage='Button Text'
                     />
                 }

@@ -5,14 +5,17 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {Role} from '@mattermost/types/roles';
+import type {Role} from '@mattermost/types/roles';
 
-import {t} from 'utils/i18n';
-import {getHistory} from 'utils/browser_history';
-
-import FormattedAdminHeader from 'components/widgets/admin_console/formatted_admin_header';
+import DataGrid from 'components/admin_console/data_grid/data_grid';
+import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
-import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
+
+import {getHistory} from 'utils/browser_history';
+import {t} from 'utils/i18n';
+
+import './system_roles.scss';
 
 type Props = {
     roles: Record<string, Role>;
@@ -41,8 +44,6 @@ const columns: Column[] = [
         textAlign: 'right',
     },
 ];
-
-import './system_roles.scss';
 
 export default class SystemRoles extends React.PureComponent<Props> {
     render() {
@@ -78,11 +79,12 @@ export default class SystemRoles extends React.PureComponent<Props> {
 
         return (
             <div className='wrapper--fixed'>
-                <FormattedAdminHeader
-                    id='admin.permissions.systemRoles'
-                    defaultMessage='System Roles'
-                />
-
+                <AdminHeader>
+                    <FormattedMessage
+                        id='admin.permissions.systemRoles'
+                        defaultMessage='System Roles'
+                    />
+                </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <AdminPanel

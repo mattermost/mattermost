@@ -3,10 +3,10 @@
 
 import {combineReducers} from 'redux';
 
-import {GeneralTypes} from 'mattermost-redux/action_types';
+import type {GeneralRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
 
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {GeneralRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+import {GeneralTypes} from 'mattermost-redux/action_types';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {handleRequest, initialRequestState} from './helpers';
 

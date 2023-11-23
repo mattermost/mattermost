@@ -8,13 +8,13 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
+func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
 	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
 		return nil, err
@@ -31,7 +31,6 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID stri
 
 	acknowledgedAt := model.GetMillis()
 	acknowledgement, nErr := a.Srv().Store().PostAcknowledgement().Save(postID, userID, acknowledgedAt)
-
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
@@ -40,6 +39,10 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID stri
 		default:
 			return nil, model.NewAppError("SaveAcknowledgementForPost", "app.acknowledgement.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+	}
+
+	if appErr := a.ResolvePersistentNotification(c, post, userID); appErr != nil {
+		return nil, appErr
 	}
 
 	// The post is always modified since the UpdateAt always changes
@@ -52,7 +55,7 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID stri
 	return acknowledgement, nil
 }
 
-func (a *App) DeleteAcknowledgementForPost(c *request.Context, postID, userID string) *model.AppError {
+func (a *App) DeleteAcknowledgementForPost(c request.CTX, postID, userID string) *model.AppError {
 	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
 		return err
@@ -123,7 +126,7 @@ func (a *App) GetAcknowledgementsForPostList(postList *model.PostList) (map[stri
 	return acknowledgementsMap, nil
 }
 
-func (a *App) sendAcknowledgementEvent(event string, acknowledgement *model.PostAcknowledgement, post *model.Post) {
+func (a *App) sendAcknowledgementEvent(event model.WebsocketEventType, acknowledgement *model.PostAcknowledgement, post *model.Post) {
 	// send out that a acknowledgement has been added/removed
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil, "")
 

@@ -6,9 +6,9 @@ package platform
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type webSocketHandler interface {
@@ -36,7 +36,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		return
 	}
 
-	if r.Action == model.WebsocketAuthenticationChallenge {
+	if r.Action == string(model.WebsocketAuthenticationChallenge) {
 		if conn.GetSessionToken() != "" {
 			return
 		}

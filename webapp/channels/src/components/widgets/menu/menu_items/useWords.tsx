@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
 import React from 'react';
+import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
-import {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
 
-import {limitThresholds, asGBString, inK, LimitTypes} from 'utils/limits';
-import {t} from 'utils/i18n';
-
+import type {LimitSummary} from 'components/common/hooks/useGetHighestThresholdCloudLimit';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import {LimitSummary} from 'components/common/hooks/useGetHighestThresholdCloudLimit';
 import NotifyAdminCTA from 'components/notify_admin_cta/notify_admin_cta';
+
 import {MattermostFeatures, LicenseSkus} from 'utils/constants';
+import {t} from 'utils/i18n';
+import {limitThresholds, asGBString, inK, LimitTypes} from 'utils/limits';
 
 interface Words {
     title: React.ReactNode;
@@ -118,7 +119,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
                 id: 'workspace_limits.menu_limit.messages',
                 defaultMessage: 'Total messages',
             }),
-            description: intl.formatMessage(
+            description: intl.formatMessage<ReactNode>(
                 {
                     id,
                     defaultMessage,
@@ -150,7 +151,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
                 id: 'workspace_limits.menu_limit.file_storage',
                 defaultMessage: 'File storage limit',
             }),
-            description: intl.formatMessage(
+            description: intl.formatMessage<ReactNode>(
                 {
                     id,
                     defaultMessage,

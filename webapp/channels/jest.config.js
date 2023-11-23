@@ -26,12 +26,10 @@ const config = {
         '^mattermost-redux/test/(.*)$':
             '<rootDir>/src/packages/mattermost-redux/test/$1',
         '^mattermost-redux/(.*)$': '<rootDir>/src/packages/mattermost-redux/src/$1',
-        '^reselect$': '<rootDir>/src/packages/reselect/src',
         '^.+\\.(jpg|jpeg|png|apng|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
             'identity-obj-proxy',
         '^.+\\.(css|less|scss)$': 'identity-obj-proxy',
         '^.*i18n.*\\.(json)$': '<rootDir>/src/tests/i18n_mock.json',
-        '^bundle-loader\\?lazy\\!(.*)$': '$1',
     },
     moduleDirectories: ['src', 'node_modules'],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
@@ -40,17 +38,23 @@ const config = {
         ['jest-junit', {outputDirectory: 'build', outputName: 'test-results.xml'}],
     ],
     transformIgnorePatterns: [
-        'node_modules/(?!react-native|react-router|p-queue|p-timeout|@mattermost/compass-components|@mattermost/compass-icons)',
+        'node_modules/(?!react-native|react-router|p-queue|p-timeout|@mattermost/compass-components|@mattermost/compass-icons|cidr-regex|ip-regex)',
     ],
     setupFiles: ['jest-canvas-mock'],
-    setupFilesAfterEnv: ['<rootDir>/src/tests/setup.js'],
+    setupFilesAfterEnv: ['<rootDir>/src/tests/setup_jest.ts'],
     testEnvironment: 'jsdom',
     testTimeout: 60000,
-    testURL: 'http://localhost:8065',
+    testEnvironmentOptions: {
+        url: 'http://localhost:8065',
+    },
     watchPlugins: [
         'jest-watch-typeahead/filename',
         'jest-watch-typeahead/testname',
     ],
+    snapshotFormat: {
+        escapeString: true,
+        printBasicPrototype: true,
+    },
 };
 
 module.exports = config;

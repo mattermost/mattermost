@@ -13,23 +13,25 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/retrylayer"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/retrylayer"
 )
 
-func TestReactionStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("ReactionSave", func(t *testing.T) { testReactionSave(t, ss) })
-	t.Run("ReactionDelete", func(t *testing.T) { testReactionDelete(t, ss) })
-	t.Run("ReactionGetForPost", func(t *testing.T) { testReactionGetForPost(t, ss) })
-	t.Run("ReactionGetForPostSince", func(t *testing.T) { testReactionGetForPostSince(t, ss, s) })
-	t.Run("ReactionDeleteAllWithEmojiName", func(t *testing.T) { testReactionDeleteAllWithEmojiName(t, ss, s) })
-	t.Run("PermanentDeleteBatch", func(t *testing.T) { testReactionStorePermanentDeleteBatch(t, ss) })
-	t.Run("ReactionBulkGetForPosts", func(t *testing.T) { testReactionBulkGetForPosts(t, ss) })
-	t.Run("ReactionDeadlock", func(t *testing.T) { testReactionDeadlock(t, ss) })
+func TestReactionStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("ReactionSave", func(t *testing.T) { testReactionSave(t, rctx, ss) })
+	t.Run("ReactionDelete", func(t *testing.T) { testReactionDelete(t, rctx, ss) })
+	t.Run("ReactionGetForPost", func(t *testing.T) { testReactionGetForPost(t, rctx, ss) })
+	t.Run("ReactionGetForPostSince", func(t *testing.T) { testReactionGetForPostSince(t, rctx, ss, s) })
+	t.Run("ReactionDeleteAllWithEmojiName", func(t *testing.T) { testReactionDeleteAllWithEmojiName(t, rctx, ss, s) })
+	t.Run("PermanentDeleteByUser", func(t *testing.T) { testPermanentDeleteByUser(t, rctx, ss) })
+	t.Run("PermanentDeleteBatch", func(t *testing.T) { testReactionStorePermanentDeleteBatch(t, rctx, ss) })
+	t.Run("ReactionBulkGetForPosts", func(t *testing.T) { testReactionBulkGetForPosts(t, rctx, ss) })
+	t.Run("ReactionDeadlock", func(t *testing.T) { testReactionDeadlock(t, rctx, ss) })
 }
 
-func testReactionSave(t *testing.T, ss store.Store) {
+func testReactionSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	post, err := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
@@ -118,9 +120,19 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	_, nErr = ss.Reaction().Save(reaction5)
 	require.Error(t, nErr, "should've failed for invalid reaction")
 
+	t.Run("channel not found", func(t *testing.T) {
+		// invalid reaction
+		reaction5 := &model.Reaction{
+			UserId:    reaction1.UserId,
+			PostId:    model.NewId(), // Unknown PostId
+			EmojiName: model.NewId(),
+		}
+		_, nErr = ss.Reaction().Save(reaction5)
+		require.Error(t, nErr, "should've failed because postId doesn't belong to a stored post")
+	})
 }
 
-func testReactionDelete(t *testing.T, ss store.Store) {
+func testReactionDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Delete", func(t *testing.T) {
 		post, err := ss.Post().Save(&model.Post{
 			ChannelId: model.NewId(),
@@ -190,7 +202,7 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 	})
 }
 
-func testReactionGetForPost(t *testing.T, ss store.Store) {
+func testReactionGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 	// create post
 	post, err := ss.Post().Save(&model.Post{
@@ -292,7 +304,7 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 	}
 }
 
-func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
+func testReactionGetForPostSince(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	now := model.GetMillis()
 	later := now + 1800000 // add 30 minutes
 	remoteId := model.NewId()
@@ -345,13 +357,13 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 	}
 
 	for _, reaction := range reactions {
-		delete := reaction.DeleteAt
+		del := reaction.DeleteAt
 		update := reaction.UpdateAt
 
 		_, err := ss.Reaction().Save(reaction)
 		require.NoError(t, err)
 
-		if delete > 0 {
+		if del > 0 {
 			_, err = ss.Reaction().Delete(reaction)
 			require.NoError(t, err)
 		}
@@ -371,7 +383,6 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 		for _, r := range returned {
 			assert.Zero(t, r.DeleteAt, "should not have returned deleted reaction")
 		}
-
 	})
 
 	t.Run("reactions since, incl deleted", func(t *testing.T) {
@@ -386,7 +397,6 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 			}
 		}
 		assert.Equal(t, 1, count, "should not have returned 1 deleted reaction")
-
 	})
 
 	t.Run("reactions since, filter remoteId", func(t *testing.T) {
@@ -458,7 +468,7 @@ func forceNULL(reaction *model.Reaction, s SqlStore) error {
 	return nil
 }
 
-func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore) {
+func testReactionDeleteAllWithEmojiName(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	emojiToDelete := model.NewId()
 
 	post, err1 := ss.Post().Save(&model.Post{
@@ -550,10 +560,94 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore
 	postList, err = ss.Post().Get(context.Background(), post3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	assert.False(t, postList.Posts[post3.Id].HasReactions, "post shouldn't have reactions any more")
-
 }
 
-func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
+func testPermanentDeleteByUser(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId := model.NewId()
+	post, err1 := ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+	})
+	require.NoError(t, err1)
+	post2, err2 := ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+	})
+	require.NoError(t, err2)
+	post3, err3 := ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+	})
+	require.NoError(t, err3)
+
+	reactions := []*model.Reaction{
+		{
+			UserId:    userId,
+			PostId:    post.Id,
+			EmojiName: "happy",
+		},
+		{
+			UserId:    model.NewId(),
+			PostId:    post.Id,
+			EmojiName: "smile",
+		},
+		{
+			UserId:    model.NewId(),
+			PostId:    post.Id,
+			EmojiName: "sad",
+		},
+		{
+			UserId:    userId,
+			PostId:    post2.Id,
+			EmojiName: "angry",
+		},
+		{
+			UserId:    userId,
+			PostId:    post3.Id,
+			EmojiName: "joy",
+		},
+	}
+
+	for _, reaction := range reactions {
+		_, err := ss.Reaction().Save(reaction)
+		require.NoError(t, err)
+	}
+
+	err := ss.Reaction().PermanentDeleteByUser(userId)
+	require.NoError(t, err)
+
+	// check that the reactions were deleted
+	returned, err := ss.Reaction().GetForPost(post.Id, false)
+	require.NoError(t, err)
+	require.Len(t, returned, 2, "should only have removed reaction for user")
+
+	for _, reaction := range returned {
+		assert.NotEqual(t, reaction.EmojiName, "happy", "should've removed reaction with emoji name")
+	}
+
+	returned, err = ss.Reaction().GetForPost(post2.Id, false)
+	require.NoError(t, err)
+	require.Len(t, returned, 0, "should have removed reaction for user")
+
+	returned, err = ss.Reaction().GetForPost(post3.Id, false)
+	require.NoError(t, err)
+	require.Len(t, returned, 0, "should remove reaction for user")
+
+	// check that the posts are updated
+	postList, err := ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	require.NoError(t, err)
+	assert.True(t, postList.Posts[post.Id].HasReactions, "post should still have reactions")
+
+	postList, err = ss.Post().Get(context.Background(), post2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	require.NoError(t, err)
+	assert.False(t, postList.Posts[post2.Id].HasReactions, "post shouldn't have reactions any more")
+
+	postList, err = ss.Post().Get(context.Background(), post3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	require.NoError(t, err)
+	assert.False(t, postList.Posts[post3.Id].HasReactions, "post shouldn't have reactions any more")
+}
+
+func testReactionStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {
 	const limit = 1000
 	team, err := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
@@ -610,8 +704,20 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	_, _, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(0, 2000, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 
-	_, err = ss.Reaction().DeleteOrphanedRows(limit)
+	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
 	require.NoError(t, err)
+	require.Equal(t, 1, len(rows))
+	require.Equal(t, 1, len(rows[0].Ids))
+	require.Contains(t, rows[0].Ids, olderPost.Id)
+
+	for _, row := range rows {
+		err = ss.Reaction().DeleteOrphanedRowsByIds(row)
+		require.NoError(t, err)
+	}
+
+	rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(rows))
 
 	returned, err := ss.Reaction().GetForPost(olderPost.Id, false)
 	require.NoError(t, err)
@@ -622,7 +728,7 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	require.Len(t, returned, 1, "reactions for newer post should not have been deleted")
 }
 
-func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {
+func testReactionBulkGetForPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 	post, _ := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
@@ -697,12 +803,11 @@ func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {
 	}
 
 	require.False(t, post4IdFound, "Wrong reaction returned")
-
 }
 
 // testReactionDeadlock is a best-case attempt to recreate the deadlock scenario.
 // It at least deadlocks 2 times out of 5.
-func testReactionDeadlock(t *testing.T, ss store.Store) {
+func testReactionDeadlock(t *testing.T, rctx request.CTX, ss store.Store) {
 	ss = retrylayer.New(ss)
 
 	post, err := ss.Post().Save(&model.Post{

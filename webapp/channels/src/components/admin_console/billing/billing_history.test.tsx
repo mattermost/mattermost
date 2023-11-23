@@ -3,21 +3,15 @@
 
 import React from 'react';
 
-import {Provider} from 'react-redux';
-
-import {shallow} from 'enzyme';
-import {screen} from '@testing-library/react';
-
-import {renderWithIntlAndStore} from 'tests/react_testing_utils';
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
-
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {CloudLinks, HostedCustomerLinks} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
+
 import BillingHistory, {NoBillingHistorySection} from './billing_history';
 
 const NO_INVOICES_LEGEND = 'All of your invoices will be shown here';
 
-const invoiceA = {
+const invoiceA = TestHelper.getInvoiceMock({
     id: 'in_1KNb3DI67GP2qpb4ueaJYBt8',
     number: '87030375-0015',
     create_at: 1643540071000,
@@ -35,13 +29,13 @@ const invoiceA = {
             quantity: 1,
             price_per_unit: 1000,
             description:
-                                    '1 × Cloud Professional (at $10.00 / month)',
+                '1 × Cloud Professional (at $10.00 / month)',
             type: 'onpremise',
             metadata: {},
         },
     ],
-};
-const invoiceB = {
+});
+const invoiceB = TestHelper.getInvoiceMock({
     id: 'in_1KIWNTI67GP2qpb4KjGj1KAy',
     number: '87030375-0013',
     create_at: 1642330467000,
@@ -59,12 +53,12 @@ const invoiceB = {
             quantity: 1,
             price_per_unit: 1000,
             description:
-                                    'Trial period for Cloud Professional',
+                'Trial period for Cloud Professional',
             type: 'onpremise',
             metadata: {},
         },
     ],
-};
+});
 
 describe('components/admin_console/billing/billing_history', () => {
     // required state to mount using the provider
@@ -96,15 +90,20 @@ describe('components/admin_console/billing/billing_history', () => {
         views: {},
     };
 
-    const store = mockStore(state);
-
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <Provider store={store}>
-                <BillingHistory/>
-            </Provider>,
+    test('should match the default state of the component with given props', () => {
+        renderWithContext(
+            <BillingHistory/>,
+            state,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        expect(screen.queryByText('Billing History')).toBeInTheDocument();
+        expect(screen.queryByText('Transactions')).toBeInTheDocument();
+        expect(screen.queryByText('All of your invoices will be shown here')).toBeInTheDocument();
+        expect(screen.getByTestId(invoiceA.number)).toHaveTextContent((invoiceA.total / 100.0).toString());
+        expect(screen.getByTestId(invoiceB.number)).toHaveTextContent((invoiceB.total / 100.0).toString());
+
+        expect(screen.getByTestId(invoiceA.id)).toHaveTextContent('Pending');
+        expect(screen.getByTestId(invoiceB.id)).toHaveTextContent('Paid');
     });
 
     test('Billing history section shows template when no invoices have been emitted yet', () => {
@@ -112,43 +111,51 @@ describe('components/admin_console/billing/billing_history', () => {
             ...state,
             entities: {...state.entities, cloud: {invoices: {}, errors: {}}},
         };
-        const storeNoBillingHistory = mockStore(noBillingHistoryState);
-        const wrapper = mountWithIntl(
-            <Provider store={storeNoBillingHistory}>
-                <BillingHistory/>
-            </Provider>,
+        renderWithContext(
+            <BillingHistory/>,
+            noBillingHistoryState,
         );
 
-        const legend = wrapper.find(
-            '.BillingHistory__cardHeaderText-bottom span',
-        );
-        expect(legend.text()).toBe(NO_INVOICES_LEGEND);
+        expect(screen.queryByText('Date')).not.toBeInTheDocument();
+        expect(screen.queryByText('Description')).not.toBeInTheDocument();
+        expect(screen.queryByText('Total')).not.toBeInTheDocument();
+        expect(screen.queryByText('Status')).not.toBeInTheDocument();
+
+        expect(screen.queryByTestId(invoiceA.number)).not.toBeInTheDocument();
+        expect(screen.queryByTestId(invoiceB.number)).not.toBeInTheDocument();
+
+        expect(screen.queryByTestId(invoiceA.id)).not.toBeInTheDocument();
+        expect(screen.queryByTestId(invoiceB.id)).not.toBeInTheDocument();
+
+        expect(screen.getByRole('link')).toHaveAttribute('href', CloudLinks.BILLING_DOCS + '?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=billing_history&uid=current_user_id&sid=');
+        expect(screen.getByRole('link')).toHaveTextContent('See how billing works');
+        expect(screen.getByTestId('no-invoices')).toHaveTextContent(NO_INVOICES_LEGEND);
     });
 
     test('Billing history section shows two invoices to download', () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <BillingHistory/>
-            </Provider>,
+        renderWithContext(
+            <BillingHistory/>,
+            state,
         );
 
-        const invoiceTableRows = wrapper.find('table.BillingHistory__table tr.BillingHistory__table-row');
+        expect(screen.queryByText('Date')).toBeInTheDocument();
+        expect(screen.queryByText('Description')).toBeInTheDocument();
+        expect(screen.queryByText('Total')).toBeInTheDocument();
+        expect(screen.queryByText('Status')).toBeInTheDocument();
 
-        expect(invoiceTableRows.length).toBe(2);
+        expect(screen.getAllByTestId('billingHistoryTableRow')).toHaveLength(2);
     });
 
     test('Billing history section download button has the target property set as _self so it works well in desktop app', () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <BillingHistory/>
-            </Provider>,
+        renderWithContext(
+            <BillingHistory/>,
+            state,
         );
 
-        const invoiceTableRow = wrapper.find('table.BillingHistory__table tr.BillingHistory__table-row').at(0);
-
-        const downloadLink = invoiceTableRow.find('td.BillingHistory__table-invoice a');
-
-        expect(downloadLink.prop('target')).toBe('_self');
+        expect(screen.getByTestId(`billingHistoryLink-${invoiceA.id}`)).toHaveAttribute('target', '_self');
+        expect(screen.getByTestId(`billingHistoryLink-${invoiceB.id}`)).toHaveAttribute('target', '_self');
+        expect(screen.getByTestId(`billingHistoryLink-${invoiceA.id}`)).toHaveAttribute('href', '/api/v4/cloud/subscription/invoices/in_1KNb3DI67GP2qpb4ueaJYBt8/pdf');
+        expect(screen.getByTestId(`billingHistoryLink-${invoiceB.id}`)).toHaveAttribute('href', '/api/v4/cloud/subscription/invoices/in_1KIWNTI67GP2qpb4KjGj1KAy/pdf');
     });
 });
 
@@ -190,43 +197,56 @@ describe('BillingHistory -- self-hosted', () => {
             ...state,
             entities: {...state.entities, hostedCustomer: {invoices: {invoices: {}, invoicesLoaded: true}, errors: {}}},
         };
-        const storeNoBillingHistory = mockStore(noBillingHistoryState);
-        const wrapper = mountWithIntl(
-            <Provider store={storeNoBillingHistory}>
-                <BillingHistory/>
-            </Provider>,
+        renderWithContext(
+            <BillingHistory/>,
+            noBillingHistoryState,
         );
 
-        const legend = wrapper.find(
-            '.BillingHistory__cardHeaderText-bottom span',
-        );
-        expect(legend.text()).toBe(NO_INVOICES_LEGEND);
+        expect(screen.queryByText('Date')).not.toBeInTheDocument();
+        expect(screen.queryByText('Description')).not.toBeInTheDocument();
+        expect(screen.queryByText('Total')).not.toBeInTheDocument();
+        expect(screen.queryByText('Status')).not.toBeInTheDocument();
+
+        expect(screen.queryByTestId(invoiceA.number)).not.toBeInTheDocument();
+        expect(screen.queryByTestId(invoiceB.number)).not.toBeInTheDocument();
+
+        expect(screen.queryByTestId(invoiceA.id)).not.toBeInTheDocument();
+        expect(screen.queryByTestId(invoiceB.id)).not.toBeInTheDocument();
+
+        expect(screen.getByRole('link')).toHaveAttribute('href', HostedCustomerLinks.SELF_HOSTED_BILLING + '?utm_source=mattermost&utm_medium=in-product&utm_content=billing_history&uid=current_user_id&sid=');
+        expect(screen.getByRole('link')).toHaveTextContent('See how billing works');
+        expect(screen.getByTestId('no-invoices')).toHaveTextContent(NO_INVOICES_LEGEND);
     });
 
     test('Billing history section shows two invoices to download', () => {
-        const store = mockStore(state);
-
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <BillingHistory/>
-            </Provider>,
+        renderWithContext(
+            <BillingHistory/>,
+            state,
         );
 
-        const invoiceTableRows = wrapper.find('table.BillingHistory__table tr.BillingHistory__table-row');
-
-        expect(invoiceTableRows.length).toBe(2);
+        expect(screen.queryByText('Date')).toBeInTheDocument();
+        expect(screen.queryByText('Description')).toBeInTheDocument();
+        expect(screen.queryByText('Total')).toBeInTheDocument();
+        expect(screen.queryByText('Status')).toBeInTheDocument();
+        expect(screen.getAllByTestId('billingHistoryTableRow')).toHaveLength(2);
     });
 });
 
 describe('NoBillingHistorySection', () => {
     const state = {entities: {users: {}, general: {config: {}, license: {}}}} as any;
     test('goes to cloud docs on cloud', () => {
-        renderWithIntlAndStore(<NoBillingHistorySection selfHosted={false}/>, state);
+        renderWithContext(
+            <NoBillingHistorySection selfHosted={false}/>,
+            state,
+        );
         expect((screen.getByRole('link') as HTMLAnchorElement).href).toContain(CloudLinks.BILLING_DOCS);
     });
 
     test('goes to self-hosted docs on self-hosted', () => {
-        renderWithIntlAndStore(<NoBillingHistorySection selfHosted={true}/>, state);
+        renderWithContext(
+            <NoBillingHistorySection selfHosted={true}/>,
+            state,
+        );
         expect((screen.getByRole('link') as HTMLAnchorElement).href).toContain(HostedCustomerLinks.SELF_HOSTED_BILLING);
     });
 });

@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import SettingsSidebar from './settings_sidebar';
 

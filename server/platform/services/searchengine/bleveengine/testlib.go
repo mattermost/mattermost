@@ -4,16 +4,16 @@
 package bleveengine
 
 import (
-	"fmt"
+	"strconv"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func createPost(userId string, channelId string) *model.Post {
 	post := &model.Post{
 		Message:       model.NewRandomString(15),
 		ChannelId:     channelId,
-		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		PendingPostId: model.NewId() + ":" + strconv.FormatInt(model.GetMillis(), 10),
 		UserId:        userId,
 		CreateAt:      1000000,
 	}

@@ -4,11 +4,12 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {SearchFilterType} from '../search/types';
-import {SearchType} from 'types/store/rhs';
+import type {SearchFilterType} from 'components/search/types';
 
-import * as Utils from 'utils/utils';
 import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+
+import type {SearchType} from 'types/store/rhs';
 
 import FilesFilterMenu from './files_filter_menu';
 
@@ -32,7 +33,7 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
             <div className='buttons-container'>
                 <button
                     onClick={() => props.onChange('messages')}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLSpanElement>) => Utils.isKeyPressed(e, KeyCodes.ENTER) && props.onChange('messages')}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLSpanElement>) => Keyboard.isKeyPressed(e, KeyCodes.ENTER) && props.onChange('messages')}
                     className={props.selected === 'messages' ? 'active tab messages-tab' : 'tab messages-tab'}
                 >
                     <FormattedMessage
@@ -44,7 +45,7 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
                 {props.isFileAttachmentsEnabled &&
                     <button
                         onClick={() => props.onChange('files')}
-                        onKeyDown={(e: React.KeyboardEvent<HTMLSpanElement>) => Utils.isKeyPressed(e, KeyCodes.ENTER) && props.onChange('files')}
+                        onKeyDown={(e: React.KeyboardEvent<HTMLSpanElement>) => Keyboard.isKeyPressed(e, KeyCodes.ENTER) && props.onChange('files')}
                         className={props.selected === 'files' ? 'active tab files-tab' : 'tab files-tab'}
                     >
                         <FormattedMessage

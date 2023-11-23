@@ -3,8 +3,9 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import Icon from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
+
 import Heading from '@mattermost/compass-components/components/heading'; // eslint-disable-line no-restricted-imports
+import glyphMap, {ProductChannelsIcon} from '@mattermost/compass-icons/components';
 
 import {useCurrentProduct} from 'utils/products';
 
@@ -20,12 +21,11 @@ const ProductBrandingContainer = styled.div`
 const ProductBranding = (): JSX.Element => {
     const currentProduct = useCurrentProduct();
 
+    const Icon = currentProduct?.switcherIcon ? glyphMap[currentProduct.switcherIcon] : ProductChannelsIcon;
+
     return (
         <ProductBrandingContainer tabIndex={0}>
-            <Icon
-                size={20}
-                glyph={currentProduct && typeof currentProduct.switcherIcon === 'string' ? currentProduct.switcherIcon : 'product-channels'}
-            />
+            <Icon size={24}/>
             <Heading
                 element='h1'
                 size={200}

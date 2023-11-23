@@ -4,8 +4,8 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
-	ejobs "github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/jobs"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	ejobs "github.com/mattermost/mattermost/server/v8/einterfaces/jobs"
 )
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
@@ -50,6 +50,12 @@ func RegisterJobsElasticsearchIndexerInterface(f func(*Server) ejobs.IndexerJobI
 	jobsElasticsearchIndexerInterface = f
 }
 
+var jobsElasticsearchFixChannelIndexInterface func(*Server) ejobs.ElasticsearchFixChannelIndexInterface
+
+func RegisterJobsElasticsearchFixChannelIndexInterface(f func(*Server) ejobs.ElasticsearchFixChannelIndexInterface) {
+	jobsElasticsearchFixChannelIndexInterface = f
+}
+
 var jobsLdapSyncInterface func(*App) ejobs.LdapSyncInterface
 
 func RegisterJobsLdapSyncInterface(f func(*App) ejobs.LdapSyncInterface) {
@@ -84,6 +90,12 @@ var notificationInterface func(*App) einterfaces.NotificationInterface
 
 func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterface) {
 	notificationInterface = f
+}
+
+var ipFilteringInterface func(*App) einterfaces.IPFilteringInterface
+
+func RegisterIPFilteringInterface(f func(*App) einterfaces.IPFilteringInterface) {
+	ipFilteringInterface = f
 }
 
 func (s *Server) initEnterprise() {

@@ -14,9 +14,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 func ReadTestFile(name string) ([]byte, error) {

@@ -78,26 +78,28 @@ export function verifySavedPost(postId, message) {
     cy.findByText('Remove from Saved').scrollIntoView().should('be.visible');
     cy.get(`#CENTER_dropdown_${postId}`).should('be.visible').type('{esc}');
 
-    // * Check that the post is highlighted
-    cy.get(`#post_${postId}`).should('have.class', 'post--pinned-or-flagged');
+    cy.get('#postListContent').within(() => {
+        // * Check that the post is highlighted
+        cy.get(`#post_${postId}`).should('have.class', 'post--pinned-or-flagged');
 
-    // * Check that the post pre-header is visible
-    cy.get('div.post-pre-header').should('be.visible');
+        // * Check that the post pre-header is visible
+        cy.get('div.post-pre-header').should('be.visible');
 
-    // * Check that the post pre-header has the saved icon
-    cy.get('span.icon--post-pre-header').
-        should('be.visible').
-        within(() => {
-            cy.get('svg').should('have.attr', 'aria-label', 'Saved Icon');
-        });
+        // * Check that the post pre-header has the saved icon
+        cy.get('span.icon--post-pre-header').
+            should('be.visible').
+            within(() => {
+                cy.get('svg').should('have.attr', 'aria-label', 'Saved Icon');
+            });
 
-    // * Check that the post pre-header has the saved post link
-    cy.get('div.post-pre-header__text-container').
-        should('be.visible').
-        and('have.text', 'Saved').
-        within(() => {
-            cy.get('a').as('savedLink').should('be.visible');
-        });
+        // * Check that the post pre-header has the saved post link
+        cy.get('div.post-pre-header__text-container').
+            should('be.visible').
+            and('have.text', 'Saved').
+            within(() => {
+                cy.get('a').as('savedLink').should('be.visible');
+            });
+    });
 
     // * Check that the saved posts list is not open in RHS before clicking the link in the post pre-header
     cy.get('#searchContainer').should('not.exist');
@@ -109,10 +111,10 @@ export function verifySavedPost(postId, message) {
     cy.get('#searchContainer').should('be.visible').within(() => {
         cy.get('.sidebar--right__title').
             should('be.visible').
-            and('have.text', 'Saved Posts');
+            and('have.text', 'Saved messages');
 
         // * Check that the post pre-header is not shown for the saved message in RHS
-        cy.get('#search-items-container').within(() => {
+        cy.get(`#searchResult_${postId}`).within(() => {
             cy.get(`#rhsPostMessageText_${postId}`).contains(message);
             cy.get('div.post-pre-header').should('not.exist');
         });
@@ -127,29 +129,31 @@ export function verifyUnsavedPost(postId) {
     cy.get(`#post_${postId}`).trigger('mouseover', {force: true});
     cy.get(`#CENTER_flagIcon_${postId}`).
         should('have.class', 'post-menu__item').
-        and('have.attr', 'aria-label', 'save');
+        and('have.attr', 'aria-label', 'save message');
 
     // # Open the post-dotmenu
     cy.clickPostDotMenu(postId, 'CENTER');
 
     // * Check that the dotmenu item is changed accordingly
     cy.findAllByTestId(`post-menu-${postId}`).eq(0).should('be.visible');
-    cy.findByText('Save').scrollIntoView().should('be.visible');
+    cy.findByText('Save Message').scrollIntoView().should('be.visible');
     cy.get(`#CENTER_dropdown_${postId}`).should('be.visible').type('{esc}');
 
-    // * Check that the post is highlighted
-    cy.get(`#post_${postId}`).should('not.have.class', 'post--pinned-or-flagged');
+    cy.get('#postListContent').within(() => {
+        // * Check that the post is not highlighted
+        cy.get(`#post_${postId}`).should('not.have.class', 'post--pinned-or-flagged');
 
-    // * Check that the post pre-header is visible
-    cy.get('div.post-pre-header').should('not.exist');
+        // * Check that the post pre-header is not visible
+        cy.get('div.post-pre-header').should('not.exist');
 
-    // * Check that the post pre-header has the saved icon
-    cy.get('span.icon--post-pre-header').
-        should('not.exist');
+        // * Check that the post pre-header does not have the saved icon
+        cy.get('span.icon--post-pre-header').
+            should('not.exist');
 
-    // * Check that the post pre-header has the saved post link
-    cy.get('div.post-pre-header__text-container').
-        should('not.exist');
+        // * Check that the post pre-header does not have the saved post link
+        cy.get('div.post-pre-header__text-container').
+            should('not.exist');
+    });
 
     // * Check that the saved posts list is not open in RHS before clicking the link in the post pre-header
     cy.get('#searchContainer').should('not.exist');
@@ -161,7 +165,7 @@ export function verifyUnsavedPost(postId) {
     cy.get('#searchContainer').should('be.visible').within(() => {
         cy.get('.sidebar--right__title').
             should('be.visible').
-            and('have.text', 'Saved Posts');
+            and('have.text', 'Saved messages');
 
         // * Check that the post pre-header is not shown for the saved message in RHS
         cy.get('#search-items-container').within(() => {

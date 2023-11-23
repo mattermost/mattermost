@@ -1,0 +1,86 @@
+  "/api/v4/exports":
+    get:
+      tags:
+        - exports
+      summary: List export files
+      description: >
+        Lists all available export files.
+
+        __Minimum server version__: 5.33
+
+        ##### Permissions
+
+        Must have `manage_system` permissions.
+      operationId: ListExports
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  "/api/v4/exports/{export_name}":
+    get:
+      tags:
+        - exports
+      summary: Download an export file
+      description: |
+        Downloads an export file.
+
+
+        __Minimum server version__: 5.33
+
+        ##### Permissions
+
+        Must have `manage_system` permissions.
+      operationId: DownloadExport
+      parameters:
+        - name: export_name
+          in: path
+          description: The name of the export file to download
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags:
+        - exports
+      summary: Delete an export file
+      description: |
+        Deletes an export file.
+
+
+        __Minimum server version__: 5.33
+
+        ##### Permissions
+
+        Must have `manage_system` permissions.
+      operationId: DeleteExport
+      parameters:
+        - name: export_name
+          in: path
+          description: The name of the export file to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"

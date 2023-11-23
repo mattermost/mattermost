@@ -7,10 +7,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app"
-	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitChannelLocal() {
@@ -40,7 +40,7 @@ func (api *API) InitChannelLocal() {
 func localCreateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	var channel *model.Channel
 	err := json.NewDecoder(r.Body).Decode(&channel)
-	if err != nil {
+	if err != nil || channel == nil {
 		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
@@ -288,7 +288,7 @@ func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var patch *model.ChannelPatch
 	err := json.NewDecoder(r.Body).Decode(&patch)
-	if err != nil {
+	if err != nil || patch == nil {
 		c.SetInvalidParamWithErr("channel", err)
 		return
 	}

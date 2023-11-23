@@ -3,6 +3,9 @@
 
 import React from 'react';
 
+import type {Post} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
+
 import ProfilePicture from 'components/profile_picture';
 import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
@@ -10,16 +13,12 @@ import Constants, {UserStatuses} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
-import {Post} from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
-
 type Props = {
     availabilityStatusOnPosts: string;
     compactDisplay?: boolean;
     enablePostIconOverride: boolean;
     hasImageProxy: boolean;
     isBusy?: boolean;
-    isRHS?: boolean;
     post: Post;
     status?: string;
     user: UserProfile;
@@ -83,7 +82,6 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
             availabilityStatusOnPosts,
             compactDisplay,
             isBusy,
-            isRHS,
             post,
             user,
             isBot,
@@ -110,7 +108,6 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
             <ProfilePicture
                 hasMention={hasMention}
                 isBusy={isBusy}
-                isRHS={isRHS}
                 size='md'
                 src={src}
                 profileSrc={profileSrc}

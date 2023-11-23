@@ -1,39 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
-import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
-import classNames from 'classnames';
-
-import {isModalOpen} from 'selectors/views/modals';
-import {GlobalState} from 'types/store';
-import {closeModal, openModal} from 'actions/views/modals';
-import {requestTrialLicense} from 'actions/admin_actions';
-import {validateBusinessEmail} from 'actions/cloud';
+import {useSelector, useDispatch} from 'react-redux';
 
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+
+import {requestTrialLicense} from 'actions/admin_actions';
+import {validateBusinessEmail} from 'actions/cloud';
+import {trackEvent} from 'actions/telemetry_actions';
+import {closeModal, openModal} from 'actions/views/modals';
+import {isModalOpen} from 'selectors/views/modals';
 
 import {makeAsyncComponent} from 'components/async_load';
+import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
-import {COUNTRIES} from 'utils/countries';
-
-import {LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
-
-import Input, {SIZE, CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import DropdownInput from 'components/dropdown_input';
-import StartTrialFormModalResult from './failure_modal';
 import ExternalLink from 'components/external_link';
-import {trackEvent} from 'actions/telemetry_actions';
+import CountrySelector from 'components/payment_form/country_selector';
+import Input, {SIZE} from 'components/widgets/inputs/input/input';
+import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
+
+import {AboutLinks, LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {t} from 'utils/i18n';
+
+import type {GlobalState} from 'types/store';
+
+import AirGappedModal from './air_gapped_modal';
+import StartTrialFormModalResult from './failure_modal';
 
 import './start_trial_form_modal.scss';
-import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
-import AirGappedModal from './air_gapped_modal';
-
-// TODO: Handle embargoed entities explicitly https://mattermost.atlassian.net/browse/MM-51470
 
 const TrialBenefitsModal = makeAsyncComponent('TrialBenefitsModal', React.lazy(() => import('components/trial_benefits_modal/trial_benefits_modal')));
 
@@ -44,10 +45,21 @@ enum TrialLoadStatus {
     Failed = 'FAILED'
 }
 
+// Marker functions so i18n-extract doesn't remove strings
+t('ONE_TO_50');
+t('FIFTY_TO_100');
+t('ONE_HUNDRED_TO_500');
+t('FIVE_HUNDRED_TO_1000');
+t('ONE_THOUSAND_TO_2500');
+t('TWO_THOUSAND_FIVE_HUNDRED_AND_UP');
+
 export enum OrgSize {
     ONE_TO_50 = '1-50',
     FIFTY_TO_100 = '51-100',
     ONE_HUNDRED_TO_500 = '101-500',
+    FIVE_HUNDRED_TO_1000 = '501-1000',
+    ONE_THOUSAND_TO_2500 = '1001-2500',
+    TWO_THOUSAND_FIVE_HUNDRED_AND_UP = '2501+',
 }
 
 type Props = {
@@ -209,7 +221,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         }
         return {
             value: orgSize,
-            label: OrgSize[orgSize as unknown as keyof typeof OrgSize],
+            label: formatMessage({id: orgSize, defaultMessage: OrgSize[orgSize as unknown as keyof typeof OrgSize]}),
         };
     };
 
@@ -300,24 +312,9 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                     name='company_size_dropdown'
                 />
                 <div className='countries-section'>
-                    <DropdownInput
+                    <CountrySelector
                         onChange={(e) => setCountry(e.value)}
-                        value={
-                            country ? {value: country, label: country} : undefined
-                        }
-                        options={COUNTRIES.map((country) => ({
-                            value: country.name,
-                            label: country.name,
-                        }))}
-                        legend={formatMessage({
-                            id: 'payment_form.country',
-                            defaultMessage: 'Country',
-                        })}
-                        placeholder={formatMessage({
-                            id: 'payment_form.country',
-                            defaultMessage: 'Country',
-                        })}
-                        name={'country_dropdown'}
+                        value={country}
                     />
                 </div>
                 <div className='disclaimer'>
@@ -335,7 +332,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                             ),
                             privacypolicy: (msg: React.ReactNode) => (
                                 <ExternalLink
-                                    href='https://mattermost.com/privacy-policy/'
+                                    href={AboutLinks.PRIVACY_POLICY}
                                     location='start_trial_form_modal'
                                 >
                                     {msg}

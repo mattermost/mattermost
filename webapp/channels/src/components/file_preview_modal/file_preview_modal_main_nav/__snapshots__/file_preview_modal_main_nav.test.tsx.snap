@@ -14,7 +14,7 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
       >
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Close"
-          id="generic.previous"
+          id="generic.close"
         />
       </Tooltip>
     }

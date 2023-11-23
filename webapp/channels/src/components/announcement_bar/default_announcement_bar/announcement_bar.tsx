@@ -2,23 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 
-import {WarnMetricStatus} from '@mattermost/types/config';
+import type {WarnMetricStatus} from '@mattermost/types/config';
+
+import {trackEvent} from 'actions/telemetry_actions.jsx';
+
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import OverlayTrigger from 'components/overlay_trigger';
+import ToggleModalButton from 'components/toggle_modal_button';
+import Tooltip from 'components/tooltip';
+import WarnMetricAckModal from 'components/warn_metric_ack_modal';
 
 import {Constants, AnnouncementBarTypes, ModalIdentifiers} from 'utils/constants';
 import {isStringContainingUrl} from 'utils/url';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import WarnMetricAckModal from 'components/warn_metric_ack_modal';
-import ToggleModalButton from 'components/toggle_modal_button';
-
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 type Props = {
+    id?: string;
     showCloseButton: boolean;
     color: string;
     textColor: string;
@@ -172,6 +172,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                 style={barStyle}
                 // eslint-disable-next-line react/no-unknown-property
                 css={{gridArea: 'announcement'}}
+                data-testid={this.props.id}
             >
                 <OverlayTrigger
                     delayShow={Constants.OVERLAY_TIME_DELAY}

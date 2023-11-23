@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {useDispatch} from 'react-redux';
-import {useIntl} from 'react-intl';
 import {Tooltip} from 'react-bootstrap';
+import {useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
-import Icon from '@mattermost/compass-components/foundations/icon'; // eslint-disable-line no-restricted-imports
+import {ViewGridPlusOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {openModal} from 'actions/views/modals';
 
-import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import OverlayTrigger from 'components/overlay_trigger';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 
@@ -48,10 +48,7 @@ const AppBarMarketplace = () => {
                 aria-label={label}
                 onClick={handleOpenMarketplace}
             >
-                <Icon
-                    size={16}
-                    glyph={'view-grid-plus-outline'}
-                />
+                <ViewGridPlusOutlineIcon size={18}/>
             </button>
         </OverlayTrigger>
     );

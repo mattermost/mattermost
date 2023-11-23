@@ -45,7 +45,7 @@ exports[`UserGuideDropdown should match snapshot 1`] = `
     openLeft={true}
     openUp={false}
   >
-    <MenuGroup>
+    <Memo(MenuGroup)>
       <MenuItemExternalLink
         id="askTheCommunityLink"
         onClick={[Function]}
@@ -71,7 +71,7 @@ exports[`UserGuideDropdown should match snapshot 1`] = `
         show={true}
         text="Keyboard shortcuts"
       />
-    </MenuGroup>
+    </Memo(MenuGroup)>
   </Menu>
 </MenuWrapper>
 `;
@@ -121,7 +121,7 @@ exports[`UserGuideDropdown should match snapshot for false of enableAskCommunity
     openLeft={true}
     openUp={false}
   >
-    <MenuGroup>
+    <Memo(MenuGroup)>
       <MenuItemExternalLink
         id="helpResourcesLink"
         show={true}
@@ -140,7 +140,7 @@ exports[`UserGuideDropdown should match snapshot for false of enableAskCommunity
         show={true}
         text="Keyboard shortcuts"
       />
-    </MenuGroup>
+    </Memo(MenuGroup)>
   </Menu>
 </MenuWrapper>
 `;

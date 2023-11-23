@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func TestDesanitize(t *testing.T) {
@@ -221,7 +221,7 @@ func TestIsJSONMap(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := isJSONMap(tt.data); got != tt.want {
+			if got := isJSONMap([]byte(tt.data)); got != tt.want {
 				t.Errorf("isJSONMap() = %v, want %v", got, tt.want)
 			}
 		})
@@ -237,17 +237,17 @@ func TestEqual(t *testing.T) {
 
 	t.Run("no diff", func(t *testing.T) {
 		old := minimalConfig.Clone()
-		new := minimalConfig.Clone()
-		diff, err := equal(old, new)
+		n := minimalConfig.Clone()
+		diff, err := equal(old, n)
 		require.NoError(t, err)
 		require.False(t, diff)
 	})
 
 	t.Run("diff", func(t *testing.T) {
 		old := minimalConfig.Clone()
-		new := minimalConfig.Clone()
-		new.SqlSettings = model.SqlSettings{}
-		diff, err := equal(old, new)
+		n := minimalConfig.Clone()
+		n.SqlSettings = model.SqlSettings{}
+		diff, err := equal(old, n)
 		require.NoError(t, err)
 		require.True(t, diff)
 	})

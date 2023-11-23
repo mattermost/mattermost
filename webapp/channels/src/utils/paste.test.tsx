@@ -1,7 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {parseTable, getTable, formatMarkdownMessage, formatGithubCodePaste} from './paste';
+import {Locations} from './constants';
+import {execCommandInsertText} from './exec_commands';
+import {
+    parseHtmlTable,
+    getHtmlTable,
+    formatMarkdownMessage,
+    formatGithubCodePaste,
+    formatMarkdownLinkMessage,
+    isTextUrl,
+    hasPlainText,
+    createFileFromClipboardDataItem,
+    pasteHandler,
+} from './paste';
 
 const validClipboardData: any = {
     items: [1],
@@ -11,16 +23,16 @@ const validClipboardData: any = {
     },
 };
 
-const validTable: any = parseTable(validClipboardData.getData());
+const validTable: any = parseHtmlTable(validClipboardData.getData());
 
-describe('Paste.getTable', () => {
+describe('getHtmlTable', () => {
     test('returns false without html in the clipboard', () => {
         const badClipboardData: any = {
             items: [1],
             types: ['text/plain'],
         };
 
-        expect(getTable(badClipboardData)).toBe(null);
+        expect(getHtmlTable(badClipboardData)).toBe(null);
     });
 
     test('returns false without table in the clipboard', () => {
@@ -30,19 +42,19 @@ describe('Paste.getTable', () => {
             getData: () => '<p>There is no table here</p>',
         };
 
-        expect(getTable(badClipboardData)).toBe(null);
+        expect(getHtmlTable(badClipboardData)).toBe(null);
     });
 
     test('returns table from valid clipboard data', () => {
-        expect(getTable(validClipboardData)).toEqual(validTable);
+        expect(getHtmlTable(validClipboardData)).toEqual(validTable);
     });
 });
 
-describe('Paste.formatMarkdownMessage', () => {
+describe('formatMarkdownMessage', () => {
     const markdownTable = '| test | test |\n| --- | --- |\n| test | test |';
 
     test('returns a markdown table when valid html table provided', () => {
-        expect(formatMarkdownMessage(validClipboardData)).toBe(`${markdownTable}\n`);
+        expect(formatMarkdownMessage(validClipboardData).formattedMessage).toBe(`${markdownTable}\n`);
     });
 
     test('returns a markdown table when valid html table with headers provided', () => {
@@ -54,7 +66,7 @@ describe('Paste.formatMarkdownMessage', () => {
             },
         };
 
-        expect(formatMarkdownMessage(tableHeadersClipboardData)).toBe(markdownTable);
+        expect(formatMarkdownMessage(tableHeadersClipboardData).formattedMessage).toBe(markdownTable);
     });
 
     test('removes style contents and additional whitespace around tables', () => {
@@ -66,13 +78,13 @@ describe('Paste.formatMarkdownMessage', () => {
             },
         };
 
-        expect(formatMarkdownMessage(styleClipboardData)).toBe(markdownTable);
+        expect(formatMarkdownMessage(styleClipboardData).formattedMessage).toBe(markdownTable);
     });
 
     test('returns a markdown table under a message when one is provided', () => {
         const testMessage = 'test message';
 
-        expect(formatMarkdownMessage(validClipboardData, testMessage)).toBe(`${testMessage}\n\n${markdownTable}\n`);
+        expect(formatMarkdownMessage(validClipboardData, testMessage).formattedMessage).toBe(`${testMessage}\n\n${markdownTable}\n`);
     });
 
     test('returns a markdown formatted link when valid hyperlink provided', () => {
@@ -85,11 +97,11 @@ describe('Paste.formatMarkdownMessage', () => {
         };
         const markdownLink = '[link text](https://test.domain)';
 
-        expect(formatMarkdownMessage(linkClipboardData)).toBe(markdownLink);
+        expect(formatMarkdownMessage(linkClipboardData).formattedMessage).toBe(markdownLink);
     });
 });
 
-describe('Paste.formatGithubCodePaste', () => {
+describe('formatGithubCodePaste', () => {
     const clipboardData: any = {
         items: [],
         types: ['text/plain', 'text/html'],
@@ -145,5 +157,271 @@ describe('Paste.formatGithubCodePaste', () => {
         const {formattedMessage, formattedCodeBlock} = formatGithubCodePaste({selectionStart: 5, selectionEnd: 12, message: originalMessage, clipboardData});
         expect(updatedMessage).toBe(formattedMessage);
         expect(codeBlock).toBe(formattedCodeBlock);
+    });
+});
+
+describe('formatMarkdownLinkMessage', () => {
+    const clipboardData: any = {
+        items: [],
+        types: ['text/plain'],
+        getData: () => {
+            return 'https://example.com/';
+        },
+    };
+
+    test('Should return empty selection when no selection is made', () => {
+        const message = '';
+
+        const formatttedMarkdownLinkMessage = formatMarkdownLinkMessage({selectionStart: 0, selectionEnd: 0, message, clipboardData});
+        expect(formatttedMarkdownLinkMessage).toEqual('[](https://example.com/)');
+    });
+
+    test('Should return correct selection when selection is made', () => {
+        const message = 'test';
+
+        const formatttedMarkdownLinkMessage = formatMarkdownLinkMessage({selectionStart: 0, selectionEnd: 4, message, clipboardData});
+        expect(formatttedMarkdownLinkMessage).toEqual('[test](https://example.com/)');
+    });
+
+    test('Should not add link when pasting inside of a formatted markdown link', () => {
+        const message = '[test](url)';
+        const formatttedMarkdownLinkMessage = formatMarkdownLinkMessage({selectionStart: 7, selectionEnd: 10, message, clipboardData});
+        expect(formatttedMarkdownLinkMessage).toEqual('https://example.com/');
+    });
+
+    test('Should add link when pasting inside of an improper formatted markdown link', () => {
+        const improperFormattedLinkMessages = [
+            {message: '[test](url)', selection: 'ur', expected: '[ur](https://example.com/)'},
+            {message: '[test](url)', selection: '(url', expected: '[(url](https://example.com/)'},
+            {message: '[test](url)', selection: 'url)', expected: '[url)](https://example.com/)'},
+            {message: '[test](url)', selection: '(url)', expected: '[(url)](https://example.com/)'},
+            {message: '[test](url)', selection: '[test](url', expected: '[[test](url](https://example.com/)'},
+            {message: '[test](url)', selection: 'test](url', expected: '[test](url](https://example.com/)'},
+            {message: '[test](url)', selection: 'test](url)', expected: '[test](url)](https://example.com/)'},
+            {message: '[test](url)', selection: '[test](url)', expected: '[[test](url)](https://example.com/)'},
+        ];
+
+        for (const {message, selection, expected} of improperFormattedLinkMessages) {
+            const selectionStart = message.indexOf(selection);
+            const selectionEnd = selectionStart + selection.length;
+
+            const formatttedMarkdownLinkMessage = formatMarkdownLinkMessage({selectionStart, selectionEnd, message, clipboardData});
+            expect(formatttedMarkdownLinkMessage).toEqual(expected);
+        }
+    });
+});
+
+describe('isTextUrl', () => {
+    test('Should return true when url is valid', () => {
+        const clipboardData: any = {
+            ...validClipboardData,
+            getData: () => {
+                return 'https://example.com/';
+            },
+        };
+        expect(isTextUrl(clipboardData)).toBe(true);
+    });
+
+    test('Should return false when url is invalid', () => {
+        const clipboardData: any = {
+            ...validClipboardData,
+            getData: () => {
+                return 'not a url';
+            },
+        };
+
+        expect(isTextUrl(clipboardData)).toBe(false);
+    });
+});
+
+jest.mock('utils/exec_commands', () => ({
+    execCommandInsertText: jest.fn(),
+}));
+
+describe('pasteHandler', () => {
+    const testCases = [
+        {
+            testName: 'should be able to format a pasted markdown table',
+            clipboardData: {
+                items: [1],
+                types: ['text/html'],
+                getData: () => {
+                    return '<table><tr><th>test</th><th>test</th></tr><tr><td>test</td><td>test</td></tr></table>';
+                },
+            },
+            expectedMarkdown: '| test | test |\n| --- | --- |\n| test | test |',
+        },
+        {
+            testName: 'should be able to format a pasted markdown table without headers',
+            clipboardData: {
+                items: [1],
+                types: ['text/html'],
+                getData: () => {
+                    return '<table><tr><td>test</td><td>test</td></tr><tr><td>test</td><td>test</td></tr></table>';
+                },
+            },
+            expectedMarkdown: '| test | test |\n| --- | --- |\n| test | test |\n',
+        },
+        {
+            testName: 'should be able to format a pasted hyperlink',
+            clipboardData: {
+                items: [1],
+                types: ['text/html'],
+                getData: () => {
+                    return '<a href="https://test.domain">link text</a>';
+                },
+            },
+            expectedMarkdown: '[link text](https://test.domain)',
+        },
+        {
+            testName: 'should be able to format a github codeblock (pasted as a table)',
+            clipboardData: {
+                items: [1],
+                types: ['text/plain', 'text/html'],
+                getData: (type: string) => {
+                    if (type === 'text/plain') {
+                        return '// a javascript codeblock example\nif (1 > 0) {\n  return \'condition is true\';\n}';
+                    }
+                    return '<table class="highlight tab-size js-file-line-container" data-tab-size="8"><tbody><tr><td id="LC1" class="blob-code blob-code-inner js-file-line"><span class="pl-c"><span class="pl-c">//</span> a javascript codeblock example</span></td></tr><tr><td id="L2" class="blob-num js-line-number" data-line-number="2">&nbsp;</td><td id="LC2" class="blob-code blob-code-inner js-file-line"><span class="pl-k">if</span> (<span class="pl-c1">1</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span>) {</td></tr><tr><td id="L3" class="blob-num js-line-number" data-line-number="3">&nbsp;</td><td id="LC3" class="blob-code blob-code-inner js-file-line"><span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">\'</span>condition is true<span class="pl-pds">\'</span></span>);</td></tr><tr><td id="L4" class="blob-num js-line-number" data-line-number="4">&nbsp;</td><td id="LC4" class="blob-code blob-code-inner js-file-line">}</td></tr></tbody></table>';
+                },
+            },
+            expectedMarkdown: "```\n// a javascript codeblock example\nif (1 > 0) {\n  return 'condition is true';\n}\n```",
+        },
+    ];
+
+    for (const tc of testCases) {
+        it(tc.testName, () => {
+            const location = Locations.RHS_COMMENT;
+            const event: any = {
+                target: {
+                    id: 'reply_textbox',
+                },
+                preventDefault: jest.fn(),
+                clipboardData: tc.clipboardData,
+            };
+
+            pasteHandler(event, location, '', false, 0);
+
+            expect(execCommandInsertText).toHaveBeenCalledWith(tc.expectedMarkdown);
+        });
+    }
+});
+
+describe('hasPlainText', () => {
+    test('Should return true when clipboard data has plain text', () => {
+        const clipboardData = {
+            ...validClipboardData,
+            types: ['text/plain'],
+            getData: () => {
+                return 'plain text';
+            },
+        };
+
+        expect(hasPlainText(clipboardData)).toBe(true);
+    });
+
+    test('Should return true when clipboard data has plain text along with other types', () => {
+        const clipboardData = {
+            ...validClipboardData,
+            types: ['text/html', 'text/plain'],
+            getData: () => {
+                return 'plain text';
+            },
+        };
+
+        expect(hasPlainText(clipboardData)).toBe(true);
+    });
+
+    test('Should return false when clipboard data has empty text', () => {
+        const clipboardData = {
+            ...validClipboardData,
+            types: ['text/html', 'text/plain'],
+            getData: () => {
+                return '';
+            },
+        };
+
+        expect(hasPlainText(clipboardData)).toBe(false);
+    });
+
+    test('Should return false when clipboard data doesnt not have plain text type', () => {
+        const clipboardData = {
+            ...validClipboardData,
+            types: ['text/html'],
+            getData: () => {
+                return 'plain text without type';
+            },
+        };
+
+        expect(hasPlainText(clipboardData)).toBe(false);
+    });
+});
+
+describe('createFileFromClipboardDataItem', () => {
+    test('should return a file from a clipboard item', () => {
+        const item = {
+            getAsFile: jest.fn(() => ({
+                name: 'test1.png',
+                type: 'image/png',
+            })),
+            type: 'image/png',
+        } as unknown as DataTransferItem;
+
+        const file = createFileFromClipboardDataItem(item, '') as File;
+        expect(file).toBeInstanceOf(File);
+        expect(file.name).toEqual('test1.png');
+        expect(file.type).toEqual('image/png');
+    });
+
+    test('should return null if getAsFile is not a file', () => {
+        const item = {
+            getAsFile: jest.fn(() => null),
+        } as unknown as DataTransferItem;
+
+        const file = createFileFromClipboardDataItem(item, '');
+        expect(file).toBeNull();
+    });
+
+    test('Should return correct file name when file name is not available', () => {
+        const item = {
+            getAsFile: jest.fn(() => ({
+                type: 'image/jpeg',
+            })),
+            type: 'image/jpeg',
+        } as unknown as DataTransferItem;
+
+        const now = new Date();
+
+        const file = createFileFromClipboardDataItem(item, 'pasted') as File;
+
+        expect(file).toBeInstanceOf(File);
+        expect(file.name).toBe(`pasted${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()} ${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}.jpeg`);
+        expect(file.type).toBe('image/jpeg');
+    });
+
+    test('Should return correct file extension when file name contains extension', () => {
+        const item = {
+            getAsFile: jest.fn(() => ({
+                name: 'test.jpeg',
+            })),
+            type: 'image/jpeg',
+        } as unknown as DataTransferItem;
+
+        const file = createFileFromClipboardDataItem(item, 'pasted') as File;
+
+        expect(file.name).toContain('.jpeg');
+    });
+
+    test('Should return correct file extension when file name doesnt contains extension', () => {
+        const item = {
+            getAsFile: jest.fn(() => ({
+                type: 'image/JPEG',
+            })),
+            type: 'image/jpeg',
+        } as unknown as DataTransferItem;
+
+        const file = createFileFromClipboardDataItem(item, 'pasted') as File;
+
+        expect(file.name).toContain('.jpeg');
     });
 });

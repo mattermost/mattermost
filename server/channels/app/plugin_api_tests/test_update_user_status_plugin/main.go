@@ -6,9 +6,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/plugin_api_tests"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/v8/channels/app/plugin_api_tests"
 )
 
 type MyPlugin struct {
@@ -39,7 +39,6 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 		if s != status.Status {
 			return nil, fmt.Sprintf("Invalid status returned: %v != %v", s, status.Status)
 		}
-
 	}
 
 	status, err := p.API.UpdateUserStatus(uid, "notrealstatus")

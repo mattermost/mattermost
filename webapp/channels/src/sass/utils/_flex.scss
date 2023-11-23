@@ -4,6 +4,14 @@
     display: flex !important;
 }
 
+.flex-col {
+    flex-direction: column;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
 .align-items-center {
     align-items: center !important;
     -webkit-box-align: center !important;
@@ -16,4 +24,12 @@
     flex-grow: 1;
     -ms-flex-positive: 1;
     -ms-flex-preferred-size: 0;
+}
+
+.flex-auto {
+    flex: 0 0 auto;
+}
+
+.flex-wrap {
+    flex-wrap: wrap;
 }

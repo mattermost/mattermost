@@ -2,14 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {injectIntl, IntlShape} from 'react-intl';
+import type {AppContext, AppField, AppForm, AppFormValues, FormResponseData, AppLookupResponse} from '@mattermost/types/apps';
 
-import {AppContext, AppField, AppForm, AppFormValues, FormResponseData, AppLookupResponse} from '@mattermost/types/apps';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
-import {DoAppSubmit, DoAppFetchForm, DoAppLookup, DoAppCallResult, PostEphemeralCallResponseForContext} from 'types/apps';
 import {createCallRequest, makeCallErrorResponse} from 'utils/apps';
+
+import type {DoAppSubmit, DoAppFetchForm, DoAppLookup, DoAppCallResult, PostEphemeralCallResponseForContext} from 'types/apps';
 
 import AppsForm from './apps_form_component';
 
@@ -48,7 +50,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         };
         const {form} = this.state;
         if (!form) {
-            const errMsg = this.props.intl.formatMessage({id: 'apps.error.form.no_form', defaultMessage: '`form` is not defined'});
+            const errMsg = this.props.intl.formatMessage({id: 'apps.error.form.no_form', defaultMessage: '`form` is not defined.'});
             return {error: makeCallErrorResponse(makeErrorMsg(errMsg))};
         }
         if (!form.submit) {
@@ -97,7 +99,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
     refreshOnSelect = async (field: AppField, values: AppFormValues): Promise<DoAppCallResult<FormResponseData>> => {
         const makeErrMsg = (message: string) => this.props.intl.formatMessage(
             {
-                id: 'apps.error.form.refresh',
+                id: 'apps.error.form.update',
                 defaultMessage: 'There has been an error updating the modal. Contact the app developer. Details: {details}',
             },
             {details: message},
@@ -144,7 +146,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         case AppCallResponseTypes.NAVIGATE:
             return {error: makeCallErrorResponse(makeErrMsg(this.props.intl.formatMessage({
                 id: 'apps.error.responses.unexpected_type',
-                defaultMessage: 'App response type was not expected. Response type: {type}.',
+                defaultMessage: 'App response type was not expected. Response type: {type}',
             }, {
                 type: callResp.type,
             },

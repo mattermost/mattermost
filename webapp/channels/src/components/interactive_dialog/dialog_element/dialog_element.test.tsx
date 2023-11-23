@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import TextSetting from 'components/widgets/settings/text_setting';
 import RadioSetting from 'components/widgets/settings/radio_setting';
+import TextSetting from 'components/widgets/settings/text_setting';
 
 import DialogElement from './dialog_element';
 
@@ -21,18 +21,17 @@ describe('components/interactive_dialog/DialogElement', () => {
         },
         onChange: jest.fn(),
     };
-    const baseTextSettingProps = {
-        id: baseDialogProps.name,
-        maxLength: 100,
-        resizable: false,
-        value: '',
-        label: (
-            <React.Fragment>
-                {baseDialogProps.displayName}
-                <span className='error-text'>{' *'}</span>
-            </React.Fragment>
-        ),
-    };
+
+    it('type textarea', () => {
+        const wrapper = shallow(
+            <DialogElement
+                {...baseDialogProps}
+                type='textarea'
+            />,
+        );
+        expect(wrapper.find(TextSetting).dive().find('textarea').exists()).toBe(true);
+    });
+
     it('subtype blank', () => {
         const wrapper = shallow(
             <DialogElement
@@ -40,12 +39,34 @@ describe('components/interactive_dialog/DialogElement', () => {
                 subtype=''
             />,
         );
-        expect(wrapper.matchesElement(
-            <TextSetting
-                {...baseTextSettingProps}
-                type='input'
-            />,
-        )).toEqual(true);
+
+        expect(wrapper.find(TextSetting).props().type).toEqual('text');
+    });
+
+    describe('subtype number', () => {
+        test('value is 0', () => {
+            const wrapper = shallow(
+                <DialogElement
+                    {...baseDialogProps}
+                    type='text'
+                    subtype='number'
+                    value={0}
+                />,
+            );
+            expect(wrapper.find(TextSetting).props().value).toEqual(0);
+        });
+
+        test('value is 123', () => {
+            const wrapper = shallow(
+                <DialogElement
+                    {...baseDialogProps}
+                    type='text'
+                    subtype='number'
+                    value={123}
+                />,
+            );
+            expect(wrapper.find(TextSetting).props().value).toEqual(123);
+        });
     });
 
     it('subtype email', () => {
@@ -55,27 +76,7 @@ describe('components/interactive_dialog/DialogElement', () => {
                 subtype='email'
             />,
         );
-        expect(wrapper.matchesElement(
-            <TextSetting
-                {...baseTextSettingProps}
-                type='email'
-            />,
-        )).toEqual(true);
-    });
-
-    it('subtype invalid', () => {
-        const wrapper = shallow(
-            <DialogElement
-                {...baseDialogProps}
-                subtype='invalid'
-            />,
-        );
-        expect(wrapper.matchesElement(
-            <TextSetting
-                {...baseTextSettingProps}
-                type='input'
-            />,
-        )).toEqual(true);
+        expect(wrapper.find(TextSetting).props().type).toEqual('email');
     });
 
     it('subtype password', () => {
@@ -85,12 +86,7 @@ describe('components/interactive_dialog/DialogElement', () => {
                 subtype='password'
             />,
         );
-        expect(wrapper.matchesElement(
-            <TextSetting
-                {...baseTextSettingProps}
-                type='password'
-            />,
-        )).toEqual(true);
+        expect(wrapper.find(TextSetting).props().type).toEqual('password');
     });
 
     describe('radioSetting', () => {

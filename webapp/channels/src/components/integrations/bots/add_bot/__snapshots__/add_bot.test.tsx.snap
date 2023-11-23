@@ -1,0 +1,362 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/bots/AddBot blank 1`] = `
+<div
+  className="backstage-content"
+>
+  <BackstageHeader>
+    <Link
+      to="/DN/integrations/bots"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Bot Accounts"
+        id="bots.manage.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Add"
+      id="bots.manage.add.add"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form"
+  >
+    <form
+      className="form-horizontal"
+      onSubmit={[Function]}
+    >
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="username"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Username"
+            id="bots.add.username"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="username"
+            maxLength={22}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="You can use lowercase letters, numbers, periods, dashes, and underscores."
+              id="bot.add.username.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="boticon"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Bot Icon"
+            id="bots.add.icon"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <div
+            className="bot-img-container"
+          >
+            <img
+              alt="bot image"
+              className="bot-img"
+              src={null}
+              style={
+                Object {
+                  "transform": "",
+                  "transformOrigin": "",
+                }
+              }
+            />
+          </div>
+          <div
+            className="btn btn-sm btn-primary btn-file"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Upload Image"
+              id="bots.image.upload"
+            />
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              onChange={[Function]}
+              type="file"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="displayName"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Display Name"
+            id="bots.add.displayName"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="displayName"
+            maxLength={64}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="(Optional) You can choose to display your bot's full name rather than its username."
+              id="bot.add.display_name.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="description"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Description"
+            id="bot.add.description"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="description"
+            maxLength={1024}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="(Optional) Let others know what this bot does."
+              id="bot.add.description.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="role"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Role"
+            id="bot.add.role"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <select
+            className="form-control"
+            disabled={false}
+            onChange={[Function]}
+            value="Member"
+          >
+            <option
+              value="Member"
+            >
+              Member
+            </option>
+            <option
+              value="System Admin"
+            >
+              System Admin
+            </option>
+          </select>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Choose what role the bot should have."
+              id="bot.add.role.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="row bot-profile__section"
+      >
+        <div
+          className="col-md-5 col-sm-8 col-sm-offset-4"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Select additional permissions for the account. <link>Read more about roles and permissions</link>."
+            id="admin.manage_roles.botAdditionalRoles"
+            values={
+              Object {
+                "link": [Function],
+              }
+            }
+          />
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="postAll"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="post:all"
+            id="bot.add.post_all"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8 checkbox"
+        >
+          <div
+            className="checkbox no-padding"
+          >
+            <label
+              htmlFor="postAll"
+            >
+              <input
+                checked={false}
+                disabled={false}
+                id="postAll"
+                onChange={[Function]}
+                type="checkbox"
+              />
+              <MemoizedFormattedMessage
+                defaultMessage="Enabled"
+                id="bot.add.post_all.enabled"
+              />
+            </label>
+          </div>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Bot will have access to post to all Mattermost channels including direct messages."
+              id="bot.add.post_all.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="postChannels"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="post:channels"
+            id="bot.add.post_channels"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8 checkbox"
+        >
+          <div
+            className="checkbox no-padding"
+          >
+            <label
+              htmlFor="postChannels"
+            >
+              <input
+                checked={false}
+                disabled={false}
+                id="postChannels"
+                onChange={[Function]}
+                type="checkbox"
+              />
+              <MemoizedFormattedMessage
+                defaultMessage="Enabled"
+                id="bot.add.post_channels.enabled"
+              />
+            </label>
+          </div>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Bot will have access to post to all Mattermost public channels."
+              id="bot.add.post_channels.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="backstage-form__footer"
+      >
+        <FormError
+          error={null}
+          errors={
+            Array [
+              "",
+            ]
+          }
+          type="backstage"
+        />
+        <Link
+          className="btn btn-tertiary"
+          to="/DN/integrations/bots"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="bots.manage.add.cancel"
+          />
+        </Link>
+        <Memo(SpinnerButton)
+          className="btn btn-primary"
+          id="saveBot"
+          onClick={[Function]}
+          spinning={false}
+          spinningText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Creating..."
+              id="bots.manage.add.creating"
+            />
+          }
+          type="submit"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Create Bot Account"
+            id="bots.manage.add.create"
+          />
+        </Memo(SpinnerButton)>
+      </div>
+    </form>
+  </div>
+</div>
+`;

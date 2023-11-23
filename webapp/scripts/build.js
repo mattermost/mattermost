@@ -6,7 +6,7 @@
 const chalk = require('chalk');
 const concurrently = require('concurrently');
 
-const {getPlatformCommands} = require('./utils.js');
+const {getExitCode, getPlatformCommands} = require('./utils.js');
 
 async function buildAll() {
     console.log(chalk.inverse.bold('Building subpackages...') + '\n');
@@ -20,9 +20,9 @@ async function buildAll() {
         );
 
         await result;
-    } catch (e) {
-        console.error(chalk.inverse.bold.red('Failed to build subpackages'), e);
-        return;
+    } catch (closeEvents) {
+        console.error(chalk.inverse.bold.red('Failed to build subpackages'), closeEvents);
+        return getExitCode(closeEvents);
     }
 
     console.log('\n' + chalk.inverse.bold('Subpackages built! Building web app...') + '\n');
@@ -34,40 +34,15 @@ async function buildAll() {
             {command: 'npm:build --workspace=channels', name: 'webapp', prefixColor: 'cyan'},
         ]);
         await result;
-    } catch (e) {
-        console.error(chalk.inverse.bold.red('Failed to build web app'), e);
-        return;
+    } catch (closeEvents) {
+        console.error(chalk.inverse.bold.red('Failed to build web app'), closeEvents);
+        return getExitCode(closeEvents);
     }
 
-    console.log('\n' + chalk.inverse.bold('Web app built! '));
-
-    console.log(chalk.inverse.bold('Building Boards...') + '\n');
-
-    try {
-        const {result} = concurrently([
-            {command: 'npm:build --workspace=boards', name: 'boards', prefixColor: 'blue'},
-        ]);
-        await result;
-    } catch (e) {
-        console.error(chalk.inverse.bold.red('Failed to build Boards'), e);
-        return;
-    }
-
-    console.log('\n' + chalk.inverse.bold('Boards built! '));
-
-    console.log(chalk.inverse.bold('Building Playbooks...') + '\n');
-
-    try {
-        const {result} = concurrently([
-            {command: 'npm:build --workspace=playbooks', name: 'playbooks', prefixColor: 'red'},
-        ]);
-        await result;
-    } catch (e) {
-        console.error(chalk.inverse.bold.red('Failed to build Playbooks'), e);
-        return;
-    }
-
-    console.log('\n' + chalk.inverse.bold('Playbooks built! '));
+    console.log('\n' + chalk.inverse.bold('Web app built!'));
+    return 0;
 }
 
-buildAll();
+buildAll().then((exitCode) => {
+    process.exitCode = exitCode;
+});

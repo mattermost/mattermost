@@ -3,14 +3,17 @@
 
 import React, {useState, useEffect} from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber} from 'react-intl';
-
 import {useSelector, useDispatch} from 'react-redux';
 
-import {Invoice} from '@mattermost/types/cloud';
+import type {Invoice} from '@mattermost/types/cloud';
+
 import {Client4} from 'mattermost-redux/client';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+
 import {openModal} from 'actions/views/modals';
+
 import CloudInvoicePreview from 'components/cloud_invoice_preview';
+
 import {ModalIdentifiers} from 'utils/constants';
 
 import InvoiceUserCount from './invoice_user_count';
@@ -176,7 +179,7 @@ export default function BillingHistoryTable({invoices}: BillingHistoryTableProps
                                     );
                                 }}
                             >
-                                <td>
+                                <td data-testid='billingHistoryTableRow'>
                                     <FormattedDate
                                         value={new Date(invoice.period_start)}
                                         month='2-digit'
@@ -191,7 +194,10 @@ export default function BillingHistoryTable({invoices}: BillingHistoryTableProps
                                         <InvoiceUserCount invoice={invoice}/>
                                     </div>
                                 </td>
-                                <td className='BillingHistory__table-total'>
+                                <td
+                                    data-testid={invoice.number}
+                                    className='BillingHistory__table-total'
+                                >
                                     <FormattedNumber
                                         value={invoice.total / 100.0}
                                         // eslint-disable-next-line react/style-prop-object
@@ -199,9 +205,10 @@ export default function BillingHistoryTable({invoices}: BillingHistoryTableProps
                                         currency='USD'
                                     />
                                 </td>
-                                <td>{getPaymentStatus(invoice.status)}</td>
+                                <td data-testid={invoice.id}>{getPaymentStatus(invoice.status)}</td>
                                 <td className='BillingHistory__table-invoice'>
                                     <a
+                                        data-testid={`billingHistoryLink-${invoice.id}`}
                                         target='_self'
                                         rel='noopener noreferrer'
                                         onClick={(e) => e.stopPropagation()}

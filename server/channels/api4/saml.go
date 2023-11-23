@@ -10,9 +10,9 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/audit"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitSaml() {
@@ -38,7 +38,7 @@ func (api *API) InitSamlLocal() {
 }
 
 func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
-	metadata, err := c.App.GetSamlMetadata()
+	metadata, err := c.App.GetSamlMetadata(c.AppContext)
 	if err != nil {
 		c.Err = err
 		return
@@ -272,7 +272,7 @@ func resetAuthDataToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	var params *ResetAuthDataParams
 	jsonErr := json.NewDecoder(r.Body).Decode(&params)
-	if jsonErr != nil {
+	if jsonErr != nil || params == nil {
 		c.Err = model.NewAppError("resetAuthDataToEmail", "model.utils.decode_json.app_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
 		return
 	}

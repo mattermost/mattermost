@@ -8,6 +8,7 @@
 .nav-tabs {
     margin-bottom: 10px;
     background: var(--center-channel-bg);
+    color: var(--center-channel-color);
 
     > li {
         margin-right: 5px;
@@ -15,6 +16,7 @@
         &.active {
             > a {
                 background: var(--center-channel-bg);
+                color: var(--center-channel-color);
             }
         }
 
@@ -83,8 +85,8 @@
 
         .navbar-toggle {
             z-index: 5;
-            width: 50px;
             height: 50px;
+            flex: 0 0 50px;
             padding: 0 10px;
             border-width: 0;
             border-color: transparent;
@@ -96,8 +98,8 @@
 
             &.navbar-right__icon {
                 display: flex;
-                width: 32px;
                 height: 32px;
+                flex: 0 0 32px;
                 align-items: center;
                 justify-content: center;
                 padding: 0;

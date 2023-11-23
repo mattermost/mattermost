@@ -14,15 +14,14 @@ import (
 
 	rudder "github.com/rudderlabs/analytics-go"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
-	"github.com/mattermost/mattermost-server/v6/server/channels/product"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/httpservice"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/marketplace"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost/server/v8/platform/services/marketplace"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
 
 const (
@@ -31,8 +30,15 @@ const (
 	DBAccessAttempts    = 3
 	DBAccessTimeoutSecs = 10
 
-	RudderKey          = "placeholder_rudder_key"
-	RudderDataplaneURL = "placeholder_rudder_dataplane_url"
+	rudderDataplaneURL = "https://pdat.matterlytics.com"
+	rudderKeyProd      = "1aoejPqhgONMI720CsBSRWzzRQ9"
+	rudderKeyTest      = "1aoeoCDeh7OCHcbW2kseWlwUFyq"
+
+	// These are placeholders to allow the existing release pipelines to run without failing to
+	// insert the values that are now hard-coded above. Remove this once we converge on the
+	// unified delivery pipeline in GitHub.
+	_ = "placeholder_rudder_dataplane_url"
+	_ = "placeholder_rudder_key"
 
 	EnvVarInstallType = "MM_INSTALL_TYPE"
 
@@ -95,7 +101,6 @@ type ServerIface interface {
 	License() *model.License
 	GetRoleByName(context.Context, string) (*model.Role, *model.AppError)
 	GetSchemes(string, int, int) ([]*model.Scheme, *model.AppError)
-	HooksManager() *product.HooksManager
 }
 
 type TelemetryService struct {
@@ -139,7 +144,7 @@ func (ts *TelemetryService) ensureTelemetryID() error {
 	var err error
 
 	for i := 0; i < DBAccessAttempts; i++ {
-		ts.log.Info("Ensuring the telemetry ID", mlog.String("id", id))
+		ts.log.Info("Ensuring the telemetry ID..")
 		systemID := &model.System{Name: model.SystemTelemetryId, Value: id}
 		systemID, err = ts.dbStore.System().InsertIfExists(systemID)
 		if err != nil {
@@ -149,6 +154,7 @@ func (ts *TelemetryService) ensureTelemetryID() error {
 		}
 
 		ts.TelemetryID = systemID.Value
+		ts.log.Info("telemetry ID is set", mlog.String("id", ts.TelemetryID))
 		return nil
 	}
 
@@ -156,13 +162,21 @@ func (ts *TelemetryService) ensureTelemetryID() error {
 }
 
 func (ts *TelemetryService) getRudderConfig() RudderConfig {
-	if !strings.Contains(RudderKey, "placeholder") && !strings.Contains(RudderDataplaneURL, "placeholder") {
-		return RudderConfig{RudderKey, RudderDataplaneURL}
-	} else if os.Getenv("RudderKey") != "" && os.Getenv("RudderDataplaneURL") != "" {
+	// Support unit testing
+	if os.Getenv("RudderKey") != "" && os.Getenv("RudderDataplaneURL") != "" {
 		return RudderConfig{os.Getenv("RudderKey"), os.Getenv("RudderDataplaneURL")}
-	} else {
-		return RudderConfig{}
 	}
+
+	rudderKey := ""
+	switch model.GetServiceEnvironment() {
+	case model.ServiceEnvironmentProduction:
+		rudderKey = rudderKeyProd
+	case model.ServiceEnvironmentTest:
+		rudderKey = rudderKeyTest
+	case model.ServiceEnvironmentDev:
+	}
+
+	return RudderConfig{rudderKey, rudderDataplaneURL}
 }
 
 func (ts *TelemetryService) telemetryEnabled() bool {
@@ -183,7 +197,6 @@ func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 		ts.trackGroups()
 		ts.trackChannelModeration()
 		ts.trackWarnMetrics()
-		ts.trackProducts()
 	}
 }
 
@@ -267,17 +280,17 @@ func (ts *TelemetryService) trackActivity() {
 	var incomingWebhooksCount int64
 	var outgoingWebhooksCount int64
 
-	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
+	activeUsersDailyCountChan := make(chan store.GenericStoreResult[int64], 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersDailyCountChan <- store.StoreResult{Data: count, NErr: err}
+		activeUsersDailyCountChan <- store.GenericStoreResult[int64]{Data: count, NErr: err}
 		close(activeUsersDailyCountChan)
 	}()
 
-	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
+	activeUsersMonthlyCountChan := make(chan store.GenericStoreResult[int64], 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, NErr: err}
+		activeUsersMonthlyCountChan <- store.GenericStoreResult[int64]{Data: count, NErr: err}
 		close(activeUsersMonthlyCountChan)
 	}()
 
@@ -348,12 +361,12 @@ func (ts *TelemetryService) trackActivity() {
 
 	var activeUsersDailyCount int64
 	if r := <-activeUsersDailyCountChan; r.NErr == nil {
-		activeUsersDailyCount = r.Data.(int64)
+		activeUsersDailyCount = r.Data
 	}
 
 	var activeUsersMonthlyCount int64
 	if r := <-activeUsersMonthlyCountChan; r.NErr == nil {
-		activeUsersMonthlyCount = r.Data.(int64)
+		activeUsersMonthlyCount = r.Data
 	}
 
 	activity := map[string]any{
@@ -403,8 +416,6 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_custom_emoji":                                     *cfg.ServiceSettings.EnableCustomEmoji,
 		"enable_emoji_picker":                                     *cfg.ServiceSettings.EnableEmojiPicker,
 		"enable_gif_picker":                                       *cfg.ServiceSettings.EnableGifPicker,
-		"gfycat_api_key":                                          isDefault(*cfg.ServiceSettings.GfycatAPIKey, model.ServiceSettingsDefaultGfycatAPIKey),
-		"gfycat_api_secret":                                       isDefault(*cfg.ServiceSettings.GfycatAPISecret, model.ServiceSettingsDefaultGfycatAPISecret),
 		"experimental_enable_authentication_transfer":             *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer,
 		"enable_testing":                                          cfg.ServiceSettings.EnableTesting,
 		"enable_developer":                                        *cfg.ServiceSettings.EnableDeveloper,
@@ -474,9 +485,14 @@ func (ts *TelemetryService) trackConfig() {
 		"restrict_link_previews":                                  isDefault(*cfg.ServiceSettings.RestrictLinkPreviews, ""),
 		"enable_custom_groups":                                    *cfg.ServiceSettings.EnableCustomGroups,
 		"post_priority":                                           *cfg.ServiceSettings.PostPriority,
+		"allow_persistent_notifications":                          *cfg.ServiceSettings.AllowPersistentNotifications,
+		"allow_persistent_notifications_for_guests":               *cfg.ServiceSettings.AllowPersistentNotificationsForGuests,
+		"persistent_notification_interval_minutes":                *cfg.ServiceSettings.PersistentNotificationIntervalMinutes,
+		"persistent_notification_max_count":                       *cfg.ServiceSettings.PersistentNotificationMaxCount,
+		"persistent_notification_max_recipients":                  *cfg.ServiceSettings.PersistentNotificationMaxRecipients,
 		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
-		"self_hosted_expansion":                                   *cfg.ServiceSettings.SelfHostedExpansion,
+		"refresh_post_stats_run_time":                             *cfg.ServiceSettings.RefreshPostStatsRunTime,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
@@ -522,6 +538,7 @@ func (ts *TelemetryService) trackConfig() {
 		"query_timeout":                        *cfg.SqlSettings.QueryTimeout,
 		"disable_database_search":              *cfg.SqlSettings.DisableDatabaseSearch,
 		"migrations_statement_timeout_seconds": *cfg.SqlSettings.MigrationsStatementTimeoutSeconds,
+		"replica_monitor_interval_seconds":     *cfg.SqlSettings.ReplicaMonitorIntervalSeconds,
 	})
 
 	ts.SendTelemetry(TrackConfigLog, map[string]any{
@@ -533,7 +550,8 @@ func (ts *TelemetryService) trackConfig() {
 		"file_json":                cfg.LogSettings.FileJson,
 		"enable_webhook_debugging": cfg.LogSettings.EnableWebhookDebugging,
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
-		"advanced_logging_config":  *cfg.LogSettings.AdvancedLoggingConfig != "",
+		"advanced_logging_json":    len(cfg.LogSettings.AdvancedLoggingJSON) != 0,
+		"advanced_logging_config":  cfg.LogSettings.AdvancedLoggingConfig != nil && *cfg.LogSettings.AdvancedLoggingConfig != "",
 	})
 
 	ts.SendTelemetry(TrackConfigAudit, map[string]any{
@@ -543,7 +561,8 @@ func (ts *TelemetryService) trackConfig() {
 		"file_max_backups":        *cfg.ExperimentalAuditSettings.FileMaxBackups,
 		"file_compress":           *cfg.ExperimentalAuditSettings.FileCompress,
 		"file_max_queue_size":     *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
-		"advanced_logging_config": *cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != "",
+		"advanced_logging_json":   len(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON) != 0,
+		"advanced_logging_config": cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != nil && *cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != "",
 	})
 
 	ts.SendTelemetry(TrackConfigNotificationLog, map[string]any{
@@ -554,7 +573,8 @@ func (ts *TelemetryService) trackConfig() {
 		"file_level":              *cfg.NotificationLogSettings.FileLevel,
 		"file_json":               *cfg.NotificationLogSettings.FileJson,
 		"isdefault_file_location": isDefault(*cfg.NotificationLogSettings.FileLocation, ""),
-		"advanced_logging_config": *cfg.NotificationLogSettings.AdvancedLoggingConfig != "",
+		"advanced_logging_json":   len(cfg.NotificationLogSettings.AdvancedLoggingJSON) != 0,
+		"advanced_logging_config": cfg.NotificationLogSettings.AdvancedLoggingConfig != nil && *cfg.NotificationLogSettings.AdvancedLoggingConfig != "",
 	})
 
 	ts.SendTelemetry(TrackConfigPassword, map[string]any{
@@ -750,15 +770,16 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigExperimental, map[string]any{
-		"client_side_cert_enable":            *cfg.ExperimentalSettings.ClientSideCertEnable,
-		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
-		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
-		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
-		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
-		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
-		"enable_remote_cluster_service":      *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
-		"enable_app_bar":                     *cfg.ExperimentalSettings.EnableAppBar,
-		"patch_plugins_react_dom":            *cfg.ExperimentalSettings.PatchPluginsReactDOM,
+		"client_side_cert_enable":             *cfg.ExperimentalSettings.ClientSideCertEnable,
+		"isdefault_client_side_cert_check":    isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
+		"link_metadata_timeout_milliseconds":  *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
+		"restrict_system_admin":               *cfg.ExperimentalSettings.RestrictSystemAdmin,
+		"use_new_saml_library":                *cfg.ExperimentalSettings.UseNewSAMLLibrary,
+		"enable_shared_channels":              *cfg.ExperimentalSettings.EnableSharedChannels,
+		"enable_remote_cluster_service":       *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
+		"enable_app_bar":                      !*cfg.ExperimentalSettings.DisableAppBar,
+		"disable_refetching_on_browser_focus": *cfg.ExperimentalSettings.DisableRefetchingOnBrowserFocus,
+		"delay_channel_autocomplete":          *cfg.ExperimentalSettings.DelayChannelAutocomplete,
 	})
 
 	ts.SendTelemetry(TrackConfigAnalytics, map[string]any{
@@ -804,12 +825,12 @@ func (ts *TelemetryService) trackConfig() {
 	ts.SendTelemetry(TrackConfigDataRetention, map[string]any{
 		"enable_message_deletion":       *cfg.DataRetentionSettings.EnableMessageDeletion,
 		"enable_file_deletion":          *cfg.DataRetentionSettings.EnableFileDeletion,
-		"enable_boards_deletion":        *cfg.DataRetentionSettings.EnableBoardsDeletion,
 		"message_retention_days":        *cfg.DataRetentionSettings.MessageRetentionDays,
 		"file_retention_days":           *cfg.DataRetentionSettings.FileRetentionDays,
-		"boards_retention_days":         *cfg.DataRetentionSettings.BoardsRetentionDays,
 		"deletion_job_start_time":       *cfg.DataRetentionSettings.DeletionJobStartTime,
 		"batch_size":                    *cfg.DataRetentionSettings.BatchSize,
+		"time_between_batches":          *cfg.DataRetentionSettings.TimeBetweenBatchesMilliseconds,
+		"retention_ids_batch_size":      *cfg.DataRetentionSettings.RetentionIdsBatchSize,
 		"cleanup_jobs_threshold_days":   *cfg.JobSettings.CleanupJobsThresholdDays,
 		"cleanup_config_threshold_days": *cfg.JobSettings.CleanupConfigThresholdDays,
 	})
@@ -829,12 +850,13 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.SendTelemetry(TrackConfigDisplay, map[string]any{
-		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
 		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomURLSchemes) != 0,
+		"isdefault_max_markdown_nodes": isDefault(*cfg.DisplaySettings.MaxMarkdownNodes, 0),
 	})
 
 	ts.SendTelemetry(TrackConfigGuestAccounts, map[string]any{
 		"enable":                                 *cfg.GuestAccountsSettings.Enable,
+		"hide_tag":                               *cfg.GuestAccountsSettings.HideTags,
 		"allow_email_accounts":                   *cfg.GuestAccountsSettings.AllowEmailAccounts,
 		"enforce_multifactor_authentication":     *cfg.GuestAccountsSettings.EnforceMultifactorAuthentication,
 		"isdefault_restrict_creation_to_domains": isDefault(*cfg.GuestAccountsSettings.RestrictCreationToDomains, ""),
@@ -856,10 +878,6 @@ func (ts *TelemetryService) trackConfig() {
 
 	ts.SendTelemetry(TrackConfigExport, map[string]any{
 		"retention_days": *cfg.ExportSettings.RetentionDays,
-	})
-
-	ts.SendTelemetry(TrackConfigProducts, map[string]any{
-		"enable_public_shared_boards": *cfg.ProductSettings.EnablePublicSharedBoards,
 	})
 
 	// Convert feature flags to map[string]any for sending
@@ -961,18 +979,6 @@ func (ts *TelemetryService) trackPlugins() {
 	})
 
 	pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-		hooks.OnSendDailyTelemetry()
-		return true
-	}, plugin.OnSendDailyTelemetryID)
-}
-
-func (ts *TelemetryService) trackProducts() {
-	hm := ts.srv.HooksManager()
-	if hm == nil {
-		return
-	}
-
-	hm.RunMultiHook(func(hooks plugin.Hooks) bool {
 		hooks.OnSendDailyTelemetry()
 		return true
 	}, plugin.OnSendDailyTelemetryID)
@@ -1324,7 +1330,7 @@ func (ts *TelemetryService) initRudder(endpoint string, rudderKey string) {
 		config.Endpoint = endpoint
 		config.Verbose = ts.verbose
 		// For testing
-		if endpoint != RudderDataplaneURL {
+		if endpoint != rudderDataplaneURL {
 			config.BatchSize = 1
 		}
 		client, err := rudder.NewWithConfig(rudderKey, endpoint, config)

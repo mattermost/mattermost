@@ -15,10 +15,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         id="admin.complianceExport.title"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <BooleanSetting
         disabled={false}
         falseText={
@@ -75,7 +72,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         setByEnv={false}
         value="01:00"
       />
-      <DropdownSetting
+      <Memo(DropdownSetting)
         disabled={true}
         helpText={
           <FormattedMarkdownMessage
@@ -89,7 +86,6 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
           />
         }
         id="exportFormat"
-        isDisabled={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Export Format:"
@@ -138,7 +134,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -192,10 +188,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         id="admin.complianceExport.title"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <BooleanSetting
         disabled={false}
         falseText={
@@ -252,7 +245,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         setByEnv={false}
         value="01:00"
       />
-      <DropdownSetting
+      <Memo(DropdownSetting)
         disabled={true}
         helpText={
           <FormattedMarkdownMessage
@@ -266,7 +259,6 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
           />
         }
         id="exportFormat"
-        isDisabled={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Export Format:"
@@ -294,9 +286,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         }
       />
       <SettingsGroup
-        container={true}
         id="globalRelaySettings"
-        show={true}
       >
         <RadioSetting
           disabled={true}
@@ -412,7 +402,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -466,10 +456,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         id="admin.complianceExport.title"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <BooleanSetting
         disabled={false}
         falseText={
@@ -526,7 +513,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         setByEnv={false}
         value="01:00"
       />
-      <DropdownSetting
+      <Memo(DropdownSetting)
         disabled={false}
         helpText={
           <FormattedMarkdownMessage
@@ -540,7 +527,6 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
           />
         }
         id="exportFormat"
-        isDisabled={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Export Format:"
@@ -589,7 +575,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -643,10 +629,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         id="admin.complianceExport.title"
       />
     </AdminHeader>
-    <SettingsGroup
-      container={true}
-      show={true}
-    >
+    <SettingsGroup>
       <BooleanSetting
         disabled={false}
         falseText={
@@ -703,7 +686,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         setByEnv={false}
         value="01:00"
       />
-      <DropdownSetting
+      <Memo(DropdownSetting)
         disabled={false}
         helpText={
           <FormattedMarkdownMessage
@@ -717,7 +700,6 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
           />
         }
         id="exportFormat"
-        isDisabled={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Export Format:"
@@ -745,9 +727,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         }
       />
       <SettingsGroup
-        container={true}
         id="globalRelaySettings"
-        show={true}
       >
         <RadioSetting
           disabled={false}
@@ -863,7 +843,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"

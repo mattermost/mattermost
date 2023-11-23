@@ -1,8 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSelector} from 'reselect';
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import {CategorySorting} from '@mattermost/types/channel_categories';
+import type {Channel} from '@mattermost/types/channels';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {
+    makeGetCategoriesForTeam,
+    makeGetChannelsByCategory,
+    makeGetChannelIdsForCategory,
+} from 'mattermost-redux/selectors/entities/channel_categories';
 import {
     getAllChannels,
     getCurrentChannelId,
@@ -10,19 +19,11 @@ import {
     getUnreadChannelIds,
     sortUnreadChannels,
 } from 'mattermost-redux/selectors/entities/channels';
-import {
-    makeGetCategoriesForTeam,
-    makeGetChannelsByCategory,
-    makeGetChannelIdsForCategory,
-} from 'mattermost-redux/selectors/entities/channel_categories';
 import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {Channel} from '@mattermost/types/channels';
-import {CategorySorting, ChannelCategory} from '@mattermost/types/channel_categories';
-import {RelationOneToOne} from '@mattermost/types/utilities';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
-import {DraggingState, GlobalState} from 'types/store';
+import type {DraggingState, GlobalState} from 'types/store';
 
 export function isUnreadFilterEnabled(state: GlobalState): boolean {
     return state.views.channelSidebar.unreadFilterEnabled && !shouldShowUnreadsCategory(state);
@@ -203,6 +204,33 @@ export function makeGetFilteredChannelIdsForCategory(): (state: GlobalState, cat
             }
 
             const filtered = channelIds.filter((id) => !unreadChannelIdsSet.has(id));
+
+            return filtered.length === channelIds.length ? channelIds : filtered;
+        },
+    );
+}
+
+// Returns a selector that, given a category, returns the ids of channels visible in that category. The returned channels do not
+// include unread channels when the Unreads category is enabled.
+export function makeGetUnreadIdsForCategory(): (state: GlobalState, category: ChannelCategory) => string[] {
+    const getChannelIdsForCategory = makeGetChannelIdsForCategory();
+    const emptyList: string[] = [];
+
+    return createSelector(
+        'makeGetFilteredChannelIdsForCategory',
+        getChannelIdsForCategory,
+        getUnreadChannelIdsSet,
+        shouldShowUnreadsCategory,
+        (channelIds, unreadChannelIdsSet, showUnreadsCategory) => {
+            if (showUnreadsCategory) {
+                return emptyList;
+            }
+
+            const filtered = channelIds.filter((id) => unreadChannelIdsSet.has(id));
+
+            if (filtered.length === 0) {
+                return emptyList;
+            }
 
             return filtered.length === channelIds.length ? channelIds : filtered;
         },

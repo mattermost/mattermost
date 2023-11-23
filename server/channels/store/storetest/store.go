@@ -10,73 +10,79 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 // Store can be used to provide mock stores for testing.
 type Store struct {
-	TeamStore                 mocks.TeamStore
-	ChannelStore              mocks.ChannelStore
-	PostStore                 mocks.PostStore
-	UserStore                 mocks.UserStore
-	RetentionPolicyStore      mocks.RetentionPolicyStore
-	BotStore                  mocks.BotStore
-	AuditStore                mocks.AuditStore
-	ClusterDiscoveryStore     mocks.ClusterDiscoveryStore
-	RemoteClusterStore        mocks.RemoteClusterStore
-	ComplianceStore           mocks.ComplianceStore
-	SessionStore              mocks.SessionStore
-	OAuthStore                mocks.OAuthStore
-	SystemStore               mocks.SystemStore
-	WebhookStore              mocks.WebhookStore
-	CommandStore              mocks.CommandStore
-	CommandWebhookStore       mocks.CommandWebhookStore
-	PreferenceStore           mocks.PreferenceStore
-	LicenseStore              mocks.LicenseStore
-	TokenStore                mocks.TokenStore
-	EmojiStore                mocks.EmojiStore
-	ThreadStore               mocks.ThreadStore
-	StatusStore               mocks.StatusStore
-	FileInfoStore             mocks.FileInfoStore
-	UploadSessionStore        mocks.UploadSessionStore
-	ReactionStore             mocks.ReactionStore
-	JobStore                  mocks.JobStore
-	UserAccessTokenStore      mocks.UserAccessTokenStore
-	PluginStore               mocks.PluginStore
-	ChannelMemberHistoryStore mocks.ChannelMemberHistoryStore
-	RoleStore                 mocks.RoleStore
-	SchemeStore               mocks.SchemeStore
-	TermsOfServiceStore       mocks.TermsOfServiceStore
-	GroupStore                mocks.GroupStore
-	UserTermsOfServiceStore   mocks.UserTermsOfServiceStore
-	LinkMetadataStore         mocks.LinkMetadataStore
-	SharedChannelStore        mocks.SharedChannelStore
-	ProductNoticesStore       mocks.ProductNoticesStore
-	DraftStore                mocks.DraftStore
-	context                   context.Context
-	NotifyAdminStore          mocks.NotifyAdminStore
-	PostPriorityStore         mocks.PostPriorityStore
-	PostAcknowledgementStore  mocks.PostAcknowledgementStore
-	TrueUpReviewStore         mocks.TrueUpReviewStore
+	TeamStore                       mocks.TeamStore
+	ChannelStore                    mocks.ChannelStore
+	PostStore                       mocks.PostStore
+	UserStore                       mocks.UserStore
+	RetentionPolicyStore            mocks.RetentionPolicyStore
+	BotStore                        mocks.BotStore
+	AuditStore                      mocks.AuditStore
+	ClusterDiscoveryStore           mocks.ClusterDiscoveryStore
+	RemoteClusterStore              mocks.RemoteClusterStore
+	ComplianceStore                 mocks.ComplianceStore
+	SessionStore                    mocks.SessionStore
+	OAuthStore                      mocks.OAuthStore
+	OutgoingOAuthConnectionStore    mocks.OutgoingOAuthConnectionStore
+	SystemStore                     mocks.SystemStore
+	WebhookStore                    mocks.WebhookStore
+	CommandStore                    mocks.CommandStore
+	CommandWebhookStore             mocks.CommandWebhookStore
+	PreferenceStore                 mocks.PreferenceStore
+	LicenseStore                    mocks.LicenseStore
+	TokenStore                      mocks.TokenStore
+	EmojiStore                      mocks.EmojiStore
+	ThreadStore                     mocks.ThreadStore
+	StatusStore                     mocks.StatusStore
+	FileInfoStore                   mocks.FileInfoStore
+	UploadSessionStore              mocks.UploadSessionStore
+	ReactionStore                   mocks.ReactionStore
+	JobStore                        mocks.JobStore
+	UserAccessTokenStore            mocks.UserAccessTokenStore
+	PluginStore                     mocks.PluginStore
+	ChannelMemberHistoryStore       mocks.ChannelMemberHistoryStore
+	RoleStore                       mocks.RoleStore
+	SchemeStore                     mocks.SchemeStore
+	TermsOfServiceStore             mocks.TermsOfServiceStore
+	GroupStore                      mocks.GroupStore
+	UserTermsOfServiceStore         mocks.UserTermsOfServiceStore
+	LinkMetadataStore               mocks.LinkMetadataStore
+	SharedChannelStore              mocks.SharedChannelStore
+	ProductNoticesStore             mocks.ProductNoticesStore
+	DraftStore                      mocks.DraftStore
+	context                         context.Context
+	NotifyAdminStore                mocks.NotifyAdminStore
+	PostPriorityStore               mocks.PostPriorityStore
+	PostAcknowledgementStore        mocks.PostAcknowledgementStore
+	PostPersistentNotificationStore mocks.PostPersistentNotificationStore
+	TrueUpReviewStore               mocks.TrueUpReviewStore
+	DesktopTokensStore              mocks.DesktopTokensStore
 }
 
-func (s *Store) SetContext(context context.Context)                { s.context = context }
-func (s *Store) Context() context.Context                          { return s.context }
-func (s *Store) Team() store.TeamStore                             { return &s.TeamStore }
-func (s *Store) Channel() store.ChannelStore                       { return &s.ChannelStore }
-func (s *Store) Post() store.PostStore                             { return &s.PostStore }
-func (s *Store) User() store.UserStore                             { return &s.UserStore }
-func (s *Store) RetentionPolicy() store.RetentionPolicyStore       { return &s.RetentionPolicyStore }
-func (s *Store) Bot() store.BotStore                               { return &s.BotStore }
-func (s *Store) ProductNotices() store.ProductNoticesStore         { return &s.ProductNoticesStore }
-func (s *Store) Audit() store.AuditStore                           { return &s.AuditStore }
-func (s *Store) ClusterDiscovery() store.ClusterDiscoveryStore     { return &s.ClusterDiscoveryStore }
-func (s *Store) RemoteCluster() store.RemoteClusterStore           { return &s.RemoteClusterStore }
-func (s *Store) Compliance() store.ComplianceStore                 { return &s.ComplianceStore }
-func (s *Store) Session() store.SessionStore                       { return &s.SessionStore }
-func (s *Store) OAuth() store.OAuthStore                           { return &s.OAuthStore }
+func (s *Store) SetContext(context context.Context)            { s.context = context }
+func (s *Store) Context() context.Context                      { return s.context }
+func (s *Store) Team() store.TeamStore                         { return &s.TeamStore }
+func (s *Store) Channel() store.ChannelStore                   { return &s.ChannelStore }
+func (s *Store) Post() store.PostStore                         { return &s.PostStore }
+func (s *Store) User() store.UserStore                         { return &s.UserStore }
+func (s *Store) RetentionPolicy() store.RetentionPolicyStore   { return &s.RetentionPolicyStore }
+func (s *Store) Bot() store.BotStore                           { return &s.BotStore }
+func (s *Store) ProductNotices() store.ProductNoticesStore     { return &s.ProductNoticesStore }
+func (s *Store) Audit() store.AuditStore                       { return &s.AuditStore }
+func (s *Store) ClusterDiscovery() store.ClusterDiscoveryStore { return &s.ClusterDiscoveryStore }
+func (s *Store) RemoteCluster() store.RemoteClusterStore       { return &s.RemoteClusterStore }
+func (s *Store) Compliance() store.ComplianceStore             { return &s.ComplianceStore }
+func (s *Store) Session() store.SessionStore                   { return &s.SessionStore }
+func (s *Store) OAuth() store.OAuthStore                       { return &s.OAuthStore }
+func (s *Store) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
+	return &s.OutgoingOAuthConnectionStore
+}
 func (s *Store) System() store.SystemStore                         { return &s.SystemStore }
 func (s *Store) Webhook() store.WebhookStore                       { return &s.WebhookStore }
 func (s *Store) Command() store.CommandStore                       { return &s.CommandStore }
@@ -102,6 +108,7 @@ func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
 func (s *Store) TrueUpReview() store.TrueUpReviewStore   { return &s.TrueUpReviewStore }
+func (s *Store) DesktopTokens() store.DesktopTokensStore { return &s.DesktopTokensStore }
 func (s *Store) NotifyAdmin() store.NotifyAdminStore     { return &s.NotifyAdminStore }
 func (s *Store) Group() store.GroupStore                 { return &s.GroupStore }
 func (s *Store) LinkMetadata() store.LinkMetadataStore   { return &s.LinkMetadataStore }
@@ -110,17 +117,21 @@ func (s *Store) PostPriority() store.PostPriorityStore   { return &s.PostPriorit
 func (s *Store) PostAcknowledgement() store.PostAcknowledgementStore {
 	return &s.PostAcknowledgementStore
 }
-func (s *Store) MarkSystemRanUnitTests()            { /* do nothing */ }
-func (s *Store) Close()                             { /* do nothing */ }
-func (s *Store) LockToMaster()                      { /* do nothing */ }
-func (s *Store) UnlockFromMaster()                  { /* do nothing */ }
-func (s *Store) DropAllTables()                     { /* do nothing */ }
-func (s *Store) GetDbVersion(bool) (string, error)  { return "", nil }
-func (s *Store) GetInternalMasterDB() *sql.DB       { return nil }
-func (s *Store) GetInternalReplicaDB() *sql.DB      { return nil }
-func (s *Store) GetInternalReplicaDBs() []*sql.DB   { return nil }
-func (s *Store) RecycleDBConnections(time.Duration) {}
-func (s *Store) GetDBSchemaVersion() (int, error)   { return 1, nil }
+func (s *Store) PostPersistentNotification() store.PostPersistentNotificationStore {
+	return &s.PostPersistentNotificationStore
+}
+func (s *Store) MarkSystemRanUnitTests()             { /* do nothing */ }
+func (s *Store) Close()                              { /* do nothing */ }
+func (s *Store) LockToMaster()                       { /* do nothing */ }
+func (s *Store) UnlockFromMaster()                   { /* do nothing */ }
+func (s *Store) DropAllTables()                      { /* do nothing */ }
+func (s *Store) GetDbVersion(bool) (string, error)   { return "", nil }
+func (s *Store) GetInternalMasterDB() *sql.DB        { return nil }
+func (s *Store) GetInternalReplicaDB() *sql.DB       { return nil }
+func (s *Store) GetInternalReplicaDBs() []*sql.DB    { return nil }
+func (s *Store) RecycleDBConnections(time.Duration)  {}
+func (s *Store) GetDBSchemaVersion() (int, error)    { return 1, nil }
+func (s *Store) GetLocalSchemaVersion() (int, error) { return 1, nil }
 func (s *Store) GetAppliedMigrations() ([]model.AppliedMigration, error) {
 	return []model.AppliedMigration{}, nil
 }
@@ -171,5 +182,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.NotifyAdminStore,
 		&s.PostPriorityStore,
 		&s.PostAcknowledgementStore,
+		&s.PostPersistentNotificationStore,
+		&s.DesktopTokensStore,
 	)
 }

@@ -1,16 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties} from 'react';
 import classNames from 'classnames';
+import React from 'react';
+import type {CSSProperties} from 'react';
 
-import * as Utils from 'utils/utils';
 import {showMobileSubMenuModal} from 'actions/global_actions';
+
+import Constants from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import * as Utils from 'utils/utils';
 
 import type {Menu} from 'types/store/plugins';
 
+import {isMobile as isMobileViewHack} from '../is_mobile_view_hack';
+
 import './menu_item.scss';
-import Constants from 'utils/constants';
 
 // Requires an object conforming to a submenu structure passed to registerPostDropdownSubMenuAction
 // of the form:
@@ -93,7 +98,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
     private onClick = (event: React.SyntheticEvent<HTMLElement>) => {
         event.preventDefault();
         const {id, postId, subMenu, action, root, isHeader} = this.props;
-        const isMobile = Utils.isMobile();
+        const isMobile = isMobileViewHack();
         if (isHeader) {
             event.stopPropagation();
             return;
@@ -113,7 +118,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
     };
 
     handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (Utils.isKeyPressed(event, Constants.KeyCodes.ENTER)) {
+        if (Keyboard.isKeyPressed(event, Constants.KeyCodes.ENTER)) {
             if (this.props.action) {
                 this.onClick(event);
             } else {
@@ -121,7 +126,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
             }
         }
 
-        if (Utils.isKeyPressed(event, Constants.KeyCodes.RIGHT)) {
+        if (Keyboard.isKeyPressed(event, Constants.KeyCodes.RIGHT)) {
             if (this.props.direction === 'right') {
                 this.show();
             } else {
@@ -129,7 +134,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
             }
         }
 
-        if (Utils.isKeyPressed(event, Constants.KeyCodes.LEFT)) {
+        if (Keyboard.isKeyPressed(event, Constants.KeyCodes.LEFT)) {
             if (this.props.direction === 'left') {
                 this.show();
             } else {
@@ -140,7 +145,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
 
     public render() {
         const {id, postId, text, selectedValueText, subMenu, icon, filter, ariaLabel, direction, styleSelectableItem, extraText, renderSelected, rightDecorator, tabIndex} = this.props;
-        const isMobile = Utils.isMobile();
+        const isMobile = isMobileViewHack();
 
         if (filter && !filter(id)) {
             return ('');
@@ -181,9 +186,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                         const hasDivider = s.id === 'ChannelMenu-moveToDivider';
                         let aria = ariaLabel;
                         if (s.action) {
-                            aria = s.text === selectedValueText ?
-                                s.text + ' ' + Utils.localizeMessage('sidebar.menu.item.selected', 'selected') :
-                                s.text + ' ' + Utils.localizeMessage('sidebar.menu.item.notSelected', 'not selected');
+                            aria = s.text === selectedValueText ? s.text + ' ' + Utils.localizeMessage('sidebar.menu.item.selected', 'selected') : s.text + ' ' + Utils.localizeMessage('sidebar.menu.item.notSelected', 'not selected');
                         }
                         return (
                             <span

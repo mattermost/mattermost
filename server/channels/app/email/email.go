@@ -15,11 +15,11 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mail"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/templates"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 
 	"github.com/microcosm-cc/bluemonday"
 )
@@ -894,7 +894,7 @@ func (es *Service) InvalidateVerifyEmailTokensForUser(userID string) *model.AppE
 		return model.NewAppError("InvalidateVerifyEmailTokensForUser", "api.user.invalidate_verify_email_tokens.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	var appErr *model.AppError = nil
+	var appErr *model.AppError
 	for _, token := range tokens {
 		tokenExtra := struct {
 			UserId string
@@ -1270,6 +1270,43 @@ func (es *Service) SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale
 	}
 
 	if err := es.sendMail(email, subject, body, "RemoveExpiredLicense"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (es *Service) SendIPFiltersChangedEmail(email string, initiatingUser *model.User, siteURL, portalURL, locale string, isWorkspaceOwner bool) error {
+	T := i18n.GetUserTranslations(locale)
+
+	subject := T("api.templates.ip_filters_changed.subject")
+
+	data := es.NewEmailTemplateData(locale)
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = T("api.templates.ip_filters_changed.title")
+	data.Props["SubTitle"] = T("api.templates.ip_filters_changed.subTitle", map[string]any{"InitiatingUsername": initiatingUser.Username, "SiteURL": siteURL})
+	data.Props["ButtonURL"] = siteURL + "/admin_console/site_config/ip_filtering"
+	data.Props["Button"] = T("api.templates.ip_filters_changed.button")
+	data.Props["TroubleAccessingTitle"] = T("api.templates.ip_filters_changed_footer.title")
+	data.Props["SendAnEmailTo"] = T("api.templates.ip_filters_changed_footer.send_an_email_to", map[string]any{"InitiatingUserEmail": initiatingUser.Email})
+	data.Props["PortalURL"] = portalURL
+	// If the email we're sending to was the one who initiated the change, we don't want to show their email address as a mailto
+	if email != initiatingUser.Email {
+		data.Props["ActorEmail"] = initiatingUser.Email
+	}
+
+	if isWorkspaceOwner {
+		data.Props["LogInToCustomerPortal"] = T("api.templates.ip_filters_changed_footer.log_in_to_customer_portal")
+	}
+	data.Props["ContactSupport"] = T("api.templates.ip_filters_changed_footer.contact_support")
+	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
+
+	body, err := es.templatesContainer.RenderToString("ip_filters_changed", data)
+	if err != nil {
+		return err
+	}
+
+	if err := es.sendMail(email, subject, body, "PasswordResetEmail"); err != nil {
 		return err
 	}
 

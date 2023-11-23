@@ -9,10 +9,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	"github.com/mattermost/mattermost-server/v6/server/platform/services/searchengine"
-	"github.com/mattermost/mattermost-server/v6/server/platform/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
 
 type SearchUserStore struct {
@@ -115,17 +115,17 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 		return nil, err
 	}
 
-	uchan := make(chan store.StoreResult, 1)
+	uchan := make(chan store.GenericStoreResult[[]*model.User], 1)
 	go func() {
 		users, nErr := s.UserStore.GetProfileByIds(context.Background(), uchanIds, nil, false)
-		uchan <- store.StoreResult{Data: users, NErr: nErr}
+		uchan <- store.GenericStoreResult[[]*model.User]{Data: users, NErr: nErr}
 		close(uchan)
 	}()
 
-	nuchan := make(chan store.StoreResult, 1)
+	nuchan := make(chan store.GenericStoreResult[[]*model.User], 1)
 	go func() {
 		users, nErr := s.UserStore.GetProfileByIds(context.Background(), nuchanIds, nil, false)
-		nuchan <- store.StoreResult{Data: users, NErr: nErr}
+		nuchan <- store.GenericStoreResult[[]*model.User]{Data: users, NErr: nErr}
 		close(nuchan)
 	}()
 
@@ -135,15 +135,13 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 	if result.NErr != nil {
 		return nil, errors.Wrap(result.NErr, "failed to get user profiles by ids")
 	}
-	inUsers := result.Data.([]*model.User)
-	autocomplete.InChannel = inUsers
+	autocomplete.InChannel = result.Data
 
 	result = <-nuchan
 	if result.NErr != nil {
 		return nil, errors.Wrap(result.NErr, "failed to get user profiles by ids")
 	}
-	outUsers := result.Data.([]*model.User)
-	autocomplete.OutOfChannel = outUsers
+	autocomplete.OutOfChannel = result.Data
 
 	return autocomplete, nil
 }

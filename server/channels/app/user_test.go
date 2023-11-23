@@ -18,15 +18,15 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	oauthgitlab "github.com/mattermost/mattermost-server/v6/model/oauthproviders/gitlab"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/request"
-	"github.com/mattermost/mattermost-server/v6/server/channels/app/users"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces"
-	"github.com/mattermost/mattermost-server/v6/server/channels/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/store"
-	storemocks "github.com/mattermost/mattermost-server/v6/server/channels/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v6/server/channels/utils/testutils"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	oauthgitlab "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestCreateOAuthUser(t *testing.T) {
@@ -60,8 +60,8 @@ func TestCreateOAuthUser(t *testing.T) {
 		// mock oAuth Provider, return data
 		mockUser := &model.User{Id: "abcdef", AuthData: model.NewString("e7110007-64be-43d8-9840-4a7e9c26b710"), Email: dbUser.Email}
 		providerMock := &mocks.OAuthProvider{}
-		providerMock.On("IsSameUser", mock.Anything, mock.Anything).Return(true)
-		providerMock.On("GetUserFromJSON", mock.Anything, mock.Anything).Return(mockUser, nil)
+		providerMock.On("IsSameUser", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything).Return(true)
+		providerMock.On("GetUserFromJSON", mock.AnythingOfType("*request.Context"), mock.Anything, mock.Anything).Return(mockUser, nil)
 		einterfaces.RegisterOAuthProvider(model.ServiceOffice365, providerMock)
 
 		// Update user to be OAuth, formatting to match Office365 OAuth data
@@ -85,9 +85,11 @@ func TestCreateOAuthUser(t *testing.T) {
 	})
 }
 
-func TestSetDefaultProfileImage(t *testing.T) {
+func TestUpdateDefaultProfileImage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	startTime := model.GetMillis()
+	time.Sleep(time.Millisecond)
 
 	err := th.App.SetDefaultProfileImage(th.Context, &model.User{
 		Id:       model.NewId(),
@@ -98,35 +100,35 @@ func TestSetDefaultProfileImage(t *testing.T) {
 
 	user := th.BasicUser
 
-	err = th.App.SetDefaultProfileImage(th.Context, user)
+	err = th.App.UpdateDefaultProfileImage(th.Context, user)
 	require.Nil(t, err)
 
 	user = getUserFromDB(th.App, user.Id, t)
-	assert.Equal(t, int64(0), user.LastPictureUpdate)
+	assert.Less(t, user.LastPictureUpdate, -startTime, "LastPictureUpdate should be set to -(current time in milliseconds)")
 }
 
 func TestAdjustProfileImage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	_, err := th.App.AdjustImage(bytes.NewReader([]byte{}))
-	require.NotNil(t, err)
+	_, appErr := th.App.AdjustImage(bytes.NewReader([]byte{}))
+	require.NotNil(t, appErr)
 
 	// test image isn't the correct dimensions
 	// it should be adjusted
-	testjpg, error := testutils.ReadTestFile("testjpg.jpg")
-	require.NoError(t, error)
-	adjusted, err := th.App.AdjustImage(bytes.NewReader(testjpg))
-	require.Nil(t, err)
+	testjpg, err := testutils.ReadTestFile("testjpg.jpg")
+	require.NoError(t, err)
+	adjusted, appErr := th.App.AdjustImage(bytes.NewReader(testjpg))
+	require.Nil(t, appErr)
 	assert.True(t, adjusted.Len() > 0)
 	assert.NotEqual(t, testjpg, adjusted)
 
 	// default image should not require adjustment
 	user := th.BasicUser
-	image, err := th.App.GetDefaultProfileImage(user)
-	require.Nil(t, err)
-	image2, err := th.App.AdjustImage(bytes.NewReader(image))
-	require.Nil(t, err)
+	image, appErr := th.App.GetDefaultProfileImage(user)
+	require.Nil(t, appErr)
+	image2, appErr := th.App.AdjustImage(bytes.NewReader(image))
+	require.Nil(t, appErr)
 	assert.Equal(t, image, image2.Bytes())
 }
 
@@ -194,6 +196,34 @@ func TestUpdateUser(t *testing.T) {
 		require.NotNil(t, err)
 		require.Nil(t, u)
 	})
+
+	t.Run("fails if default profile picture is not updated when user has default profile picture and username is changed", func(t *testing.T) {
+		user.Username = "updatedUsername"
+		iLastPictureUpdate := user.LastPictureUpdate
+		require.Equal(t, iLastPictureUpdate, int64(0))
+		u, err := th.App.UpdateUser(th.Context, user, false)
+		require.Nil(t, err)
+		require.NotNil(t, u)
+		require.Less(t, u.LastPictureUpdate, iLastPictureUpdate)
+		require.Empty(t, u.Password)
+	})
+
+	t.Run("fails if profile picture is updated when user has custom profile picture and username is changed", func(t *testing.T) {
+		// Give the user a LastPictureUpdate to mimic having a custom profile picture
+		err := th.App.Srv().Store().User().UpdateLastPictureUpdate(user.Id)
+		require.NoError(t, err)
+		iUser, errGetUser := th.App.GetUser(user.Id)
+		require.Nil(t, errGetUser)
+		iUser.Username = "updatedUsername"
+		iLastPictureUpdate := iUser.LastPictureUpdate
+		require.Greater(t, iLastPictureUpdate, int64(0))
+
+		// Attempt the update, ensure the LastPictureUpdate has not changed
+		updatedUser, errUpdateUser := th.App.UpdateUser(th.Context, iUser, false)
+		require.Nil(t, errUpdateUser)
+		require.NotNil(t, updatedUser)
+		require.Equal(t, updatedUser.LastPictureUpdate, iLastPictureUpdate)
+	})
 }
 
 func TestUpdateUserMissingFields(t *testing.T) {
@@ -255,8 +285,8 @@ func TestCreateUser(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/v6/plugin"
-				"github.com/mattermost/mattermost-server/v6/model"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
 			)
 
 			type MyPlugin struct {
@@ -387,7 +417,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			data := bytes.NewReader(gitlabUser)
 
 			user = getUserFromDB(th.App, user.Id, t)
-			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", nil)
+			th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 			user = getUserFromDB(th.App, user.Id, t)
 
 			require.Equal(t, gitlabUserObj.Username, user.Username, "user's username is not updated")
@@ -400,7 +430,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			data := bytes.NewReader(gitlabUser)
 
 			user = getUserFromDB(th.App, user.Id, t)
-			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", nil)
+			th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 			user = getUserFromDB(th.App, user.Id, t)
 
 			require.NotEqual(t, gitlabUserObj.Username, user.Username, "user's username is updated though there already exists another user with the same username")
@@ -414,7 +444,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			data := bytes.NewReader(gitlabUser)
 
 			user = getUserFromDB(th.App, user.Id, t)
-			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", nil)
+			th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 			user = getUserFromDB(th.App, user.Id, t)
 
 			require.Equal(t, gitlabUserObj.Email, user.Email, "user's email is not updated")
@@ -429,7 +459,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			data := bytes.NewReader(gitlabUser)
 
 			user = getUserFromDB(th.App, user.Id, t)
-			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", nil)
+			th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 			user = getUserFromDB(th.App, user.Id, t)
 
 			require.NotEqual(t, gitlabUserObj.Email, user.Email, "user's email is updated though there already exists another user with the same email")
@@ -442,7 +472,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		data := bytes.NewReader(gitlabUser)
 
 		user = getUserFromDB(th.App, user.Id, t)
-		th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", nil)
+		th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 		user = getUserFromDB(th.App, user.Id, t)
 
 		require.Equal(t, "Updated", user.FirstName, "user's first name is not updated")
@@ -454,7 +484,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		data := bytes.NewReader(gitlabUser)
 
 		user = getUserFromDB(th.App, user.Id, t)
-		th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", nil)
+		th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 		user = getUserFromDB(th.App, user.Id, t)
 
 		require.Equal(t, "Lastname", user.LastName, "user's last name is not updated")
@@ -546,7 +576,6 @@ func TestUpdateUserEmail(t *testing.T) {
 		botuser2, appErr := th.App.UpdateUser(th.Context, &botuser, false)
 		assert.Nil(t, appErr)
 		assert.Equal(t, botuser2.Email, newBotEmail)
-
 	})
 
 	t.Run("RequireVerificationAlreadyUsedEmail", func(t *testing.T) {
@@ -669,7 +698,7 @@ func getGitlabUserPayload(gitlabUser oauthgitlab.GitLabUser, t *testing.T) []byt
 	return payload
 }
 
-func createGitlabUser(t *testing.T, a *App, c *request.Context, id int64, username string, email string) (*model.User, oauthgitlab.GitLabUser) {
+func createGitlabUser(t *testing.T, a *App, c request.CTX, id int64, username string, email string) (*model.User, oauthgitlab.GitLabUser) {
 	gitlabUserObj := oauthgitlab.GitLabUser{Id: id, Username: username, Login: "user1", Email: email, Name: "Test User"}
 	gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 
@@ -1026,7 +1055,7 @@ func TestCreateUserWithToken(t *testing.T) {
 }
 
 func TestPermanentDeleteUser(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic().DeleteBots()
 	defer th.TearDown()
 
 	b := []byte("testimage")
@@ -1076,7 +1105,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 	require.False(t, res, "File was not deleted on FS. err=%v", err)
 
-	finfo, err = th.App.GetFileInfo(finfo.Id)
+	finfo, err = th.App.GetFileInfo(th.Context, finfo.Id)
 
 	require.Nil(t, finfo, "Unable to find finfo. err=%v", err)
 
@@ -1141,7 +1170,44 @@ func TestPasswordRecovery(t *testing.T) {
 		err = th.App.resetPasswordFromToken(th.Context, token.Token, "abcdefgh", model.GetMillisForTime(time.Now().Add(25*time.Hour)))
 		assert.NotNil(t, err)
 	})
+}
 
+func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("remove manually added tokens", func(t *testing.T) {
+		for i := 0; i < 5; i++ {
+			token := model.NewToken(
+				TokenTypePasswordRecovery,
+				model.MapToJSON(map[string]string{"UserId": th.BasicUser.Id, "email": th.BasicUser.Email}),
+			)
+			require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		}
+		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		assert.NoError(t, err)
+		assert.Equal(t, 5, len(tokens))
+
+		appErr := th.App.InvalidatePasswordRecoveryTokensForUser(th.BasicUser.Id)
+		assert.Nil(t, appErr)
+
+		tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(tokens))
+	})
+
+	t.Run("add multiple tokens, should only be one valid", func(t *testing.T) {
+		_, appErr := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		assert.Nil(t, appErr)
+
+		token, appErr := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+		assert.Nil(t, appErr)
+
+		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(tokens))
+		assert.Equal(t, token.Token, tokens[0].Token)
+	})
 }
 
 func TestGetViewUsersRestrictions(t *testing.T) {
@@ -1157,7 +1223,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	th.LinkUserToTeam(user1, team1)
 	th.LinkUserToTeam(user1, team2)
 
-	th.App.UpdateTeamMemberRoles(team1.Id, user1.Id, "team_user team_admin")
+	th.App.UpdateTeamMemberRoles(th.Context, team1.Id, user1.Id, "team_user team_admin")
 
 	team1channel1 := th.CreateChannel(th.Context, team1)
 	team1channel2 := th.CreateChannel(th.Context, team1)
@@ -1196,7 +1262,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	}
 
 	t.Run("VIEW_MEMBERS permission granted at system level", func(t *testing.T) {
-		restrictions, err := th.App.GetViewUsersRestrictions(user1.Id)
+		restrictions, err := th.App.GetViewUsersRestrictions(th.Context, user1.Id)
 		require.Nil(t, err)
 
 		assert.Nil(t, restrictions)
@@ -1213,7 +1279,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 		require.Nil(t, addPermission(teamUserRole, model.PermissionViewMembers.Id))
 		defer removePermission(teamUserRole, model.PermissionViewMembers.Id)
 
-		restrictions, err := th.App.GetViewUsersRestrictions(user1.Id)
+		restrictions, err := th.App.GetViewUsersRestrictions(th.Context, user1.Id)
 		require.Nil(t, err)
 
 		assert.NotNil(t, restrictions)
@@ -1229,7 +1295,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 		require.Nil(t, removePermission(systemUserRole, model.PermissionViewMembers.Id))
 		defer addPermission(systemUserRole, model.PermissionViewMembers.Id)
 
-		restrictions, err := th.App.GetViewUsersRestrictions(user1.Id)
+		restrictions, err := th.App.GetViewUsersRestrictions(th.Context, user1.Id)
 		require.Nil(t, err)
 
 		assert.NotNil(t, restrictions)
@@ -1249,7 +1315,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 		require.Nil(t, addPermission(teamAdminRole, model.PermissionViewMembers.Id))
 		defer removePermission(teamAdminRole, model.PermissionViewMembers.Id)
 
-		restrictions, err := th.App.GetViewUsersRestrictions(user1.Id)
+		restrictions, err := th.App.GetViewUsersRestrictions(th.Context, user1.Id)
 		require.Nil(t, err)
 
 		assert.NotNil(t, restrictions)
@@ -1289,7 +1355,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		guest := th.CreateGuest()
 		require.Equal(t, "system_guest", guest.Roles)
 		th.LinkUserToTeam(guest, th.BasicTeam)
-		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		teamMember, err := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeGuest)
 		require.False(t, teamMember.SchemeUser)
@@ -1299,7 +1365,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		guest, err = th.App.GetUser(guest.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_user", guest.Roles)
-		teamMember, err = th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
@@ -1309,7 +1375,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		guest := th.CreateGuest()
 		require.Equal(t, "system_guest", guest.Roles)
 		th.LinkUserToTeam(guest, th.BasicTeam)
-		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		teamMember, err := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeGuest)
 		require.False(t, teamMember.SchemeUser)
@@ -1323,7 +1389,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		guest, err = th.App.GetUser(guest.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_user", guest.Roles)
-		teamMember, err = th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
@@ -1337,7 +1403,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		guest := th.CreateGuest()
 		require.Equal(t, "system_guest", guest.Roles)
 		th.LinkUserToTeam(guest, th.BasicTeam)
-		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		teamMember, err := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeGuest)
 		require.False(t, teamMember.SchemeUser)
@@ -1355,7 +1421,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		guest, err = th.App.GetUser(guest.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_user", guest.Roles)
-		teamMember, err = th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
@@ -1373,7 +1439,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		guest := th.CreateGuest()
 		require.Equal(t, "system_guest", guest.Roles)
 		th.LinkUserToTeam(guest, th.BasicTeam)
-		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		teamMember, err := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeGuest)
 		require.False(t, teamMember.SchemeUser)
@@ -1404,7 +1470,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		user := th.CreateUser()
 		require.Equal(t, "system_user", user.Roles)
 		th.LinkUserToTeam(user, th.BasicTeam)
-		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+		teamMember, err := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeUser)
 		require.False(t, teamMember.SchemeGuest)
@@ -1452,7 +1518,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		user := th.CreateUser()
 		require.Equal(t, "system_user", user.Roles)
 		th.LinkUserToTeam(user, th.BasicTeam)
-		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+		teamMember, err := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeUser)
 		require.False(t, teamMember.SchemeGuest)
@@ -1462,7 +1528,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		user, err = th.App.GetUser(user.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_guest", user.Roles)
-		teamMember, err = th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
@@ -1472,7 +1538,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		user := th.CreateUser()
 		require.Equal(t, "system_user", user.Roles)
 		th.LinkUserToTeam(user, th.BasicTeam)
-		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+		teamMember, err := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeUser)
 		require.False(t, teamMember.SchemeGuest)
@@ -1486,7 +1552,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		user, err = th.App.GetUser(user.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_guest", user.Roles)
-		teamMember, err = th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
@@ -1500,7 +1566,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		user := th.CreateUser()
 		require.Equal(t, "system_user", user.Roles)
 		th.LinkUserToTeam(user, th.BasicTeam)
-		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+		teamMember, err := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeUser)
 		require.False(t, teamMember.SchemeGuest)
@@ -1518,7 +1584,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		user, err = th.App.GetUser(user.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_guest", user.Roles)
-		teamMember, err = th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
@@ -1539,9 +1605,9 @@ func TestDemoteUserToGuest(t *testing.T) {
 		team := th.CreateTeam()
 
 		th.LinkUserToTeam(user, team)
-		th.App.UpdateTeamMemberRoles(team.Id, user.Id, "team_user team_admin")
+		th.App.UpdateTeamMemberRoles(th.Context, team.Id, user.Id, "team_user team_admin")
 
-		teamMember, err := th.App.GetTeamMember(team.Id, user.Id)
+		teamMember, err := th.App.GetTeamMember(th.Context, team.Id, user.Id)
 		require.Nil(t, err)
 		require.True(t, teamMember.SchemeUser)
 		require.True(t, teamMember.SchemeAdmin)
@@ -1565,7 +1631,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, "system_guest", user.Roles)
 
-		teamMember, err = th.App.GetTeamMember(team.Id, user.Id)
+		teamMember, err = th.App.GetTeamMember(th.Context, team.Id, user.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.False(t, teamMember.SchemeAdmin)
@@ -1664,16 +1730,16 @@ func TestPatchUser(t *testing.T) {
 	})
 
 	t.Run("Patch username with a new username", func(t *testing.T) {
-		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
+		u, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
 			Username: model.NewString(model.NewId()),
 		}, true)
 
 		require.Nil(t, err)
+		require.Empty(t, u.Password)
 	})
 }
 
 func TestUpdateThreadReadForUser(t *testing.T) {
-
 	t.Run("Ensure thread membership is created and followed", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -1741,13 +1807,11 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("successfully create a user with initial tutorial and recommended steps preferences", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+
 		testUser := th.CreateUser()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
-
-		insightsPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryInsights, model.PreferenceNameInsights)
-		require.Nil(t, appErr)
-		assert.Equal(t, "insights_tutorial_state", insightsPref.Name)
-		assert.Equal(t, "{\"insights_modal_viewed\":true}", insightsPref.Value)
 
 		tutorialStepPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryTutorialSteps, testUser.Id)
 		require.Nil(t, appErr)
@@ -1758,40 +1822,19 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		assert.Equal(t, model.PreferenceRecommendedNextSteps, recommendedNextStepsPref[0].Category)
 		assert.Equal(t, "hide", recommendedNextStepsPref[0].Name)
 		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
+
+		gmASdmNoticeViewedPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategorySystemNotice, "GMasDM")
+		require.Nil(t, appErr)
+		assert.Equal(t, "GMasDM", gmASdmNoticeViewedPref.Name)
+		assert.Equal(t, "true", gmASdmNoticeViewedPref.Value)
 	})
 
-	t.Run("successfully create a user with insights feature flag disabled", func(t *testing.T) {
+	t.Run("successfully create a guest user with initial tutorial and recommended steps preferences", func(t *testing.T) {
 		th.Server.platform.SetConfigReadOnlyFF(false)
 		defer th.Server.platform.SetConfigReadOnlyFF(true)
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = false })
-		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
-		testUser := th.CreateUser()
-		defer th.App.PermanentDeleteUser(th.Context, testUser)
-
-		insightsPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryInsights, model.PreferenceNameInsights)
-		require.Nil(t, appErr)
-		assert.Equal(t, "insights_tutorial_state", insightsPref.Name)
-		assert.Equal(t, "{\"insights_modal_viewed\":false}", insightsPref.Value)
-
-		recommendedNextStepsPref, appErr := th.App.GetPreferenceByCategoryForUser(testUser.Id, model.PreferenceRecommendedNextSteps)
-		require.Nil(t, appErr)
-		assert.Equal(t, model.PreferenceRecommendedNextSteps, recommendedNextStepsPref[0].Category)
-		assert.Equal(t, "hide", recommendedNextStepsPref[0].Name)
-		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
-	})
-
-	t.Run("successfully create a guest user with initial tutorial, insights and recommended steps preferences", func(t *testing.T) {
-		th.Server.platform.SetConfigReadOnlyFF(false)
-		defer th.Server.platform.SetConfigReadOnlyFF(true)
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		testUser := th.CreateGuest()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
-		insightsPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryInsights, model.PreferenceNameInsights)
-		require.Nil(t, appErr)
-		assert.Equal(t, "insights_tutorial_state", insightsPref.Name)
-		assert.Equal(t, "{\"insights_modal_viewed\":true}", insightsPref.Value)
-
 		tutorialStepPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryTutorialSteps, testUser.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, testUser.Id, tutorialStepPref.Name)
@@ -1801,57 +1844,11 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		assert.Equal(t, model.PreferenceRecommendedNextSteps, recommendedNextStepsPref[0].Category)
 		assert.Equal(t, "hide", recommendedNextStepsPref[0].Name)
 		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
-	})
-}
 
-func TestIsFirstAdmin(t *testing.T) {
-	t.Run("should return false if user is not sysadmin", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		Id := model.NewId()
-		isFirstAdmin := th.App.IsFirstAdmin(&model.User{
-			Id:    Id,
-			Roles: model.SystemUserRoleId,
-		})
-		require.False(t, isFirstAdmin)
-	})
-
-	t.Run("should return false if user is sysadmin but not the first one", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		Id := model.NewId()
-
-		mockUserStore := storemocks.UserStore{}
-		mockUserStore.On("GetFirstSystemAdminID").Return(model.NewId(), nil)
-
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockStore.On("User").Return(&mockUserStore)
-
-		isFirstAdmin := th.App.IsFirstAdmin(&model.User{
-			Id:    Id,
-			Roles: model.SystemAdminRoleId,
-		})
-		require.False(t, isFirstAdmin)
-	})
-
-	t.Run("should return true if user is sysadmin and the first one", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		Id := model.NewId()
-
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockUserStore := storemocks.UserStore{}
-		mockUserStore.On("GetFirstSystemAdminID").Return(Id, nil)
-		mockStore.On("User").Return(&mockUserStore)
-
-		isFirstAdmin := th.App.IsFirstAdmin(&model.User{
-			Id:    Id,
-			Roles: model.SystemAdminRoleId,
-		})
-		require.True(t, isFirstAdmin)
+		gmASdmNoticeViewedPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategorySystemNotice, "GMasDM")
+		require.Nil(t, appErr)
+		assert.Equal(t, "GMasDM", gmASdmNoticeViewedPref.Name)
+		assert.Equal(t, "true", gmASdmNoticeViewedPref.Value)
 	})
 }
 

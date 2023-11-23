@@ -5,7 +5,6 @@ import React from 'react';
 import styled from 'styled-components';
 
 import {AlertOutlineIcon, AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
-
 import {PostPriority} from '@mattermost/types/posts';
 
 type Props = {
@@ -19,8 +18,8 @@ const Badge = styled.span`
     justify-content: center;
     height: 20px;
     width: 20px;
+    margin-left: 8px;
     min-width: 20px;
-    margin-right: 10px;
     border-radius: 10px;
     color: #fff;
 

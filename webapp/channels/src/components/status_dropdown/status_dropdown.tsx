@@ -1,43 +1,47 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
-import {IntlShape, injectIntl, FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
 import classNames from 'classnames';
+import React from 'react';
+import type {ReactNode} from 'react';
+import {injectIntl, FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import StatusIcon from '@mattermost/compass-components/components/status-icon'; // eslint-disable-line no-restricted-imports
 import Text from '@mattermost/compass-components/components/text'; // eslint-disable-line no-restricted-imports
-import Icon from '@mattermost/compass-components/foundations/icon/Icon'; // eslint-disable-line no-restricted-imports
-import {TUserStatus} from '@mattermost/compass-components/shared'; // eslint-disable-line no-restricted-imports
+import type {TUserStatus} from '@mattermost/compass-components/shared'; // eslint-disable-line no-restricted-imports
+import {AccountOutlineIcon, CheckIcon, ExitToAppIcon} from '@mattermost/compass-icons/components';
+import {PulsatingDot} from '@mattermost/components';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import {CustomStatusDuration} from '@mattermost/types/users';
+import type {UserCustomStatus, UserProfile, UserStatus} from '@mattermost/types/users';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import * as GlobalActions from 'actions/global_actions';
+
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusModal from 'components/custom_status/custom_status_modal';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import ExpiryTime from 'components/custom_status/expiry_time';
 import DndCustomTimePicker from 'components/dnd_custom_time_picker_modal';
+import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps, CompleteYourProfileTour} from 'components/onboarding_tasks';
 import OverlayTrigger from 'components/overlay_trigger';
 import ResetStatusModal from 'components/reset_status_modal';
+import Tooltip from 'components/tooltip';
 import UserSettingsModal from 'components/user_settings/modal';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Avatar, {TAvatarSizeToken} from 'components/widgets/users/avatar/avatar';
-import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps, CompleteYourProfileTour} from 'components/onboarding_tasks';
-import Tooltip from 'components/tooltip';
-
-import {ModalData} from 'types/actions';
+import Avatar from 'components/widgets/users/avatar/avatar';
+import type {TAvatarSizeToken} from 'components/widgets/users/avatar/avatar';
 
 import {Constants, ModalIdentifiers, UserStatuses} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {getCurrentDateTimeForTimezone, getCurrentMomentForTimezone} from 'utils/timezone';
 import {localizeMessage} from 'utils/utils';
 
-import {CustomStatusDuration, UserCustomStatus, UserProfile, UserStatus} from '@mattermost/types/users';
-import {PulsatingDot} from '@mattermost/components';
-import {PreferenceType} from '@mattermost/types/preferences';
+import type {ModalData} from 'types/actions';
 
 import './status_dropdown.scss';
 
@@ -353,10 +357,9 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
         const setCustomTimedDnd = needsConfirm ? () => this.showStatusChangeConfirmation('dnd') : this.setCustomTimedDnd;
 
         const selectedIndicator = (
-            <Icon
-                glyph={'check'}
+            <CheckIcon
                 size={16}
-                color={'success'}
+                color={'var(--semantic-color-success)'}
             />
         );
 
@@ -571,12 +574,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                             dialogType={UserSettingsModal}
                             dialogProps={{isContentProductSettings: false}}
                             text={localizeMessage('navbar_dropdown.profileSettings', 'Profile')}
-                            icon={(
-                                <Icon
-                                    size={16}
-                                    glyph={'account-outline'}
-                                />
-                            )}
+                            icon={<AccountOutlineIcon size={16}/>}
                         >
                             {this.props.showCompleteYourProfileTour && (
                                 <div
@@ -593,12 +591,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                             id='logout'
                             onClick={this.handleEmitUserLoggedOutEvent}
                             text={localizeMessage('navbar_dropdown.logout', 'Log Out')}
-                            icon={(
-                                <Icon
-                                    size={16}
-                                    glyph={'exit-to-app'}
-                                />
-                            )}
+                            icon={<ExitToAppIcon size={16}/>}
                         />
                     </Menu.Group>
                 </Menu>

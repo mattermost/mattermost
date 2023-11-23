@@ -11,6 +11,7 @@
 // Group: @channels @bot_accounts
 
 import {createBotPatch} from '../../../support/api/bots';
+import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Bot tags', () => {
     let me;
@@ -48,8 +49,8 @@ describe('Bot tags', () => {
                 await client.pinPost(postId);
 
                 cy.visit(`/${team.name}/channels/${channel.name}`);
-                cy.clickPostDotMenu(postId);
-                cy.get(`#CENTER_flagIcon_${postId}`).click();
+                cy.get(`#post_${postId}`).trigger('mouseover', {force: true});
+                cy.wait(TIMEOUTS.HALF_SEC).get(`#CENTER_flagIcon_${postId}`).click();
             });
         });
     });
@@ -72,21 +73,21 @@ describe('Bot tags', () => {
         rhsPostHasBotBadge(postId);
     });
 
-    it('MM-T1833 BOT tag is visible in Pinned Posts', () => {
+    it('MM-T1833 BOT tag is visible in Pinned Messages', () => {
         // # Open pinned posts
         cy.uiGetChannelPinButton().click();
 
         // * Verify bot badge
-        cy.get('.sidebar--right__title').should('contain.text', 'Pinned Posts');
+        cy.get('.sidebar--right__title').should('contain.text', 'Pinned messages');
         rhsPostHasBotBadge(postId);
     });
 
-    it('MM-T3659 BOT tag is visible in Saved Posts', () => {
+    it('MM-T3659 BOT tag is visible in Saved Messages', () => {
         // # Open saved posts
         cy.uiGetSavedPostButton().click();
 
         // * Verify bot badge
-        cy.get('.sidebar--right__title').should('contain.text', 'Saved Posts');
+        cy.get('.sidebar--right__title').should('contain.text', 'Saved messages');
         rhsPostHasBotBadge(postId);
     });
 });

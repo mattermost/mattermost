@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {HTMLAttributes} from 'react';
-import {useIntl, MessageDescriptor} from 'react-intl';
-import {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
+import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
+import React from 'react';
+import type {HTMLAttributes} from 'react';
+import {useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
 type Props = Omit<HTMLAttributes<HTMLSpanElement | HTMLElement>, 'title' | 'component'> & {
     component?: 'i' | 'span';
@@ -15,6 +17,9 @@ type Props = Omit<HTMLAttributes<HTMLSpanElement | HTMLElement>, 'title' | 'comp
     };
 }
 
+/**
+ * @deprecated Use react-intl for title and aria-label instead and make revelant i or span tags for the icon
+ */
 const LocalizedIcon = React.forwardRef((props: Props, ref?: React.Ref<HTMLSpanElement | HTMLElement>) => {
     const {
         component = 'i',

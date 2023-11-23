@@ -3,8 +3,8 @@
 
 import React from 'react';
 
-import {Post} from '@mattermost/types/posts';
-import {Reaction as ReactionType} from '@mattermost/types/reactions';
+import type {Post} from '@mattermost/types/posts';
+import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
@@ -12,6 +12,7 @@ import Tooltip from 'components/tooltip';
 import * as Utils from 'utils/utils';
 
 import ReactionTooltip from './reaction_tooltip';
+
 import './reaction.scss';
 
 type State = {
@@ -209,6 +210,13 @@ export default class Reaction extends React.PureComponent<Props, State> {
             ariaLabelEmoji = `${Utils.localizeMessage('reaction.removeReact.ariaLabel', 'remove reaction')} ${emojiNameWithSpaces}`;
         }
 
+        const emojiIcon = (
+            <img
+                className='Reaction__emoji emoticon'
+                src={this.props.emojiImageUrl}
+            />
+        );
+
         return (
             <OverlayTrigger
                 delayShow={500}
@@ -221,6 +229,7 @@ export default class Reaction extends React.PureComponent<Props, State> {
                             canRemoveReactions={canRemoveReactions}
                             currentUserReacted={currentUserReacted}
                             emojiName={emojiName}
+                            emojiIcon={emojiIcon}
                             reactions={reactions}
                         />
                     </Tooltip>
@@ -235,10 +244,7 @@ export default class Reaction extends React.PureComponent<Props, State> {
                     ref={this.reactionButtonRef}
                 >
                     <span className='d-flex align-items-center'>
-                        <img
-                            className='Reaction__emoji emoticon'
-                            src={this.props.emojiImageUrl}
-                        />
+                        {emojiIcon}
                         <span
                             ref={this.reactionCountRef}
                             className='Reaction__count'

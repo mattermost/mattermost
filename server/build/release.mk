@@ -5,85 +5,85 @@ build-linux: build-linux-amd64 build-linux-arm64
 build-linux-amd64:
 	@echo Build Linux amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
-	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./...
+	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
 else
 	mkdir -p $(GOBIN)/linux_amd64
-	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN)/linux_amd64 $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./...
+	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN)/linux_amd64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
 endif
 
 build-linux-arm64:
 	@echo Build Linux arm64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_arm64")
-	env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./...
+	env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
 else
 	mkdir -p $(GOBIN)/linux_arm64
-	env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN)/linux_arm64 $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./...
+	env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN)/linux_arm64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
 endif
 
 build-osx:
 	@echo Build OSX amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
-	env GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./...
+	env GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
 else
 	mkdir -p $(GOBIN)/darwin_amd64
-	env GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOBIN)/darwin_amd64 $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./...
+	env GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOBIN)/darwin_amd64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
 endif
 	@echo Build OSX arm64
 ifeq ($(BUILDER_GOOS_GOARCH),"darwin_arm64")
-	env GOOS=darwin GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./...
+	env GOOS=darwin GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
 else
 	mkdir -p $(GOBIN)/darwin_arm64
-	env GOOS=darwin GOARCH=arm64 $(GO) build -o $(GOBIN)/darwin_arm64 $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./...
+	env GOOS=darwin GOARCH=arm64 $(GO) build -o $(GOBIN)/darwin_arm64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
 endif
 
 build-windows:
 	@echo Build Windows amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
-	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./...
+	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
 else
 	mkdir -p $(GOBIN)/windows_amd64
-	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN)/windows_amd64 $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./...
+	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN)/windows_amd64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
 endif
 
 build-cmd-linux:
 	@echo Build CMD Linux amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
-	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./cmd/...
+	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
 else
 	mkdir -p $(GOBIN)/linux_amd64
-	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN)/linux_amd64 $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./cmd/...
+	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN)/linux_amd64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
 endif
 	@echo Build CMD Linux arm64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_arm64")
-	env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./cmd/...
+	env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
 else
 	mkdir -p $(GOBIN)/linux_arm64
-	env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN)/linux_arm64 $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./cmd/...
+	env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN)/linux_arm64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
 endif
 
 build-cmd-osx:
 	@echo Build CMD OSX amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
-	env GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./cmd/...
+	env GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
 else
 	mkdir -p $(GOBIN)/darwin_amd64
-	env GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOBIN)/darwin_amd64 $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./cmd/...
+	env GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOBIN)/darwin_amd64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
 endif
 	@echo Build CMD OSX arm64
 ifeq ($(BUILDER_GOOS_GOARCH),"darwin_arm64")
-	env GOOS=darwin GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./cmd/...
+	env GOOS=darwin GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
 else
 	mkdir -p $(GOBIN)/darwin_arm64
-	env GOOS=darwin GOARCH=arm64 $(GO) build -o $(GOBIN)/darwin_arm64 $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./cmd/...
+	env GOOS=darwin GOARCH=arm64 $(GO) build -o $(GOBIN)/darwin_arm64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
 endif
 
 build-cmd-windows:
 	@echo Build CMD Windows amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
-	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./cmd/...
+	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
 else
 	mkdir -p $(GOBIN)/windows_amd64
-	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN)/windows_amd64 $(GOFLAGS) -trimpath -tags '$(GOTAGS)' -ldflags '$(LDFLAGS)' ./cmd/...
+	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN)/windows_amd64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
 endif
 
 build: setup-go-work build-client build-linux build-windows build-osx
@@ -134,8 +134,8 @@ else
 endif
 	cp ../NOTICE.txt $(DIST_PATH)
 	cp ../README.md $(DIST_PATH)
-	if [ -f ../manifest.txt ]; then \
-		cp ../manifest.txt $(DIST_PATH); \
+	if [ -f bin/manifest.txt ]; then \
+		cp bin/manifest.txt $(DIST_PATH); \
 	fi
 
 	@# Import Mattermost plugin public key
@@ -156,15 +156,12 @@ package-general:
 	mkdir -p $(DIST_PATH_GENERIC)/logs
 	mkdir -p $(DIST_PATH_GENERIC)/prepackaged_plugins
 
-	@# Copy binary
+	@# Copy binaries
 ifeq ($(BUILDER_GOOS_GOARCH),"$(CURRENT_PACKAGE_ARCH)")
-	cp $(GOBIN)/$(MM_BIN_NAME) $(DIST_PATH_GENERIC)/bin # from native bin dir, not cross-compiled
+	cp $(GOBIN)/$(MM_BIN_NAME) $(GOBIN)/$(MMCTL_BIN_NAME) $(DIST_PATH_GENERIC)/bin # from native bin dir, not cross-compiled
 else
-	cp $(GOBIN)/$(CURRENT_PACKAGE_ARCH)/$(MM_BIN_NAME) $(DIST_PATH_GENERIC)/bin # from cross-compiled bin dir
+	cp $(GOBIN)/$(CURRENT_PACKAGE_ARCH)/$(MM_BIN_NAME) $(GOBIN)/$(CURRENT_PACKAGE_ARCH)/$(MMCTL_BIN_NAME) $(DIST_PATH_GENERIC)/bin # from cross-compiled bin dir
 endif
-
-	#Download MMCTL for $(MMCTL_PLATFORM)
-	scripts/download_mmctl_release.sh $(MMCTL_PLATFORM) $(DIST_PATH_GENERIC)/bin
 
 ifeq ("darwin_arm64","$(CURRENT_PACKAGE_ARCH)")
 	echo "No plugins yet for $(CURRENT_PACKAGE_ARCH) platform, skipping..."
@@ -195,14 +192,14 @@ else
 endif
 
 package-osx-amd64: package-prep
-	DIST_PATH_GENERIC=$(DIST_PATH_OSX_AMD64) CURRENT_PACKAGE_ARCH=darwin_amd64 PLUGIN_ARCH=osx-amd64 MMCTL_PLATFORM="Darwin-x86_64" MM_BIN_NAME=mattermost $(MAKE) package-general
+	DIST_PATH_GENERIC=$(DIST_PATH_OSX_AMD64) CURRENT_PACKAGE_ARCH=darwin_amd64 PLUGIN_ARCH=osx-amd64 MMCTL_PLATFORM="Darwin-x86_64" MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) package-general
 	@# Package
 	tar -C $(DIST_PATH_OSX_AMD64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-amd64.tar.gz mattermost ../mattermost
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/osx_amd64
 
 package-osx-arm64: package-prep
-	DIST_PATH_GENERIC=$(DIST_PATH_OSX_ARM64) CURRENT_PACKAGE_ARCH=darwin_arm64 PLUGIN_ARCH=osx-arm64 MMCTL_PLATFORM="Darwin-arm64" MM_BIN_NAME=mattermost $(MAKE) package-general
+	DIST_PATH_GENERIC=$(DIST_PATH_OSX_ARM64) CURRENT_PACKAGE_ARCH=darwin_arm64 PLUGIN_ARCH=osx-arm64 MMCTL_PLATFORM="Darwin-arm64" MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) package-general
 	@# Package
 	tar -C $(DIST_PATH_OSX_ARM64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-arm64.tar.gz mattermost ../mattermost
 	@# Cleanup
@@ -211,14 +208,14 @@ package-osx-arm64: package-prep
 package-osx: package-osx-amd64 package-osx-arm64
 
 package-linux-amd64: package-prep
-	DIST_PATH_GENERIC=$(DIST_PATH_LIN_AMD64) CURRENT_PACKAGE_ARCH=linux_amd64 PLUGIN_ARCH=linux-amd64 MMCTL_PLATFORM="Linux-x86_64" MM_BIN_NAME=mattermost $(MAKE) package-general
+	DIST_PATH_GENERIC=$(DIST_PATH_LIN_AMD64) CURRENT_PACKAGE_ARCH=linux_amd64 PLUGIN_ARCH=linux-amd64 MMCTL_PLATFORM="Linux-x86_64" MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) package-general
 	@# Package
 	tar -C $(DIST_PATH_LIN_AMD64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost ../mattermost
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/linux_amd64
 
 package-linux-arm64: package-prep
-	DIST_PATH_GENERIC=$(DIST_PATH_LIN_ARM64) CURRENT_PACKAGE_ARCH=linux_arm64 PLUGIN_ARCH=linux-arm64 MMCTL_PLATFORM="Linux-aarch64" MM_BIN_NAME=mattermost $(MAKE) package-general
+	DIST_PATH_GENERIC=$(DIST_PATH_LIN_ARM64) CURRENT_PACKAGE_ARCH=linux_arm64 PLUGIN_ARCH=linux-arm64 MMCTL_PLATFORM="Linux-aarch64" MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) package-general
 	@# Package
 	tar -C $(DIST_PATH_LIN_ARM64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-arm64.tar.gz mattermost ../mattermost
 	@# Cleanup
@@ -234,12 +231,10 @@ package-windows: package-prep
 
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
-	cp $(GOBIN)/mattermost.exe $(DIST_PATH_WIN)/bin # from native bin dir, not cross-compiled
+	cp $(GOBIN)/mattermost.exe $(GOBIN)/mmctl.exe $(DIST_PATH_WIN)/bin # from native bin dir, not cross-compiled
 else
-	cp $(GOBIN)/windows_amd64/mattermost.exe $(DIST_PATH_WIN)/bin # from cross-compiled bin dir
+	cp $(GOBIN)/windows_amd64/mattermost.exe $(GOBIN)/windows_amd64/mmctl.exe $(DIST_PATH_WIN)/bin # from cross-compiled bin dir
 endif
-	#Download MMCTL for Windows
-	scripts/download_mmctl_release.sh "Windows" $(DIST_PATH_WIN)/bin
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="windows-amd64"; \

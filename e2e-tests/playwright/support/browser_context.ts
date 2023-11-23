@@ -3,16 +3,18 @@
 
 import {writeFile} from 'node:fs/promises';
 
-import {request, Browser} from '@playwright/test';
+import {request, Browser, BrowserContext} from '@playwright/test';
 
 import {UserProfile} from '@mattermost/types/users';
 import testConfig from '@e2e-test.config';
 
 export class TestBrowser {
     readonly browser: Browser;
+    context: BrowserContext | null;
 
     constructor(browser: Browser) {
         this.browser = browser;
+        this.context = null;
     }
 
     async login(user: UserProfile | null) {
@@ -27,7 +29,15 @@ export class TestBrowser {
         const context = await this.browser.newContext(options);
         const page = await context.newPage();
 
+        this.context = context;
+
         return {context, page};
+    }
+
+    async close() {
+        if (this.context) {
+            await this.context.close();
+        }
     }
 }
 

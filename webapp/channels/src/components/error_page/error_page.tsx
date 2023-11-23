@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import crypto from 'crypto';
-
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {ErrorPageTypes, Constants} from 'utils/constants';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
-import ErrorTitle from './error_title';
+import {ErrorPageTypes, Constants} from 'utils/constants';
+
 import ErrorMessage from './error_message';
+import ErrorTitle from './error_title';
 
 type Location = {
     search: string;
@@ -79,7 +79,7 @@ export default class ErrorPage extends React.PureComponent<Props> {
             backButton = (
                 <Link to='/'>
                     <FormattedMessage
-                        id='error.generic.link'
+                        id='error.generic.siteLink'
                         defaultMessage='Back to {siteName}'
                         values={{
                             siteName: this.props.siteName,
@@ -123,7 +123,7 @@ export default class ErrorPage extends React.PureComponent<Props> {
             backButton = (
                 <Link to='/'>
                     <FormattedMessage
-                        id='error.generic.link'
+                        id='error.generic.siteLink'
                         defaultMessage='Back to {siteName}'
                         values={{
                             siteName: this.props.siteName,
