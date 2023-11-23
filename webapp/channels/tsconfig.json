@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "es2020",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "experimentalDecorators": true,
+    "jsx": "react",
+    "baseUrl": "./src",
+    "useUnknownInCatchVariables": false,
+    "composite": true,
+    "paths": {
+        "mattermost-redux/*": ["packages/mattermost-redux/src/*"],
+        "@mui/styled-engine": ["./node_modules/@mui/styled-engine-sc"],
+    }
+  },
+  "include": [
+    "./src/**/*",
+    "./src/**/*.json"
+  ],
+  "references": [
+    {"path": "../platform/client"},
+    {"path": "../platform/components"},
+    {"path": "../platform/types"}
+  ]
+}

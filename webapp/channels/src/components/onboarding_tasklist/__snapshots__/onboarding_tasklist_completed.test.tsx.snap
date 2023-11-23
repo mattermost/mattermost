@@ -1,0 +1,91 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx should match snapshot 1`] = `
+<Fragment>
+  <CSSTransition
+    classNames="fade"
+    in={true}
+    timeout={150}
+  >
+    <CompletedWrapper>
+      <img
+        alt="completed tasks image"
+        src={null}
+      />
+      <h2>
+        <MemoizedFormattedMessage
+          defaultMessage="Well done. You’ve completed all of the tasks!"
+          id="onboardingTask.checklist.completed_title"
+        />
+      </h2>
+      <span
+        className="completed-subtitle"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="We hope Mattermost is more familiar now."
+          id="onboardingTask.checklist.completed_subtitle"
+        />
+      </span>
+      <span
+        className="start-trial-text"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Interested in our higher-security features?"
+          id="onboardingTask.checklist.higher_security_features"
+        />
+         
+        <br />
+        <MemoizedFormattedMessage
+          defaultMessage="Start your free Enterprise trial now!"
+          id="onboardingTask.checklist.start_enterprise_now"
+        />
+      </span>
+      <StartTrialBtn
+        message="Start free 30-day trial"
+        onClick={[MockFunction]}
+        telemetryId="start_trial_from_onboarding_completed_task"
+      />
+      <button
+        className="no-thanks-link style-link"
+        onClick={[MockFunction]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="No, thanks"
+          id="onboardingTask.checklist.no_thanks"
+        />
+      </button>
+      <div
+        className="download-apps"
+      >
+        <span>
+          <MemoizedFormattedMessage
+            defaultMessage="Now that you’re all set up, <link>download our apps.</link>!"
+            id="onboardingTask.checklist.downloads"
+            values={
+              Object {
+                "link": [Function],
+              }
+            }
+          />
+        </span>
+      </div>
+      <div
+        className="disclaimer"
+      >
+        <span>
+          <MemoizedFormattedMessage
+            defaultMessage="By clicking “Start trial”, I agree to the <linkEvaluation>Mattermost Software and Services License Agreement</linkEvaluation>, <linkPrivacy>privacy policy</linkPrivacy> and receiving product emails."
+            id="onboardingTask.checklist.disclaimer"
+            values={
+              Object {
+                "linkEvaluation": [Function],
+                "linkPrivacy": [Function],
+              }
+            }
+          />
+        </span>
+      </div>
+    </CompletedWrapper>
+  </CSSTransition>
+</Fragment>
+`;

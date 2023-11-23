@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/widgets/users/Avatar should match the snapshot 1`] = `
+<img
+  alt="test-username profile image"
+  className="Avatar Avatar-xl"
+  loading="lazy"
+  onError={[Function]}
+  src="test-url"
+  tabIndex={0}
+/>
+`;
+
+exports[`components/widgets/users/Avatar should match the snapshot only plain text 1`] = `
+<div
+  className="Avatar Avatar-md Avatar-plain"
+  data-content="SA"
+/>
+`;
+
+exports[`components/widgets/users/Avatar should match the snapshot only with url 1`] = `
+<img
+  alt="user profile image"
+  className="Avatar Avatar-md"
+  loading="lazy"
+  onError={[Function]}
+  src="test-url"
+  tabIndex={0}
+/>
+`;

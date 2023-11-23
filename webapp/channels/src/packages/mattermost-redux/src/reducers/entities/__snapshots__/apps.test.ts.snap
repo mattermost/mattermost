@@ -1,0 +1,342 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`bindings Invalid channel header get filtered 1`] = `
+Array [
+  Object {
+    "app_id": "1",
+    "bindings": Array [
+      Object {
+        "app_id": "1",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "label": "a",
+        "location": "/post_menu/locA",
+      },
+    ],
+    "location": "/post_menu",
+  },
+  Object {
+    "app_id": "2",
+    "bindings": Array [
+      Object {
+        "app_id": "2",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "label": "a",
+        "location": "/post_menu/locA",
+      },
+    ],
+    "location": "/post_menu",
+  },
+  Object {
+    "app_id": "1",
+    "bindings": Array [
+      Object {
+        "app_id": "1",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "icon": "icon",
+        "label": "b",
+        "location": "/channel_header/locB",
+      },
+    ],
+    "location": "/channel_header",
+  },
+  Object {
+    "app_id": "2",
+    "bindings": Array [
+      Object {
+        "app_id": "2",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "icon": "icon",
+        "label": "c",
+        "location": "/channel_header/locC",
+      },
+    ],
+    "location": "/channel_header",
+  },
+  Object {
+    "app_id": "3",
+    "bindings": Array [
+      Object {
+        "app_id": "3",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "label": "c",
+        "location": "/command/locC",
+      },
+    ],
+    "location": "/command",
+  },
+]
+`;
+
+exports[`bindings Invalid commands get filtered 1`] = `
+Array [
+  Object {
+    "app_id": "1",
+    "bindings": Array [
+      Object {
+        "app_id": "1",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "label": "a",
+        "location": "/post_menu/locA",
+      },
+      Object {
+        "app_id": "1",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "label": "a",
+        "location": "/post_menu/locB",
+      },
+    ],
+    "location": "/post_menu",
+  },
+  Object {
+    "app_id": "1",
+    "bindings": Array [
+      Object {
+        "app_id": "1",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "icon": "icon",
+        "label": "b",
+        "location": "/channel_header/locB",
+      },
+    ],
+    "location": "/channel_header",
+  },
+  Object {
+    "app_id": "3",
+    "bindings": Array [
+      Object {
+        "app_id": "3",
+        "bindings": Array [
+          Object {
+            "app_id": "3",
+            "form": Object {
+              "submit": Object {
+                "path": "/submit_url",
+              },
+            },
+            "label": "c2",
+            "location": "/command/locC/subC2",
+          },
+        ],
+        "label": "c",
+        "location": "/command/locC",
+      },
+    ],
+    "location": "/command",
+  },
+  Object {
+    "app_id": "2",
+    "bindings": Array [
+      Object {
+        "app_id": "2",
+        "bindings": Array [
+          Object {
+            "app_id": "2",
+            "form": Object {
+              "submit": Object {
+                "path": "/submit_url",
+              },
+            },
+            "label": "c1",
+            "location": "/command/locC/subC1",
+          },
+          Object {
+            "app_id": "2",
+            "form": Object {
+              "submit": Object {
+                "path": "/submit_url",
+              },
+            },
+            "label": "c2",
+            "location": "/command/locC/subC2",
+          },
+        ],
+        "label": "c",
+        "location": "/command/locC",
+      },
+    ],
+    "location": "/command",
+  },
+]
+`;
+
+exports[`bindings Invalid post menu get filtered 1`] = `
+Array [
+  Object {
+    "app_id": "1",
+    "bindings": Array [
+      Object {
+        "app_id": "1",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "label": "a",
+        "location": "/post_menu/locB",
+      },
+    ],
+    "location": "/post_menu",
+  },
+  Object {
+    "app_id": "2",
+    "bindings": Array [
+      Object {
+        "app_id": "2",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "label": "a",
+        "location": "/post_menu/locA",
+      },
+      Object {
+        "app_id": "2",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "label": "b",
+        "location": "/post_menu/locB",
+      },
+    ],
+    "location": "/post_menu",
+  },
+  Object {
+    "app_id": "1",
+    "bindings": Array [
+      Object {
+        "app_id": "1",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "icon": "icon",
+        "label": "b",
+        "location": "/channel_header/locB",
+      },
+    ],
+    "location": "/channel_header",
+  },
+  Object {
+    "app_id": "3",
+    "bindings": Array [
+      Object {
+        "app_id": "3",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "label": "c",
+        "location": "/command/locC",
+      },
+    ],
+    "location": "/command",
+  },
+]
+`;
+
+exports[`bindings No element get filtered 1`] = `
+Array [
+  Object {
+    "app_id": "1",
+    "bindings": Array [
+      Object {
+        "app_id": "1",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "label": "a",
+        "location": "/post_menu/locA",
+      },
+    ],
+    "location": "/post_menu",
+  },
+  Object {
+    "app_id": "2",
+    "bindings": Array [
+      Object {
+        "app_id": "2",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "label": "a",
+        "location": "/post_menu/locA",
+      },
+    ],
+    "location": "/post_menu",
+  },
+  Object {
+    "app_id": "1",
+    "bindings": Array [
+      Object {
+        "app_id": "1",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "icon": "icon",
+        "label": "b",
+        "location": "/channel_header/locB",
+      },
+    ],
+    "location": "/channel_header",
+  },
+  Object {
+    "app_id": "3",
+    "bindings": Array [
+      Object {
+        "app_id": "3",
+        "form": Object {
+          "submit": Object {
+            "path": "/submit_url",
+          },
+        },
+        "label": "c",
+        "location": "/command/locC",
+      },
+    ],
+    "location": "/command",
+  },
+]
+`;

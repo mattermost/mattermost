@@ -1,0 +1,38 @@
+.ScreeningInProgressModal {
+    &__content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        text-align: center;
+    }
+
+    &__illustration {
+        display: flex;
+        overflow: hidden;
+        width: 350px;
+        height: 230px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &__title {
+        padding-top: 30px;
+        color: var(--center-channel-text);
+
+        span {
+            font-size: 22px;
+            font-weight: bold;
+        }
+    }
+
+    &__description {
+        padding: 8px 0;
+        color: var(--center-channel-text);
+    }
+
+    &__close {
+        margin-right: 0;
+    }
+}

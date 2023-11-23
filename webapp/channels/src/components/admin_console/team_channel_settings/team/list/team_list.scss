@@ -1,0 +1,47 @@
+.TeamsList {
+    .DataGrid {
+        .DataGrid_row {
+            cursor: pointer;
+        }
+
+        .DataGrid_cell {
+            .TeamList_nameColumn {
+                display: flex;
+                height: 80px;
+                align-items: center;
+
+                .TeamList_nameText {
+                    overflow: hidden;
+                    padding-right: 40px;
+                    opacity: 0.8;
+
+                    .archived-label {
+                        color: rgba(var(--center-channel-color-rgb), 0.64);
+                    }
+                }
+
+                .TeamList__lowerOpacity {
+                    opacity: 0.8;
+                }
+
+                .TeamList_descriptionText {
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                .TeamIcon {
+                    margin-right: 12px;
+                    background: rgba(0, 0, 0, 0.12);
+                }
+            }
+
+            .TeamList_managementText {
+                opacity: 0.65;
+            }
+
+            .TeamList_editText {
+                padding-right: 20px;
+            }
+        }
+    }
+}

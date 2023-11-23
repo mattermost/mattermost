@@ -1,0 +1,107 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/CopyUrlContextMenu should copy absolute url on click 1`] = `
+<span>
+  <ContextMenu
+    className=""
+    data={Object {}}
+    hideOnLeave={false}
+    id="copy-url-context-menuresource"
+    onHide={[Function]}
+    onMouseLeave={[Function]}
+    onShow={[Function]}
+    preventHideOnContextMenu={false}
+    preventHideOnResize={false}
+    preventHideOnScroll={false}
+    rtl={false}
+    style={Object {}}
+  >
+    <MenuItem
+      attributes={Object {}}
+      className=""
+      data={Object {}}
+      disabled={false}
+      divider={false}
+      onClick={[Function]}
+      onMouseLeave={[Function]}
+      onMouseMove={[Function]}
+      preventClose={false}
+      selected={false}
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Copy Link"
+        id="copy_url_context_menu.getChannelLink"
+      />
+    </MenuItem>
+  </ContextMenu>
+  <ContextMenuTrigger
+    attributes={Object {}}
+    collect={[Function]}
+    disable={false}
+    disableIfShiftIsPressed={false}
+    holdToDisplay={-1}
+    id="copy-url-context-menuresource"
+    mouseButton={2}
+    posX={0}
+    posY={0}
+    renderTag="div"
+  >
+    <span>
+      Click
+    </span>
+  </ContextMenuTrigger>
+</span>
+`;
+
+exports[`components/CopyUrlContextMenu should copy relative url on click 1`] = `
+<span>
+  <ContextMenu
+    className=""
+    data={Object {}}
+    hideOnLeave={false}
+    id="copy-url-context-menuresource"
+    onHide={[Function]}
+    onMouseLeave={[Function]}
+    onShow={[Function]}
+    preventHideOnContextMenu={false}
+    preventHideOnResize={false}
+    preventHideOnScroll={false}
+    rtl={false}
+    style={Object {}}
+  >
+    <MenuItem
+      attributes={Object {}}
+      className=""
+      data={Object {}}
+      disabled={false}
+      divider={false}
+      onClick={[Function]}
+      onMouseLeave={[Function]}
+      onMouseMove={[Function]}
+      preventClose={false}
+      selected={false}
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Copy Link"
+        id="copy_url_context_menu.getChannelLink"
+      />
+    </MenuItem>
+  </ContextMenu>
+  <ContextMenuTrigger
+    attributes={Object {}}
+    collect={[Function]}
+    disable={false}
+    disableIfShiftIsPressed={false}
+    holdToDisplay={-1}
+    id="copy-url-context-menuresource"
+    mouseButton={2}
+    posX={0}
+    posY={0}
+    renderTag="div"
+  >
+    <span>
+      Click
+    </span>
+  </ContextMenuTrigger>
+</span>
+`;

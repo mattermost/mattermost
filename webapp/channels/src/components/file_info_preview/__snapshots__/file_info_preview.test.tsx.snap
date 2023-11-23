@@ -1,0 +1,66 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/FileInfoPreview should match snapshot, can download files 1`] = `
+<div
+  className="file-details__container"
+>
+  <a
+    className="file-details__preview"
+    href="https://pre-release.mattermost.com/api/v4/files/rqir81f7a7ft8m6j6ej7g1txuo"
+  >
+    <span
+      className="file-details__preview-helper"
+    />
+    <img
+      alt="file preview"
+      src={null}
+    />
+  </a>
+  <div
+    className="file-details"
+  >
+    <div
+      className="file-details__name"
+    >
+      Test Image
+    </div>
+    <div
+      className="file-details__info"
+    >
+      File type JPG, Size 100B
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/FileInfoPreview should match snapshot, cannot download files 1`] = `
+<div
+  className="file-details__container"
+>
+  <span
+    className="file-details__preview"
+  >
+    <span
+      className="file-details__preview-helper"
+    />
+    <img
+      alt="file preview"
+      src={null}
+    />
+  </span>
+  <div
+    className="file-details"
+  >
+    <div
+      className="file-details__name"
+    >
+      Test Image 2
+    </div>
+    <div
+      className="file-details__info"
+    >
+      File type PNG, Size 200B
+    </div>
+  </div>
+</div>
+`;

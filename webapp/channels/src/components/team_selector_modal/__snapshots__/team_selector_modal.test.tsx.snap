@@ -1,0 +1,326 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/TeamSelectorModal should hide group constrained teams when excludeGroupConstrained is true 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="teamSelectorModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal more-modal more-direct-channels team-selector-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="teamSelectorModalLabel"
+    >
+      <FormattedMarkdownMessage
+        defaultMessage="Add Teams to **Team Selection** List"
+        id="add_teams_to_scheme.title"
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <ConfirmModal
+      confirmButtonClass="btn btn-primary"
+      confirmButtonText={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Yes, Move Team"
+          id="add_teams_to_scheme.confirmation.accept"
+        />
+      }
+      message={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="This team is already selected in another team scheme, are you sure you want to move it to this team scheme?"
+          id="add_teams_to_scheme.confirmation.message"
+        />
+      }
+      modalClass=""
+      onCancel={[Function]}
+      onConfirm={[Function]}
+      show={false}
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Team Override Scheme Change?"
+          id="add_teams_to_scheme.confirmation.title"
+        />
+      }
+    />
+    <MultiSelect
+      ariaLabelRenderer={[Function]}
+      buttonSubmitText="Add"
+      focusOnLoad={true}
+      handleAdd={[Function]}
+      handleDelete={[Function]}
+      handleInput={[Function]}
+      handlePageChange={[Function]}
+      handleSubmit={[Function]}
+      key="addTeamsToSchemeKey"
+      loading={true}
+      numRemainingText={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Use ↑↓ to browse, ↵ to select."
+          id="multiselect.selectTeams"
+        />
+      }
+      optionRenderer={[Function]}
+      options={
+        Array [
+          Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "Team 3",
+            "email": "",
+            "group_constrained": false,
+            "id": "id3",
+            "invite_id": "",
+            "label": "DN",
+            "name": "DN",
+            "scheme_id": "test",
+            "type": "O",
+            "update_at": 0,
+            "value": "id3",
+          },
+          Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "Team 4",
+            "email": "",
+            "group_constrained": false,
+            "id": "id4",
+            "invite_id": "",
+            "label": "DN",
+            "name": "DN",
+            "scheme_id": "",
+            "type": "O",
+            "update_at": 0,
+            "value": "id4",
+          },
+        ]
+      }
+      perPage={50}
+      placeholderText="Search and add teams"
+      saveButtonPosition="top"
+      saving={false}
+      savingEnabled={true}
+      selectedItemRef={
+        Object {
+          "current": null,
+        }
+      }
+      valueRenderer={[Function]}
+      valueWithImage={false}
+      values={Array []}
+    />
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/TeamSelectorModal should match snapshot 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="teamSelectorModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal more-modal more-direct-channels team-selector-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="teamSelectorModalLabel"
+    >
+      <FormattedMarkdownMessage
+        defaultMessage="Add Teams to **Team Selection** List"
+        id="add_teams_to_scheme.title"
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <ConfirmModal
+      confirmButtonClass="btn btn-primary"
+      confirmButtonText={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Yes, Move Team"
+          id="add_teams_to_scheme.confirmation.accept"
+        />
+      }
+      message={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="This team is already selected in another team scheme, are you sure you want to move it to this team scheme?"
+          id="add_teams_to_scheme.confirmation.message"
+        />
+      }
+      modalClass=""
+      onCancel={[Function]}
+      onConfirm={[Function]}
+      show={false}
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Team Override Scheme Change?"
+          id="add_teams_to_scheme.confirmation.title"
+        />
+      }
+    />
+    <MultiSelect
+      ariaLabelRenderer={[Function]}
+      buttonSubmitText="Add"
+      focusOnLoad={true}
+      handleAdd={[Function]}
+      handleDelete={[Function]}
+      handleInput={[Function]}
+      handlePageChange={[Function]}
+      handleSubmit={[Function]}
+      key="addTeamsToSchemeKey"
+      loading={true}
+      numRemainingText={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Use ↑↓ to browse, ↵ to select."
+          id="multiselect.selectTeams"
+        />
+      }
+      optionRenderer={[Function]}
+      options={
+        Array [
+          Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "Team 3",
+            "email": "",
+            "group_constrained": false,
+            "id": "id3",
+            "invite_id": "",
+            "label": "DN",
+            "name": "DN",
+            "scheme_id": "test",
+            "type": "O",
+            "update_at": 0,
+            "value": "id3",
+          },
+          Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "Team 4",
+            "email": "",
+            "group_constrained": false,
+            "id": "id4",
+            "invite_id": "",
+            "label": "DN",
+            "name": "DN",
+            "scheme_id": "",
+            "type": "O",
+            "update_at": 0,
+            "value": "id4",
+          },
+          Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "Team 5",
+            "email": "",
+            "group_constrained": true,
+            "id": "id5",
+            "invite_id": "",
+            "label": "DN",
+            "name": "DN",
+            "scheme_id": "",
+            "type": "O",
+            "update_at": 0,
+            "value": "id5",
+          },
+        ]
+      }
+      perPage={50}
+      placeholderText="Search and add teams"
+      saveButtonPosition="top"
+      saving={false}
+      savingEnabled={true}
+      selectedItemRef={
+        Object {
+          "current": null,
+        }
+      }
+      valueRenderer={[Function]}
+      valueWithImage={false}
+      values={Array []}
+    />
+  </ModalBody>
+</Modal>
+`;

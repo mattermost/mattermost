@@ -1,0 +1,209 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/PostPreHeader should not render anything if both skipFlagged and skipPinned are true 1`] = `""`;
+
+exports[`components/PostPreHeader should not render anything if the post is neither flagged nor pinned 1`] = `""`;
+
+exports[`components/PostPreHeader should properly handle flagged posts (and not pinned) 1`] = `
+<div
+  className="post-pre-header"
+>
+  <div
+    className="post-pre-header__icons-container"
+  >
+    <FlagIconFilled
+      className="icon icon--post-pre-header"
+    />
+  </div>
+  <div
+    className="post-pre-header__text-container"
+  >
+    <span>
+      <a
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Saved"
+          id="post_pre_header.flagged"
+        />
+      </a>
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/PostPreHeader should properly handle flagged posts (and not pinned) 2`] = `""`;
+
+exports[`components/PostPreHeader should properly handle link clicks 1`] = `
+<div
+  className="post-pre-header"
+>
+  <div
+    className="post-pre-header__icons-container"
+  >
+    <span
+      className="icon-pin icon icon--post-pre-header"
+    />
+    <FlagIconFilled
+      className="icon icon--post-pre-header"
+    />
+  </div>
+  <div
+    className="post-pre-header__text-container"
+  >
+    <span>
+      <a
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Pinned"
+          id="post_pre_header.pinned"
+        />
+      </a>
+      <span
+        className="post-pre-header__link-separator"
+      >
+        ⬤
+      </span>
+      <a
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Saved"
+          id="post_pre_header.flagged"
+        />
+      </a>
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/PostPreHeader should properly handle pinned posts (and not flagged) 1`] = `
+<div
+  className="post-pre-header"
+>
+  <div
+    className="post-pre-header__icons-container"
+  >
+    <span
+      className="icon-pin icon icon--post-pre-header"
+    />
+  </div>
+  <div
+    className="post-pre-header__text-container"
+  >
+    <span>
+      <a
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Pinned"
+          id="post_pre_header.pinned"
+        />
+      </a>
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/PostPreHeader should properly handle pinned posts (and not flagged) 2`] = `""`;
+
+exports[`components/PostPreHeader should properly handle posts that are flagged and pinned both skipFlagged and skipPinned are not true 1`] = `
+<div
+  className="post-pre-header"
+>
+  <div
+    className="post-pre-header__icons-container"
+  >
+    <span
+      className="icon-pin icon icon--post-pre-header"
+    />
+    <FlagIconFilled
+      className="icon icon--post-pre-header"
+    />
+  </div>
+  <div
+    className="post-pre-header__text-container"
+  >
+    <span>
+      <a
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Pinned"
+          id="post_pre_header.pinned"
+        />
+      </a>
+      <span
+        className="post-pre-header__link-separator"
+      >
+        ⬤
+      </span>
+      <a
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Saved"
+          id="post_pre_header.flagged"
+        />
+      </a>
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/PostPreHeader should properly handle posts that are flagged and pinned skipFlagged is true 1`] = `
+<div
+  className="post-pre-header"
+>
+  <div
+    className="post-pre-header__icons-container"
+  >
+    <span
+      className="icon-pin icon icon--post-pre-header"
+    />
+  </div>
+  <div
+    className="post-pre-header__text-container"
+  >
+    <span>
+      <a
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Pinned"
+          id="post_pre_header.pinned"
+        />
+      </a>
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/PostPreHeader should properly handle posts that are flagged and pinned skipPinned is true 1`] = `
+<div
+  className="post-pre-header"
+>
+  <div
+    className="post-pre-header__icons-container"
+  >
+    <FlagIconFilled
+      className="icon icon--post-pre-header"
+    />
+  </div>
+  <div
+    className="post-pre-header__text-container"
+  >
+    <span>
+      <a
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Saved"
+          id="post_pre_header.flagged"
+        />
+      </a>
+    </span>
+  </div>
+</div>
+`;

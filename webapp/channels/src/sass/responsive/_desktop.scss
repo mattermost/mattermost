@@ -1,0 +1,147 @@
+@charset "utf-8";
+
+@media screen and (min-width: 1680px) {
+    .sidebar--right,
+    .sidebar--right--width-holder {
+        width: var(--overrideRhsWidth, 500px);
+
+        .sidebar--right__title__channel {
+            max-width: 30rem;
+        }
+    }
+
+    .channel-header,
+    .GlobalThreads .Header {
+        .search-bar__container {
+            .search__form--focused {
+                width: 374px;
+                max-width: 374px;
+            }
+        }
+    }
+}
+
+@media screen and (max-width: 1800px) {
+    .inner-wrap {
+        &.move--left {
+            .date-separator,
+            .new-separator {
+                &.hovered--comment {
+                    &::before,
+                    &::after {
+                        background: none;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media screen and (max-width: 1440px) {
+    .inner-wrap {
+        &.move--left {
+            .help__format-text {
+                display: none;
+            }
+        }
+    }
+
+    .backstage-content {
+        margin: 46px 46px 46px 150px;
+    }
+}
+
+@media screen and (max-width: 1280px) {
+    .inner-wrap.move--left {
+        .post-collapse__show-more,
+        .post-attachment-collapse__show-more {
+            margin-left: 0;
+        }
+
+        .post-create__container {
+            .channel-archived__close-btn {
+                display: block;
+                margin: 10px auto 0;
+            }
+        }
+    }
+
+    .integration-option {
+        flex: 0 0 45%;
+    }
+}
+
+@media screen and (max-width: 1140px) {
+    .inner-wrap {
+        &.move--left {
+            .file-overlay {
+                font-size: em(18px);
+
+                .overlay__circle {
+                    width: 300px;
+                    height: 300px;
+                    margin: -150px 0 0 -150px;
+                }
+
+                .overlay__files {
+                    width: 150px;
+                    margin: 60px auto 15px;
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 1024px) {
+    .inner-wrap:not(.move--left) {
+        .channel-header,
+        .GlobalThreads .Header {
+            .search-bar__container {
+                .search__form {
+                    width: 150px;
+                }
+            }
+        }
+    }
+
+    .search-bar__container {
+        padding: 0 4px 0 0;
+    }
+}
+
+// global header style adjustments
+@media screen and (max-width: 1020px) {
+    .channel__wrap {
+
+        // indicates the RHS is open
+        &.move--left {
+
+            // adjust channel header width
+            #channel-header {
+                width: 100%;
+            }
+        }
+    }
+}
+
+@media (min-width: 1280px) {
+    .sidebar--right {
+        &.sidebar--right--expanded {
+            width: min(60vw, 96rem);
+        }
+    }
+}
+
+@media (min-width: 1025px) {
+    .post-image__details {
+        .post-image__download {
+            opacity: 0;
+        }
+    }
+}
+
+@media (min-width: 992px) {
+    .modal-lg {
+        width: 700px;
+    }
+}

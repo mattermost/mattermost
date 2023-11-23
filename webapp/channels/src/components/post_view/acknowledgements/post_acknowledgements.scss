@@ -1,0 +1,77 @@
+@charset "UTF-8";
+
+@import 'utils/mixins';
+@import 'utils/variables';
+
+.AcknowledgementButton {
+    @include button-xsmall;
+
+    position: relative;
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    border: 0;
+    margin: 4px 0;
+    background: rgba(var(--online-indicator-rgb), 0.08);
+    border-radius: 4px;
+    color: var(--online-indicator);
+    font-weight: 600;
+    transition: all 0.15s ease-out;
+
+    > svg {
+        margin-right: 3px;
+        fill: var(--online-indicator);
+    }
+
+    &--default {
+        padding-right: 9px;
+    }
+
+    &--disabled,
+    &:disabled {
+        background: rgba(var(--online-indicator-rgb), 0.08);
+        cursor: default;
+    }
+
+    &:hover:enabled {
+        background: rgba(var(--online-indicator-rgb), 0.12);
+    }
+
+    &:active:enabled {
+        background: rgba(var(--online-indicator-rgb), 0.16);
+    }
+
+    &--acked {
+        background: rgba(var(--online-indicator-rgb), 0.8);
+        color: #fff;
+
+        > svg {
+            margin-right: 3px;
+            fill: #fff;
+        }
+
+        &.AcknowledgementButton--disabled,
+        &.AcknowledgementButton--disabled:hover,
+        &:disabled {
+            background: rgba(var(--online-indicator-rgb), 0.8);
+            color: #fff;
+
+            > svg {
+                margin-right: 3px;
+                fill: #fff;
+            }
+        }
+
+        &:active:enabled:not(.AcknowledgementButton--disabled),
+        &:hover:enabled:not(.AcknowledgementButton--disabled) {
+            background: rgb(var(--online-indicator-rgb));
+        }
+    }
+}
+
+.AcknowledgementButton__divider {
+    width: 1px;
+    height: 24px;
+    margin: 0 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.16);
+}

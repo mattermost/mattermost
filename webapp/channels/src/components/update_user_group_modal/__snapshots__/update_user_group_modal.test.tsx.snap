@@ -1,0 +1,126 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component/update_user_group_modal should match snapshot 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="createUserGroupsModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal user-groups-modal-update"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="createUserGroupsModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <button
+      aria-label="Back"
+      className="modal-header-back-button btn btn-icon"
+      onClick={[Function]}
+      type="button"
+    >
+      <i
+        className="icon icon-arrow-left"
+      />
+    </button>
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="updateGroupsModalTitle"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Edit Group Details"
+        id="user_groups_modal.editGroupTitle"
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    className="overflow--visible"
+    componentClass="div"
+  >
+    <div
+      className="user-groups-modal__content"
+    >
+      <div
+        className="group-name-input-wrapper"
+      >
+        <ForwardRef
+          autoFocus={true}
+          customMessage={
+            Object {
+              "type": "error",
+              "value": "",
+            }
+          }
+          data-testid="nameInput"
+          onChange={[Function]}
+          placeholder="Name"
+          type="text"
+          value="Group Name"
+        />
+      </div>
+      <div
+        className="group-mention-input-wrapper"
+      >
+        <ForwardRef
+          customMessage={
+            Object {
+              "type": "error",
+              "value": "",
+            }
+          }
+          data-testid="nameInput"
+          onChange={[Function]}
+          placeholder="Mention"
+          type="text"
+          value="@group"
+        />
+      </div>
+      <div
+        className="update-buttons-wrapper"
+      >
+        <button
+          className="btn btn-tertiary"
+          onClick={[Function]}
+        >
+          Back
+        </button>
+        <SaveButton
+          btnClass=""
+          defaultMessage="Save Details"
+          disabled={true}
+          extraClasses=""
+          id="saveItems"
+          onClick={[Function]}
+          saving={false}
+          savingMessage="Saving..."
+        />
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;

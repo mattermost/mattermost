@@ -1,0 +1,7 @@
+<div class="post-code"><span class="post-code__language">Bash</span><div class="hljs"><div class="post-code__line-numbers">1
+2
+3
+4</div><code>find /path/to/whatever -<span class="hljs-built_in">type</span> f | sed <span class="hljs-string">"1,<span class="hljs-variable">$MAX_FILES</span> d' | while read fn; do
+echo "</span>deleting <span class="hljs-variable">$fn</span><span class="hljs-string">"
+rm -f <span class="hljs-variable">$fn</span>
+done</span></code></div></div>

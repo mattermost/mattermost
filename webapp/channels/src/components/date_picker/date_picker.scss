@@ -1,0 +1,117 @@
+.date-picker__popper {
+    padding: 12px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    margin: 0;
+    background: var(--center-channel-bg);
+    border-radius: 4px;
+    box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.12);
+}
+
+.rdp {
+    --rdp-accent-color: var(--button-bg);
+    --rdp-background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    --rdp-cell-size: 36px;
+
+    .rdp-caption {
+        padding: 4px;
+
+        .rdp-caption_label {
+            color: var(--center-channel-color);
+            font-family: 'Metropolis';
+            font-size: 16px;
+            font-style: normal;
+            font-weight: 600;
+            line-height: 24px;
+        }
+    }
+
+    .rdp-head_cell {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-family: 'Open Sans';
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        line-height: 16px;
+        text-transform: uppercase;
+    }
+
+    .rdp-cell {
+        padding: 4px;
+    }
+
+    .rdp-button {
+        font-weight: 600;
+
+        &.rdp-day {
+            color: var(--center-channel-color);
+
+            &_selected {
+                color: var(--button-color);
+
+                &:focus-visible {
+                    &:not([disabled]) {
+                        background-color: var(--rdp-accent-color);
+                    }
+                }
+
+                &:hover {
+                    background-color: var(--rdp-accent-color);
+                    color: var(--button-color);
+                }
+            }
+        }
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+
+        &:active {
+            background-color: rgba(var(--button-bg-rgb), 0.12);
+            color: var(--button-bg);
+        }
+
+        &[disabled] {
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+            opacity: unset;
+
+            &:hover {
+                background-color: transparent;
+            }
+        }
+
+        &.rdp-nav_button {
+            border-radius: 4px;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+
+            &_previous {
+                margin-right: 8px;
+            }
+
+            .icon {
+                font-size: 24px;
+                font-weight: 400;
+                line-height: 24px;
+            }
+
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+            }
+
+            &:active {
+                background-color: rgba(var(--button-bg-rgb), 0.08);
+                color: var(--button-bg);
+            }
+
+            &[disabled] {
+                color: rgba(var(--center-channel-color-rgb), 0.32);
+
+                &:hover {
+                    background-color: transparent;
+                }
+            }
+        }
+    }
+}

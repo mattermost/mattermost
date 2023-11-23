@@ -1,0 +1,83 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/submenu_modal should match snapshot 1`] = `
+<Modal
+  animation={true}
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="SubMenuModal a11y__modal mobile-sub-menu"
+  dialogComponentClass={[Function]}
+  enforceFocus={false}
+  id="submenuModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+    onClick={[Function]}
+  >
+    <MenuWrapper
+      animationComponent={[Function]}
+      className=""
+    >
+      <Menu
+        ariaLabel="mobile submenu"
+        openLeft={true}
+      >
+        <SubMenuItem
+          action={[MockFunction]}
+          direction="left"
+          id="A"
+          key="A"
+          renderSelected={true}
+          root={false}
+          show={true}
+          subMenuClass="pl-4"
+          text="Text A"
+        />
+        <SubMenuItem
+          action={[MockFunction]}
+          direction="left"
+          id="B"
+          key="B"
+          renderSelected={true}
+          root={false}
+          show={true}
+          subMenu={
+            Array [
+              Object {
+                "action": [MockFunction],
+                "direction": "left",
+                "id": "C",
+                "text": "Text C",
+              },
+            ]
+          }
+          subMenuClass="pl-4"
+          text="Text B"
+        />
+      </Menu>
+      <div />
+    </MenuWrapper>
+  </ModalBody>
+</Modal>
+`;

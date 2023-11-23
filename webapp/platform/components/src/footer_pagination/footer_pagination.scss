@@ -1,0 +1,41 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@import '../../../../channels/src/sass/utils/mixins';
+
+.footer-pagination {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+    align-items: center;
+
+    &__legend {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        justify-content: flex-start;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+    }
+
+    &__button-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &__button {
+            @include tertiary-button;
+            @include button-small;
+
+            &:not(:first-child) {
+                margin-left: 8px;
+            }
+
+            > :not(:first-child) {
+                margin-left: 5px;
+            }
+        }
+    }
+}

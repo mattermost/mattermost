@@ -1,0 +1,159 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/custom_status/expiry_menu should match snapshot 1`] = `
+<ExpiryMenu
+  duration=""
+  handleDurationChange={[MockFunction]}
+>
+  <div
+    className="statusExpiry"
+  >
+    <div
+      className="statusExpiry__content"
+    >
+      <MenuWrapper
+        animationComponent={[Function]}
+        className="statusExpiry__menu"
+      >
+        <div
+          className="MenuWrapper statusExpiry__menu"
+          onClick={[Function]}
+        >
+          <button
+            className="style--none expiry-wrapper expiry-selector"
+          >
+            <FormattedMessage
+              defaultMessage="Clear after"
+              id="custom_status.expiry_dropdown.clear_after"
+            >
+              <span>
+                Clear after
+              </span>
+            </FormattedMessage>
+            : 
+            <span
+              className="expiry-value"
+            >
+              Don't clear
+            </span>
+            <span>
+              <i
+                aria-hidden="true"
+                className="fa fa-angle-down"
+              />
+            </span>
+          </button>
+          <MenuWrapperAnimation
+            show={false}
+          >
+            <CSSTransition
+              classNames="MenuWrapperAnimation"
+              enter={true}
+              exit={true}
+              in={false}
+              mountOnEnter={true}
+              timeout={80}
+              unmountOnExit={true}
+            >
+              <Transition
+                appear={false}
+                enter={true}
+                exit={true}
+                in={false}
+                mountOnEnter={true}
+                onEnter={[Function]}
+                onEntered={[Function]}
+                onEntering={[Function]}
+                onExit={[Function]}
+                onExited={[Function]}
+                onExiting={[Function]}
+                timeout={80}
+                unmountOnExit={true}
+              />
+            </CSSTransition>
+          </MenuWrapperAnimation>
+        </div>
+      </MenuWrapper>
+    </div>
+  </div>
+</ExpiryMenu>
+`;
+
+exports[`components/custom_status/expiry_menu should match snapshot with different props 1`] = `
+<ExpiryMenu
+  duration="date_and_time"
+  handleDurationChange={[MockFunction]}
+>
+  <div
+    className="statusExpiry"
+  >
+    <div
+      className="statusExpiry__content"
+    >
+      <MenuWrapper
+        animationComponent={[Function]}
+        className="statusExpiry__menu"
+      >
+        <div
+          className="MenuWrapper statusExpiry__menu"
+          onClick={[Function]}
+        >
+          <button
+            className="style--none expiry-wrapper expiry-selector"
+          >
+            <FormattedMessage
+              defaultMessage="Clear after"
+              id="custom_status.expiry_dropdown.clear_after"
+            >
+              <span>
+                Clear after
+              </span>
+            </FormattedMessage>
+            : 
+            <span
+              className="expiry-value"
+            >
+              Custom Date and Time
+            </span>
+            <span>
+              <i
+                aria-hidden="true"
+                className="fa fa-angle-down"
+              />
+            </span>
+          </button>
+          <MenuWrapperAnimation
+            show={false}
+          >
+            <CSSTransition
+              classNames="MenuWrapperAnimation"
+              enter={true}
+              exit={true}
+              in={false}
+              mountOnEnter={true}
+              timeout={80}
+              unmountOnExit={true}
+            >
+              <Transition
+                appear={false}
+                enter={true}
+                exit={true}
+                in={false}
+                mountOnEnter={true}
+                onEnter={[Function]}
+                onEntered={[Function]}
+                onEntering={[Function]}
+                onExit={[Function]}
+                onExited={[Function]}
+                onExiting={[Function]}
+                timeout={80}
+                unmountOnExit={true}
+              />
+            </CSSTransition>
+          </MenuWrapperAnimation>
+        </div>
+      </MenuWrapper>
+    </div>
+  </div>
+</ExpiryMenu>
+`;

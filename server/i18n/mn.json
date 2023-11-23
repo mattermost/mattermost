@@ -1,0 +1,86 @@
+[
+    {
+        "id": "api.team.get_all_teams.insufficient_permissions",
+        "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+    },
+    {
+        "id": "api.command_remove.permission.app_error",
+        "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+    },
+    {
+        "id": "api.command_msg.permission.app_error",
+        "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+    },
+    {
+        "id": "api.command_channel_rename.permission.app_error",
+        "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+    },
+    {
+        "id": "api.command_channel_purpose.permission.app_error",
+        "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+    },
+    {
+        "id": "api.command_channel_purpose.desc",
+        "translation": "Группыг зохистой ашиглах тухай мэдээлэл өөрчлөх"
+    },
+    {
+        "id": "api.command_channel_header.permission.app_error",
+        "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+    },
+    {
+        "id": "api.command_channel_header.desc",
+        "translation": "Группын товч тайлбар/уриаг өөрчлөх"
+    },
+    {
+        "id": "api.command.invite_people.name",
+        "translation": "invite_people"
+    },
+    {
+        "id": "September",
+        "translation": "9-р сар"
+    },
+    {
+        "id": "October",
+        "translation": "10-р сар"
+    },
+    {
+        "id": "November",
+        "translation": "11-р сар"
+    },
+    {
+        "id": "May",
+        "translation": "5-р сар"
+    },
+    {
+        "id": "March",
+        "translation": "3-р сар"
+    },
+    {
+        "id": "June",
+        "translation": "6-р сар"
+    },
+    {
+        "id": "July",
+        "translation": "7-р сар"
+    },
+    {
+        "id": "January",
+        "translation": "1-р сар"
+    },
+    {
+        "id": "February",
+        "translation": "2-р сар"
+    },
+    {
+        "id": "December",
+        "translation": "12-р сар"
+    },
+    {
+        "id": "August",
+        "translation": "8-р сар"
+    },
+    {
+        "id": "April",
+        "translation": "4-р сар"
+    }
+]

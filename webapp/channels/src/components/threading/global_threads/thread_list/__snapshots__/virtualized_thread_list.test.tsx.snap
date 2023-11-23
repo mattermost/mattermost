@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/threading/global_threads/thread_list/virtualized_thread_list should match snapshot 1`] = `
+<AutoSizer
+  disableHeight={false}
+  disableWidth={false}
+  onResize={[Function]}
+  style={Object {}}
+>
+  <Component />
+</AutoSizer>
+`;

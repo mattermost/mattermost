@@ -1,0 +1,76 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/error_page/ErrorTitle should match snapshot, channel_not_found type 1`] = `
+<MemoizedFormattedMessage
+  defaultMessage="Channel Not Found"
+  id="error.channel_not_found.title"
+/>
+`;
+
+exports[`components/error_page/ErrorTitle should match snapshot, local_storage type 1`] = `
+<MemoizedFormattedMessage
+  defaultMessage="Cannot Load Mattermost"
+  id="error.local_storage.title"
+/>
+`;
+
+exports[`components/error_page/ErrorTitle should match snapshot, no type but with title 1`] = `
+<Fragment>
+  error title
+</Fragment>
+`;
+
+exports[`components/error_page/ErrorTitle should match snapshot, no type nor title 1`] = `
+<Fragment>
+  Error
+</Fragment>
+`;
+
+exports[`components/error_page/ErrorTitle should match snapshot, oauth_access_denied type 1`] = `
+<MemoizedFormattedMessage
+  defaultMessage="Authorization Error"
+  id="error.oauth_access_denied.title"
+/>
+`;
+
+exports[`components/error_page/ErrorTitle should match snapshot, oauth_invalid_param type 1`] = `
+<MemoizedFormattedMessage
+  defaultMessage="OAuth Parameter Error"
+  id="error.oauth_invalid_param.title"
+/>
+`;
+
+exports[`components/error_page/ErrorTitle should match snapshot, oauth_invalid_redirect_url type 1`] = `
+<MemoizedFormattedMessage
+  defaultMessage="OAuth Parameter Error"
+  id="error.oauth_invalid_param.title"
+/>
+`;
+
+exports[`components/error_page/ErrorTitle should match snapshot, oauth_missing_code type 1`] = `
+<MemoizedFormattedMessage
+  defaultMessage="Mattermost Needs Your Help"
+  id="error.oauth_missing_code.title"
+/>
+`;
+
+exports[`components/error_page/ErrorTitle should match snapshot, page_not_found type 1`] = `
+<MemoizedFormattedMessage
+  defaultMessage="Page Not Found"
+  id="error.not_found.title"
+/>
+`;
+
+exports[`components/error_page/ErrorTitle should match snapshot, permalink_not_found type 1`] = `
+<MemoizedFormattedMessage
+  defaultMessage="Message Not Found"
+  id="permalink.error.title"
+/>
+`;
+
+exports[`components/error_page/ErrorTitle should match snapshot, team_not_found type 1`] = `
+<MemoizedFormattedMessage
+  defaultMessage="Team Not Found"
+  id="error.team_not_found.title"
+/>
+`;

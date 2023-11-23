@@ -1,0 +1,57 @@
+@charset 'UTF-8';
+
+.animation--highlight {
+    &::before {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: inline-block;
+        width: 100%;
+        height: 100%;
+        animation: highlight 1.5s ease;
+        content: '';
+    }
+}
+
+.activity-log__table {
+    display: table;
+    width: 100%;
+    padding: 15px 0;
+    border-top: 1px solid $light-gray;
+    line-height: 1.8;
+
+    &:first-child {
+        padding-top: 0;
+        border: none;
+    }
+
+    > div {
+        display: table-cell;
+        vertical-align: top;
+    }
+
+    .activity-log__report {
+        width: 80%;
+    }
+
+    .activity-log__action {
+        text-align: right;
+    }
+
+    .report__platform {
+        font-size: 15px;
+        font-weight: 600;
+
+        .fa {
+            margin-right: 6px;
+        }
+    }
+
+    .report__info {
+        opacity: 0.8;
+    }
+}
+
+.session-help-text {
+    padding: 0 0 20px;
+}

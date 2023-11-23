@@ -1,0 +1,106 @@
+@import 'utils/variables';
+
+.toast {
+    position: absolute;
+    z-index: 2;
+    width: calc(100% - 30px);
+    height: 32px;
+    margin: 10px 15px 0;
+    background-color: var(--button-bg);
+    border-radius: 4px;
+    color: var(--button-color);
+    cursor: default;
+    font-size: 13px;
+    font-weight: bold;
+    opacity: 0;
+    visibility: hidden;
+
+    svg {
+        fill: var(--button-color);
+        vertical-align: middle;
+    }
+
+    body.enable-animations & {
+        transition-duration: 0s;
+        transition-property: opacity, visibility;
+        transition-timing-function: ease-in-out;
+    }
+
+    .toast__jump {
+        position: absolute;
+
+        svg {
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+    }
+
+    .toast__dismiss {
+        position: absolute;
+        right: 0;
+        height: 32px;
+        padding: 0 8px;
+        cursor: pointer;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        span {
+            line-height: 31px;
+        }
+    }
+
+    .toast__message {
+        position: absolute;
+        z-index: -1;
+        width: calc(100% - 40px);
+        height: 32px;
+        padding-left: 10px;
+        line-height: 31px;
+        text-align: center;
+
+        &.toast__pointer {
+            cursor: pointer;
+
+            &:hover {
+                background-color: rgba(0, 0, 0, 0.2);
+            }
+        }
+    }
+}
+
+.toast__visible {
+    opacity: 1;
+    visibility: visible;
+
+    body.enable-animations & {
+        transition-duration: 0s;
+        transition-property: opacity, visibility;
+        transition-timing-function: ease-in-out;
+    }
+}
+
+.toast__history {
+    z-index: 1;
+    background-color: rgb(216, 216, 216);
+    color: #3d3c40;
+
+    svg {
+        fill: rgba(61, 60, 64, 0.9);
+    }
+}
+
+.toast__red {
+    background-color: $red;
+}
+
+@media screen and (max-width: 768px) {
+    .toast .toast__message {
+        display: inline-block;
+    }
+}
+
+.tooltip__shortcut--txt {
+    opacity: 0.6;
+}

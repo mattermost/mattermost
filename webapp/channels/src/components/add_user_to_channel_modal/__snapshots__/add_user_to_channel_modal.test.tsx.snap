@@ -1,0 +1,131 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/AddUserToChannelModal should match snapshot 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="addChannelModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal modal--overflow"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="addChannelModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Add {name} to a Channel"
+        id="add_user_to_channel_modal.title"
+        values={
+          Object {
+            "name": "Fake Person",
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <form
+    onSubmit={[Function]}
+    role="form"
+  >
+    <ModalBody
+      bsClass="modal-body"
+      componentClass="div"
+    >
+      <div
+        className="modal__hint"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Type to find a channel. Use ↑↓ to browse, ↵ to select, ESC to dismiss."
+          id="add_user_to_channel_modal.help"
+        />
+      </div>
+      <div
+        className="pos-relative"
+      >
+        <Connect(SuggestionBox)
+          className="form-control focused"
+          completeOnTab={false}
+          delayInputUpdate={true}
+          listComponent={[Function]}
+          listPosition="bottom"
+          maxLength="64"
+          onChange={[Function]}
+          onItemSelected={[Function]}
+          openWhenEmpty={false}
+          providers={
+            Array [
+              SearchChannelWithPermissionsProvider {
+                "autocompleteChannelsForSearch": [MockFunction],
+                "disableDispatches": false,
+                "forceDispatch": false,
+                "latestComplete": true,
+                "latestPrefix": "",
+                "requestStarted": false,
+              },
+            ]
+          }
+          value=""
+        />
+      </div>
+      <div>
+        <br />
+      </div>
+    </ModalBody>
+    <ModalFooter
+      bsClass="modal-footer"
+      componentClass="div"
+    >
+      <button
+        className="btn btn-tertiary"
+        onClick={[Function]}
+        type="button"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Cancel"
+          id="add_user_to_channel_modal.cancel"
+        />
+      </button>
+      <button
+        className="btn btn-primary"
+        disabled={true}
+        id="add-user-to-channel-modal__add-button"
+        onClick={[Function]}
+        type="button"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Add"
+          id="add_user_to_channel_modal.add"
+        />
+      </button>
+    </ModalFooter>
+  </form>
+</Modal>
+`;

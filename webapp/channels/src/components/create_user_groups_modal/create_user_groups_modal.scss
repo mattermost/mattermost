@@ -1,0 +1,17 @@
+.user-groups-modal-create {
+    &.modal-dialog {
+        margin-top: calc(50vh - 240px);
+    }
+
+    .modal-body {
+        overflow: visible;
+    }
+
+    .Input___error {
+        &.group-error {
+            position: absolute;
+            bottom: 35px;
+            left: 24px;
+        }
+    }
+}

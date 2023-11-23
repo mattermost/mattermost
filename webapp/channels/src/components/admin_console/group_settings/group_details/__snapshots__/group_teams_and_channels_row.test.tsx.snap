@@ -1,0 +1,493 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChannelsRow should match snapshot, for private-channel 1`] = `
+<tr
+  className="group-teams-and-channels-row"
+>
+  <ConfirmModal
+    confirmButtonClass="btn btn-primary"
+    confirmButtonText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Yes, Remove"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_button"
+      />
+    }
+    message={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Removing this membership will prevent future users in this group from being added to the {name} {displayType}."
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_body"
+        values={
+          Object {
+            "displayType": "channel",
+            "name": "Test private-channel",
+          }
+        }
+      />
+    }
+    modalClass=""
+    onCancel={[Function]}
+    onConfirm={[Function]}
+    show={false}
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Remove Membership from the {name} {displayType}?"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_header"
+        values={
+          Object {
+            "displayType": "channel",
+            "name": "Test private-channel",
+          }
+        }
+      />
+    }
+  />
+  <td>
+    <span
+      className="arrow-icon"
+    />
+    <span
+      className="channel-icon"
+    >
+      <LockIcon
+        className="icon icon__lock"
+      />
+    </span>
+    <span
+      className=""
+    >
+      Test private-channel
+    </span>
+  </td>
+  <td
+    className="type"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Channel (Private)"
+      id="admin.group_settings.group_details.group_teams_and_channels_row.privateChannel"
+    />
+  </td>
+  <td />
+  <td
+    className="text-right"
+  >
+    <button
+      className="btn btn-tertiary"
+      data-testid="Test private-channel_groupsyncable_remove"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Remove"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove"
+      />
+    </button>
+  </td>
+</tr>
+`;
+
+exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChannelsRow should match snapshot, for private-team 1`] = `
+<tr
+  className="group-teams-and-channels-row"
+>
+  <ConfirmModal
+    confirmButtonClass="btn btn-primary"
+    confirmButtonText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Yes, Remove"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_button"
+      />
+    }
+    message={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Removing this membership will prevent future users in this group from being added to the {name} {displayType}."
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_body"
+        values={
+          Object {
+            "displayType": "team",
+            "name": "Test private-team",
+          }
+        }
+      />
+    }
+    modalClass=""
+    onCancel={[Function]}
+    onConfirm={[Function]}
+    show={false}
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Remove Membership from the {name} {displayType}?"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_header"
+        values={
+          Object {
+            "displayType": "team",
+            "name": "Test private-team",
+          }
+        }
+      />
+    }
+  />
+  <td>
+    <span
+      className="arrow-icon"
+    />
+    <span
+      className="name-no-arrow"
+    >
+      Test private-team
+    </span>
+  </td>
+  <td
+    className="type"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Team (Private)"
+      id="admin.group_settings.group_details.group_teams_and_channels_row.privateTeam"
+    />
+  </td>
+  <td />
+  <td
+    className="text-right"
+  >
+    <button
+      className="btn btn-tertiary"
+      data-testid="Test private-team_groupsyncable_remove"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Remove"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove"
+      />
+    </button>
+  </td>
+</tr>
+`;
+
+exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChannelsRow should match snapshot, for public-channel 1`] = `
+<tr
+  className="group-teams-and-channels-row"
+>
+  <ConfirmModal
+    confirmButtonClass="btn btn-primary"
+    confirmButtonText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Yes, Remove"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_button"
+      />
+    }
+    message={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Removing this membership will prevent future users in this group from being added to the {name} {displayType}."
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_body"
+        values={
+          Object {
+            "displayType": "channel",
+            "name": "Test public-channel",
+          }
+        }
+      />
+    }
+    modalClass=""
+    onCancel={[Function]}
+    onConfirm={[Function]}
+    show={false}
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Remove Membership from the {name} {displayType}?"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_header"
+        values={
+          Object {
+            "displayType": "channel",
+            "name": "Test public-channel",
+          }
+        }
+      />
+    }
+  />
+  <td>
+    <span
+      className="arrow-icon"
+    />
+    <span
+      className="channel-icon"
+    >
+      <GlobeIcon
+        className="icon icon__globe"
+      />
+    </span>
+    <span
+      className=""
+    >
+      Test public-channel
+    </span>
+  </td>
+  <td
+    className="type"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Channel"
+      id="admin.group_settings.group_details.group_teams_and_channels_row.publicChannel"
+    />
+  </td>
+  <td />
+  <td
+    className="text-right"
+  >
+    <button
+      className="btn btn-tertiary"
+      data-testid="Test public-channel_groupsyncable_remove"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Remove"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove"
+      />
+    </button>
+  </td>
+</tr>
+`;
+
+exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChannelsRow should match snapshot, for public-team 1`] = `
+<tr
+  className="group-teams-and-channels-row"
+>
+  <ConfirmModal
+    confirmButtonClass="btn btn-primary"
+    confirmButtonText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Yes, Remove"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_button"
+      />
+    }
+    message={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Removing this membership will prevent future users in this group from being added to the {name} {displayType}."
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_body"
+        values={
+          Object {
+            "displayType": "team",
+            "name": "Test public-team",
+          }
+        }
+      />
+    }
+    modalClass=""
+    onCancel={[Function]}
+    onConfirm={[Function]}
+    show={false}
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Remove Membership from the {name} {displayType}?"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_header"
+        values={
+          Object {
+            "displayType": "team",
+            "name": "Test public-team",
+          }
+        }
+      />
+    }
+  />
+  <td>
+    <span
+      className="arrow-icon"
+    />
+    <span
+      className="name-no-arrow"
+    >
+      Test public-team
+    </span>
+  </td>
+  <td
+    className="type"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Team"
+      id="admin.group_settings.group_details.group_teams_and_channels_row.publicTeam"
+    />
+  </td>
+  <td />
+  <td
+    className="text-right"
+  >
+    <button
+      className="btn btn-tertiary"
+      data-testid="Test public-team_groupsyncable_remove"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Remove"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove"
+      />
+    </button>
+  </td>
+</tr>
+`;
+
+exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChannelsRow should match snapshot, when has children 1`] = `
+<tr
+  className="group-teams-and-channels-row has-children"
+>
+  <ConfirmModal
+    confirmButtonClass="btn btn-primary"
+    confirmButtonText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Yes, Remove"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_button"
+      />
+    }
+    message={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Removing this membership will prevent future users in this group from being added to the {name} {displayType}."
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_body"
+        values={
+          Object {
+            "displayType": "team",
+            "name": "Test team with children",
+          }
+        }
+      />
+    }
+    modalClass=""
+    onCancel={[Function]}
+    onConfirm={[Function]}
+    show={false}
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Remove Membership from the {name} {displayType}?"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_header"
+        values={
+          Object {
+            "displayType": "team",
+            "name": "Test team with children",
+          }
+        }
+      />
+    }
+  />
+  <td>
+    <span
+      className="arrow-icon"
+    >
+      <i
+        className="fa fa-caret-down"
+        onClick={[Function]}
+      />
+    </span>
+    <span
+      className=""
+    >
+      Test team with children
+    </span>
+  </td>
+  <td
+    className="type"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Team"
+      id="admin.group_settings.group_details.group_teams_and_channels_row.publicTeam"
+    />
+  </td>
+  <td />
+  <td
+    className="text-right"
+  >
+    <button
+      className="btn btn-tertiary"
+      data-testid="Test team with children_groupsyncable_remove"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Remove"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove"
+      />
+    </button>
+  </td>
+</tr>
+`;
+
+exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChannelsRow should match snapshot, when has children and is collapsed 1`] = `
+<tr
+  className="group-teams-and-channels-row has-children collapsed"
+>
+  <ConfirmModal
+    confirmButtonClass="btn btn-primary"
+    confirmButtonText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Yes, Remove"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_button"
+      />
+    }
+    message={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Removing this membership will prevent future users in this group from being added to the {name} {displayType}."
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_body"
+        values={
+          Object {
+            "displayType": "team",
+            "name": "Test team with children",
+          }
+        }
+      />
+    }
+    modalClass=""
+    onCancel={[Function]}
+    onConfirm={[Function]}
+    show={false}
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Remove Membership from the {name} {displayType}?"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove.confirm_header"
+        values={
+          Object {
+            "displayType": "team",
+            "name": "Test team with children",
+          }
+        }
+      />
+    }
+  />
+  <td>
+    <span
+      className="arrow-icon"
+    >
+      <i
+        className="fa fa-caret-right"
+        onClick={[Function]}
+      />
+    </span>
+    <span
+      className=""
+    >
+      Test team with children
+    </span>
+  </td>
+  <td
+    className="type"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Team"
+      id="admin.group_settings.group_details.group_teams_and_channels_row.publicTeam"
+    />
+  </td>
+  <td />
+  <td
+    className="text-right"
+  >
+    <button
+      className="btn btn-tertiary"
+      data-testid="Test team with children_groupsyncable_remove"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Remove"
+        id="admin.group_settings.group_details.group_teams_and_channels_row.remove"
+      />
+    </button>
+  </td>
+</tr>
+`;

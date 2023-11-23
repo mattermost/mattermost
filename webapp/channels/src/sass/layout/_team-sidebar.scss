@@ -1,0 +1,150 @@
+.team-sidebar {
+    z-index: 17;
+    display: flex;
+    width: 65px;
+    height: 100%;
+    flex-direction: column;
+    background: var(--sidebar-teambar-bg);
+    text-align: center;
+
+    .fa {
+        color: var(--sidebar-header-text-color);
+        opacity: 0.6;
+        transition: all 0.15s ease;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+
+    .team-sidebar-bottom-plugin {
+        width: 100%;
+        flex: 0 0 auto;
+        padding: 16px 0 6px;
+        background-color: var(--sidebar-teambar-bg);
+    }
+
+    .team-wrapper {
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        flex: 1 1 auto;
+        background-color: var(--sidebar-teambar-bg);
+        -webkit-overflow-scrolling: touch;
+
+        .draggable-team-container {
+            position: relative;
+            margin-right: auto;
+            margin-bottom: 12px;
+            margin-left: auto;
+        }
+
+        .team-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+
+            &.unread {
+                .unread-badge {
+                    position: absolute;
+                    z-index: 1;
+                    top: -2px;
+                    right: -3px;
+                    width: 8px;
+                    height: 8px;
+                    background: var(--mention-bg);
+                    border-radius: 100%;
+                    box-shadow: 0 0 0 3px var(--sidebar-teambar-bg);
+                }
+            }
+
+            a {
+                display: block;
+                text-decoration: none;
+                transform: translate(0, 0);
+                transform-origin: center center;
+                transition: transform 0.1s;
+
+                &:active {
+                    transform: translate(0, 2px);
+                }
+            }
+
+            &.active {
+                .TeamIcon__content {
+                    opacity: 1;
+                }
+            }
+
+            button {
+                padding: 0;
+                border: none;
+                text-decoration: none;
+            }
+
+            a.team-disabled {
+                cursor: not-allowed;
+                opacity: 0.5;
+            }
+
+            .team-btn {
+                color: var(--sidebar-header-text-color);
+
+                .badge {
+                    border-color: rgba(var(--sidebar-text-rgb), 0.5);
+                }
+            }
+
+            .order-indicator {
+                position: absolute;
+                top: 28px;
+                left: 12px;
+                display: flex;
+                width: 16px;
+                height: 16px;
+                justify-content: center;
+                background: #000;
+                border-radius: 4px;
+                color: #fff;
+                font-size: 12px;
+                font-style: normal;
+                font-weight: 500;
+                text-align: center;
+            }
+
+            &.isDragging {
+                cursor: grab;
+
+                .TeamIcon {
+                    background-color: rgba(255, 255, 255, 0.32);
+
+                    .TeamIcon__image {
+                        box-shadow: inset 0 0 0 3px var(--sidebar-teambar-bg);
+                    }
+                }
+            }
+        }
+
+        .scrollbar--view {
+            padding-top: 15px;
+        }
+
+        .team-container a:hover {
+            text-decoration: none;
+        }
+    }
+}
+
+@media screen and (min-width: 769px) {
+    // global header style adjustments
+    .team-sidebar {
+        // use sidebar header variables for team sidebar
+        --sidebar-teambar-bg: var(--sidebar-header-bg);
+        --sidebar-header-text-color: var(--sidebar-text);
+        --sidebar-teambar-bg-rgb: var(--sidebar-header-bg-rgb);
+        --sidebar-header-text-color-rgb: var(--sidebar-text-rgb);
+
+        border-right: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
+    }
+}

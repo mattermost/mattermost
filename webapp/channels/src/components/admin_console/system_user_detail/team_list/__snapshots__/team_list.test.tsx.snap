@@ -1,0 +1,146 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/system_user_detail/team_list/TeamList should match snapshot when no teams are found 1`] = `
+<Fragment>
+  <div />
+  <AbstractList
+    actions={
+      Object {
+        "getTeamMembersForUser": [MockFunction],
+        "getTeamsData": [MockFunction] {
+          "calls": Array [
+            Array [
+              "1234",
+            ],
+          ],
+          "results": Array [
+            Object {
+              "type": "return",
+              "value": Promise {},
+            },
+          ],
+        },
+        "removeUserFromTeam": [MockFunction],
+        "updateTeamMemberSchemeRoles": [MockFunction],
+      }
+    }
+    data={Array []}
+    emptyListTextDefaultMessage="No teams found"
+    emptyListTextId="emptyListTextId"
+    headerLabels={
+      Array [
+        Object {
+          "default": "Name",
+          "id": "admin.systemUserDetail.teamList.header.name",
+          "style": Object {
+            "flexGrow": 1,
+            "marginLeft": "16px",
+            "minWidth": "284px",
+          },
+        },
+        Object {
+          "default": "Type",
+          "id": "admin.systemUserDetail.teamList.header.type",
+          "style": Object {
+            "width": "150px",
+          },
+        },
+        Object {
+          "default": "Role",
+          "id": "admin.systemUserDetail.teamList.header.role",
+          "style": Object {
+            "width": "150px",
+          },
+        },
+        Object {
+          "style": Object {
+            "width": "150px",
+          },
+        },
+      ]
+    }
+    renderRow={[Function]}
+    total={0}
+    userId="1234"
+  />
+</Fragment>
+`;
+
+exports[`admin_console/system_user_detail/team_list/TeamList should match snapshot with teams populated 1`] = `
+<Fragment>
+  <div />
+  <AbstractList
+    actions={
+      Object {
+        "getTeamMembersForUser": [MockFunction],
+        "getTeamsData": [MockFunction] {
+          "calls": Array [
+            Array [
+              "1234",
+            ],
+          ],
+          "results": Array [
+            Object {
+              "type": "return",
+              "value": Promise {},
+            },
+          ],
+        },
+        "removeUserFromTeam": [MockFunction],
+        "updateTeamMemberSchemeRoles": [MockFunction],
+      }
+    }
+    data={
+      Array [
+        Object {
+          "description": "Team 1 description",
+          "display_name": "Team 1",
+          "id": "id1",
+        },
+        Object {
+          "description": "The 2 description",
+          "display_name": "Team 2",
+          "id": "id2",
+        },
+      ]
+    }
+    emptyListTextDefaultMessage="No teams found"
+    emptyListTextId="emptyListTextId"
+    headerLabels={
+      Array [
+        Object {
+          "default": "Name",
+          "id": "admin.systemUserDetail.teamList.header.name",
+          "style": Object {
+            "flexGrow": 1,
+            "marginLeft": "16px",
+            "minWidth": "284px",
+          },
+        },
+        Object {
+          "default": "Type",
+          "id": "admin.systemUserDetail.teamList.header.type",
+          "style": Object {
+            "width": "150px",
+          },
+        },
+        Object {
+          "default": "Role",
+          "id": "admin.systemUserDetail.teamList.header.role",
+          "style": Object {
+            "width": "150px",
+          },
+        },
+        Object {
+          "style": Object {
+            "width": "150px",
+          },
+        },
+      ]
+    }
+    renderRow={[Function]}
+    total={2}
+    userId="1234"
+  />
+</Fragment>
+`;

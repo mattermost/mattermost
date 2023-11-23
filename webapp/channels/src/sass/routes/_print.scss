@@ -1,0 +1,116 @@
+@charset 'UTF-8';
+
+@media print {
+    * {
+        background: transparent !important;
+        color: black !important;
+        text-shadow: none !important;
+    }
+
+    .post-list__content,
+    .post-list__table,
+    .app__content {
+        display: block;
+    }
+
+    a:not(.mention-link),
+    a:not(.mention-link):visited {
+        text-decoration: underline;
+    }
+
+    a[href^=http]::after {
+        content: ' <' attr(href) '> ';
+    }
+
+    tr,
+    img,
+    pre,
+    blockquote,
+    code,
+    .post,
+    .date-separator {
+        page-break-inside: avoid;
+    }
+
+    .post__header {
+        page-break-after: avoid;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    img {
+        max-width: 100% !important;
+    }
+
+    p,
+    h2,
+    h3 {
+        orphans: 3;
+        widows: 3;
+    }
+
+    #sidebar-left,
+    #sidebar-right,
+    #channel-header,
+    #post-create,
+    #post-list .more-messages-text,
+    .post .post__header .post-menu,
+    .post .post__content > div.post__img,
+    .attachment__content,
+    .post__body .img-div,
+    .post-image__thumbnail,
+    .post.post--system,
+    .channel-intro {
+        display: none;
+    }
+
+    #post-list,
+    #channel_view,
+    #post-list .post-list-holder-by-time {
+        overflow: visible;
+        overflow-y: visible;
+    }
+
+    #app-content {
+        margin-left: 0;
+    }
+
+    #channel_view .inner-wrap.move--left {
+        margin-right: 0;
+    }
+
+    .post-image__columns > div:first-child::before {
+        display: block;
+        content: 'Attachments:';
+        font-weight: bold;
+    }
+
+    .post-image__column {
+        display: inline;
+        width: inherit;
+        height: inherit;
+        border: 0 none;
+        border-color: transparent;
+        background: transparent;
+    }
+
+    .post-image__details {
+        width: 100%;
+        border: 0 none;
+        line-height: 98px;
+
+        .post-image__name::before {
+            content: '[';
+        }
+
+        .post-image__name::after {
+            content: ': ' attr(href) ']';
+        }
+
+        .post-image__name + div {
+            display: none;
+        }
+    }
+}

@@ -1,0 +1,485 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/HeaderFooterTemplate should match snapshot with about link 1`] = `
+<div>
+  <div
+    class="inner-wrap"
+  >
+    <div
+      class="row content"
+    />
+    <div
+      class="row footer"
+    >
+      <div
+        class="footer-pane col-xs-12"
+        id="footer_section"
+      >
+        <div
+          class="col-xs-12"
+        >
+          <span
+            class="pull-right footer-site-name"
+            id="company_name"
+          >
+            Mattermost
+          </span>
+        </div>
+        <div
+          class="col-xs-12"
+        >
+          <span
+            class="pull-right footer-link copyright"
+            id="copyright"
+          >
+            © 2015-2017 Mattermost, Inc.
+          </span>
+          <span
+            class="pull-right"
+          >
+            <a
+              class="footer-link"
+              href="http://testaboutlink"
+              id="about_link"
+              location="header_footer_template"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              About
+            </a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/HeaderFooterTemplate should match snapshot with all links 1`] = `
+<div>
+  <div
+    class="inner-wrap"
+  >
+    <div
+      class="row content"
+    />
+    <div
+      class="row footer"
+    >
+      <div
+        class="footer-pane col-xs-12"
+        id="footer_section"
+      >
+        <div
+          class="col-xs-12"
+        >
+          <span
+            class="pull-right footer-site-name"
+            id="company_name"
+          >
+            Mattermost
+          </span>
+        </div>
+        <div
+          class="col-xs-12"
+        >
+          <span
+            class="pull-right footer-link copyright"
+            id="copyright"
+          >
+            © 2015-2017 Mattermost, Inc.
+          </span>
+          <span
+            class="pull-right"
+          >
+            <a
+              class="footer-link"
+              href="http://testaboutlink"
+              id="about_link"
+              location="header_footer_template"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              About
+            </a>
+            <a
+              class="footer-link"
+              href="http://testprivacypolicylink"
+              id="privacy_link"
+              location="header_footer_template"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Privacy Policy
+            </a>
+            <a
+              class="footer-link"
+              href="http://testtermsofservicelink"
+              id="terms_link"
+              location="header_footer_template"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Terms
+            </a>
+            <a
+              class="footer-link"
+              href="http://testhelplink"
+              id="help_link"
+              location="header_footer_template"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Help
+            </a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/HeaderFooterTemplate should match snapshot with children 1`] = `
+<div>
+  <div
+    class="inner-wrap"
+  >
+    <div
+      class="row content"
+    >
+      <p>
+        test
+      </p>
+    </div>
+    <div
+      class="row footer"
+    >
+      <div
+        class="footer-pane col-xs-12"
+        id="footer_section"
+      >
+        <div
+          class="col-xs-12"
+        >
+          <span
+            class="pull-right footer-site-name"
+            id="company_name"
+          >
+            Mattermost
+          </span>
+        </div>
+        <div
+          class="col-xs-12"
+        >
+          <span
+            class="pull-right footer-link copyright"
+            id="copyright"
+          >
+            © 2015-2017 Mattermost, Inc.
+          </span>
+          <span
+            class="pull-right"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/HeaderFooterTemplate should match snapshot with help link 1`] = `
+<div>
+  <div
+    class="inner-wrap"
+  >
+    <div
+      class="row content"
+    />
+    <div
+      class="row footer"
+    >
+      <div
+        class="footer-pane col-xs-12"
+        id="footer_section"
+      >
+        <div
+          class="col-xs-12"
+        >
+          <span
+            class="pull-right footer-site-name"
+            id="company_name"
+          >
+            Mattermost
+          </span>
+        </div>
+        <div
+          class="col-xs-12"
+        >
+          <span
+            class="pull-right footer-link copyright"
+            id="copyright"
+          >
+            © 2015-2017 Mattermost, Inc.
+          </span>
+          <span
+            class="pull-right"
+          >
+            <a
+              class="footer-link"
+              href="http://testhelplink"
+              id="help_link"
+              location="header_footer_template"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Help
+            </a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/HeaderFooterTemplate should match snapshot with privacy policy link 1`] = `
+<div>
+  <div
+    class="inner-wrap"
+  >
+    <div
+      class="row content"
+    />
+    <div
+      class="row footer"
+    >
+      <div
+        class="footer-pane col-xs-12"
+        id="footer_section"
+      >
+        <div
+          class="col-xs-12"
+        >
+          <span
+            class="pull-right footer-site-name"
+            id="company_name"
+          >
+            Mattermost
+          </span>
+        </div>
+        <div
+          class="col-xs-12"
+        >
+          <span
+            class="pull-right footer-link copyright"
+            id="copyright"
+          >
+            © 2015-2017 Mattermost, Inc.
+          </span>
+          <span
+            class="pull-right"
+          >
+            <a
+              class="footer-link"
+              href="http://testprivacypolicylink"
+              id="privacy_link"
+              location="header_footer_template"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Privacy Policy
+            </a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/HeaderFooterTemplate should match snapshot with term of service link 1`] = `
+<div>
+  <div
+    class="inner-wrap"
+  >
+    <div
+      class="row content"
+    />
+    <div
+      class="row footer"
+    >
+      <div
+        class="footer-pane col-xs-12"
+        id="footer_section"
+      >
+        <div
+          class="col-xs-12"
+        >
+          <span
+            class="pull-right footer-site-name"
+            id="company_name"
+          >
+            Mattermost
+          </span>
+        </div>
+        <div
+          class="col-xs-12"
+        >
+          <span
+            class="pull-right footer-link copyright"
+            id="copyright"
+          >
+            © 2015-2017 Mattermost, Inc.
+          </span>
+          <span
+            class="pull-right"
+          >
+            <a
+              class="footer-link"
+              href="http://testtermsofservicelink"
+              id="terms_link"
+              location="header_footer_template"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Terms
+            </a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/HeaderFooterTemplate should match snapshot without children 1`] = `
+<div>
+  <div
+    class="inner-wrap"
+  >
+    <div
+      class="row content"
+    />
+    <div
+      class="row footer"
+    >
+      <div
+        class="footer-pane col-xs-12"
+        id="footer_section"
+      >
+        <div
+          class="col-xs-12"
+        >
+          <span
+            class="pull-right footer-site-name"
+            id="company_name"
+          >
+            Mattermost
+          </span>
+        </div>
+        <div
+          class="col-xs-12"
+        >
+          <span
+            class="pull-right footer-link copyright"
+            id="copyright"
+          >
+            © 2015-2017 Mattermost, Inc.
+          </span>
+          <span
+            class="pull-right"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/HeaderFooterTemplate should set classes on body and #root on mount and unset on unmount 1`] = `
+<div>
+  <div
+    class="inner-wrap"
+  >
+    <div
+      class="row content"
+    />
+    <div
+      class="row footer"
+    >
+      <div
+        class="footer-pane col-xs-12"
+        id="footer_section"
+      >
+        <div
+          class="col-xs-12"
+        >
+          <span
+            class="pull-right footer-site-name"
+            id="company_name"
+          >
+            Mattermost
+          </span>
+        </div>
+        <div
+          class="col-xs-12"
+        >
+          <span
+            class="pull-right footer-link copyright"
+            id="copyright"
+          >
+            © 2015-2017 Mattermost, Inc.
+          </span>
+          <span
+            class="pull-right"
+          >
+            <a
+              class="footer-link"
+              href="http://testaboutlink"
+              id="about_link"
+              location="header_footer_template"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              About
+            </a>
+            <a
+              class="footer-link"
+              href="http://testprivacypolicylink"
+              id="privacy_link"
+              location="header_footer_template"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Privacy Policy
+            </a>
+            <a
+              class="footer-link"
+              href="http://testtermsofservicelink"
+              id="terms_link"
+              location="header_footer_template"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Terms
+            </a>
+            <a
+              class="footer-link"
+              href="http://testhelplink"
+              id="help_link"
+              location="header_footer_template"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Help
+            </a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/HeaderFooterTemplate should set classes on body and #root on mount and unset on unmount 2`] = `<div />`;

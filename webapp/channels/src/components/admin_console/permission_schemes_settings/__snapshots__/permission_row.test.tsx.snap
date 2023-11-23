@@ -1,0 +1,110 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/permission_schemes_settings/permission_row should match snapshot on editable and inherited 1`] = `
+<div
+  className="permission-row"
+  id="uniqId"
+  onClick={[Function]}
+>
+  <PermissionCheckbox
+    id="uniqId-checkbox"
+    value="checked"
+  />
+  <span
+    className="permission-name"
+  >
+    <MemoizedFormattedMessage
+      id="admin.permissions.permission.id.name"
+    />
+  </span>
+  <PermissionDescription
+    additionalValues={Object {}}
+    id="id"
+    inherited={
+      Object {
+        "name": "test",
+      }
+    }
+    rowType="permission"
+    selectRow={[MockFunction]}
+  />
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_row should match snapshot on editable and not inherited 1`] = `
+<div
+  className="permission-row"
+  id="uniqId"
+  onClick={[Function]}
+>
+  <PermissionCheckbox
+    id="uniqId-checkbox"
+    value="checked"
+  />
+  <span
+    className="permission-name"
+  >
+    <MemoizedFormattedMessage
+      id="admin.permissions.permission.id.name"
+    />
+  </span>
+  <PermissionDescription
+    additionalValues={Object {}}
+    id="id"
+    rowType="permission"
+    selectRow={[MockFunction]}
+  />
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_row should match snapshot on read only and not inherited 1`] = `
+<div
+  className="permission-row read-only"
+  id="uniqId"
+  onClick={[Function]}
+>
+  <PermissionCheckbox
+    id="uniqId-checkbox"
+    value="checked"
+  />
+  <span
+    className="permission-name"
+  >
+    <MemoizedFormattedMessage
+      id="admin.permissions.permission.id.name"
+    />
+  </span>
+  <PermissionDescription
+    additionalValues={Object {}}
+    id="id"
+    rowType="permission"
+    selectRow={[MockFunction]}
+  />
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_row should match snapshot on read only and not inherited 2`] = `
+<div
+  className="permission-row read-only"
+  id="uniqId"
+  onClick={[Function]}
+>
+  <PermissionCheckbox
+    id="uniqId-checkbox"
+    value="checked"
+  />
+  <span
+    className="permission-name"
+  >
+    <MemoizedFormattedMessage
+      id="admin.permissions.permission.id.name"
+    />
+  </span>
+  <PermissionDescription
+    additionalValues={Object {}}
+    id="id"
+    rowType="permission"
+    selectRow={[MockFunction]}
+  />
+</div>
+`;

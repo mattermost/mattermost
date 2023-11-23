@@ -1,0 +1,133 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/learn_more_trial_modal/learn_more_trial_modal_step should match snapshot 1`] = `
+<ContextProvider
+  value={
+    Object {
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
+    }
+  }
+>
+  <LearnMoreTrialModalStep
+    buttonLabel="button"
+    description="Step description"
+    id="stepId"
+    svgElement={<svg />}
+    svgWrapperClassName="stepClassname"
+    title="Step title"
+  />
+</ContextProvider>
+`;
+
+exports[`components/learn_more_trial_modal/learn_more_trial_modal_step should match snapshot when loaded in cloud workspace 1`] = `
+<ContextProvider
+  value={
+    Object {
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
+    }
+  }
+>
+  <LearnMoreTrialModalStep
+    bottomLeftMessage="Step bottom message"
+    buttonLabel="button"
+    description="Step description"
+    id="stepId"
+    isCloud={true}
+    svgElement={<svg />}
+    svgWrapperClassName="stepClassname"
+    title="Step title"
+  />
+</ContextProvider>
+`;
+
+exports[`components/learn_more_trial_modal/learn_more_trial_modal_step should match snapshot with optional params 1`] = `
+<ContextProvider
+  value={
+    Object {
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
+    }
+  }
+>
+  <LearnMoreTrialModalStep
+    bottomLeftMessage="Step bottom message"
+    buttonLabel="button"
+    description="Step description"
+    id="stepId"
+    svgElement={<svg />}
+    svgWrapperClassName="stepClassname"
+    title="Step title"
+  />
+</ContextProvider>
+`;

@@ -1,0 +1,202 @@
+  "/api/v4/users/{user_id}/preferences":
+    get:
+      tags:
+        - preferences
+      summary: Get the user's preferences
+      description: >
+        Get a list of the user's preferences.
+
+        ##### Permissions
+
+        Must be logged in as the user being updated or have the `edit_other_users` permission.
+      operationId: GetPreferences
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User preferences retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Preference"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    put:
+      tags:
+        - preferences
+      summary: Save the user's preferences
+      description: >
+        Save a list of the user's preferences.
+
+        ##### Permissions
+
+        Must be logged in as the user being updated or have the `edit_other_users` permission.
+      operationId: UpdatePreferences
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: List of preference objects
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Preference'
+      responses:
+        "200":
+          description: User preferences saved successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/users/{user_id}/preferences/delete":
+    post:
+      tags:
+        - preferences
+      summary: Delete user's preferences
+      description: >
+        Delete a list of the user's preferences.
+
+        ##### Permissions
+
+        Must be logged in as the user being updated or have the `edit_other_users` permission.
+      operationId: DeletePreferences
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: List of preference objects
+        required: true
+        content:
+          application/json:
+            schema:            
+              type: array
+              items:
+                $ref: '#/components/schemas/Preference'
+      responses:
+        "200":
+          description: User preferences saved successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/preferences/{category}":
+    get:
+      tags:
+        - preferences
+      summary: List a user's preferences by category
+      description: >
+        Lists the current user's stored preferences in the given category.
+
+        ##### Permissions
+
+        Must be logged in as the user being updated or have the `edit_other_users` permission.
+      operationId: GetPreferencesByCategory
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+        - name: category
+          in: path
+          description: The category of a group of preferences
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A list of all of the current user's preferences in the given category
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Preference"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/preferences/{category}/name/{preference_name}":
+    get:
+      tags:
+        - preferences
+      summary: Get a specific user preference
+      description: >
+        Gets a single preference for the current user with the given category
+        and name.
+
+        ##### Permissions
+
+        Must be logged in as the user being updated or have the `edit_other_users` permission.
+      operationId: GetPreferencesByCategoryByName
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+        - name: category
+          in: path
+          description: The category of a group of preferences
+          required: true
+          schema:
+            type: string
+        - name: preference_name
+          in: path
+          description: The name of the preference
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: >
+            A single preference for the current user in the current categorylist
+            of all of the current user's preferences in the given category.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Preference"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"

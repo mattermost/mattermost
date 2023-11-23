@@ -1,0 +1,160 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@import "sass/utils/_mixins";
+
+.ThreadItem {
+    --border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+    position: relative;
+    padding: 18px 18px 18px 28px;
+    cursor: pointer;
+    text-align: left;
+
+    .alt-visible {
+        visibility: hidden;
+    }
+
+    &:hover,
+    &:focus,
+    &:focus-within {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+
+        .alt-visible {
+            visibility: unset;
+        }
+
+        .alt-hidden {
+            visibility: hidden;
+        }
+    }
+
+    &__author {
+        @include clearfix;
+
+        overflow: hidden;
+        max-width: 100%;
+        text-align: left;
+        text-overflow: ellipsis;
+        -moz-user-select: all; /* Firefox all */
+        white-space: nowrap;
+    }
+
+    &__tags {
+        display: flex;
+        max-width: 100%;
+        align-items: center;
+        gap: 4px;
+    }
+
+    &.is-selected {
+        background: rgba(var(--button-bg-rgb), 0.04);
+
+        &:hover,
+        &:focus {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+    }
+
+    .activity {
+        display: flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 15px;
+    }
+
+    &.has-unreads {
+        .activity {
+            color: rgba(var(--sidebar-text-active-border-rgb), 1);
+        }
+    }
+
+    .dot-unreads {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        margin: 0 8px;
+        background: rgba(var(--sidebar-text-active-border-rgb), 1);
+        border-radius: 50%;
+        text-align: center;
+    }
+
+    .dot-mentions {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        background: rgba(var(--button-bg-rgb), 1);
+        border-radius: 50%;
+        color: rgba(var(--button-color-rgb), 1);
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 16px;
+        text-align: center;
+
+        &.over {
+            font-size: 8px;
+        }
+    }
+
+    .indicator {
+        position: absolute;
+        left: -24px;
+        display: grid;
+        width: 24px;
+        height: 20px;
+        place-content: center;
+    }
+
+    h1 {
+        position: relative;
+        display: grid;
+        margin: 0 0 6px;
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        gap: 10px;
+        grid-template-columns: minmax(0, min-content) minmax(0, auto) min-content;
+        justify-items: start;
+        line-height: 20px;
+        white-space: nowrap;
+    }
+
+    div.preview {
+        height: 40px;
+        margin: 0 0 10px;
+        color: rgba(var(--center-channel-color-rgb), 1);
+
+        @include text-clamp(2, 20);
+    }
+
+    time {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        font-weight: normal;
+        grid-column: 3/4;
+        line-height: 20px;
+    }
+
+    .menu-anchor {
+        position: absolute;
+        top: 12px;
+        right: 14px;
+
+        .Button {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            font-size: 18px;
+        }
+    }
+
+    .MenuWrapper .dropdown-menu {
+        min-width: 250px;
+    }
+
+    .Avatars {
+        margin-right: 10px;
+    }
+}

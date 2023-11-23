@@ -1,0 +1,29 @@
+.PreparingWorkspaceTitle {
+    display: flex;
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: var(--sidebar-header-bg);
+    font-size: 56px;
+    letter-spacing: -0.01em;
+
+    .subtitle {
+        font-size: 18px;
+        line-height: 28px;
+    }
+
+    svg {
+        margin: 0 10px 0 20px;
+    }
+}
+
+@media screen and (max-width: 900px) {
+    .PreparingWorkspaceTitle {
+        flex-direction: column;
+        font-size: 36px;
+
+        .subtitle {
+            font-size: 14px;
+            line-height: 20px;
+        }
+    }
+}

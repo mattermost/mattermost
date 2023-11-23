@@ -1,0 +1,57 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/custom_status/custom_status_emoji should match snapshot 1`] = `
+<button
+  className="statusSuggestion__row cursor--pointer"
+  onClick={[Function]}
+  onMouseEnter={[Function]}
+  onMouseLeave={[Function]}
+  tabIndex={0}
+>
+  <div
+    className="statusSuggestion__icon"
+  >
+    <Memo(RenderEmoji)
+      emojiName=""
+      size={20}
+    />
+  </div>
+  <CustomStatusText
+    className="statusSuggestion__text"
+    text=""
+    tooltipDirection="top"
+  />
+</button>
+`;
+
+exports[`components/custom_status/custom_status_emoji should match snapshot with duration 1`] = `
+<button
+  className="statusSuggestion__row cursor--pointer"
+  onClick={[Function]}
+  onMouseEnter={[Function]}
+  onMouseLeave={[Function]}
+  tabIndex={0}
+>
+  <div
+    className="statusSuggestion__icon"
+  >
+    <Memo(RenderEmoji)
+      emojiName=""
+      size={20}
+    />
+  </div>
+  <CustomStatusText
+    className="statusSuggestion__text with_duration"
+    text=""
+    tooltipDirection="top"
+  />
+  <span
+    className="statusSuggestion__duration"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Today"
+      id="custom_status.expiry_dropdown.today"
+    />
+  </span>
+</button>
+`;

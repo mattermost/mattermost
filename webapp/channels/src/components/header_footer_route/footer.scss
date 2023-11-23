@@ -1,0 +1,42 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@import 'utils/mixins';
+
+.hfroute-footer {
+    display: flex;
+    width: 100%;
+    max-width: 1520px;
+    height: auto;
+    min-height: 80px;
+    flex-flow: wrap;
+    align-items: center;
+    align-self: center;
+    padding: 0 40px;
+
+    .footer-link {
+        @include link;
+
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 11px;
+        font-weight: 400;
+        line-height: 16px;
+
+        &:not(:last-child) {
+            margin-right: 24px;
+        }
+    }
+
+    .footer-copyright {
+        margin-right: 24px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 11px;
+        line-height: 16px;
+    }
+}
+
+@media screen and (max-width: 699px) {
+    .hfroute-footer {
+        padding: 0 24px;
+    }
+}

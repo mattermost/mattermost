@@ -1,0 +1,226 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/post_view/PostAddChannelMember should match snapshot, empty channelType 1`] = `""`;
+
+exports[`components/post_view/PostAddChannelMember should match snapshot, empty postId 1`] = `""`;
+
+exports[`components/post_view/PostAddChannelMember should match snapshot, more than 3 users 1`] = `
+<Fragment>
+  <p>
+    <span>
+      <Connect(Component)
+        channelId="channel_id"
+        key="username_1"
+        mentionName="username_1"
+      />
+      <span
+        key="1"
+      >
+        , 
+      </span>
+      <a
+        className="PostBody_otherUsersLink"
+        onClick={[Function]}
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="{numOthers} others"
+          id="post_body.check_for_out_of_channel_mentions.others"
+          values={
+            Object {
+              "numOthers": 2,
+            }
+          }
+        />
+      </a>
+      <MemoizedFormattedMessage
+        defaultMessage=" and "
+        id="post_body.check_for_out_of_channel_mentions.link.and"
+        key="1"
+      />
+      <Connect(Component)
+        channelId="channel_id"
+        key="username_4"
+        mentionName="username_4"
+      />
+    </span>
+     
+    <MemoizedFormattedMessage
+      defaultMessage="did not get notified by this mention because they are not in the channel. Would you like to "
+      id="post_body.check_for_out_of_channel_mentions.message.multiple"
+    />
+    <a
+      className="PostBody_addChannelMemberLink"
+      onClick={[Function]}
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="add them to the channel"
+        id="post_body.check_for_out_of_channel_mentions.link.public"
+      />
+    </a>
+    <MemoizedFormattedMessage
+      defaultMessage="? They will have access to all message history."
+      id="post_body.check_for_out_of_channel_mentions.message_last"
+    />
+  </p>
+</Fragment>
+`;
+
+exports[`components/post_view/PostAddChannelMember should match snapshot, more than 3 users 2`] = `
+<Fragment>
+  <p>
+    <span>
+      <Connect(Component)
+        channelId="channel_id"
+        key="username_1"
+        mentionName="username_1"
+      />
+      <span
+        key="1"
+      >
+        , 
+      </span>
+      <Connect(Component)
+        channelId="channel_id"
+        key="username_2"
+        mentionName="username_2"
+      />
+      <span
+        key="2"
+      >
+        , 
+      </span>
+      <Connect(Component)
+        channelId="channel_id"
+        key="username_3"
+        mentionName="username_3"
+      />
+      <MemoizedFormattedMessage
+        defaultMessage=" and "
+        id="post_body.check_for_out_of_channel_mentions.link.and"
+        key="3"
+      />
+      <Connect(Component)
+        channelId="channel_id"
+        key="username_4"
+        mentionName="username_4"
+      />
+    </span>
+     
+    <MemoizedFormattedMessage
+      defaultMessage="did not get notified by this mention because they are not in the channel. Would you like to "
+      id="post_body.check_for_out_of_channel_mentions.message.multiple"
+    />
+    <a
+      className="PostBody_addChannelMemberLink"
+      onClick={[Function]}
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="add them to the channel"
+        id="post_body.check_for_out_of_channel_mentions.link.public"
+      />
+    </a>
+    <MemoizedFormattedMessage
+      defaultMessage="? They will have access to all message history."
+      id="post_body.check_for_out_of_channel_mentions.message_last"
+    />
+  </p>
+</Fragment>
+`;
+
+exports[`components/post_view/PostAddChannelMember should match snapshot, private channel 1`] = `
+<Fragment>
+  <p>
+    <Connect(Component)
+      channelId="channel_id"
+      mentionName="username_1"
+    />
+     
+    <MemoizedFormattedMessage
+      defaultMessage="did not get notified by this mention because they are not in the channel. Would you like to "
+      id="post_body.check_for_out_of_channel_mentions.message.one"
+    />
+    <a
+      className="PostBody_addChannelMemberLink"
+      onClick={[Function]}
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="add them to this private channel"
+        id="post_body.check_for_out_of_channel_mentions.link.private"
+      />
+    </a>
+    <MemoizedFormattedMessage
+      defaultMessage="? They will have access to all message history."
+      id="post_body.check_for_out_of_channel_mentions.message_last"
+    />
+  </p>
+</Fragment>
+`;
+
+exports[`components/post_view/PostAddChannelMember should match snapshot, public channel 1`] = `
+<Fragment>
+  <p>
+    <Connect(Component)
+      channelId="channel_id"
+      mentionName="username_1"
+    />
+     
+    <MemoizedFormattedMessage
+      defaultMessage="did not get notified by this mention because they are not in the channel. Would you like to "
+      id="post_body.check_for_out_of_channel_mentions.message.one"
+    />
+    <a
+      className="PostBody_addChannelMemberLink"
+      onClick={[Function]}
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="add them to the channel"
+        id="post_body.check_for_out_of_channel_mentions.link.public"
+      />
+    </a>
+    <MemoizedFormattedMessage
+      defaultMessage="? They will have access to all message history."
+      id="post_body.check_for_out_of_channel_mentions.message_last"
+    />
+  </p>
+</Fragment>
+`;
+
+exports[`components/post_view/PostAddChannelMember should match snapshot, with no-groups usernames 1`] = `
+<Fragment>
+  <p>
+    <Connect(Component)
+      channelId="channel_id"
+      mentionName="username_1"
+    />
+     
+    <MemoizedFormattedMessage
+      defaultMessage="did not get notified by this mention because they are not in the channel. Would you like to "
+      id="post_body.check_for_out_of_channel_mentions.message.one"
+    />
+    <a
+      className="PostBody_addChannelMemberLink"
+      onClick={[Function]}
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="add them to the channel"
+        id="post_body.check_for_out_of_channel_mentions.link.public"
+      />
+    </a>
+    <MemoizedFormattedMessage
+      defaultMessage="? They will have access to all message history."
+      id="post_body.check_for_out_of_channel_mentions.message_last"
+    />
+  </p>
+  <p>
+    <Connect(Component)
+      channelId="channel_id"
+      mentionName="user_id_2"
+    />
+     
+    <MemoizedFormattedMessage
+      defaultMessage="did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+      id="post_body.check_for_out_of_channel_groups_mentions.message"
+    />
+  </p>
+</Fragment>
+`;
