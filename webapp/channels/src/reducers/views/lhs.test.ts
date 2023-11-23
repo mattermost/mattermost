@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {TeamTypes} from 'mattermost-redux/action_types';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import lhsReducer from 'reducers/views/lhs';
+
 import {ActionTypes} from 'utils/constants';
-import {GenericAction} from 'mattermost-redux/types/actions';
 
 describe('Reducers.LHS', () => {
     const initialState = {

@@ -5,14 +5,19 @@ import React, {useCallback} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {ModalData} from 'types/actions';
-import LocalizedIcon from 'components/localized_icon';
-import {t} from 'utils/i18n';
-import {Group} from '@mattermost/types/groups';
-import {ModalIdentifiers} from 'utils/constants';
+import type {Group} from '@mattermost/types/groups';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import AddUsersToGroupModal from 'components/add_users_to_group_modal';
+import LocalizedIcon from 'components/localized_icon';
+
+import {ModalIdentifiers} from 'utils/constants';
+import {t} from 'utils/i18n';
+
+import type {ModalData} from 'types/actions';
+
 import ViewUserGroupHeaderSubMenu from '../view_user_group_header_sub_menu';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 export type Props = {
     groupId: string;
@@ -98,7 +103,7 @@ const ViewUserGroupModalHeader = ({
         if (permissionToJoinGroup) {
             return (
                 <button
-                    className='user-groups-create btn btn-md btn-primary'
+                    className='mr-2 btn btn-secondary btn-sm'
                     onClick={goToAddPeopleModal}
                 >
                     <FormattedMessage
@@ -158,7 +163,7 @@ const ViewUserGroupModalHeader = ({
         <Modal.Header closeButton={true}>
             <button
                 type='button'
-                className='modal-header-back-button btn-icon'
+                className='modal-header-back-button btn btn-icon'
                 aria-label='Close'
                 onClick={goBack}
             >

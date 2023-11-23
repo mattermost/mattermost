@@ -1,18 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {mount} from 'enzyme';
-
+import React from 'react';
 import {Provider} from 'react-redux';
+import type {DeepPartial} from 'redux';
 
-import {DeepPartial} from 'redux';
-
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import ExternalLink from '.';
 
@@ -58,7 +55,7 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <ExternalLink href='https://mattermost.com'>
                 {'Click Me'}
             </ExternalLink>,
@@ -84,7 +81,7 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <ExternalLink href='https://mattermost.com?test=true'>
                 {'Click Me'}
             </ExternalLink>,
@@ -110,7 +107,7 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <ExternalLink href='https://google.com'>
                 {'Click Me'}
             </ExternalLink>,
@@ -136,7 +133,7 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <ExternalLink
                 target='test'
                 rel='test'
@@ -170,7 +167,7 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <ExternalLink
                 href='https://mattermost.com#desktop'
             >

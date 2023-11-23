@@ -147,7 +147,7 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 		if err != nil {
 			return fmt.Errorf("invalid config source for %s, %w", name, err)
 		}
-		ps.logger.Info("Loaded configuration for "+name, mlog.String("source", string(dsn)))
+		ps.logger.Info("Loaded configuration for "+name, mlog.String("source", dsn))
 	} else {
 		ps.logger.Debug("Advanced logging config not provided for " + name)
 	}
@@ -368,7 +368,6 @@ func (ps *PlatformService) IsFirstUserAccount() bool {
 	}
 
 	return true
-
 }
 
 func (ps *PlatformService) MaxPostSize() int {
@@ -402,5 +401,4 @@ func (ps *PlatformService) GetSystemInstallDate() (int64, *model.AppError) {
 
 func (ps *PlatformService) ClientConfig() map[string]string {
 	return ps.clientConfig.Load().(map[string]string)
-
 }

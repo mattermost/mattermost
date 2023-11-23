@@ -32,10 +32,12 @@ var excludedPluginHooks = []string{
 	"LogWarn",
 	"MessageWillBePosted",
 	"MessageWillBeUpdated",
+	"MessagesWillBeConsumed",
 	"OnActivate",
 	"PluginHTTP",
 	"ServeHTTP",
 	"UploadData",
+	"ServeMetrics",
 }
 
 var excludedProductHooks = []string{
@@ -128,7 +130,6 @@ func FieldListToEncodedErrors(structPrefix string, fieldList *ast.FieldList, fil
 		}
 
 		result = append(result, structPrefix+name+" = encodableError("+structPrefix+name+")")
-
 	}
 
 	return strings.Join(result, "\n")

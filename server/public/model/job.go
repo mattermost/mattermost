@@ -5,7 +5,6 @@ package model
 
 import (
 	"net/http"
-	"time"
 )
 
 const (
@@ -37,6 +36,8 @@ const (
 	JobTypeHostedPurchaseScreening      = "hosted_purchase_screening"
 	JobTypeS3PathMigration              = "s3_path_migration"
 	JobTypeCleanupDesktopTokens         = "cleanup_desktop_tokens"
+	JobTypeDeleteEmptyDraftsMigration   = "delete_empty_drafts_migration"
+	JobTypeRefreshPostStats             = "refresh_post_stats"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -68,6 +69,7 @@ var AllJobTypes = [...]string{
 	JobTypeLastAccessiblePost,
 	JobTypeLastAccessibleFile,
 	JobTypeCleanupDesktopTokens,
+	JobTypeRefreshPostStats,
 }
 
 type Job struct {
@@ -120,15 +122,13 @@ func (j *Job) IsValid() *AppError {
 	return nil
 }
 
+func (j *Job) LogClone() any {
+	return j.Auditable()
+}
+
 type Worker interface {
 	Run()
 	Stop()
 	JobChannel() chan<- Job
 	IsEnabled(cfg *Config) bool
-}
-
-type Scheduler interface {
-	Enabled(cfg *Config) bool
-	NextScheduleTime(cfg *Config, now time.Time, pendingJobs bool, lastSuccessfulJob *Job) *time.Time
-	ScheduleJob(cfg *Config, pendingJobs bool, lastSuccessfulJob *Job) (*Job, *AppError)
 }

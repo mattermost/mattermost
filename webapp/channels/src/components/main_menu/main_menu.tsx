@@ -2,38 +2,41 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {injectIntl, IntlShape} from 'react-intl';
+import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
 
 import * as GlobalActions from 'actions/global_actions';
+import {trackEvent} from 'actions/telemetry_actions';
+
+import AboutBuildModal from 'components/about_build_modal';
+import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
+import InvitationModal from 'components/invitation_modal';
+import LeaveTeamModal from 'components/leave_team_modal';
+import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
+import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
+import TeamGroupsManageModal from 'components/team_groups_manage_modal';
+import TeamMembersModal from 'components/team_members_modal';
+import TeamSettingsModal from 'components/team_settings_modal';
+import UserSettingsModal from 'components/user_settings/modal';
+import LeaveTeamIcon from 'components/widgets/icons/leave_team_icon';
+import Menu from 'components/widgets/menu/menu';
+import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
+
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {Constants, LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {makeUrlSafe} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
-import InvitationModal from 'components/invitation_modal';
 
-import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
-import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
+import type {ModalData} from 'types/actions';
+import type {PluginComponent} from 'types/store/plugins';
 
-import LeaveTeamIcon from 'components/widgets/icons/leave_team_icon';
-
-import LeaveTeamModal from 'components/leave_team_modal';
-import UserSettingsModal from 'components/user_settings/modal';
-import TeamMembersModal from 'components/team_members_modal';
-import TeamSettingsModal from 'components/team_settings_modal';
-import AboutBuildModal from 'components/about_build_modal';
-import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
-
-import Menu from 'components/widgets/menu/menu';
-import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
-import TeamGroupsManageModal from 'components/team_groups_manage_modal';
-
-import {trackEvent} from 'actions/telemetry_actions';
-import {ModalData} from 'types/actions';
-import {PluginComponent} from 'types/store/plugins';
-import {UserProfile} from '@mattermost/types/users';
+import LearnAboutTeamsLink from './learn_about_teams_link';
+import './main_menu.scss';
 
 export type Props = {
     mobile: boolean;
@@ -214,7 +217,7 @@ export class MainMenu extends React.PureComponent<Props> {
                         id='flaggedPosts'
                         onClick={this.getFlagged}
                         icon={<i className='fa fa-bookmark'/>}
-                        text={formatMessage({id: 'sidebar_right_menu.flagged', defaultMessage: 'Saved Posts'})}
+                        text={formatMessage({id: 'sidebar_right_menu.flagged', defaultMessage: 'Saved messages'})}
                     />
                 </Menu.Group>
                 <Menu.Group>
@@ -522,6 +525,11 @@ export class MainMenu extends React.PureComponent<Props> {
                             )}
                         />
                     </SystemPermissionGate>
+                    <Menu.Group>
+                        <div className='MainMenu_dropdown-link'>
+                            <LearnAboutTeamsLink/>
+                        </div>
+                    </Menu.Group>
                 </Menu.Group>
                 <Menu.Group>
                     {pluginItems}

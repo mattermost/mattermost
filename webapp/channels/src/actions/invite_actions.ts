@@ -1,23 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {RelationOneToOne} from '@mattermost/types/utilities';
-import {UserProfile} from '@mattermost/types/users';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {TeamMemberWithError, TeamInviteWithError} from '@mattermost/types/teams';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {TeamMemberWithError, TeamInviteWithError} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import * as TeamActions from 'mattermost-redux/actions/teams';
 import {joinChannel} from 'mattermost-redux/actions/channels';
-import {getTeamMember} from 'mattermost-redux/selectors/entities/teams';
+import * as TeamActions from 'mattermost-redux/actions/teams';
 import {getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
+import {getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {addUsersToTeam} from 'actions/team_actions';
+
+import {ConsolePages} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {localizeMessage} from 'utils/utils';
-import {ConsolePages} from 'utils/constants';
 
 export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[]): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
@@ -41,12 +42,18 @@ export function sendMembersInvites(teamId: string, users: UserProfile[], emails:
         if (usersToAdd.length > 0) {
             const response = await dispatch(addUsersToTeam(teamId, usersToAdd.map((u) => u.id)));
             const members = response.data || [];
-            for (const userToAdd of usersToAdd) {
-                const memberWithError = members.find((m: TeamMemberWithError) => m.user_id === userToAdd.id && m.error);
-                if (memberWithError) {
-                    notSent.push({user: userToAdd, reason: memberWithError.error.message});
-                } else {
-                    sent.push({user: userToAdd, reason: localizeMessage('invite.members.added-to-team', 'This member has been added to the team.')});
+            if (response.error) {
+                for (const userToAdd of usersToAdd) {
+                    notSent.push({user: userToAdd, reason: response.error.message});
+                }
+            } else {
+                for (const userToAdd of usersToAdd) {
+                    const memberWithError = members.find((m: TeamMemberWithError) => m.user_id === userToAdd.id && m.error);
+                    if (memberWithError) {
+                        notSent.push({user: userToAdd, reason: memberWithError.error.message});
+                    } else {
+                        sent.push({user: userToAdd, reason: localizeMessage('invite.members.added-to-team', 'This member has been added to the team.')});
+                    }
                 }
             }
         }
@@ -231,12 +238,18 @@ export function sendMembersInvitesToChannels(
         if (usersToAdd.length > 0) {
             const response = await dispatch(addUsersToTeam(teamId, usersToAdd.map((u) => u.id)));
             const members = response.data || [];
-            for (const userToAdd of usersToAdd) {
-                const memberWithError = members.find((m: TeamMemberWithError) => m.user_id === userToAdd.id && m.error);
-                if (memberWithError) {
-                    notSent.push({user: userToAdd, reason: memberWithError.error.message});
-                } else {
-                    sent.push({user: userToAdd, reason: localizeMessage('invite.members.added-to-team', 'This member has been added to the team.')});
+            if (response.error) {
+                for (const userToAdd of usersToAdd) {
+                    notSent.push({user: userToAdd, reason: response.error.message});
+                }
+            } else {
+                for (const userToAdd of usersToAdd) {
+                    const memberWithError = members.find((m: TeamMemberWithError) => m.user_id === userToAdd.id && m.error);
+                    if (memberWithError) {
+                        notSent.push({user: userToAdd, reason: memberWithError.error.message});
+                    } else {
+                        sent.push({user: userToAdd, reason: localizeMessage('invite.members.added-to-team', 'This member has been added to the team.')});
+                    }
                 }
             }
         }

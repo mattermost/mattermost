@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
-import {Group, GroupSource} from '@mattermost/types/groups';
+import type {Group} from '@mattermost/types/groups';
+import {GroupSource} from '@mattermost/types/groups';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {filterGroupsMatchingTerm, sortGroups} from 'mattermost-redux/utils/group_utils';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {UserMentionKey} from 'mattermost-redux/selectors/entities/users';
+import type {UserMentionKey} from 'mattermost-redux/selectors/entities/users';
+import {filterGroupsMatchingTerm, sortGroups} from 'mattermost-redux/utils/group_utils';
 
 import {getCurrentUserLocale} from './i18n';
 
@@ -124,11 +125,16 @@ export function getAssociatedGroupsForReference(state: GlobalState, teamId: stri
     if (team && team.group_constrained && channel && channel.group_constrained) {
         const groupsFromChannel = getGroupsAssociatedToChannelForReference(state, channelId);
         const groupsFromTeam = getGroupsAssociatedToTeamForReference(state, teamId);
-        groupsForReference = groupsFromChannel.concat(groupsFromTeam.filter((item) => groupsFromChannel.indexOf(item) < 0));
+        const customGroups = getAllCustomGroups(state);
+        groupsForReference = groupsFromChannel.concat(groupsFromTeam.filter((item) => groupsFromChannel.indexOf(item) < 0), customGroups);
     } else if (team && team.group_constrained) {
-        groupsForReference = getGroupsAssociatedToTeamForReference(state, teamId);
+        const customGroups = getAllCustomGroups(state);
+        const groupsFromTeam = getGroupsAssociatedToTeamForReference(state, teamId);
+        groupsForReference = [...customGroups, ...groupsFromTeam];
     } else if (channel && channel.group_constrained) {
-        groupsForReference = getGroupsAssociatedToChannelForReference(state, channelId);
+        const customGroups = getAllCustomGroups(state);
+        const groupsFromChannel = getGroupsAssociatedToChannelForReference(state, channelId);
+        groupsForReference = [...customGroups, ...groupsFromChannel];
     } else {
         groupsForReference = getAllAssociatedGroupsForReference(state, false);
     }
@@ -255,6 +261,14 @@ export const getAllGroupsForReferenceByName: (state: GlobalState) => Record<stri
         }
 
         return groupsByName;
+    },
+);
+
+export const getAllCustomGroups: (state: GlobalState) => Group[] = createSelector(
+    'getAllCustomGroups',
+    getAllGroups,
+    (groups) => {
+        return Object.entries(groups).filter((entry) => (entry[1].allow_reference && entry[1].delete_at === 0 && entry[1].source === GroupSource.Custom)).map((entry) => entry[1]);
     },
 );
 

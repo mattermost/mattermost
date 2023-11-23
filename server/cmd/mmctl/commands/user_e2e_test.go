@@ -134,7 +134,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		emailArg := "nonexistentUser@example.com"
 
 		err := searchUserCmdF(c, &cobra.Command{}, []string{emailArg})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", emailArg), printer.GetErrorLines()[0])
@@ -1019,7 +1019,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		err := migrateAuthCmdF(c, cmd, []string{"ldap", "saml"})
 		s.Require().NoError(err)
 		defer func() {
-			_, appErr := s.th.App.UpdateUserAuth(ldapUser.Id, &model.UserAuth{
+			_, appErr := s.th.App.UpdateUserAuth(s.th.Context, ldapUser.Id, &model.UserAuth{
 				AuthData:    model.NewString("test.user.1"),
 				AuthService: model.UserAuthServiceLdap,
 			})
@@ -1048,7 +1048,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		err := migrateAuthCmdF(c, cmd, []string{"saml", "ldap", "email"})
 		s.Require().NoError(err)
 		defer func() {
-			_, appErr := s.th.App.UpdateUserAuth(samlUser.Id, &model.UserAuth{
+			_, appErr := s.th.App.UpdateUserAuth(s.th.Context, samlUser.Id, &model.UserAuth{
 				AuthData:    model.NewString("dev.one"),
 				AuthService: model.UserAuthServiceSaml,
 			})

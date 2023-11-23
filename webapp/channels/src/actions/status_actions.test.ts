@@ -3,15 +3,16 @@
 
 import {cloneDeep} from 'lodash';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {Preferences} from 'mattermost-redux/constants';
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
+import {Preferences} from 'mattermost-redux/constants';
 
 import * as Actions from 'actions/status_actions';
-import {GlobalState} from 'types/store';
 
 import mockStore from 'tests/test_store';
+
+import type {GlobalState} from 'types/store';
 
 jest.mock('mattermost-redux/actions/users', () => ({
     getStatusesByIds: jest.fn(() => {

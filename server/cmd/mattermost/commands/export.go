@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 
 	"github.com/pkg/errors"
@@ -105,6 +105,8 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 		return errors.New("ERROR: The message export feature is not enabled")
 	}
 
+	var rctx request.CTX = request.EmptyContext(a.Log())
+
 	// for now, format is hard-coded to actiance. In time, we'll have to support other formats and inject them into job data
 	format, err := command.Flags().GetString("format")
 	if err != nil {
@@ -138,16 +140,18 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 			defer cancel()
 		}
 
-		job, err := messageExportI.StartSynchronizeJob(ctx, startTime)
+		rctx = rctx.WithContext(ctx)
+
+		job, err := messageExportI.StartSynchronizeJob(rctx, startTime)
 		if err != nil || job.Status == model.JobStatusError || job.Status == model.JobStatusCanceled {
 			CommandPrintErrorln("ERROR: Message export job failed. Please check the server logs")
 		} else {
 			CommandPrettyPrintln("SUCCESS: Message export job complete")
 
-			auditRec := a.MakeAuditRecord("scheduleExport", audit.Success)
+			auditRec := a.MakeAuditRecord(rctx, "scheduleExport", audit.Success)
 			auditRec.AddMeta("format", format)
 			auditRec.AddMeta("start", startTime)
-			a.LogAuditRec(auditRec, nil)
+			a.LogAuditRec(rctx, auditRec, nil)
 		}
 	}
 	return nil
@@ -161,6 +165,8 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return err
 		}
 		defer a.Srv().Shutdown()
+
+		rctx := request.EmptyContext(a.Log())
 
 		startTime, err := command.Flags().GetInt64("exportFrom")
 		if err != nil {
@@ -179,7 +185,7 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("message export feature not available")
 		}
 
-		warningsCount, appErr := a.MessageExport().RunExport(format, startTime, limit)
+		warningsCount, appErr := a.MessageExport().RunExport(rctx, format, startTime, limit)
 		if appErr != nil {
 			return appErr
 		}
@@ -193,10 +199,10 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			}
 		}
 
-		auditRec := a.MakeAuditRecord("buildExport", audit.Success)
+		auditRec := a.MakeAuditRecord(rctx, "buildExport", audit.Success)
 		auditRec.AddMeta("format", format)
 		auditRec.AddMeta("start", startTime)
-		a.LogAuditRec(auditRec, nil)
+		a.LogAuditRec(rctx, auditRec, nil)
 
 		return nil
 	}
@@ -208,6 +214,8 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer a.Srv().Shutdown()
+
+	rctx := request.EmptyContext(a.Log())
 
 	allTeams, err := command.Flags().GetBool("all-teams")
 	if err != nil {
@@ -247,15 +255,15 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 	opts.IncludeAttachments = attachments
 	opts.CreateArchive = archive
 	opts.IncludeArchivedChannels = withArchivedChannels
-	if err := a.BulkExport(request.EmptyContext(a.Log()), fileWriter, filepath.Dir(outPath), nil /* nil job since it's spawned from CLI */, opts); err != nil {
+	if err := a.BulkExport(rctx, fileWriter, filepath.Dir(outPath), nil /* nil job since it's spawned from CLI */, opts); err != nil {
 		CommandPrintErrorln(err.Error())
 		return err
 	}
 
-	auditRec := a.MakeAuditRecord("bulkExport", audit.Success)
+	auditRec := a.MakeAuditRecord(rctx, "bulkExport", audit.Success)
 	auditRec.AddMeta("all_teams", allTeams)
 	auditRec.AddMeta("file", args[0])
-	a.LogAuditRec(auditRec, nil)
+	a.LogAuditRec(rctx, auditRec, nil)
 
 	return nil
 }

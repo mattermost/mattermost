@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 type Props = {
     user: UserProfile;
@@ -13,31 +12,33 @@ type Props = {
     isDisabled?: boolean;
 }
 
-export default class UserGridRemove extends React.PureComponent<Props> {
-    private handleClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+const UserGridRemove = ({
+    user,
+    removeUser,
+    isDisabled,
+}: Props) => {
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
-        if (this.props.isDisabled) {
-            return;
+        if (!isDisabled) {
+            removeUser(user);
         }
-        this.props.removeUser(this.props.user);
     };
 
-    public render = (): JSX.Element => {
-        const {isDisabled} = this.props;
-        return (
-            <div className='UserGrid_removeRow'>
-                <a
-                    onClick={this.handleClick}
-                    href='#'
-                    role='button'
-                    className={isDisabled ? 'disabled' : ''}
-                >
-                    <FormattedMessage
-                        id='admin.user_grid.remove'
-                        defaultMessage='Remove'
-                    />
-                </a>
-            </div>
-        );
-    };
-}
+    return (
+        <div className='UserGrid_removeRow'>
+            <a
+                onClick={handleClick}
+                href='#'
+                role='button'
+                className={isDisabled ? 'disabled' : ''}
+            >
+                <FormattedMessage
+                    id='admin.user_grid.remove'
+                    defaultMessage='Remove'
+                />
+            </a>
+        </div>
+    );
+};
+
+export default UserGridRemove;

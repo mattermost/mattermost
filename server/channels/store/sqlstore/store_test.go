@@ -24,6 +24,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/db"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/searchtest"
@@ -47,7 +48,7 @@ func newStoreType(name, driver string) *storeType {
 	}
 }
 
-func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
+func StoreTest(t *testing.T, f func(*testing.T, request.CTX, store.Store)) {
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()
@@ -56,11 +57,13 @@ func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	}()
 	for _, st := range storeTypes {
 		st := st
+		rctx := request.TestContext(t)
+
 		t.Run(st.Name, func(t *testing.T) {
 			if testing.Short() {
 				t.SkipNow()
 			}
-			f(t, st.Store)
+			f(t, rctx, st.Store)
 		})
 	}
 }
@@ -83,7 +86,7 @@ func StoreTestWithSearchTestEngine(t *testing.T, f func(*testing.T, store.Store,
 	}
 }
 
-func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storetest.SqlStore)) {
+func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, request.CTX, store.Store, storetest.SqlStore)) {
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()
@@ -92,11 +95,13 @@ func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storete
 	}()
 	for _, st := range storeTypes {
 		st := st
+		rctx := request.TestContext(t)
+
 		t.Run(st.Name, func(t *testing.T) {
 			if testing.Short() {
 				t.SkipNow()
 			}
-			f(t, st.Store, &StoreTestWrapper{st.SqlStore})
+			f(t, rctx, st.Store, &StoreTestWrapper{st.SqlStore})
 		})
 	}
 }
@@ -310,7 +315,6 @@ func TestGetReplica(t *testing.T) {
 				for replica := range replicas {
 					assert.NotSame(t, store.GetMasterX(), replica)
 				}
-
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
@@ -382,7 +386,6 @@ func TestGetReplica(t *testing.T) {
 				for replica := range replicas {
 					assert.Same(t, store.GetMasterX(), replica)
 				}
-
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
@@ -397,7 +400,6 @@ func TestGetReplica(t *testing.T) {
 				for searchReplica := range searchReplicas {
 					assert.Same(t, store.GetMasterX(), searchReplica)
 				}
-
 			} else if testCase.DataSourceReplicaNum > 0 {
 				assert.Equal(t, len(replicas), len(searchReplicas))
 				for k := range replicas {
@@ -567,7 +569,6 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, tests[i].expected, ok)
 	}
-
 }
 
 func TestGetAllConns(t *testing.T) {
@@ -807,7 +808,7 @@ func makeSqlSettings(driver string) (*model.SqlSettings, error) {
 }
 
 func TestExecNoTimeout(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		sqlStore := ss.(*SqlStore)
 		var query string
 		timeout := sqlStore.masterX.queryTimeout

@@ -104,7 +104,7 @@ describe('Post PreHeader', () => {
             cy.get('#searchContainer').should('be.visible').within(() => {
                 cy.get('.sidebar--right__title').
                     should('be.visible').
-                    and('contain', 'Pinned Posts').
+                    and('contain', 'Pinned messages').
                     and('contain', 'Off-Topic');
 
                 // * Check that the post pre-header is not shown for the pinned message in RHS

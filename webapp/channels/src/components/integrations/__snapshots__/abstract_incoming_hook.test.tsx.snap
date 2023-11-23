@@ -234,7 +234,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/team_name/integrations/incoming_webhooks"
         >
           <MemoizedFormattedMessage
@@ -242,7 +242,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
             id="add_incoming_webhook.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveWebhook"
           onClick={[Function]}
@@ -254,7 +254,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
             defaultMessage="Footer"
             id="footer_id"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>
@@ -495,7 +495,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/team_name/integrations/incoming_webhooks"
         >
           <MemoizedFormattedMessage
@@ -503,7 +503,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
             id="add_incoming_webhook.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveWebhook"
           onClick={[Function]}
@@ -515,7 +515,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
             defaultMessage="Footer"
             id="footer_id"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>
@@ -759,7 +759,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/team_name/integrations/incoming_webhooks"
         >
           <MemoizedFormattedMessage
@@ -767,7 +767,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             id="add_incoming_webhook.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveWebhook"
           onClick={[Function]}
@@ -779,7 +779,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             defaultMessage="Footer"
             id="footer_id"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>
@@ -987,7 +987,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/team_name/integrations/incoming_webhooks"
         >
           <MemoizedFormattedMessage
@@ -995,7 +995,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             id="add_incoming_webhook.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveWebhook"
           onClick={[Function]}
@@ -1007,7 +1007,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             defaultMessage="Footer"
             id="footer_id"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>
@@ -1215,7 +1215,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/team_name/integrations/incoming_webhooks"
         >
           <MemoizedFormattedMessage
@@ -1223,7 +1223,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             id="add_incoming_webhook.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveWebhook"
           onClick={[Function]}
@@ -1235,7 +1235,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             defaultMessage="Footer"
             id="footer_id"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>
@@ -1476,7 +1476,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/team_name/integrations/incoming_webhooks"
         >
           <MemoizedFormattedMessage
@@ -1484,7 +1484,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             id="add_incoming_webhook.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveWebhook"
           onClick={[Function]}
@@ -1496,7 +1496,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             defaultMessage="Footer"
             id="footer_id"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>

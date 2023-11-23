@@ -12,7 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
@@ -49,13 +49,13 @@ type AppIface interface {
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userId string) (*model.Channel, *model.AppError)
 	GetOrCreateDirectChannel(c request.CTX, userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
 	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
-	AddUserToTeamByTeamId(c *request.Context, teamId string, user *model.User) *model.AppError
+	AddUserToTeamByTeamId(c request.CTX, teamId string, user *model.User) *model.AppError
 	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError
 	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
-	UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
+	UpdatePost(c request.CTX, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
 	DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
-	SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError)
-	DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError
+	SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError)
+	DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError
 	PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
 	CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)

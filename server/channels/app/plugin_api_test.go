@@ -31,7 +31,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
@@ -71,7 +71,7 @@ func setDefaultPluginConfig(th *TestHelper, pluginID string) {
 	})
 }
 
-func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIDs []string, asMain bool, app *App, c *request.Context) string {
+func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIDs []string, asMain bool, app *App, c request.CTX) string {
 	pluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -126,8 +126,7 @@ func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests
 	return pluginDir
 }
 
-func setupPluginAPITest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *request.Context) string {
-
+func setupPluginAPITest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c request.CTX) string {
 	asMain := pluginID != "test_db_driver"
 	return setupMultiPluginAPITest(t,
 		[]string{pluginCode}, []string{pluginManifest}, []string{pluginID},
@@ -179,17 +178,19 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 2, len(preferences))
+	assert.Equal(t, 3, len(preferences))
 
 	assert.Equal(t, user1.Id, preferences[0].UserId)
 	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
 	assert.Equal(t, "hide", preferences[0].Name)
 	assert.Equal(t, "false", preferences[0].Value)
 
-	assert.Equal(t, user1.Id, preferences[1].UserId)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
-	assert.Equal(t, user1.Id, preferences[1].Name)
-	assert.Equal(t, "0", preferences[1].Value)
+	assert.Equal(t, model.PreferenceCategorySystemNotice, preferences[1].Category)
+
+	assert.Equal(t, user1.Id, preferences[2].UserId)
+	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
+	assert.Equal(t, user1.Id, preferences[2].Name)
+	assert.Equal(t, "0", preferences[2].Value)
 }
 
 func TestPluginAPIDeleteUserPreferences(t *testing.T) {
@@ -207,7 +208,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 2, len(preferences))
+	assert.Equal(t, 3, len(preferences))
 
 	err = api.DeletePreferencesForUser(user1.Id, preferences)
 	require.Nil(t, err)
@@ -234,16 +235,16 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	preferences, err = api.GetPreferencesForUser(user2.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 3, len(preferences))
+	assert.Equal(t, 4, len(preferences))
 
 	err = api.DeletePreferencesForUser(user2.Id, []model.Preference{preference})
 	require.Nil(t, err)
 	preferences, err = api.GetPreferencesForUser(user2.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 2, len(preferences))
+	assert.Equal(t, 3, len(preferences))
 	assert.ElementsMatch(t,
-		[]string{model.PreferenceRecommendedNextSteps, model.PreferenceCategoryTutorialSteps},
-		[]string{preferences[0].Category, preferences[1].Category},
+		[]string{model.PreferenceRecommendedNextSteps, model.PreferenceCategoryTutorialSteps, model.PreferenceCategorySystemNotice},
+		[]string{preferences[0].Category, preferences[1].Category, preferences[2].Category},
 	)
 }
 
@@ -262,16 +263,17 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 2, len(preferences))
+	assert.Equal(t, 3, len(preferences))
 
 	assert.Equal(t, user1.Id, preferences[0].UserId)
 	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
 	assert.Equal(t, "hide", preferences[0].Name)
 	assert.Equal(t, "false", preferences[0].Value)
-	assert.Equal(t, user1.Id, preferences[1].UserId)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
-	assert.Equal(t, user1.Id, preferences[1].Name)
-	assert.Equal(t, "0", preferences[1].Value)
+	assert.Equal(t, model.PreferenceCategorySystemNotice, preferences[1].Category)
+	assert.Equal(t, user1.Id, preferences[2].UserId)
+	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
+	assert.Equal(t, user1.Id, preferences[2].Name)
+	assert.Equal(t, "0", preferences[2].Value)
 
 	preference := model.Preference{
 		Name:     user1.Id,
@@ -286,8 +288,8 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 	preferences, err = api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
 
-	assert.Equal(t, 3, len(preferences))
-	expectedCategories := []string{model.PreferenceCategoryTutorialSteps, model.PreferenceCategoryTheme, model.PreferenceRecommendedNextSteps}
+	assert.Equal(t, 4, len(preferences))
+	expectedCategories := []string{model.PreferenceCategoryTutorialSteps, model.PreferenceCategoryTheme, model.PreferenceRecommendedNextSteps, model.PreferenceCategorySystemNotice}
 	for _, pref := range preferences {
 		assert.Contains(t, expectedCategories, pref.Category)
 		assert.Equal(t, user1.Id, pref.UserId)
@@ -913,7 +915,7 @@ func TestInstallPlugin(t *testing.T) {
 	// we need a modified version of setupPluginAPITest() because it wasn't possible to use it directly here
 	// since it removes plugin dirs right after it returns, does not update App configs with the plugin
 	// dirs and this behavior tends to break this test as a result.
-	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *request.Context) (func(), string) {
+	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c request.CTX) (func(), string) {
 		pluginDir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 		webappPluginDir, err := os.MkdirTemp("", "")
@@ -2224,14 +2226,14 @@ func TestSendPushNotification(t *testing.T) {
 	var userSessions []userSession
 	for i := 0; i < 3; i++ {
 		u := th.CreateUser()
-		sess, err := th.App.CreateSession(&model.Session{
+		sess, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
 			DeviceId:  "deviceID" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
 		})
 		require.Nil(t, err)
 		// We don't need to track the 2nd session.
-		_, err = th.App.CreateSession(&model.Session{
+		_, err = th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
 			DeviceId:  "deviceID" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
@@ -2302,4 +2304,64 @@ func TestSendPushNotification(t *testing.T) {
 		}
 	}
 	assert.Equal(t, 6, numMessages)
+}
+
+func TestPluginServeMetrics(t *testing.T) {
+	th := Setup(t, StartMetrics)
+	defer th.TearDown()
+
+	var prevEnable *bool
+	var prevAddress *string
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		prevEnable = cfg.MetricsSettings.Enable
+		prevAddress = cfg.MetricsSettings.ListenAddress
+		cfg.MetricsSettings.Enable = model.NewBool(true)
+		cfg.MetricsSettings.ListenAddress = model.NewString(":30067")
+	})
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.MetricsSettings.Enable = prevEnable
+		cfg.MetricsSettings.ListenAddress = prevAddress
+	})
+
+	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
+	require.True(t, found, "Cannot find tests folder")
+	fullPath := path.Join(testFolder, "manual.test_serve_metrics_plugin", "main.go")
+
+	pluginCode, err := os.ReadFile(fullPath)
+	require.NoError(t, err)
+	require.NotEmpty(t, pluginCode)
+
+	tearDown, ids, errors := SetAppEnvironmentWithPlugins(t, []string{string(pluginCode)}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.NoError(t, errors[0])
+	require.Len(t, ids, 1)
+
+	pluginID := ids[0]
+	require.NotEmpty(t, pluginID)
+
+	reqURL := fmt.Sprintf("http://localhost%s/plugins/%s/metrics", *th.App.Config().MetricsSettings.ListenAddress, pluginID)
+	req, err := http.NewRequest("GET", reqURL, nil)
+	require.NoError(t, err)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Equal(t, "METRICS", string(body))
+
+	reqURL = fmt.Sprintf("http://localhost%s/plugins/%s/metrics/subpath", *th.App.Config().MetricsSettings.ListenAddress, pluginID)
+	req, err = http.NewRequest("GET", reqURL, nil)
+	require.NoError(t, err)
+
+	resp, err = client.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	body, err = io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Equal(t, "METRICS SUBPATH", string(body))
 }

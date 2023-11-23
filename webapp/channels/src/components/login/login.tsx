@@ -1,63 +1,64 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useRef, useCallback, FormEvent} from 'react';
-import {useIntl} from 'react-intl';
-import {Link, useLocation, useHistory, Route} from 'react-router-dom';
-import {useSelector, useDispatch} from 'react-redux';
 import classNames from 'classnames';
 import throttle from 'lodash/throttle';
+import React, {useState, useEffect, useRef, useCallback} from 'react';
+import type {FormEvent} from 'react';
+import {useIntl} from 'react-intl';
+import {useSelector, useDispatch} from 'react-redux';
+import {Link, useLocation, useHistory, Route} from 'react-router-dom';
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
+import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
+import {RequestStatus} from 'mattermost-redux/constants';
+import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getIsOnboardingFlowEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getTeamByName, getMyTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
-
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
-import {RequestStatus} from 'mattermost-redux/constants';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {loadMe, loadMeREST} from 'mattermost-redux/actions/users';
-
-import LocalStorageStore from 'stores/local_storage_store';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {addUserToTeamFromInvite} from 'actions/team_actions';
-import {login} from 'actions/views/login';
-import {setNeedsLoggedInLimitReachedCheck} from 'actions/views/admin';
 import {trackEvent} from 'actions/telemetry_actions';
+import {setNeedsLoggedInLimitReachedCheck} from 'actions/views/admin';
+import {login} from 'actions/views/login';
+import LocalStorageStore from 'stores/local_storage_store';
 
-import AlertBanner, {ModeType, AlertBannerProps} from 'components/alert_banner';
+import AlertBanner from 'components/alert_banner';
+import type {ModeType, AlertBannerProps} from 'components/alert_banner';
+import type {SubmitOptions} from 'components/claim/components/email_to_ldap';
+import WomanWithChatsSVG from 'components/common/svg_images_components/woman_with_chats_svg';
 import DesktopAuthToken from 'components/desktop_auth_token';
-import ExternalLoginButton, {ExternalLoginButtonType} from 'components/external_login_button/external_login_button';
 import ExternalLink from 'components/external_link';
+import ExternalLoginButton from 'components/external_login_button/external_login_button';
+import type {ExternalLoginButtonType} from 'components/external_login_button/external_login_button';
 import AlternateLinkLayout from 'components/header_footer_route/content_layouts/alternate_link';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
-import {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
+import type {CustomizeHeaderType} from 'components/header_footer_route/header_footer_route';
 import LoadingScreen from 'components/loading_screen';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
 import LockIcon from 'components/widgets/icons/lock_icon';
-import LoginGoogleIcon from 'components/widgets/icons/login_google_icon';
 import LoginGitlabIcon from 'components/widgets/icons/login_gitlab_icon';
+import LoginGoogleIcon from 'components/widgets/icons/login_google_icon';
 import LoginOffice365Icon from 'components/widgets/icons/login_office_365_icon';
 import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
-import WomanWithChatsSVG from 'components/common/svg_images_components/woman_with_chats_svg';
-import {SubmitOptions} from 'components/claim/components/email_to_ldap';
-
-import {GlobalState} from 'types/store';
 
 import Constants from 'utils/constants';
-import {showNotification} from 'utils/notifications';
 import {t} from 'utils/i18n';
+import {showNotification} from 'utils/notifications';
 import {isDesktopApp} from 'utils/user_agent';
 import {setCSRFFromCookie} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import LoginMfa from './login_mfa';
 
@@ -111,7 +112,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const experimentalPrimaryTeamMember = useSelector((state: GlobalState) => getMyTeamMember(state, experimentalPrimaryTeam?.id ?? ''));
     const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
     const isCloud = useSelector(isCurrentLicenseCloud);
-    const graphQLEnabled = useSelector(isGraphQLEnabled);
 
     const loginIdInput = useRef<HTMLInputElement>(null);
     const passwordInput = useRef<HTMLInputElement>(null);
@@ -146,6 +146,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const enableBaseLogin = enableSignInWithEmail || enableSignInWithUsername || ldapEnabled;
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableSignUpWithSaml;
     const showSignup = enableOpenServer && (enableExternalSignup || enableSignUpWithEmail || enableLdap);
+    const onlyLdapEnabled = enableLdap && !(enableSaml || enableSignInWithEmail || enableSignInWithUsername || enableSignUpWithEmail || enableSignUpWithGitLab || enableSignUpWithGoogle || enableSignUpWithOffice365 || enableSignUpWithOpenId);
 
     const query = new URLSearchParams(search);
     const redirectTo = query.get('redirect_to');
@@ -628,11 +629,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     };
 
     const postSubmit = async (userProfile: UserProfile) => {
-        if (graphQLEnabled) {
-            await dispatch(loadMe());
-        } else {
-            await dispatch(loadMeREST());
-        }
+        await dispatch(loadMe());
 
         // check for query params brought over from signup_user_complete
         const params = new URLSearchParams(search);
@@ -663,6 +660,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         // Record a successful login to local storage. If an unintentional logout occurs, e.g.
         // via session expiration, this bit won't get reset and we can notify the user as such.
         LocalStorageStore.setWasLoggedIn(true);
+
+        // After a user has just logged in, we set the following flag to "false" so that after
+        // a user is notified of successful login, we can set it back to "true"
+        LocalStorageStore.setWasNotifiedOfLogIn(false);
+
         if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
             history.push(redirectTo);
         } else if (team) {
@@ -739,7 +741,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     };
 
     const getResetPasswordLink = () => {
-        if (!PasswordEnableForgotLink || PasswordEnableForgotLink === 'false') {
+        if (!PasswordEnableForgotLink || PasswordEnableForgotLink === 'false' || onlyLdapEnabled) {
             return null;
         }
 

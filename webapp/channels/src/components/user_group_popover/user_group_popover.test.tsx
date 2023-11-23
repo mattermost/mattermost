@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactWrapper} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
-import {ReactWrapper} from 'enzyme';
 import {BrowserRouter} from 'react-router-dom';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Group} from '@mattermost/types/groups';
+import type {Group} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {act} from 'tests/react_testing_utils';

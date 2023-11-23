@@ -1,23 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PostWithFormatData} from 'mattermost-redux/selectors/entities/posts';
+import type {Post} from '@mattermost/types/posts';
+import type {Reaction} from '@mattermost/types/reactions';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Posts, Preferences} from 'mattermost-redux/constants';
-
 import * as Selectors from 'mattermost-redux/selectors/entities/posts';
-
+import type {PostWithFormatData} from 'mattermost-redux/selectors/entities/posts';
 import {makeGetProfilesForReactions} from 'mattermost-redux/selectors/entities/users';
-
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 
-import {Post} from '@mattermost/types/posts';
-import {Reaction} from '@mattermost/types/reactions';
-import {GlobalState} from '@mattermost/types/store';
-
 import TestHelper from '../../../test/test_helper';
-
-import {UserProfile} from '@mattermost/types/users';
 
 const p = (override: Partial<PostWithFormatData>) => Object.assign(TestHelper.getPostMock(override), override);
 
@@ -2445,38 +2440,6 @@ describe('getCurrentUsersLatestPost', () => {
         expect(Selectors.isPostIdSending(state, '3')).toEqual(true);
         expect(Selectors.isPostIdSending(state, '4')).toEqual(false);
         expect(Selectors.isPostIdSending(state, '')).toEqual(false);
-    });
-});
-
-describe('getExpandedLink', () => {
-    it('should get the expanded link from the state', () => {
-        const state = {
-            entities: {
-                posts: {
-                    expandedURLs: {
-                        a: 'b',
-                        c: 'd',
-                    },
-                },
-            },
-        } as unknown as GlobalState;
-        expect(Selectors.getExpandedLink(state, 'a')).toEqual('b');
-        expect(Selectors.getExpandedLink(state, 'c')).toEqual('d');
-    });
-
-    it('should return undefined if it is not saved', () => {
-        const state = {
-            entities: {
-                posts: {
-                    expandedURLs: {
-                        a: 'b',
-                        c: 'd',
-                    },
-                },
-            },
-        } as unknown as GlobalState;
-        expect(Selectors.getExpandedLink(state, 'b')).toEqual(undefined);
-        expect(Selectors.getExpandedLink(state, '')).toEqual(undefined);
     });
 });
 

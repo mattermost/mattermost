@@ -1,41 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-
-import {Page, ViewportSize} from '@playwright/test';
 import * as dotenv from 'dotenv';
 
-import {callsPluginId} from '@e2e-support/constant';
+import {TestConfig} from '@e2e-types';
 
 dotenv.config();
-
-export type TestArgs = {
-    page: Page;
-    browserName: string;
-    viewport?: ViewportSize | null;
-};
-
-export type TestConfig = {
-    // Server
-    baseURL: string;
-    adminUsername: string;
-    adminPassword: string;
-    adminEmail: string;
-    ensurePluginsInstalled: string[];
-    resetBeforeTest: boolean;
-    haClusterEnabled: boolean;
-    haClusterNodeCount: number;
-    haClusterName: string;
-    // CI
-    isCI: boolean;
-    // Playwright
-    headless: boolean;
-    slowMo: number;
-    workers: number;
-    // Visual tests
-    snapshotEnabled: boolean;
-    percyEnabled: boolean;
-    percyToken?: string;
-};
 
 // All process.env should be defined here
 const config: TestConfig = {
@@ -46,8 +15,8 @@ const config: TestConfig = {
     adminEmail: process.env.PW_ADMIN_EMAIL || 'sysadmin@sample.mattermost.com',
     ensurePluginsInstalled:
         typeof process.env?.PW_ENSURE_PLUGINS_INSTALLED === 'string'
-            ? process.env.PW_ENSURE_PLUGINS_INSTALLED.split(',')
-            : [callsPluginId],
+            ? process.env.PW_ENSURE_PLUGINS_INSTALLED.split(',').filter((plugin) => Boolean(plugin))
+            : [],
     haClusterEnabled: parseBool(process.env.PW_HA_CLUSTER_ENABLED, false),
     haClusterNodeCount: parseNumber(process.env.PW_HA_CLUSTER_NODE_COUNT, 2),
     haClusterName: process.env.PW_HA_CLUSTER_NAME || 'mm_dev_cluster',

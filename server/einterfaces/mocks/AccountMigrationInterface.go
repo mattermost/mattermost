@@ -6,6 +6,7 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -14,13 +15,13 @@ type AccountMigrationInterface struct {
 	mock.Mock
 }
 
-// MigrateToLdap provides a mock function with given fields: fromAuthService, foreignUserFieldNameToMatch, force, dryRun
-func (_m *AccountMigrationInterface) MigrateToLdap(fromAuthService string, foreignUserFieldNameToMatch string, force bool, dryRun bool) *model.AppError {
-	ret := _m.Called(fromAuthService, foreignUserFieldNameToMatch, force, dryRun)
+// MigrateToLdap provides a mock function with given fields: c, fromAuthService, foreignUserFieldNameToMatch, force, dryRun
+func (_m *AccountMigrationInterface) MigrateToLdap(c request.CTX, fromAuthService string, foreignUserFieldNameToMatch string, force bool, dryRun bool) *model.AppError {
+	ret := _m.Called(c, fromAuthService, foreignUserFieldNameToMatch, force, dryRun)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, bool, bool) *model.AppError); ok {
-		r0 = rf(fromAuthService, foreignUserFieldNameToMatch, force, dryRun)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, bool, bool) *model.AppError); ok {
+		r0 = rf(c, fromAuthService, foreignUserFieldNameToMatch, force, dryRun)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -30,13 +31,13 @@ func (_m *AccountMigrationInterface) MigrateToLdap(fromAuthService string, forei
 	return r0
 }
 
-// MigrateToSaml provides a mock function with given fields: fromAuthService, usersMap, auto, dryRun
-func (_m *AccountMigrationInterface) MigrateToSaml(fromAuthService string, usersMap map[string]string, auto bool, dryRun bool) *model.AppError {
-	ret := _m.Called(fromAuthService, usersMap, auto, dryRun)
+// MigrateToSaml provides a mock function with given fields: c, fromAuthService, usersMap, auto, dryRun
+func (_m *AccountMigrationInterface) MigrateToSaml(c request.CTX, fromAuthService string, usersMap map[string]string, auto bool, dryRun bool) *model.AppError {
+	ret := _m.Called(c, fromAuthService, usersMap, auto, dryRun)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, map[string]string, bool, bool) *model.AppError); ok {
-		r0 = rf(fromAuthService, usersMap, auto, dryRun)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string, bool, bool) *model.AppError); ok {
+		r0 = rf(c, fromAuthService, usersMap, auto, dryRun)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

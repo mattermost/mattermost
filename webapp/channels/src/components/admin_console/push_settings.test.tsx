@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+
+import type {AdminConfig} from '@mattermost/types/config';
 
 import PushSettings from 'components/admin_console/push_settings';
-import {AdminConfig} from '@mattermost/types/config';
 
 describe('components/PushSettings', () => {
     test('should match snapshot, licensed', () => {

@@ -9,16 +9,15 @@ import Permissions from 'mattermost-redux/constants/permissions';
 
 import {
     render,
-    renderWithIntl,
+    renderWithContext,
     screen,
     userEvent,
     waitFor,
 } from 'tests/react_testing_utils';
-
-import {GlobalState} from 'types/store';
-
 import {suitePluginIds} from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
+
+import type {GlobalState} from 'types/store';
 
 import NewChannelModal from './new_channel_modal';
 
@@ -162,11 +161,11 @@ describe('components/new_channel_modal', () => {
 
         const cancelButton = screen.getByText('Cancel');
         expect(cancelButton).toBeInTheDocument();
-        expect(cancelButton).toHaveClass('GenericModal__button cancel');
+        expect(cancelButton).toHaveClass('btn-tertiary');
 
         const createChannelButton = screen.getByText('Create channel');
         expect(createChannelButton).toBeInTheDocument();
-        expect(createChannelButton).toHaveClass('GenericModal__button confirm');
+        expect(createChannelButton).toHaveClass('btn-primary');
         expect(createChannelButton).toBeDisabled();
     });
 
@@ -405,7 +404,7 @@ describe('components/new_channel_modal', () => {
     test('should request team creation on submit', async () => {
         const name = 'Channel name';
 
-        renderWithIntl(
+        renderWithContext(
             <NewChannelModal/>,
         );
 

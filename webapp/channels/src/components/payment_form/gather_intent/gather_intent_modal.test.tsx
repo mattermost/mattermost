@@ -3,35 +3,27 @@
 
 import React from 'react';
 
-import {fireEvent, renderWithIntl, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
-import {GatherIntentModal, GatherIntentModalProps} from './gather_intent_modal';
+import {GatherIntentModal} from './gather_intent_modal';
+import type {GatherIntentModalProps} from './gather_intent_modal';
 
 describe('components/gather_intent/gather_intent_modal.tsx', () => {
-    const renderComponent = (props: Partial<GatherIntentModalProps> | undefined = {}) => {
-        const defaultProps: GatherIntentModalProps = {
-            onClose: jest.fn(),
-            onSave: jest.fn(),
-            isSubmitting: false,
-            showError: false,
-        };
-
-        return renderWithIntl(
-            <GatherIntentModal
-                {...defaultProps}
-                {...props}
-            />,
-        );
+    const baseProps: GatherIntentModalProps = {
+        onClose: jest.fn(),
+        onSave: jest.fn(),
+        isSubmitting: false,
+        showError: false,
     };
 
     it('shouldn\'t be able to save the feedback if the user don\'t click on any option', () => {
-        renderComponent();
+        renderWithContext(<GatherIntentModal {...baseProps}/>);
 
         expect(screen.queryByText('Save')).toBeDisabled();
     });
 
     it('shouldn\'t be able to save the feedback if the user only click in other and leave the input empty', () => {
-        renderComponent();
+        renderWithContext(<GatherIntentModal {...baseProps}/>);
 
         fireEvent.click(screen.getByText('Other'));
 
@@ -39,7 +31,7 @@ describe('components/gather_intent/gather_intent_modal.tsx', () => {
     });
 
     it('shouldn\'t be able to save the feedback if the user only click in other and write only white spaces in the input', () => {
-        renderComponent();
+        renderWithContext(<GatherIntentModal {...baseProps}/>);
 
         fireEvent.click(screen.getByText('Other'));
         fireEvent.change(screen.getByPlaceholderText('Enter payment option here'), {target: {value: '       \n\t'}});
@@ -48,7 +40,7 @@ describe('components/gather_intent/gather_intent_modal.tsx', () => {
     });
 
     it('should be able to save the feedback if the user only click in other, leave the input empty and press other option', () => {
-        renderComponent();
+        renderWithContext(<GatherIntentModal {...baseProps}/>);
 
         fireEvent.click(screen.getByText('Other'));
         fireEvent.click(screen.getByText('Wire'));
@@ -57,7 +49,7 @@ describe('components/gather_intent/gather_intent_modal.tsx', () => {
     });
 
     it('should be able save the feedback if the user click in Wire option', () => {
-        renderComponent();
+        renderWithContext(<GatherIntentModal {...baseProps}/>);
 
         fireEvent.click(screen.getByText('Wire'));
 
@@ -65,7 +57,7 @@ describe('components/gather_intent/gather_intent_modal.tsx', () => {
     });
 
     it('should be able save the feedback if the user click in ACH option', () => {
-        renderComponent();
+        renderWithContext(<GatherIntentModal {...baseProps}/>);
 
         fireEvent.click(screen.getByText('ACH'));
 
@@ -73,7 +65,7 @@ describe('components/gather_intent/gather_intent_modal.tsx', () => {
     });
 
     it('should be able save the feedback if the user click in other option and fill the option', () => {
-        renderComponent();
+        renderWithContext(<GatherIntentModal {...baseProps}/>);
 
         fireEvent.click(screen.getByText('Other'));
         fireEvent.change(screen.getByPlaceholderText('Enter payment option here'), {target: {value: 'Test'}});

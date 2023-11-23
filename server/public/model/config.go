@@ -109,8 +109,6 @@ const (
 	ServiceSettingsDefaultMaxLoginAttempts = 10
 	ServiceSettingsDefaultAllowCorsFrom    = ""
 	ServiceSettingsDefaultListenAndAddress = ":8065"
-	ServiceSettingsDefaultGfycatAPIKey     = "2_KtH_W5"
-	ServiceSettingsDefaultGfycatAPISecret  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
 	ServiceSettingsDefaultGiphySdkKeyTest  = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
 	ServiceSettingsDefaultDeveloperFlags   = ""
 
@@ -212,6 +210,7 @@ const (
 	DataRetentionSettingsDefaultDeletionJobStartTime           = "02:00"
 	DataRetentionSettingsDefaultBatchSize                      = 3000
 	DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds = 100
+	DataRetentionSettingsDefaultRetentionIdsBatchSize          = 100
 
 	PluginSettingsDefaultDirectory         = "./plugins"
 	PluginSettingsDefaultClientDirectory   = "./client/plugins"
@@ -347,8 +346,6 @@ type ServiceSettings struct {
 	WebsocketPort                                     *int    `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	WebserverMode                                     *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableGifPicker                                   *bool   `access:"integrations_gif"`
-	GfycatAPIKey                                      *string `access:"integrations_gif"`
-	GfycatAPISecret                                   *string `access:"integrations_gif"`
 	GiphySdkKey                                       *string `access:"integrations_gif"`
 	EnableCustomEmoji                                 *bool   `access:"site_emoji"`
 	EnableEmojiPicker                                 *bool   `access:"site_emoji"`
@@ -397,6 +394,7 @@ type ServiceSettings struct {
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
+	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
 }
 
 var MattermostGiphySdkKey string
@@ -736,14 +734,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableGifPicker = NewBool(true)
 	}
 
-	if s.GfycatAPIKey == nil || *s.GfycatAPIKey == "" {
-		s.GfycatAPIKey = NewString(ServiceSettingsDefaultGfycatAPIKey)
-	}
-
-	if s.GfycatAPISecret == nil || *s.GfycatAPISecret == "" {
-		s.GfycatAPISecret = NewString(ServiceSettingsDefaultGfycatAPISecret)
-	}
-
 	if s.GiphySdkKey == nil || *s.GiphySdkKey == "" {
 		s.GiphySdkKey = NewString("")
 	}
@@ -894,6 +884,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.SelfHostedPurchase == nil {
 		s.SelfHostedPurchase = NewBool(true)
+	}
+
+	if s.RefreshPostStatsRunTime == nil {
+		s.RefreshPostStatsRunTime = NewString("00:00")
 	}
 }
 
@@ -1287,12 +1281,28 @@ type LogSettings struct {
 	EnableSentry           *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	AdvancedLoggingJSON    json.RawMessage `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	AdvancedLoggingConfig  *string         `access:"environment_logging,write_restrictable,cloud_restrictable"` // Deprecated: use `AdvancedLoggingJSON`
+	MaxFieldSize           *int            `access:"environment_logging,write_restrictable,cloud_restrictable"`
 }
 
 func NewLogSettings() *LogSettings {
 	settings := &LogSettings{}
 	settings.SetDefaults()
 	return settings
+}
+
+func (s *LogSettings) isValid() *AppError {
+	cfg := make(mlog.LoggerConfiguration)
+	err := json.Unmarshal(s.AdvancedLoggingJSON, &cfg)
+	if err != nil {
+		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.json", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	err = cfg.IsValid()
+	if err != nil {
+		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.parse", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return nil
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -1350,6 +1360,10 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.AdvancedLoggingConfig == nil {
 		s.AdvancedLoggingConfig = NewString("")
+	}
+
+	if s.MaxFieldSize == nil {
+		s.MaxFieldSize = NewInt(2048)
 	}
 }
 
@@ -2096,7 +2110,6 @@ func (s *AnnouncementSettings) SetDefaults() {
 	if s.NoticesFetchFrequency == nil {
 		s.NoticesFetchFrequency = NewInt(AnnouncementSettingsDefaultNoticesFetchFrequencySeconds)
 	}
-
 }
 
 type ThemeSettings struct {
@@ -2152,7 +2165,6 @@ type TeamSettings struct {
 }
 
 func (s *TeamSettings) SetDefaults() {
-
 	if s.SiteName == nil || *s.SiteName == "" {
 		s.SiteName = NewString(TeamSettingsDefaultSiteName)
 	}
@@ -2303,6 +2315,7 @@ type LdapSettings struct {
 	LoginButtonBorderColor *string `access:"experimental_features"`
 	LoginButtonTextColor   *string `access:"experimental_features"`
 
+	// Deprecated: Use LogSettings.AdvancedLoggingJSON with the LDAPTrace level instead.
 	Trace *bool `access:"authentication_ldap"` // telemetry: none
 }
 
@@ -2880,6 +2893,7 @@ type DataRetentionSettings struct {
 	DeletionJobStartTime           *string `access:"compliance_data_retention_policy"`
 	BatchSize                      *int    `access:"compliance_data_retention_policy"`
 	TimeBetweenBatchesMilliseconds *int    `access:"compliance_data_retention_policy"`
+	RetentionIdsBatchSize          *int    `access:"compliance_data_retention_policy"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
@@ -2917,6 +2931,9 @@ func (s *DataRetentionSettings) SetDefaults() {
 
 	if s.TimeBetweenBatchesMilliseconds == nil {
 		s.TimeBetweenBatchesMilliseconds = NewInt(DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds)
+	}
+	if s.RetentionIdsBatchSize == nil {
+		s.RetentionIdsBatchSize = NewInt(DataRetentionSettingsDefaultRetentionIdsBatchSize)
 	}
 }
 
@@ -3149,9 +3166,8 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomURLSchemes     []string `access:"site_posts"`
-	MaxMarkdownNodes     *int     `access:"site_posts"`
-	ExperimentalTimezone *bool    `access:"experimental_features"`
+	CustomURLSchemes []string `access:"site_posts"`
+	MaxMarkdownNodes *int     `access:"site_posts"`
 }
 
 func (s *DisplaySettings) SetDefaults() {
@@ -3162,10 +3178,6 @@ func (s *DisplaySettings) SetDefaults() {
 
 	if s.MaxMarkdownNodes == nil {
 		s.MaxMarkdownNodes = NewInt(0)
-	}
-
-	if s.ExperimentalTimezone == nil {
-		s.ExperimentalTimezone = NewBool(true)
 	}
 }
 
@@ -3555,6 +3567,10 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if appErr := o.LogSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
 	if appErr := o.LocalizationSettings.isValid(); appErr != nil {
 		return appErr
 	}
@@ -3783,7 +3799,7 @@ func (s *SamlSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if *s.IdpDescriptorURL == "" || !IsValidHTTPURL(*s.IdpDescriptorURL) {
+		if *s.IdpDescriptorURL == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -4200,10 +4216,6 @@ func (o *Config) Sanitize() {
 		o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil &&
 		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != "" {
 		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword = FakeSetting
-	}
-
-	if o.ServiceSettings.GfycatAPISecret != nil && *o.ServiceSettings.GfycatAPISecret != "" {
-		*o.ServiceSettings.GfycatAPISecret = FakeSetting
 	}
 
 	if o.ServiceSettings.SplitKey != nil {

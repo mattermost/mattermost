@@ -5,6 +5,7 @@ import {shallow} from 'enzyme';
 import React from 'react';
 
 import DotMenu from 'components/dot_menu/dot_menu';
+
 import {TestHelper} from 'utils/test_helper';
 
 jest.mock('utils/utils', () => {

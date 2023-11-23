@@ -30,8 +30,8 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EngineAll},
 	},
 	{
-		Name: "Should be able to search for exact phrases in quotes",
-		Fn:   testSearchExactPhraseInQuotes,
+		Name: "Should be able to search for quoted patterns with AND OR combinations",
+		Fn:   testSearchANDORQuotesCombinations,
 		Tags: []string{EnginePostgres, EngineMySql, EngineElasticSearch},
 	},
 	{
@@ -288,7 +288,7 @@ func TestSearchPostStore(t *testing.T, s store.Store, testEngine *SearchTestEngi
 }
 
 func testSearchPostsIncludingDMs(t *testing.T, th *SearchTestHelper) {
-	direct, err := th.createDirectChannel(th.Team.Id, "direct", "direct", []*model.User{th.User, th.User2})
+	direct, err := th.createDirectChannel(th.Team.Id, "direct", []*model.User{th.User, th.User2})
 	require.NoError(t, err)
 	defer th.deleteChannel(direct)
 
@@ -310,7 +310,7 @@ func testSearchPostsIncludingDMs(t *testing.T, th *SearchTestHelper) {
 }
 
 func testSearchPostsWithPagination(t *testing.T, th *SearchTestHelper) {
-	direct, err := th.createDirectChannel(th.Team.Id, "direct", "direct", []*model.User{th.User, th.User2})
+	direct, err := th.createDirectChannel(th.Team.Id, "direct", []*model.User{th.User, th.User2})
 	require.NoError(t, err)
 	defer th.deleteChannel(direct)
 
@@ -352,24 +352,107 @@ func testSearchReturnPinnedAndUnpinned(t *testing.T, th *SearchTestHelper) {
 	th.checkPostInSearchResults(t, p2.Id, results.Posts)
 }
 
-func testSearchExactPhraseInQuotes(t *testing.T, th *SearchTestHelper) {
-	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "channel test 1 2 3", "", model.PostTypeDefault, 0, false)
+func testSearchANDORQuotesCombinations(t *testing.T, th *SearchTestHelper) {
+	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "one two three four", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
-	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "channel test 123", "", model.PostTypeDefault, 0, false)
+	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "one two five", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
-	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "channel something test 1 2 3", "", model.PostTypeDefault, 0, false)
-	require.NoError(t, err)
-	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "channel 1 2 3", "", model.PostTypeDefault, 0, false)
+	p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "one five six", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 
 	defer th.deleteUserPosts(th.User.Id)
 
-	params := &model.SearchParams{Terms: "\"channel test 1 2 3\""}
-	results, err := th.Store.Post().SearchPostsForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, err)
+	testCases := []struct {
+		name        string
+		terms       string
+		orTerms     bool
+		expectedLen int
+		expectedIDs []string
+	}{
+		{
+			name:        "AND operator, No Quotes, Matches 1",
+			terms:       `two four`,
+			orTerms:     false,
+			expectedLen: 1,
+			expectedIDs: []string{p1.Id},
+		},
+		{
+			name:        "AND operator, No Quotes, Matches 0",
+			terms:       `two six`,
+			orTerms:     false,
+			expectedLen: 0,
+			expectedIDs: []string{},
+		},
+		{
+			name:        "AND operator, With Full Quotes, Matches 0",
+			terms:       `"two four"`,
+			orTerms:     false,
+			expectedLen: 0,
+			expectedIDs: []string{},
+		},
+		{
+			name:        "AND operator, With Full Quotes, Matches 1",
+			terms:       `"two three four"`,
+			orTerms:     false,
+			expectedLen: 1,
+			expectedIDs: []string{p1.Id},
+		},
+		{
+			name:        "AND operator, With Part Quotes, Matches 1",
+			terms:       `two "three four"`,
+			orTerms:     false,
+			expectedLen: 1,
+			expectedIDs: []string{p1.Id},
+		},
+		{
+			name:        "OR operator, No Quotes, Matches 2",
+			terms:       `two four`,
+			orTerms:     true,
+			expectedLen: 2,
+			expectedIDs: []string{p1.Id, p2.Id},
+		},
+		{
+			name:        "OR operator, No Quotes, Matches 3",
+			terms:       `two six`,
+			orTerms:     true,
+			expectedLen: 3,
+			expectedIDs: []string{p1.Id, p2.Id, p3.Id},
+		},
+		{
+			name:        "OR operator, With Full Quotes, Matches 0",
+			terms:       `"two four"`,
+			orTerms:     true,
+			expectedLen: 0,
+			expectedIDs: []string{},
+		},
+		{
+			name:        "OR operator, With Full Quotes, Matches 1",
+			terms:       `"two three four"`,
+			orTerms:     true,
+			expectedLen: 1,
+			expectedIDs: []string{p1.Id},
+		},
+		{
+			name:        "OR operator, With Part Quotes, Matches 2",
+			terms:       `two "three four"`,
+			orTerms:     true,
+			expectedLen: 2,
+			expectedIDs: []string{p1.Id, p2.Id},
+		},
+	}
 
-	require.Len(t, results.Posts, 1)
-	th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			params := &model.SearchParams{Terms: tc.terms, OrTerms: tc.orTerms}
+			results, err := th.Store.Post().SearchPostsForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+
+			require.Len(t, results.Posts, tc.expectedLen)
+			for _, id := range tc.expectedIDs {
+				th.checkPostInSearchResults(t, id, results.Posts)
+			}
+		})
+	}
 }
 
 func testSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
@@ -675,7 +758,7 @@ func testSearchOrExcludePostsInChannel(t *testing.T, th *SearchTestHelper) {
 }
 
 func testSearchOrExcludePostsInDMGM(t *testing.T, th *SearchTestHelper) {
-	direct, err := th.createDirectChannel(th.Team.Id, "direct", "direct", []*model.User{th.User, th.User2})
+	direct, err := th.createDirectChannel(th.Team.Id, "direct", []*model.User{th.User, th.User2})
 	require.NoError(t, err)
 	defer th.deleteChannel(direct)
 
@@ -1767,7 +1850,6 @@ func testSupportWildcardOutsideQuotes(t *testing.T, th *SearchTestHelper) {
 		require.Len(t, results.Posts, 1)
 		th.checkPostInSearchResults(t, p2.Id, results.Posts)
 	})
-
 }
 
 func testHashtagSearchShouldSupportThreeOrMoreCharacters(t *testing.T, th *SearchTestHelper) {

@@ -13,7 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
@@ -428,7 +428,7 @@ func (scs *Service) sendUserSyncData(sd *syncData) error {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Response indicates error for user(s) sync",
 				mlog.String("channel_id", sd.task.channelID),
 				mlog.String("remote_id", sd.rc.RemoteId),
-				mlog.Any("users", syncResp.UserErrors),
+				mlog.Array("users", syncResp.UserErrors),
 			)
 		}
 	})
@@ -460,7 +460,7 @@ func (scs *Service) sendPostSyncData(sd *syncData) error {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Response indicates error for post(s) sync",
 				mlog.String("channel_id", sd.task.channelID),
 				mlog.String("remote_id", sd.rc.RemoteId),
-				mlog.Any("posts", syncResp.PostErrors),
+				mlog.Array("posts", syncResp.PostErrors),
 			)
 
 			for _, postID := range syncResp.PostErrors {
@@ -481,7 +481,7 @@ func (scs *Service) sendReactionSyncData(sd *syncData) error {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Response indicates error for reactions(s) sync",
 				mlog.String("channel_id", sd.task.channelID),
 				mlog.String("remote_id", sd.rc.RemoteId),
-				mlog.Any("reaction_posts", syncResp.ReactionErrors),
+				mlog.Array("reaction_posts", syncResp.ReactionErrors),
 			)
 		}
 	})

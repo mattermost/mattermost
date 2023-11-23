@@ -5,9 +5,12 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import type {Audit} from '@mattermost/types/audits';
+
 import AuditTable from 'components/audit_table';
 import LoadingScreen from 'components/loading_screen';
-import {Audit} from '@mattermost/types/audits';
+
+import './access_history_modal.scss';
 
 type Props = {
     onHide: () => void;
@@ -51,7 +54,7 @@ const AccessHistoryModal = ({
 
     return (
         <Modal
-            dialogClassName='a11y__modal modal--scroll'
+            dialogClassName='a11y__modal modal--scroll access-history-modal'
             show={show}
             onHide={onCloseClick}
             onExited={onHide}
@@ -77,7 +80,7 @@ const AccessHistoryModal = ({
                 <button
                     id='closeModalButton'
                     type='button'
-                    className='btn btn-link'
+                    className='btn btn-tertiary'
                 >
                     <FormattedMessage
                         id='general_button.close'

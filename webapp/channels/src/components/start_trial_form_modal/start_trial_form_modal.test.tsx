@@ -2,18 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
-import mockStore from 'tests/test_store';
-import {ModalIdentifiers} from 'utils/constants';
-import StartTrialFormModal from '.';
 import {BrowserRouter} from 'react-router-dom';
-import {
-    act,
-    RenderResult,
-    renderWithIntl,
-    screen,
-} from 'tests/react_testing_utils';
+
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {trackEvent} from 'actions/telemetry_actions';
+
+import {
+    renderWithContext,
+    screen,
+    waitFor,
+} from 'tests/react_testing_utils';
+import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
+
+import StartTrialFormModal from '.';
 
 jest.mock('actions/telemetry_actions.jsx', () => {
     const original = jest.requireActual('actions/telemetry_actions.jsx');
@@ -24,7 +28,7 @@ jest.mock('actions/telemetry_actions.jsx', () => {
 });
 
 describe('components/start_trial_form_modal/start_trial_form_modal', () => {
-    const state = {
+    const state: DeepPartial<GlobalState> = {
         entities: {
             users: {
                 currentUserId: 'user1',
@@ -50,7 +54,7 @@ describe('components/start_trial_form_modal/start_trial_form_modal', () => {
             modals: {
                 modalState: {
                     [ModalIdentifiers.START_TRIAL_FORM_MODAL]: {
-                        open: 'true',
+                        open: true,
                     },
                 },
             },
@@ -70,42 +74,38 @@ describe('components/start_trial_form_modal/start_trial_form_modal', () => {
     };
 
     test('should match snapshot', async () => {
-        const store = await mockStore(state);
-        let wrapper: RenderResult | HTMLElement | null;
-        await act(async () => {
-            wrapper = await renderWithIntl(
-                <Provider store={store}>
-                    <BrowserRouter>
-                        <StartTrialFormModal {...props}/>
-                    </BrowserRouter>
-                </Provider>);
+        const wrapper = await waitFor(() => {
+            return renderWithContext(
+                <BrowserRouter>
+                    <StartTrialFormModal {...props}/>
+                </BrowserRouter>,
+                state,
+            );
         });
         expect(wrapper!).toMatchSnapshot();
     });
 
-    test('should pre-fill email, fire trackEvent', async () => {
-        const store = await mockStore(state);
-        await act(async () => {
-            await renderWithIntl(
-                <Provider store={store}>
-                    <BrowserRouter>
-                        <StartTrialFormModal {...props}/>
-                    </BrowserRouter>
-                </Provider>);
+    test('should pre-fill email, fire trackEvent', () => {
+        waitFor(() => {
+            renderWithContext(
+                <BrowserRouter>
+                    <StartTrialFormModal {...props}/>
+                </BrowserRouter>,
+                state,
+            );
         });
         expect(screen.getByDisplayValue('test@mattermost.com')).toBeInTheDocument();
         expect(trackEvent).toHaveBeenCalled();
     });
 
-    test('Start trial button should be disabled on load', async () => {
-        const store = await mockStore(state);
-        await act(async () => {
-            await renderWithIntl(
-                <Provider store={store}>
-                    <BrowserRouter>
-                        <StartTrialFormModal {...props}/>
-                    </BrowserRouter>
-                </Provider>);
+    test('Start trial button should be disabled on load', () => {
+        waitFor(() => {
+            renderWithContext(
+                <BrowserRouter>
+                    <StartTrialFormModal {...props}/>
+                </BrowserRouter>,
+                state,
+            );
         });
         expect(screen.getByRole('button', {name: 'Start trial'})).toBeDisabled();
     });

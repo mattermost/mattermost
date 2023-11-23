@@ -3,18 +3,20 @@
 
 import React from 'react';
 
+import type {PostType} from '@mattermost/types/posts';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
-import {fireEvent, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-import {GlobalState} from 'types/store';
 
-import {DeepPartial} from '@mattermost/types/utilities';
-import {PostType} from '@mattermost/types/posts';
+import type {GlobalState} from 'types/store';
+
+import DotMenu from './dot_menu';
+import type {DotMenuClass} from './dot_menu';
 
 jest.mock('./utils');
-
-import DotMenu, {DotMenuClass} from './dot_menu';
 
 describe('components/dot_menu/DotMenu', () => {
     const latestPost = {
@@ -170,7 +172,7 @@ describe('components/dot_menu/DotMenu', () => {
             canEdit: true,
             canDelete: true,
         };
-        const wrapper = renderWithIntlAndStore(
+        const wrapper = renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -183,7 +185,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             location: Locations.CENTER,
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -198,7 +200,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             channelIsArchived: true,
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -213,7 +215,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             location: Locations.SEARCH,
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -233,7 +235,7 @@ describe('components/dot_menu/DotMenu', () => {
                 ...baseProps,
                 ...caseProps,
             };
-            renderWithIntlAndStore(
+            renderWithContext(
                 <DotMenu {...props}/>,
                 initialState,
             );
@@ -254,7 +256,7 @@ describe('components/dot_menu/DotMenu', () => {
                 ...baseProps,
                 ...caseProps,
             };
-            renderWithIntlAndStore(
+            renderWithContext(
                 <DotMenu {...props}/>,
                 initialState,
             );
@@ -275,7 +277,7 @@ describe('components/dot_menu/DotMenu', () => {
                 ...caseProps,
                 location: Locations.RHS_ROOT,
             };
-            renderWithIntlAndStore(
+            renderWithContext(
                 <DotMenu {...props}/>,
                 initialState,
             );

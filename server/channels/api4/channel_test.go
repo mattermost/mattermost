@@ -125,6 +125,14 @@ func TestCreateChannel(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("null value", func(t *testing.T) {
+		var channel *model.Channel
+		_, resp, err = client.CreateChannel(context.Background(), channel)
+
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	// Test posting Garbage
 	r, err := client.DoAPIPost(context.Background(), "/channels", "garbage")
 	require.Error(t, err, "expected error")
@@ -259,6 +267,58 @@ func TestUpdateChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+	t.Run("Should block changes to name, display name or purpose for group messages", func(t *testing.T) {
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+		user3 := th.CreateUser()
+
+		client.Logout(context.Background())
+		client.Login(context.Background(), user1.Email, user1.Password)
+
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{user1.Id, user2.Id, user3.Id})
+		require.NoError(t, err)
+
+		updatedChannel := &model.Channel{Id: groupChannel.Id, Name: "test name"}
+		_, resp, err := client.UpdateChannel(context.Background(), updatedChannel)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		updatedChannel2 := &model.Channel{Id: groupChannel.Id, DisplayName: "test display name"}
+		_, resp, err = client.UpdateChannel(context.Background(), updatedChannel2)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		updatedChannel3 := &model.Channel{Id: groupChannel.Id, Purpose: "test purpose"}
+		_, resp, err = client.UpdateChannel(context.Background(), updatedChannel3)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Should block changes to name, display name or purpose for direct messages", func(t *testing.T) {
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+
+		client.Logout(context.Background())
+		client.Login(context.Background(), user1.Email, user1.Password)
+
+		directChannel, _, err := client.CreateDirectChannel(context.Background(), user1.Id, user2.Id)
+		require.NoError(t, err)
+
+		updatedChannel := &model.Channel{Id: directChannel.Id, Name: "test name"}
+		_, resp, err := client.UpdateChannel(context.Background(), updatedChannel)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		updatedChannel2 := &model.Channel{Id: directChannel.Id, DisplayName: "test display name"}
+		_, resp, err = client.UpdateChannel(context.Background(), updatedChannel2)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		updatedChannel3 := &model.Channel{Id: directChannel.Id, Purpose: "test purpose"}
+		_, resp, err = client.UpdateChannel(context.Background(), updatedChannel3)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestPatchChannel(t *testing.T) {
@@ -266,6 +326,12 @@ func TestPatchChannel(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 	team := th.BasicTeam
+
+	var nullPatch *model.ChannelPatch
+
+	_, nullResp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, nullPatch)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, nullResp)
 
 	patch := &model.ChannelPatch{
 		Name:        new(string),
@@ -365,6 +431,77 @@ func TestPatchChannel(t *testing.T) {
 	_, resp, err = client.PatchChannel(context.Background(), directChannel.Id, channelPatch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
+
+	t.Run("Should block changes to name, display name or purpose for group messages", func(t *testing.T) {
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+		user3 := th.CreateUser()
+
+		client.Logout(context.Background())
+		client.Login(context.Background(), user1.Email, user1.Password)
+
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{user1.Id, user2.Id, user3.Id})
+		require.NoError(t, err)
+
+		groupChannelPatch := &model.ChannelPatch{
+			Name: new(string),
+		}
+		*groupChannelPatch.Name = "testing"
+		_, resp, err := client.PatchChannel(context.Background(), groupChannel.Id, groupChannelPatch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		groupChannelPatch2 := &model.ChannelPatch{
+			DisplayName: new(string),
+		}
+		*groupChannelPatch2.DisplayName = "test display name"
+		_, resp, err = client.PatchChannel(context.Background(), groupChannel.Id, groupChannelPatch2)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		groupChannelPatch3 := &model.ChannelPatch{
+			Purpose: new(string),
+		}
+		*groupChannelPatch3.Purpose = "test purpose"
+		_, resp, err = client.PatchChannel(context.Background(), groupChannel.Id, groupChannelPatch3)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Should block changes to name, display name or purpose for direct messages", func(t *testing.T) {
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+
+		client.Logout(context.Background())
+		client.Login(context.Background(), user1.Email, user1.Password)
+
+		directChannel, _, err := client.CreateDirectChannel(context.Background(), user1.Id, user2.Id)
+		require.NoError(t, err)
+
+		directChannelPatch := &model.ChannelPatch{
+			Name: new(string),
+		}
+		*directChannelPatch.Name = "test"
+		_, resp, err := client.PatchChannel(context.Background(), directChannel.Id, directChannelPatch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		directChannelPatch2 := &model.ChannelPatch{
+			DisplayName: new(string),
+		}
+		*directChannelPatch2.DisplayName = "test display name"
+		_, resp, err = client.PatchChannel(context.Background(), directChannel.Id, directChannelPatch2)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		directChannelPatch3 := &model.ChannelPatch{
+			Purpose: new(string),
+		}
+		*directChannelPatch3.Purpose = "test purpose"
+		_, resp, err = client.PatchChannel(context.Background(), directChannel.Id, directChannelPatch3)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestChannelUnicodeNames(t *testing.T) {
@@ -697,7 +834,6 @@ func TestDeleteGroupChannel(t *testing.T) {
 		_, err = client.DeleteChannel(context.Background(), rgc.Id)
 		CheckErrorID(t, err, "api.channel.delete_channel.type.invalid")
 	})
-
 }
 
 func TestGetChannel(t *testing.T) {
@@ -816,6 +952,12 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	channels, _, err = client.GetDeletedChannelsForTeam(context.Background(), team.Id, 1, 1, "")
 	require.NoError(t, err)
 	require.Len(t, channels, 1, "should be one channel per page")
+
+	// test non team member
+	th.SystemAdminClient.RemoveTeamMember(context.Background(), team.Id, th.BasicUser.Id)
+	_, resp, err := client.GetDeletedChannelsForTeam(context.Background(), team.Id, 0, 100, "")
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetPrivateChannelsForTeam(t *testing.T) {
@@ -1284,6 +1426,15 @@ func TestSearchChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
+
+	t.Run("Search using null value", func(t *testing.T) {
+		var nullSearch *model.ChannelSearch
+
+		_, resp, err := client.SearchChannels(context.Background(), th.BasicTeam.Id, nullSearch)
+
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
 	search := &model.ChannelSearch{Term: th.BasicChannel.Name}
 
@@ -1798,6 +1949,15 @@ func TestSearchGroupChannels(t *testing.T) {
 	_, resp, err := client.SearchAllChannels(context.Background(), search)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	t.Run("search with null value", func(t *testing.T) {
+		var search *model.ChannelSearch
+		client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+		_, resp, err := client.SearchGroupChannels(context.Background(), search)
+
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestDeleteChannel(t *testing.T) {
@@ -1865,7 +2025,6 @@ func TestDeleteChannel(t *testing.T) {
 		require.NoError(t, err)
 	})
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-
 		th.LoginBasic()
 		publicChannel5 := th.CreatePublicChannel()
 		c.Logout(context.Background())
@@ -1886,9 +2045,7 @@ func TestDeleteChannel(t *testing.T) {
 
 		_, err = client.DeleteChannel(context.Background(), publicChannel5.Id)
 		require.NoError(t, err)
-
 	})
-
 }
 
 func TestDeleteChannel2(t *testing.T) {
@@ -3238,7 +3395,6 @@ func TestAddChannelMemberAddMyself(t *testing.T) {
 	client.Login(context.Background(), user.Email, user.Password)
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-
 			// Check the appropriate permissions are enforced.
 			defaultRolePermissions := th.SaveDefaultRolePermissions()
 			defer func() {

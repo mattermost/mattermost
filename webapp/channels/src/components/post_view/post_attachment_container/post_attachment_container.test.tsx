@@ -3,11 +3,13 @@
 
 import React from 'react';
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-import {DeepPartial} from '@mattermost/types/utilities';
-import {GlobalState} from '@mattermost/types/store';
+import type {GlobalState} from '@mattermost/types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import PostAttachmentContainer, {Props} from './post_attachment_container';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+
+import PostAttachmentContainer from './post_attachment_container';
+import type {Props} from './post_attachment_container';
 
 describe('PostAttachmentContainer', () => {
     const baseProps: Props = {
@@ -35,7 +37,7 @@ describe('PostAttachmentContainer', () => {
     };
 
     test('should render correctly', () => {
-        renderWithIntlAndStore(
+        renderWithContext(
             <PostAttachmentContainer {...baseProps}/>, initialState,
         );
 

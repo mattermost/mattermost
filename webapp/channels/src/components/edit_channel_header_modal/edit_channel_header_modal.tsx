@@ -5,13 +5,15 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {Channel} from '@mattermost/types/channels';
-import {ServerError} from '@mattermost/types/errors';
+import type {Channel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
 
-import Textbox, {TextboxElement} from 'components/textbox';
-import TextboxClass from 'components/textbox/textbox';
-import TextboxLinks from 'components/textbox/textbox_links';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import Textbox, {TextboxLinks} from 'components/textbox';
+import type {TextboxElement} from 'components/textbox';
+import type TextboxClass from 'components/textbox/textbox';
+
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {isMobile} from 'utils/user_agent';
@@ -155,7 +157,7 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
 
         // listen for line break key combo and insert new line character
         if (isUnhandledLineBreakKeyCombo(e)) {
-            this.setState({header: insertLineBreakFromKeyEvent(e as React.KeyboardEvent<HTMLTextAreaElement>)});
+            this.setState({header: insertLineBreakFromKeyEvent(e.nativeEvent)});
         } else if (ctrlSend && isKeyPressed(e, KeyCodes.ENTER) && e.ctrlKey === true) {
             this.handleKeyPress(e);
         }
@@ -291,7 +293,7 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
                 <Modal.Footer>
                     <button
                         type='button'
-                        className='btn btn-link cancel-button'
+                        className='btn btn-tertiary cancel-button'
                         onClick={this.hideModal}
                     >
                         <FormattedMessage

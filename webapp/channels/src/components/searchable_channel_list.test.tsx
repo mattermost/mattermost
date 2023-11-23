@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import SearchableChannelList from 'components/searchable_channel_list';
+import {SearchableChannelList} from 'components/searchable_channel_list';
+
+import {type MockIntl} from 'tests/helpers/intl-test-helper';
+
 import {Filter} from './browse_channels/browse_channels';
 
 describe('components/SearchableChannelList', () => {
@@ -25,6 +28,9 @@ describe('components/SearchableChannelList', () => {
         rememberHideJoinedChannelsChecked: false,
         noResultsText: <>{'no channel found'}</>,
         filter: Filter.All,
+        intl: {
+            formatMessage: jest.fn(),
+        } as MockIntl,
     };
 
     test('should match init snapshot', () => {

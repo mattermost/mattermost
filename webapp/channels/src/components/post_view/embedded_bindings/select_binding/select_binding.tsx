@@ -2,29 +2,24 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {injectIntl, IntlShape} from 'react-intl';
-
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-import {Post} from '@mattermost/types/posts';
-
-import {AppBinding} from '@mattermost/types/apps';
-import {Channel} from '@mattermost/types/channels';
+import type {AppBinding} from '@mattermost/types/apps';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
 
 import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/constants/apps';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
-
-import MenuActionProvider from 'components/suggestion/menu_action_provider';
 import AutocompleteSelector from 'components/autocomplete_selector';
+import type {Option, Selected} from 'components/autocomplete_selector';
 import PostContext from 'components/post_view/post_context';
+import MenuActionProvider from 'components/suggestion/menu_action_provider';
+
 import {createCallContext} from 'utils/apps';
 
-type Option = {
-    text: string;
-    value: string;
-};
+import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
 
 type Props = {
     intl: IntlShape;
@@ -85,8 +80,9 @@ class SelectBinding extends React.PureComponent<Props, State> {
         this.state = {};
     }
 
-    handleSelected = async (selected: Option) => {
-        if (!selected) {
+    handleSelected = async (selected: Selected) => {
+        //this component expects selected to be of type Option
+        if (!selected || !('value' in selected)) {
             return;
         }
 

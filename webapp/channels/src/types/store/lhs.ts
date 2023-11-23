@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {SidebarSize} from 'components/resizable_sidebar/constants';
+import type {SidebarSize} from 'components/resizable_sidebar/constants';
 
 export type LhsViewState = {
     isOpen: boolean;
