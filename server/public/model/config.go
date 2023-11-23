@@ -4085,19 +4085,19 @@ func (bs *BleveSettings) isValid() *AppError {
 }
 
 func (s *DataRetentionSettings) isValid() *AppError {
-	if *s.MessageRetentionDays < 0 {
+	if s.MessageRetentionDays == nil || *s.MessageRetentionDays < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if s.MessageRetentionHours != nil && *s.MessageRetentionHours < 0 {
+	if s.MessageRetentionHours == nil || *s.MessageRetentionHours < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.FileRetentionDays < 0 {
+	if s.FileRetentionDays == nil || *s.FileRetentionDays < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if s.FileRetentionHours != nil && *s.FileRetentionHours < 0 {
+	if s.FileRetentionHours == nil || *s.FileRetentionHours < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
