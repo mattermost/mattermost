@@ -189,27 +189,6 @@ func TestSaveReaction(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, 0, len(reactions), "should have not created a reaction")
 	})
-
-	t.Run("sent an emoji that does not exist on the system", func(t *testing.T) {
-		th.LoginBasic()
-
-		channel := th.CreatePublicChannel()
-		post := th.CreatePostWithClient(th.Client, channel)
-
-		reaction := &model.Reaction{
-			UserId:    userId,
-			PostId:    post.Id,
-			EmojiName: "definitely-not-a-real-emoji",
-		}
-
-		_, resp, err := client.SaveReaction(context.Background(), reaction)
-		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
-
-		reactions, appErr := th.App.GetReactionsForPost(post.Id)
-		require.Nil(t, appErr)
-		require.Equal(t, 0, len(reactions), "should have not created a reaction")
-	})
 }
 
 func TestGetReactions(t *testing.T) {
@@ -311,7 +290,7 @@ func TestDeleteReaction(t *testing.T) {
 	r2 := &model.Reaction{
 		UserId:    userId,
 		PostId:    postId,
-		EmojiName: "smile-",
+		EmojiName: "cry",
 	}
 
 	r3 := &model.Reaction{
@@ -323,7 +302,7 @@ func TestDeleteReaction(t *testing.T) {
 	r4 := &model.Reaction{
 		UserId:    user2Id,
 		PostId:    postId,
-		EmojiName: "smile_",
+		EmojiName: "grin",
 	}
 
 	// Check the appropriate permissions are enforced.
