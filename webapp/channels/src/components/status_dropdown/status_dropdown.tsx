@@ -365,16 +365,34 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
 
         switch (diffDays) {
         case 0:
-            formattedEndTime = endTime.format('h:mm A');
+            formattedEndTime = (
+                <FormattedMessage
+                    id='custom_status.expiry.until'
+                    defaultMessage='Until {time}'
+                    values={{time: endTime.format('h:mm A')}}
+                />
+            );
             break;
         case 1:
-            formattedEndTime = endTime.format(`[${localizeMessage('status_dropdown.dnd_sub_menu_item.tomorrow', 'Tomorrow')}] h:mm A`);
+            formattedEndTime = (
+                <FormattedMessage
+                    id='custom_status.expiry.until_tomorrow'
+                    defaultMessage='Until Tomorrow {time}'
+                    values={{time: endTime.format('h:mm A')}}
+                />
+            );
             break;
         default:
-            formattedEndTime = endTime.format('lll');
+            formattedEndTime = (
+                <FormattedMessage
+                    id='custom_status.expiry.until'
+                    defaultMessage='Until {time}'
+                    values={{time: endTime.format('h:mm A')}}
+                />
+            );
         }
 
-        return `${localizeMessage('custom_status.expiry.until')} ${formattedEndTime}`;
+        return formattedEndTime;
     };
 
     render = (): JSX.Element => {

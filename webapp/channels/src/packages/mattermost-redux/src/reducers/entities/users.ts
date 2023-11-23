@@ -513,6 +513,17 @@ function dndEndTimes(state: RelationOneToOne<UserProfile, number> = {}, action: 
 
         return userStatuses.reduce((nextState, userStatus) => addToState(nextState, userStatus.user_id, userStatus.dnd_end_time || 0), state);
     }
+    case UserTypes.PROFILE_NO_LONGER_VISIBLE: {
+        if (state[action.data.user_id]) {
+            const newState = {...state};
+            delete newState[action.data.user_id];
+            return newState;
+        }
+        return state;
+    }
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }

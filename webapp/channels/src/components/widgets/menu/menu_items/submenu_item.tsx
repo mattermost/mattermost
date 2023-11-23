@@ -55,7 +55,7 @@ export type Props = {
     direction?: 'left' | 'right';
     openUp?: boolean;
     styleSelectableItem?: boolean;
-    extraText?: string;
+    extraText?: string | JSX.Element;
     rightDecorator?: React.ReactNode;
     isHeader?: boolean;
     tabIndex?: number;
