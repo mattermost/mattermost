@@ -123,11 +123,11 @@ func (s *Server) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) 
 	return s.platform.GetLogsSkipSend(page, perPage, logFilter)
 }
 
-func (a *App) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
+func (a *App) GetLogsSkipSend(_ request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
 	return a.Srv().GetLogsSkipSend(page, perPage, logFilter)
 }
 
-func (a *App) GetClusterStatus(rctx request.CTX) []*model.ClusterInfo {
+func (a *App) GetClusterStatus(_ request.CTX) []*model.ClusterInfo {
 	infos := make([]*model.ClusterInfo, 0)
 
 	if a.Cluster() != nil {
