@@ -15,8 +15,7 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import type {NewPostMessageProps} from 'actions/new_post';
 
-import type {PluginConfiguration} from 'components/user_settings/plugin/types';
-
+import type {PluginConfiguration} from 'types/plugins/user_settings';
 import type {GlobalState} from 'types/store';
 
 export type PluginSiteStatsHandler = () => Promise<Record<string, PluginAnalyticsRow>>;

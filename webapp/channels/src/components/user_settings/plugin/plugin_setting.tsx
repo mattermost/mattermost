@@ -11,16 +11,20 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 
+import type {PluginConfigurationSetting} from 'types/plugins/user_settings';
 import type {GlobalState} from 'types/store';
 
 import RadioInput from './radio';
-import type {PluginConfigurationSetting} from './types';
 
 type Props = {
     pluginId: string;
     updateSection: (section: string) => void;
     activeSection: string;
     setting: PluginConfigurationSetting;
+}
+
+function getPluginPreferenceKey(pluginId: string) {
+    return `pp_${pluginId}`.slice(0, 32);
 }
 
 const PluginSetting = ({
@@ -31,7 +35,7 @@ const PluginSetting = ({
 }: Props) => {
     const dispatch = useDispatch();
     const userId = useSelector(getCurrentUserId);
-    const preference = useSelector<GlobalState, string>((state: GlobalState) => getPreference(state, `pp_${pluginId}`, setting.name, setting.default));
+    const preference = useSelector<GlobalState, string>((state: GlobalState) => getPreference(state, getPluginPreferenceKey(pluginId), setting.name, setting.default));
     const [selectedValue, setSelectedValue] = useState(preference);
 
     const minDescribe = useMemo(() => {
@@ -52,7 +56,7 @@ const PluginSetting = ({
         // preferences and handle any kind of error or network delay here.
         dispatch(savePreferences(userId, [{
             user_id: userId,
-            category: `pp_${pluginId}`.slice(0, 32),
+            category: getPluginPreferenceKey(pluginId),
             name: setting.name,
             value,
         }]));
@@ -68,7 +72,9 @@ const PluginSetting = ({
                 selectedValue={selectedValue}
                 setSelectedValue={setSelectedValue}
             />);
-    } else {
+    }
+
+    if (!inputs.length) {
         return null;
     }
 

@@ -4,8 +4,9 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import PluginSetting from './pluginSetting';
-import type {PluginConfiguration} from './types';
+import type {PluginConfiguration} from 'types/plugins/user_settings';
+
+import PluginSetting from './plugin_setting';
 
 type Props = {
     updateSection: (section: string) => void;

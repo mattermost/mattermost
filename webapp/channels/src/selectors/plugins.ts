@@ -9,9 +9,9 @@ import {appBarEnabled, getAppBarAppBindings} from 'mattermost-redux/selectors/en
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {createShallowSelector} from 'mattermost-redux/utils/helpers';
 
-import type {PluginConfiguration} from 'components/user_settings/plugin/types';
-import {isValidPluginConfiguration} from 'components/user_settings/plugin/utils';
+import {isValidPluginConfiguration} from 'utils/plugins/plugin_setting_validation';
 
+import type {PluginConfiguration} from 'types/plugins/user_settings';
 import type {GlobalState} from 'types/store';
 import type {FileDropdownPluginComponent, PluginComponent} from 'types/store/plugins';
 
@@ -21,6 +21,7 @@ export const getPluginUserSettings = createSelector(
     (settings) => {
         // Just for testing, to remove before merging
         if (!settings || !Object.values(settings).length) {
+            // eslint-disable-next-line no-param-reassign
             settings = {
                 'com.mattermost.msteams-sync': {
                     id: 'com.mattermost.msteams-sync',
@@ -29,12 +30,12 @@ export const getPluginUserSettings = createSelector(
                     settings: [{
                         name: 'primary_platform',
                         options: [
-                            {text: 'Mattermost will be my primary platform', value: 'mm'},
-                            {text: 'Microsoft Teams will be my primary platform', value: 'teams'}],
+                            {text: 'Mattermost will be my primary platform', value: 'mm', helpText: 'You will need to disable notifications in Microsoft Teams to avoid duplicates. **[Learn more](http://google.com)**'},
+                            {text: 'Microsoft Teams will be my primary platform', value: 'teams', helpText: 'Notifications in Mattermost will be muted for linked channels and DMs to prevent duplicates. Unread statuses in linked channels and DMs will also be disabled in Mattermost. **[Learn more](http://google.com)**'}],
                         title: 'Primary platform for communication',
                         type: 'radio',
-                        helpText: 'When Mattermost is selected, you will need to disable notifications in Microsoft Teams to avoid duplicates.\n\n**[Learn more](http://google.com)**\n\nWhen Microsoft Teams is selected, notifications in Mattermost will be muted for linked channels and DMs to prevent duplicates. Unread statuses in linked channels and DMs will also be disabled in Mattermost.\n\n**[Learn more](http://google.com)**',
                         default: 'mm',
+                        helpText: 'Note: Unread statuses for linked channels and DMs will not be synced between Mattermost & Microsoft Teams.',
                     }],
                 },
             };

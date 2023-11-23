@@ -5,7 +5,7 @@ import React from 'react';
 
 import Markdown from 'components/markdown';
 
-import type {PluginConfigurationSetting} from './types';
+import type {PluginConfigurationSetting} from 'types/plugins/user_settings';
 
 type Props = {
     setting: PluginConfigurationSetting;
@@ -23,7 +23,10 @@ const RadioInput = ({
                 {setting.title}
             </legend>
             {setting.options.map((v) => (
-                <React.Fragment key={v.value}>
+                <div
+                    className={'radio'}
+                    key={v.value}
+                >
                     <label >
                         <input
                             type='radio'
@@ -34,7 +37,13 @@ const RadioInput = ({
                         {v.text}
                     </label>
                     <br/>
-                </React.Fragment>
+                    {v.helpText && (
+                        <Markdown
+                            message={v.helpText}
+                            options={{mentionHighlight: false}}
+                        />
+                    )}
+                </div>
             ))}
             {setting.helpText && (
                 <div className='mt-5'>

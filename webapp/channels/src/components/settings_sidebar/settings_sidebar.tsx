@@ -116,11 +116,17 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
         if (this.props.pluginTabs.length) {
             pluginTabList = (
                 <>
-                    <div/>
-                    <FormattedMessage
-                        id={'userSettingsModal.pluginPreferences.header'}
-                        defaultMessage={'PLUGIN PREFERENCES'}
-                    />
+                    <hr/>
+                    <li
+                        key={'plugin preferences heading'}
+                        role='heading'
+                        className={'header'}
+                    >
+                        <FormattedMessage
+                            id={'userSettingsModal.pluginPreferences.header'}
+                            defaultMessage={'PLUGIN PREFERENCES'}
+                        />
+                    </li>
                     {this.props.pluginTabs.map((tab, index) => this.renderTab(tab, index))}
                 </>
             );

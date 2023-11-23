@@ -11,6 +11,7 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
+import {isValidPluginConfiguration} from 'utils/plugins/plugin_setting_validation';
 
 import type {PluginsState, PluginComponent, AdminConsolePluginComponent, Menu} from 'types/store/plugins';
 
@@ -389,6 +390,11 @@ function userSettings(state: PluginsState['userSettings'] = {}, action: GenericA
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS:
         if (action.data) {
+            if (!isValidPluginConfiguration(action.data.setting)) {
+                // eslint-disable-next-line no-console
+                console.warn(`Plugin ${action.data.pluginId} is trying to register an invalid configuration. Contact the plugin developer to fix this issue.`);
+                return state;
+            }
             const nextState = {...state};
             nextState[action.data.pluginId] = action.data.setting;
             return nextState;

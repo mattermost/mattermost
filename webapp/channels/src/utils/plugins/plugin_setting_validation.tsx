@@ -105,5 +105,9 @@ function isValidRadioOption(option: unknown) {
         return false;
     }
 
+    if (('helpText' in option) && typeof option.helpText !== 'string') {
+        return false;
+    }
+
     return true;
 }

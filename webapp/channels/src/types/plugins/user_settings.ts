@@ -21,6 +21,7 @@ type PluginConfigurationRadioSetting = BasePluginConfigurationSetting & {
     options: Array<{
         value: string;
         text: string;
+        helpText?: string;
     }>;
 }
 
