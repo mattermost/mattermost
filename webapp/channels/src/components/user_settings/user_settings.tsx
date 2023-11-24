@@ -10,9 +10,9 @@ import DisplayTab from './display';
 import GeneralTab from './general';
 import NotificationsTab from './notifications';
 import PluginTab from './plugin/plugin';
-import type {PluginConfiguration} from './plugin/types';
 import SecurityTab from './security';
 import SidebarTab from './sidebar';
+import { PluginConfiguration } from 'types/plugins/user_settings';
 
 export type Props = {
     user: UserProfile;

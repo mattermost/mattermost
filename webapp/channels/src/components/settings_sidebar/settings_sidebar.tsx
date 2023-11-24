@@ -20,7 +20,7 @@ export type Tab = {
 export type Props = {
     activeTab?: string;
     tabs: Tab[];
-    pluginTabs: Tab[];
+    pluginTabs?: Tab[];
     updateTab: (name: string) => void;
     isMobileView: boolean;
 };
@@ -113,7 +113,7 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
     public render() {
         const tabList = this.props.tabs.map((tab, index) => this.renderTab(tab, index));
         let pluginTabList: React.ReactNode;
-        if (this.props.pluginTabs.length) {
+        if (this.props.pluginTabs?.length) {
             pluginTabList = (
                 <>
                     <hr/>

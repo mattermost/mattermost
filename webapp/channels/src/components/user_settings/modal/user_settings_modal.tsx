@@ -23,8 +23,7 @@ import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as NotificationSounds from 'utils/notification_sounds';
 import * as Utils from 'utils/utils';
-
-import type {PluginConfiguration} from '../plugin/types';
+import { PluginConfiguration } from 'types/plugins/user_settings';
 
 const UserSettings = React.lazy(() => import(/* webpackPrefetch: true */ 'components/user_settings'));
 const SettingsSidebar = React.lazy(() => import(/* webpackPrefetch: true */ '../../settings_sidebar'));
