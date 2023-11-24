@@ -95,4 +95,4 @@ const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
-export default withRouter(connector(AdminConsole));
+export default connector(AdminConsole);

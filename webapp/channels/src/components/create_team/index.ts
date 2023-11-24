@@ -16,7 +16,6 @@ import {isCloudLicense} from 'utils/license_utils';
 import type {GlobalState} from 'types/store';
 
 import CreateTeam from './create_team';
-import type {Props} from './create_team';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
@@ -42,7 +41,4 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-export default compose(
-    connect(mapStateToProps),
-    withUseGetUsageDelta,
-)(CreateTeam) as React.FunctionComponent<Props>;
+export default withUseGetUsageDelta(connect(mapStateToProps)(CreateTeam));

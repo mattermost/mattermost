@@ -670,7 +670,7 @@ export function getPostURL(state: GlobalState, post: Post): string {
 }
 
 export function matchUserMentionTriggersWithMessageMentions(userMentionKeys: UserMentionKey[],
-    messageMentionKeys: RegExpMatchArray): boolean {
+    messageMentionKeys: string[]): boolean {
     let isMentioned = false;
     for (const mentionKey of userMentionKeys) {
         const isPresentInMessage = messageMentionKeys.includes(mentionKey.key);

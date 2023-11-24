@@ -23,14 +23,15 @@ import type EmojiMap from 'utils/emoji_map';
 import messageHtmlToComponent from 'utils/message_html_to_component';
 import {formatText} from 'utils/text_formatting';
 
+import type {RouteComponentProps} from 'react-router'
+
 export interface UpdateMyTermsOfServiceStatusResponse {
     terms_of_service_create_at: number;
     terms_of_service_id: string;
     user_id: number;
 }
 
-export interface TermsOfServiceProps {
-    location: {search: string};
+export interface TermsOfServiceProps extends RouteComponentProps {
     termsEnabled: boolean;
     actions: {
         getTermsOfService: () => Promise<{ data: ReduxTermsOfService }>;
@@ -109,7 +110,7 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
         this.registerUserAction(
             true,
             () => {
-                const query = new URLSearchParams(this.props.location.search);
+                const query = new URLSearchParams(this.props.location?.search);
                 const redirectTo = query.get('redirect_to');
                 if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
                     getHistory().push(redirectTo);

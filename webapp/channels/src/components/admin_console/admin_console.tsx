@@ -8,8 +8,8 @@ import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 import type {DeepPartial} from '@mattermost/types/utilities';
+import type {RouteComponentProps} from 'react-router-dom';
 
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import SchemaAdminSettings from 'components/admin_console/schema_admin_settings';
@@ -30,10 +30,7 @@ import type {AdminDefinitionSubSection, AdminDefinitionSection} from './types';
 
 import type {PropsFromRedux} from './index';
 
-export interface Props extends PropsFromRedux {
-    match: {url: string};
-    currentTheme: Theme;
-}
+export type Props = PropsFromRedux & RouteComponentProps;
 
 type State = {
     filter: string;
