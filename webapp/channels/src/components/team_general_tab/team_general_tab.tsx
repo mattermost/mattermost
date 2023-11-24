@@ -3,27 +3,27 @@
 
 import React from 'react';
 import type {ChangeEvent, MouseEvent, ReactNode} from 'react';
-import {FormattedMessage, FormattedDate} from 'react-intl';
+import {FormattedMessage, FormattedDate, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
-import LocalizedInput from 'components/localized_input/localized_input';
+import LearnAboutTeamsLink from 'components/main_menu/learn_about_teams_link';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import SettingPicture from 'components/setting_picture';
 import BackIcon from 'components/widgets/icons/fa_back_icon';
 
 import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
 import {imageURLForTeam, localizeMessage, moveCursorToEnd} from 'utils/utils';
 
 import OpenInvite from './open_invite';
 
 import type {PropsFromRedux, OwnProps} from '.';
+import './team_general_tab.scss';
 
 const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
 
-type Props = PropsFromRedux & OwnProps;
+type Props = PropsFromRedux & OwnProps & WrappedComponentProps;
 
 type State = {
     name?: Team['display_name'];
@@ -39,7 +39,7 @@ type State = {
     shouldFetchTeam?: boolean;
 }
 
-export default class GeneralTab extends React.PureComponent<Props, State> {
+export class GeneralTab extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = this.setupInitialState(props);
@@ -108,9 +108,10 @@ export default class GeneralTab extends React.PureComponent<Props, State> {
     handleAllowedDomainsSubmit = async () => {
         const state = {serverError: '', clientError: ''};
 
-        const data = {...this.props.team};
-        data.allowed_domains = this.state.allowed_domains;
-
+        const data = {
+            id: this.props.team?.id,
+            allowed_domains: this.state.allowed_domains,
+        };
         const {error} = await this.props.actions.patchTeam(data);
 
         if (error) {
@@ -153,9 +154,10 @@ export default class GeneralTab extends React.PureComponent<Props, State> {
             return;
         }
 
-        const data = {...this.props.team};
-        data.display_name = this.state.name;
-
+        const data = {
+            id: this.props.team?.id,
+            display_name: this.state.name,
+        };
         const {error} = await this.props.actions.patchTeam(data);
 
         if (error) {
@@ -200,9 +202,10 @@ export default class GeneralTab extends React.PureComponent<Props, State> {
             return;
         }
 
-        const data = {...this.props.team};
-        data.description = this.state.description;
-
+        const data = {
+            id: this.props.team?.id,
+            description: this.state.description,
+        };
         const {error} = await this.props.actions.patchTeam(data);
 
         if (error) {
@@ -582,7 +585,7 @@ export default class GeneralTab extends React.PureComponent<Props, State> {
                     className='form-group'
                 >
                     <div className='col-sm-12'>
-                        <LocalizedInput
+                        <input
                             id='allowedDomains'
                             autoFocus={true}
                             className='form-control'
@@ -590,7 +593,7 @@ export default class GeneralTab extends React.PureComponent<Props, State> {
                             onChange={this.updateAllowedDomains}
                             value={this.state.allowed_domains}
                             onFocus={moveCursorToEnd}
-                            placeholder={{id: t('general_tab.AllowedDomainsExample'), defaultMessage: 'corp.mattermost.com, mattermost.com'}}
+                            placeholder={this.props.intl.formatMessage({id: 'general_tab.AllowedDomainsExample', defaultMessage: 'corp.mattermost.com, mattermost.com'})}
                             aria-label={localizeMessage('general_tab.allowedDomains.ariaLabel', 'Allowed Domains')}
                         />
                     </div>
@@ -653,12 +656,15 @@ export default class GeneralTab extends React.PureComponent<Props, State> {
                     </h4>
                 </div>
                 <div className='user-settings'>
-                    <h3 className='tab-header'>
-                        <FormattedMessage
-                            id='general_tab.title'
-                            defaultMessage='General Settings'
-                        />
-                    </h3>
+                    <div className='GeneralTab__header'>
+                        <h3>
+                            <FormattedMessage
+                                id='general_tab.title'
+                                defaultMessage='General Settings'
+                            />
+                        </h3>
+                        <LearnAboutTeamsLink/>
+                    </div>
                     <div className='divider-dark first'/>
                     {nameSection}
                     <div className='divider-light'/>
@@ -692,3 +698,5 @@ export default class GeneralTab extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(GeneralTab);

@@ -198,6 +198,22 @@ func (_m *Hooks) MessageWillBeUpdated(c *plugin.Context, newPost *model.Post, ol
 	return r0, r1
 }
 
+// MessagesWillBeConsumed provides a mock function with given fields: posts
+func (_m *Hooks) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+	ret := _m.Called(posts)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func([]*model.Post) []*model.Post); ok {
+		r0 = rf(posts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	return r0
+}
+
 // NotificationWillBePushed provides a mock function with given fields: pushNotification, userID
 func (_m *Hooks) NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string) {
 	ret := _m.Called(pushNotification, userID)
@@ -341,6 +357,11 @@ func (_m *Hooks) RunDataRetention(nowTime int64, batchSize int64) (int64, error)
 
 // ServeHTTP provides a mock function with given fields: c, w, r
 func (_m *Hooks) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+	_m.Called(c, w, r)
+}
+
+// ServeMetrics provides a mock function with given fields: c, w, r
+func (_m *Hooks) ServeMetrics(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	_m.Called(c, w, r)
 }
 

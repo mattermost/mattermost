@@ -554,7 +554,7 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
 	}
 }
 
-func (s *Server) doElasticsearchFixChannelIndex(c *request.Context) {
+func (s *Server) doElasticsearchFixChannelIndex(c *request.CTX) {
 	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.elasticsearchFixChannelIndex(c, newLicense)
 	})
@@ -562,7 +562,7 @@ func (s *Server) doElasticsearchFixChannelIndex(c *request.Context) {
 	s.elasticsearchFixChannelIndex(c, s.License())
 }
 
-func (s *Server) elasticsearchFixChannelIndex(c *request.Context, license *model.License) {
+func (s *Server) elasticsearchFixChannelIndex(c *request.CTX, license *model.License) {
 	if model.BuildEnterpriseReady != "true" || license == nil || !*license.Features.Elasticsearch {
 		mlog.Debug("Skipping triggering Elasticsearch channel index fix job as build is not Enterprise ready")
 		return
@@ -579,7 +579,7 @@ func (s *Server) elasticsearchFixChannelIndex(c *request.Context, license *model
 	}
 }
 
-func (s *Server) doCloudS3PathMigrations(c *request.Context) {
+func (s *Server) doCloudS3PathMigrations(c request.CTX) {
 	// This migration is only applicable for cloud environments
 	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
 		return
@@ -607,7 +607,7 @@ func (s *Server) doCloudS3PathMigrations(c *request.Context) {
 	}
 }
 
-func (s *Server) doDeleteEmptyDraftsMigration(c *request.Context) {
+func (s *Server) doDeleteEmptyDraftsMigration(c request.CTX) {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteEmptyDrafts); err == nil {
 		return

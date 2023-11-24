@@ -54,22 +54,17 @@
 
         .modal-back {
             position: absolute;
-            top: 12px;
-            left: 0;
-            width: 50px;
+            top: 18px;
+            left: 12px;
+            display: flex;
+            width: 40px;
             height: 40px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
             font-size: 27px;
             font-weight: normal;
-            line-height: 32px;
             text-align: center;
-
-            .fa {
-                position: absolute;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                line-height: inherit;
-            }
         }
 
         .modal-body {
@@ -206,6 +201,7 @@
             .nav {
                 position: fixed;
                 width: 179px;
+                margin: 0;
 
                 &.position--top {
                     top: 57px;
@@ -234,14 +230,16 @@
 
                 .section-max {
                     @include pie-clearfix;
-                    @include alpha-property('background', $black, 0.05);
 
                     padding: 1em 0 1.3em;
                     margin-bottom: 0;
+                    background: rgba(var(--center-channel-color-rgb), 0.04);
 
                     .section-title {
+                        padding-left: 14px;
                         margin: 0 0 5px;
                         font-size: 14px;
+                        font-weight: 600;
                         line-height: 20px;
                     }
                 }
@@ -513,10 +511,11 @@
             }
 
             .icon {
-                top: 2px;
-                width: 14px;
-                margin-right: 10px;
-                font-size: 15px;
+                position: relative;
+                top: 1px;
+                width: 16px;
+                margin-right: 8px;
+                font-size: 18px;
                 text-align: center;
             }
 
@@ -548,8 +547,6 @@
                 button:hover,
                 button:focus {
                     position: relative;
-                    border-radius: 0;
-                    font-weight: 400;
                 }
 
                 button {
@@ -640,6 +637,7 @@
 .section-min {
     position: relative;
     padding: 1em;
+    border-radius: 4px;
     cursor: pointer;
 
     @include clearfix;
@@ -652,12 +650,49 @@
         display: inline-block;
     }
 
+    .section-min__edit {
+        white-space: nowrap;
+    }
+
     &:hover .section-min__edit {
         text-decoration: underline;
     }
 
-    .d-flex {
+    > .secion-min__header {
+        display: flex;
+        flex-direction: row;
         justify-content: space-between;
+    }
+
+    &.isDisabled {
+        cursor: default;
+
+        &:hover {
+            background: inherit;
+        }
+
+        .RestrictedIndicator__icon-tooltip-container {
+            flex: unset;
+            align-self: flex-start;
+            padding: 0;
+
+            button {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                padding: 0 6px;
+                background-color: rgba(var(--button-bg-rgb), 0.08);
+                border-radius: 12px;
+                color: var(--button-bg);
+                font-size: 12px;
+                font-weight: 600;
+
+                i {
+                    font-size: 12px;
+                }
+            }
+        }
     }
 }
 
@@ -667,24 +702,25 @@
     font-size: 14px;
     font-weight: 600;
     line-height: 20px;
+
+    &.isDisabled {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
 }
 
 .section-min__edit {
     margin-bottom: 5px;
     text-align: right;
-
-    .fa {
-        display: none;
-        margin-right: 5px;
-        font-size: 12px;
-        opacity: 0.5;
-    }
 }
 
 .section-min__describe {
     @include clearfix;
 
-    opacity: 0.7;
+    opacity: 0.75;
     text-overflow: ellipsis;
     white-space: pre;
+
+    &.isDisabled {
+        color: rgba(var(--center-channel-color-rgb), 0.4);
+    }
 }

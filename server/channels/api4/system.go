@@ -153,7 +153,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Enhanced ping health check:
 	// If an extra form value is provided then perform extra health checks for
 	// database and file storage backends.
-	if r.FormValue("get_server_status") != "" {
+	if r.FormValue("get_server_status") == "true" {
 		dbStatusKey := "database_status"
 		s[dbStatusKey] = model.StatusOk
 
@@ -172,7 +172,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if s[dbStatusKey] == model.StatusOk {
-			mlog.Debug("Able to write to database.")
+			c.Logger.Debug("Able to write to database.")
 		}
 
 		filestoreStatusKey := "filestore_status"
@@ -270,7 +270,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audits, appErr := c.App.GetAuditsPage("", c.Params.Page, c.Params.PerPage)
+	audits, appErr := c.App.GetAuditsPage(c.AppContext, "", c.Params.Page, c.Params.PerPage)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -703,7 +703,7 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "seconds", i)
 
 	c.App.Srv().Platform().Busy.Set(time.Second * time.Duration(i))
-	c.Logger.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
+	c.Logger.Warn("server busy state activated - non-critical services disabled", mlog.Int("seconds", i))
 
 	auditRec.Success()
 	ReturnStatusOK(w)
@@ -853,7 +853,7 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	license := c.App.Channels().License()
 	if license != nil {
-		mlog.Debug("License is present, skip.")
+		c.Logger.Debug("License is present, skip.")
 		return
 	}
 
@@ -884,7 +884,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	license := c.App.Channels().License()
 	if license != nil {
-		mlog.Debug("License is present, skip.")
+		c.Logger.Debug("License is present, skip.")
 		return
 	}
 
@@ -920,13 +920,13 @@ func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *h
 	}
 
 	if model.BuildEnterpriseReady != "true" {
-		mlog.Debug("Not Enterprise Edition, skip.")
+		c.Logger.Debug("Not Enterprise Edition, skip.")
 		return
 	}
 
 	license := c.App.Channels().License()
 	if license != nil {
-		mlog.Debug("License is present, skip.")
+		c.Logger.Debug("License is present, skip.")
 		return
 	}
 

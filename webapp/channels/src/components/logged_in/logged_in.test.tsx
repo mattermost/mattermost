@@ -23,7 +23,6 @@ describe('components/logged_in/LoggedIn', () => {
     const baseProps: Props = {
         currentUser: {} as UserProfile,
         mfaRequired: false,
-        enableTimezone: false,
         actions: {
             autoUpdateTimezone: jest.fn(),
             getChannelURLAction: jest.fn(),

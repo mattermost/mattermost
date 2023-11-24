@@ -24,6 +24,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
+// Regex to get quoted strings
+var quotedStringsRegex = regexp.MustCompile(`("[^"]*")`)
+
 type SqlPostStore struct {
 	*SqlStore
 	metrics           einterfaces.MetricsInterface
@@ -502,13 +505,10 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 			WHERE
 				ChannelId IN (
 					SELECT
-						Id
+						ChannelId
 					FROM
-						Channels,
 						ChannelMembers
-					WHERE
-						Id = ChannelId
-						AND UserId = ?
+					WHERE UserId = ?
 				)
 				TEAM_FILTER
             ORDER BY CreateAt DESC
@@ -1203,16 +1203,16 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool, sanitizeO
 	}
 	offset := options.PerPage * options.Page
 
-	rpc := make(chan store.StoreResult, 1)
+	rpc := make(chan store.GenericStoreResult[[]*model.Post], 1)
 	go func() {
 		posts, err := s.getRootPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads, options.IncludeDeleted)
-		rpc <- store.StoreResult{Data: posts, NErr: err}
+		rpc <- store.GenericStoreResult[[]*model.Post]{Data: posts, NErr: err}
 		close(rpc)
 	}()
-	cpc := make(chan store.StoreResult, 1)
+	cpc := make(chan store.GenericStoreResult[[]*model.Post], 1)
 	go func() {
 		posts, err := s.getParentsPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads, options.IncludeDeleted)
-		cpc <- store.StoreResult{Data: posts, NErr: err}
+		cpc <- store.GenericStoreResult[[]*model.Post]{Data: posts, NErr: err}
 		close(cpc)
 	}()
 
@@ -1228,8 +1228,8 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool, sanitizeO
 		return nil, cpr.NErr
 	}
 
-	posts := rpr.Data.([]*model.Post)
-	parents := cpr.Data.([]*model.Post)
+	posts := rpr.Data
+	parents := cpr.Data
 
 	for _, p := range posts {
 		list.AddPost(p)
@@ -2029,27 +2029,38 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
 		}
 
-		excludeClause := ""
-		if excludedTerms != "" {
-			excludeClause = " & !(" + strings.Join(strings.Fields(excludedTerms), " | ") + ")"
-		}
-
-		var termsClause string
-		if params.OrTerms {
-			termsClause = "(" + strings.Join(strings.Fields(terms), " | ") + ")" + excludeClause
-		} else if strings.HasPrefix(terms, `"`) && strings.HasSuffix(terms, `"`) {
-			termsClause = "(" + strings.Join(strings.Fields(terms), " <-> ") + ")" + excludeClause
-		} else {
-			tsVectorSearchQuery := strings.Join(strings.Fields(terms), " & ")
-			if params.IsHashtag {
-				tsVectorSearchQuery = terms
+		// Replace spaces with to_tsquery symbols
+		replaceSpaces := func(input string, excludedInput bool) string {
+			if input == "" {
+				return input
 			}
 
-			termsClause = "(" + tsVectorSearchQuery + ")" + excludeClause
+			// Remove extra spaces
+			input = strings.Join(strings.Fields(input), " ")
+
+			// Replace spaces within quoted strings with '<->'
+			input = quotedStringsRegex.ReplaceAllStringFunc(input, func(match string) string {
+				return strings.Replace(match, " ", "<->", -1)
+			})
+
+			// Replace spaces outside of quoted substrings with '&' or '|'
+			replacer := "&"
+			if excludedInput || params.OrTerms {
+				replacer = "|"
+			}
+			input = strings.Replace(input, " ", replacer, -1)
+
+			return input
+		}
+
+		tsQueryClause := replaceSpaces(terms, false)
+		excludedClause := replaceSpaces(excludedTerms, true)
+		if excludedClause != "" {
+			tsQueryClause += " &!(" + excludedClause + ")"
 		}
 
 		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", s.pgDefaultTextSearchConfig, searchType)
-		baseQuery = baseQuery.Where(searchClause, termsClause)
+		baseQuery = baseQuery.Where(searchClause, tsQueryClause)
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		if searchType == "Message" {
 			terms, err = removeMysqlStopWordsFromTerms(terms)
@@ -2534,7 +2545,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 		maxPostSize = model.PostMessageMaxRunesV1
 	}
 
-	mlog.Info("Post.Message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int32("max_bytes", maxPostSizeBytes))
+	mlog.Info("Post.Message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int("max_bytes", maxPostSizeBytes))
 
 	return maxPostSize
 }
@@ -2714,7 +2725,7 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 
 	var wg sync.WaitGroup
 
-	pchan := make(chan store.StoreResult, len(paramsList))
+	pchan := make(chan store.GenericStoreResult[*model.PostList], len(paramsList))
 
 	for _, params := range paramsList {
 		// remove any unquoted term that contains only non-alphanumeric chars
@@ -2726,7 +2737,7 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 		go func(params *model.SearchParams) {
 			defer wg.Done()
 			postList, err := s.search(teamId, userId, params, false, false)
-			pchan <- store.StoreResult{Data: postList, NErr: err}
+			pchan <- store.GenericStoreResult[*model.PostList]{Data: postList, NErr: err}
 		}(params)
 	}
 
@@ -2739,8 +2750,7 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 		if result.NErr != nil {
 			return nil, result.NErr
 		}
-		data := result.Data.(*model.PostList)
-		posts.Extend(data)
+		posts.Extend(result.Data)
 	}
 
 	posts.SortByCreateAt()

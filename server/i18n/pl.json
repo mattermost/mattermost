@@ -3937,7 +3937,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Nieprawidłowy URL zarządcy tożsamości. URL musi być prawidłowy i zaczynać się od http:// lub https://."
+    "translation": "Adres URL wystawcy dostawcy tożsamości nie może być pustym ciągiem znaków."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -4749,15 +4749,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Wersja 102+"
+    "translation": "Wersja 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 116+"
+    "translation": "Wersja 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 116+"
+    "translation": "Wersja 118+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9185,7 +9185,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost to platforma open source służąca do bezpiecznej komunikacji, współpracy i zgrania pracy między narzędziami i zespołami.\nMattermost zawiera trzy kluczowe narzędzia:\n\n**Kanały** - Pozostań w kontakcie ze swoim zespołem poprzez wiadomości 1:1 i wiadomości grupowe.\n**[Playbooki](/playbooki)** - tworzenie i konfigurowanie powtarzalnych procesów w celu osiągnięcia określonych i przewidywalnych wyników.\n**[Tablice](/boards)** - Zarządzaj projektami i zadaniami w strukturze tablicy Kanban, aby pomóc swojemu zespołowi w osiągnięciu kluczowych kamieni milowych.\n\n[Zobacz dokumentację i przewodniki]({{.HelpLink}})"
+    "translation": "Mattermost to platforma open source do bezpiecznej komunikacji, współpracy i orkiestracji pracy między narzędziami i zespołami.\nMattermost zawiera dwa kluczowe narzędzia:\n\n**Kanały** - Pozostań w kontakcie ze swoim zespołem poprzez wiadomości 1:1 i grupowe.\n**[Playbooki](/playbooki)** - Twórz i konfiguruj powtarzalne procesy, aby osiągnąć określone i przewidywalne wyniki.\n\n[Zobacz dokumentację i przewodniki]({{.HelpLink}})"
   },
   {
     "id": "api.templates.delinquency_30.bullet.message_history",
@@ -9974,5 +9974,69 @@
   {
     "id": "app.file_info.set_searchable_content.app_error",
     "translation": "Nie udało się ustawić zawartości pliku, którą można wyszukać."
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Nie można uzyskać takiej liczby emotikonów według nazwy. Jednocześnie można zażądać tylko {{.MaxNames}} emoji."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "Parsowanie JSON nie powiodło się: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Nieprawidłowy format: {{.Error}}"
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Wystąpił błąd podczas zastosowania filtrów IP"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Wystąpił błąd podczas pobierania adresu IP klienta"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{ .InitiatingUsername }} zmienił ustawienia filtrowania IP dla obszaru roboczego pod adresem URL: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Wyślij wiadomość e-mail do {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Przegląd zmian"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Wystąpił błąd podczas pobierania filtrów IP"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "Filtrowanie IP nie jest dostępne na tym serwerze"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Zmiany w filtrach IP obszaru roboczego"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "Zmiany w filtrowaniu adresów IP dla obszaru roboczego"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Skontaktuj się ze Wsparciem"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Zaloguj się do portalu klienta, aby zresetować filtrowanie adresów IP"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Masz problemy z dostępem do obszaru roboczego?"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Nie można zaktualizować znacznika czasu ostatniego logowania"
   }
 ]

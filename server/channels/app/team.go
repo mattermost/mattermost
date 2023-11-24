@@ -40,7 +40,7 @@ func (w *teamServiceWrapper) GetMember(c request.CTX, teamID, userID string) (*m
 	return w.app.GetTeamMember(c, teamID, userID)
 }
 
-func (w *teamServiceWrapper) CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError) {
+func (w *teamServiceWrapper) CreateMember(ctx request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
 	return w.app.AddTeamMember(ctx, teamID, userID)
 }
 
@@ -167,7 +167,7 @@ func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.A
 	return rteam, nil
 }
 
-func (a *App) CreateTeamWithUser(c *request.Context, team *model.Team, userID string) (*model.Team, *model.AppError) {
+func (a *App) CreateTeamWithUser(c request.CTX, team *model.Team, userID string) (*model.Team, *model.AppError) {
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return nil, err
@@ -388,7 +388,7 @@ func (a *App) RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppErro
 	return updatedTeam, nil
 }
 
-func (a *App) sendTeamEvent(team *model.Team, event string) *model.AppError {
+func (a *App) sendTeamEvent(team *model.Team, event model.WebsocketEventType) *model.AppError {
 	sanitizedTeam := &model.Team{}
 	*sanitizedTeam = *team
 	sanitizedTeam.Sanitize()
@@ -601,7 +601,7 @@ func (a *App) AddUserToTeam(c request.CTX, teamID string, userID string, userReq
 	return team, teamMember, nil
 }
 
-func (a *App) AddUserToTeamByTeamId(c *request.Context, teamID string, user *model.User) *model.AppError {
+func (a *App) AddUserToTeamByTeamId(c request.CTX, teamID string, user *model.User) *model.AppError {
 	team, err := a.Srv().Store().Team().Get(teamID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -619,7 +619,7 @@ func (a *App) AddUserToTeamByTeamId(c *request.Context, teamID string, user *mod
 	return nil
 }
 
-func (a *App) AddUserToTeamByToken(c *request.Context, userID string, tokenID string) (*model.Team, *model.TeamMember, *model.AppError) {
+func (a *App) AddUserToTeamByToken(c request.CTX, userID string, tokenID string) (*model.Team, *model.TeamMember, *model.AppError) {
 	token, err := a.Srv().Store().Token().GetByToken(tokenID)
 	if err != nil {
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -711,7 +711,7 @@ func (a *App) AddUserToTeamByToken(c *request.Context, userID string, tokenID st
 	return team, teamMember, nil
 }
 
-func (a *App) AddUserToTeamByInviteId(c *request.Context, inviteId string, userID string) (*model.Team, *model.TeamMember, *model.AppError) {
+func (a *App) AddUserToTeamByInviteId(c request.CTX, inviteId string, userID string) (*model.Team, *model.TeamMember, *model.AppError) {
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
 		team, err := a.Srv().Store().Team().GetByInviteId(inviteId)
@@ -1066,7 +1066,7 @@ func (a *App) AddTeamMember(c request.CTX, teamID, userID string) (*model.TeamMe
 	return teamMember, nil
 }
 
-func (a *App) AddTeamMembers(c *request.Context, teamID string, userIDs []string, userRequestorId string, graceful bool) ([]*model.TeamMemberWithError, *model.AppError) {
+func (a *App) AddTeamMembers(c request.CTX, teamID string, userIDs []string, userRequestorId string, graceful bool) ([]*model.TeamMemberWithError, *model.AppError) {
 	var membersWithErrors []*model.TeamMemberWithError
 
 	for _, userID := range userIDs {
@@ -1096,7 +1096,7 @@ func (a *App) AddTeamMembers(c *request.Context, teamID string, userIDs []string
 	return membersWithErrors, nil
 }
 
-func (a *App) AddTeamMemberByToken(c *request.Context, userID, tokenID string) (*model.TeamMember, *model.AppError) {
+func (a *App) AddTeamMemberByToken(c request.CTX, userID, tokenID string) (*model.TeamMember, *model.AppError) {
 	_, teamMember, err := a.AddUserToTeamByToken(c, userID, tokenID)
 	if err != nil {
 		return nil, err
@@ -1105,7 +1105,7 @@ func (a *App) AddTeamMemberByToken(c *request.Context, userID, tokenID string) (
 	return teamMember, nil
 }
 
-func (a *App) AddTeamMemberByInviteId(c *request.Context, inviteId, userID string) (*model.TeamMember, *model.AppError) {
+func (a *App) AddTeamMemberByInviteId(c request.CTX, inviteId, userID string) (*model.TeamMember, *model.AppError) {
 	team, teamMember, err := a.AddUserToTeamByInviteId(c, inviteId, userID)
 	if err != nil {
 		return nil, err
@@ -2055,7 +2055,7 @@ func (a *App) RemoveTeamIcon(teamID string) *model.AppError {
 	return nil
 }
 
-func (a *App) InvalidateAllEmailInvites(c *request.Context) *model.AppError {
+func (a *App) InvalidateAllEmailInvites(c request.CTX) *model.AppError {
 	if err := a.Srv().Store().Token().RemoveAllTokensByType(TokenTypeTeamInvitation); err != nil {
 		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2068,7 +2068,7 @@ func (a *App) InvalidateAllEmailInvites(c *request.Context) *model.AppError {
 	return nil
 }
 
-func (a *App) InvalidateAllResendInviteEmailJobs(c *request.Context) *model.AppError {
+func (a *App) InvalidateAllResendInviteEmailJobs(c request.CTX) *model.AppError {
 	jobs, appErr := a.Srv().Jobs.GetJobsByTypeAndStatus(c, model.JobTypeResendInvitationEmail, model.JobStatusPending)
 	if appErr != nil {
 		return appErr

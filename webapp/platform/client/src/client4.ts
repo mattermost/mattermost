@@ -61,6 +61,9 @@ import {
     AdminConfig,
     EnvironmentConfig,
     RequestLicenseBody,
+    AllowedIPRanges,
+    AllowedIPRange,
+    FetchIPResponse,
 } from '@mattermost/types/config';
 import {CustomEmoji} from '@mattermost/types/emojis';
 import {ServerError} from '@mattermost/types/errors';
@@ -214,6 +217,14 @@ export default class Client4 {
 
     setAcceptLanguage(locale: string) {
         this.defaultHeaders['Accept-Language'] = locale;
+    }
+
+    setHeader(header: string, value: string) {
+        this.defaultHeaders[header] = value;
+    }
+
+    removeHeader(header: string) {
+        delete this.defaultHeaders[header];
     }
 
     setEnableLogging(enable: boolean) {
@@ -410,10 +421,6 @@ export default class Client4 {
 
     getSchemesRoute() {
         return `${this.getBaseRoute()}/schemes`;
-    }
-
-    getRedirectLocationRoute() {
-        return `${this.getBaseRoute()}/redirect_location`;
     }
 
     getBotsRoute() {
@@ -2339,13 +2346,15 @@ export default class Client4 {
 
     // General Routes
 
-    ping = () => {
+    ping = (getServerStatus: boolean, deviceId?: string) => {
         return this.doFetch<{
             status: string;
             ActiveSearchBackend: string;
+            database_status: string;
+            filestore_status: string;
         }>(
-            `${this.getBaseRoute()}/system/ping?time=${Date.now()}`,
-            {method: 'get'},
+            `${this.getBaseRoute()}/system/ping${buildQueryString({get_server_status: getServerStatus, device_id: deviceId})}`,
+            {method: 'get', ignoreStatus: true},
         );
     };
 
@@ -2742,6 +2751,13 @@ export default class Client4 {
         return this.doFetch<CustomEmoji>(
             `${this.getEmojisRoute()}/name/${name}`,
             {method: 'get'},
+        );
+    };
+
+    getCustomEmojisByNames = (names: string[]) => {
+        return this.doFetch<CustomEmoji[]>(
+            `${this.getEmojisRoute()}/names`,
+            {method: 'post', body: JSON.stringify(names)},
         );
     };
 
@@ -3675,17 +3691,6 @@ export default class Client4 {
         );
     }
 
-    // Redirect Location
-    getRedirectLocation = (urlParam: string) => {
-        if (!urlParam.length) {
-            return Promise.resolve();
-        }
-        const url = `${this.getRedirectLocationRoute()}${buildQueryString({url: urlParam})}`;
-        return this.doFetch<{
-            location: string;
-        }>(url, {method: 'get'});
-    };
-
     // Bot Routes
 
     createBot = (bot: Bot) => {
@@ -4086,7 +4091,7 @@ export default class Client4 {
             }
         }
 
-        if (response.ok) {
+        if (response.ok || options.ignoreStatus) {
             return {
                 response,
                 headers,
@@ -4158,6 +4163,27 @@ export default class Client4 {
             },
         );
     };
+
+    getIPFilters = () => {
+        return this.doFetch<AllowedIPRange[]>(
+            `${this.getBaseRoute()}/ip_filtering`,
+            {method: 'get'},
+        )
+    }
+
+    getCurrentIP = () => {
+        return this.doFetch<FetchIPResponse>(
+            `${this.getBaseRoute()}/ip_filtering/my_ip`,
+            {method: 'get'},
+        )
+    }
+
+    applyIPFilters = (filters: AllowedIPRanges) => {
+        return this.doFetch<AllowedIPRange[]>(
+            `${this.getBaseRoute()}/ip_filtering`,
+            {method: 'post', body: JSON.stringify(filters)},
+        )
+    }
 
     submitTrueUpReview = () => {
         return this.doFetch(

@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -836,6 +835,11 @@ func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
+		c.SetPermissionError(model.PermissionListTeamChannels)
+		return
+	}
+
 	channels, err := c.App.GetDeletedChannels(c.AppContext, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -1460,9 +1464,8 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := c.AppContext
-	ctx.SetContext(app.WithMaster(ctx.Context()))
-	member, err := c.App.GetChannelMember(ctx, c.Params.ChannelId, c.Params.UserId)
+	c.AppContext = c.AppContext.With(app.RequestContextWithMaster)
+	member, err := c.App.GetChannelMember(c.AppContext, c.Params.ChannelId, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -2004,7 +2007,7 @@ func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Reque
 
 	includeTimezones := r.URL.Query().Get("include_timezones") == "true"
 
-	channelMemberCounts, appErr := c.App.GetMemberCountsByGroup(app.WithMaster(context.Background()), c.Params.ChannelId, includeTimezones)
+	channelMemberCounts, appErr := c.App.GetMemberCountsByGroup(c.AppContext.With(app.RequestContextWithMaster), c.Params.ChannelId, includeTimezones)
 	if appErr != nil {
 		c.Err = appErr
 		return
