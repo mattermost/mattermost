@@ -554,7 +554,7 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
 	}
 }
 
-func (s *Server) doElasticsearchFixChannelIndex(c *request.CTX) {
+func (s *Server) doElasticsearchFixChannelIndex(c request.CTX) {
 	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.elasticsearchFixChannelIndex(c, newLicense)
 	})
@@ -562,7 +562,7 @@ func (s *Server) doElasticsearchFixChannelIndex(c *request.CTX) {
 	s.elasticsearchFixChannelIndex(c, s.License())
 }
 
-func (s *Server) elasticsearchFixChannelIndex(c *request.CTX, license *model.License) {
+func (s *Server) elasticsearchFixChannelIndex(c request.CTX, license *model.License) {
 	if model.BuildEnterpriseReady != "true" || license == nil || !*license.Features.Elasticsearch {
 		mlog.Debug("Skipping triggering Elasticsearch channel index fix job as build is not Enterprise ready")
 		return
