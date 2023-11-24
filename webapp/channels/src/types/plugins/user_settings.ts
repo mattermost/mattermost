@@ -8,21 +8,24 @@ export type PluginConfiguration = {
     settings: PluginConfigurationSetting[];
 }
 
-type BasePluginConfigurationSetting = {
+export type BasePluginConfigurationSetting = {
     name: string;
     title: string;
     helpText?: string;
     onSubmit?: (name: string, value: string) => void;
-    default: string;
+    default?: string;
 }
 
-type PluginConfigurationRadioSetting = BasePluginConfigurationSetting & {
+export type PluginConfigurationRadioSetting = BasePluginConfigurationSetting & {
     type: 'radio';
-    options: Array<{
-        value: string;
-        text: string;
-        helpText?: string;
-    }>;
+    default: string;
+    options: PluginConfigurationRadioSettingOption[];
+}
+
+export type PluginConfigurationRadioSettingOption = {
+    value: string;
+    text: string;
+    helpText?: string;
 }
 
 export type PluginConfigurationSetting = PluginConfigurationRadioSetting

@@ -9,9 +9,6 @@ import {appBarEnabled, getAppBarAppBindings} from 'mattermost-redux/selectors/en
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {createShallowSelector} from 'mattermost-redux/utils/helpers';
 
-import {isValidPluginConfiguration} from 'utils/plugins/plugin_setting_validation';
-
-import type {PluginConfiguration} from 'types/plugins/user_settings';
 import type {GlobalState} from 'types/store';
 import type {FileDropdownPluginComponent, PluginComponent} from 'types/store/plugins';
 
@@ -41,13 +38,7 @@ export const getPluginUserSettings = createSelector(
             };
         }
 
-        return Object.keys(settings).reduce<{[pluginId: string]: PluginConfiguration}>((prev, curr) => {
-            const setting = settings[curr];
-            if (isValidPluginConfiguration(setting) && curr === setting.id) {
-                prev[curr] = setting;
-            }
-            return prev;
-        }, {});
+        return settings || [];
     },
 );
 
