@@ -450,26 +450,34 @@
     font-size: 12px;
     gap: 6px;
 
+    &:hover,
+    &:focus,
+    &:active {
+        text-decoration: none;
+    }
+
+    >span {
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
     >i {
         display: inline-flex !important;
+        align-items: center;
         padding: 4px;
         background-color: hsla(221, 77%, 48%, 0.08);
         border-radius: 50%;
         font-size: 14px !important;
+        gap: 10px;
 
         &::before {
             margin: 0;
         }
-    }
-
-    span {
-        font-size: 12px;
-        font-weight: 600;
-        line-height: 16px;
-    }
-
-    &:hover {
-        text-decoration: none;
     }
 }
 
