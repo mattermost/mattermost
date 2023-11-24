@@ -71,10 +71,6 @@ function extractPluginConfigurationSetting(setting: unknown) {
         return undefined;
     }
 
-    if (!('default' in setting) || !setting.default || typeof setting.default !== 'string') {
-        return undefined;
-    }
-
     let helpText;
     if ('helpText' in setting && setting.helpText) {
         if (typeof setting.helpText === 'string') {
@@ -107,7 +103,7 @@ function extractPluginConfigurationSetting(setting: unknown) {
     }
 
     const res: BasePluginConfigurationSetting = {
-        default: setting.default,
+        default: defaultValue,
         name: setting.name,
         title: setting.title,
         helpText,

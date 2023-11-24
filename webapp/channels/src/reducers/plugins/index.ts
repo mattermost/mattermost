@@ -11,7 +11,7 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
-import {extractPluginConfiguration} from 'utils/plugins/plugin_setting_validation';
+import {extractPluginConfiguration} from 'utils/plugins/plugin_setting_extraction';
 
 import type {PluginsState, PluginComponent, AdminConsolePluginComponent, Menu} from 'types/store/plugins';
 
@@ -397,7 +397,8 @@ function userSettings(state: PluginsState['userSettings'] = {}, action: GenericA
                 return state;
             }
             if (extractedConfiguration.id !== action.data.pluginId) {
-                console.warn(`There is a mismatch between the plugin ${action.data.pluginId} and the configuration added (${extractedConfiguration.id})`)
+                // eslint-disable-next-line no-console
+                console.warn(`There is a mismatch between the plugin ${action.data.pluginId} and the configuration added (${extractedConfiguration.id})`);
                 return state;
             }
             const nextState = {...state};
