@@ -535,12 +535,30 @@ func (s SqlSharedChannelStore) GetRemoteForUser(remoteId string, userId string) 
 
 // UpdateRemoteCursor updates the LastPostUpdateAt timestamp and LastPostUpdateId for the specified SharedChannelRemote.
 func (s SqlSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
-	squery, args, err := s.getQueryBuilder().
+	var updateNeeded bool
+
+	builder := s.getQueryBuilder().
 		Update("SharedChannelRemotes").
-		Set("LastPostUpdateAt", cursor.LastPostUpdateAt).
-		Set("LastPostUpdateId", cursor.LastPostUpdateID).
-		Where(sq.Eq{"Id": id}).
-		ToSql()
+		Where(sq.Eq{"Id": id})
+
+	if cursor.LastPostCreateAt > 0 || cursor.LastPostCreateID != "" {
+		builder = builder.Set("LastPostCreateAt", cursor.LastPostCreateAt)
+		builder = builder.Set("LastPostCreateId", cursor.LastPostCreateID)
+		updateNeeded = true
+	}
+
+	if cursor.LastPostUpdateAt > 0 || cursor.LastPostUpdateID != "" {
+		builder = builder.Set("LastPostUpdateAt", cursor.LastPostUpdateAt)
+		builder = builder.Set("LastPostUpdateId", cursor.LastPostUpdateID)
+		updateNeeded = true
+	}
+
+	if !updateNeeded {
+		// no new cursor provided.
+		return fmt.Errorf("cursor empty")
+	}
+
+	squery, args, err := builder.ToSql()
 	if err != nil {
 		return errors.Wrap(err, "update_shared_channel_remote_cursor_tosql")
 	}

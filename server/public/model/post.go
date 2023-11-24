@@ -328,12 +328,15 @@ type GetPostsSinceOptions struct {
 type GetPostsSinceForSyncCursor struct {
 	LastPostUpdateAt int64
 	LastPostUpdateID string
+	LastPostCreateAt int64
+	LastPostCreateID string
 }
 
 type GetPostsSinceForSyncOptions struct {
 	ChannelId       string
 	ExcludeRemoteId string
 	IncludeDeleted  bool
+	SinceCreateAt   bool // determines whether the cursor will be based on CreateAt or UpdateAt
 }
 
 type GetPostsOptions struct {

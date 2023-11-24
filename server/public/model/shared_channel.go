@@ -102,6 +102,8 @@ type SharedChannelRemote struct {
 	RemoteId          string `json:"remote_id"`
 	LastPostUpdateAt  int64  `json:"last_post_update_at"`
 	LastPostUpdateID  string `json:"last_post_id"`
+	LastPostCreateAt  int64  `json:"last_post_create_at"`
+	LastPostCreateID  string `json:"last_post_create_id"`
 }
 
 func (sc *SharedChannelRemote) IsValid() *AppError {

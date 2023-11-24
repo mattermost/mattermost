@@ -46,7 +46,7 @@ func newSyncData(task syncTask, rc *model.RemoteCluster, scr *model.SharedChanne
 		scr:              scr,
 		users:            make(map[string]*model.User),
 		profileImages:    make(map[string]*model.User),
-		resultNextCursor: model.GetPostsSinceForSyncCursor{LastPostUpdateAt: scr.LastPostUpdateAt, LastPostUpdateID: scr.LastPostUpdateID},
+		resultNextCursor: model.GetPostsSinceForSyncCursor{LastPostTimestamp: scr.LastPostUpdateAt, LastPostID: scr.LastPostUpdateID},
 	}
 }
 
@@ -55,7 +55,8 @@ func (sd *syncData) isEmpty() bool {
 }
 
 func (sd *syncData) isCursorChanged() bool {
-	return sd.scr.LastPostUpdateAt != sd.resultNextCursor.LastPostUpdateAt || sd.scr.LastPostUpdateID != sd.resultNextCursor.LastPostUpdateID
+	return sd.scr.LastPostCreateAt != sd.resultNextCursor.LastPostCreateAt || sd.scr.LastPostCreateID != sd.resultNextCursor.LastPostCreateID ||
+		sd.scr.LastPostUpdateAt != sd.resultNextCursor.LastPostUpdateAt || sd.scr.LastPostUpdateID != sd.resultNextCursor.LastPostUpdateID
 }
 
 // syncForRemote updates a remote cluster with any new posts/reactions for a specific
@@ -186,15 +187,15 @@ func (scs *Service) fetchUsersForSync(sd *syncData) error {
 	return nil
 }
 
-// fetchPostsForSync populates the sync data with any new posts since the last sync.
+// fetchPostsForSync populates the sync data with any new or edited posts since the last sync.
 func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	options := model.GetPostsSinceForSyncOptions{
 		ChannelId:      sd.task.channelID,
 		IncludeDeleted: true,
 	}
 	cursor := model.GetPostsSinceForSyncCursor{
-		LastPostUpdateAt: sd.scr.LastPostUpdateAt,
-		LastPostUpdateID: sd.scr.LastPostUpdateID,
+		LastPostTimestamp: sd.scr.LastPostUpdateAt,
+		LastPostID:        sd.scr.LastPostUpdateID,
 	}
 
 	posts, nextCursor, err := scs.server.GetStore().Post().GetPostsSinceForSync(options, cursor, MaxPostsPerSync)
@@ -212,7 +213,7 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		if p.RootId != "" {
 			root, err := scs.server.GetStore().Post().GetSingle(p.RootId, true)
 			if err == nil {
-				if (root.CreateAt >= cursor.LastPostUpdateAt || root.UpdateAt >= cursor.LastPostUpdateAt) && !containsPost(sd.posts, root) {
+				if (root.CreateAt >= cursor.LastPostTimestamp || root.UpdateAt >= cursor.LastPostTimestamp) && !containsPost(sd.posts, root) {
 					sd.posts = append(sd.posts, root)
 				}
 			}
