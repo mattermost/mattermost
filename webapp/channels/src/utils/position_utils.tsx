@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ComponentProps} from 'react'
+import type {ComponentProps} from 'react';
 import type {Overlay} from 'react-bootstrap';
 
 export function popOverOverlayPosition(

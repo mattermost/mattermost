@@ -4,6 +4,7 @@
 import React from 'react';
 import {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+import type {RouteComponentProps} from 'react-router';
 
 import type {TermsOfService as ReduxTermsOfService} from '@mattermost/types/terms_of_service';
 
@@ -22,8 +23,6 @@ import {Constants} from 'utils/constants';
 import type EmojiMap from 'utils/emoji_map';
 import messageHtmlToComponent from 'utils/message_html_to_component';
 import {formatText} from 'utils/text_formatting';
-
-import type {RouteComponentProps} from 'react-router'
 
 export interface UpdateMyTermsOfServiceStatusResponse {
     terms_of_service_create_at: number;

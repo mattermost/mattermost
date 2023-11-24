@@ -3,12 +3,12 @@
 
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
 
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 import type {DeepPartial} from '@mattermost/types/utilities';
-import type {RouteComponentProps} from 'react-router-dom';
 
 import type {ActionFunc} from 'mattermost-redux/types/actions';
 
