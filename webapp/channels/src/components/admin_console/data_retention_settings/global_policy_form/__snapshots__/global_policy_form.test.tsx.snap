@@ -54,7 +54,6 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                     "value": "FOREVER",
                   }
                 }
-                disabled={false}
                 dropdownClassNamePrefix="channel_message_retention_dropdown"
                 exceptionToInput={
                   Array [
@@ -142,7 +141,6 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                     "value": "FOREVER",
                   }
                 }
-                disabled={false}
                 dropdownClassNamePrefix="file_retention_dropdown"
                 exceptionToInput={
                   Array [
