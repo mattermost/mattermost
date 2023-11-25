@@ -9,7 +9,7 @@ import ReactSelect, {components} from 'react-select';
 import type {getOptionValue} from 'react-select/src/builtins';
 import type {InputActionMeta} from 'react-select/src/types';
 
-import LocalizedIcon from 'components/localized_icon';
+import <i/> from 'components/<i/>';
 import SaveButton from 'components/save_button';
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import Avatar from 'components/widgets/users/avatar';
@@ -332,7 +332,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
             noteTextContainer = (
                 <div className='multi-select__note'>
                     <div className='note__icon'>
-                        <LocalizedIcon
+                        <<i/>
                             className='fa fa-info'
                             title={{id: 'generic_icons.info', defaultMessage: 'Info Icon'}}
                         />
