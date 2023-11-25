@@ -12,7 +12,6 @@ import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
 import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
 
 interface Props {
     channel: Channel;
@@ -85,9 +84,9 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
                     aria-label='Close'
                     onClick={onClose}
                 >
-                    <LocalizedIcon
+                    <i
                         className='icon icon-close'
-                        ariaLabel={{id: t('rhs_header.closeTooltip.icon'), defaultMessage: 'Close Sidebar Icon'}}
+                        ariaLabel={{id: FormattedMessage('rhs_header.closeTooltip.icon'), defaultMessage: 'Close Sidebar Icon'}}
                     />
                 </button>
             </OverlayTrigger>
