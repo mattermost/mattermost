@@ -44,7 +44,6 @@
     align-items: center;
     justify-content: center;
     margin: 22px;
-    background: rgba(var(--center-channel-color-rgb), 0.08);
     border-radius: 100%;
 }
 
@@ -57,12 +56,16 @@
     line-height: 20px;
 }
 
+.no-results__subtitle {
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+}
+
 .no-results__icon {
     display: flex;
 
     svg {
-        width: 62px;
-        height: 62px;
+        width: 140px;
+        height: 140px;
         fill: var(--button-bg);
     }
 

@@ -710,6 +710,24 @@ export function makeGetUniqueReactionsToPost(): (state: GlobalState, postId: Pos
     );
 }
 
+export function makeGetIsReactionAlreadyAddedToPost(): (state: GlobalState, postId: Post['id'], emojiName: string) => boolean {
+    const getUniqueReactionsToPost = makeGetUniqueReactionsToPost();
+
+    return createSelector(
+        'makeGetIsReactionAlreadyAddedToPost',
+        (state: GlobalState, postId: string) => getUniqueReactionsToPost(state, postId),
+        getCurrentUserId,
+        (state: GlobalState, postId: string, emojiName: string) => emojiName,
+        (reactions, currentUserId, emojiName) => {
+            const reactionsForPost = reactions || {};
+
+            const isReactionAlreadyAddedToPost = Object.values(reactionsForPost).some((reaction) => reaction.user_id === currentUserId && reaction.emoji_name === emojiName);
+
+            return isReactionAlreadyAddedToPost;
+        },
+    );
+}
+
 export function getMentionDetails(usersByUsername: Record<string, UserProfile | Group>, mentionName: string): UserProfile | Group | undefined {
     let mentionNameToLowerCase = mentionName.toLowerCase();
 

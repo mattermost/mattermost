@@ -77,6 +77,12 @@ describe('components/Menu', () => {
             channels: {
                 myMembers: [],
             },
+            general: {
+                config: {},
+                license: {
+                    Cloud: 'false',
+                },
+            },
             teams: {
                 currentTeamId: 'team-id',
                 myMembers: {

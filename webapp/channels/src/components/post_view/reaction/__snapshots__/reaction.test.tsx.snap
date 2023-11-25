@@ -13,6 +13,12 @@ exports[`components/post_view/Reaction should apply read-only class if user does
         canAddReactions={false}
         canRemoveReactions={true}
         currentUserReacted={false}
+        emojiIcon={
+          <img
+            className="Reaction__emoji emoticon"
+            src="emoji_image_url"
+          />
+        }
         emojiName="smile"
         reactions={
           Array [
@@ -97,6 +103,12 @@ exports[`components/post_view/Reaction should apply read-only class if user does
         canAddReactions={true}
         canRemoveReactions={false}
         currentUserReacted={true}
+        emojiIcon={
+          <img
+            className="Reaction__emoji emoticon"
+            src="emoji_image_url"
+          />
+        }
         emojiName="smile"
         reactions={
           Array [
@@ -181,6 +193,12 @@ exports[`components/post_view/Reaction should match snapshot 1`] = `
         canAddReactions={true}
         canRemoveReactions={true}
         currentUserReacted={false}
+        emojiIcon={
+          <img
+            className="Reaction__emoji emoticon"
+            src="emoji_image_url"
+          />
+        }
         emojiName="smile"
         reactions={
           Array [
@@ -265,6 +283,12 @@ exports[`components/post_view/Reaction should match snapshot when a current user
         canAddReactions={true}
         canRemoveReactions={true}
         currentUserReacted={true}
+        emojiIcon={
+          <img
+            className="Reaction__emoji emoticon"
+            src="emoji_image_url"
+          />
+        }
         emojiName="smile"
         reactions={
           Array [
