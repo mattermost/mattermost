@@ -37,6 +37,7 @@ type State = {
     shouldFetchTeam?: boolean;
 }
 
+// LearnAboutTeamsLink check https://github.com/mattermost/mattermost/blob/af7bc8a4a90d8c4c17a82dc86bc898d378dec2ff/webapp/channels/src/components/team_general_tab/team_general_tab.tsx#L10
 export class InfoTab extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
