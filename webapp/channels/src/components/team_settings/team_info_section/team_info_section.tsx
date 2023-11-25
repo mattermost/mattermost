@@ -256,7 +256,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
         const nameSectionInput = (
             <Input
                 id='teamName'
-                autoFocus={true}
                 className='form-control'
                 type='text'
                 maxLength={Constants.MAX_TEAMNAME_LENGTH}
@@ -288,7 +287,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
         const descriptionSectionInput = (
             <Input
                 id='teamDescription'
-                autoFocus={true}
                 className='form-control'
                 containerClassName='description-section-input'
                 type='textarea'

@@ -27,22 +27,14 @@ const TeamSettings = ({
     let result;
     switch (activeTab) {
     case 'info':
-        result = (
-            <div>
-                <InfoTab
-                    team={team}
-                />
-            </div>
-        );
+        result = <InfoTab team={team}/>;
         break;
     case 'access':
         result = (
-            <div>
-                <AccessTab
-                    team={team}
-                    closeModal={closeModal}
-                />
-            </div>
+            <AccessTab
+                team={team}
+                closeModal={closeModal}
+            />
         );
         break;
     default:
