@@ -85,9 +85,9 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
                     aria-label='Close'
                     onClick={onClose}
                 >
-                    <LocalizedIcon
+                    <span
                         className='icon icon-close'
-                        ariaLabel={{id: t('rhs_header.closeTooltip.icon'), defaultMessage: 'Close Sidebar Icon'}}
+                        ariaLabel={{id: FormattedMessage('rhs_header.closeTooltip.icon'), defaultMessage: 'Close Sidebar Icon'}}
                     />
                 </button>
             </OverlayTrigger>
