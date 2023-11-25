@@ -14,4 +14,13 @@
     #teamName, #teamDescription {
         background-color: unset;
     }
+
+    .picture-setting-item {
+        flex: 1;
+        margin-left: 40px;
+    }
+
+    .description-setting-item {
+        margin-top: 24px;
+    }
 }

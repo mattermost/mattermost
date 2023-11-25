@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
@@ -14,9 +15,10 @@ export type BaseSettingItemProps = {
 
 type Props = BaseSettingItemProps & {
     content: JSX.Element;
+    className?: string;
 }
 
-function BaseSettingItem({title, description, content}: Props): JSX.Element {
+function BaseSettingItem({title, description, content, className}: Props): JSX.Element {
     const {formatMessage} = useIntl();
     const Title = title && (
         <h4 className='mm-modal-generic-section-item__title'>
@@ -30,8 +32,10 @@ function BaseSettingItem({title, description, content}: Props): JSX.Element {
         </p>
     );
 
+    const getClassName = classNames('mm-modal-generic-section-item', className);
+
     return (
-        <div className='mm-modal-generic-section-item'>
+        <div className={getClassName}>
             {Title}
             <div className='mm-modal-generic-section-item__content'>
                 {content}

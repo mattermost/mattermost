@@ -15,10 +15,11 @@ import ModalSection from 'components/widgets/modals/components/modal_section';
 import Constants from 'utils/constants';
 import {imageURLForTeam, localizeMessage, moveCursorToEnd} from 'utils/utils';
 
+import TeamPictureSection from '../team_picture_section/team_picture_section';
+
 import type {PropsFromRedux, OwnProps} from '.';
 
 import './team_info_section.scss';
-import TeamPictureSection from '../team_picture_section/team_picture_section';
 
 const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
 
@@ -277,7 +278,8 @@ export class InfoTab extends React.PureComponent<Props, State> {
 
         const nameSection = (
             <BaseSettingItem
-                description={{id: 'general_tab.teamNameInfo', defaultMessage: 'Set the name of the team as it appears on your sign-in screen and at the top of the left-hand sidebar.'}}
+                title={{id: 'general_tab.teamInfo', defaultMessage: 'Team info'}}
+                description={{id: 'general_tab.teamNameInfo', defaultMessage: 'This name will appear on your sign-in screen and at the top of the left sidebar.'}}
                 content={nameSectionInput}
             />
         );
@@ -311,13 +313,14 @@ export class InfoTab extends React.PureComponent<Props, State> {
             <BaseSettingItem
                 description={{id: 'general_tab.teamDescriptionInfo', defaultMessage: 'Team description provides additional information to help users select the right team. Maximum of 50 characters.'}}
                 content={descriptionSectionInput}
+                className='description-setting-item'
             />
         );
 
         const helpText = (
             <FormattedMessage
                 id='setting_picture.help.team'
-                defaultMessage='Upload a team icon in BMP, JPG or PNG format.\nSquare images with a solid background color are recommended.'
+                defaultMessage='Upload a picture in BMP, JPG, JPEG, or PNG format. \nMaximum file size: 50MB'
             />
         );
         const teamIconSection = (
@@ -345,32 +348,29 @@ export class InfoTab extends React.PureComponent<Props, State> {
             />
         );
 
+        // todo sinan: fix spacing above 50MB
         const teamIconSection1 = (
-
-            //todo sinan: add to en.json
             <BaseSettingItem
-                title={{id: 'team_picture.title', description: 'Team icon'}}
-                description={{id: 'setting_picture.help.team', defaultMessage: 'Upload a team icon in BMP, JPG or PNG format.\nSquare images with a solid background color are recommended.'}}
+                title={{id: 'setting_picture.title', description: 'Team icon'}}
+                description={{id: 'setting_picture.help.team', defaultMessage: 'Upload a picture in BMP, JPG, JPEG, or PNG format. \nMaximum file size: 50MB'}}
                 content={teamPictureSection}
-                css={{flex: '1'}} // todo sinan: not working, fix the width
+                className='picture-setting-item'
             />
         );
 
-        // todo sinan: check mobile design view in Figma
+        // todo sinan: check mobile view in Figma
         const modalSectionContent = (
             <div className='modal-info-tab-content' >
                 <div className='name-description-container' >
                     {nameSection}
                     {descriptionSection}
                 </div>
-                {/* {teamIconSection} */}
                 {teamIconSection1}
             </div>
         );
 
         return (
             <ModalSection
-                title={{id: 'general_tab.teamName', defaultMessage: 'Team Name'}}
                 content={modalSectionContent}
             />
         );
