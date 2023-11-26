@@ -18,6 +18,14 @@
     .picture-setting-item {
         flex: 1;
         margin-left: 40px;
+
+        &__remove-button {
+            display: flex;
+            align-items: center;
+            text-align: left;
+            margin-top: 18px;
+            color: var(--denim-status-do-not-disturb, var(--dnd-indicator, #D24B4E));
+        }
     }
 
     .description-setting-item {

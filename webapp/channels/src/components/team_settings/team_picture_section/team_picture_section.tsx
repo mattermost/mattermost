@@ -2,6 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React, {type ChangeEvent, useRef, useState, useEffect} from 'react';
+import {useIntl} from 'react-intl';
+
+import {TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 
 import EditIcon from 'components/widgets/icons/fa_edit_icon';
 
@@ -17,13 +20,13 @@ type Props = {
     loadingPicture?: boolean;
     onFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
     onRemove?: () => void;
-    onSubmit?: (() => void) | null;
 };
 
 const TeamPictureSection = (props: Props) => {
     const selectInput = useRef<HTMLInputElement>(null);
     const [image, setImage] = useState<string>('');
     const [orientationStyles, setOrientationStyles] = useState<{transform: string; transformOrigin: string}>();
+    const int = useIntl();
 
     useEffect(() => {
         if (props.file) {
@@ -107,11 +110,30 @@ const TeamPictureSection = (props: Props) => {
         }
     };
 
+    const removeImageButton = () => {
+        return (
+
+            // todo sinan: check why on remove is not putting 2 characters from team name
+            // todo sinan: red color is not applied
+            // todo show dynamically remove icon or description
+            <button
+                onClick={props.onRemove}
+                className='color--link style--none picture-setting-item__remove-button'
+            >
+                <TrashCanOutlineIcon/>
+                {int.formatMessage({id: 'setting_picture.remove_image', defaultMessage: 'Remove image'})}
+            </button>
+        );
+    };
+
     return (
-        <div className='team-picture-section' >
-            {teamImage()}
-            {editIcon()}
-        </div>
+        <>
+            <div className='team-picture-section' >
+                {teamImage()}
+                {editIcon()}
+            </div>
+            {removeImageButton()}
+        </>
     );
 };
 

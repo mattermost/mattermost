@@ -381,6 +381,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
                 file={this.state.teamIconFile}
                 loadingPicture={this.state.loadingIcon}
                 onFileChange={this.updateTeamIcon}
+                onRemove={this.handleTeamIconRemove}
             />
         );
 
@@ -404,7 +405,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
                 {teamIconSection1}
                 {this.state.haveChanges || this.state.haveImageChanges ?
                     <SaveChangesPanel
-                        handleCancel={this.handleCancel} // todo handle cancel
+                        handleCancel={this.handleCancel}
                         handleSubmit={this.handleSaveChanges}
                     /> : undefined}
             </div>

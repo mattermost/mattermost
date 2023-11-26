@@ -4738,6 +4738,7 @@
   "setting_picture.help.profile.example": "Upload a picture in BMP, JPG or PNG format. Maximum file size: {max}",
   "setting_picture.help.team": "Upload a picture in BMP, JPG, JPEG, or PNG format. \nMaximum file size: 50MB",
   "setting_picture.remove": "Remove This Icon",
+  "setting_picture.remove_image": "Remove image",
   "setting_picture.remove_profile_picture": "Remove Profile Picture",
   "setting_picture.save": "Save",
   "setting_picture.select": "Select",
