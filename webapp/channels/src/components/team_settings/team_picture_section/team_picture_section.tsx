@@ -69,23 +69,25 @@ const TeamPictureSection = (props: Props) => {
         if (props.file) {
             const imageStyles = {
                 backgroundImage: 'url(' + image + ')',
+                backgroundSize: 'cover',
                 ...orientationStyles,
             };
 
             return (
-                <div className={'team-img-preview'}>
-                    <div className='img-preview__image'>
-                        <div
-                            alt={'team image preview'}
-                            style={imageStyles}
-                            className={'team-img-preview'}
-                        />
-                    </div>
-                </div>
+                <div
+                    alt='team image preview'
+                    style={imageStyles}
+                    className='team-img-preview'
+                />
             );
         }
         if (props.src) {
-            return <img src={props.src}/>;
+            return (
+                <img
+                    className='team-img-preview'
+                    src={props.src}
+                />
+            );
         }
         return (
             <div className='team-picture-section__team-icon' >
@@ -113,7 +115,6 @@ const TeamPictureSection = (props: Props) => {
     const removeImageButton = () => {
         return (
 
-            // todo sinan: check why on remove is not putting 2 characters from team name
             // todo show dynamically remove icon or description
             <button
                 onClick={props.onRemove}

@@ -382,6 +382,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
                 loadingPicture={this.state.loadingIcon}
                 onFileChange={this.updateTeamIcon}
                 onRemove={this.handleTeamIconRemove}
+                teamName={this.props.team?.display_name ?? this.props.team?.name}
             />
         );
 
