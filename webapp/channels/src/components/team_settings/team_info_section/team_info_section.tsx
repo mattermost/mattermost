@@ -11,6 +11,7 @@ import SettingPicture from 'components/setting_picture';
 import Input from 'components/widgets/inputs/input/input';
 import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
 import ModalSection from 'components/widgets/modals/components/modal_section';
+import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
 
 import Constants from 'utils/constants';
 import {imageURLForTeam, localizeMessage} from 'utils/utils';
@@ -32,8 +33,11 @@ type State = {
     clientError: ReactNode;
     teamIconFile: File | null;
     loadingIcon: boolean;
+    submitActive: boolean;
     isInitialState: boolean;
     shouldFetchTeam?: boolean;
+    haveChanges: boolean;
+    haveImageChanges: boolean;
 }
 
 // todo sinan: LearnAboutTeamsLink check https://github.com/mattermost/mattermost/blob/af7bc8a4a90d8c4c17a82dc86bc898d378dec2ff/webapp/channels/src/components/team_general_tab/team_general_tab.tsx#L10
@@ -54,6 +58,9 @@ export class InfoTab extends React.PureComponent<Props, State> {
             clientError: '',
             teamIconFile: null,
             loadingIcon: false,
+            submitActive: false,
+            haveChanges: false,
+            haveImageChanges: false,
             isInitialState: true,
         };
     }
@@ -169,8 +176,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
     };
 
     handleTeamIconSubmit = async () => {
-        if (!this.state.teamIconFile) {
-            console.log('return because of this.state.teamIconFile:', !this.state.teamIconFile);
+        if (!this.state.teamIconFile || !this.state.submitActive) {
             return;
         }
 
@@ -180,9 +186,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
             serverError: '',
         });
 
-        const {data, error} = await this.props.actions.setTeamIcon(this.props.team?.id || '', this.state.teamIconFile);
-
-        console.log('data: ', data);
+        const {error} = await this.props.actions.setTeamIcon(this.props.team?.id || '', this.state.teamIconFile);
 
         if (error) {
             this.setState({
@@ -193,8 +197,38 @@ export class InfoTab extends React.PureComponent<Props, State> {
             console.log('uploading completed');
             this.setState({
                 loadingIcon: false,
+                submitActive: false,
             });
         }
+    };
+
+    handleSaveChanges = async () => {
+        // todo sinan handle case when there is no display name
+        if (this.state.name !== this.props.team?.display_name) {
+            await this.handleNameSubmit();
+        }
+
+        if (this.state.description !== this.props.team?.description) {
+            await this.handleDescriptionSubmit();
+        }
+
+        if (this.state.haveImageChanges) {
+            await this.handleTeamIconSubmit();
+        }
+        this.setState({
+            haveChanges: false,
+            haveImageChanges: false,
+        });
+    };
+
+    handleCancel = () => {
+        this.setState({
+            name: this.props.team?.display_name || this.props.team?.name,
+            description: this.props.team?.description,
+            teamIconFile: null,
+            haveChanges: false,
+            haveImageChanges: false,
+        });
     };
 
     handleTeamIconRemove = async () => {
@@ -214,18 +248,18 @@ export class InfoTab extends React.PureComponent<Props, State> {
         } else {
             this.setState({
                 loadingIcon: false,
+                submitActive: false,
             });
         }
     };
 
-    updateName = (e: ChangeEvent<HTMLInputElement>) => this.setState({name: e.target.value});
+    updateName = (e: ChangeEvent<HTMLInputElement>) => this.setState({name: e.target.value, haveChanges: true});
 
-    updateDescription = (e: ChangeEvent<HTMLInputElement>) => this.setState({description: e.target.value});
+    updateDescription = (e: ChangeEvent<HTMLInputElement>) => this.setState({description: e.target.value, haveChanges: true});
 
     updateTeamIcon = (e: ChangeEvent<HTMLInputElement>) => {
         if (e && e.target && e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            console.log('file: ', file);
 
             if (!ACCEPTED_TEAM_IMAGE_TYPES.includes(file.type)) {
                 this.setState({
@@ -239,7 +273,9 @@ export class InfoTab extends React.PureComponent<Props, State> {
                 this.setState({
                     teamIconFile: e.target.files[0],
                     clientError: '',
-                }, () => this.handleTeamIconSubmit());
+                    submitActive: true,
+                    haveImageChanges: true,
+                });
             }
         } else {
             this.setState({
@@ -337,12 +373,14 @@ export class InfoTab extends React.PureComponent<Props, State> {
             />
         );
 
+        const teamImageSource = imageURLForTeam(team || {} as Team);
+
         const teamPictureSection = (
             <TeamPictureSection
-                src={imageURLForTeam(team || {} as Team)}
-                teamName={team?.display_name}
-                onFileChange={this.updateTeamIcon}
+                src={teamImageSource}
+                file={this.state.teamIconFile}
                 loadingPicture={this.state.loadingIcon}
+                onFileChange={this.updateTeamIcon}
             />
         );
 
@@ -350,7 +388,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
         const teamIconSection1 = (
             <BaseSettingItem
                 title={{id: 'setting_picture.title', description: 'Team icon'}}
-                description={{id: 'setting_picture.help.team', defaultMessage: 'Upload a picture in BMP, JPG, JPEG, or PNG format. \nMaximum file size: 50MB'}}
+                description={teamImageSource ? undefined : {id: 'setting_picture.help.team', defaultMessage: 'Upload a picture in BMP, JPG, JPEG, or PNG format. \nMaximum file size: 50MB'}}
                 content={teamPictureSection}
                 className='picture-setting-item'
             />
@@ -364,6 +402,11 @@ export class InfoTab extends React.PureComponent<Props, State> {
                     {descriptionSection}
                 </div>
                 {teamIconSection1}
+                {this.state.haveChanges || this.state.haveImageChanges ?
+                    <SaveChangesPanel
+                        handleCancel={this.handleCancel} // todo handle cancel
+                        handleSubmit={this.handleSaveChanges}
+                    /> : undefined}
             </div>
         );
 
