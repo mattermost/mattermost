@@ -114,11 +114,10 @@ const TeamPictureSection = (props: Props) => {
         return (
 
             // todo sinan: check why on remove is not putting 2 characters from team name
-            // todo sinan: red color is not applied
             // todo show dynamically remove icon or description
             <button
                 onClick={props.onRemove}
-                className='color--link style--none picture-setting-item__remove-button'
+                className='style--none picture-setting-item__remove-button'
             >
                 <TrashCanOutlineIcon/>
                 {int.formatMessage({id: 'setting_picture.remove_image', defaultMessage: 'Remove image'})}
