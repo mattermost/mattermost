@@ -720,7 +720,6 @@
   "channel_members_modal.addNew": "Dodaj člane",
   "channel_members_modal.members": "Člani",
   "channel_modal.cancel": "Prekliči",
-  "channel_notifications.muteChannel.settings": "Utišaj kanal",
   "channel_notifications.preferences": "Nastavitve obvestil",
   "channel_switch_modal.deactivated": "Onemogočeno",
   "claim.email_to_ldap.enterPwd": "Vnesi novo geslo za uporabniški račun {site}.",

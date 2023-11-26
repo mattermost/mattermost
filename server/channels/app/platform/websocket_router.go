@@ -36,7 +36,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		return
 	}
 
-	if r.Action == model.WebsocketAuthenticationChallenge {
+	if r.Action == string(model.WebsocketAuthenticationChallenge) {
 		if conn.GetSessionToken() != "" {
 			return
 		}
@@ -96,7 +96,7 @@ func returnWebSocketError(ps *PlatformService, conn *WebConn, r *model.WebSocket
 	}
 	logF(
 		"websocket routing error.",
-		mlog.Int64("seq", r.Seq),
+		mlog.Int("seq", r.Seq),
 		mlog.String("user_id", conn.UserId),
 		mlog.String("system_message", err.SystemMessage(i18n.T)),
 		mlog.Err(err),

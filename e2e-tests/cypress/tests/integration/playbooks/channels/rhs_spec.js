@@ -81,7 +81,7 @@ describe('channels > rhs', {testIsolation: true}, () => {
                 if ($body.find('#channelHeaderFlagButton').length > 0) {
                     cy.get('#channelHeaderFlagButton').click({force: true});
                 } else {
-                    cy.findByRole('button', {name: 'Saved posts'}).
+                    cy.findByRole('button', {name: 'Saved messages'}).
                         click({force: true});
                 }
             });
@@ -346,11 +346,11 @@ describe('channels > rhs', {testIsolation: true}, () => {
             cy.get('#post-create').should('exist');
 
             // # Open the saved posts RHS
-            cy.findByRole('button', {name: 'Saved posts'}).
+            cy.findByRole('button', {name: 'Saved messages'}).
                 click({force: true});
 
             // * Verify Saved Posts is open
-            cy.get('.sidebar--right__title').should('contain.text', 'Saved Posts');
+            cy.get('.sidebar--right__title').should('contain.text', 'Saved messages');
 
             // # Start a playbook run with a slash command
             const now = Date.now();
