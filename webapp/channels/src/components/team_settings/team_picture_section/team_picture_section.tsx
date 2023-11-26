@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type ChangeEvent, useRef} from 'react';
+import React, {type ChangeEvent, useRef, useEffect} from 'react';
 
 import EditIcon from 'components/widgets/icons/fa_edit_icon';
 
@@ -10,8 +10,8 @@ import Constants from 'utils/constants';
 
 type Props = {
     src?: string | null;
-    file?: File | null;
     teamName?: string;
+    loadingPicture?: boolean;
     onFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
 };
 
@@ -23,6 +23,7 @@ const TeamPictureSection = (props: Props) => {
             selectInput.current.click();
         }
     };
+
     const editIcon = () => {
         return (
             <>
@@ -31,14 +32,16 @@ const TeamPictureSection = (props: Props) => {
                     ref={selectInput}
                     className='hidden'
                     accept={Constants.ACCEPT_STATIC_IMAGE}
+                    disabled={props.loadingPicture}
                     type='file'
                     onChange={props.onFileChange}
-
-                    // disabled={this.props.loadingPicture} // todo sinan check if needed
                     aria-hidden={true}
                     tabIndex={-1}
                 />
-                <span onClick={handleInputFile} >
+                <span
+                    disabled={props.loadingPicture}
+                    onClick={handleInputFile}
+                >
                     <EditIcon/>
                 </span>
             </>

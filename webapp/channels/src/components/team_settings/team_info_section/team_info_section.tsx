@@ -32,7 +32,6 @@ type State = {
     clientError: ReactNode;
     teamIconFile: File | null;
     loadingIcon: boolean;
-    submitActive: boolean;
     isInitialState: boolean;
     shouldFetchTeam?: boolean;
 }
@@ -55,7 +54,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
             clientError: '',
             teamIconFile: null,
             loadingIcon: false,
-            submitActive: false,
             isInitialState: true,
         };
     }
@@ -171,7 +169,8 @@ export class InfoTab extends React.PureComponent<Props, State> {
     };
 
     handleTeamIconSubmit = async () => {
-        if (!this.state.teamIconFile || !this.state.submitActive) {
+        if (!this.state.teamIconFile) {
+            console.log('return because of this.state.teamIconFile:', !this.state.teamIconFile);
             return;
         }
 
@@ -181,7 +180,9 @@ export class InfoTab extends React.PureComponent<Props, State> {
             serverError: '',
         });
 
-        const {error} = await this.props.actions.setTeamIcon(this.props.team?.id || '', this.state.teamIconFile);
+        const {data, error} = await this.props.actions.setTeamIcon(this.props.team?.id || '', this.state.teamIconFile);
+
+        console.log('data: ', data);
 
         if (error) {
             this.setState({
@@ -189,9 +190,9 @@ export class InfoTab extends React.PureComponent<Props, State> {
                 serverError: error.message,
             });
         } else {
+            console.log('uploading completed');
             this.setState({
                 loadingIcon: false,
-                submitActive: false,
             });
         }
     };
@@ -213,7 +214,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
         } else {
             this.setState({
                 loadingIcon: false,
-                submitActive: false,
             });
         }
     };
@@ -225,6 +225,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
     updateTeamIcon = (e: ChangeEvent<HTMLInputElement>) => {
         if (e && e.target && e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
+            console.log('file: ', file);
 
             if (!ACCEPTED_TEAM_IMAGE_TYPES.includes(file.type)) {
                 this.setState({
@@ -238,8 +239,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
                 this.setState({
                     teamIconFile: e.target.files[0],
                     clientError: '',
-                    submitActive: true,
-                });
+                }, () => this.handleTeamIconSubmit());
             }
         } else {
             this.setState({
@@ -330,7 +330,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
                 serverError={this.state.serverError}
                 clientError={this.state.clientError}
                 loadingPicture={this.state.loadingIcon}
-                submitActive={this.state.submitActive}
                 onFileChange={this.updateTeamIcon}
                 onSubmit={this.handleTeamIconSubmit}
                 onRemove={this.handleTeamIconRemove}
@@ -341,9 +340,9 @@ export class InfoTab extends React.PureComponent<Props, State> {
         const teamPictureSection = (
             <TeamPictureSection
                 src={imageURLForTeam(team || {} as Team)}
-                file={this.state.teamIconFile}
                 teamName={team?.display_name}
                 onFileChange={this.updateTeamIcon}
+                loadingPicture={this.state.loadingIcon}
             />
         );
 
