@@ -1,4 +1,7 @@
 .team-picture-section {
+    position: relative;
+    width: fit-content;
+
     &__team-icon {
         display: flex;
         align-items: center;
@@ -17,5 +20,16 @@
         font-style: normal;
         font-weight: 600;
         line-height: 56px;
+    }
+
+    .icon-pencil-outline {
+        position: absolute;
+        bottom: -6px;
+        right: -6px;
+        padding: 4px;
+        border-radius: 20px;
+        border: 1px solid var(--denim-16-center-channel-text, rgba(63, 67, 80, 0.16));
+        background: var(--denim-center-channel-bg, #FFF);
+        box-shadow: 0px 2px 3px 0px rgba(0, 0, 0, 0.08);
     }
 }

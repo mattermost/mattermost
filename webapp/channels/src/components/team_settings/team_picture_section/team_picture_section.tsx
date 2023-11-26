@@ -4,6 +4,7 @@
 import React from 'react';
 
 import './team_picture_section.scss';
+import EditIcon from 'components/widgets/icons/fa_edit_icon';
 
 type Props = {
     src?: string | null;
@@ -12,6 +13,12 @@ type Props = {
 };
 
 const TeamPictureSection = (props: Props) => {
+    const editIcon = () => {
+        return (
+            <EditIcon css={{borderRadius: '20px', backgroundColor: '#ffffff'}}/>
+        );
+    };
+
     const teamImage = () => {
         if (props.src) {
             return <img src={props.src}/>;
@@ -26,6 +33,7 @@ const TeamPictureSection = (props: Props) => {
     return (
         <div className='team-picture-section' >
             {teamImage()}
+            {editIcon()}
         </div>
     );
 };

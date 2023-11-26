@@ -13,7 +13,7 @@ import BaseSettingItem from 'components/widgets/modals/components/base_setting_i
 import ModalSection from 'components/widgets/modals/components/modal_section';
 
 import Constants from 'utils/constants';
-import {imageURLForTeam, localizeMessage, moveCursorToEnd} from 'utils/utils';
+import {imageURLForTeam, localizeMessage} from 'utils/utils';
 
 import TeamPictureSection from '../team_picture_section/team_picture_section';
 
@@ -262,7 +262,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
                 maxLength={Constants.MAX_TEAMNAME_LENGTH}
                 onChange={this.updateName}
                 value={this.state.name}
-                onFocus={moveCursorToEnd}
                 label={this.props.intl.formatMessage({id: 'general_tab.teamName', defaultMessage: 'Team Name'})}
             />
         );
@@ -294,7 +293,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
                 maxLength={Constants.MAX_TEAMDESCRIPTION_LENGTH}
                 onChange={this.updateDescription}
                 value={this.state.description}
-                onFocus={moveCursorToEnd}
                 label={this.props.intl.formatMessage({id: 'general_tab.teamDescription', defaultMessage: 'Description'})}
             />
         );
