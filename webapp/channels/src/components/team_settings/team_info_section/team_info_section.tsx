@@ -37,7 +37,8 @@ type State = {
     shouldFetchTeam?: boolean;
 }
 
-// LearnAboutTeamsLink check https://github.com/mattermost/mattermost/blob/af7bc8a4a90d8c4c17a82dc86bc898d378dec2ff/webapp/channels/src/components/team_general_tab/team_general_tab.tsx#L10
+// todo sinan: LearnAboutTeamsLink check https://github.com/mattermost/mattermost/blob/af7bc8a4a90d8c4c17a82dc86bc898d378dec2ff/webapp/channels/src/components/team_general_tab/team_general_tab.tsx#L10
+// todo sinan: make width same as figma design
 export class InfoTab extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
@@ -342,6 +343,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
                 src={imageURLForTeam(team || {} as Team)}
                 file={this.state.teamIconFile}
                 teamName={team?.display_name}
+                onFileChange={this.updateTeamIcon}
             />
         );
 

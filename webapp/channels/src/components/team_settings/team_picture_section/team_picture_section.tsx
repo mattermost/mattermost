@@ -1,21 +1,47 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type ChangeEvent, useRef} from 'react';
+
+import EditIcon from 'components/widgets/icons/fa_edit_icon';
 
 import './team_picture_section.scss';
-import EditIcon from 'components/widgets/icons/fa_edit_icon';
+import Constants from 'utils/constants';
 
 type Props = {
     src?: string | null;
     file?: File | null;
     teamName?: string;
+    onFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
 };
 
 const TeamPictureSection = (props: Props) => {
+    const selectInput = useRef<HTMLInputElement>(null);
+    const handleInputFile = () => {
+        if (selectInput.current) {
+            selectInput.current.value = '';
+            selectInput.current.click();
+        }
+    };
     const editIcon = () => {
         return (
-            <EditIcon css={{borderRadius: '20px', backgroundColor: '#ffffff'}}/>
+            <>
+                <input
+                    data-testid='uploadPicture'
+                    ref={selectInput}
+                    className='hidden'
+                    accept={Constants.ACCEPT_STATIC_IMAGE}
+                    type='file'
+                    onChange={props.onFileChange}
+
+                    // disabled={this.props.loadingPicture} // todo sinan check if needed
+                    aria-hidden={true}
+                    tabIndex={-1}
+                />
+                <span onClick={handleInputFile} >
+                    <EditIcon/>
+                </span>
+            </>
         );
     };
 
