@@ -36,7 +36,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *platform.WebConn, r *model.WebSo
 		mlog.Error(
 			"websocket session error",
 			mlog.String("action", r.Action),
-			mlog.Int64("seq", r.Seq),
+			mlog.Int("seq", r.Seq),
 			mlog.String("user_id", conn.UserId),
 			mlog.String("error_message", sessionErr.SystemMessage(i18n.T)),
 			mlog.Err(sessionErr),
@@ -58,7 +58,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *platform.WebConn, r *model.WebSo
 		mlog.Error(
 			"websocket request handling error",
 			mlog.String("action", r.Action),
-			mlog.Int64("seq", r.Seq),
+			mlog.Int("seq", r.Seq),
 			mlog.String("user_id", conn.UserId),
 			mlog.String("error_message", err.SystemMessage(i18n.T)),
 			mlog.Err(err),
