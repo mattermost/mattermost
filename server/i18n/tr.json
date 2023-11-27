@@ -676,7 +676,10 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} zaten kanalda."
+    "translation": {
+      "one": "{{.User}} zaten kanalda.",
+      "other": "{{.User}} zaten kanalda."
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1358,10 +1361,6 @@
       "one": "{{.Count}} görsel gönderildi: {{.Filenames}}",
       "other": "{{.Count}} görsel gönderildi: {{.Filenames}}"
     }
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Bağlantı ön izleme özelliği sistem yöneticisi tarafından devre dışı bırakılmış."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -3933,7 +3932,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Kimlik hizmeti sağlayıcı adresi http:// ya da https:// ile başlayan geçerli bir adres olmalıdır."
+    "translation": "Kimlik hizmeti sağlayıcı adresi boş bir dizge olamaz."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -5176,10 +5175,6 @@
     "translation": "Komut tetikleme sözcüğünün başında bölü karakteri eksik"
   },
   {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Bu kanal gruplar tarafından yönetiliyor.  Bu kullanıcı kanal ile eşitlenen bir grubun üyesi değil."
-  },
-  {
     "id": "api.command_remove.group_constrained_user_denied",
     "translation": "Kullanıcılar bu kanal ile ilişkilendirilmiş grupların üyesi olduklarından kanaldan sizin tarafınızdan çıkarılamaz. Kullanıcılar ancak ilişkili gruplardan çıkarılarak kanaldan çıkarılabilir."
   },
@@ -5549,7 +5544,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} bu takımın bir üyesi değil."
+    "translation": "**{{.Team}}** takımına üye olduklarında {{.Users}} bu kanala eklenebilir."
   },
   {
     "id": "api.context.local_origin_required.app_error",
@@ -5833,15 +5828,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 112+"
+    "translation": "Sürüm 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 112+"
+    "translation": "Sürüm 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Sürüm 102+"
+    "translation": "Sürüm 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -9176,7 +9171,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost, sağladığı araçlar ile takımların güvenli iletişim, işbirliği ve birlikte çalışmasını sağlayan açık kaynaklı bir platformdur.\nMattermost üç temel araç sunar:\n\n**Kanallar** - Takımınızla toplu olarak ve üyeleriyle birebir iletişim kurabilirsiniz.\n**[Senaryolar](/playbooks)** - Yinelenen işlemlere özel yapılandırmalar oluşturarak öngörülebilir sonuçlar alabilirsiniz.\n**[Panolar](/boards)** - Projeleri ve görevlerini Kanban panosu yapısında yöneterek takımınızın hedeflere ulaşmasına yardımcı olabilirsiniz.\n\n[İlgili belgeler ve rehberler]({{.HelpLink}})"
+    "translation": "Mattermost, sağladığı araçlar ile takımların güvenli iletişim, işbirliği ve birlikte çalışmasını sağlayan açık kaynaklı bir platformdur.\nMattermost üç temel araç sunar:\n\n**Kanallar** - Takımınızla toplu olarak ve üyeleriyle birebir iletişim kurabilirsiniz.\n**[Senaryolar](/playbooks)** - Yinelenen işlemlere özel yapılandırmalar oluşturarak öngörülebilir sonuçlar alabilirsiniz.\n\n[İlgili belgeler ve rehberler]({{.HelpLink}})"
   },
   {
     "id": "api.command_marketplace.unsupported.app_error",
@@ -9679,10 +9674,6 @@
     "translation": "Bir lisans yüklenirken bayt değeri geçersiz."
   },
   {
-    "id": "app.user.new_run.intro",
-    "translation": "**Sahibi** {{.Username}}"
-  },
-  {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",
     "translation": "Müşteri site sunucusu duyurulara abone olamadı."
   },
@@ -9873,5 +9864,125 @@
   {
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
     "translation": "Kalıcı bildirim doğrulanamadı."
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "Kullanıcının kanal üyeliği bulunamadı"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "Kullanıcının grup iletisini özel kanala dönüştürme izni yok"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "Bu kod için bir kullanıcı bulunamadı"
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Okunmamış ve anma iletileri denetlenemedi"
+  },
+  {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "Kullanıcının tepkileri silinemedi."
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Uzak kullanıcıların oturum açmasına izin verilmediğinden oturum açılamadı."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Bu kanal gruplar tarafından yönetiliyor.  Bu kullanıcı kanal ile eşitlenen bir grubun üyesi değil."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Doğrudan veya grup iletilerinin adını, görüntülenecek adını ve amacını güncelleme izniniz yok."
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "Kod geçersiz ya da süresi geçmiş"
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "Dönüştürülmüş grup iletisi için var olan yan çubuk kategorileri silinemedi."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Doğrudan veya grup iletilerinin adını, görüntülenecek adını ve amacını güncelleme izniniz yok."
+  },
+  {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}} ve {{.LastItem}}"
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} ve {{.Others}} diğer kullanıcı {{.Channel}} kanalına eklendi."
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "İçe aktarılan kanal arşivlenemedi."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} ve {{.Others}} diğer kullanıcı zaten kanalda."
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}}, {{.GMMembers}} ile bir grup iletisinden bu kanalı oluşturdu."
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Kanalın tüm konuları okunmuş olarak işaretlenemedi"
+  },
+  {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "Kanal bir grup iletisi değil."
+  },
+  {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "Kod bulunamadı ya da süresi geçmiş"
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "Ortak takımlar alınamadı."
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "Dosyanın aranabilir içeriği ayarlanamadı."
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "Dönüştürülen kanal bir grup iletisi değil. Yalnızca grup iletilerini dönüştürebilirsiniz"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "Kanal dönüştürme gönderisi için grup iletisi oluşturulamadı"
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "**{{.Team}}** takımının üyesi olduklarında {{.FirstUser}} ve {{.Others}} diğer kullanıcıyı bu kanala ekleyebilirsiniz."
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Bağlantı üst veri zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "Kullanıcı durumu uzakta zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "Dönüştürme isteğinde belirtilen takım kimliğinde tüm grup iletisi üyeleri bulunmuyor"
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Ada göre bu kadar çok emoji alınamıyor. Aynı anda yalnızca {{.MaxNames}} emoji istenebilir."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "JSON işlenemedi: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Biçim geçersiz: {{.Error}}"
   }
 ]

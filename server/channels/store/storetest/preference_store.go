@@ -10,22 +10,23 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestPreferenceStore(t *testing.T, ss store.Store) {
-	t.Run("PreferenceSave", func(t *testing.T) { testPreferenceSave(t, ss) })
-	t.Run("PreferenceGet", func(t *testing.T) { testPreferenceGet(t, ss) })
-	t.Run("PreferenceGetCategory", func(t *testing.T) { testPreferenceGetCategory(t, ss) })
-	t.Run("PreferenceGetAll", func(t *testing.T) { testPreferenceGetAll(t, ss) })
-	t.Run("PreferenceDeleteByUser", func(t *testing.T) { testPreferenceDeleteByUser(t, ss) })
-	t.Run("PreferenceDelete", func(t *testing.T) { testPreferenceDelete(t, ss) })
-	t.Run("PreferenceDeleteCategory", func(t *testing.T) { testPreferenceDeleteCategory(t, ss) })
-	t.Run("PreferenceDeleteCategoryAndName", func(t *testing.T) { testPreferenceDeleteCategoryAndName(t, ss) })
-	t.Run("PreferenceDeleteOrphanedRows", func(t *testing.T) { testPreferenceDeleteOrphanedRows(t, ss) })
+func TestPreferenceStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("PreferenceSave", func(t *testing.T) { testPreferenceSave(t, rctx, ss) })
+	t.Run("PreferenceGet", func(t *testing.T) { testPreferenceGet(t, rctx, ss) })
+	t.Run("PreferenceGetCategory", func(t *testing.T) { testPreferenceGetCategory(t, rctx, ss) })
+	t.Run("PreferenceGetAll", func(t *testing.T) { testPreferenceGetAll(t, rctx, ss) })
+	t.Run("PreferenceDeleteByUser", func(t *testing.T) { testPreferenceDeleteByUser(t, rctx, ss) })
+	t.Run("PreferenceDelete", func(t *testing.T) { testPreferenceDelete(t, rctx, ss) })
+	t.Run("PreferenceDeleteCategory", func(t *testing.T) { testPreferenceDeleteCategory(t, rctx, ss) })
+	t.Run("PreferenceDeleteCategoryAndName", func(t *testing.T) { testPreferenceDeleteCategoryAndName(t, rctx, ss) })
+	t.Run("PreferenceDeleteOrphanedRows", func(t *testing.T) { testPreferenceDeleteOrphanedRows(t, rctx, ss) })
 }
 
-func testPreferenceSave(t *testing.T, ss store.Store) {
+func testPreferenceSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	id := model.NewId()
 
 	preferences := model.Preferences{
@@ -61,7 +62,7 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 	}
 }
 
-func testPreferenceGet(t *testing.T, ss store.Store) {
+func testPreferenceGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 	category := model.PreferenceCategoryDirectChannelShow
 	name := model.NewId()
@@ -101,7 +102,7 @@ func testPreferenceGet(t *testing.T, ss store.Store) {
 	require.Error(t, err, "no error on getting a missing preference")
 }
 
-func testPreferenceGetCategory(t *testing.T, ss store.Store) {
+func testPreferenceGetCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 	category := model.PreferenceCategoryDirectChannelShow
 	name := model.NewId()
@@ -150,7 +151,7 @@ func testPreferenceGetCategory(t *testing.T, ss store.Store) {
 	require.Equal(t, 0, len(preferencesByCategory), "shouldn't have got any preferences")
 }
 
-func testPreferenceGetAll(t *testing.T, ss store.Store) {
+func testPreferenceGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 	category := model.PreferenceCategoryDirectChannelShow
 	name := model.NewId()
@@ -191,10 +192,9 @@ func testPreferenceGetAll(t *testing.T, ss store.Store) {
 	for i := 0; i < 3; i++ {
 		assert.Falsef(t, result[0] != preferences[i] && result[1] != preferences[i] && result[2] != preferences[i], "got incorrect preferences")
 	}
-
 }
 
-func testPreferenceDeleteByUser(t *testing.T, ss store.Store) {
+func testPreferenceDeleteByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 	category := model.PreferenceCategoryDirectChannelShow
 	name := model.NewId()
@@ -232,7 +232,7 @@ func testPreferenceDeleteByUser(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testPreferenceDelete(t *testing.T, ss store.Store) {
+func testPreferenceDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	preference := model.Preference{
 		UserId:   model.NewId(),
 		Category: model.PreferenceCategoryDirectChannelShow,
@@ -254,7 +254,7 @@ func testPreferenceDelete(t *testing.T, ss store.Store) {
 	assert.Empty(t, preferences, "should've returned no preferences")
 }
 
-func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
+func testPreferenceDeleteCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 	category := model.NewId()
 	userId := model.NewId()
 
@@ -287,7 +287,7 @@ func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
 	assert.Empty(t, preferences, "should've returned no preferences")
 }
 
-func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
+func testPreferenceDeleteCategoryAndName(t *testing.T, rctx request.CTX, ss store.Store) {
 	category := model.NewId()
 	name := model.NewId()
 	userId := model.NewId()
@@ -330,7 +330,7 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 	assert.Empty(t, preferences, "should've returned no preference")
 }
 
-func testPreferenceDeleteOrphanedRows(t *testing.T, ss store.Store) {
+func testPreferenceDeleteOrphanedRows(t *testing.T, rctx request.CTX, ss store.Store) {
 	const limit = 1000
 	team, err := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",

@@ -113,6 +113,19 @@ func (hooks *hooksTimerLayer) MessageHasBeenUpdated(c *Context, newPost, oldPost
 	hooks.recordTime(startTime, "MessageHasBeenUpdated", true)
 }
 
+func (hooks *hooksTimerLayer) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.MessagesWillBeConsumed(posts)
+	hooks.recordTime(startTime, "MessagesWillBeConsumed", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) MessageHasBeenDeleted(c *Context, post *model.Post) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.MessageHasBeenDeleted(c, post)
+	hooks.recordTime(startTime, "MessageHasBeenDeleted", true)
+}
+
 func (hooks *hooksTimerLayer) ChannelHasBeenCreated(c *Context, channel *model.Channel) {
 	startTime := timePkg.Now()
 	hooks.hooksImpl.ChannelHasBeenCreated(c, channel)
@@ -230,4 +243,10 @@ func (hooks *hooksTimerLayer) UserHasBeenDeactivated(c *Context, user *model.Use
 	startTime := timePkg.Now()
 	hooks.hooksImpl.UserHasBeenDeactivated(c, user)
 	hooks.recordTime(startTime, "UserHasBeenDeactivated", true)
+}
+
+func (hooks *hooksTimerLayer) ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.ServeMetrics(c, w, r)
+	hooks.recordTime(startTime, "ServeMetrics", true)
 }

@@ -113,7 +113,6 @@ func (o *PostList) MakeNonNil() {
 }
 
 func (o *PostList) AddOrder(id string) {
-
 	if o.Order == nil {
 		o.Order = make([]string, 0, 128)
 	}
@@ -122,7 +121,6 @@ func (o *PostList) AddOrder(id string) {
 }
 
 func (o *PostList) AddPost(post *Post) {
-
 	if o.Posts == nil {
 		o.Posts = make(map[string]*Post)
 	}
@@ -162,7 +160,6 @@ func (o *PostList) SortByCreateAt() {
 }
 
 func (o *PostList) Etag() string {
-
 	id := "0"
 	var t int64
 

@@ -17,6 +17,7 @@ export const PostTypes = {
     JOIN_CHANNEL: 'system_join_channel' as PostType,
     GUEST_JOIN_CHANNEL: 'system_guest_join_channel' as PostType,
     LEAVE_CHANNEL: 'system_leave_channel' as PostType,
+    JOIN_LEAVE_CHANNEL: 'system_join_leave_channel' as PostType,
     ADD_REMOVE: 'system_add_remove' as PostType,
     ADD_TO_CHANNEL: 'system_add_to_channel' as PostType,
     ADD_GUEST_TO_CHANNEL: 'system_add_guest_to_chan' as PostType,
@@ -33,6 +34,7 @@ export const PostTypes = {
     SYSTEM_WARN_METRIC_STATUS: 'warn_metric_status' as PostType,
     REMINDER: 'reminder' as PostType,
     WRANGLER: 'system_wrangler' as PostType,
+    GM_CONVERTED_TO_CHANNEL: 'system_gm_to_channel' as PostType,
 };
 
 export default {

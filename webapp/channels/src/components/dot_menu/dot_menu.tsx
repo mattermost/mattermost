@@ -122,10 +122,6 @@ type Props = {
          */
         setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
 
-        /*
-        * Function to set a key-value pair in the local storage
-        */
-        setGlobalItem: (name: string, value: any) => void;
     }; // TechDebt: Made non-mandatory while converting to typescript
 
     canEdit: boolean;

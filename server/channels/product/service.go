@@ -21,7 +21,6 @@ const (
 	RouterKey          ServiceKey = "router"
 	BotKey             ServiceKey = "bot"
 	LogKey             ServiceKey = "log"
-	HooksKey           ServiceKey = "hooks"
 	KVStoreKey         ServiceKey = "kvstore"
 	StoreKey           ServiceKey = "storekey"
 	SystemKey          ServiceKey = "systemkey"

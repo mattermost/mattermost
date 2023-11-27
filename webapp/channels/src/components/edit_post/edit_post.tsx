@@ -326,11 +326,13 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             Keyboard.isKeyPressed(e, KeyCodes.ENTER) &&
             ctrlOrMetaKeyPressed;
         const markdownLinkKey = Keyboard.isKeyPressed(e, KeyCodes.K);
+        const ctrlShiftCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.shiftKey;
+        const lastMessageReactionKeyCombo = ctrlShiftCombo && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
 
         // listen for line break key combo and insert new line character
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
             e.stopPropagation(); // perhaps this should happen in all of these cases? or perhaps Modal should not be listening?
-            setEditText(Utils.insertLineBreakFromKeyEvent(e as React.KeyboardEvent<HTMLTextAreaElement>));
+            setEditText(Utils.insertLineBreakFromKeyEvent(e.nativeEvent));
         } else if (ctrlEnterKeyCombo) {
             handleEdit();
         } else if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE) && !showEmojiPicker) {
@@ -356,6 +358,10 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 selectionEnd: e.currentTarget.selectionEnd,
                 message: e.currentTarget.value,
             });
+        } else if (lastMessageReactionKeyCombo) {
+            // Stop document from handling the hotkey and opening the reaction
+            e.stopPropagation();
+            e.preventDefault();
         }
     };
 
@@ -446,10 +452,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const getEmojiTargetRef = useCallback(() => emojiButtonRef.current, [emojiButtonRef]);
 
     let emojiPicker = null;
-    const emojiButtonAriaLabel = formatMessage({
-        id: 'emoji_picker.emojiPicker',
-        defaultMessage: 'Emoji Picker',
-    }).toLowerCase();
 
     if (config.EnableEmojiPicker === 'true') {
         emojiPicker = (
@@ -466,7 +468,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                     rightOffset={RIGHT_OFFSET}
                 />
                 <button
-                    aria-label={emojiButtonAriaLabel}
+                    aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                     id='editPostEmoji'
                     ref={emojiButtonRef}
                     className='style--none post-action'

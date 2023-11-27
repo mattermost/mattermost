@@ -79,7 +79,7 @@ exports[`components/admin_console/system_users should match default snapshot 1`]
           className="pt-3 pb-3"
         >
           <button
-            className="btn btn-default"
+            className="btn btn-tertiary"
             id="revoke-all-users"
             onClick={[Function]}
             type="button"

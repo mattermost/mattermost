@@ -103,7 +103,7 @@ const ViewUserGroupModalHeader = ({
         if (permissionToJoinGroup) {
             return (
                 <button
-                    className='user-groups-create btn btn-md btn-primary'
+                    className='mr-2 btn btn-secondary btn-sm'
                     onClick={goToAddPeopleModal}
                 >
                     <FormattedMessage
@@ -163,7 +163,7 @@ const ViewUserGroupModalHeader = ({
         <Modal.Header closeButton={true}>
             <button
                 type='button'
-                className='modal-header-back-button btn-icon'
+                className='modal-header-back-button btn btn-icon'
                 aria-label='Close'
                 onClick={goBack}
             >

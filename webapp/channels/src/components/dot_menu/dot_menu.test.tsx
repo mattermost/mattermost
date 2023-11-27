@@ -7,7 +7,7 @@ import type {PostType} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {fireEvent, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -173,7 +173,7 @@ describe('components/dot_menu/DotMenu', () => {
             canEdit: true,
             canDelete: true,
         };
-        const wrapper = renderWithIntlAndStore(
+        const wrapper = renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -186,7 +186,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             location: Locations.CENTER,
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -201,7 +201,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             channelIsArchived: true,
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -216,7 +216,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             location: Locations.SEARCH,
         };
-        renderWithIntlAndStore(
+        renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -236,7 +236,7 @@ describe('components/dot_menu/DotMenu', () => {
                 ...baseProps,
                 ...caseProps,
             };
-            renderWithIntlAndStore(
+            renderWithContext(
                 <DotMenu {...props}/>,
                 initialState,
             );
@@ -257,7 +257,7 @@ describe('components/dot_menu/DotMenu', () => {
                 ...baseProps,
                 ...caseProps,
             };
-            renderWithIntlAndStore(
+            renderWithContext(
                 <DotMenu {...props}/>,
                 initialState,
             );
@@ -278,7 +278,7 @@ describe('components/dot_menu/DotMenu', () => {
                 ...caseProps,
                 location: Locations.RHS_ROOT,
             };
-            renderWithIntlAndStore(
+            renderWithContext(
                 <DotMenu {...props}/>,
                 initialState,
             );

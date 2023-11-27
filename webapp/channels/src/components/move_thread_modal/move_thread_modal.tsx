@@ -93,9 +93,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
             return;
         }
         setSelectedChannel(channel as ChannelOption);
-    },
-    [],
-    );
+    }, []);
 
     const messagePreviewTitle = formatMessage({
         id: 'move_thread_modal.preview.title',
@@ -137,7 +135,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
             setHasError(false);
             timeoutRef.current = null;
         }, Constants.ANIMATION_TIMEOUT);
-    }, [setIsButtonClicked, setPostError, setHasError]);
+    }, []);
 
     const handleSubmit = useCallback(async () => {
         setIsButtonClicked(true);
@@ -175,7 +173,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
         }
 
         onHide();
-    }, [setIsButtonClicked, selectedChannel, post, actions, handlePostError, onHide]);
+    }, [selectedChannel, post, actions, handlePostError, onHide]);
 
     const postPreviewFooterMessage = formatMessage({
         id: 'move_thread_modal.preview.footer_message',

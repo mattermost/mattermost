@@ -27,7 +27,7 @@ type Props = {
     size: number;
     defaultEmojis: Emoji[];
     actions: {
-        addReaction: (postId: string, emojiName: string) => void;
+        toggleReaction: (postId: string, emojiName: string) => void;
     };
 }
 
@@ -41,9 +41,9 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
         size: 3,
     };
 
-    handleAddEmoji = (emoji: Emoji): void => {
+    handleToggleEmoji = (emoji: Emoji): void => {
         const emojiName = 'short_name' in emoji ? emoji.short_name : emoji.name;
-        this.props.actions.addReaction(this.props.postId, emojiName);
+        this.props.actions.toggleReaction(this.props.postId, emojiName);
     };
 
     complementEmojis = (emojis: Emoji[]): (Emoji[]) => {
@@ -108,7 +108,7 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
                         <React.Fragment>
                             <EmojiItem
                                 emoji={emoji}
-                                onItemClick={this.handleAddEmoji}
+                                onItemClick={this.handleToggleEmoji}
                                 order={n}
                             />
                         </React.Fragment>

@@ -28,7 +28,6 @@ import {
     setEditingPost,
     markPostAsUnread,
 } from 'actions/post_actions';
-import {setGlobalItem} from 'actions/storage';
 import {openModal} from 'actions/views/modals';
 import {makeCanWrangler} from 'selectors/posts';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -140,7 +139,6 @@ type Actions = {
     openModal: <P>(modalData: ModalData<P>) => void;
     markPostAsUnread: (post: Post) => void;
     setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
-    setGlobalItem: (name: string, value: any) => void;
 }
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
@@ -154,7 +152,6 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
             openModal,
             markPostAsUnread,
             setThreadFollow,
-            setGlobalItem,
         }, dispatch),
     };
 }
