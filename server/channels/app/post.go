@@ -2320,7 +2320,7 @@ func makePostLink(siteURL, teamName, postID string) string {
 // validateMoveOrCopy performs validation on a provided post list to determine
 // if all permissions are in place to allow the for the posts to be moved or
 // copied.
-func (a *App) ValidateMoveOrCopy(c *request.Context, wpl *model.WranglerPostList, originalChannel *model.Channel, targetChannel *model.Channel, user *model.User) error {
+func (a *App) ValidateMoveOrCopy(c request.CTX, wpl *model.WranglerPostList, originalChannel *model.Channel, targetChannel *model.Channel, user *model.User) error {
 	if wpl.NumPosts() == 0 {
 		return errors.New("The wrangler post list contains no posts")
 	}

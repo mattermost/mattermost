@@ -401,7 +401,7 @@ type AppIface interface {
 	// validateMoveOrCopy performs validation on a provided post list to determine
 	// if all permissions are in place to allow the for the posts to be moved or
 	// copied.
-	ValidateMoveOrCopy(c *request.Context, wpl *model.WranglerPostList, originalChannel *model.Channel, targetChannel *model.Channel, user *model.User) error
+	ValidateMoveOrCopy(c request.CTX, wpl *model.WranglerPostList, originalChannel *model.Channel, targetChannel *model.Channel, user *model.User) error
 	AccountMigration() einterfaces.AccountMigrationInterface
 	ActivateMfa(userID, token string) *model.AppError
 	ActiveSearchBackend() string

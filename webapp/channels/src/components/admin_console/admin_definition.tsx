@@ -3205,7 +3205,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'site_config/wrangler',
                 title: t('admin.sidebar.wrangler'),
                 title_default: 'Wrangler',
-                isHidden: it.any(it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.POSTS)), it.configIsFalse('FeatureFlags', 'MoveThreadsEnabled')),
+                isHidden: it.any(it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.POSTS)), it.configIsFalse('FeatureFlags', 'MoveThreadsEnabled'), it.not(it.licensedForSku('enterprise'))),
                 schema: {
                     id: 'WranglerSettings',
                     name: t('admin.site.wrangler'),

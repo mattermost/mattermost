@@ -18634,7 +18634,7 @@ func (a *OpenTracingAppLayer) ValidateDesktopToken(token string, expiryTime int6
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ValidateMoveOrCopy(c *request.Context, wpl *model.WranglerPostList, originalChannel *model.Channel, targetChannel *model.Channel, user *model.User) error {
+func (a *OpenTracingAppLayer) ValidateMoveOrCopy(c request.CTX, wpl *model.WranglerPostList, originalChannel *model.Channel, targetChannel *model.Channel, user *model.User) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ValidateMoveOrCopy")
 
