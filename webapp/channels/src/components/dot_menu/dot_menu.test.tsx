@@ -192,7 +192,7 @@ describe('components/dot_menu/DotMenu', () => {
         );
 
         expect(wrapper).toMatchSnapshot();
-    })
+    });
 
     test('should match snapshot, cannot move', () => {
         const props = {
@@ -205,7 +205,7 @@ describe('components/dot_menu/DotMenu', () => {
         );
 
         expect(wrapper).toMatchSnapshot();
-    })
+    });
 
     test('should show mark as unread when channel is not archived', () => {
         const props = {
@@ -251,8 +251,6 @@ describe('components/dot_menu/DotMenu', () => {
         const menuItem = screen.queryByTestId(`unread_post_${baseProps.post.id}`);
         expect(menuItem).toBeNull();
     });
-
-
 
     describe('RHS', () => {
         test.each([
