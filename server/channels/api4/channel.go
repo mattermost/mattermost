@@ -425,7 +425,7 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	userIds := model.ArrayFromJSONNonSort(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
 	allowed := false
 
 	if len(userIds) != 2 {
@@ -698,10 +698,6 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	channelIDs := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
-	if len(channelIDs) == 0 {
-		c.SetInvalidParam("channel_ids")
-		return
-	}
 	if !c.App.SessionHasPermissionToChannels(c.AppContext, *c.AppContext.Session(), channelIDs, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return

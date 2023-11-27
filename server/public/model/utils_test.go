@@ -239,6 +239,52 @@ func TestArrayFromJson(t *testing.T) {
 	})
 }
 
+func TestArrayFromJsonNonSort(t *testing.T) {
+	t.Run("Successful parse", func(t *testing.T) {
+		ids := []string{NewId(), NewId(), NewId()}
+		b, _ := json.Marshal(ids)
+		a := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
+		require.Equal(t, len(ids), len(a))
+		require.Equeal(t, ids[0], a[0])
+		require.Equeal(t, ids[1], a[1])
+		require.Equeal(t, ids[2], a[2])
+	})
+
+	t.Run("Empty Array", func(t *testing.T) {
+		ids := []string{}
+		b, _ := json.Marshal(ids)
+		a := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
+		require.Equal(t, 0, len(a))
+	})
+
+	t.Run("Error too large", func(t *testing.T) {
+		var ids []string
+		for {
+			ids = append(ids, NewId())
+			if len(ids) > 100 {
+				break
+			}
+		}
+		b, _ := json.Marshal(ids)
+		a := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
+		require.Equal(t, len(a), 0)
+	})
+
+	t.Run("Duplicate keys, returns one", func(t *testing.T) {
+		var ids []string
+		id := NewId()
+		for {
+			ids = append(ids, id)
+			if len(ids) > 10 {
+				break
+			}
+		}
+		b, _ := json.Marshal(ids)
+		a := ArrayFromJSONNonSort(bytes.NewReader(b), 26000)
+		require.Equal(t, len(a), 1)
+	})
+}
+
 func TestIsValidEmail(t *testing.T) {
 	for _, testCase := range []struct {
 		Input    string

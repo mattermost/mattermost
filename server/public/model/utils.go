@@ -493,6 +493,18 @@ func ArrayFromJSON(data io.Reader, maxBytes int64) []string {
 	return RemoveDuplicateStrings(objmap)
 }
 
+func ArrayFromJSONNonSort(data io.Reader, maxBytes int64) []string {
+	var objmap []string
+	lr := io.LimitedReader{N: maxBytes, R: data}
+	err := json.NewDecoder(&lr).Decode(&objmap)
+	if err != nil || objmap == nil {
+		return make([]string, 0)
+	}
+
+	// Remove duplicate IDs, but don't allow sorting.
+	return RemoveDuplicateStringsNonSort(objmap)
+}
+
 func ArrayFromInterface(data any) []string {
 	stringArray := []string{}
 
@@ -733,6 +745,20 @@ func RemoveDuplicateStrings(in []string) []string {
 		in[j] = in[i]
 	}
 	return in[:j+1]
+}
+
+// RemoveDuplicateStringsNonSort does an in-place removal of duplicate strings
+// from the input slice. The original slice gets modified.
+func RemoveDuplicateStringsNonSort(in []string) []string {
+	allKeys := make(map[string]bool)
+	list := []string{}
+	for _, item := range in {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
 }
 
 func GetPreferredTimezone(timezone StringMap) string {
