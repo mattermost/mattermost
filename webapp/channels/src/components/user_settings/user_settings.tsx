@@ -5,6 +5,8 @@ import React from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {PluginConfiguration} from 'types/plugins/user_settings';
+
 import AdvancedTab from './advanced';
 import DisplayTab from './display';
 import GeneralTab from './general';
@@ -12,7 +14,6 @@ import NotificationsTab from './notifications';
 import PluginTab from './plugin/plugin';
 import SecurityTab from './security';
 import SidebarTab from './sidebar';
-import { PluginConfiguration } from 'types/plugins/user_settings';
 
 export type Props = {
     user: UserProfile;

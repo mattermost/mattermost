@@ -5,14 +5,19 @@ export type PluginConfiguration = {
     id: string;
     uiName: string;
     icon?: string;
+    sections: PluginConfigurationSection[];
+}
+
+export type PluginConfigurationSection = {
     settings: PluginConfigurationSetting[];
+    title: string;
+    onSubmit?: (changes: {[name: string]: string}) => void;
 }
 
 export type BasePluginConfigurationSetting = {
     name: string;
-    title: string;
+    title?: string;
     helpText?: string;
-    onSubmit?: (name: string, value: string) => void;
     default?: string;
 }
 

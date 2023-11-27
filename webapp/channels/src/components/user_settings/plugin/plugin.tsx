@@ -67,13 +67,13 @@ const PluginTab = ({
                     </h3>
                 </div>
                 <div className='divider-dark first'/>
-                {settings.settings.map(
+                {settings.sections.map(
                     (v) =>
-                        (<React.Fragment key={v.name}>
+                        (<React.Fragment key={v.title}>
                             <PluginSetting
                                 pluginId={settings.id}
                                 activeSection={activeSection}
-                                setting={v}
+                                section={v}
                                 updateSection={updateSection}
                             />
                             <div className='divider-light'/>

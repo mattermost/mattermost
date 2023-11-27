@@ -16,28 +16,6 @@ export const getPluginUserSettings = createSelector(
     'getPluginUserSettings',
     (state: GlobalState) => state.plugins.userSettings,
     (settings) => {
-        // Just for testing, to remove before merging
-        if (!settings || !Object.values(settings).length) {
-            // eslint-disable-next-line no-param-reassign
-            settings = {
-                'com.mattermost.msteams-sync': {
-                    id: 'com.mattermost.msteams-sync',
-                    icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Microsoft_Office_Teams_%282018%E2%80%93present%29.svg/1200px-Microsoft_Office_Teams_%282018%E2%80%93present%29.svg.png',
-                    uiName: 'MS Teams Sync',
-                    settings: [{
-                        name: 'primary_platform',
-                        options: [
-                            {text: 'Mattermost will be my primary platform', value: 'mm', helpText: 'You will need to disable notifications in Microsoft Teams to avoid duplicates. **[Learn more](http://google.com)**'},
-                            {text: 'Microsoft Teams will be my primary platform', value: 'teams', helpText: 'Notifications in Mattermost will be muted for linked channels and DMs to prevent duplicates. Unread statuses in linked channels and DMs will also be disabled in Mattermost. **[Learn more](http://google.com)**'}],
-                        title: 'Primary platform for communication',
-                        type: 'radio',
-                        default: 'mm',
-                        helpText: 'Note: Unread statuses for linked channels and DMs will not be synced between Mattermost & Microsoft Teams.',
-                    }],
-                },
-            };
-        }
-
         return settings || [];
     },
 );

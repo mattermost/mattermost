@@ -1,7 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {BasePluginConfigurationSetting, PluginConfiguration, PluginConfigurationRadioSetting, PluginConfigurationRadioSettingOption} from 'types/plugins/user_settings';
+// This files needs an update on the typescript library. That is handled in
+// https://github.com/mattermost/mattermost/pull/25535 . When that is done,
+// we can remove the nocheck.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+import type {BasePluginConfigurationSetting, PluginConfiguration, PluginConfigurationRadioSetting, PluginConfigurationRadioSettingOption, PluginConfigurationSection} from 'types/plugins/user_settings';
 
 export function extractPluginConfiguration(pluginConfiguration: unknown) {
     if (!pluginConfiguration) {
@@ -29,22 +34,72 @@ export function extractPluginConfiguration(pluginConfiguration: unknown) {
         }
     }
 
-    if (!('settings' in pluginConfiguration) || !Array.isArray(pluginConfiguration.settings)) {
+    if (!('sections' in pluginConfiguration) || !Array.isArray(pluginConfiguration.sections)) {
         return undefined;
     }
 
-    if (!pluginConfiguration.settings.length) {
+    if (!pluginConfiguration.sections.length) {
         return undefined;
     }
 
     const result: PluginConfiguration = {
         id: pluginConfiguration.id,
         icon,
-        settings: [],
+        sections: [],
         uiName: pluginConfiguration.uiName,
     };
 
-    for (const setting of pluginConfiguration.settings) {
+    for (const section of pluginConfiguration.sections) {
+        const validSections = extractPluginConfigurationSection(section);
+        if (validSections) {
+            result.sections.push(validSections);
+        }
+    }
+
+    if (!result.sections.length) {
+        return undefined;
+    }
+
+    return result;
+}
+
+function extractPluginConfigurationSection(section: unknown) {
+    if (!section) {
+        return undefined;
+    }
+
+    if (typeof section !== 'object') {
+        return undefined;
+    }
+
+    if (!('title' in section) || !section.title || typeof section.title !== 'string') {
+        return undefined;
+    }
+
+    if (!('settings' in section) || !Array.isArray(section.settings)) {
+        return undefined;
+    }
+
+    if (!section.settings.length) {
+        return undefined;
+    }
+
+    let onSubmit;
+    if ('onSubmit' in section && section.onSubmit) {
+        if (typeof section.onSubmit === 'function') {
+            onSubmit = section.onSubmit as PluginConfigurationSection['onSubmit'];
+        } else {
+            return undefined;
+        }
+    }
+
+    const result: PluginConfigurationSection = {
+        settings: [],
+        title: section.title,
+        onSubmit,
+    };
+
+    for (const setting of section.settings) {
         const validSetting = extractPluginConfigurationSetting(setting);
         if (validSetting) {
             result.settings.push(validSetting);
@@ -67,23 +122,19 @@ function extractPluginConfigurationSetting(setting: unknown) {
         return undefined;
     }
 
-    if (!('title' in setting) || !setting.title || typeof setting.title !== 'string') {
-        return undefined;
+    let title;
+    if (('title' in setting) && setting.title) {
+        if (typeof setting.title === 'string') {
+            title = setting.title;
+        } else {
+            return undefined;
+        }
     }
 
     let helpText;
     if ('helpText' in setting && setting.helpText) {
         if (typeof setting.helpText === 'string') {
             helpText = setting.helpText;
-        } else {
-            return undefined;
-        }
-    }
-
-    let onSubmit;
-    if ('onSubmit' in setting && setting.onSubmit) {
-        if (typeof setting.onSubmit === 'function') {
-            onSubmit = setting.onSubmit as BasePluginConfigurationSetting['onSubmit'];
         } else {
             return undefined;
         }
@@ -105,9 +156,8 @@ function extractPluginConfigurationSetting(setting: unknown) {
     const res: BasePluginConfigurationSetting = {
         default: defaultValue,
         name: setting.name,
-        title: setting.title,
+        title,
         helpText,
-        onSubmit,
     };
 
     switch (setting.type) {
@@ -143,6 +193,10 @@ function extractPluginConfigurationRadioSetting(setting: unknown, base: BasePlug
         if (isValid) {
             res.options.push(isValid);
         }
+    }
+
+    if (!res.options.length) {
+        return undefined;
     }
 
     return res;
