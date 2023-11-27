@@ -24,12 +24,17 @@ exports[`components/select_team/SelectTeam should match snapshot 1`] = `
         className="signup__content"
         id="teamsYouCanJoinContent"
       >
-        <h4>
-          <MemoizedFormattedMessage
-            defaultMessage="Teams you can join: "
-            id="signup_team.join_open"
-          />
-        </h4>
+        <div
+          className="SelectTeam__sub-header"
+        >
+          <h4>
+            <MemoizedFormattedMessage
+              defaultMessage="Teams you can join: "
+              id="signup_team.join_open"
+            />
+          </h4>
+          <LearnAboutTeamsLink />
+        </div>
         <InfiniteScroll
           bufferValue={280}
           callBack={[Function]}
@@ -136,12 +141,17 @@ exports[`components/select_team/SelectTeam should match snapshot, on create team
         className="signup__content"
         id="teamsYouCanJoinContent"
       >
-        <h4>
-          <MemoizedFormattedMessage
-            defaultMessage="Teams you can join: "
-            id="signup_team.join_open"
-          />
-        </h4>
+        <div
+          className="SelectTeam__sub-header"
+        >
+          <h4>
+            <MemoizedFormattedMessage
+              defaultMessage="Teams you can join: "
+              id="signup_team.join_open"
+            />
+          </h4>
+          <LearnAboutTeamsLink />
+        </div>
         <InfiniteScroll
           bufferValue={280}
           callBack={[Function]}
@@ -385,12 +395,17 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
         className="signup__content"
         id="teamsYouCanJoinContent"
       >
-        <h4>
-          <MemoizedFormattedMessage
-            defaultMessage="Teams you can join: "
-            id="signup_team.join_open"
-          />
-        </h4>
+        <div
+          className="SelectTeam__sub-header"
+        >
+          <h4>
+            <MemoizedFormattedMessage
+              defaultMessage="Teams you can join: "
+              id="signup_team.join_open"
+            />
+          </h4>
+          <LearnAboutTeamsLink />
+        </div>
         <InfiniteScroll
           bufferValue={280}
           callBack={[Function]}
@@ -609,12 +624,17 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
         className="signup__content"
         id="teamsYouCanJoinContent"
       >
-        <h4>
-          <MemoizedFormattedMessage
-            defaultMessage="Teams you can join: "
-            id="signup_team.join_open"
-          />
-        </h4>
+        <div
+          className="SelectTeam__sub-header"
+        >
+          <h4>
+            <MemoizedFormattedMessage
+              defaultMessage="Teams you can join: "
+              id="signup_team.join_open"
+            />
+          </h4>
+          <LearnAboutTeamsLink />
+        </div>
         <InfiniteScroll
           bufferValue={280}
           callBack={[Function]}

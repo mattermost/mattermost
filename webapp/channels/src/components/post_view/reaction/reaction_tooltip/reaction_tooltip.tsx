@@ -11,6 +11,7 @@ type Props = {
     canRemoveReactions: boolean;
     currentUserReacted: boolean;
     emojiName: string;
+    emojiIcon: React.ReactNode;
     reactions: ReactionType[];
     users: string[];
 };
@@ -20,6 +21,7 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
         canAddReactions,
         canRemoveReactions,
         currentUserReacted,
+        emojiIcon,
         emojiName,
         reactions,
         users,
@@ -130,6 +132,7 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
 
     return (
         <>
+            <div className='reaction-emoji--large'>{emojiIcon}</div>
             {tooltip}
             <br/>
             {clickTooltip}
