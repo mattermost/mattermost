@@ -38,8 +38,7 @@
                     <mj-divider padding="0px" css-class="divider" width="313px" border-width="1px"
                         border-color="#3F4350" />
                     <mj-raw>{{end}}</mj-raw>
-                    <mj-button padding-top="6px" font-size="14px" line-height="20px" background-color="transparent"
-                        color="#1C58D9" href="mailto:{{.Props.SupportEmail}}">
+                    <mj-button padding-top="6px" font-size="14px" line-height="20px" background-color="transparent" color="#1C58D9" href="mailto:{{.Props.SupportEmail}}">
                         {{.Props.ContactSupport}}
                     </mj-button>
                 </mj-column>
