@@ -2,6 +2,8 @@
 
 .user-settings {
     min-height: 300px;
+    max-height: 445px;
+    overflow: auto;
 
     .table-responsive {
         max-width: 560px;

@@ -62,7 +62,7 @@ const TeamSettingsModal = (props: Props) => {
                             />
                         </React.Suspense>
                     </div>
-                    <div className='settings-content minimize-settings'>
+                    <div className='settings-content'>
                         <TeamSettings
                             activeTab={activeTab}
                             closeModal={handleHide}
