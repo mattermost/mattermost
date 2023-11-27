@@ -78,6 +78,7 @@ type SqlStoreStores struct {
 	compliance                 store.ComplianceStore
 	session                    store.SessionStore
 	oauth                      store.OAuthStore
+	outgoingOAuthConnection    store.OutgoingOAuthConnectionStore
 	system                     store.SystemStore
 	webhook                    store.WebhookStore
 	command                    store.CommandStore
@@ -199,6 +200,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) (*Sql
 	store.stores.compliance = newSqlComplianceStore(store)
 	store.stores.session = newSqlSessionStore(store)
 	store.stores.oauth = newSqlOAuthStore(store)
+	store.stores.outgoingOAuthConnection = newSqlOutgoingOAuthConnectionStore(store)
 	store.stores.system = newSqlSystemStore(store)
 	store.stores.webhook = newSqlWebhookStore(store, metrics)
 	store.stores.command = newSqlCommandStore(store)
@@ -946,6 +948,10 @@ func (ss *SqlStore) Compliance() store.ComplianceStore {
 
 func (ss *SqlStore) OAuth() store.OAuthStore {
 	return ss.stores.oauth
+}
+
+func (ss *SqlStore) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
+	return ss.stores.outgoingOAuthConnection
 }
 
 func (ss *SqlStore) System() store.SystemStore {
