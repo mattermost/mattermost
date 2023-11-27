@@ -113,7 +113,7 @@
   },
   {
     "id": "api.admin.test_email.reenter_password",
-    "translation": "SMTP server, port, ili korisničko ime su promijenjeni. Molimo ponovno unesite SMTP lozinku za testiranje veze."
+    "translation": "SMTP server, priključak ili korisničko ime su promijenjeni. Za testiranje veze ponovo upiši SMTP lozinku."
   },
   {
     "id": "api.admin.test_email.missing_server",
@@ -125,7 +125,7 @@
   },
   {
     "id": "api.admin.saml.not_available.app_error",
-    "translation": "SAML 2.0 nije postavljen ili podržan na ovom poslužitelju."
+    "translation": "SAML 2.0 nije postavljen ili podržan na ovom serveru."
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -1086,5 +1086,41 @@
   {
     "id": "api.command_open.name",
     "translation": "otvori"
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Sigurna veza | URL stranice | Samo za čitanje | Prihvaćen poziv | Online | Zadnja sinkronizacija |"
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "ID sigurne veze ne valja: {{.Error}}"
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "Nemaš dozvolu za pozivanje novih korisnika na ovaj server."
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "prečaci"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Za poništavanje poziva moraš navesti valjani ID sigurne veze"
+  },
+  {
+    "id": "api.command_shrug.desc",
+    "translation": "Dodaj ¯\\_(ツ)_/¯ u tvoju poruku"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Aktualiziranje prijevoda servera nije uspjelo."
+  },
+  {
+    "id": "api.team.get_team_icon.read_file.app_error",
+    "translation": "Nije moguće učitati datoteku ikone tima."
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v je uklonjen/a iz tima."
   }
 ]
