@@ -82,7 +82,8 @@ func (s *SearchUserStore) Update(rctx request.CTX, user *model.User, trustedUpda
 }
 
 func (s *SearchUserStore) Save(user *model.User) (*model.User, error) {
-	//TODO: Use the actuall request context from the App layer
+	// TODO: Use the actuall request context from the App layer
+	// https://mattermost.atlassian.net/browse/MM-55737
 	rctx := request.EmptyContext(s.rootStore.Logger())
 	nuser, err := s.UserStore.Save(user)
 
@@ -93,7 +94,8 @@ func (s *SearchUserStore) Save(user *model.User) (*model.User, error) {
 }
 
 func (s *SearchUserStore) PermanentDelete(userId string) error {
-	//TODO: Use the actuall request context from the App layer
+	// TODO: Use the actuall request context from the App layer
+	// https://mattermost.atlassian.net/browse/MM-55738
 	rctx := request.EmptyContext(s.rootStore.Logger())
 	user, userErr := s.UserStore.Get(context.Background(), userId)
 	if userErr != nil {

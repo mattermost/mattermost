@@ -67,7 +67,8 @@ func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Chann
 }
 
 func (c *SearchChannelStore) Save(channel *model.Channel, maxChannels int64) (*model.Channel, error) {
-	//TODO: Use the actuall request context from the App layer
+	// TODO: Use the actuall request context from the App layer
+	// https://mattermost.atlassian.net/browse/MM-55733
 	rctx := request.EmptyContext(c.rootStore.Logger())
 	newChannel, err := c.ChannelStore.Save(channel, maxChannels)
 	if err == nil {
@@ -100,7 +101,8 @@ func (c *SearchChannelStore) UpdateMember(rctx request.CTX, cm *model.ChannelMem
 }
 
 func (c *SearchChannelStore) SaveMember(cm *model.ChannelMember) (*model.ChannelMember, error) {
-	//TODO: Use the actuall request context from the App layer
+	// TODO: Use the actuall request context from the App layer
+	// https://mattermost.atlassian.net/browse/MM-55734
 	rctx := request.EmptyContext(c.rootStore.Logger())
 	member, err := c.ChannelStore.SaveMember(cm)
 	if err == nil {
