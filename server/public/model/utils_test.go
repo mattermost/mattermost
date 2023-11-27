@@ -245,9 +245,9 @@ func TestArrayFromJsonNonSort(t *testing.T) {
 		b, _ := json.Marshal(ids)
 		a := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
 		require.Equal(t, len(ids), len(a))
-		require.Equeal(t, ids[0], a[0])
-		require.Equeal(t, ids[1], a[1])
-		require.Equeal(t, ids[2], a[2])
+		require.Equal(t, ids[0], a[0])
+		require.Equal(t, ids[1], a[1])
+		require.Equal(t, ids[2], a[2])
 	})
 
 	t.Run("Empty Array", func(t *testing.T) {
