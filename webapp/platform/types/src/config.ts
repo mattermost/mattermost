@@ -206,6 +206,7 @@ export type ClientConfig = {
     WranglerMoveThreadFromDirectMessageChannelEnable: string;
     WranglerMoveThreadFromGroupMessageChannelEnable: string;
     ServiceEnvironment: string;
+    UniqueEmojiReactionLimitPerPost: string;
 };
 
 export type License = {
@@ -384,6 +385,7 @@ export type ServiceSettings = {
     PersistentNotificationIntervalMinutes: number;
     PersistentNotificationMaxCount: number;
     PersistentNotificationMaxRecipients: number;
+    UniqueEmojiReactionLimitPerPost: number;
     RefreshPostStatsRunTime: string;
 };
 

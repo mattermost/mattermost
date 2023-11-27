@@ -179,6 +179,7 @@ const defaultServerConfig: AdminConfig = {
         EnableCustomGroups: true,
         SelfHostedPurchase: true,
         AllowSyncedDrafts: true,
+        UniqueEmojiReactionLimitPerPost: 25,
         RefreshPostStatsRunTime: '00:00',
     },
     TeamSettings: {

@@ -135,9 +135,9 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "Remote cluster ping",
 		mlog.String("remote", rc.DisplayName),
 		mlog.String("remoteId", rc.RemoteId),
-		mlog.Int64("SentAt", ping.SentAt),
-		mlog.Int64("RecvAt", ping.RecvAt),
-		mlog.Int64("Diff", ping.RecvAt-ping.SentAt),
+		mlog.Int("SentAt", ping.SentAt),
+		mlog.Int("RecvAt", ping.RecvAt),
+		mlog.Int("Diff", ping.RecvAt-ping.SentAt),
 	)
 	return nil
 }
