@@ -19,6 +19,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -142,6 +143,15 @@ func VerifyCertificates(rawCerts [][]byte, verifiedChains [][]*x509.Certificate)
 
 func NewAPIv4Client(instanceURL string, allowInsecureSHA1, allowInsecureTLS bool) *model.Client4 {
 	client := model.NewAPIv4Client(instanceURL, maximumPayloadSize)
+	config, _, err := client.GetConfig(context.TODO())
+	if err != nil {
+		// ignore error
+		mlog.Debug("ERROR NEWAPI")
+	}
+	if config != nil && *config.ServiceSettings.MaximumPayloadSize != client.MaximumPayloadSize {
+		client.MaximumPayloadSize = *config.ServiceSettings.MaximumPayloadSize
+	}
+
 	userAgent := fmt.Sprintf("mmctl/%s (%s)", Version, runtime.GOOS)
 	client.HTTPHeader = map[string]string{"User-Agent": userAgent}
 
