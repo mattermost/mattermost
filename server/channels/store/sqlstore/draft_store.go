@@ -229,7 +229,7 @@ func (s *SqlDraftStore) determineMaxDraftSize() int {
 	// Assume a worst-case representation of four bytes per rune.
 	maxDraftSize := int(maxDraftSizeBytes) / 4
 
-	mlog.Info("Draft.Message has size restrictions", mlog.Int("max_characters", maxDraftSize), mlog.Int32("max_bytes", maxDraftSizeBytes))
+	mlog.Info("Draft.Message has size restrictions", mlog.Int("max_characters", maxDraftSize), mlog.Int("max_bytes", maxDraftSizeBytes))
 
 	return maxDraftSize
 }
