@@ -179,6 +179,7 @@ const defaultServerConfig: AdminConfig = {
         EnableCustomGroups: true,
         SelfHostedPurchase: true,
         AllowSyncedDrafts: true,
+        UniqueEmojiReactionLimitPerPost: 25,
     },
     TeamSettings: {
         SiteName: 'Mattermost',

@@ -6639,6 +6639,22 @@ func (s *TimerLayerReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsF
 	return err
 }
 
+func (s *TimerLayerReactionStore) ExistsOnPost(postId string, emojiName string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.ReactionStore.ExistsOnPost(postId, emojiName)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.ExistsOnPost", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerReactionStore) GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error) {
 	start := time.Now()
 
@@ -6667,6 +6683,22 @@ func (s *TimerLayerReactionStore) GetForPostSince(postId string, since int64, ex
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.GetForPostSince", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerReactionStore) GetUniqueCountForPost(postId string) (int, error) {
+	start := time.Now()
+
+	result, err := s.ReactionStore.GetUniqueCountForPost(postId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.GetUniqueCountForPost", success, elapsed)
 	}
 	return result, err
 }
