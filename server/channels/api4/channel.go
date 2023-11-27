@@ -15,8 +15,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
-const maxListSize = 1000
-
 func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(getAllChannels)).Methods("GET")
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(createChannel)).Methods("POST")
@@ -700,7 +698,7 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	channelIDs := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
-	if len(channelIDs) > maxListSize {
+	if len(channelIDs) == 0 {
 		c.SetInvalidParam("channel_ids")
 		return
 	}
@@ -898,7 +896,7 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 	}
 
 	channelIds := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
-	if len(channelIds) == 0 || len(channelIds) > maxListSize {
+	if len(channelIds) == 0 {
 		c.SetInvalidParam("channel_ids")
 		return
 	}
@@ -1438,7 +1436,7 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	userIds := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
-	if len(userIds) == 0 || len(userIds) > maxListSize {
+	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}

@@ -31,6 +31,7 @@ var (
 		x509.ECDSAWithSHA1: true,
 	}
 	expectedSocketMode = os.ModeSocket | 0600
+	maximumPayloadSize = int64(100000)
 )
 
 func CheckVersionMatch(version, serverVersion string) (bool, error) {
@@ -140,7 +141,7 @@ func VerifyCertificates(rawCerts [][]byte, verifiedChains [][]*x509.Certificate)
 }
 
 func NewAPIv4Client(instanceURL string, allowInsecureSHA1, allowInsecureTLS bool) *model.Client4 {
-	client := model.NewAPIv4Client(instanceURL, 100000)
+	client := model.NewAPIv4Client(instanceURL, maximumPayloadSize)
 	userAgent := fmt.Sprintf("mmctl/%s (%s)", Version, runtime.GOOS)
 	client.HTTPHeader = map[string]string{"User-Agent": userAgent}
 
@@ -224,7 +225,7 @@ func InitUnixClient(socketPath string) (*model.Client4, error) {
 		return nil, err
 	}
 
-	return model.NewAPIv4SocketClient(socketPath, 100000), nil
+	return model.NewAPIv4SocketClient(socketPath, maximumPayloadSize), nil
 }
 
 func checkInsecureTLSError(err error, allowInsecureTLS bool) error {

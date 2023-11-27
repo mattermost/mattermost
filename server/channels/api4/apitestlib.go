@@ -175,6 +175,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		*cfg.PasswordSettings.Number = false
 
 		*cfg.ServiceSettings.ListenAddress = "localhost:0"
+		*cfg.ServiceSettings.MaximumPayloadSize = 100000
 	})
 	if err := th.Server.Start(); err != nil {
 		panic(err)
@@ -499,7 +500,7 @@ func (th *TestHelper) waitForConnectivity() {
 }
 
 func (th *TestHelper) CreateClient() *model.Client4 {
-	return model.NewAPIv4Client(fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port), 100000)
+	return model.NewAPIv4Client(fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port), *th.App.Config().ServiceSettings.MaximumPayloadSize)
 }
 
 // ToDo: maybe move this to NewAPIv4SocketClient and reuse it in mmctl
@@ -515,7 +516,7 @@ func (th *TestHelper) CreateLocalClient(socketPath string) *model.Client4 {
 	return &model.Client4{
 		APIURL:             "http://_" + model.APIURLSuffix,
 		HTTPClient:         httpClient,
-		MaximumPayloadSize: 100000,
+		MaximumPayloadSize: *th.App.Config().ServiceSettings.MaximumPayloadSize,
 	}
 }
 
