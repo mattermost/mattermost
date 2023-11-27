@@ -476,6 +476,7 @@
     .header-status__text {
         display: flex;
         overflow: hidden;
+        flex-shrink: 0;
         align-items: center;
         margin-right: 7px;
         line-height: 16px;
