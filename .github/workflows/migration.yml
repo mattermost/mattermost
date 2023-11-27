@@ -30,7 +30,13 @@ jobs:
           docker restart ${COMPOSE_PROJECT_NAME}-mysql-1 && sleep 10
       - name: Build test image
         run: |
-          echo -e "FROM $BUILD_IMAGE\n\nRUN apt-add-repository 'deb http://ftp.us.debian.org/debian bookworm main contrib non-free' && apt update && apt install -y pgloader" >> dockerfile_tmp
+          echo -e "FROM $BUILD_IMAGE\n\nRUN apt update && \
+            apt remove -y pgloader && \
+            apt install -y sbcl unzip libsqlite3-dev make curl gawk freetds-dev libzip-dev && \
+            git clone https://github.com/dimitri/pgloader.git && \
+            cd pgloader && \
+            make && \
+            mv build/bin/pgloader /bin" >> dockerfile_tmp
           docker build -t $TEST_IMAGE - < dockerfile_tmp
       - name: Generate test-data
         run: |
@@ -46,7 +52,6 @@ jobs:
       - name: Migrate the DB and compare
         run: |
           docker run --net ${COMPOSE_PROJECT_NAME}_mm-test \
-          -u root \
           --ulimit nofile=8096:8096 \
           --env-file=build/dotenv/migration.env \
           -v $(go env GOCACHE):/go/cache \
