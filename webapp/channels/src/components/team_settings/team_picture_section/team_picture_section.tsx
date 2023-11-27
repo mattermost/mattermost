@@ -113,17 +113,19 @@ const TeamPictureSection = (props: Props) => {
     };
 
     const removeImageButton = () => {
-        return (
+        if (props.file || props.src) {
+            return (
+                <button
+                    onClick={props.onRemove}
+                    className='style--none picture-setting-item__remove-button'
+                >
+                    <TrashCanOutlineIcon/>
+                    {int.formatMessage({id: 'setting_picture.remove_image', defaultMessage: 'Remove image'})}
+                </button>
+            );
+        }
 
-            // todo show dynamically remove icon or description
-            <button
-                onClick={props.onRemove}
-                className='style--none picture-setting-item__remove-button'
-            >
-                <TrashCanOutlineIcon/>
-                {int.formatMessage({id: 'setting_picture.remove_image', defaultMessage: 'Remove image'})}
-            </button>
-        );
+        return null;
     };
 
     return (
