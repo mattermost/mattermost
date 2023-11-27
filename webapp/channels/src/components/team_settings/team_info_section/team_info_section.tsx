@@ -237,6 +237,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
             clientError: '',
             serverError: '',
             teamIconFile: null,
+            haveImageChanges: false,
         });
 
         const {error} = await this.props.actions.removeTeamIcon(this.props.team?.id || '');
