@@ -63,6 +63,10 @@
         > :not(:first-child) {
             margin-left: 8px;
         }
+
+        textarea {
+            margin-top: 6px;
+        }
     }
 
     .Input_limit-exceeded {
