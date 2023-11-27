@@ -21,7 +21,18 @@ interface Props {
     onMouseOver?: React.MouseEventHandler<BSPopover>;
 }
 
-const Popover = ({placement = 'right', popoverSize = 'sm', children, popoverStyle = 'info', title, id, onMouseOut, onMouseOver, className, style}: Props) => {
+const Popover = ({
+    placement = 'right',
+    popoverSize = 'sm',
+    children,
+    popoverStyle = 'info',
+    title,
+    id,
+    onMouseOut,
+    onMouseOver,
+    className,
+    style,
+}: Props) => {
     return (
         <BSPopover
             id={id}
