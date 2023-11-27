@@ -121,7 +121,7 @@ const IPFiltering = () => {
                 // Average time for provisioner to update is around 30 seconds. This allows up to 75 seconds before it will stop fetching, displaying an error
                 setSavingDescription((
                     <>
-                        <AlertOutlineIcon size={16}/> {formatMessage({id: 'admin.ip_filtering.failed_to_fetch_installation_state', defaultMessage: 'Failed to fetch your workspaces status. Please try again later or contact support.'})}
+                        <AlertOutlineIcon size={16}/> {formatMessage({id: 'admin.ip_filtering.failed_to_fetch_installation_state', defaultMessage: 'Failed to fetch your workspace\'s status. Please try again later or contact support.'})}
                     </>
                 ));
                 clearInterval(interval);
