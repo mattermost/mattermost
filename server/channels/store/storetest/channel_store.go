@@ -3533,6 +3533,10 @@ func testChannelStoreGetChannels(t *testing.T, rctx request.CTX, ss store.Store)
 	_, ok = ids4[o1.Id]
 	require.True(t, ok, "missing channel")
 
+	ids5, err := ss.Channel().GetAllChannelMembersForUser(model.NewId(), true, true)
+	require.NoError(t, err)
+	require.True(t, len(ids5) == 0)
+
 	// Sleeping to guarantee that the
 	// UpdateAt is different.
 	// The proper way would be to set UpdateAt during channel creation itself,
