@@ -440,7 +440,6 @@ describe('Actions.Posts', () => {
         });
     });
 
-
     describe('addReaction', () => {
         mockMakeGetUniqueEmojiNameReactionsForPost.mockReturnValue(() => []);
 
