@@ -902,8 +902,6 @@
   "admin.experimental.experimentalPrimaryTeam.desc": "Primární tým, jehož členy jsou uživatelé na serveru. Je-li nastaven primární tým, jsou zakázány možnosti připojení k jiným týmům nebo opuštění primárního týmu.",
   "admin.experimental.experimentalPrimaryTeam.example": "Např.: \"přezdívka\"",
   "admin.experimental.experimentalPrimaryTeam.title": "Primární tým:",
-  "admin.experimental.experimentalUseNewSAMLLibrary.desc": "Povolte aktualizovanou knihovnu SAML, která nevyžaduje instalaci knihovny XML Security Library (xmlsec1). Upozornění: Ne všichni poskytovatelé byli otestováni. Pokud se vyskytnou problémy, kontaktujte prosím podporu: <linkSupport>https://mattermost.com/support/</linkSupport>. Změna tohoto nastavení vyžaduje restart serveru, než se projeví.",
-  "admin.experimental.experimentalUseNewSAMLLibrary.title": "Použít vylepšenou knihovnu SAML (Beta):",
   "admin.experimental.ldapSettingsLoginButtonBorderColor.desc": "Zadejte barvu rámečku tlačítka přihlášení do služby AD/LDAP pro účely bílého označení. Použijte šestnáctkový kód se znakem # před kódem. Toto nastavení se vztahuje pouze na mobilní aplikace.",
   "admin.experimental.ldapSettingsLoginButtonBorderColor.title": "Barva okraje tlačítka pro přihlášení do služby AD/LDAP:",
   "admin.experimental.ldapSettingsLoginButtonColor.desc": "Zadejte barvu tlačítka přihlášení do služby AD/LDAP pro účely bílého označení. Použijte šestnáctkový kód se znakem # před kódem. Toto nastavení se vztahuje pouze na mobilní aplikace.",
