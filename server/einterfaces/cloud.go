@@ -56,4 +56,5 @@ type CloudInterface interface {
 
 	ApplyIPFilters(userID string, ranges *model.AllowedIPRanges) (*model.AllowedIPRanges, error)
 	GetIPFilters(userID string) (*model.AllowedIPRanges, error)
+	GetInstallation(userID string) (*model.Installation, error)
 }

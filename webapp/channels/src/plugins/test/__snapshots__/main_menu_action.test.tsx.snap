@@ -631,6 +631,13 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           to="/create_team"
         />
       </Connect(SystemPermissionGate)>
+      <Memo(MenuGroup)>
+        <div
+          className="MainMenu_dropdown-link"
+        >
+          <LearnAboutTeamsLink />
+        </div>
+      </Memo(MenuGroup)>
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
       <MenuItemAction
