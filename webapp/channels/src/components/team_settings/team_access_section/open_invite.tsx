@@ -41,6 +41,7 @@ const OpenInvite = (props: Props) => {
     let inputs;
 
     if (isGroupConstrained) {
+        // todo sinan: waiting info from Matt
         inputs = [
             <div key='userOpenInviteOptions'>
                 <div>

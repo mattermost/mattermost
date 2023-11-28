@@ -195,6 +195,7 @@ export class AccessTab extends React.PureComponent<Props, State> {
         );
 
         // todo sinan: check title font size is same as figma
+        // todo sinan: descriptions are placed above content. Waiting an input from Matt
         return (
             <ModalSection
                 content={
