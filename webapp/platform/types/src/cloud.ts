@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AllowedIPRange} from './config';
 import {ValueOf} from './utilities';
 
 export type CloudState = {
@@ -24,6 +25,12 @@ export type CloudState = {
     selfHostedSignup: {
         progress: ValueOf<typeof SelfHostedSignupProgress>;
     };
+}
+
+export type Installation = {
+    id: string;
+    state: string;
+    allowed_ip_ranges: AllowedIPRange[];
 }
 
 export type Subscription = {
