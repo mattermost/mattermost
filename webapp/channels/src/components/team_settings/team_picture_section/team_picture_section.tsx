@@ -70,6 +70,7 @@ const TeamPictureSection = (props: Props) => {
             const imageStyles = {
                 backgroundImage: 'url(' + image + ')',
                 backgroundSize: 'cover',
+                backgroundRepeat: 'round',
                 ...orientationStyles,
             };
 
@@ -78,6 +79,7 @@ const TeamPictureSection = (props: Props) => {
                     alt='team image preview'
                     style={imageStyles}
                     className='team-img-preview'
+                    onClick={handleInputFile}
                 />
             );
         }
@@ -86,12 +88,16 @@ const TeamPictureSection = (props: Props) => {
                 <img
                     className='team-img-preview'
                     src={props.src}
+                    onClick={handleInputFile}
                 />
             );
         }
         return (
             <div className='team-picture-section__team-icon' >
-                <span className='team-picture-section__team-name' >{props.teamName ? props.teamName.charAt(0).toUpperCase() + props.teamName?.charAt(1) : ''}</span>
+                <span
+                    onClick={handleInputFile}
+                    className='team-picture-section__team-name'
+                >{props.teamName ? props.teamName.charAt(0).toUpperCase() + props.teamName?.charAt(1) : ''}</span>
             </div>
         );
     };
