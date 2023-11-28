@@ -865,6 +865,8 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	canInviteGuests := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteGuest)
+
 	var userIDs []string
 	for _, member := range members {
 		if member.TeamId != c.Params.TeamId {
@@ -877,6 +879,18 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// if user cannot invite guests, check if any users are guest users.
+		if !canInviteGuests {
+			user, err := c.App.GetUser(member.UserId)
+			if err != nil || user == nil {
+				c.Err = model.NewAppError("addTeamMembers", "app.user.missing_account.const", nil, "", http.StatusNotFound)
+				return
+			}
+			if user.IsGuest() {
+				c.SetPermissionError(model.PermissionInviteGuest)
+				return
+			}
+		}
 		userIDs = append(userIDs, member.UserId)
 	}
 
