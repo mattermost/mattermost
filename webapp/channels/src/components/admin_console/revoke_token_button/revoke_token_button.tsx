@@ -22,9 +22,7 @@ const RevokeTokenButton = (props: RevokeTokenButtonProps) => {
     const handleClick = async (e: React.MouseEvent) => {
         e.preventDefault();
 
-        const response = await props.actions.revokeUserAccessToken(
-            props.tokenId,
-        );
+        const response = await props.actions.revokeUserAccessToken(props.tokenId);
         trackEvent('system_console', 'revoke_user_access_token');
 
         if ('error' in response) {
@@ -33,7 +31,6 @@ const RevokeTokenButton = (props: RevokeTokenButtonProps) => {
     };
 
     return (
-
         <button
             type='button'
             className='btn btn-danger'
