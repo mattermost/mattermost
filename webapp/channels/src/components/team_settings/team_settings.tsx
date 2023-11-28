@@ -25,6 +25,7 @@ const TeamSettings = ({
         return null;
     }
 
+    // todo sinan check inactive section background color
     let result;
     switch (activeTab) {
     case 'info':

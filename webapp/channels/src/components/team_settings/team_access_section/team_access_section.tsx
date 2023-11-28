@@ -8,8 +8,10 @@ import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-in
 import type {Team} from '@mattermost/types/teams';
 
 import SettingItemMax from 'components/setting_item_max';
+import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
+import ModalSection from 'components/widgets/modals/components/modal_section';
 
-import {localizeMessage, moveCursorToEnd} from 'utils/utils';
+import {localizeMessage} from 'utils/utils';
 
 import OpenInvite from './open_invite';
 
@@ -121,59 +123,42 @@ export class AccessTab extends React.PureComponent<Props, State> {
 
         let inviteSection;
         if (this.props.canInviteTeamMembers) {
-            const inviteSectionInputs = [];
-
-            inviteSectionInputs.push(
-                <div key='teamInviteSetting'>
-                    <div className='row'>
-                        <label className='col-sm-5 control-label visible-xs-block'/>
-                        <div className='col-sm-12'>
-                            <input
-                                id='teamInviteId'
-                                autoFocus={true}
-                                className='form-control'
-                                type='text'
-                                value={this.state.invite_id}
-                                maxLength={32}
-                                onFocus={moveCursorToEnd}
-                                readOnly={true}
-                            />
-                        </div>
-                    </div>
-                    <div className='setting-list__hint'>
-                        <FormattedMessage
-                            id='general_tab.codeLongDesc'
-                            defaultMessage='The Invite Code is part of the unique team invitation link which is sent to members you’re inviting to this team. Regenerating the code creates a new invitation link and invalidates the previous link.'
-                            values={{
-                                getTeamInviteLink: (
-                                    <strong>
-                                        <FormattedMessage
-                                            id='general_tab.getTeamInviteLink'
-                                            defaultMessage='Get Team Invite Link'
-                                        />
-                                    </strong>
-                                ),
-                            }}
+            const inviteSectionInput = (
+                <div id='teamInviteSetting'>
+                    <label className='col-sm-5 control-label visible-xs-block'/>
+                    <div className='col-sm-12'>
+                        <input
+                            id='teamInviteId'
+                            autoFocus={true}
+                            className='form-control'
+                            type='text'
+                            value={this.state.invite_id}
+                            maxLength={32}
+                            readOnly={true}
                         />
                     </div>
-                </div>,
+                </div>
             );
 
+            // inviteSection = (
+            //     <SettingItemMax
+            //         submit={this.handleInviteIdSubmit}
+            //         serverError={serverError}
+            //         clientError={clientError}
+            //         saveButtonText={localizeMessage('general_tab.regenerate', 'Regenerate')}
+            //     />
+            // );
+
             inviteSection = (
-                <SettingItemMax
-                    title={localizeMessage('general_tab.codeTitle', 'Invite Code')}
-                    inputs={inviteSectionInputs}
-                    submit={this.handleInviteIdSubmit}
-                    serverError={serverError}
-                    clientError={clientError}
-                    saveButtonText={localizeMessage('general_tab.regenerate', 'Regenerate')}
+                <BaseSettingItem
+                    title={{id: 'general_tab.codeTitle', defaultMessage: 'Invite Code'}}
+                    description={{id: 'general_tab.codeLongDesc', defaultMessage: 'The Invite Code is part of the unique team invitation link which is sent to members you’re inviting to this team. Regenerating the code creates a new invitation link and invalidates the previous link.'}}
+                    content={inviteSectionInput}
                 />
             );
         }
 
-        const allowedDomainsSectionInputs = [];
-
-        allowedDomainsSectionInputs.push(
+        const allowedDomainsSectionInput = (
             <div
                 key='allowedDomainsSetting'
                 className='form-group'
@@ -186,76 +171,45 @@ export class AccessTab extends React.PureComponent<Props, State> {
                         type='text'
                         onChange={this.updateAllowedDomains}
                         value={this.state.allowed_domains}
-                        onFocus={moveCursorToEnd}
                         placeholder={this.props.intl.formatMessage({id: 'general_tab.AllowedDomainsExample', defaultMessage: 'corp.mattermost.com, mattermost.com'})}
                         aria-label={localizeMessage('general_tab.allowedDomains.ariaLabel', 'Allowed Domains')}
                     />
                 </div>
-            </div>,
+            </div>
         );
 
-        const allowedDomainsInfo = <span>{localizeMessage('general_tab.AllowedDomainsInfo', 'Users can only join the team if their email matches a specific domain (e.g. "mattermost.com") or list of comma-separated domains (e.g. "corp.mattermost.com, mattermost.com").')}</span>;
+        // const allowedDomainsSection = (
+        //     <SettingItemMax
+        //         submit={this.handleAllowedDomainsSubmit}
+        //         serverError={serverError}
+        //         clientError={clientError}
+        //     />
+        // );
 
         const allowedDomainsSection = (
-            <SettingItemMax
-                title={localizeMessage('general_tab.allowedDomains', 'Allow only users with a specific email domain to join this team')}
-                inputs={allowedDomainsSectionInputs}
-                submit={this.handleAllowedDomainsSubmit}
-                serverError={serverError}
-                clientError={clientError}
-                extraInfo={allowedDomainsInfo}
+            <BaseSettingItem
+                title={{id: 'general_tab.allowedDomainsTitle', defaultMessage: 'Users with a specific email domain'}}
+                description={{id: 'general_tab.allowedDomainsInfo', defaultMessage: 'When enabled, users can only join the team if their email matches a specific domain (e.g. "mattermost.org")'}}
+                content={allowedDomainsSectionInput}
             />
         );
 
+        // todo sinan: check title font size is same as figma
         return (
-            <div>
-                <div className='modal-header'>
-                    <button
-                        id='closeButton'
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label='Close'
-                        onClick={this.props.closeModal}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                    </button>
-                    <h4 className='modal-title'>
-                        <FormattedMessage
-                            id='general_tab.title'
-                            defaultMessage='General Settings'
+            <ModalSection
+                content={
+                    <div className='user-settings'>
+                        {team?.group_constrained ? undefined : allowedDomainsSection}
+                        <OpenInvite
+                            teamId={this.props.team?.id}
+                            isGroupConstrained={this.props.team?.group_constrained}
+                            allowOpenInvite={this.props.team?.allow_open_invite}
+                            patchTeam={this.props.actions.patchTeam}
                         />
-                    </h4>
-                </div>
-                <div className='user-settings'>
-                    <h3 className='tab-header'>
-                        <FormattedMessage
-                            id='general_tab.title'
-                            defaultMessage='General Settings'
-                        />
-                    </h3>
-                    {!team?.group_constrained &&
-                        <>
-                            <div className='divider-light'/>
-                            {allowedDomainsSection}
-                        </>
-                    }
-                    <div className='divider-light'/>
-                    <OpenInvite
-                        teamId={this.props.team?.id}
-                        isGroupConstrained={this.props.team?.group_constrained}
-                        allowOpenInvite={this.props.team?.allow_open_invite}
-                        patchTeam={this.props.actions.patchTeam}
-                    />
-                    {!team?.group_constrained &&
-                        <>
-                            <div className='divider-light'/>
-                            {inviteSection}
-                        </>
-                    }
-                    <div className='divider-dark'/>
-                </div>
-            </div>
+                        {team?.group_constrained ? undefined : inviteSection}
+                    </div>
+                }
+            />
         );
     }
 }
