@@ -269,7 +269,7 @@ func (b *BleveEngine) DeleteChannelPosts(channelID string) *model.AppError {
 			err.Error(), http.StatusInternalServerError)
 	}
 
-	mlog.Info("Posts for channel deleted", mlog.String("channel_id", channelID), mlog.Int64("deleted", deleted))
+	mlog.Info("Posts for channel deleted", mlog.String("channel_id", channelID), mlog.Int("deleted", deleted))
 
 	return nil
 }
@@ -288,7 +288,7 @@ func (b *BleveEngine) DeleteUserPosts(userID string) *model.AppError {
 			err.Error(), http.StatusInternalServerError)
 	}
 
-	mlog.Info("Posts for user deleted", mlog.String("user_id", userID), mlog.Int64("deleted", deleted))
+	mlog.Info("Posts for user deleted", mlog.String("user_id", userID), mlog.Int("deleted", deleted))
 
 	return nil
 }
@@ -832,7 +832,7 @@ func (b *BleveEngine) DeleteUserFiles(userID string) *model.AppError {
 			err.Error(), http.StatusInternalServerError)
 	}
 
-	mlog.Info("Files for user deleted", mlog.String("user_id", userID), mlog.Int64("deleted", deleted))
+	mlog.Info("Files for user deleted", mlog.String("user_id", userID), mlog.Int("deleted", deleted))
 
 	return nil
 }
@@ -851,7 +851,7 @@ func (b *BleveEngine) DeletePostFiles(postID string) *model.AppError {
 			err.Error(), http.StatusInternalServerError)
 	}
 
-	mlog.Info("Files for post deleted", mlog.String("post_id", postID), mlog.Int64("deleted", deleted))
+	mlog.Info("Files for post deleted", mlog.String("post_id", postID), mlog.Int("deleted", deleted))
 
 	return nil
 }
@@ -873,7 +873,7 @@ func (b *BleveEngine) DeleteFilesBatch(endTime, limit int64) *model.AppError {
 			err.Error(), http.StatusInternalServerError)
 	}
 
-	mlog.Info("Files in batch deleted", mlog.Int64("endTime", endTime), mlog.Int64("limit", limit), mlog.Int64("deleted", deleted))
+	mlog.Info("Files in batch deleted", mlog.Int("endTime", endTime), mlog.Int("limit", limit), mlog.Int("deleted", deleted))
 
 	return nil
 }

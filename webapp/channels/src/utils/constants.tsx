@@ -449,6 +449,7 @@ export const ModalIdentifiers = {
     IP_FILTERING_ADD_EDIT_MODAL: 'ip_filtering_add_edit_modal',
     IP_FILTERING_DELETE_CONFIRMATION_MODAL: 'ip_filtering_delete_confirmation_modal',
     IP_FILTERING_SAVE_CONFIRMATION_MODAL: 'ip_filtering_save_confirmation_modal',
+    REACTION_LIMIT_REACHED: 'reaction_limit_reached',
 };
 
 export const UserStatuses = {
