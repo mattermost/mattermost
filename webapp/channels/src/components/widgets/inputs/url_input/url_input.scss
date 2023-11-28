@@ -12,6 +12,7 @@
         min-height: 32px;
         align-items: center;
         margin-top: 4px;
+        flex-wrap: wrap;
 
         .url-input-label {
             flex: none;
@@ -19,6 +20,8 @@
             color: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 12px;
             line-height: 17px;
+            max-width: 100%;
+            overflow-wrap: anywhere;
         }
 
         .url-input-editable-container {
