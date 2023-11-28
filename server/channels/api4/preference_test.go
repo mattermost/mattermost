@@ -6,6 +6,7 @@ package api4
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 
@@ -255,6 +256,51 @@ func TestUpdatePreferences(t *testing.T) {
 	resp, err = client.UpdatePreferences(context.Background(), user1.Id, preferences1)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestUpdatePreferencesOverload(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	th.LoginBasic()
+	user1 := th.BasicUser
+
+	category := model.NewId()
+	preferences1 := model.Preferences{}
+
+	// should error if no preferences
+	resp, err := client.UpdatePreferences(context.Background(), user1.Id, preferences1)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	// should error if too many preferences
+	for i := 0; i < 10; i++ {
+		preferences1 = append(preferences1, model.Preference{
+			UserId:   user1.Id,
+			Category: category,
+			Name:     model.NewId(),
+			Value:    model.NewId(),
+		})
+	}
+	resp, err = client.UpdatePreferences(context.Background(), user1.Id, preferences1)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	// should error if too large of preferences
+	th.App.Config().ServiceSettings.MaximumPayloadSize = 5000
+	for i := 0; i < 5; i++ {
+		preferences1 = append(preferences1, model.Preference{
+			UserId:   user1.Id,
+			Category: category,
+			Name:     model.NewId(),
+			Value:    strings.Repeat("A", 2000),
+		})
+	}
+	resp, err = client.UpdatePreferences(context.Background(), user1.Id, preferences1)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
 }
 
 func TestUpdatePreferencesWebsocket(t *testing.T) {
