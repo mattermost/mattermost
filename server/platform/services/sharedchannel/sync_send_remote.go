@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
@@ -41,12 +42,13 @@ type syncData struct {
 
 func newSyncData(task syncTask, rc *model.RemoteCluster, scr *model.SharedChannelRemote) *syncData {
 	return &syncData{
-		task:             task,
-		rc:               rc,
-		scr:              scr,
-		users:            make(map[string]*model.User),
-		profileImages:    make(map[string]*model.User),
-		resultNextCursor: model.GetPostsSinceForSyncCursor{LastPostTimestamp: scr.LastPostUpdateAt, LastPostID: scr.LastPostUpdateID},
+		task:          task,
+		rc:            rc,
+		scr:           scr,
+		users:         make(map[string]*model.User),
+		profileImages: make(map[string]*model.User),
+		resultNextCursor: model.GetPostsSinceForSyncCursor{LastPostUpdateAt: scr.LastPostUpdateAt, LastPostUpdateID: scr.LastPostUpdateID,
+			LastPostCreateAt: scr.LastPostCreateAt, LastPostCreateID: scr.LastPostCreateID},
 	}
 }
 
@@ -55,6 +57,10 @@ func (sd *syncData) isEmpty() bool {
 }
 
 func (sd *syncData) isCursorChanged() bool {
+	if sd.resultNextCursor.IsEmpty() {
+		return false
+	}
+
 	return sd.scr.LastPostCreateAt != sd.resultNextCursor.LastPostCreateAt || sd.scr.LastPostCreateID != sd.resultNextCursor.LastPostCreateID ||
 		sd.scr.LastPostUpdateAt != sd.resultNextCursor.LastPostUpdateAt || sd.scr.LastPostUpdateID != sd.resultNextCursor.LastPostUpdateID
 }
@@ -192,38 +198,62 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	options := model.GetPostsSinceForSyncOptions{
 		ChannelId:      sd.task.channelID,
 		IncludeDeleted: true,
+		SinceCreateAt:  true,
 	}
 	cursor := model.GetPostsSinceForSyncCursor{
-		LastPostTimestamp: sd.scr.LastPostUpdateAt,
-		LastPostID:        sd.scr.LastPostUpdateID,
+		LastPostUpdateAt: sd.scr.LastPostUpdateAt,
+		LastPostUpdateID: sd.scr.LastPostUpdateID,
+		LastPostCreateAt: sd.scr.LastPostCreateAt,
+		LastPostCreateID: sd.scr.LastPostCreateID,
 	}
 
+	// Fetch all newly created posts first. This is to ensure that post order is preserved for sync targets
+	// that cannot set the CreateAt timestamp for incoming posts (e.g. MS Teams).  If we simply used UpdateAt
+	// then posts could get out of order. For example: p1 created, p2 created, p1 updated... sync'ing on UpdateAt
+	// would order the posts p2, p1.
 	posts, nextCursor, err := scs.server.GetStore().Post().GetPostsSinceForSync(options, cursor, MaxPostsPerSync)
 	if err != nil {
 		return fmt.Errorf("could not fetch new posts for sync: %w", err)
 	}
+	count := len(posts)
+	sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostCreateAt)
 
+	// Fill remaining batch capacity with updated posts.
+	if len(posts) < MaxPostsPerSync {
+		options.SinceCreateAt = false
+		posts, nextCursor, err = scs.server.GetStore().Post().GetPostsSinceForSync(options, nextCursor, MaxPostsPerSync-len(posts))
+		if err != nil {
+			return fmt.Errorf("could not fetch modified posts for sync: %w", err)
+		}
+		count += len(posts)
+		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt)
+	}
+
+	sd.resultNextCursor = nextCursor
+	sd.resultRepeat = count >= MaxPostsPerSync
+
+	return nil
+}
+
+func appendPosts(dest []*model.Post, posts []*model.Post, postStore store.PostStore, timestamp int64) []*model.Post {
 	// Append the posts individually, checking for root posts that might appear later in the list.
 	// This is due to the UpdateAt collision handling algorithm where the order of posts is not based
 	// on UpdateAt or CreateAt when the posts have the same UpdateAt value. Here we are guarding
 	// against a root post with the same UpdateAt (and probably the same CreateAt) appearing later
-	// in the list and must be sync'd before the child post. This is and edge case that likely only
+	// in the list and must be sync'd before the child post. This is an edge case that likely only
 	// happens during load testing or bulk imports.
 	for _, p := range posts {
 		if p.RootId != "" {
-			root, err := scs.server.GetStore().Post().GetSingle(p.RootId, true)
+			root, err := postStore.GetSingle(p.RootId, true)
 			if err == nil {
-				if (root.CreateAt >= cursor.LastPostTimestamp || root.UpdateAt >= cursor.LastPostTimestamp) && !containsPost(sd.posts, root) {
-					sd.posts = append(sd.posts, root)
+				if (root.CreateAt >= timestamp || root.UpdateAt >= timestamp) && !containsPost(dest, root) {
+					dest = append(dest, root)
 				}
 			}
 		}
-		sd.posts = append(sd.posts, p)
+		dest = append(dest, p)
 	}
-
-	sd.resultNextCursor = nextCursor
-	sd.resultRepeat = len(posts) == MaxPostsPerSync
-	return nil
+	return dest
 }
 
 func containsPost(posts []*model.Post, post *model.Post) bool {

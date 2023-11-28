@@ -332,6 +332,10 @@ type GetPostsSinceForSyncCursor struct {
 	LastPostCreateID string
 }
 
+func (c GetPostsSinceForSyncCursor) IsEmpty() bool {
+	return c.LastPostCreateAt == 0 && c.LastPostCreateID == "" && c.LastPostUpdateAt == 0 && c.LastPostUpdateID == ""
+}
+
 type GetPostsSinceForSyncOptions struct {
 	ChannelId       string
 	ExcludeRemoteId string
