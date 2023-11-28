@@ -39,7 +39,7 @@ type RemoteCluster struct {
 	RemoteToken  string `json:"remote_token"`
 	Topics       string `json:"topics"`
 	CreatorId    string `json:"creator_id"`
-	PluginID     bool   `json:"plugin_id"` // non-empty when sync message are to be delivered via plugin API
+	PluginID     string `json:"plugin_id"` // non-empty when sync message are to be delivered via plugin API
 }
 
 func (rc *RemoteCluster) Auditable() map[string]interface{} {
