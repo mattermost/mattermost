@@ -1017,7 +1017,7 @@
 
 
         __Minimum server version__: 7.7
-      operationId: SaveAcknowledgementForPost
+      operationId: DeleteAcknowledgementForPost
       parameters:
         - name: user_id
           in: path
