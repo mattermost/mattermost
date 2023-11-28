@@ -391,8 +391,8 @@ const EmojiPicker = ({
             />
             {areSearchResultsEmpty ? (
                 <NoResultsIndicator
-                    variant={NoResultsVariant.ChannelSearch}
-                    titleValues={{channelName: `"${filter}"`}}
+                    variant={NoResultsVariant.Search}
+                    titleValues={{channelName: `${filter}`}}
                 />
             ) : (
                 <EmojiPickerCurrentResults
@@ -412,9 +412,9 @@ const EmojiPicker = ({
                 />
             )}
             <div className='emoji-picker__footer'>
-                <EmojiPickerPreview
-                    emoji={cursor.emoji}
-                />
+                {areSearchResultsEmpty ? (<div/>) :
+                    (<EmojiPickerPreview emoji={cursor.emoji}/>)
+                }
                 <EmojiPickerCustomEmojiButton
                     currentTeamName={currentTeamName}
                     customEmojisEnabled={customEmojisEnabled}
