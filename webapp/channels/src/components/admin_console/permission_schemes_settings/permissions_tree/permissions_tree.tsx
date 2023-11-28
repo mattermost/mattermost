@@ -265,7 +265,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                     Permissions.DELETE_BOOKMARK_PUBLIC_CHANNEL,
                     Permissions.ORDER_BOOKMARK_PUBLIC_CHANNEL,
                 ],
-            })
+            });
             privateChannelsGroup.permissions.push({
                 id: 'manage_private_channel_bookmarks',
                 combined: true,
@@ -275,7 +275,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                     Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL,
                     Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
                 ],
-            })
+            });
         }
 
         this.groups = this.groups.filter((group) => {

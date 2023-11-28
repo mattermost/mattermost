@@ -1141,7 +1141,6 @@ func (a *App) getAddIPFilterPermissionsMigration() (permissionsMap, error) {
 	return t, nil
 }
 
-
 func (a *App) getAddChannelBookmarksPermissionsMigration() (permissionsMap, error) {
 	transformations := []permissionTransformation{}
 
