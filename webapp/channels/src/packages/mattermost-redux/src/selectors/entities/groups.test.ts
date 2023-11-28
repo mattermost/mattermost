@@ -120,7 +120,7 @@ describe('Selectors.Groups', () => {
             },
             teams: {
                 teams: {
-                    [teamID]: {group_constrained: false},
+                    [teamID]: {group_constrained: true, id: teamID},
                 },
                 groupsAssociatedToTeam: {
                     [teamID]: {ids: teamAssociatedGroupIDs},
@@ -128,7 +128,7 @@ describe('Selectors.Groups', () => {
             },
             channels: {
                 channels: {
-                    [channelID]: {team_id: teamID, id: channelID},
+                    [channelID]: {team_id: teamID, id: channelID, group_constrained: true},
                 },
                 groupsAssociatedToChannel: {
                     [channelID]: {ids: channelAssociatedGroupIDs},
@@ -239,5 +239,39 @@ describe('Selectors.Groups', () => {
             },
         ];
         expect(Selectors.getMyGroupMentionKeysForChannel(testState, teamID, channelID)).toEqual(expected);
+    });
+
+    it('getAssociatedGroupsForReference team constrained', () => {
+        const expected = [
+            group5,
+            group1,
+        ];
+        expect(Selectors.getAssociatedGroupsForReference(testState, teamID, '')).toEqual(expected);
+    });
+
+    it('getAssociatedGroupsForReference channel constrained', () => {
+        const expected = [
+            group5,
+            group4,
+        ];
+        expect(Selectors.getAssociatedGroupsForReference(testState, '', channelID)).toEqual(expected);
+    });
+
+    it('getAssociatedGroupsForReference team and channel constrained', () => {
+        const expected = [
+            group4,
+            group1,
+            group5,
+        ];
+        expect(Selectors.getAssociatedGroupsForReference(testState, teamID, channelID)).toEqual(expected);
+    });
+
+    it('getAssociatedGroupsForReference no constraints', () => {
+        const expected = [
+            group1,
+            group4,
+            group5,
+        ];
+        expect(Selectors.getAssociatedGroupsForReference(testState, '', '')).toEqual(expected);
     });
 });
