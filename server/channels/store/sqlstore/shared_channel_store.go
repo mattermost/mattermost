@@ -334,8 +334,10 @@ func (s SqlSharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*m
 	}
 
 	query, args, err := s.getQueryBuilder().Insert("SharedChannelRemotes").
-		Columns("Id", "ChannelId", "CreatorId", "CreateAt", "UpdateAt", "IsInviteAccepted", "IsInviteConfirmed", "RemoteId", "LastPostUpdateAt", "LastPostUpdateId").
-		Values(remote.Id, remote.ChannelId, remote.CreatorId, remote.CreateAt, remote.UpdateAt, remote.IsInviteAccepted, remote.IsInviteConfirmed, remote.RemoteId, remote.LastPostUpdateAt, remote.LastPostUpdateID).
+		Columns("Id", "ChannelId", "CreatorId", "CreateAt", "UpdateAt", "IsInviteAccepted", "IsInviteConfirmed", "RemoteId",
+			"LastPostCreateAt", "LastPostCreateId", "LastPostUpdateAt", "LastPostUpdateId").
+		Values(remote.Id, remote.ChannelId, remote.CreatorId, remote.CreateAt, remote.UpdateAt, remote.IsInviteAccepted, remote.IsInviteConfirmed, remote.RemoteId,
+			remote.LastPostCreateAt, remote.LastPostCreateID, remote.LastPostUpdateAt, remote.LastPostUpdateID).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "savesharedchannelremote_tosql")
@@ -360,6 +362,8 @@ func (s SqlSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (
 		Set("IsInviteAccepted", remote.IsInviteAccepted).
 		Set("IsInviteConfirmed", remote.IsInviteConfirmed).
 		Set("RemoteId", remote.RemoteId).
+		Set("LastPostCreateAt", remote.LastPostUpdateAt).
+		Set("LastPostCreateId", remote.LastPostUpdateID).
 		Set("LastPostUpdateAt", remote.LastPostUpdateAt).
 		Set("LastPostUpdateId", remote.LastPostUpdateID).
 		Where(sq.And{
@@ -399,10 +403,10 @@ func sharedChannelRemoteFields(prefix string) []string {
 		prefix + "IsInviteAccepted",
 		prefix + "IsInviteConfirmed",
 		prefix + "RemoteId",
-		prefix + "LastPostUpdateAt",
-		"COALESCE(" + prefix + "LastPostUpdateID,'') AS LastPostUpdateID",
 		prefix + "LastPostCreateAt",
 		"COALESCE(" + prefix + "LastPostCreateID,'') AS LastPostCreateID",
+		prefix + "LastPostUpdateAt",
+		"COALESCE(" + prefix + "LastPostUpdateID,'') AS LastPostUpdateID",
 	}
 }
 
