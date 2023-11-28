@@ -40,7 +40,7 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 		if err != nil {
 			mlog.Warn(
 				err.Error(),
-				mlog.String("event", string(event.EventType())),
+				mlog.String("event", event.EventType()),
 				mlog.String("action", "content_sync"),
 			)
 		}
@@ -49,7 +49,7 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 		if err != nil {
 			mlog.Warn(
 				err.Error(),
-				mlog.String("event", string(event.EventType())),
+				mlog.String("event", event.EventType()),
 				mlog.String("action", "invitation"),
 			)
 		}

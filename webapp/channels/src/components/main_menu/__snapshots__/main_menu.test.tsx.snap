@@ -227,6 +227,13 @@ exports[`components/Menu should match snapshot with guest access disabled and no
         to="/create_team"
       />
     </Connect(SystemPermissionGate)>
+    <Memo(MenuGroup)>
+      <div
+        className="MainMenu_dropdown-link"
+      >
+        <LearnAboutTeamsLink />
+      </div>
+    </Memo(MenuGroup)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup) />
 </Menu>
@@ -428,6 +435,13 @@ exports[`components/Menu should match snapshot with id 1`] = `
         to="/create_team"
       />
     </Connect(SystemPermissionGate)>
+    <Memo(MenuGroup)>
+      <div
+        className="MainMenu_dropdown-link"
+      >
+        <LearnAboutTeamsLink />
+      </div>
+    </Memo(MenuGroup)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup) />
 </Menu>
@@ -628,6 +642,13 @@ exports[`components/Menu should match snapshot with most of the thing disabled 1
         to="/create_team"
       />
     </Connect(SystemPermissionGate)>
+    <Memo(MenuGroup)>
+      <div
+        className="MainMenu_dropdown-link"
+      >
+        <LearnAboutTeamsLink />
+      </div>
+    </Memo(MenuGroup)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup) />
 </Menu>
@@ -1241,6 +1262,13 @@ exports[`components/Menu should match snapshot with most of the thing enabled 1`
         to="/create_team"
       />
     </Connect(SystemPermissionGate)>
+    <Memo(MenuGroup)>
+      <div
+        className="MainMenu_dropdown-link"
+      >
+        <LearnAboutTeamsLink />
+      </div>
+    </Memo(MenuGroup)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup) />
 </Menu>
@@ -1856,6 +1884,13 @@ exports[`components/Menu should match snapshot with plugins 1`] = `
         to="/create_team"
       />
     </Connect(SystemPermissionGate)>
+    <Memo(MenuGroup)>
+      <div
+        className="MainMenu_dropdown-link"
+      >
+        <LearnAboutTeamsLink />
+      </div>
+    </Memo(MenuGroup)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
     <MenuItemAction

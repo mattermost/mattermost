@@ -349,9 +349,9 @@ func (scs *Service) updateCursorForRemote(scrId string, rc *model.RemoteCluster,
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "updated cursor for remote",
 		mlog.String("remote_id", rc.RemoteId),
 		mlog.String("remote", rc.DisplayName),
-		mlog.Int64("last_post_create_at", cursor.LastPostCreateAt),
+		mlog.Int("last_post_create_at", cursor.LastPostCreateAt),
 		mlog.String("last_post_create_id", cursor.LastPostCreateID),
-		mlog.Int64("last_post_update_at", cursor.LastPostUpdateAt),
+		mlog.Int("last_post_update_at", cursor.LastPostUpdateAt),
 		mlog.String("last_post_update_id", cursor.LastPostUpdateID),
 	)
 }

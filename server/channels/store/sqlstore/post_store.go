@@ -506,13 +506,10 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 			WHERE
 				ChannelId IN (
 					SELECT
-						Id
+						ChannelId
 					FROM
-						Channels,
 						ChannelMembers
-					WHERE
-						Id = ChannelId
-						AND UserId = ?
+					WHERE UserId = ?
 				)
 				TEAM_FILTER
             ORDER BY CreateAt DESC
@@ -2561,7 +2558,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 		maxPostSize = model.PostMessageMaxRunesV1
 	}
 
-	mlog.Info("Post.Message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int32("max_bytes", maxPostSizeBytes))
+	mlog.Info("Post.Message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int("max_bytes", maxPostSizeBytes))
 
 	return maxPostSize
 }
