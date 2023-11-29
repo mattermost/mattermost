@@ -235,7 +235,18 @@ func (s *MmctlUnitTestSuite) TestResetPermissionsCmd() {
 			Permissions: []string{"view_foos", "delete_bars"},
 		}
 
-		expectedPermissions := []string{"manage_channel_roles", "use_group_mentions"}
+		expectedPermissions := []string{
+			"manage_channel_roles",
+			"use_group_mentions",
+			"add_bookmark_public_channel",
+			"edit_bookmark_public_channel",
+			"delete_bookmark_public_channel",
+			"order_bookmark_public_channel",
+			"add_bookmark_private_channel",
+			"edit_bookmark_private_channel",
+			"delete_bookmark_private_channel",
+			"order_bookmark_private_channel",
+		}
 		expectedPatch := &model.RolePatch{
 			Permissions: &expectedPermissions,
 		}
