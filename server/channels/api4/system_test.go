@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
@@ -376,6 +377,7 @@ func TestGetLogs(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, logs, 10)
 
+		mlog.Debug("START")
 		logs, _, err = c.GetLogs(context.Background(), -1, -1)
 		require.NoError(t, err)
 		require.NotEmpty(t, logs, "should not be empty")

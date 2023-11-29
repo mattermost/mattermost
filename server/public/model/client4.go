@@ -7811,7 +7811,7 @@ func (c *Client4) GetSidebarCategoryOrderForTeamForUser(ctx context.Context, use
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body, c.MaximumPayloadSize), BuildResponse(r), nil
+	return ArrayFromJSONNonSort(r.Body, c.MaximumPayloadSize), BuildResponse(r), nil
 }
 
 func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, userID, teamID string, order []string) ([]string, *Response, error) {
@@ -7825,7 +7825,7 @@ func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body, c.MaximumPayloadSize), BuildResponse(r), nil
+	return ArrayFromJSONNonSort(r.Body, c.MaximumPayloadSize), BuildResponse(r), nil
 }
 
 func (c *Client4) GetSidebarCategoryForTeamForUser(ctx context.Context, userID, teamID, categoryID, etag string) (*SidebarCategoryWithChannels, *Response, error) {

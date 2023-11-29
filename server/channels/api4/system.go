@@ -400,6 +400,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "page", c.Params.Page)
 	audit.AddEventParameter(auditRec, "logs_per_page", c.Params.LogsPerPage)
 
+	mlog.Debug("SIZE ", mlog.Int("size", len(model.ArrayToJSON(lines))))
 	w.Write([]byte(model.ArrayToJSON(lines)))
 }
 
