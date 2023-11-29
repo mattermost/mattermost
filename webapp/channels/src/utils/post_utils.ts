@@ -705,6 +705,31 @@ export function makeGetUniqueReactionsToPost(): (state: GlobalState, postId: Pos
     );
 }
 
+export function makeGetUniqueEmojiNameReactionsForPost(): (state: GlobalState, postId: Post['id']) => string[] | undefined | null {
+    const getReactionsForPost = makeGetReactionsForPost();
+
+    return createSelector(
+        'makeGetUniqueEmojiReactionsForPost',
+        (state: GlobalState, postId: string) => getReactionsForPost(state, postId),
+        getEmojiMap,
+        (reactions, emojiMap) => {
+            if (!reactions) {
+                return null;
+            }
+
+            const emojiNames: string[] = [];
+
+            Object.values(reactions).forEach((reaction) => {
+                if (emojiMap.get(reaction.emoji_name) && !emojiNames.includes(reaction.emoji_name)) {
+                    emojiNames.push(reaction.emoji_name);
+                }
+            });
+
+            return emojiNames;
+        },
+    );
+}
+
 export function getUserOrGroupFromMentionName(usersByUsername: Record<string, UserProfile | Group>, mentionName: string) {
     let mentionNameToLowerCase = mentionName.toLowerCase();
 

@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	"database/sql"
+
 	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -105,6 +107,25 @@ func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*mo
 	return reactions, nil
 }
 
+func (s *SqlReactionStore) ExistsOnPost(postId string, emojiName string) (bool, error) {
+	query := s.getQueryBuilder().
+		Select("1").
+		From("Reactions").
+		Where(sq.Eq{"PostId": postId}).
+		Where(sq.Eq{"EmojiName": emojiName}).
+		Where(sq.Eq{"COALESCE(DeleteAt, 0)": 0})
+
+	var hasRows bool
+	if err := s.GetReplicaX().GetBuilder(&hasRows, query); err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, errors.Wrap(err, "failed to check for existing reaction")
+	}
+
+	return hasRows, nil
+}
+
 // GetForPostSince returns all reactions associated with `postId` updated after `since`.
 func (s *SqlReactionStore) GetForPostSince(postId string, since int64, excludeRemoteId string, inclDeleted bool) ([]*model.Reaction, error) {
 	query := s.getQueryBuilder().
@@ -134,6 +155,21 @@ func (s *SqlReactionStore) GetForPostSince(postId string, since int64, excludeRe
 		return nil, errors.Wrapf(err, "failed to find reactions")
 	}
 	return reactions, nil
+}
+
+func (s *SqlReactionStore) GetUniqueCountForPost(postId string) (int, error) {
+	query := s.getQueryBuilder().
+		Select("COUNT(DISTINCT EmojiName)").
+		From("Reactions").
+		Where(sq.Eq{"PostId": postId}).
+		Where(sq.Eq{"DeleteAt": 0})
+
+	var count int64
+	err := s.GetReplicaX().GetBuilder(&count, query)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to count Reactions")
+	}
+	return int(count), nil
 }
 
 func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {

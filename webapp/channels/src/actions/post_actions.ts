@@ -8,18 +8,20 @@ import {FileInfo} from '@mattermost/types/files';
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
 import {getChannel, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import * as ThreadActions from 'mattermost-redux/actions/threads';
 import * as PostActions from 'mattermost-redux/actions/posts';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {canEditPost, comparePosts} from 'mattermost-redux/utils/post_utils';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {addRecentEmoji, addRecentEmojis} from 'actions/emoji_actions';
 import * as StorageActions from 'actions/storage';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions';
+import {closeModal, openModal} from 'actions/views/modals';
 import * as RhsActions from 'actions/views/rhs';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 import {removeDraft} from 'actions/views/drafts';
@@ -27,13 +29,18 @@ import {isEmbedVisible, isInlineImageVisible} from 'selectors/posts';
 import {getSelectedPostId, getSelectedPostCardId, getRhsState} from 'selectors/rhs';
 import {getGlobalItem} from 'selectors/storage';
 import {GlobalState} from 'types/store';
+
+import ReactionLimitReachedModal from 'components/reaction_limit_reached_modal';
+
 import {
     ActionTypes,
     Constants,
+    ModalIdentifiers,
     RHSStates,
     StoragePrefixes,
 } from 'utils/constants';
 import {matchEmoticons} from 'utils/emoticons';
+import {makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
 import * as UserAgent from 'utils/user_agent';
 
 import {completePostReceive, NewPostMessageProps} from './new_post';
@@ -138,7 +145,25 @@ function storeCommentDraft(rootPostId: string, draft: null) {
 }
 
 export function addReaction(postId: string, emojiName: string) {
-    return (dispatch: DispatchFunc) => {
+    const getUniqueEmojiNameReactionsForPost = makeGetUniqueEmojiNameReactionsForPost();
+    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        const state = getState() as GlobalState;
+        const config = getConfig(state);
+        const uniqueEmojiNames = getUniqueEmojiNameReactionsForPost(state, postId) ?? [];
+
+        // If we're adding a new reaction but we're already at or over the limit, stop
+        if (uniqueEmojiNames.length >= Number(config.UniqueEmojiReactionLimitPerPost) && !uniqueEmojiNames.some((name) => name === emojiName)) {
+            dispatch(openModal({
+                modalId: ModalIdentifiers.REACTION_LIMIT_REACHED,
+                dialogType: ReactionLimitReachedModal,
+                dialogProps: {
+                    isAdmin: isCurrentUserSystemAdmin(state),
+                    onExited: () => closeModal(ModalIdentifiers.REACTION_LIMIT_REACHED),
+                },
+            }));
+            return {data: false};
+        }
+
         dispatch(PostActions.addReaction(postId, emojiName));
         dispatch(addRecentEmoji(emojiName));
         return {data: true};

@@ -104,6 +104,30 @@ func (_m *ReactionStore) DeleteOrphanedRows(limit int) (int64, error) {
 	return r0, r1
 }
 
+// ExistsOnPost provides a mock function with given fields: postId, emojiName
+func (_m *ReactionStore) ExistsOnPost(postId string, emojiName string) (bool, error) {
+	ret := _m.Called(postId, emojiName)
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (bool, error)); ok {
+		return rf(postId, emojiName)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) bool); ok {
+		r0 = rf(postId, emojiName)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(postId, emojiName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetForPost provides a mock function with given fields: postID, allowFromCache
 func (_m *ReactionStore) GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error) {
 	ret := _m.Called(postID, allowFromCache)
@@ -149,6 +173,30 @@ func (_m *ReactionStore) GetForPostSince(postId string, since int64, excludeRemo
 
 	if rf, ok := ret.Get(1).(func(string, int64, string, bool) error); ok {
 		r1 = rf(postId, since, excludeRemoteId, inclDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetUniqueCountForPost provides a mock function with given fields: postId
+func (_m *ReactionStore) GetUniqueCountForPost(postId string) (int, error) {
+	ret := _m.Called(postId)
+
+	var r0 int
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (int, error)); ok {
+		return rf(postId)
+	}
+	if rf, ok := ret.Get(0).(func(string) int); ok {
+		r0 = rf(postId)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(postId)
 	} else {
 		r1 = ret.Error(1)
 	}
