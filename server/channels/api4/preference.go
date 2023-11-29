@@ -152,8 +152,9 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var preferences model.Preferences
-	if jsonErr := json.NewDecoder(r.Body).Decode(&preferences); jsonErr != nil {
-		c.SetInvalidParamWithErr("preferences", jsonErr)
+	preferences = model.ObjectFromJSON(r.Body, preferences, *c.App.Config().ServiceSettings.MaximumPayloadSize).(model.Preferences)
+	if preferences == nil || len(preferences) == 0 || len(preferences) > maxUpdatePreferences {
+		c.SetInvalidParam("preferences")
 		return
 	}
 

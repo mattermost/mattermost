@@ -291,7 +291,7 @@ func TestUpdatePreferencesOverload(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("Too many preferences", func(t *testing.T) {
+	t.Run("Too large preferences", func(t *testing.T) {
 		// should error if too large of preferences
 		th.App.Config().ServiceSettings.MaximumPayloadSize = 5000
 		for i := 0; i < 5; i++ {
@@ -638,6 +638,56 @@ func TestDeletePreferences(t *testing.T) {
 	resp, err = client.DeletePreferences(context.Background(), th.BasicUser.Id, preferences)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestDeletePreferencesOverload(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	th.LoginBasic()
+	user1 := th.BasicUser
+
+	category := model.NewId()
+	preferences1 := model.Preferences{}
+
+	t.Run("No preferences", func(t *testing.T) {
+		// should error if no preferences
+		resp, err := client.DeletePreferences(context.Background(), user1.Id, preferences1)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Too many preferences", func(t *testing.T) {
+		// should error if too many preferences
+		for i := 0; i < 10; i++ {
+			preferences1 = append(preferences1, model.Preference{
+				UserId:   user1.Id,
+				Category: category,
+				Name:     model.NewId(),
+				Value:    model.NewId(),
+			})
+		}
+		resp, err := client.DeletePreferences(context.Background(), user1.Id, preferences1)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Too large preferences", func(t *testing.T) {
+		// should error if too large of preferences
+		th.App.Config().ServiceSettings.MaximumPayloadSize = 5000
+		for i := 0; i < 5; i++ {
+			preferences1 = append(preferences1, model.Preference{
+				UserId:   user1.Id,
+				Category: category,
+				Name:     model.NewId(),
+				Value:    strings.Repeat("A", 2000),
+			})
+		}
+		resp, err := client.DeletePreferences(context.Background(), user1.Id, preferences1)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestDeletePreferencesWebsocket(t *testing.T) {
