@@ -3558,6 +3558,17 @@ components:
         total_posts:
           description: Total number of posts made by a user within the given date range
           type: integer
+    Installation:
+      type: object
+      properties:
+        id:
+          description: A unique identifier
+          type: string
+        allowed_ip_ranges:
+          $ref: "#/components/schemas/AllowedIPRange"
+        state:
+          description: The current state of the installation
+          type: string
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

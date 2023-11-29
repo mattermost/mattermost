@@ -27,6 +27,7 @@ import {
     Feedback,
     WorkspaceDeletionRequest,
     NewsletterRequestBody,
+    Installation,
 } from '@mattermost/types/cloud';
 import {
     SelfHostedSignupForm,
@@ -3935,6 +3936,13 @@ export default class Client4 {
     getSubscription = () => {
         return this.doFetch<Subscription>(
             `${this.getCloudRoute()}/subscription`,
+            {method: 'get'},
+        );
+    }
+
+    getInstallation = () => {
+        return this.doFetch<Installation>(
+            `${this.getCloudRoute()}/installation`,
             {method: 'get'},
         );
     }
