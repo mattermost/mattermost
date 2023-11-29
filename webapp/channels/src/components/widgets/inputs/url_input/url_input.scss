@@ -10,17 +10,17 @@
     .url-input-container {
         display: flex;
         min-height: 32px;
+        flex-wrap: wrap;
         align-items: center;
         margin-top: 4px;
-        flex-wrap: wrap;
 
         .url-input-label {
+            max-width: 100%;
             flex: none;
             margin-right: 4px;
             color: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 12px;
             line-height: 17px;
-            max-width: 100%;
             overflow-wrap: anywhere;
         }
 
