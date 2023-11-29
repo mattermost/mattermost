@@ -1145,7 +1145,12 @@ func (a *App) getAddChannelBookmarksPermissionsMigration() (permissionsMap, erro
 	transformations := []permissionTransformation{}
 
 	transformations = append(transformations, permissionTransformation{
-		On: isRole(model.ChannelUserRoleId),
+		On: permissionOr(
+			isRole(model.ChannelUserRoleId),
+			isRole(model.ChannelAdminRoleId),
+			isRole(model.TeamAdminRoleId),
+			isRole(model.SystemAdminRoleId),
+		),
 		Add: []string{
 			model.PermissionAddBookmarkPublicChannel.Id,
 			model.PermissionEditBookmarkPublicChannel.Id,
