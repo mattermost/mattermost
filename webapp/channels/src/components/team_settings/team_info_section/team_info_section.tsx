@@ -9,6 +9,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import SettingPicture from 'components/setting_picture';
 import Input from 'components/widgets/inputs/input/input';
+import type {BaseSettingItemProps} from 'components/widgets/modals/components/base_setting_item';
 import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
 import ModalSection from 'components/widgets/modals/components/modal_section';
 import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
@@ -31,6 +32,7 @@ type State = {
     description?: Team['description'];
     serverError: ReactNode;
     clientError: ReactNode;
+    nameClientError?: BaseSettingItemProps['error'];
     teamIconFile: File | null;
     loadingIcon: boolean;
     submitActive: boolean;
@@ -41,6 +43,7 @@ type State = {
 }
 
 // todo sinan: LearnAboutTeamsLink check https://github.com/mattermost/mattermost/blob/af7bc8a4a90d8c4c17a82dc86bc898d378dec2ff/webapp/channels/src/components/team_general_tab/team_general_tab.tsx#L10
+// todo sinan: think about to put name, description and image section into different files
 export class InfoTab extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
@@ -101,29 +104,24 @@ export class InfoTab extends React.PureComponent<Props, State> {
     }
 
     handleNameSubmit = async () => {
-        const state: Pick<State, 'serverError' | 'clientError'> = {serverError: '', clientError: ''};
+        const state: Pick<State, 'serverError' | 'nameClientError'> = {serverError: '', nameClientError: undefined};
         let valid = true;
 
         const name = this.state.name?.trim();
 
         if (!name) {
-            state.clientError = localizeMessage('general_tab.required', 'This field is required');
+            state.nameClientError = {id: 'general_tab.required', defaultMessage: 'This field is required'};
             valid = false;
         } else if (name.length < Constants.MIN_TEAMNAME_LENGTH) {
-            state.clientError = (
-                <FormattedMessage
-                    id='general_tab.teamNameRestrictions'
-                    defaultMessage='Team Name must be {min} or more characters up to a maximum of {max}. You can add a longer team description.'
-                    values={{
-                        min: Constants.MIN_TEAMNAME_LENGTH,
-                        max: Constants.MAX_TEAMNAME_LENGTH,
-                    }}
-                />
-            );
+            state.nameClientError = {
+                id: 'general_tab.teamNameRestrictions',
+                defaultMessage: 'Team Name must be {min} or more characters up to a maximum of {max}. You can add a longer team description.',
+                values: {min: Constants.MIN_TEAMNAME_LENGTH, max: Constants.MAX_TEAMNAME_LENGTH},
+            };
 
             valid = false;
         } else {
-            state.clientError = '';
+            state.nameClientError = undefined;
         }
 
         this.setState(state);
@@ -193,7 +191,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
                 serverError: error.message,
             });
         } else {
-            console.log('uploading completed');
             this.setState({
                 loadingIcon: false,
                 submitActive: false,
@@ -318,6 +315,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
                 title={{id: 'general_tab.teamInfo', defaultMessage: 'Team info'}}
                 description={{id: 'general_tab.teamNameInfo', defaultMessage: 'This name will appear on your sign-in screen and at the top of the left sidebar.'}}
                 content={nameSectionInput}
+                error={this.state.nameClientError}
             />
         );
 
