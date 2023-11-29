@@ -3179,7 +3179,7 @@ func (c *Client4) GetPublicChannelsForTeam(ctx context.Context, teamId string, p
 
 // GetPublicChannelsForTeamWithBookmarks returns a list of public channels based on the provided team id string and its bookmarks.
 func (c *Client4) GetPublicChannelsForTeamWithBookmarks(ctx context.Context, teamId string, page int, perPage int, etag string, bookamrksSince int64) ([]*ChannelWithBookmarks, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&include_bookmarks=true&bookmarks_since", page, perPage, bookamrksSince)
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_bookmarks=true&bookmarks_since=%v", page, perPage, bookamrksSince)
 	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
