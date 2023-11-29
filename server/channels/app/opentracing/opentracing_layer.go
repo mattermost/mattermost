@@ -2961,7 +2961,7 @@ func (a *OpenTracingAppLayer) DeleteAllKeysForPlugin(pluginID string) *model.App
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeleteBrandImage() *model.AppError {
+func (a *OpenTracingAppLayer) DeleteBrandImage(rctx request.CTX) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteBrandImage")
 
@@ -2973,7 +2973,7 @@ func (a *OpenTracingAppLayer) DeleteBrandImage() *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DeleteBrandImage()
+	resultVar0 := a.app.DeleteBrandImage(rctx)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -5123,7 +5123,7 @@ func (a *OpenTracingAppLayer) GetBots(options *model.BotGetOptions) (model.BotLi
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetBrandImage() ([]byte, *model.AppError) {
+func (a *OpenTracingAppLayer) GetBrandImage(rctx request.CTX) ([]byte, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetBrandImage")
 
@@ -5135,7 +5135,7 @@ func (a *OpenTracingAppLayer) GetBrandImage() ([]byte, *model.AppError) {
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetBrandImage()
+	resultVar0, resultVar1 := a.app.GetBrandImage(rctx)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -14716,7 +14716,7 @@ func (a *OpenTracingAppLayer) SaveAdminNotifyData(data *model.NotifyAdminData) (
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
+func (a *OpenTracingAppLayer) SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveBrandImage")
 
@@ -14728,7 +14728,7 @@ func (a *OpenTracingAppLayer) SaveBrandImage(imageData *multipart.FileHeader) *m
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SaveBrandImage(imageData)
+	resultVar0 := a.app.SaveBrandImage(rctx, imageData)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
