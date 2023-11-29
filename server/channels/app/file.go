@@ -722,7 +722,7 @@ func (t *UploadFileTask) init(a *App) {
 // contained the last "good" FileInfo before the execution of that plugin.
 func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader,
 	opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError) {
-	c.WithLogger(c.Logger().With(
+	c = c.WithLogger(c.Logger().With(
 		mlog.String("file_name", name),
 	))
 
