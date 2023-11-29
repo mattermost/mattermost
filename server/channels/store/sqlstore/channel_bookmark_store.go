@@ -274,7 +274,7 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForAllChannelByIdSince(channelsId 
 	defer rows.Close()
 	for rows.Next() {
 		var b model.ChannelBookmarkWithFileInfo
-		var f model.FileInfo
+		f := model.FileInfo{}
 
 		if err = rows.Scan(&b.Id, &b.OwnerId, &b.ChannelId, &b.FileId, &b.CreateAt, &b.UpdateAt, &b.DeleteAt, &b.DisplayName, &b.SortOrder, &b.LinkUrl, &b.ImageUrl, &b.Emoji, &b.Type, &b.OriginalId,
 			&f.Id, &f.Name, &f.Extension, &f.Size, &f.MimeType, &f.Width, &f.Height, &f.HasPreviewImage, &f.MiniPreview); err != nil {
@@ -283,6 +283,9 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForAllChannelByIdSince(channelsId 
 
 		if b.FileId != "" && f.Id != "" {
 			b.FileInfo = &f
+			if len(*f.MiniPreview) == 0 {
+				b.FileInfo.MiniPreview = nil
+			}
 		}
 
 		bookmarks := retrievedRecords[b.ChannelId]

@@ -633,6 +633,8 @@ type AppIface interface {
 	GetChannelsForUser(c request.CTX, userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, *model.AppError)
 	GetChannelsMemberCount(c request.CTX, channelIDs []string) (map[string]int64, *model.AppError)
 	GetChannelsUserNotIn(c request.CTX, teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError)
+	GetChannelsWithBookmarksForSession(c request.CTX, session *model.Session, channels model.ChannelList, since int64) []*model.ChannelWithBookmarks
+	GetChannelsWithTeamAndBookmarksForSession(c request.CTX, session *model.Session, channels model.ChannelListWithTeamData, since int64) []*model.ChannelWithTeamDataAndBookmarks
 	GetCloudSession(token string) (*model.Session, *model.AppError)
 	GetClusterId() string
 	GetClusterStatus() []*model.ClusterInfo

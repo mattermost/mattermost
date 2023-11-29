@@ -5893,6 +5893,40 @@ func (a *OpenTracingAppLayer) GetChannelsUserNotIn(c request.CTX, teamID string,
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetChannelsWithBookmarksForSession(c request.CTX, session *model.Session, channels model.ChannelList, since int64) []*model.ChannelWithBookmarks {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsWithBookmarksForSession")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.GetChannelsWithBookmarksForSession(c, session, channels, since)
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) GetChannelsWithTeamAndBookmarksForSession(c request.CTX, session *model.Session, channels model.ChannelListWithTeamData, since int64) []*model.ChannelWithTeamDataAndBookmarks {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsWithTeamAndBookmarksForSession")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.GetChannelsWithTeamAndBookmarksForSession(c, session, channels, since)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) GetCloudSession(token string) (*model.Session, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetCloudSession")

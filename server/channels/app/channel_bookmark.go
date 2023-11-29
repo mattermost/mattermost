@@ -21,6 +21,10 @@ func (a *App) GetChannelBookmarks(channelId string, since int64) ([]*model.Chann
 }
 
 func (a *App) GetAllChannelBookmarks(channelIds []string, since int64) (map[string][]*model.ChannelBookmarkWithFileInfo, *model.AppError) {
+	if len(channelIds) == 0 {
+		return nil, nil
+	}
+
 	bookmarks, err := a.Srv().Store().ChannelBookmark().GetBookmarksForAllChannelByIdSince(channelIds, since)
 	if err != nil {
 		return nil, model.NewAppError("GetAllChannelBookmarks", "app.channel.bookmark.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
@@ -129,4 +133,52 @@ func (a *App) UpdateChannelBookmarkSortOrder(bookmarkId, channelId string, newIn
 	message.Add("bookmarks", string(bookmarkJSON))
 
 	return bookmarks, nil
+}
+
+func (a *App) GetChannelsWithBookmarksForSession(c request.CTX, session *model.Session, channels model.ChannelList, since int64) []*model.ChannelWithBookmarks {
+	channelIds := []string{}
+	for _, channel := range channels {
+		if a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannelContent) {
+			channelIds = append(channelIds, channel.Id)
+		}
+	}
+
+	if bookmarksMap, err := a.GetAllChannelBookmarks(channelIds, since); err == nil {
+		channelsWithBookmarks := []*model.ChannelWithBookmarks{}
+		for _, channel := range channels {
+			cb := &model.ChannelWithBookmarks{
+				Channel:   channel,
+				Bookmarks: bookmarksMap[channel.Id],
+			}
+			channelsWithBookmarks = append(channelsWithBookmarks, cb)
+		}
+
+		return channelsWithBookmarks
+	}
+
+	return nil
+}
+
+func (a *App) GetChannelsWithTeamAndBookmarksForSession(c request.CTX, session *model.Session, channels model.ChannelListWithTeamData, since int64) []*model.ChannelWithTeamDataAndBookmarks {
+	channelIds := []string{}
+	for _, channel := range channels {
+		if a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannelContent) {
+			channelIds = append(channelIds, channel.Id)
+		}
+	}
+
+	if bookmarksMap, err := a.GetAllChannelBookmarks(channelIds, since); err == nil {
+		channelsWithBookmarks := []*model.ChannelWithTeamDataAndBookmarks{}
+		for _, channel := range channels {
+			cb := &model.ChannelWithTeamDataAndBookmarks{
+				ChannelWithTeamData: channel,
+				Bookmarks:           bookmarksMap[channel.Id],
+			}
+			channelsWithBookmarks = append(channelsWithBookmarks, cb)
+		}
+
+		return channelsWithBookmarks
+	}
+
+	return nil
 }

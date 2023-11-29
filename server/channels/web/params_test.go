@@ -459,6 +459,51 @@ func TestParamsFromRequest(t *testing.T) {
 				LimitAfter:  LimitDefault,
 			},
 		},
+		{
+			"include channel bookmakrs",
+			mustURL("/?include_bookmarks=true"),
+			nil,
+			&Params{
+				IncludeBookmarks: true,
+				BookmarksSince:   0,
+
+				LimitAfter: LimitDefault,
+
+				PerPage:     PerPageDefault,
+				LogsPerPage: LogsPerPageDefault,
+				LimitBefore: LimitDefault,
+			},
+		},
+		{
+			"include channel bookmakrs with negative bookmark since",
+			mustURL("/?include_bookmarks=true&bookmarks_since=-1"),
+			nil,
+			&Params{
+				IncludeBookmarks: true,
+				BookmarksSince:   0,
+
+				LimitAfter: LimitDefault,
+
+				PerPage:     PerPageDefault,
+				LogsPerPage: LogsPerPageDefault,
+				LimitBefore: LimitDefault,
+			},
+		},
+		{
+			"include channel bookmakrs with bookmark since",
+			mustURL("/?include_bookmarks=true&bookmarks_since=123456789"),
+			nil,
+			&Params{
+				IncludeBookmarks: true,
+				BookmarksSince:   123456789,
+
+				LimitAfter: LimitDefault,
+
+				PerPage:     PerPageDefault,
+				LogsPerPage: LogsPerPageDefault,
+				LimitBefore: LimitDefault,
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
