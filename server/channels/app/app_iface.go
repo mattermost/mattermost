@@ -520,7 +520,7 @@ type AppIface interface {
 	DeleteAcknowledgementForPost(c request.CTX, postID, userID string) *model.AppError
 	DeleteAllExpiredPluginKeys() *model.AppError
 	DeleteAllKeysForPlugin(pluginID string) *model.AppError
-	DeleteBrandImage() *model.AppError
+	DeleteBrandImage(rctx request.CTX) *model.AppError
 	DeleteChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError
 	DeleteCommand(commandID string) *model.AppError
 	DeleteDraft(rctx request.CTX, userID, channelID, rootID, connectionID string) (*model.Draft, *model.AppError)
@@ -600,7 +600,7 @@ type AppIface interface {
 	GetAuditsPage(rctx request.CTX, userID string, page int, perPage int) (model.Audits, *model.AppError)
 	GetAuthorizationCode(c request.CTX, w http.ResponseWriter, r *http.Request, service string, props map[string]string, loginHint string) (string, *model.AppError)
 	GetAuthorizedAppsForUser(userID string, page, perPage int) ([]*model.OAuthApp, *model.AppError)
-	GetBrandImage() ([]byte, *model.AppError)
+	GetBrandImage(rctx request.CTX) ([]byte, *model.AppError)
 	GetBulkReactionsForPosts(postIDs []string) (map[string][]*model.Reaction, *model.AppError)
 	GetChannel(c request.CTX, channelID string) (*model.Channel, *model.AppError)
 	GetChannelByName(c request.CTX, channelName, teamID string, includeDeleted bool) (*model.Channel, *model.AppError)
@@ -1007,7 +1007,7 @@ type AppIface interface {
 	SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError)
 	SaveAdminNotification(userId string, notifyData *model.NotifyAdminToUpgradeRequest) *model.AppError
 	SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError)
-	SaveBrandImage(imageData *multipart.FileHeader) *model.AppError
+	SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader) *model.AppError
 	SaveComplianceReport(rctx request.CTX, job *model.Compliance) (*model.Compliance, *model.AppError)
 	SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	SaveSharedChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error)
