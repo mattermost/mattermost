@@ -335,7 +335,7 @@ func (s SqlSharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*m
 
 	query, args, err := s.getQueryBuilder().Insert("SharedChannelRemotes").
 		Columns("Id", "ChannelId", "CreatorId", "CreateAt", "UpdateAt", "IsInviteAccepted", "IsInviteConfirmed", "RemoteId",
-			"LastPostCreateAt", "LastPostCreateId", "LastPostUpdateAt", "LastPostUpdateId").
+			"LastPostCreateAt", "LastPostCreateId", "LastPostUpdateAt", "LastPostId").
 		Values(remote.Id, remote.ChannelId, remote.CreatorId, remote.CreateAt, remote.UpdateAt, remote.IsInviteAccepted, remote.IsInviteConfirmed, remote.RemoteId,
 			remote.LastPostCreateAt, remote.LastPostCreateID, remote.LastPostUpdateAt, remote.LastPostUpdateID).
 		ToSql()
@@ -363,9 +363,9 @@ func (s SqlSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (
 		Set("IsInviteConfirmed", remote.IsInviteConfirmed).
 		Set("RemoteId", remote.RemoteId).
 		Set("LastPostCreateAt", remote.LastPostUpdateAt).
-		Set("LastPostCreateId", remote.LastPostUpdateID).
+		Set("LastPostCreateId", remote.LastPostCreateID).
 		Set("LastPostUpdateAt", remote.LastPostUpdateAt).
-		Set("LastPostUpdateId", remote.LastPostUpdateID).
+		Set("LastPostId", remote.LastPostUpdateID).
 		Where(sq.And{
 			sq.Eq{"Id": remote.Id},
 			sq.Eq{"ChannelId": remote.ChannelId},
@@ -406,7 +406,7 @@ func sharedChannelRemoteFields(prefix string) []string {
 		prefix + "LastPostCreateAt",
 		"COALESCE(" + prefix + "LastPostCreateID,'') AS LastPostCreateID",
 		prefix + "LastPostUpdateAt",
-		"COALESCE(" + prefix + "LastPostUpdateID,'') AS LastPostUpdateID",
+		"COALESCE(" + prefix + "LastPostId,'') AS LastPostUpdateID",
 	}
 }
 
@@ -539,7 +539,7 @@ func (s SqlSharedChannelStore) GetRemoteForUser(remoteId string, userId string) 
 	return &rc, nil
 }
 
-// UpdateRemoteCursor updates the LastPostUpdateAt timestamp and LastPostUpdateId for the specified SharedChannelRemote.
+// UpdateRemoteCursor updates the cursor for the specified SharedChannelRemote.
 func (s SqlSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
 	var updateNeeded bool
 
@@ -555,7 +555,7 @@ func (s SqlSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPos
 
 	if cursor.LastPostUpdateAt > 0 || cursor.LastPostUpdateID != "" {
 		builder = builder.Set("LastPostUpdateAt", cursor.LastPostUpdateAt)
-		builder = builder.Set("LastPostUpdateId", cursor.LastPostUpdateID)
+		builder = builder.Set("LastPostId", cursor.LastPostUpdateID)
 		updateNeeded = true
 	}
 
