@@ -501,7 +501,7 @@ func ArrayFromJSONNonSort(data io.Reader, maxBytes int64) []string {
 		return make([]string, 0)
 	}
 
-	// Remove duplicate IDs, but don't allow sorting.
+	// Remove duplicate IDs, but don't sort.
 	return RemoveDuplicateStringsNonSort(objmap)
 }
 
@@ -747,8 +747,8 @@ func RemoveDuplicateStrings(in []string) []string {
 	return in[:j+1]
 }
 
-// RemoveDuplicateStringsNonSort does an in-place removal of duplicate strings
-// from the input slice. The original slice gets modified.
+// RemoveDuplicateStringsNonSort does a removal of duplicate
+// strings using a map.
 func RemoveDuplicateStringsNonSort(in []string) []string {
 	allKeys := make(map[string]bool)
 	list := []string{}

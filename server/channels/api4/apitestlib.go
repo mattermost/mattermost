@@ -176,6 +176,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 		*cfg.ServiceSettings.MaximumPayloadSize = 100000
+		*cfg.FileSettings.MaxFileSize = 104857600
 	})
 	if err := th.Server.Start(); err != nil {
 		panic(err)
