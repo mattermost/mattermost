@@ -24,8 +24,8 @@ export default class Card extends React.PureComponent<Props> {
 
         const childrenWithProps = Children.map(children, (child) => {
             // Checking isValidElement is the safe way and avoids a TS error too.
-            if (isValidElement(child)) {
-                return cloneElement(child, {expanded} as any);
+            if (isValidElement<{expanded?: boolean}>(child)) {
+                return cloneElement(child, {expanded});
             }
             return child;
         });

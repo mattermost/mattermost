@@ -19,7 +19,6 @@
     "clean": "npm run clean --workspaces --if-present"
   },
   "dependencies": {
-    "ajv": "8.12.0",
     "react-intl": "6.5.5"
   },
   "devDependencies": {
