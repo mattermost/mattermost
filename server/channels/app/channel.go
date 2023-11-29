@@ -3561,6 +3561,13 @@ func (a *App) ConvertGroupMessageToChannel(c request.CTX, convertedByUserId stri
 
 	_ = a.setSidebarCategoriesForConvertedGroupMessage(c, gmConversionRequest, users)
 	_ = a.postMessageForConvertGroupMessageToChannel(c, gmConversionRequest.ChannelID, convertedByUserId, users)
+
+	// the user conversion the GM becomes the channel admin.
+	_, appErr = a.UpdateChannelMemberSchemeRoles(c, gmConversionRequest.ChannelID, convertedByUserId, false, true, true)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	return updatedChannel, nil
 }
 
