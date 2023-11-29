@@ -482,27 +482,27 @@ func ArrayToJSON(objmap []string) string {
 }
 
 func ArrayFromJSON(data io.Reader, maxBytes int64) []string {
-	var objmap []string
+	var obj []string
 	lr := io.LimitedReader{N: maxBytes, R: data}
-	err := json.NewDecoder(&lr).Decode(&objmap)
-	if err != nil || objmap == nil {
+	err := json.NewDecoder(&lr).Decode(&obj)
+	if err != nil || obj == nil {
 		return make([]string, 0)
 	}
 
 	// Remove duplicate IDs as it can bring a significant load to the database.
-	return RemoveDuplicateStrings(objmap)
+	return RemoveDuplicateStrings(obj)
 }
 
 func ArrayFromJSONNonSort(data io.Reader, maxBytes int64) []string {
-	var objmap []string
+	var obj []string
 	lr := io.LimitedReader{N: maxBytes, R: data}
-	err := json.NewDecoder(&lr).Decode(&objmap)
-	if err != nil || objmap == nil {
+	err := json.NewDecoder(&lr).Decode(&obj)
+	if err != nil || obj == nil {
 		return make([]string, 0)
 	}
 
 	// Remove duplicate IDs, but don't sort.
-	return RemoveDuplicateStringsNonSort(objmap)
+	return RemoveDuplicateStringsNonSort(obj)
 }
 
 func ArrayFromInterface(data any) []string {
