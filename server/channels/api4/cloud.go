@@ -54,6 +54,9 @@ func (api *API) InitCloud() {
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
 
+	// GET /api/v4/cloud/installation
+	api.BaseRoutes.Cloud.Handle("/installation", api.APISessionRequired(getInstallation)).Methods("GET")
+
 	// GET /api/v4/cloud/cws-health-check
 	api.BaseRoutes.Cloud.Handle("/check-cws-connection", api.APIHandler(handleCheckCWSConnection)).Methods("GET")
 
@@ -472,6 +475,29 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(json)
+}
+
+func getInstallation(c *Context, w http.ResponseWriter, r *http.Request) {
+	ensured := ensureCloudInterface(c, "Api4.getInstallation")
+	if !ensured {
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadIPFilters) {
+		c.SetPermissionError(model.PermissionSysconsoleReadIPFilters)
+		return
+	}
+
+	installation, err := c.App.Cloud().GetInstallation(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getInstallation", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(installation); err != nil {
+		c.Err = model.NewAppError("Api4.getInstallation", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 }
 
 // getLicenseSelfServeStatus makes check for the license in the CWS self-serve portal and establishes if the license is renewable, expandable etc.

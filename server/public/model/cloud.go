@@ -301,6 +301,12 @@ type CreateSubscriptionRequest struct {
 	DiscountID            string   `json:"discount_id"`
 }
 
+type Installation struct {
+	ID              string           `json:"id"`
+	State           string           `json:"state"`
+	AllowedIPRanges *AllowedIPRanges `json:"allowed_ip_ranges"`
+}
+
 type Feedback struct {
 	Reason   string `json:"reason"`
 	Comments string `json:"comments"`
