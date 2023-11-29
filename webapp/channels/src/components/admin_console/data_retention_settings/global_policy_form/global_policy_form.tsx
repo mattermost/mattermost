@@ -108,15 +108,15 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
 
         newConfig.DataRetentionSettings.EnableMessageDeletion = this.setDeletionEnabled(messageRetentionDropdownValue.value);
 
-        if (!this.isMessageRetentionSetByEnv()) {
-            newConfig.DataRetentionSettings.MessageRetentionDays = this.setRetentionDays(messageRetentionDropdownValue.value, messageRetentionInputValue);
+        if (!this.isMessageRetentionSetByEnv() && this.setDeletionEnabled(messageRetentionDropdownValue.value)) {
+            newConfig.DataRetentionSettings.MessageRetentionDays = 0;
             newConfig.DataRetentionSettings.MessageRetentionHours = this.setRetentionHours(messageRetentionDropdownValue.value, messageRetentionInputValue);
         }
 
         newConfig.DataRetentionSettings.EnableFileDeletion = this.setDeletionEnabled(fileRetentionDropdownValue.value);
 
-        if (!this.isFileRetentionSetByEnv()) {
-            newConfig.DataRetentionSettings.FileRetentionDays = this.setRetentionDays(fileRetentionDropdownValue.value, fileRetentionInputValue);
+        if (!this.isFileRetentionSetByEnv() && this.setDeletionEnabled(fileRetentionDropdownValue.value)) {
+            newConfig.DataRetentionSettings.FileRetentionDays = 0;
             newConfig.DataRetentionSettings.FileRetentionHours = this.setRetentionHours(fileRetentionDropdownValue.value, fileRetentionInputValue);
         }
 
@@ -137,34 +137,27 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
         return true;
     };
 
-    setRetentionDays = (dropdownValue: string, value: string): number => {
-        if (dropdownValue === YEARS) {
-            return parseInt(value, 10) * 365;
-        }
-
-        if (dropdownValue === DAYS) {
-            return parseInt(value, 10);
-        }
-
-        return 0;
-    };
-
     setRetentionHours = (dropdownValue: string, value: string): number => {
-        if (dropdownValue === HOURS) {
-            return parseInt(value, 10);
+        if (dropdownValue === YEARS) {
+            return parseInt(value, 10) * 24 * 365;
         }
-
-        return 0;
+        if (dropdownValue === DAYS) {
+            return parseInt(value, 10) * 24;
+        }
+            
+        return parseInt(value, 10);
     };
 
     isMessageRetentionSetByEnv = () => {
-        return (this.props.environmentConfig.DataRetentionSettings?.MessageRetentionDays && this.props.config.DataRetentionSettings?.MessageRetentionDays && this.props.config.DataRetentionSettings.MessageRetentionDays > 0) ||
-        (this.props.environmentConfig.DataRetentionSettings?.MessageRetentionHours && this.props.config.DataRetentionSettings?.MessageRetentionHours && this.props.config.DataRetentionSettings.MessageRetentionHours > 0);
+        return (this.props.environmentConfig?.DataRetentionSettings?.MessageRetentionDays && this.props.config.DataRetentionSettings?.MessageRetentionDays && this.props.config.DataRetentionSettings.MessageRetentionDays > 0) ||
+        (this.props.environmentConfig?.DataRetentionSettings?.MessageRetentionHours && this.props.config.DataRetentionSettings?.MessageRetentionHours && this.props.config.DataRetentionSettings.MessageRetentionHours > 0) ||
+        (this.props.environmentConfig?.DataRetentionSettings?.EnableMessageDeletion && !this.props.config.DataRetentionSettings?.EnableMessageDeletion);
     };
 
     isFileRetentionSetByEnv = () => {
-        return (this.props.environmentConfig.DataRetentionSettings?.FileRetentionDays && this.props.config.DataRetentionSettings?.FileRetentionDays && this.props.config.DataRetentionSettings.FileRetentionDays > 0) ||
-        (this.props.environmentConfig.DataRetentionSettings?.FileRetentionHours && this.props.config.DataRetentionSettings?.FileRetentionHours && this.props.config.DataRetentionSettings.FileRetentionHours > 0);
+        return (this.props.environmentConfig?.DataRetentionSettings?.FileRetentionDays && this.props.config.DataRetentionSettings?.FileRetentionDays && this.props.config.DataRetentionSettings.FileRetentionDays > 0) ||
+        (this.props.environmentConfig?.DataRetentionSettings?.FileRetentionHours && this.props.config.DataRetentionSettings?.FileRetentionHours && this.props.config.DataRetentionSettings.FileRetentionHours > 0) ||
+        (this.props.environmentConfig?.DataRetentionSettings?.EnableFileDeletion && !this.props.config.DataRetentionSettings?.EnableFileDeletion);
     };
 
     render = () => {
