@@ -793,8 +793,6 @@
   "admin.experimental.experimentalPrimaryTeam.desc": "이 서버에 구성원으로 있는 사용자들의 기본 팀입니다. 기본 팀이 설정되면 다른 팀에 참여하거나 이 기본 팀을 떠날 수 없게 됩니다.",
   "admin.experimental.experimentalPrimaryTeam.example": "예시: \"팀 이름\"",
   "admin.experimental.experimentalPrimaryTeam.title": "기본 팀:",
-  "admin.experimental.experimentalUseNewSAMLLibrary.desc": "XML 보안 라이브러리(xmlsec1)이 설치될 필요가 없는 개선된 SAML 라이브러리를 활성화합니다. 경고: 모든 공급자에 대해 검수되지 않았습니다. 관련된 이슈를 접한다면 지원 문의를 부탁드립니다: <linkSupport>https://mattermost.com/support/</linkSupport>. 이 설정의 변경은 서버가 재시작되야 적용됩니다.",
-  "admin.experimental.experimentalUseNewSAMLLibrary.title": "개선된 SAML 라이브러리 사용 (베타):",
   "admin.experimental.ldapSettingsLoginButtonBorderColor.desc": "화이트 라벨링을 위해 AD/LDAP 로그인 버튼 테두리의 색상을 지정하십시오. # 기호가 앞에 있는 16진수 코드를 사용하십시오. 이 설정은 모바일 앱에만 적용됩니다.",
   "admin.experimental.ldapSettingsLoginButtonBorderColor.title": "AD/LDAP 로그인 버튼 테두리 색상 :",
   "admin.experimental.ldapSettingsLoginButtonColor.desc": "화이트 라벨링을 위해 AD/LDAP 로그인 버튼의 색상을 지정하십시오. # 기호가 앞에 있는 16진수 코드를 사용하십시오. 이 설정은 모바일 앱에만 적용됩니다.",
