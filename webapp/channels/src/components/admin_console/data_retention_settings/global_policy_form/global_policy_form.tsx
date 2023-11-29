@@ -9,7 +9,7 @@ import type {ServerError} from '@mattermost/types/errors';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import BlockableLink from 'components/admin_console/blockable_link';
-import {keepForeverOption, yearsOption, daysOption, FOREVER, YEARS, DAYS, hoursOption, HOURS} from 'components/admin_console/data_retention_settings/dropdown_options/dropdown_options';
+import {keepForeverOption, yearsOption, daysOption, FOREVER, YEARS, DAYS, hoursOption} from 'components/admin_console/data_retention_settings/dropdown_options/dropdown_options';
 import SetByEnv from 'components/admin_console/set_by_env';
 import Card from 'components/card/card';
 import SaveButton from 'components/save_button';
@@ -144,7 +144,6 @@ export default class GlobalPolicyForm extends React.PureComponent<Props, State> 
         if (dropdownValue === DAYS) {
             return parseInt(value, 10) * 24;
         }
-            
         return parseInt(value, 10);
     };
 
