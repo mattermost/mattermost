@@ -2890,9 +2890,9 @@ func (c *Client4) GetAllChannelsWithCount(ctx context.Context, page int, perPage
 }
 
 // GetAllChannelsWithBookmarks get all the channels including their bookmarks. Must be a system administrator.
-func (c *Client4) GetAllChannelsWithBookmarks(ctx context.Context, page int, perPage int, etag string, bookamrksSince int64, opts ChannelSearchOpts) ([]ChannelWithTeamDataAndBookmarks, *Response, error) {
+func (c *Client4) GetAllChannelsWithBookmarks(ctx context.Context, page int, perPage int, etag string, bookmarksSince int64, opts ChannelSearchOpts) ([]ChannelWithTeamDataAndBookmarks, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted=%v&exclude_policy_constrained=%v&include_bookmarks=true&bookmarks_since=%v",
-		page, perPage, opts.IncludeDeleted, opts.ExcludePolicyConstrained, bookamrksSince)
+		page, perPage, opts.IncludeDeleted, opts.ExcludePolicyConstrained, bookmarksSince)
 	r, err := c.DoAPIGet(ctx, c.channelsRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -3051,8 +3051,8 @@ func (c *Client4) GetChannel(ctx context.Context, channelId, etag string) (*Chan
 }
 
 // GetChannel with bookmarks returns a channel and its bookmarks based on the provided channel id string if the user has permissions to read it's contents.
-func (c *Client4) GetChannelWithBookmarks(ctx context.Context, channelId, etag string, bookamrksSince int64) (*ChannelWithBookmarks, *Response, error) {
-	route := c.channelRoute(channelId) + fmt.Sprintf("?include_bookmarks=true&bookmarks_since=%v", bookamrksSince)
+func (c *Client4) GetChannelWithBookmarks(ctx context.Context, channelId, etag string, bookmarksSince int64) (*ChannelWithBookmarks, *Response, error) {
+	route := c.channelRoute(channelId) + fmt.Sprintf("?include_bookmarks=true&bookmarks_since=%v", bookmarksSince)
 	r, err := c.DoAPIGet(ctx, route, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -3143,7 +3143,7 @@ func (c *Client4) GetPrivateChannelsForTeam(ctx context.Context, teamId string, 
 	return ch, BuildResponse(r), nil
 }
 
-// GetPrivateChannelsForTeamWithBookmarks returns a list of private channels based on the provided team id string and its bookamrks.
+// GetPrivateChannelsForTeamWithBookmarks returns a list of private channels based on the provided team id string and its bookmarks.
 func (c *Client4) GetPrivateChannelsForTeamWithBookmarks(ctx context.Context, teamId string, page int, perPage int, etag string, bookmarksSince int64) ([]*ChannelWithBookmarks, *Response, error) {
 	query := fmt.Sprintf("/private?page=%v&per_page=%v&include_bookmarks=true&bookmarks_since=%v", page, perPage, bookmarksSince)
 	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+query, etag)
@@ -3178,8 +3178,8 @@ func (c *Client4) GetPublicChannelsForTeam(ctx context.Context, teamId string, p
 }
 
 // GetPublicChannelsForTeamWithBookmarks returns a list of public channels based on the provided team id string and its bookmarks.
-func (c *Client4) GetPublicChannelsForTeamWithBookmarks(ctx context.Context, teamId string, page int, perPage int, etag string, bookamrksSince int64) ([]*ChannelWithBookmarks, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&include_bookmarks=true&bookmarks_since=%v", page, perPage, bookamrksSince)
+func (c *Client4) GetPublicChannelsForTeamWithBookmarks(ctx context.Context, teamId string, page int, perPage int, etag string, bookmarksSince int64) ([]*ChannelWithBookmarks, *Response, error) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_bookmarks=true&bookmarks_since=%v", page, perPage, bookmarksSince)
 	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
