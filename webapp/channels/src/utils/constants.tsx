@@ -446,6 +446,7 @@ export const ModalIdentifiers = {
     START_TRIAL_FORM_MODAL: 'start_trial_form_modal',
     START_TRIAL_FORM_MODAL_RESULT: 'start_trial_form_modal_result',
     CONVERT_GM_TO_CHANNEL: 'convert_gm_to_channel',
+    REACTION_LIMIT_REACHED: 'reaction_limit_reached',
 };
 
 export const UserStatuses = {
