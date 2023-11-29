@@ -3050,7 +3050,7 @@ func (c *Client4) GetChannel(ctx context.Context, channelId, etag string) (*Chan
 	return ch, BuildResponse(r), nil
 }
 
-// GetChannel with bookmakrs returns a channel and its bookmarks based on the provided channel id string if the user has permissions to read it's contents.
+// GetChannel with bookmarks returns a channel and its bookmarks based on the provided channel id string if the user has permissions to read it's contents.
 func (c *Client4) GetChannelWithBookmarks(ctx context.Context, channelId, etag string, bookamrksSince int64) (*ChannelWithBookmarks, *Response, error) {
 	route := c.channelRoute(channelId) + fmt.Sprintf("?include_bookmarks=true&bookmarks_since=%v", bookamrksSince)
 	r, err := c.DoAPIGet(ctx, route, etag)
