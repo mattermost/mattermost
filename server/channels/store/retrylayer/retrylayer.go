@@ -8306,6 +8306,27 @@ func (s *RetryLayerReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsF
 
 }
 
+func (s *RetryLayerReactionStore) ExistsOnPost(postId string, emojiName string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.ReactionStore.ExistsOnPost(postId, emojiName)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerReactionStore) GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error) {
 
 	tries := 0
@@ -8374,6 +8395,27 @@ func (s *RetryLayerReactionStore) GetTopForUserSince(userID string, teamID strin
 	tries := 0
 	for {
 		result, err := s.ReactionStore.GetTopForUserSince(userID, teamID, since, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerReactionStore) GetUniqueCountForPost(postId string) (int, error) {
+
+	tries := 0
+	for {
+		result, err := s.ReactionStore.GetUniqueCountForPost(postId)
 		if err == nil {
 			return result, nil
 		}
