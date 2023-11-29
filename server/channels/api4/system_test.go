@@ -376,7 +376,6 @@ func TestGetLogs(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, logs, 10)
 
-		c.MaximumPayloadSize = *th.App.Config().FileSettings.MaxFileSize
 		logs, _, err = c.GetLogs(context.Background(), -1, -1)
 		require.NoError(t, err)
 		require.NotEmpty(t, logs, "should not be empty")

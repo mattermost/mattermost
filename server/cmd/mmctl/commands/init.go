@@ -225,7 +225,7 @@ func InitUnixClient(socketPath string) (*model.Client4, error) {
 		return nil, err
 	}
 
-	return model.NewAPIv4SocketClient(socketPath, maximumPayloadSize), nil
+	return model.NewAPIv4SocketClient(socketPath), nil
 }
 
 func checkInsecureTLSError(err error, allowInsecureTLS bool) error {
