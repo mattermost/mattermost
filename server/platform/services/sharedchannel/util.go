@@ -45,12 +45,14 @@ func sanitizeUserForSync(user *model.User) *model.User {
 	return user
 }
 
+const MungUsernameSeparator = "-"
+
 // mungUsername creates a new username by combining username and remote cluster name, plus
 // a suffix to create uniqueness. If the resulting username exceeds the max length then
 // it is truncated and ellipses added.
 func mungUsername(username string, remotename string, suffix string, maxLen int) string {
 	if suffix != "" {
-		suffix = "~" + suffix
+		suffix = MungUsernameSeparator + suffix
 	}
 
 	// If the username already contains a colon then another server already munged it.
