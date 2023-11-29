@@ -13,10 +13,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-const maximumPayloadSize = 100000
-
 func ExampleClient4_CreateChannel() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channel, _, err := client.CreateChannel(context.Background(), &model.Channel{
@@ -33,7 +31,7 @@ func ExampleClient4_CreateChannel() {
 }
 
 func ExampleClient4_CreateDirectChannel() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	userID1 := "user_id_1"
@@ -47,7 +45,7 @@ func ExampleClient4_CreateDirectChannel() {
 }
 
 func ExampleClient4_CreateGroupChannel() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	userIDs := []string{"user_id_1", "user_id_2", "user_id_3"}
@@ -60,7 +58,7 @@ func ExampleClient4_CreateGroupChannel() {
 }
 
 func ExampleClient4_SearchGroupChannels() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channels, _, err := client.SearchGroupChannels(context.Background(), &model.ChannelSearch{
@@ -73,7 +71,7 @@ func ExampleClient4_SearchGroupChannels() {
 }
 
 func ExampleClient4_GetPublicChannelsByIdsForTeam() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	teamId := "team_id"
@@ -87,7 +85,7 @@ func ExampleClient4_GetPublicChannelsByIdsForTeam() {
 }
 
 func ExampleClient4_GetChannelMembersTimezones() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
@@ -100,7 +98,7 @@ func ExampleClient4_GetChannelMembersTimezones() {
 }
 
 func ExampleClient4_GetChannel() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
@@ -114,7 +112,7 @@ func ExampleClient4_GetChannel() {
 }
 
 func ExampleClient4_UpdateChannel() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channel, _, err := client.UpdateChannel(context.Background(), &model.Channel{
@@ -131,7 +129,7 @@ func ExampleClient4_UpdateChannel() {
 }
 
 func ExampleClient4_DeleteChannel() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
@@ -142,7 +140,7 @@ func ExampleClient4_DeleteChannel() {
 }
 
 func ExampleClient4_PatchChannel() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
@@ -160,7 +158,7 @@ func ExampleClient4_PatchChannel() {
 }
 
 func ExampleClient4_UpdateChannelPrivacy() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
@@ -177,7 +175,7 @@ func ExampleClient4_UpdateChannelPrivacy() {
 }
 
 func ExampleClient4_GetChannelStats() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
@@ -192,7 +190,7 @@ func ExampleClient4_GetChannelStats() {
 }
 
 func ExampleClient4_GetPinnedPosts() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
@@ -206,7 +204,7 @@ func ExampleClient4_GetPinnedPosts() {
 }
 
 func ExampleClient4_GetPublicChannelsForTeam() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	teamId := "team_id"
@@ -222,7 +220,7 @@ func ExampleClient4_GetPublicChannelsForTeam() {
 }
 
 func ExampleClient4_GetPrivateChannelsForTeam() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	teamId := "team_id"
@@ -238,7 +236,7 @@ func ExampleClient4_GetPrivateChannelsForTeam() {
 }
 
 func ExampleClient4_SearchChannels() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	teamId := "team_id"
@@ -254,7 +252,7 @@ func ExampleClient4_SearchChannels() {
 }
 
 func ExampleClient4_SearchArchivedChannels() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	teamId := "team_id"
@@ -270,7 +268,7 @@ func ExampleClient4_SearchArchivedChannels() {
 }
 
 func ExampleClient4_GetChannelByName() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelName := "channel_name"
@@ -285,7 +283,7 @@ func ExampleClient4_GetChannelByName() {
 }
 
 func ExampleClient4_GetChannelByNameForTeamName() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelName := "channel_name"
@@ -300,7 +298,7 @@ func ExampleClient4_GetChannelByNameForTeamName() {
 }
 
 func ExampleClient4_GetChannelMembers() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
@@ -316,7 +314,7 @@ func ExampleClient4_GetChannelMembers() {
 }
 
 func ExampleClient4_AddChannelMember() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
@@ -336,7 +334,7 @@ func ExampleClient4_AddChannelMember() {
 }
 
 func ExampleClient4_GetChannelMembersByIds() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
@@ -350,7 +348,7 @@ func ExampleClient4_GetChannelMembersByIds() {
 }
 
 func ExampleClient4_GetChannelMember() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
@@ -365,7 +363,7 @@ func ExampleClient4_GetChannelMember() {
 }
 
 func ExampleClient4_RemoveUserFromChannel() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
@@ -377,7 +375,7 @@ func ExampleClient4_RemoveUserFromChannel() {
 }
 
 func ExampleClient4_UpdateChannelRoles() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
@@ -390,7 +388,7 @@ func ExampleClient4_UpdateChannelRoles() {
 }
 
 func ExampleClient4_UpdateChannelNotifyProps() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
@@ -407,7 +405,7 @@ func ExampleClient4_UpdateChannelNotifyProps() {
 }
 
 func ExampleClient4_ViewChannel() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
@@ -424,7 +422,7 @@ func ExampleClient4_ViewChannel() {
 }
 
 func ExampleClient4_GetChannelMembersForUser() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	userId := "user_id"
@@ -439,7 +437,7 @@ func ExampleClient4_GetChannelMembersForUser() {
 }
 
 func ExampleClient4_GetChannelsForTeamForUser() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	userId := "user_id"
@@ -455,7 +453,7 @@ func ExampleClient4_GetChannelsForTeamForUser() {
 }
 
 func ExampleClient4_GetChannelsForUserWithLastDeleteAt() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	userId := "user_id"
@@ -469,7 +467,7 @@ func ExampleClient4_GetChannelsForUserWithLastDeleteAt() {
 }
 
 func ExampleClient4_GetChannelUnread() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
@@ -483,7 +481,7 @@ func ExampleClient4_GetChannelUnread() {
 }
 
 func ExampleClient4_UpdateChannelScheme() {
-	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"), maximumPayloadSize)
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelID := "channel_id"
