@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
@@ -302,16 +303,16 @@ func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, cha
 		user.Email = mungEmail(rc.Name, model.UserEmailMaxLength)
 
 		if update, err = scs.server.GetStore().User().Update(user, false); err != nil {
-			e, ok := err.(errInvalidInput)
-			if !ok {
+			var errConflict *store.ErrConflict
+			if !errors.As(err, &errConflict) {
 				break
 			}
-			_, field, value := e.InvalidInputInfo()
-			if field == "email" || field == "username" {
+			if errConflict.Resource == "Email" || errConflict.Resource == "Username" {
 				// username or email collision; try again with different suffix
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Collision updating sync user",
-					mlog.String("field", field),
-					mlog.Any("value", value),
+					mlog.String("field", errConflict.Resource),
+					mlog.String("username", user.Username),
+					mlog.String("email", user.Email),
 					mlog.Int("attempt", i),
 					mlog.Err(err),
 				)
