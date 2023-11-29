@@ -234,15 +234,10 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	userIDs := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
-
 	if len(userIDs) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}
-
-	// we remove the duplicate IDs as it can bring a significant load to the
-	// database.
-	userIDs = model.RemoveDuplicateStrings(userIDs)
 
 	sinceString := r.URL.Query().Get("since")
 
