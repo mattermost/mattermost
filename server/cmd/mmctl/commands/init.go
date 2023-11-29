@@ -31,7 +31,6 @@ var (
 		x509.ECDSAWithSHA1: true,
 	}
 	expectedSocketMode = os.ModeSocket | 0600
-	maximumPayloadSize = int64(100000)
 )
 
 func CheckVersionMatch(version, serverVersion string) (bool, error) {
