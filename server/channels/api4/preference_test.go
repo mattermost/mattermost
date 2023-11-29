@@ -269,38 +269,43 @@ func TestUpdatePreferencesOverload(t *testing.T) {
 	category := model.NewId()
 	preferences1 := model.Preferences{}
 
-	// should error if no preferences
-	resp, err := client.UpdatePreferences(context.Background(), user1.Id, preferences1)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("No preferences", func(t *testing.T) {
+		// should error if no preferences
+		resp, err := client.UpdatePreferences(context.Background(), user1.Id, preferences1)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	// should error if too many preferences
-	for i := 0; i < 10; i++ {
-		preferences1 = append(preferences1, model.Preference{
-			UserId:   user1.Id,
-			Category: category,
-			Name:     model.NewId(),
-			Value:    model.NewId(),
-		})
-	}
-	resp, err = client.UpdatePreferences(context.Background(), user1.Id, preferences1)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("Too many preferences", func(t *testing.T) {
+		// should error if too many preferences
+		for i := 0; i < 10; i++ {
+			preferences1 = append(preferences1, model.Preference{
+				UserId:   user1.Id,
+				Category: category,
+				Name:     model.NewId(),
+				Value:    model.NewId(),
+			})
+		}
+		resp, err := client.UpdatePreferences(context.Background(), user1.Id, preferences1)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	// should error if too large of preferences
-	th.App.Config().ServiceSettings.MaximumPayloadSize = 5000
-	for i := 0; i < 5; i++ {
-		preferences1 = append(preferences1, model.Preference{
-			UserId:   user1.Id,
-			Category: category,
-			Name:     model.NewId(),
-			Value:    strings.Repeat("A", 2000),
-		})
-	}
-	resp, err = client.UpdatePreferences(context.Background(), user1.Id, preferences1)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
-
+	t.Run("Too many preferences", func(t *testing.T) {
+		// should error if too large of preferences
+		th.App.Config().ServiceSettings.MaximumPayloadSize = 5000
+		for i := 0; i < 5; i++ {
+			preferences1 = append(preferences1, model.Preference{
+				UserId:   user1.Id,
+				Category: category,
+				Name:     model.NewId(),
+				Value:    strings.Repeat("A", 2000),
+			})
+		}
+		resp, err := client.UpdatePreferences(context.Background(), user1.Id, preferences1)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestUpdatePreferencesWebsocket(t *testing.T) {

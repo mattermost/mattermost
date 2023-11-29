@@ -5,6 +5,7 @@ package model
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -1117,4 +1118,54 @@ func TestRemoveDuplicateStrings(t *testing.T) {
 		actual := RemoveDuplicateStrings(tc.Input)
 		require.Equalf(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
 	}
+}
+
+func TestObjectFromJSON(t *testing.T) {
+	type TestObject struct {
+		Id   string
+		Name string
+		Age  int
+	}
+
+	t.Run("Empty Reader", func(t *testing.T) {
+		newObject := TestObject{}
+		s := ""
+		to2 := ObjectFromJSON(strings.NewReader(s), &newObject, 1000)
+		require.Nil(t, to2)
+	})
+
+	t.Run("Bad Object", func(t *testing.T) {
+		newObject := TestObject{}
+		ss := []string{"string1", "string2"}
+		b, _ := json.Marshal(ss)
+		to2 := ObjectFromJSON(strings.NewReader(string(b)), &newObject, 1000)
+		require.Nil(t, to2)
+	})
+
+	t.Run("Large Object", func(t *testing.T) {
+		newObject := TestObject{}
+		b, _ := json.Marshal(
+			TestObject{
+				Id:   strings.Repeat("A", 500),
+				Name: strings.Repeat("N", 500),
+				Age:  500,
+			},
+		)
+		to2 := ObjectFromJSON(strings.NewReader(string(b)), &newObject, 1000)
+		require.Nil(t, to2)
+	})
+
+	t.Run("Successful Parse", func(t *testing.T) {
+		newObject := TestObject{}
+		b, _ := json.Marshal(
+			TestObject{
+				Id:   NewId(),
+				Name: NewId(),
+				Age:  50,
+			},
+		)
+		to1 := ObjectFromJSON(strings.NewReader(string(b)), &newObject, 1000).(*TestObject)
+		require.NotNil(t, to1)
+		require.Equal(t, to1.Id, newObject.Id)
+	})
 }
