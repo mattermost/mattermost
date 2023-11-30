@@ -523,7 +523,7 @@ type AppIface interface {
 	DeleteBrandImage(rctx request.CTX) *model.AppError
 	DeleteChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError
 	DeleteCommand(commandID string) *model.AppError
-	DeleteDraft(rctx request.CTX, userID, channelID, rootID, connectionID string) (*model.Draft, *model.AppError)
+	DeleteDraft(rctx request.CTX, draft *model.Draft, connectionID string) *model.AppError
 	DeleteEmoji(c request.CTX, emoji *model.Emoji) *model.AppError
 	DeleteEphemeralPost(userID, postID string)
 	DeleteExport(name string) *model.AppError
