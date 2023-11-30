@@ -97,7 +97,7 @@ type AppIface interface {
 	// are configured to sync with teams and channels for group members on or after the given timestamp.
 	// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
 	// be re-added; otherwise, they will not be re-added.
-	CreateDefaultMemberships(c request.CTX, params model.CreateDefaultMembershipParams) error
+	CreateDefaultMemberships(rctx request.CTX, params model.CreateDefaultMembershipParams) error
 	// CreateGuest creates a guest and sets several fields of the returned User struct to
 	// their zero values.
 	CreateGuest(c request.CTX, user *model.User) (*model.User, *model.AppError)
@@ -121,7 +121,7 @@ type AppIface interface {
 	DeleteChannelScheme(c request.CTX, channel *model.Channel) (*model.Channel, *model.AppError)
 	// DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed
 	// groups of all group-constrained teams and channels.
-	DeleteGroupConstrainedMemberships(c request.CTX) error
+	DeleteGroupConstrainedMemberships(rctx request.CTX) error
 	// DeletePersistentNotification stops the persistent notifications.
 	DeletePersistentNotification(c request.CTX, post *model.Post) *model.AppError
 	// DeletePublicKey will delete plugin public key from the config.
@@ -338,7 +338,7 @@ type AppIface interface {
 	SyncPlugins() *model.AppError
 	// SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
 	// syncable.
-	SyncRolesAndMembership(c request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool)
+	SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool)
 	// SyncSyncableRoles updates the SchemeAdmin field value of the given syncable's members based on the configuration of
 	// the member's group memberships and the configuration of those groups to the syncable. This method should only
 	// be invoked on group-synced (aka group-constrained) syncables.
