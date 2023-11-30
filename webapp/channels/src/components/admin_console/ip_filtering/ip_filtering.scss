@@ -1,6 +1,12 @@
 .IPFiltering {
     height: 100%;
 
+    .admin-console-save {
+        .btn.btn-primary:disabled {
+            color: rgba(var(--center-channel-color-rgb), 0.32) !important;
+        }
+    }
+
     .MainPanel {
         display: flex;
         height: 100%;
@@ -77,6 +83,11 @@
         >svg {
             margin-right: 7px;
             margin-left: 7px;
+        }
+
+        .saving-message-description {
+            margin-left: 16px;
+            color: rgba(var(--center-channel-color-rgb), 0.72) !important;
         }
     }
 }
