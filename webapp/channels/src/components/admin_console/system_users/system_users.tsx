@@ -193,7 +193,7 @@ export class SystemUsers extends React.PureComponent<Props, State> {
             this.props.actions.logError({type: 'critical', message: 'Can\'t revoke all sessions'});
         }
     };
-    
+
     handleRevokeAllSessionsCancel = () => {
         this.setState({showRevokeAllSessionsModal: false});
     };
@@ -284,7 +284,7 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                     <input
                         id='searchUsers'
                         className='form-control filter-textbox'
-                        placeholder={this.props.intl.formatMessage({ id: 'filtered_user_list.search', defaultMessage: 'Search users' })}
+                        placeholder={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
                         onInput={doSearch}
                     />
                 </div>
@@ -343,36 +343,36 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                     <SystemPermissionGate permissions={[Permissions.REVOKE_USER_ACCESS_TOKEN]}>
                         <>
                             <button
-                                id="revoke-all-users"
-                                type="button"
-                                className="btn btn-tertiary btn-danger"
+                                id='revoke-all-users'
+                                type='button'
+                                className='btn btn-tertiary btn-danger'
                                 onClick={this.handleShowRevokeAllSessionsModal}
                                 disabled={this.props.isDisabled}
                             >
                                 <FormattedMessage
-                                    id="admin.system_users.revokeAllSessions"
-                                    defaultMessage="Revoke All Sessions"
+                                    id='admin.system_users.revokeAllSessions'
+                                    defaultMessage='Revoke All Sessions'
                                 />
                             </button>
                             <ConfirmModal
                                 show={this.state.showRevokeAllSessionsModal}
                                 title={
                                     <FormattedMessage
-                                        id="admin.system_users.revoke_all_sessions_modal_title"
-                                        defaultMessage="Revoke all sessions in the system"
+                                        id='admin.system_users.revoke_all_sessions_modal_title'
+                                        defaultMessage='Revoke all sessions in the system'
                                     />
                                 }
                                 message={
                                     <FormattedMessage
-                                        id="admin.system_users.revoke_all_sessions_modal_message"
-                                        defaultMessage="This action revokes all sessions in the system. All users will be logged out from all devices. Are you sure you want to revoke all sessions?"
+                                        id='admin.system_users.revoke_all_sessions_modal_message'
+                                        defaultMessage='This action revokes all sessions in the system. All users will be logged out from all devices. Are you sure you want to revoke all sessions?'
                                     />
                                 }
-                                confirmButtonClass="btn btn-danger"
+                                confirmButtonClass='btn btn-danger'
                                 confirmButtonText={
                                     <FormattedMessage
-                                        id="admin.system_users.revoke_all_sessions_button"
-                                        defaultMessage="Revoke All Sessions"
+                                        id='admin.system_users.revoke_all_sessions_button'
+                                        defaultMessage='Revoke All Sessions'
                                     />
                                 }
                                 onConfirm={this.handleRevokeAllSessions}

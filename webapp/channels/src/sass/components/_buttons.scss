@@ -280,7 +280,8 @@ button {
                 color: var(--error-text);
             }
 
-            &:active, &:focus {
+            &:active,
+            &:focus {
                 background-color: rgba(var(--error-text-color-rgb), 0.16);
                 color: var(--error-text);
             }
