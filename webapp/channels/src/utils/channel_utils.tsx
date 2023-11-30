@@ -71,14 +71,14 @@ type JoinPrivateChannelPromptResult = {
     };
 };
 
-export function joinPrivateChannelPrompt(team: Team, channel: Channel, handleOnCancel = true): ActionFunc {
+export function joinPrivateChannelPrompt(team: Team, channelDisplayName: string, handleOnCancel = true): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const result: JoinPrivateChannelPromptResult = await new Promise((resolve) => {
             const modalData = {
                 modalId: ModalIdentifiers.JOIN_CHANNEL_PROMPT,
                 dialogType: JoinPrivateChannelModal,
                 dialogProps: {
-                    channelName: channel.display_name,
+                    channelName: channelDisplayName,
                     onJoin: () => {
                         LocalStorageStore.setTeamIdJoinedOnLoad(null);
                         resolve({
