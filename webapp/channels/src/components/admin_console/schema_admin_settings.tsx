@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
 import React from 'react';
 import {Overlay} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -34,26 +33,29 @@ import {rolesFromMapping, mappingValueFromRoles} from 'utils/policy_roles_adapte
 import * as Utils from 'utils/utils';
 
 import Setting from './setting';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {Role} from '@mattermost/types/roles';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import './schema_admin_settings.scss';
 
-export default class SchemaAdminSettings extends React.PureComponent {
-    static propTypes = {
-        config: PropTypes.object,
-        environmentConfig: PropTypes.object,
-        setNavigationBlocked: PropTypes.func,
-        schema: PropTypes.object,
-        roles: PropTypes.object,
-        license: PropTypes.object,
-        editRole: PropTypes.func,
-        updateConfig: PropTypes.func.isRequired,
-        isDisabled: PropTypes.bool,
-        consoleAccess: PropTypes.object,
-        cloud: PropTypes.object,
-        isCurrentUserSystemAdmin: PropTypes.bool,
-    };
+type Props = {
+    config: object;
+    environmentConfig: object;
+    setNavigationBlocked: (...args: any[]) => any;
+    schema: object;
+    roles: object;
+    license: object;
+    editRole?: (role: Role) => void;
+    updateConfig?: (config: AdminConfig) => ActionFunc;
+    isDisabled: boolean;
+    consoleAccess: object;
+    cloud: object;
+    isCurrentUserSystemAdmin: boolean;
+};
 
-    constructor(props) {
+export default class SchemaAdminSettings extends React.PureComponent<Props> {
+    constructor(props: Props) {
         super(props);
         this.isPlugin = false;
 
