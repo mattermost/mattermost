@@ -3049,7 +3049,7 @@ func (a *OpenTracingAppLayer) DeleteCommand(commandID string) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeleteDraft(rctx request.CTX, userID string, channelID string, rootID string, connectionID string) (*model.Draft, *model.AppError) {
+func (a *OpenTracingAppLayer) DeleteDraft(rctx request.CTX, draft *model.Draft, connectionID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteDraft")
 
@@ -3061,14 +3061,14 @@ func (a *OpenTracingAppLayer) DeleteDraft(rctx request.CTX, userID string, chann
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.DeleteDraft(rctx, userID, channelID, rootID, connectionID)
+	resultVar0 := a.app.DeleteDraft(rctx, draft, connectionID)
 
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) DeleteEmoji(c request.CTX, emoji *model.Emoji) *model.AppError {
