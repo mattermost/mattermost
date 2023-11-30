@@ -154,7 +154,7 @@ func Test_GetSubscription(t *testing.T) {
 		ProductID:       "SomeProductId",
 		AddOns:          []string{},
 		StartAt:         0,
-		EndAt:           0,
+		EndAt:           2000000000,
 		CreateAt:        0,
 		Seats:           0,
 		IsFreeTrial:     "true",
