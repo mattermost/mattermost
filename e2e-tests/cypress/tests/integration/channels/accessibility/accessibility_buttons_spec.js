@@ -69,13 +69,13 @@ describe('Verify Accessibility Support in different Buttons', () => {
             tab({shift: true}).
             tab();
 
-        // # Press tab until the focus is on the Pinned posts button
+        // # Press tab until the focus is on the Pinned messages button
         cy.focused().tab().tab();
 
-        // * Verify accessibility support in Pinned Posts button
+        // * Verify accessibility support in Pinned messages button
         cy.uiGetChannelPinButton().
             should('be.focused').
-            and('have.attr', 'aria-label', 'Pinned posts').
+            and('have.attr', 'aria-label', 'Pinned messages').
             tab().tab().tab().tab();
     });
 });

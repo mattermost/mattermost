@@ -37,6 +37,7 @@ type TimerLayer struct {
 	LinkMetadataStore               store.LinkMetadataStore
 	NotifyAdminStore                store.NotifyAdminStore
 	OAuthStore                      store.OAuthStore
+	OutgoingOAuthConnectionStore    store.OutgoingOAuthConnectionStore
 	PluginStore                     store.PluginStore
 	PostStore                       store.PostStore
 	PostAcknowledgementStore        store.PostAcknowledgementStore
@@ -135,6 +136,10 @@ func (s *TimerLayer) NotifyAdmin() store.NotifyAdminStore {
 
 func (s *TimerLayer) OAuth() store.OAuthStore {
 	return s.OAuthStore
+}
+
+func (s *TimerLayer) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
+	return s.OutgoingOAuthConnectionStore
 }
 
 func (s *TimerLayer) Plugin() store.PluginStore {
@@ -328,6 +333,11 @@ type TimerLayerNotifyAdminStore struct {
 
 type TimerLayerOAuthStore struct {
 	store.OAuthStore
+	Root *TimerLayer
+}
+
+type TimerLayerOutgoingOAuthConnectionStore struct {
+	store.OutgoingOAuthConnectionStore
 	Root *TimerLayer
 }
 
@@ -5233,6 +5243,86 @@ func (s *TimerLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, 
 	return result, err
 }
 
+func (s *TimerLayerOutgoingOAuthConnectionStore) DeleteConnection(c request.CTX, id string) error {
+	start := time.Now()
+
+	err := s.OutgoingOAuthConnectionStore.DeleteConnection(c, id)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("OutgoingOAuthConnectionStore.DeleteConnection", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerOutgoingOAuthConnectionStore) GetConnection(c request.CTX, id string) (*model.OutgoingOAuthConnection, error) {
+	start := time.Now()
+
+	result, err := s.OutgoingOAuthConnectionStore.GetConnection(c, id)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("OutgoingOAuthConnectionStore.GetConnection", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error) {
+	start := time.Now()
+
+	result, err := s.OutgoingOAuthConnectionStore.GetConnections(c, filters)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("OutgoingOAuthConnectionStore.GetConnections", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerOutgoingOAuthConnectionStore) SaveConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
+	start := time.Now()
+
+	result, err := s.OutgoingOAuthConnectionStore.SaveConnection(c, conn)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("OutgoingOAuthConnectionStore.SaveConnection", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerOutgoingOAuthConnectionStore) UpdateConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error) {
+	start := time.Now()
+
+	result, err := s.OutgoingOAuthConnectionStore.UpdateConnection(c, conn)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("OutgoingOAuthConnectionStore.UpdateConnection", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error) {
 	start := time.Now()
 
@@ -6655,6 +6745,22 @@ func (s *TimerLayerReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsF
 	return err
 }
 
+func (s *TimerLayerReactionStore) ExistsOnPost(postId string, emojiName string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.ReactionStore.ExistsOnPost(postId, emojiName)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.ExistsOnPost", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerReactionStore) GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error) {
 	start := time.Now()
 
@@ -6683,6 +6789,22 @@ func (s *TimerLayerReactionStore) GetForPostSince(postId string, since int64, ex
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.GetForPostSince", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerReactionStore) GetUniqueCountForPost(postId string) (int, error) {
+	start := time.Now()
+
+	result, err := s.ReactionStore.GetUniqueCountForPost(postId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.GetUniqueCountForPost", success, elapsed)
 	}
 	return result, err
 }
@@ -11794,6 +11916,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.LinkMetadataStore = &TimerLayerLinkMetadataStore{LinkMetadataStore: childStore.LinkMetadata(), Root: &newStore}
 	newStore.NotifyAdminStore = &TimerLayerNotifyAdminStore{NotifyAdminStore: childStore.NotifyAdmin(), Root: &newStore}
 	newStore.OAuthStore = &TimerLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
+	newStore.OutgoingOAuthConnectionStore = &TimerLayerOutgoingOAuthConnectionStore{OutgoingOAuthConnectionStore: childStore.OutgoingOAuthConnection(), Root: &newStore}
 	newStore.PluginStore = &TimerLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &TimerLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
 	newStore.PostAcknowledgementStore = &TimerLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}

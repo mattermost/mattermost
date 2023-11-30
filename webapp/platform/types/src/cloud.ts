@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AllowedIPRange} from './config';
 import {ValueOf} from './utilities';
 
 export type CloudState = {
@@ -26,6 +27,12 @@ export type CloudState = {
     };
 }
 
+export type Installation = {
+    id: string;
+    state: string;
+    allowed_ip_ranges: AllowedIPRange[];
+}
+
 export type Subscription = {
     id: string;
     customer_id: string;
@@ -42,6 +49,8 @@ export type Subscription = {
     delinquent_since?: number;
     compliance_blocked?: string;
     billing_type?: string;
+    cancel_at?: number;
+    will_renew?: string;
 }
 
 export type Product = {
