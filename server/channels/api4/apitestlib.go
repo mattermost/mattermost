@@ -98,7 +98,6 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	memoryConfig.ServiceSettings.EnableLocalMode = model.NewBool(true)
 	*memoryConfig.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
-	*memoryConfig.LogSettings.ConsoleJson = false
 	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false

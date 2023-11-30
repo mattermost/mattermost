@@ -56,7 +56,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
-	*memoryConfig.LogSettings.ConsoleJson = false
 	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	memoryStore.Set(memoryConfig)
 
