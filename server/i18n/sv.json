@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 116+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 116+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -433,7 +433,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Service Provider Issuer URL måste vara en giltig URL, och starta med http:// eller https://."
+    "translation": "Identity Provider Issuer URL kan inte vara en tom sträng."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -9984,5 +9984,109 @@
   {
     "id": "model.config.is_valid.log.advanced_logging.parse",
     "translation": "Felaktigt format: {{.Error}}"
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Ett fel uppstod när IP-filter skulle appliceras"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Ett fel uppstod när IP-filter skulle hämtas"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Ett fel uppstod när klientens IP-adress skulle hämtas"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP-filter är inte tillgängligt på den här servern"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Granska ändringarna"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} ändrade IP-filterinställningarna för din arbetsyta på URL: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Förändringarna av IP-filter på din arbetsyta"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "IP-filterändringarna på din arbetsyta"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Kontakta support"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Logga in på kund-portalen för att ändra IP-filter"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Har du problem att nå arbetsytan?"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Kunde inte uppdatera tidsstämpeln för senast inloggning"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "Någon URL för Audience är felaktigt."
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Skicka mejl till {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "OAuth-attributet Audience kan inte vara tomt."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Update at måste vara en giltig tid."
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Misslyckades att tolka SiteURL subpath"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Felaktig Client Id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Felaktig Client Secret."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Create at måste vara en giltig tid."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "Ogiltig Creator Id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "Felaktig Grant-typ."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "Felaktigt Id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "Felaktigt Name."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "Felaktig URL för Oauth token."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "Felaktigt lösenord."
   }
 ]

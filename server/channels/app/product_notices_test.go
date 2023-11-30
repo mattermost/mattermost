@@ -217,7 +217,6 @@ func TestNoticeValidation(t *testing.T) {
 			wantErr: false,
 			wantOk:  true,
 		},
-
 		{
 			name: "notice with server version check that matches a const",
 			args: args{
@@ -231,77 +230,6 @@ func TestNoticeValidation(t *testing.T) {
 			wantErr: false,
 			wantOk:  true,
 		},
-
-		{
-			name: "notice with server version check that has rc",
-			args: args{
-				serverVersion: "99.1.1-rc2",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  true,
-		},
-
-		{
-			name: "notice with server version check that has rc and hash",
-			args: args{
-				serverVersion: "99.1.1-rc2.abcdef",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  true,
-		},
-
-		{
-			name: "notice with server version check that has release and hash",
-			args: args{
-				serverVersion: "release-99.1.1.abcdef",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  true,
-		},
-
-		{
-			name: "notice with server version check that has cloud version",
-			args: args{
-				serverVersion: "cloud.54.abcdef",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  false,
-		},
-		{
-			name: "notice with server version check on cloud should ignore version",
-			args: args{
-				cloud:         true,
-				serverVersion: "cloud.54.abcdef",
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
-					},
-				},
-			},
-			wantErr: false,
-			wantOk:  true,
-		},
-
 		{
 			name: "notice with server version check that is invalid",
 			args: args{
@@ -565,7 +493,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				dbmsName:      "mysql",
 				dbmsVer:       "5.6",
-				serverVersion: "5.32",
+				serverVersion: "5.32.1",
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
 						ServerVersion: []string{">=v5.33"},
@@ -637,11 +565,12 @@ func TestNoticeValidation(t *testing.T) {
 			if clientVersion == "" {
 				clientVersion = "1.2.3"
 			}
-			model.BuildNumber = tt.args.serverVersion
-			if model.BuildNumber == "" {
-				model.BuildNumber = "5.26.1"
+
+			model.CurrentVersion = tt.args.serverVersion
+			if model.CurrentVersion == "" {
+				model.CurrentVersion = "5.26.1"
 				defer func() {
-					model.BuildNumber = ""
+					model.CurrentVersion = ""
 				}()
 			}
 			if ok, err := noticeMatchesConditions(

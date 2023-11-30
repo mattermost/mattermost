@@ -139,18 +139,13 @@ func (a *App) getFileInfosForDraft(rctx request.CTX, draft *model.Draft) ([]*mod
 	return fileInfos, nil
 }
 
-func (a *App) DeleteDraft(rctx request.CTX, userID, channelID, rootID, connectionID string) (*model.Draft, *model.AppError) {
+func (a *App) DeleteDraft(rctx request.CTX, draft *model.Draft, connectionID string) *model.AppError {
 	if !*a.Config().ServiceSettings.AllowSyncedDrafts {
-		return nil, model.NewAppError("DeleteDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
+		return model.NewAppError("DeleteDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	draft, nErr := a.Srv().Store().Draft().Get(userID, channelID, rootID, false)
-	if nErr != nil {
-		return nil, model.NewAppError("DeleteDraft", "app.draft.get.app_error", nil, nErr.Error(), http.StatusBadRequest)
-	}
-
-	if err := a.Srv().Store().Draft().Delete(userID, channelID, rootID); err != nil {
-		return nil, model.NewAppError("DeleteDraft", "app.draft.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if err := a.Srv().Store().Draft().Delete(draft.UserId, draft.ChannelId, draft.RootId); err != nil {
+		return model.NewAppError("DeleteDraft", "app.draft.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	draftJSON, jsonErr := json.Marshal(draft)
@@ -162,5 +157,5 @@ func (a *App) DeleteDraft(rctx request.CTX, userID, channelID, rootID, connectio
 	message.Add("draft", string(draftJSON))
 	a.Publish(message)
 
-	return draft, nil
+	return nil
 }

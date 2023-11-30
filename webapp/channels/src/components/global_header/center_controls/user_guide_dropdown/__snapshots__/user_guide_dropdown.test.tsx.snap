@@ -47,7 +47,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     openLeft={false}
     openUp={false}
   >
-    <MenuGroup>
+    <Memo(MenuGroup)>
       <MenuItemExternalLink
         iconClassName="icon-file-text-outline"
         id="mattermostUserGuideLink"
@@ -84,7 +84,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
         show={true}
         text="Keyboard shortcuts"
       />
-    </MenuGroup>
+    </Memo(MenuGroup)>
   </Menu>
 </MenuWrapper>
 `;
@@ -136,7 +136,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     openLeft={false}
     openUp={false}
   >
-    <MenuGroup>
+    <Memo(MenuGroup)>
       <MenuItemExternalLink
         iconClassName="icon-file-text-outline"
         id="mattermostUserGuideLink"
@@ -165,7 +165,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
         show={true}
         text="Keyboard shortcuts"
       />
-    </MenuGroup>
+    </Memo(MenuGroup)>
   </Menu>
 </MenuWrapper>
 `;
@@ -217,7 +217,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
     openLeft={false}
     openUp={false}
   >
-    <MenuGroup>
+    <Memo(MenuGroup)>
       <MenuItemExternalLink
         iconClassName="icon-file-text-outline"
         id="mattermostUserGuideLink"
@@ -262,7 +262,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
         show={true}
         text="Test Item"
       />
-    </MenuGroup>
+    </Memo(MenuGroup)>
   </Menu>
 </MenuWrapper>
 `;
