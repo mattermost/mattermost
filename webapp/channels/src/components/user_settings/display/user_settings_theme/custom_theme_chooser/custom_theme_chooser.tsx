@@ -3,8 +3,8 @@
 
 import React, {createRef} from 'react';
 import type {ChangeEvent, ClipboardEvent, MouseEvent, RefObject} from 'react';
-import {defineMessages, FormattedMessage} from 'react-intl';
-import type {MessageDescriptor, useIntl} from 'react-intl';
+import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
@@ -127,7 +127,7 @@ type State = {
     copyTheme: string;
 };
 
-export default class CustomThemeChooser extends React.PureComponent<Props, State> {
+class CustomThemeChooser extends React.PureComponent<Props, State> {
     textareaRef: RefObject<HTMLTextAreaElement>;
     sidebarStylesHeaderRef: RefObject<HTMLDivElement>;
     centerChannelStylesHeaderRef: RefObject<HTMLDivElement>;
@@ -287,7 +287,7 @@ export default class CustomThemeChooser extends React.PureComponent<Props, State
     };
 
     render() {
-        const {formatMessage} = useIntl();
+        const {formatMessage} = this.props;
 
         const theme = this.props.theme;
         const sidebarElements: JSX.Element[] = [];
@@ -551,3 +551,5 @@ export default class CustomThemeChooser extends React.PureComponent<Props, State
         );
     }
 }
+
+export default injectIntl(CustomThemeChooser);
