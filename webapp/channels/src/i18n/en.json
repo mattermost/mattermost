@@ -3611,6 +3611,7 @@
   "generic.close": "Close",
   "generic.done": "Done",
   "generic.next": "Next",
+  "generic.okay": "Okay",
   "generic.previous": "Previous",
   "get_app.continueToBrowser": "View in Browser",
   "get_app.dontHaveTheDesktopApp": "Don't have the Desktop App?",
