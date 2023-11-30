@@ -205,6 +205,7 @@ export type ClientConfig = {
     AllowPersistentNotificationsForGuests: string;
     DelayChannelAutocomplete: 'true' | 'false';
     ServiceEnvironment: string;
+    UniqueEmojiReactionLimitPerPost: string;
 };
 
 export type License = {
@@ -385,6 +386,7 @@ export type ServiceSettings = {
     PersistentNotificationIntervalMinutes: number;
     PersistentNotificationMaxCount: number;
     PersistentNotificationMaxRecipients: number;
+    UniqueEmojiReactionLimitPerPost: number;
 };
 
 export type TeamSettings = {
