@@ -102,7 +102,7 @@ import type {
     MarketplaceApp,
     MarketplacePlugin,
 } from '@mattermost/types/marketplace';
-import {Post, PostList, PostSearchResults, OpenGraphMetadata, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics} from '@mattermost/types/posts';
+import {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import {Draft} from '@mattermost/types/drafts';
 import {Reaction} from '@mattermost/types/reactions';
 import {Role} from '@mattermost/types/roles';
@@ -2155,6 +2155,13 @@ export default class Client4 {
             {method: 'post'},
         );
     };
+
+    getPostInfo = (postId: string) => {
+        return this.doFetch<PostInfo>(
+            `${this.getPostRoute(postId)}/info`,
+            {method: 'get'},
+        )
+    }
 
     getPostsByIds = (postIds: string[]) => {
         return this.doFetch<Post[]>(
