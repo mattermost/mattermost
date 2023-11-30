@@ -382,6 +382,20 @@ export default class WebSocketClient {
         this.sendMessage('user_typing', data, callback);
     }
 
+    updateActiveChannel(channelId: string, callback?: () => void) {
+        const data = {
+            channel_id: channelId,
+        };
+        this.sendMessage('presence', data, callback);
+    }
+
+    updateActiveTeam(teamId: string, callback?: () => void) {
+        const data = {
+            team_id: teamId,
+        };
+        this.sendMessage('presence', data, callback);
+    }
+
     userUpdateActiveStatus(userIsActive: boolean, manual: boolean, callback?: () => void) {
         const data = {
             user_is_active: userIsActive,
