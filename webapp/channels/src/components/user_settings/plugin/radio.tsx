@@ -37,7 +37,7 @@ const RadioInput = ({
     return (
         <fieldset key={setting.name}>
             <legend className='form-legend hidden-label'>
-                {setting.title}
+                {setting.title || setting.name}
             </legend>
             {setting.options.map((option) => (
                 <RadioOption

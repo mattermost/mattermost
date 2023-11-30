@@ -16,7 +16,7 @@ export const getPluginUserSettings = createSelector(
     'getPluginUserSettings',
     (state: GlobalState) => state.plugins.userSettings,
     (settings) => {
-        return settings || [];
+        return settings || {};
     },
 );
 

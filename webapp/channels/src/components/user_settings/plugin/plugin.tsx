@@ -2,11 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 
 import PluginSetting from './plugin_setting';
+
+import SettingDesktopHeader from '../setting_desktop_header';
+import SettingMobileHeader from '../setting_mobile_header';
 
 type Props = {
     updateSection: (section: string) => void;
@@ -25,47 +28,20 @@ const PluginTab = ({
 }: Props) => {
     const intl = useIntl();
 
+    const headerText = intl.formatMessage(
+        {id: 'user.settings.plugins.title', defaultMessage: '{pluginName} Settings'},
+        {pluginName: settings.uiName},
+    );
+
     return (
-        <div id={`pluginSetting${settings.id}`}>
-            <div className='modal-header'>
-                <button
-                    id='closeButton'
-                    type='button'
-                    className='close'
-                    data-dismiss='modal'
-                    onClick={closeModal}
-                >
-                    <span aria-hidden='true'>{'×'}</span>
-                </button>
-                <h4 className='modal-title'>
-                    <div className='modal-back'>
-                        <i
-                            className='fa fa-angle-left'
-                            aria-label={
-                                intl.formatMessage({
-                                    id: 'generic_icons.collapse',
-                                    defaultMessage: 'Collapse Icon',
-                                })
-                            }
-                            onClick={collapseModal}
-                        />
-                    </div>
-                    <FormattedMessage
-                        id='user.settings.plugins.title'
-                        defaultMessage='{pluginName} Settings'
-                        values={{pluginName: settings.uiName}}
-                    />
-                </h4>
-            </div>
+        <div>
+            <SettingMobileHeader
+                closeModal={closeModal}
+                collapseModal={collapseModal}
+                text={headerText}
+            />
             <div className='user-settings'>
-                <div className={'pluginSettingsModalHeader'}>
-                    <h3
-                        id={`pluginSettings${settings.id}Title`}
-                        className='tab-header'
-                    >
-                        {settings.uiName}
-                    </h3>
-                </div>
+                <SettingDesktopHeader text={headerText}/>
                 <div className='divider-dark first'/>
                 {settings.sections.map(
                     (v) =>

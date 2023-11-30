@@ -27,7 +27,7 @@ import * as Utils from 'utils/utils';
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 
 const UserSettings = React.lazy(() => import(/* webpackPrefetch: true */ 'components/user_settings'));
-const SettingsSidebar = React.lazy(() => import(/* webpackPrefetch: true */ '../../settings_sidebar'));
+const SettingsSidebar = React.lazy(() => import(/* webpackPrefetch: true */ 'components/settings_sidebar'));
 
 const holders = defineMessages({
     profile: {
@@ -357,6 +357,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                                             }
                                         }
                                         pluginSettings={this.props.pluginSettings}
+                                        user={this.props.currentUser}
                                     />
                                 </Provider>
                             </React.Suspense>

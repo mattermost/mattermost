@@ -72,10 +72,10 @@ const PluginSetting = ({
     }, [pluginId, dispatch, section.onSubmit]);
 
     useEffect(() => {
-        if (activeSection === '') {
+        if (activeSection !== section.title) {
             toUpdate.current = {};
         }
-    }, [activeSection]);
+    }, [activeSection, section.title]);
 
     const inputs = [];
     for (const setting of section.settings) {
