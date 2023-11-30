@@ -984,12 +984,17 @@ export default class Client4 {
     };
 
     getUsersForReporting = (
+        pageSize?: number,
         dateRange?: 'alltime' | 'last30days' | 'previousmonth' | 'last6months',
         sortColumn?: 'CreateAt' | 'Username' | 'FirstName' | 'LastName' | 'Nickname' | 'Email',
         sortDirection?: 'asc' | 'desc',
-        pageSize?: number,
-        lastColumnValue?: string,
-        lastUserId?: string,
+        lastColumnValue = '',
+        lastUserId = '',
+        roleFilter = '',
+        teamFilter = '',
+        hasNoTeam = false,
+        hideActive = false,
+        hideInactive = false,
     ) => {
         const queryString = buildQueryString({
             date_range: dateRange,
@@ -998,6 +1003,11 @@ export default class Client4 {
             page_size: pageSize,
             last_column_value: lastColumnValue,
             last_id: lastUserId,
+            role_filter: roleFilter,
+            has_no_team: hasNoTeam,
+            team_filter: teamFilter,
+            hide_active: hideActive,
+            hide_inactive: hideInactive,
         });
         return this.doFetch<UserReport[]>(
             `${this.getUsersRoute()}/report${queryString}`,

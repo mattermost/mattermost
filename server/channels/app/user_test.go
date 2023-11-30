@@ -1938,7 +1938,7 @@ func TestGetUsersForReporting(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		userReports, err := th.App.GetUsersForReporting("Username", false, 999, "", "", 0, 0)
+		userReports, err := th.App.GetUsersForReporting("Username", false, 999, "", "", 0, 0, "", "", false, false, false)
 		require.Error(t, err)
 		require.Nil(t, userReports)
 	})
@@ -1947,7 +1947,7 @@ func TestGetUsersForReporting(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		userReports, err := th.App.GetUsersForReporting("Username", false, 50, "", "", 1000, 500)
+		userReports, err := th.App.GetUsersForReporting("Username", false, 50, "", "", 1000, 500, "", "", false, false, false)
 		require.Error(t, err)
 		require.Nil(t, userReports)
 	})
@@ -1956,7 +1956,7 @@ func TestGetUsersForReporting(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		userReports, err := th.App.GetUsersForReporting("FakeColumn", false, 50, "", "", 0, 0)
+		userReports, err := th.App.GetUsersForReporting("FakeColumn", false, 50, "", "", 0, 0, "", "", false, false, false)
 		require.Error(t, err)
 		require.Nil(t, userReports)
 	})
@@ -1984,7 +1984,7 @@ func TestGetUsersForReporting(t *testing.T) {
 
 		mockStore.On("User").Return(&mockUserStore)
 
-		userReports, err := th.App.GetUsersForReporting("Username", false, 50, "", "", 0, 0)
+		userReports, err := th.App.GetUsersForReporting("Username", false, 50, "", "", 0, 0, "", "", false, false, false)
 		require.Nil(t, err)
 		require.NotNil(t, userReports)
 		require.Equal(t, "Bob Bobson", userReports[0].DisplayName)

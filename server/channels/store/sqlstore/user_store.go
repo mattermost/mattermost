@@ -2275,12 +2275,18 @@ func (us SqlUserStore) GetUserReport(
 	lastUserId string,
 	startAt int64,
 	endAt int64,
+	roleFilter string,
+	teamFilter string,
+	hasNoTeam bool,
+	hideActive bool,
+	hideInactive bool,
 ) ([]*model.UserReportQuery, error) {
+	isPostgres := us.DriverName() == model.DatabaseDriverPostgres
 	selectColumns := []string{"u.Id", "u.LastLogin", "s.LastActivityAt AS LastStatusAt"}
 	for _, column := range model.UserReportSortColumns {
 		selectColumns = append(selectColumns, "u."+column)
 	}
-	if us.DriverName() == model.DatabaseDriverPostgres {
+	if isPostgres {
 		selectColumns = append(selectColumns,
 			"MAX(ps.LastPostDate) AS LastPostDate",
 			"COUNT(ps.Day) AS DaysActive",
@@ -2310,6 +2316,7 @@ func (us SqlUserStore) GetUserReport(
 				sq.Gt{"u.Id": lastUserId},
 			},
 		}).
+		Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM Bots)")).
 		GroupBy("u.Id", "s.UserId").
 		OrderBy(sortColumnValue, "u.Id")
 
@@ -2317,7 +2324,7 @@ func (us SqlUserStore) GetUserReport(
 		query = query.Limit(uint64(pageSize))
 	}
 
-	if us.DriverName() == model.DatabaseDriverPostgres {
+	if isPostgres {
 		joinQuery := "PostStats ps ON ps.UserId = u.Id"
 		if startAt > 0 {
 			startDate := time.UnixMilli(startAt)
@@ -2337,6 +2344,19 @@ func (us SqlUserStore) GetUserReport(
 			joinQuery += fmt.Sprintf(" AND p.CreateAt < %d", endAt)
 		}
 		query = query.LeftJoin(joinQuery)
+	}
+
+	query = applyRoleFilter(query, roleFilter, isPostgres)
+	if hasNoTeam {
+		query = query.Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM TeamMembers WHERE DeleteAt = 0)"))
+	} else if teamFilter != "" {
+		query = query.Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamFilter)
+	}
+	if hideActive {
+		query = query.Where(sq.Gt{"u.DeleteAt": 0})
+	}
+	if hideInactive {
+		query = query.Where(sq.Eq{"u.DeleteAt": 0})
 	}
 
 	userResults := []*model.UserReportQuery{}

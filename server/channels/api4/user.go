@@ -3469,6 +3469,15 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	lastSortColumnValue := r.URL.Query().Get("last_column_value")
 	lastUserId := r.URL.Query().Get("last_id")
+	roleFilter := r.URL.Query().Get("role_filter")
+	hasNoTeam := r.URL.Query().Get("has_no_team") == "true"
+	teamFilter := r.URL.Query().Get("team_filter")
+	if !(teamFilter == "" || model.IsValidId(teamFilter)) {
+		c.Err = model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_team_filter", nil, "", http.StatusBadRequest)
+		return
+	}
+	hideActive := r.URL.Query().Get("hide_active") == "true"
+	hideInactive := r.URL.Query().Get("hide_inctive") == "true"
 
 	startAt := int64(0)
 	endAt := int64(0)
@@ -3484,7 +3493,20 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 		startAt = currentTime.AddDate(0, -6, -0).UnixMilli()
 	}
 
-	userReports, err := c.App.GetUsersForReporting(sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt)
+	userReports, err := c.App.GetUsersForReporting(
+		sortColumn,
+		sortDesc,
+		pageSize,
+		lastSortColumnValue,
+		lastUserId,
+		startAt,
+		endAt,
+		roleFilter,
+		teamFilter,
+		hasNoTeam,
+		hideActive,
+		hideInactive,
+	)
 	if err != nil {
 		c.Err = err
 		return
