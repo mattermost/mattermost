@@ -554,20 +554,27 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
 }
 
 func (s *Server) doElasticsearchFixChannelIndex() {
-	// If the migration is already marked as completed, don't do it again.
-	if _, err := s.Store().System().GetByName(model.MigrationKeyElasticsearchFixChannelIndex); err == nil {
+	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		s.elasticsearchFixChannelIndex(newLicense)
+	})
+
+	s.elasticsearchFixChannelIndex(s.License())
+}
+
+func (s *Server) elasticsearchFixChannelIndex(license *model.License) {
+	if model.BuildEnterpriseReady != "true" || license == nil || !*license.Features.Elasticsearch {
+		mlog.Debug("Skipping triggering Elasticsearch channel index fix job as build is not Enterprise ready")
 		return
 	}
 
-	license := s.License()
-	if model.BuildEnterpriseReady != "true" || license == nil || !*license.Features.Elasticsearch {
-		mlog.Info("Skipping triggering Elasticsearch channel index fix job as build is not Enterprise ready")
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store().System().GetByName(model.MigrationKeyElasticsearchFixChannelIndex); err == nil {
+		mlog.Debug("Skipping triggering Elasticsearch channel index fix job as it is already marked completed in database")
 		return
 	}
 
 	if _, appErr := s.Jobs.CreateJob(model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
 		mlog.Fatal("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
-		return
 	}
 }
 
