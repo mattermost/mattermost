@@ -6,10 +6,11 @@ import {getTeamMember} from 'mattermost-redux/actions/teams';
 import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 export function getMembershipForEntities(teamId: string, userId: string, channelId?: string) {
-    return (dispatch: DispatchFunc) => {
-        return Promise.all([
+    return async (dispatch: DispatchFunc) => {
+        await Promise.all([
             dispatch(getTeamMember(teamId, userId)),
             channelId && dispatch(getChannelMember(channelId, userId)),
         ]);
+        return {data: true};
     };
 }

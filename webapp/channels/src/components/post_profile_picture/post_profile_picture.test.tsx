@@ -24,7 +24,6 @@ describe('components/PostProfilePicture', () => {
         enablePostIconOverride: true,
         compactDisplay: true,
         hasImageProxy: true,
-        isBusy: true,
         post,
         user,
         isBot: Boolean(user.is_bot),

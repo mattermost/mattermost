@@ -130,7 +130,6 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
                     >
                         <UserProfile
                             userId={user.id}
-                            hasMention={true}
                             displayUsername={true}
                         />
                         {
