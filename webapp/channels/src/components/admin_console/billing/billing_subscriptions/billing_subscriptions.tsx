@@ -61,12 +61,11 @@ export const paymentFailedBanner = () => {
 };
 
 export const CloudAnnualRenewalBanner = () => {
-    // TODO: Update with renewal modal
     const openPurchaseModal = useOpenCloudPurchaseModal({});
     const subscription = useGetSubscription();
     const {formatMessage} = useIntl();
     const [openSalesLink] = useOpenSalesLink();
-    if (!subscription || !subscription.cancel_at) {
+    if (!subscription || !subscription.cancel_at || (subscription.will_renew === 'true' && !subscription.delinquent_since)) {
         return null;
     }
     const daysUntilExpiration = daysToExpiration(subscription?.end_at * 1000);

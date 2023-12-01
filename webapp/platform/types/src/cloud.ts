@@ -187,6 +187,8 @@ export type InvoiceLineItem = {
     description: string;
     type: typeof InvoiceLineItemType[keyof typeof InvoiceLineItemType];
     metadata: Record<string, string>;
+    period_start: number;
+    period_end: number;
 }
 
 export type Limits = {

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Product, CloudCustomer, Limits} from '@mattermost/types/cloud';
+import type {Product, CloudCustomer, Limits, InvoiceLineItem} from '@mattermost/types/cloud';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -42,4 +42,23 @@ export function daysToExpiration(expirationDate: number): number {
     const expiration = new Date(expirationDate);
     const diff = expiration.getTime() - now.getTime();
     return Math.ceil(diff / (1000 * 3600 * 24));
+}
+
+export function buildInvoiceSummaryPropsFromLineItems(lineItems: InvoiceLineItem[]) {
+    let fullCharges = lineItems.filter((item) => item.type === 'full');
+    const partialCharges = lineItems.filter((item) => item.type === 'partial');
+    if (!partialCharges.length && !fullCharges.length) {
+        fullCharges = lineItems;
+    }
+    let hasMore = 0;
+    if (fullCharges.length > 5) {
+        hasMore = fullCharges.length - 5;
+        fullCharges = fullCharges.slice(0, 5);
+    }
+
+    return {
+        fullCharges,
+        partialCharges,
+        hasMore,
+    };
 }

@@ -111,10 +111,10 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if !c.App.Config().FeatureFlags.CloudAnnualRenewals {
-		subscription.WillRenew = ""
-		subscription.CancelAt = nil
-	}
+	// if !c.App.Config().FeatureFlags.CloudAnnualRenewals {
+	// 	subscription.WillRenew = ""
+	// 	subscription.CancelAt = nil
+	// }
 
 	json, err := json.Marshal(subscription)
 	if err != nil {
