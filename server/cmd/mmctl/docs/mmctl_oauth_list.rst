@@ -27,7 +27,9 @@ Options
 
 ::
 
-  -h, --help   help for list
+  -h, --help           help for list
+      --page int       Page number to fetch for the list of OAuth2 apps
+      --per-page int   Number of OAuth2 apps to be fetched (default 200)
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
