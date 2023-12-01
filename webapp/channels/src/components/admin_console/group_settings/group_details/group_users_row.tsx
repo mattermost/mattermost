@@ -17,7 +17,7 @@ type Props = {
 };
 
 export default function GroupUsersRow(props: Props) {
-    const { username, displayName, email, userId, lastPictureUpdate } = props;
+    const {username, displayName, email, userId, lastPictureUpdate} = props;
 
     return (
         <div className='group-users-row'>
@@ -50,5 +50,5 @@ export default function GroupUsersRow(props: Props) {
                 </div>
             </div>
         </div>
-    )
+    );
 }
