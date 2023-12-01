@@ -6,6 +6,11 @@ import {Overlay} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import type {AdminConfig} from '@mattermost/types/config';
+import type {Role} from '@mattermost/types/roles';
+
+import type {ActionFunc} from 'mattermost-redux/types/actions';
+
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import ColorSetting from 'components/admin_console/color_setting';
 import DropdownSetting from 'components/admin_console/dropdown_setting';
@@ -54,9 +59,31 @@ type Props = {
     isCurrentUserSystemAdmin: boolean;
 };
 
-export default class SchemaAdminSettings extends React.PureComponent<Props> {
-    constructor(props: Props) {
+type State = {
+    saveNeeded: false;
+    saving: false;
+    serverError: null;
+    errorTooltip: false;
+    customComponentWrapperClass: string;
+    confirmNeededId: string;
+    showConfirmId: string;
+    clientWarning: string;
+};
+
+export default class SchemaAdminSettings extends React.PureComponent<Props, State> {
+    public constructor(props: Props) {
         super(props);
+        this.state = {
+            saveNeeded: false,
+            saving: false,
+            serverError: null,
+            errorTooltip: false,
+            customComponentWrapperClass: '',
+            confirmNeededId: '',
+            showConfirmId: '',
+            clientWarning: '',
+        };
+
         this.isPlugin = false;
 
         this.saveActions = [];
