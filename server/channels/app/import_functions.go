@@ -15,8 +15,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/mattermost/logr/v2"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -31,7 +29,7 @@ import (
 // These functions import data directly into the database. Security and permission checks are bypassed but validity is
 // still enforced.
 func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dryRun bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("schema_name", *data.Name))
 	}
@@ -121,7 +119,7 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 }
 
 func (a *App) importRole(rctx request.CTX, data *imports.RoleImportData, dryRun bool, isSchemeRole bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("role_name", *data.Name))
 	}
@@ -176,7 +174,7 @@ func (a *App) importRole(rctx request.CTX, data *imports.RoleImportData, dryRun 
 }
 
 func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("team_name", *data.Name))
 	}
@@ -252,7 +250,7 @@ func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun 
 }
 
 func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, dryRun bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("channel_name", *data.Name))
 	}
@@ -332,7 +330,7 @@ func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, d
 }
 
 func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Username != nil {
 		fields = append(fields, mlog.String("user_name", *data.Username))
 	}
@@ -1205,7 +1203,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
 		if reply.CreateAt < post.CreateAt {
-			rctx.Logger().Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int64("reply_create_at", reply.CreateAt), mlog.Int64("parent_create_at", post.CreateAt))
+			rctx.Logger().Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int("reply_create_at", reply.CreateAt), mlog.Int("parent_create_at", post.CreateAt))
 			reply.CreateAt = post.CreateAt
 		}
 		if replyData.Type != nil {
@@ -1274,7 +1272,7 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 		name = data.Data.Name
 		file = zipFile.(io.Reader)
 
-		rctx.Logger().Info("Preparing file upload from ZIP", mlog.String("file_name", name), mlog.Uint64("file_size", data.Data.UncompressedSize64))
+		rctx.Logger().Info("Preparing file upload from ZIP", mlog.String("file_name", name), mlog.Uint("file_size", data.Data.UncompressedSize64))
 	} else {
 		realFile, err := os.Open(*data.Path)
 		if err != nil {
@@ -1284,9 +1282,9 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 		name = realFile.Name()
 		file = realFile
 
-		fields := []logr.Field{mlog.String("file_name", name)}
+		fields := []mlog.Field{mlog.String("file_name", name)}
 		if info, err := realFile.Stat(); err != nil {
-			fields = append(fields, mlog.Int64("file_size", info.Size()))
+			fields = append(fields, mlog.Int("file_size", info.Size()))
 		}
 		rctx.Logger().Info("Preparing file upload from file system", fields...)
 	}
@@ -1928,7 +1926,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 }
 
 func (a *App) importEmoji(rctx request.CTX, data *imports.EmojiImportData, dryRun bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("emoji_name", *data.Name))
 	}

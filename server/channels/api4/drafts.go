@@ -135,7 +135,7 @@ func deleteDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := c.App.DeleteDraft(c.AppContext, userID, channelID, rootID, connectionID); err != nil {
+	if err := c.App.DeleteDraft(c.AppContext, draft, connectionID); err != nil {
 		c.Err = err
 		return
 	}
