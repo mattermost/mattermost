@@ -126,15 +126,15 @@ func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNe
 
 	// Emojis and reaction counts
 	if emojis, reactions, err := a.getEmojisAndReactionsForPost(c, post); err != nil {
-		mlog.Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+		c.Logger().Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Emojis = emojis
 		post.Metadata.Reactions = reactions
 	}
 
 	// Files
-	if fileInfos, _, err := a.getFileMetadataForPost(post, isNewPost || isEditPost); err != nil {
-		mlog.Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+	if fileInfos, _, err := a.getFileMetadataForPost(c, post, isNewPost || isEditPost); err != nil {
+		c.Logger().Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Files = fileInfos
 	}
@@ -142,14 +142,14 @@ func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNe
 	if includePriority && a.IsPostPriorityEnabled() && post.RootId == "" {
 		// Post's Priority if any
 		if priority, err := a.GetPriorityForPost(post.Id); err != nil {
-			mlog.Warn("Failed to get post priority for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+			c.Logger().Warn("Failed to get post priority for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 		} else {
 			post.Metadata.Priority = priority
 		}
 
 		// Post's acknowledgements if any
 		if acknowledgements, err := a.GetAcknowledgementsForPost(post.Id); err != nil {
-			mlog.Warn("Failed to get post acknowledgements for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+			c.Logger().Warn("Failed to get post acknowledgements for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 		} else {
 			post.Metadata.Acknowledgements = acknowledgements
 		}
@@ -196,7 +196,19 @@ func (a *App) sanitizePostMetadataForUserAndChannel(c request.CTX, post *model.P
 	}
 
 	if previewedChannel != nil && !a.HasPermissionToReadChannel(c, userID, previewedChannel) {
-		post.Metadata.Embeds[0].Data = nil
+		// Remove all permalink embeds and only keep non-permalink embeds.
+		// We always have only one permalink embed even if the post
+		// contains multiple permalinks.
+		var newEmbeds []*model.PostEmbed
+		for _, embed := range post.Metadata.Embeds {
+			if embed.Type != model.PostEmbedPermalink {
+				newEmbeds = append(newEmbeds, embed)
+			}
+		}
+
+		post.Metadata.Embeds = newEmbeds
+
+		post.DelProp(model.PostPropsPreviewedPost)
 	}
 
 	return post
@@ -229,6 +241,8 @@ func (a *App) SanitizePostMetadataForUser(c request.CTX, post *model.Post, userI
 		}
 
 		post.Metadata.Embeds = newEmbeds
+
+		post.DelProp(model.PostPropsPreviewedPost)
 	}
 
 	return post, nil
@@ -246,12 +260,12 @@ func (a *App) SanitizePostListMetadataForUser(c request.CTX, postList *model.Pos
 	return clonedPostList, nil
 }
 
-func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*model.FileInfo, int64, *model.AppError) {
+func (a *App) getFileMetadataForPost(rctx request.CTX, post *model.Post, fromMaster bool) ([]*model.FileInfo, int64, *model.AppError) {
 	if len(post.FileIds) == 0 {
 		return nil, 0, nil
 	}
 
-	return a.GetFileInfosForPost(post.Id, fromMaster, false)
+	return a.GetFileInfosForPost(rctx, post.Id, fromMaster, false)
 }
 
 func (a *App) getEmojisAndReactionsForPost(c request.CTX, post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {

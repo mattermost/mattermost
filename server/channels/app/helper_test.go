@@ -59,6 +59,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
+	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
 	configStore.Set(memoryConfig)
@@ -99,7 +100,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		IncludeCacheLayer: includeCacheLayer,
 		ConfigStore:       configStore,
 	}
-	th.Context.SetLogger(testLogger)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })

@@ -97,6 +97,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	memoryConfig.ServiceSettings.EnableLocalMode = model.NewBool(true)
 	*memoryConfig.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
+	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
+	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
@@ -140,13 +142,12 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s.Channels())),
 		Server:            s,
+		Context:           request.EmptyContext(testLogger),
 		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,
-		Context:           request.EmptyContext(testLogger),
 		TestLogger:        testLogger,
 		LogBuffer:         buffer,
 	}
-	th.Context.SetLogger(testLogger)
 
 	if s.Platform().SearchEngine != nil && s.Platform().SearchEngine.BleveEngine != nil && searchEngine != nil {
 		searchEngine.BleveEngine = s.Platform().SearchEngine.BleveEngine

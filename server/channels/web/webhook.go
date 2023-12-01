@@ -55,7 +55,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					fields = append(fields, mlog.NamedErr("encoding_err", err))
 				} else {
-					fields = append(fields, mlog.String("payload", string(payload)))
+					fields = append(fields, mlog.String("payload", payload))
 				}
 
 				mlog.Debug("Incoming webhook received", fields...)

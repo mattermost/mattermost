@@ -76,6 +76,7 @@ const baseProp: Props = {
         addMessageIntoHistory: jest.fn(),
         moveHistoryIndexBack: jest.fn(),
         moveHistoryIndexForward: jest.fn(),
+        submitReaction: jest.fn(),
         addReaction: jest.fn(),
         removeReaction: jest.fn(),
         clearDraftUploads: jest.fn(),
@@ -140,7 +141,7 @@ function advancedCreatePost(props?: Partial<Props>) {
 }
 
 describe('components/advanced_create_post', () => {
-    jest.useFakeTimers('legacy');
+    jest.useFakeTimers({legacyFakeTimers: true});
     let spy: jest.SpyInstance;
 
     beforeEach(() => {
@@ -728,13 +729,13 @@ describe('components/advanced_create_post', () => {
     });
 
     it('onSubmit test for addReaction message', async () => {
-        const addReaction = jest.fn();
+        const submitReaction = jest.fn();
 
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
                     ...baseProp.actions,
-                    addReaction,
+                    submitReaction,
                 },
             }),
         );
@@ -744,17 +745,17 @@ describe('components/advanced_create_post', () => {
         });
 
         await (wrapper.instance() as AdvancedCreatePost).handleSubmit(submitEvent);
-        expect(addReaction).toHaveBeenCalledWith('a', 'smile');
+        expect(submitReaction).toHaveBeenCalledWith('a', '+', 'smile');
     });
 
-    it('onSubmit test for removeReaction message', () => {
-        const removeReaction = jest.fn();
+    it('onSubmit test for removeReaction message', async () => {
+        const submitReaction = jest.fn();
 
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
                     ...baseProp.actions,
-                    removeReaction,
+                    submitReaction,
                 },
             }),
         );
@@ -763,9 +764,8 @@ describe('components/advanced_create_post', () => {
             message: '-:smile:',
         });
 
-        const form = wrapper.find('#create_post');
-        form.simulate('Submit', {preventDefault: jest.fn()});
-        expect(removeReaction).toHaveBeenCalledWith('a', 'smile');
+        await (wrapper.instance() as AdvancedCreatePost).handleSubmit(submitEvent);
+        expect(submitReaction).toHaveBeenCalledWith('a', '-', 'smile');
     });
 
     /*it('check for postError state on handlePostError callback', () => {
@@ -850,7 +850,9 @@ describe('components/advanced_create_post', () => {
             ],
         };
 
-        instance.draftsForChannel[currentChannelProp.id] = uploadsInProgressDraft;
+        const channelId = 'another_channel_id';
+
+        instance.draftsForChannel[channelId] = uploadsInProgressDraft;
 
         wrapper.setProps({draft: uploadsInProgressDraft});
         const fileInfos = [TestHelper.getFileInfoMock({id: 'a'})];
@@ -862,10 +864,9 @@ describe('components/advanced_create_post', () => {
             ],
         };
 
-        instance.handleFileUploadComplete(fileInfos, clientIds, currentChannelProp.id);
+        instance.handleFileUploadComplete(fileInfos, clientIds, channelId);
 
-        jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT);
-        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + currentChannelProp.id, expectedDraft, currentChannelProp.id);
+        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + channelId, expectedDraft, channelId);
     });
 
     it('check for handleUploadError callback', () => {
@@ -945,7 +946,7 @@ describe('components/advanced_create_post', () => {
 
         jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT);
         expect(setDraft).toHaveBeenCalledTimes(1);
-        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + currentChannelProp.id, draftProp, currentChannelProp.id, false);
+        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + currentChannelProp.id, draftProp, currentChannelProp.id);
         expect(instance.handleFileUploadChange).toHaveBeenCalledTimes(1);
     });
 

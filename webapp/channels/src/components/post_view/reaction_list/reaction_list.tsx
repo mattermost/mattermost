@@ -51,7 +51,7 @@ type Props = {
         /**
          * Function to add a reaction to the post
          */
-        addReaction: (postId: string, emojiName: string) => void;
+        toggleReaction: (postId: string, emojiName: string) => void;
     };
 };
 
@@ -91,7 +91,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
     handleEmojiClick = (emoji: Emoji): void => {
         this.setState({showEmojiPicker: false});
         const emojiName = isSystemEmoji(emoji) ? emoji.short_names[0] : emoji.name;
-        this.props.actions.addReaction(this.props.post.id, emojiName);
+        this.props.actions.toggleReaction(this.props.post.id, emojiName);
     };
 
     hideEmojiPicker = (): void => {

@@ -2002,14 +2002,14 @@ func TestPatchUser(t *testing.T) {
 	require.Equal(t, "America/New_York", ruser.Timezone["automaticTimezone"], "automaticTimezone should update properly")
 	require.Empty(t, ruser.Timezone["manualTimezone"], "manualTimezone should update properly")
 
-	appErr := th.App.CheckPasswordAndAllCriteria(ruser, *patch.Password, "")
+	appErr := th.App.CheckPasswordAndAllCriteria(th.Context, user, *patch.Password, "")
 	require.NotNil(t, appErr, "Password should not match")
 
 	currentPassword := user.Password
 	user, appErr = th.App.GetUser(ruser.Id)
 	require.Nil(t, appErr)
 
-	appErr = th.App.CheckPasswordAndAllCriteria(user, currentPassword, "")
+	appErr = th.App.CheckPasswordAndAllCriteria(th.Context, user, currentPassword, "")
 	require.Nil(t, appErr, "Password should still match")
 
 	patch = &model.UserPatch{}
@@ -2419,17 +2419,17 @@ func TestUpdateUserRoles(t *testing.T) {
 	})
 }
 
-func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, event string, test func(*model.WebSocketEvent)) {
+func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, event model.WebsocketEventType, test func(*model.WebSocketEvent)) {
 	for {
 		select {
 		case resp, ok := <-client.EventChannel:
-			require.Truef(t, ok, "channel closed before receiving expected event %s", event)
+			require.Truef(t, ok, "channel closed before receiving expected event %s", string(event))
 			if resp.EventType() == event {
 				test(resp)
 				return
 			}
 		case <-time.After(5 * time.Second):
-			require.Failf(t, "failed to receive expected event %s", event)
+			require.Failf(t, "failed to receive expected event %s", string(event))
 		}
 	}
 }

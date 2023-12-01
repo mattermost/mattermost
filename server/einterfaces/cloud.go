@@ -5,6 +5,7 @@ package einterfaces
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 type CloudInterface interface {
@@ -39,7 +40,7 @@ type CloudInterface interface {
 	ConfirmSelfHostedSignup(req model.SelfHostedConfirmPaymentMethodRequest, requesterEmail string) (*model.SelfHostedSignupConfirmResponse, error)
 	ConfirmSelfHostedExpansion(req model.SelfHostedConfirmPaymentMethodRequest, requesterEmail string) (*model.SelfHostedSignupConfirmResponse, error)
 	ConfirmSelfHostedSignupLicenseApplication() error
-	GetSelfHostedInvoices() ([]*model.Invoice, error)
+	GetSelfHostedInvoices(rctx request.CTX) ([]*model.Invoice, error)
 	GetSelfHostedInvoicePDF(invoiceID string) ([]byte, string, error)
 
 	CreateOrUpdateSubscriptionHistoryEvent(userID string, userCount int) (*model.SubscriptionHistory, error)
@@ -52,4 +53,8 @@ type CloudInterface interface {
 
 	// Used only for when a customer has telemetry disabled. In this scenario, true up review telemetry will be submitted via CWS.
 	SubmitTrueUpReview(userID string, trueUpReviewProfile map[string]any) error
+
+	ApplyIPFilters(userID string, ranges *model.AllowedIPRanges) (*model.AllowedIPRanges, error)
+	GetIPFilters(userID string) (*model.AllowedIPRanges, error)
+	GetInstallation(userID string) (*model.Installation, error)
 }

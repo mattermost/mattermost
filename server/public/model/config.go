@@ -100,17 +100,19 @@ const (
 
 	SitenameMaxLength = 30
 
-	ServiceSettingsDefaultSiteURL          = "http://localhost:8065"
-	ServiceSettingsDefaultTLSCertFile      = ""
-	ServiceSettingsDefaultTLSKeyFile       = ""
-	ServiceSettingsDefaultReadTimeout      = 300
-	ServiceSettingsDefaultWriteTimeout     = 300
-	ServiceSettingsDefaultIdleTimeout      = 60
-	ServiceSettingsDefaultMaxLoginAttempts = 10
-	ServiceSettingsDefaultAllowCorsFrom    = ""
-	ServiceSettingsDefaultListenAndAddress = ":8065"
-	ServiceSettingsDefaultGiphySdkKeyTest  = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
-	ServiceSettingsDefaultDeveloperFlags   = ""
+	ServiceSettingsDefaultSiteURL                = "http://localhost:8065"
+	ServiceSettingsDefaultTLSCertFile            = ""
+	ServiceSettingsDefaultTLSKeyFile             = ""
+	ServiceSettingsDefaultReadTimeout            = 300
+	ServiceSettingsDefaultWriteTimeout           = 300
+	ServiceSettingsDefaultIdleTimeout            = 60
+	ServiceSettingsDefaultMaxLoginAttempts       = 10
+	ServiceSettingsDefaultAllowCorsFrom          = ""
+	ServiceSettingsDefaultListenAndAddress       = ":8065"
+	ServiceSettingsDefaultGiphySdkKeyTest        = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
+	ServiceSettingsDefaultDeveloperFlags         = ""
+	ServiceSettingsDefaultUniqueReactionsPerPost = 50
+	ServiceSettingsMaxUniqueReactionsPerPost     = 500
 
 	TeamSettingsDefaultSiteName              = "Mattermost"
 	TeamSettingsDefaultMaxUsersPerTeam       = 50
@@ -394,6 +396,8 @@ type ServiceSettings struct {
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
+	UniqueEmojiReactionLimitPerPost                   *int    `access:"site_posts"`
+	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
 }
 
 var MattermostGiphySdkKey string
@@ -884,6 +888,18 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.SelfHostedPurchase == nil {
 		s.SelfHostedPurchase = NewBool(true)
 	}
+
+	if s.UniqueEmojiReactionLimitPerPost == nil {
+		s.UniqueEmojiReactionLimitPerPost = NewInt(ServiceSettingsDefaultUniqueReactionsPerPost)
+	}
+
+	if *s.UniqueEmojiReactionLimitPerPost > ServiceSettingsMaxUniqueReactionsPerPost {
+		s.UniqueEmojiReactionLimitPerPost = NewInt(ServiceSettingsMaxUniqueReactionsPerPost)
+	}
+
+	if s.RefreshPostStatsRunTime == nil {
+		s.RefreshPostStatsRunTime = NewString("00:00")
+	}
 }
 
 type ClusterSettings struct {
@@ -1287,7 +1303,7 @@ func NewLogSettings() *LogSettings {
 
 func (s *LogSettings) isValid() *AppError {
 	cfg := make(mlog.LoggerConfiguration)
-	err := json.Unmarshal(s.GetAdvancedLoggingConfig(), &cfg)
+	err := json.Unmarshal(s.AdvancedLoggingJSON, &cfg)
 	if err != nil {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.json", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -2310,6 +2326,7 @@ type LdapSettings struct {
 	LoginButtonBorderColor *string `access:"experimental_features"`
 	LoginButtonTextColor   *string `access:"experimental_features"`
 
+	// Deprecated: Use LogSettings.AdvancedLoggingJSON with the LDAPTrace level instead.
 	Trace *bool `access:"authentication_ldap"` // telemetry: none
 }
 
@@ -3793,7 +3810,7 @@ func (s *SamlSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if *s.IdpDescriptorURL == "" || !IsValidHTTPURL(*s.IdpDescriptorURL) {
+		if *s.IdpDescriptorURL == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
