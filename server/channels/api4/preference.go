@@ -103,10 +103,12 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var preferences model.Preferences
-	preferences = model.ObjectFromJSON(r.Body, preferences, *c.App.Config().ServiceSettings.MaximumPayloadSize).(model.Preferences)
-	if preferences == nil || len(preferences) == 0 || len(preferences) > maxUpdatePreferences {
-		c.SetInvalidParam("preferences")
+	err := model.ObjectFromJSON(r.Body, &preferences, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if err != nil {
+		c.SetInvalidParamWithErr("preferences", err)
 		return
+	} else if len(preferences) == 0 || len(preferences) > maxUpdatePreferences {
+		c.SetInvalidParam("preferences")
 	}
 
 	var sanitizedPreferences model.Preferences
@@ -152,10 +154,12 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var preferences model.Preferences
-	preferences = model.ObjectFromJSON(r.Body, preferences, *c.App.Config().ServiceSettings.MaximumPayloadSize).(model.Preferences)
-	if preferences == nil || len(preferences) == 0 || len(preferences) > maxUpdatePreferences {
-		c.SetInvalidParam("preferences")
+	err := model.ObjectFromJSON(r.Body, &preferences, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if err != nil {
+		c.SetInvalidParamWithErr("preferences", err)
 		return
+	} else if len(preferences) == 0 || len(preferences) > maxUpdatePreferences {
+		c.SetInvalidParam("preferences")
 	}
 
 	if err := c.App.DeletePreferences(c.Params.UserId, preferences); err != nil {
