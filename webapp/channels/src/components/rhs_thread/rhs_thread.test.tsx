@@ -60,6 +60,7 @@ describe('components/RhsThread', () => {
         actions,
         directTeammate,
         currentTeam,
+        fromSuppressed: false,
     };
 
     test('should match snapshot', () => {

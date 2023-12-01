@@ -21,7 +21,7 @@ type Props = {
     channel: Channel | null;
     selected: Post | FakePost;
     previousRhsState?: RhsState;
-    fromSupressed: boolean;
+    fromSuppressed: boolean;
 }
 
 const RhsThread = ({
@@ -30,7 +30,7 @@ const RhsThread = ({
     posts,
     selected,
     previousRhsState,
-    fromSupressed,
+    fromSuppressed,
 }: Props) => {
     const dispatch = useDispatch();
 
@@ -61,7 +61,7 @@ const RhsThread = ({
                 rootPostId={selected.id}
                 useRelativeTimestamp={false}
                 isThreadView={false}
-                fromSupressed={fromSupressed}
+                fromSuppressed={fromSuppressed}
             />
         </div>
     );

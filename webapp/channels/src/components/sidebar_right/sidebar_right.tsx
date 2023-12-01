@@ -69,7 +69,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     sidebarRightWidthHolder: React.RefObject<HTMLDivElement>;
     previous: Partial<Props> | undefined = undefined;
     focusSearchBar?: () => void;
-    fromSupressed: boolean = false;
+    lastOpenState = false;
+    lastSuppressedState = false;
 
     constructor(props: Props) {
         super(props);
@@ -151,11 +152,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             trackEvent('ui', 'ui_rhs_opened');
         }
 
-        if (!prevProps.isOpen && this.props.isOpen && prevProps.isSuppressed) {
-            this.fromSupressed = true;
-        } else {
-            this.fromSupressed = false;
-        }
+        this.lastOpenState = this.props.isOpen;
+        this.lastSuppressedState = this.props.isSuppressed;
 
         const {actions, isChannelFiles, isPinnedPosts, rhsChannel, channel} = this.props;
         if (isPinnedPosts && prevProps.isPinnedPosts === isPinnedPosts && rhsChannel.id !== prevProps.rhsChannel.id) {
@@ -236,13 +234,17 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         let content = null;
 
         if (postRightVisible) {
+            let fromSuppressed = false;
+            if (!this.lastOpenState && this.props.isOpen && this.lastSuppressedState) {
+                fromSuppressed = true;
+            }
             selectedChannelNeeded = true;
             content = (
                 <div className='post-right__container'>
                     <FileUploadOverlay overlayType='right'/>
                     <RhsThread
                         previousRhsState={previousRhsState}
-                        fromSupressed={this.fromSupressed}
+                        fromSuppressed={fromSuppressed}
                     />
                 </div>
             );
