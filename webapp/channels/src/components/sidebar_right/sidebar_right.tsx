@@ -234,17 +234,13 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         let content = null;
 
         if (postRightVisible) {
-            let fromSuppressed = false;
-            if (!this.lastOpenState && this.props.isOpen && this.lastSuppressedState) {
-                fromSuppressed = true;
-            }
             selectedChannelNeeded = true;
             content = (
                 <div className='post-right__container'>
                     <FileUploadOverlay overlayType='right'/>
                     <RhsThread
                         previousRhsState={previousRhsState}
-                        fromSuppressed={fromSuppressed}
+                        fromSuppressed={!this.lastOpenState && this.props.isOpen && this.lastSuppressedState}
                     />
                 </div>
             );
