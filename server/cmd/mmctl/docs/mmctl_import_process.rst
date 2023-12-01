@@ -27,7 +27,8 @@ Options
 
 ::
 
-  -h, --help   help for process
+  -h, --help     help for process
+      --legacy   Set this to indicate that the file path passed exists on the server side.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
