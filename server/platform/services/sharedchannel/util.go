@@ -4,10 +4,12 @@
 package sharedchannel
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // fixMention replaces any mentions in a post for the user with the user's real username.
@@ -98,4 +100,18 @@ func mungEmail(remotename string, maxLen int) string {
 		s = s[:maxLen]
 	}
 	return s
+}
+
+func isConflictError(err error) (string, bool) {
+	var errConflict *store.ErrConflict
+	if errors.As(err, &errConflict) {
+		return strings.ToLower(errConflict.Resource), true
+	}
+
+	var errInput *store.ErrInvalidInput
+	if errors.As(err, &errInput) {
+		_, field, _ := errInput.InvalidInputInfo()
+		return strings.ToLower(field), true
+	}
+	return "", false
 }
