@@ -1403,9 +1403,9 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		query = query.Where(sq.Or{
 			sq.Gt{"Posts.CreateAt": cursor.LastPostCreateAt},
 			sq.And{
-				sq.Eq{"Posts.CreateAt": cursor.LastPostCreateAt}, 
-				sq.Gt{"Posts.Id": cursor.LastPostCreateID}
-			}
+				sq.Eq{"Posts.CreateAt": cursor.LastPostCreateAt},
+				sq.Gt{"Posts.Id": cursor.LastPostCreateID},
+			},
 		})
 	} else {
 		query = query.Where(sq.Or{sq.Gt{"Posts.UpdateAt": cursor.LastPostUpdateAt},
