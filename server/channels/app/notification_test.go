@@ -504,7 +504,7 @@ func TestConnectFakeWebSocket(t *testing.T) {
 	msg := model.NewWebSocketEvent(model.WebsocketEventPosted, teamID, "", "", nil, "")
 	th.App.Publish(msg)
 
-	msg = model.NewWebSocketEvent("test_event_with_data", "", "", userID, nil, "")
+	msg = model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", "", userID, nil, "")
 	msg.Add("key1", "value1")
 	msg.Add("key2", 2)
 	msg.Add("key3", []string{"three", "trois"})
@@ -515,7 +515,7 @@ func TestConnectFakeWebSocket(t *testing.T) {
 	assert.Equal(t, teamID, received.GetBroadcast().TeamId)
 
 	received = <-messages
-	require.Equal(t, "test_event_with_data", received.EventType())
+	require.Equal(t, model.WebsocketEventPostEdited, received.EventType())
 	assert.Equal(t, userID, received.GetBroadcast().UserId)
 	// These type changes are annoying but unavoidable because event data is untyped
 	assert.Equal(t, map[string]any{
@@ -2571,6 +2571,25 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	group2, err = th.App.UpdateGroup(group2)
 	require.Nil(t, err)
 
+	// Create a custom group
+	customGroupId := model.NewId()
+	customGroup, err := th.App.CreateGroup(&model.Group{
+		DisplayName:    customGroupId,
+		Name:           model.NewString("name" + customGroupId),
+		Source:         model.GroupSourceCustom,
+		Description:    "description_" + customGroupId,
+		AllowReference: true,
+		RemoteId:       nil,
+	})
+	assert.Nil(t, err)
+
+	u1 := th.BasicUser
+	_, err = th.App.UpsertGroupMember(customGroup.Id, u1.Id)
+	assert.Nil(t, err)
+
+	customGroup, err = th.App.GetGroup(customGroup.Id, &model.GetGroupOpts{IncludeMemberCount: true}, nil)
+	assert.Nil(t, err)
+
 	// Sync first group to constrained channel
 	constrainedChannel := th.CreateChannel(th.Context, th.BasicTeam)
 	constrainedChannel.GroupConstrained = model.NewBool(true)
@@ -2583,15 +2602,16 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	t.Run("should return only groups synced to channel if channel is group constrained", func(t *testing.T) {
+	t.Run("should return only groups synced to channel and custom groups if channel is group constrained", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
 		require.NoError(t, nErr)
-		require.Len(t, groupsMap, 1)
+		require.Len(t, groupsMap, 2)
 		require.Nil(t, groupsMap[group2.Id])
 		require.Equal(t, groupsMap[group1.Id], group1)
+		require.Equal(t, groupsMap[customGroup.Id], customGroup)
 	})
 
-	// Create a third group not synced with a team or channel
+	// Create a third ldap group not synced with a team or channel
 	group3 := th.CreateGroup()
 	group3.AllowReference = true
 	group3, err = th.App.UpdateGroup(group3)
@@ -2608,22 +2628,24 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	t.Run("should return union of groups synced to team and any channels if team is group constrained", func(t *testing.T) {
+	t.Run("should return union of custom groups, groups synced to team and any channels if team is group constrained", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
 		require.NoError(t, nErr)
-		require.Len(t, groupsMap, 2)
+		require.Len(t, groupsMap, 3)
 		require.Nil(t, groupsMap[group3.Id])
 		require.Equal(t, groupsMap[group2.Id], group2)
 		require.Equal(t, groupsMap[group1.Id], group1)
+		require.Equal(t, groupsMap[customGroup.Id], customGroup)
 	})
 
-	t.Run("should return only subset of groups synced to channel for group constrained channel when team is also group constrained", func(t *testing.T) {
+	t.Run("should return only subset of custom groups and groups synced to channel for group constrained channel when team is also group constrained", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
 		require.NoError(t, nErr)
-		require.Len(t, groupsMap, 1)
+		require.Len(t, groupsMap, 2)
 		require.Nil(t, groupsMap[group3.Id])
 		require.Nil(t, groupsMap[group2.Id])
 		require.Equal(t, groupsMap[group1.Id], group1)
+		require.Equal(t, groupsMap[customGroup.Id], customGroup)
 	})
 
 	team.GroupConstrained = model.NewBool(false)
@@ -2633,10 +2655,11 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	t.Run("should return all groups when team and channel are not group constrained", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
 		require.NoError(t, nErr)
-		require.Len(t, groupsMap, 3)
+		require.Len(t, groupsMap, 4)
 		require.Equal(t, groupsMap[group1.Id], group1)
 		require.Equal(t, groupsMap[group2.Id], group2)
 		require.Equal(t, groupsMap[group3.Id], group3)
+		require.Equal(t, groupsMap[customGroup.Id], customGroup)
 	})
 }
 

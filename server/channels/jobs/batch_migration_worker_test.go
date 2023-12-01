@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -21,7 +20,7 @@ type MockApp struct {
 	clusterInfo []*model.ClusterInfo
 }
 
-func (ma MockApp) GetClusterStatus() []*model.ClusterInfo {
+func (ma MockApp) GetClusterStatus(rctx request.CTX) []*model.ClusterInfo {
 	return ma.clusterInfo
 }
 
@@ -75,8 +74,7 @@ func TestBatchMigrationWorker(t *testing.T) {
 		)
 		th.Server.Jobs.RegisterJobType(migrationKey, worker, nil)
 
-		ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
-		job, appErr := th.Server.Jobs.CreateJob(ctx, migrationKey, nil)
+		job, appErr := th.Server.Jobs.CreateJob(th.Context, migrationKey, nil)
 		require.Nil(t, appErr)
 
 		done := make(chan bool)
@@ -112,8 +110,7 @@ func TestBatchMigrationWorker(t *testing.T) {
 		t.Helper()
 
 		require.Eventuallyf(t, func() bool {
-			ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
-			actualJob, appErr := th.Server.Jobs.GetJob(ctx, job.Id)
+			actualJob, appErr := th.Server.Jobs.GetJob(th.Context, job.Id)
 			require.Nil(t, appErr)
 			require.Equal(t, job.Id, actualJob.Id)
 
@@ -122,8 +119,7 @@ func TestBatchMigrationWorker(t *testing.T) {
 	}
 
 	assertJobReset := func(t *testing.T, th *TestHelper, job *model.Job) {
-		ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
-		actualJob, appErr := th.Server.Jobs.GetJob(ctx, job.Id)
+		actualJob, appErr := th.Server.Jobs.GetJob(th.Context, job.Id)
 		require.Nil(t, appErr)
 		assert.Empty(t, actualJob.Progress)
 		assert.Empty(t, actualJob.Data)

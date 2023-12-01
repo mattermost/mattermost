@@ -42,8 +42,8 @@ type MetricsInterface interface {
 	IncrementMemCacheHitCounterSession()
 	IncrementMemCacheInvalidationCounterSession()
 
-	IncrementWebsocketEvent(eventType string)
-	IncrementWebSocketBroadcast(eventType string)
+	IncrementWebsocketEvent(eventType model.WebsocketEventType)
+	IncrementWebSocketBroadcast(eventType model.WebsocketEventType)
 	IncrementWebSocketBroadcastBufferSize(hub string, amount float64)
 	DecrementWebSocketBroadcastBufferSize(hub string, amount float64)
 	IncrementWebSocketBroadcastUsersRegistered(hub string, amount float64)

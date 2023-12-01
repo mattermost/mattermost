@@ -84,6 +84,10 @@ $toggle-default-font-size: 0.75rem;
         @include toggle-mixin($size: 2.8rem, $font-size: 1rem, $margin: 5rem);
     }
 
+    &.btn-md {
+        @include toggle-mixin($size: 2.2rem, $font-size: 0.8rem, $margin: 3rem);
+    }
+
     &.btn-sm {
         @include toggle-mixin($font-size: 0.55rem, $margin: 0.5rem);
     }
@@ -121,6 +125,10 @@ $toggle-default-font-size: 0.75rem;
 
     &.btn-lg {
         @include toggle-mixin($size: 2.8rem, $font-size: 1rem, $margin: 5rem);
+    }
+
+    &.btn-md {
+        @include toggle-mixin($size: 2.2rem, $font-size: 0.8rem, $margin: 3rem);
     }
 
     &.btn-sm {

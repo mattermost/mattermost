@@ -53,4 +53,8 @@ type CloudInterface interface {
 
 	// Used only for when a customer has telemetry disabled. In this scenario, true up review telemetry will be submitted via CWS.
 	SubmitTrueUpReview(userID string, trueUpReviewProfile map[string]any) error
+
+	ApplyIPFilters(userID string, ranges *model.AllowedIPRanges) (*model.AllowedIPRanges, error)
+	GetIPFilters(userID string) (*model.AllowedIPRanges, error)
+	GetInstallation(userID string) (*model.Installation, error)
 }

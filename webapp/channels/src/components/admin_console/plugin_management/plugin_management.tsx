@@ -25,6 +25,7 @@ import type {BaseProps, BaseState} from '../admin_settings';
 import BooleanSetting from '../boolean_setting';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 const PluginItemState = ({state}: {state: number}) => {
     switch (state) {
@@ -438,7 +439,6 @@ type Props = BaseProps & {
     pluginStatuses: Record<string, PluginStatus>;
     plugins: any;
     appsFeatureFlagEnabled: boolean;
-    streamlinedMarketplaceFlagEnabled: boolean;
     actions: {
         uploadPlugin: (fileData: File, force: boolean) => any;
         removePlugin: (pluginId: string) => any;
@@ -1192,30 +1192,24 @@ class PluginManagement extends AdminSettings<Props, State> {
                                     onChange={this.handleChange}
                                     setByEnv={this.isSetByEnv('PluginSettings.EnableMarketplace')}
                                 />
-                                {!this.props.streamlinedMarketplaceFlagEnabled && (
-                                    <>
-                                        <BooleanSetting
-                                            id='enableRemoteMarketplace'
-                                            label={<FormattedMessage {...messages.enableRemoteMarketplace}/>}
-                                            helpText={<FormattedMessage {...messages.enableRemoteMarketplaceDesc}/>}
-                                            value={this.state.enableRemoteMarketplace}
-                                            disabled={this.props.isDisabled || !this.state.enable || !this.state.enableUploads || !this.state.enableMarketplace}
-                                            onChange={this.handleChange}
-                                            setByEnv={this.isSetByEnv('PluginSettings.EnableRemoteMarketplace')}
-                                        />
-                                        <TextSetting
-                                            id={'marketplaceUrl'}
-                                            label={
-                                                <FormattedMessage {...messages.marketplaceUrl}/>
-                                            }
-                                            helpText={this.getMarketplaceURLHelpText(this.state.marketplaceUrl, this.state.enableUploads)}
-                                            value={this.state.marketplaceUrl}
-                                            disabled={this.props.isDisabled || !this.state.enable || !this.state.enableUploads || !this.state.enableMarketplace || !this.state.enableRemoteMarketplace}
-                                            onChange={this.handleChange}
-                                            setByEnv={this.isSetByEnv('PluginSettings.MarketplaceURL')}
-                                        />
-                                    </>
-                                )}
+                                <BooleanSetting
+                                    id='enableRemoteMarketplace'
+                                    label={<FormattedMessage {...messages.enableRemoteMarketplace}/>}
+                                    helpText={<FormattedMarkdownMessage {...messages.enableRemoteMarketplaceDesc}/>}
+                                    value={this.state.enableRemoteMarketplace}
+                                    disabled={this.props.isDisabled || !this.state.enable || !this.state.enableUploads || !this.state.enableMarketplace}
+                                    onChange={this.handleChange}
+                                    setByEnv={this.isSetByEnv('PluginSettings.EnableRemoteMarketplace')}
+                                />
+                                <TextSetting
+                                    id={'marketplaceUrl'}
+                                    label={<FormattedMessage {...messages.marketplaceUrl}/>}
+                                    helpText={this.getMarketplaceURLHelpText(this.state.marketplaceUrl, this.state.enableUploads)}
+                                    value={this.state.marketplaceUrl}
+                                    disabled={this.props.isDisabled || !this.state.enable || !this.state.enableUploads || !this.state.enableMarketplace || !this.state.enableRemoteMarketplace}
+                                    onChange={this.handleChange}
+                                    setByEnv={this.isSetByEnv('PluginSettings.MarketplaceURL')}
+                                />
                             </>
                         )}
                         {pluginsContainer}

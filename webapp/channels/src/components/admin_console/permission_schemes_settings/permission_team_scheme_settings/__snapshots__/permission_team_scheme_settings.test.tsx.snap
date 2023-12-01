@@ -34,7 +34,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/permissions"
       />
@@ -338,7 +338,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         />
       }
     />
-    <Connect(BlockableLink)
+    <Connect(Component)
       className="cancel-button"
       to="/admin_console/user_management/permissions"
     >
@@ -346,7 +346,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         defaultMessage="Cancel"
         id="admin.permissions.permissionSchemes.cancel"
       />
-    </Connect(BlockableLink)>
+    </Connect(Component)>
     <div
       className="error-message"
     >
@@ -409,7 +409,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/permissions"
       />
@@ -743,7 +743,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         />
       }
     />
-    <Connect(BlockableLink)
+    <Connect(Component)
       className="cancel-button"
       to="/admin_console/user_management/permissions"
     >
@@ -751,7 +751,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         defaultMessage="Cancel"
         id="admin.permissions.permissionSchemes.cancel"
       />
-    </Connect(BlockableLink)>
+    </Connect(Component)>
     <div
       className="error-message"
     >
@@ -814,7 +814,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/permissions"
       />
@@ -1150,7 +1150,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         />
       }
     />
-    <Connect(BlockableLink)
+    <Connect(Component)
       className="cancel-button"
       to="/admin_console/user_management/permissions"
     >
@@ -1158,7 +1158,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         defaultMessage="Cancel"
         id="admin.permissions.permissionSchemes.cancel"
       />
-    </Connect(BlockableLink)>
+    </Connect(Component)>
     <div
       className="error-message"
     >
@@ -1287,7 +1287,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/permissions"
       />
@@ -1623,7 +1623,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         />
       }
     />
-    <Connect(BlockableLink)
+    <Connect(Component)
       className="cancel-button"
       to="/admin_console/user_management/permissions"
     >
@@ -1631,7 +1631,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_team_sc
         defaultMessage="Cancel"
         id="admin.permissions.permissionSchemes.cancel"
       />
-    </Connect(BlockableLink)>
+    </Connect(Component)>
     <div
       className="error-message"
     >

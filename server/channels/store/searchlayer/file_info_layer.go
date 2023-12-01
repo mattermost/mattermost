@@ -83,10 +83,10 @@ func (s SearchFileInfoStore) deleteFileIndexBatch(endTime, limit int64) {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeleteFilesBatch(endTime, limit); err != nil {
-					mlog.Error("Encountered error deleting a batch of files", mlog.Int64("limit", limit), mlog.Int64("end_time", endTime), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					mlog.Error("Encountered error deleting a batch of files", mlog.Int("limit", limit), mlog.Int("end_time", endTime), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
-				mlog.Debug("Removed batch of files from the index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.Int64("end_time", endTime), mlog.Int64("limit", limit))
+				mlog.Debug("Removed batch of files from the index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.Int("end_time", endTime), mlog.Int("limit", limit))
 			})
 		}
 	}

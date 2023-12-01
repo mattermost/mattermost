@@ -214,12 +214,12 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	post.SanitizeProps()
 
-	var pchan chan store.StoreResult
+	var pchan chan store.GenericStoreResult[*model.PostList]
 	if post.RootId != "" {
-		pchan = make(chan store.StoreResult, 1)
+		pchan = make(chan store.GenericStoreResult[*model.PostList], 1)
 		go func() {
 			r, pErr := a.Srv().Store().Post().Get(sqlstore.WithMaster(context.Background()), post.RootId, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
-			pchan <- store.StoreResult{Data: r, NErr: pErr}
+			pchan <- store.GenericStoreResult[*model.PostList]{Data: r, NErr: pErr}
 			close(pchan)
 		}()
 	}
@@ -265,7 +265,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		if result.NErr != nil {
 			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
-		parentPostList = result.Data.(*model.PostList)
+		parentPostList = result.Data
 		if len(parentPostList.Posts) == 0 || !parentPostList.IsChannelId(post.ChannelId) {
 			return nil, model.NewAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusInternalServerError)
 		}
@@ -760,6 +760,17 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 
 	a.invalidateCacheForChannelPosts(rpost.ChannelId)
 
+	userID := c.Session().UserId
+	sanitizedPost, err := a.SanitizePostMetadataForUser(c, rpost, userID)
+	if err != nil {
+		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(err))
+
+		// If we failed to sanitize the post, we still want to remove the metadata.
+		sanitizedPost = rpost.Clone()
+		sanitizedPost.Metadata = nil
+	}
+	rpost = sanitizedPost
+
 	return rpost, nil
 }
 
@@ -785,9 +796,9 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 		return false, err
 	}
 
-	channelMembers, err := a.GetChannelMembersPage(c, post.ChannelId, 0, 10000000)
-	if err != nil {
-		return false, err
+	userIDs, nErr := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(post.ChannelId)
+	if nErr != nil {
+		return false, model.NewAppError("publishWebsocketEventForPermalinkPost", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	permalinkPreviewedChannel, err := a.GetChannel(c, previewedPost.ChannelId)
@@ -799,19 +810,22 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 		return false, err
 	}
 
+	originalEmbeds := post.Metadata.Embeds
+	originalProps := post.GetProps()
 	permalinkPreviewedPost := post.GetPreviewPost()
-	for _, cm := range channelMembers {
+	for _, userID := range userIDs {
 		if permalinkPreviewedPost != nil {
-			post.Metadata.Embeds[0].Data = permalinkPreviewedPost
+			post.Metadata.Embeds = originalEmbeds
+			post.SetProps(originalProps)
 		}
 
-		postForUser := a.sanitizePostMetadataForUserAndChannel(c, post, permalinkPreviewedPost, permalinkPreviewedChannel, cm.UserId)
+		postForUser := a.sanitizePostMetadataForUserAndChannel(c, post, permalinkPreviewedPost, permalinkPreviewedChannel, userID)
 
 		// Using DeepCopy here to avoid a race condition
 		// between publishing the event and setting the "post" data value below.
 		messageCopy := message.DeepCopy()
 		broadcastCopy := messageCopy.GetBroadcast()
-		broadcastCopy.UserId = cm.UserId
+		broadcastCopy.UserId = userID
 		messageCopy.SetBroadcast(broadcastCopy)
 
 		postJSON, jsonErr := postForUser.ToJSON()
@@ -820,6 +834,12 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 		}
 		messageCopy.Add("post", postJSON)
 		a.Publish(messageCopy)
+	}
+
+	// Restore the metadata that may have been removed in the sanitization
+	if permalinkPreviewedPost != nil {
+		post.Metadata.Embeds = originalEmbeds
+		post.SetProps(originalProps)
 	}
 
 	return true, nil
@@ -1260,7 +1280,7 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
 	var member *model.ChannelMember
 	var err *model.AppError
-	if member, err = a.GetChannelMember(c, channelID, userID); err != nil {
+	if member, err = a.Srv().getChannelMemberOnly(c, channelID, userID); err != nil {
 		return nil, err
 	} else if member.LastViewedAt == 0 {
 		return model.NewPostList(), nil
@@ -1440,7 +1460,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelNam
 func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
 	var wg sync.WaitGroup
 
-	pchan := make(chan store.StoreResult, len(paramsList))
+	pchan := make(chan store.GenericStoreResult[*model.PostList], len(paramsList))
 
 	for _, params := range paramsList {
 		// Don't allow users to search for everything.
@@ -1453,7 +1473,7 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 		go func(params *model.SearchParams) {
 			defer wg.Done()
 			postList, err := a.Srv().Store().Post().Search(teamID, userID, params)
-			pchan <- store.StoreResult{Data: postList, NErr: err}
+			pchan <- store.GenericStoreResult[*model.PostList]{Data: postList, NErr: err}
 		}(params)
 	}
 
@@ -1466,8 +1486,7 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 		if result.NErr != nil {
 			return nil, model.NewAppError("searchPostsInTeam", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
-		data := result.Data.(*model.PostList)
-		posts.Extend(data)
+		posts.Extend(result.Data)
 	}
 
 	posts.SortByCreateAt()
@@ -1663,10 +1682,10 @@ func (a *App) SearchPostsForUser(c request.CTX, terms string, userID string, tea
 }
 
 func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
-	pchan := make(chan store.StoreResult, 1)
+	pchan := make(chan store.GenericStoreResult[*model.Post], 1)
 	go func() {
 		post, err := a.Srv().Store().Post().GetSingle(postID, includeDeleted)
-		pchan <- store.StoreResult{Data: post, NErr: err}
+		pchan <- store.GenericStoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()
 
@@ -1687,7 +1706,7 @@ func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, 
 				return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 			}
 		}
-		post := result.Data.(*model.Post)
+		post := result.Data
 
 		if len(post.Filenames) > 0 {
 			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
@@ -1837,9 +1856,9 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 // countMentionsFromPost returns the number of posts in the post's channel that mention the user after and including the
 // given post.
 func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model.Post) (int, int, int, *model.AppError) {
-	channel, err := a.GetChannel(c, post.ChannelId)
-	if err != nil {
-		return 0, 0, 0, err
+	channel, appErr := a.GetChannel(c, post.ChannelId)
+	if appErr != nil {
+		return 0, 0, 0, appErr
 	}
 
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
@@ -1860,15 +1879,15 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		return count, countRoot, urgentCount, nil
 	}
 
-	channelMember, err := a.GetChannelMember(c, channel.Id, user.Id)
+	members, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
 	if err != nil {
-		return 0, 0, 0, err
+		return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	keywords := MentionKeywords{}
 	keywords.AddUser(
 		user,
-		channelMember.NotifyProps,
+		members[user.Id],
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
 		true, // Assume channel mentions are always allowed for simplicity
 	)
@@ -1878,9 +1897,9 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 	// A mapping of thread root IDs to whether or not a post in that thread mentions the user
 	mentionedByThread := make(map[string]bool)
 
-	thread, err := a.GetPostThread(post.Id, model.GetPostsOptions{}, user.Id)
-	if err != nil {
-		return 0, 0, 0, err
+	thread, appErr := a.GetPostThread(post.Id, model.GetPostsOptions{}, user.Id)
+	if appErr != nil {
+		return 0, 0, 0, appErr
 	}
 
 	count := 0
@@ -2034,7 +2053,7 @@ func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.S
 	}
 
 	if !a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannelContent) {
-		if channel.Type == model.ChannelTypeOpen {
+		if channel.Type == model.ChannelTypeOpen && !*a.Config().ComplianceSettings.Enable {
 			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
 				return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})
 			}
@@ -2234,10 +2253,23 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 			return nil, appErr
 		}
 
-		if team.Type == model.TeamOpen {
-			hasPermissionToAccessTeam = a.HasPermissionToTeam(c, userID, team.Id, model.PermissionJoinPublicTeams)
-		} else if team.Type == model.TeamInvite {
-			hasPermissionToAccessTeam = a.HasPermissionToTeam(c, userID, team.Id, model.PermissionJoinPrivateTeams)
+		teamMember, appErr := a.GetTeamMember(c, channel.TeamId, userID)
+		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+			return nil, appErr
+		}
+
+		if appErr == nil {
+			if teamMember.DeleteAt == 0 {
+				hasPermissionToAccessTeam = true
+			}
+		}
+
+		if !hasPermissionToAccessTeam {
+			if team.AllowOpenInvite {
+				hasPermissionToAccessTeam = a.HasPermissionToTeam(c, userID, team.Id, model.PermissionJoinPublicTeams)
+			} else {
+				hasPermissionToAccessTeam = a.HasPermissionToTeam(c, userID, team.Id, model.PermissionJoinPrivateTeams)
+			}
 		}
 	} else {
 		// This happens in case of DMs and GMs.
@@ -2270,12 +2302,16 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 		HasJoinedChannel:   channelMemberErr == nil,
 	}
 	if team != nil {
-		_, teamMemberErr := a.GetTeamMember(c, team.Id, userID)
+		teamMember, teamMemberErr := a.GetTeamMember(c, team.Id, userID)
 
+		teamType := model.TeamInvite
+		if team.AllowOpenInvite {
+			teamType = model.TeamOpen
+		}
 		info.TeamId = team.Id
-		info.TeamType = team.Type
+		info.TeamType = teamType
 		info.TeamDisplayName = team.DisplayName
-		info.HasJoinedTeam = teamMemberErr == nil
+		info.HasJoinedTeam = teamMemberErr == nil && teamMember.DeleteAt == 0
 	}
 	return &info, nil
 }

@@ -1609,7 +1609,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddEventPriorState(user)
 	}
 
-	user, err := c.App.UpdateUserAuth(c.Params.UserId, &userAuth)
+	user, err := c.App.UpdateUserAuth(c.AppContext, c.Params.UserId, &userAuth)
 	if err != nil {
 		c.Err = err
 		return
@@ -2298,7 +2298,7 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audits, err := c.App.GetAuditsPage(c.Params.UserId, c.Params.Page, c.Params.PerPage)
+	audits, err := c.App.GetAuditsPage(c.AppContext, c.Params.UserId, c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return

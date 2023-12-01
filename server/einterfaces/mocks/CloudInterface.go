@@ -15,6 +15,32 @@ type CloudInterface struct {
 	mock.Mock
 }
 
+// ApplyIPFilters provides a mock function with given fields: userID, ranges
+func (_m *CloudInterface) ApplyIPFilters(userID string, ranges *model.AllowedIPRanges) (*model.AllowedIPRanges, error) {
+	ret := _m.Called(userID, ranges)
+
+	var r0 *model.AllowedIPRanges
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, *model.AllowedIPRanges) (*model.AllowedIPRanges, error)); ok {
+		return rf(userID, ranges)
+	}
+	if rf, ok := ret.Get(0).(func(string, *model.AllowedIPRanges) *model.AllowedIPRanges); ok {
+		r0 = rf(userID, ranges)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AllowedIPRanges)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, *model.AllowedIPRanges) error); ok {
+		r1 = rf(userID, ranges)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // BootstrapSelfHostedSignup provides a mock function with given fields: req
 func (_m *CloudInterface) BootstrapSelfHostedSignup(req model.BootstrapSelfHostedSignupRequest) (*model.BootstrapSelfHostedSignupResponse, error) {
 	ret := _m.Called(req)
@@ -336,6 +362,58 @@ func (_m *CloudInterface) GetCloudProducts(userID string, includeLegacyProducts 
 
 	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(userID, includeLegacyProducts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetIPFilters provides a mock function with given fields: userID
+func (_m *CloudInterface) GetIPFilters(userID string) (*model.AllowedIPRanges, error) {
+	ret := _m.Called(userID)
+
+	var r0 *model.AllowedIPRanges
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.AllowedIPRanges, error)); ok {
+		return rf(userID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.AllowedIPRanges); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AllowedIPRanges)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetInstallation provides a mock function with given fields: userID
+func (_m *CloudInterface) GetInstallation(userID string) (*model.Installation, error) {
+	ret := _m.Called(userID)
+
+	var r0 *model.Installation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.Installation, error)); ok {
+		return rf(userID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Installation); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Installation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}

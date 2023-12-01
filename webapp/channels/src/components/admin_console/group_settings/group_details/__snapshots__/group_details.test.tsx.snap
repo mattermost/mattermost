@@ -8,7 +8,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/groups"
       />
@@ -172,7 +172,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/groups"
       />
@@ -335,7 +335,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/groups"
       />
@@ -487,7 +487,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/groups"
       />

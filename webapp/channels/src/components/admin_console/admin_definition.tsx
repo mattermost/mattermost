@@ -80,6 +80,7 @@ import {
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
+import IPFiltering from './ip_filtering';
 import LicenseSettings from './license_settings';
 import {messages as enterpriseEditionLeftPanelMessages} from './license_settings/enterprise_edition/enterprise_edition_left_panel';
 import {messages as licenseSettingsMessages} from './license_settings/license_settings';
@@ -249,6 +250,7 @@ export const it = {
 export const validators = {
     isRequired: (text: MessageDescriptor | string) => (value: string) => new ValidationResult(Boolean(value), text),
     minValue: (min: number, text: MessageDescriptor | string) => (value: number) => new ValidationResult((value >= min), text),
+    maxValue: (max: number, text: MessageDescriptor | string) => (value: number) => new ValidationResult((value <= max), text),
 };
 
 const usesLegacyOauth = (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
@@ -2171,6 +2173,14 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.licensedForSku(LicenseSkus.Professional),
                             )),
                         },
+                        {
+                            type: 'text',
+                            key: 'ServiceSettings.RefreshPostStatsRunTime',
+                            label: defineMessage({id:'admin.team.refreshPostStatsRunTimeTitle', defaultMessage: 'User Statistics Update Time:'}),
+                            help_text: defineMessage({id: 'admin.team.refreshPostStatsRunTimeDescription', defaultMessage: "Set the server time for updating the user post statistics, including each user's total post count and the timestamp of their most recent post. Must be a 24-hour time stamp in the form HH:MM based on the local time of the server."}),
+                            placeholder: defineMessage({id: 'admin.team.refreshPostStatsRunTimeExample', defaultMessage: 'E.g.: "00:00"'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                        },
                     ],
                 },
             },
@@ -2763,6 +2773,32 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.customization.allowSyncedDraftsDesc', defaultMessage: 'When enabled, users message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.'}),
                             help_text_markdown: false,
                         },
+                        {
+                            type: 'number',
+                            key: 'ServiceSettings.UniqueEmojiReactionLimitPerPost',
+                            label: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost', defaultMessage: 'Unique Emoji Reaction Limit:'}),
+                            placeholder: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPostPlaceholder', defaultMessage: 'E.g.: 25'}),
+                            help_text: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPostDesc', defaultMessage: 'The number of unique emoji reactions that can be added to a post. Increasing this limit could lead to poor client performance. Maximum is 500.'}),
+                            help_text_markdown: false,
+                            validate: (value) => {
+                                const maxResult = validators.maxValue(
+                                    500,
+                                    defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost.maxValue', defaultMessage: 'Cannot increase the limit to a value above 500.'}),
+                                )(value);
+                                if (!maxResult.isValid()) {
+                                    return maxResult;
+                                }
+                                const minResult = validators.minValue(
+                                    0,
+                                    defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost.minValue', defaultMessage: 'Cannot decrease the limit below 0.'}),
+                                )(value);
+                                if (!minResult.isValid()) {
+                                    return minResult;
+                                }
+
+                                return new ValidationResult(true, '');
+                            },
+                        },
                     ],
                 },
             },
@@ -2875,6 +2911,19 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTICES)),
                         },
                     ],
+                },
+            },
+            ip_filtering: {
+                url: 'site_config/ip_filtering',
+                title: defineMessage({id: 'admin.sidebar.ip_filtering', defaultMessage: 'IP Filtering'}),
+                isHidden: it.not(it.all(it.configIsTrue('FeatureFlags', 'CloudIPFiltering'), it.licensedForSku('enterprise'))),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.IP_FILTERING)),
+                searchableStrings: [
+                    'admin.sidebar.ip_filtering',
+                ],
+                schema: {
+                    id: 'IPFiltering',
+                    component: IPFiltering,
                 },
             },
         },
@@ -6001,25 +6050,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.experimental.experimentalPrimaryTeam.desc', defaultMessage: 'The primary team of which users on the server are members. When a primary team is set, the options to join other teams or leave the primary team are disabled.'}),
                             help_text_markdown: true,
                             placeholder: defineMessage({id: 'admin.experimental.experimentalPrimaryTeam.example', defaultMessage: 'E.g.: "teamname"'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ExperimentalSettings.UseNewSAMLLibrary',
-                            label: defineMessage({id: 'admin.experimental.experimentalUseNewSAMLLibrary.title', defaultMessage: 'Use Improved SAML Library (Beta):'}),
-                            help_text: defineMessage({id: 'admin.experimental.experimentalUseNewSAMLLibrary.desc', defaultMessage: 'Enable an updated SAML Library, which does not require the XML Security Library (xmlsec1) to be installed. Warning: Not all providers have been tested. If you experience issues, please contact <linkSupport>support</linkSupport>. Changing this setting requires a server restart before taking effect.'}),
-                            help_text_markdown: false,
-                            help_text_values: {
-                                linkSupport: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/support'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            isHidden: true || it.not(it.licensedForFeature('SAML')),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
