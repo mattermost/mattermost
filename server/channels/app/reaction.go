@@ -20,6 +20,30 @@ func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*mod
 		return nil, err
 	}
 
+	// Check whether this is a valid emoji
+	if _, ok := model.GetSystemEmojiId(reaction.EmojiName); !ok {
+		if _, emojiErr := a.GetEmojiByName(c, reaction.EmojiName); emojiErr != nil {
+			return nil, emojiErr
+		}
+	}
+
+	existing, dErr := a.Srv().Store().Reaction().ExistsOnPost(reaction.PostId, reaction.EmojiName)
+	if dErr != nil {
+		return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(dErr)
+	}
+
+	// If it exists already, we don't need to check for the limit
+	if !existing {
+		count, dErr := a.Srv().Store().Reaction().GetUniqueCountForPost(reaction.PostId)
+		if dErr != nil {
+			return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(dErr)
+		}
+
+		if count >= *a.Config().ServiceSettings.UniqueEmojiReactionLimitPerPost {
+			return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.too_many_reactions", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	channel, err := a.GetChannel(c, post.ChannelId)
 	if err != nil {
 		return nil, err
@@ -137,7 +161,7 @@ func (a *App) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *mo
 	return nil
 }
 
-func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *model.Post) {
+func (a *App) sendReactionEvent(event model.WebsocketEventType, reaction *model.Reaction, post *model.Post) {
 	// send out that a reaction has been added/removed
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil, "")
 	reactionJSON, err := json.Marshal(reaction)
