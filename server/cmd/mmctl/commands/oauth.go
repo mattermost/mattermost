@@ -27,11 +27,20 @@ var ListOAuthAppsCmd = &cobra.Command{
 	Long:    "list all OAuth2 apps",
 	Example: "  oauth list",
 	RunE:    withClient(listOAuthAppsCmdF),
+	Args:    cobra.NoArgs,
 }
 
 func listOAuthAppsCmdF(c client.Client, command *cobra.Command, args []string) error {
-	// Fetch all apps with a very large limit so we get them all.
-	apps, _, err := c.GetOAuthApps(command.Context(), 0, 100000000)
+	page, err := command.Flags().GetInt("page")
+	if err != nil {
+		return err
+	}
+	perPage, err := command.Flags().GetInt("per-page")
+	if err != nil {
+		return err
+	}
+
+	apps, _, err := c.GetOAuthApps(context.Background(), page, perPage)
 	if err != nil {
 		return errors.Wrap(err, "Failed to fetch oauth2 apps")
 	}
@@ -63,6 +72,9 @@ func listOAuthAppsCmdF(c client.Client, command *cobra.Command, args []string) e
 }
 
 func init() {
+	ListOAuthAppsCmd.Flags().Int("page", 0, "Page number to fetch for the list of OAuth2 apps")
+	ListOAuthAppsCmd.Flags().Int("per-page", 200, "Number of OAuth2 apps to be fetched")
+
 	OAuthCmd.AddCommand(
 		ListOAuthAppsCmd,
 	)

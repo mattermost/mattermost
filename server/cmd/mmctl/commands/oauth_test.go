@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
@@ -19,7 +20,11 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 	oauthAppName := "oauthAppName"
 	userID := "userID"
 
-	s.Run("Listing all oauth apps", func() {
+	cmd := &cobra.Command{}
+	cmd.Flags().Int("page", 0, "")
+	cmd.Flags().Int("per-page", 200, "")
+
+	s.Run("Listing oauth apps", func() {
 		printer.Clean()
 
 		mockOAuthApp := model.OAuthApp{
@@ -31,7 +36,7 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 
 		s.client.
 			EXPECT().
-			GetOAuthApps(context.Background(), 0, 100000000).
+			GetOAuthApps(context.Background(), 0, 200).
 			Return([]*model.OAuthApp{&mockOAuthApp}, &model.Response{}, nil).
 			Times(1)
 
@@ -41,7 +46,45 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 
-		err := listOAuthAppsCmdF(s.client, &cobra.Command{}, []string{})
+		err := listOAuthAppsCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Require().Equal(&mockOAuthApp, printer.GetLines()[0])
+	})
+
+	s.Run("Listing oauth apps with paging", func() {
+		printer.Clean()
+
+		mockOAuthApp := model.OAuthApp{
+			Id:        oauthAppID,
+			Name:      oauthAppName,
+			CreatorId: userID,
+		}
+		mockUser := model.User{Id: mockOAuthApp.CreatorId, Username: "mockuser"}
+
+		pageCmd := &cobra.Command{}
+		pageCmd.Flags().Int("page", 0, "")
+		pageCmd.Flags().Int("per-page", 200, "")
+
+		page := 1
+		perPage := 2
+		_ = pageCmd.Flags().Set("page", strconv.Itoa(page))
+		_ = pageCmd.Flags().Set("per-page", strconv.Itoa(perPage))
+
+		s.client.
+			EXPECT().
+			GetOAuthApps(context.Background(), 1, 2).
+			Return([]*model.OAuthApp{&mockOAuthApp}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersByIds(context.Background(), []string{mockOAuthApp.CreatorId}).
+			Return([]*model.User{&mockUser}, &model.Response{}, nil).
+			Times(1)
+
+		err := listOAuthAppsCmdF(s.client, pageCmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
@@ -55,11 +98,11 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 
 		s.client.
 			EXPECT().
-			GetOAuthApps(context.Background(), 0, 100000000).
+			GetOAuthApps(context.Background(), 0, 200).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := listOAuthAppsCmdF(s.client, &cobra.Command{}, []string{})
+		err := listOAuthAppsCmdF(s.client, cmd, []string{})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.EqualError(err, "Failed to fetch oauth2 apps: mock error")
@@ -77,7 +120,7 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 
 		s.client.
 			EXPECT().
-			GetOAuthApps(context.Background(), 0, 100000000).
+			GetOAuthApps(context.Background(), 0, 200).
 			Return([]*model.OAuthApp{&mockOAuthApp}, &model.Response{}, nil).
 			Times(1)
 
@@ -87,7 +130,7 @@ func (s *MmctlUnitTestSuite) TestListOAuthAppsCmd() {
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
-		err := listOAuthAppsCmdF(s.client, &cobra.Command{}, []string{})
+		err := listOAuthAppsCmdF(s.client, cmd, []string{})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.EqualError(err, "Failed to fetch users for oauth2 apps: mock error")
