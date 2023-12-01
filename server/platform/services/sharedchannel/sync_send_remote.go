@@ -47,8 +47,10 @@ func newSyncData(task syncTask, rc *model.RemoteCluster, scr *model.SharedChanne
 		scr:           scr,
 		users:         make(map[string]*model.User),
 		profileImages: make(map[string]*model.User),
-		resultNextCursor: model.GetPostsSinceForSyncCursor{LastPostUpdateAt: scr.LastPostUpdateAt, LastPostUpdateID: scr.LastPostUpdateID,
-			LastPostCreateAt: scr.LastPostCreateAt, LastPostCreateID: scr.LastPostCreateID},
+		resultNextCursor: model.GetPostsSinceForSyncCursor{
+			LastPostUpdateAt: scr.LastPostUpdateAt, LastPostUpdateID: scr.LastPostUpdateID,
+			LastPostCreateAt: scr.LastPostCreateAt, LastPostCreateID: scr.LastPostCreateID
+		},
 	}
 }
 
