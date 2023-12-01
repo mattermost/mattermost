@@ -1130,16 +1130,16 @@ func TestObjectFromJSON(t *testing.T) {
 	t.Run("Empty Reader", func(t *testing.T) {
 		newObject := TestObject{}
 		s := ""
-		to2 := ObjectFromJSON(strings.NewReader(s), &newObject, 1000)
-		require.Nil(t, to2)
+		err := ObjectFromJSON(strings.NewReader(s), &newObject, 1000)
+		require.Error(t, err)
 	})
 
 	t.Run("Bad Object", func(t *testing.T) {
 		newObject := TestObject{}
 		ss := []string{"string1", "string2"}
 		b, _ := json.Marshal(ss)
-		to2 := ObjectFromJSON(strings.NewReader(string(b)), &newObject, 1000)
-		require.Nil(t, to2)
+		err := ObjectFromJSON(strings.NewReader(string(b)), &newObject, 1000)
+		require.Error(t, err)
 	})
 
 	t.Run("Large Object", func(t *testing.T) {
@@ -1151,21 +1151,22 @@ func TestObjectFromJSON(t *testing.T) {
 				Age:  500,
 			},
 		)
-		to2 := ObjectFromJSON(strings.NewReader(string(b)), &newObject, 1000)
-		require.Nil(t, to2)
+		err := ObjectFromJSON(strings.NewReader(string(b)), &newObject, 1000)
+		require.Error(t, err)
 	})
 
 	t.Run("Successful Parse", func(t *testing.T) {
 		newObject := TestObject{}
+		testObject := TestObject{
+			Id:   NewId(),
+			Name: NewId(),
+			Age:  50,
+		}
 		b, _ := json.Marshal(
-			TestObject{
-				Id:   NewId(),
-				Name: NewId(),
-				Age:  50,
-			},
+			testObject,
 		)
-		to1 := ObjectFromJSON(strings.NewReader(string(b)), &newObject, 1000).(*TestObject)
-		require.NotNil(t, to1)
-		require.Equal(t, to1.Id, newObject.Id)
+		err := ObjectFromJSON(strings.NewReader(string(b)), &newObject, 1000)
+		require.NoError(t, err)
+		require.Equal(t, testObject.Id, newObject.Id)
 	})
 }
