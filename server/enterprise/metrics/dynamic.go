@@ -4,7 +4,7 @@
 package metrics
 
 import (
-	"github.com/mattermost/logr/v2"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -60,22 +60,22 @@ type LoggerMetricsCollector struct {
 	blockedCounters *DynamicCounter
 }
 
-func (c *LoggerMetricsCollector) QueueSizeGauge(target string) (logr.Gauge, error) {
+func (c *LoggerMetricsCollector) QueueSizeGauge(target string) (mlog.Gauge, error) {
 	return c.queueGauge.GetGauge(target)
 }
 
-func (c *LoggerMetricsCollector) LoggedCounter(target string) (logr.Counter, error) {
+func (c *LoggerMetricsCollector) LoggedCounter(target string) (mlog.Counter, error) {
 	return c.loggedCounters.GetCounter(target)
 }
 
-func (c *LoggerMetricsCollector) ErrorCounter(target string) (logr.Counter, error) {
+func (c *LoggerMetricsCollector) ErrorCounter(target string) (mlog.Counter, error) {
 	return c.errorCounters.GetCounter(target)
 }
 
-func (c *LoggerMetricsCollector) DroppedCounter(target string) (logr.Counter, error) {
+func (c *LoggerMetricsCollector) DroppedCounter(target string) (mlog.Counter, error) {
 	return c.droppedCounters.GetCounter(target)
 }
 
-func (c *LoggerMetricsCollector) BlockedCounter(target string) (logr.Counter, error) {
+func (c *LoggerMetricsCollector) BlockedCounter(target string) (mlog.Counter, error) {
 	return c.blockedCounters.GetCounter(target)
 }
