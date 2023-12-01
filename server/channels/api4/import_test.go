@@ -146,5 +146,4 @@ func TestImportInLocalMode(t *testing.T) {
 	require.NoError(t, err)
 	// Just a sanity check to ensure new posts are actually added in the system.
 	require.Greater(t, cnt2, cnt1)
-
 }

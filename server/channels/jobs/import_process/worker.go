@@ -66,7 +66,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			}
 			defer importFile.Close()
 		} else {
-			importFilePath := filepath.Join(*app.Config().ImportSettings.Directory, importFileName)
+			importFilePath = filepath.Join(*app.Config().ImportSettings.Directory, importFileName)
 			if ok, err := app.FileExists(importFilePath); err != nil {
 				return err
 			} else if !ok {
