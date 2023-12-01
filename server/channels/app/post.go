@@ -758,6 +758,17 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 
 	a.invalidateCacheForChannelPosts(rpost.ChannelId)
 
+	userID := c.Session().UserId
+	sanitizedPost, err := a.SanitizePostMetadataForUser(c, rpost, userID)
+	if err != nil {
+		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(err))
+
+		// If we failed to sanitize the post, we still want to remove the metadata.
+		sanitizedPost = rpost.Clone()
+		sanitizedPost.Metadata = nil
+	}
+	rpost = sanitizedPost
+
 	return rpost, nil
 }
 

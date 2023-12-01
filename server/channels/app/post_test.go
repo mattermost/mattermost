@@ -1295,6 +1295,70 @@ func TestUpdatePost(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, testPost.GetProps(), model.StringInterface{"previewed_post": referencedPost.Id})
 	})
+
+	t.Run("sanitizes post metadata appropriately", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+		})
+
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+		directChannel, err := th.App.createDirectChannel(th.Context, user1.Id, user2.Id)
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		testCases := []struct {
+			Description string
+			Channel     *model.Channel
+			Author      string
+			Length      int
+		}{
+			{
+				Description: "removes metadata from post for members who cannot read channel",
+				Channel:     directChannel,
+				Author:      user1.Id,
+				Length:      0,
+			},
+			{
+				Description: "does not remove metadata from post for members who can read channel",
+				Channel:     th.BasicChannel,
+				Author:      th.BasicUser.Id,
+				Length:      1,
+			},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				referencedPost := &model.Post{
+					ChannelId: testCase.Channel.Id,
+					Message:   "hello world",
+					UserId:    testCase.Author,
+				}
+				_, err = th.App.CreatePost(th.Context, referencedPost, testCase.Channel, false, false)
+				require.Nil(t, err)
+
+				previewPost := &model.Post{
+					ChannelId: th.BasicChannel.Id,
+					UserId:    th.BasicUser.Id,
+				}
+				previewPost, err = th.App.CreatePost(th.Context, previewPost, th.BasicChannel, false, false)
+				require.Nil(t, err)
+
+				permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+				previewPost.Message = permalink
+				previewPost, err = th.App.UpdatePost(th.Context, previewPost, false)
+				require.Nil(t, err)
+
+				require.Len(t, previewPost.Metadata.Embeds, testCase.Length)
+			})
+		}
+	})
 }
 
 func TestSearchPostsForUser(t *testing.T) {
