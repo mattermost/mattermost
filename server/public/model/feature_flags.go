@@ -47,6 +47,8 @@ type FeatureFlags struct {
 	CloudIPFiltering bool
 	ConsumePostHook  bool
 
+	CloudAnnualRenewals bool
+
 	OutgoingOAuthConnections bool
 }
 
@@ -65,6 +67,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.StreamlinedMarketplace = true
 	f.CloudIPFiltering = false
 	f.ConsumePostHook = false
+	f.CloudAnnualRenewals = false
 	f.OutgoingOAuthConnections = false
 }
 
