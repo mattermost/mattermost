@@ -1447,7 +1447,12 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelNam
 		if err != nil {
 			return nil, err
 		}
-		return channel, nil
+		if (channel != nil) {
+			return channel, nil
+		}
+	}
+	if strings.HasPrefix(channelName, "~") || strings.HasPrefix(channelName, "@") {
+		channelName = channelName[1:]
 	}
 
 	channel, err := a.GetChannelByName(c, channelName, teamID, includeDeleted)
@@ -1510,6 +1515,9 @@ func (a *App) convertChannelNamesToChannelIds(c request.CTX, channels []string, 
 
 func (a *App) convertUserNameToUserIds(usernames []string) []string {
 	for idx, username := range usernames {
+		if strings.HasPrefix(username, "@") {
+			username = username[1:]
+		}
 		user, err := a.GetUserByUsername(username)
 		if err != nil {
 			a.Log().Warn("error getting user by username", mlog.String("user_name", username), mlog.Err(err))
