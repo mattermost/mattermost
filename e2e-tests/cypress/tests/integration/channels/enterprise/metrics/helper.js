@@ -7,7 +7,7 @@ export const checkMetrics = (expectedStatusCode) => {
         baseURL.port = config.MetricsSettings.ListenAddress.replace(/^.*:/, '');
         baseURL.pathname = '/metrics';
 
-        Cypress.log({name: 'Metrics License', message: `Checking metrics at ${baseURL.toString()}`});
+        cy.log({name: 'Metrics License', message: `Checking metrics at ${baseURL.toString()}`});
         cy.request({
             headers: {'X-Requested-With': 'XMLHttpRequest'},
             url: baseURL.toString(),
