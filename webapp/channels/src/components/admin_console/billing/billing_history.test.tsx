@@ -32,6 +32,8 @@ const invoiceA = TestHelper.getInvoiceMock({
                 '1 × Cloud Professional (at $10.00 / month)',
             type: 'onpremise',
             metadata: {},
+            period_end: 1642330466000,
+            period_start: 1643540066000,
         },
     ],
 });
@@ -56,6 +58,8 @@ const invoiceB = TestHelper.getInvoiceMock({
                 'Trial period for Cloud Professional',
             type: 'onpremise',
             metadata: {},
+            period_end: 1642330466000,
+            period_start: 1643540066000,
         },
     ],
 });
