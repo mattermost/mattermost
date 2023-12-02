@@ -16,6 +16,7 @@ import SaveChangesPanel from 'components/widgets/modals/components/save_changes_
 import Constants from 'utils/constants';
 import {imageURLForTeam} from 'utils/utils';
 
+import TeamNameSection from './team_name_section';
 import TeamPictureSection from './team_picture_section/team_picture_section';
 
 import type {PropsFromRedux, OwnProps} from '.';
@@ -44,6 +45,9 @@ type State = {
 
 // todo sinan: LearnAboutTeamsLink check https://github.com/mattermost/mattermost/blob/af7bc8a4a90d8c4c17a82dc86bc898d378dec2ff/webapp/channels/src/components/team_general_tab/team_general_tab.tsx#L10
 // todo sinan: think about to put name, description and image section into different files
+// todo sinan: how to manage server errors
+// todo sinan: fix tab changes when there is haveChanges
+// todo sinan: fix saveChanges color
 export class InfoTab extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
@@ -149,6 +153,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
         let valid = true;
 
         const description = this.state.description?.trim();
+
         // todo sinan: this is called even only name changes
         if (description === this.props.team?.description) {
             state.descriptionClientError = {id: 'general_tab.chooseDescription', defaultMessage: 'Please choose a new description for your team'};
@@ -244,8 +249,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
         }
     };
 
-    updateName = (e: ChangeEvent<HTMLInputElement>) => this.setState({name: e.target.value, haveChanges: true});
-
     updateDescription = (e: ChangeEvent<HTMLInputElement>) => this.setState({description: e.target.value, haveChanges: true});
 
     updateTeamIcon = (e: ChangeEvent<HTMLInputElement>) => {
@@ -279,36 +282,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
     render() {
         const team = this.props.team;
         const serverError = this.state.serverError ?? null;
-
-        const nameSectionInput = (
-            <Input
-                id='teamName'
-                className='form-control'
-                type='text'
-                maxLength={Constants.MAX_TEAMNAME_LENGTH}
-                onChange={this.updateName}
-                value={this.state.name}
-                label={this.props.intl.formatMessage({id: 'general_tab.teamName', defaultMessage: 'Team Name'})}
-            />
-        );
-
-        // todo sinan what to do with submit and errors
-        // const nameSection = (
-        //     <SettingItemMax
-        //         submit={this.handleNameSubmit}
-        //         serverError={serverError}
-        //         clientError={clientError}
-        //     />
-        // );
-
-        const nameSection = (
-            <BaseSettingItem
-                title={{id: 'general_tab.teamInfo', defaultMessage: 'Team info'}}
-                description={{id: 'general_tab.teamNameInfo', defaultMessage: 'This name will appear on your sign-in screen and at the top of the left sidebar.'}}
-                content={nameSectionInput}
-                error={this.state.nameClientError}
-            />
-        );
 
         const descriptionSectionInput = (
             <Input
@@ -369,7 +342,12 @@ export class InfoTab extends React.PureComponent<Props, State> {
         const modalSectionContent = (
             <div className='modal-info-tab-content' >
                 <div className='name-description-container' >
-                    {nameSection}
+                    <TeamNameSection
+                        setHaveChanges={(haveChanges) => this.setState({haveChanges})}
+                        name={this.state.name}
+                        clientError={this.state.nameClientError}
+                        handleNameChanges={(name) => this.setState({name})}
+                    />
                     {descriptionSection}
                 </div>
                 {teamIconSection}
