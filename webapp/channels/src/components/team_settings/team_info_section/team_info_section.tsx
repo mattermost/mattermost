@@ -3,11 +3,10 @@
 
 import React from 'react';
 import type {ChangeEvent, ReactNode} from 'react';
-import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
+import {injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
-import SettingPicture from 'components/setting_picture';
 import Input from 'components/widgets/inputs/input/input';
 import type {BaseSettingItemProps} from 'components/widgets/modals/components/base_setting_item';
 import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
@@ -15,7 +14,7 @@ import ModalSection from 'components/widgets/modals/components/modal_section';
 import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
 
 import Constants from 'utils/constants';
-import {imageURLForTeam, localizeMessage} from 'utils/utils';
+import {imageURLForTeam} from 'utils/utils';
 
 import TeamPictureSection from '../team_picture_section/team_picture_section';
 
@@ -31,8 +30,9 @@ type State = {
     name?: Team['display_name'];
     description?: Team['description'];
     serverError: ReactNode;
-    clientError: ReactNode;
+    imageClientError?: BaseSettingItemProps['error'];
     nameClientError?: BaseSettingItemProps['error'];
+    descriptionClientError?: BaseSettingItemProps['error'];
     teamIconFile: File | null;
     loadingIcon: boolean;
     submitActive: boolean;
@@ -57,7 +57,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
             name: team?.display_name,
             description: team?.description,
             serverError: '',
-            clientError: '',
             teamIconFile: null,
             loadingIcon: false,
             submitActive: false,
@@ -120,8 +119,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
             };
 
             valid = false;
-        } else {
-            state.nameClientError = undefined;
         }
 
         this.setState(state);
@@ -143,15 +140,13 @@ export class InfoTab extends React.PureComponent<Props, State> {
     };
 
     handleDescriptionSubmit = async () => {
-        const state = {serverError: '', clientError: ''};
+        const state: Pick<State, 'serverError' | 'descriptionClientError'> = {serverError: '', descriptionClientError: undefined};
         let valid = true;
 
         const description = this.state.description?.trim();
         if (description === this.props.team?.description) {
-            state.clientError = localizeMessage('general_tab.chooseDescription', 'Please choose a new description for your team');
+            state.descriptionClientError = {id: 'general_tab.chooseDescription', defaultMessage: 'Please choose a new description for your team'};
             valid = false;
-        } else {
-            state.clientError = '';
         }
 
         this.setState(state);
@@ -179,7 +174,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
 
         this.setState({
             loadingIcon: true,
-            clientError: '',
+            imageClientError: undefined,
             serverError: '',
         });
 
@@ -204,9 +199,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
             await this.handleNameSubmit();
         }
 
-        if (this.state.description !== this.props.team?.description) {
-            await this.handleDescriptionSubmit();
-        }
+        await this.handleDescriptionSubmit();
 
         if (this.state.haveImageChanges) {
             await this.handleTeamIconSubmit();
@@ -223,6 +216,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
             description: this.props.team?.description,
             teamIconFile: null,
             haveChanges: false,
+            imageClientError: undefined,
             haveImageChanges: false,
         });
     };
@@ -230,7 +224,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
     handleTeamIconRemove = async () => {
         this.setState({
             loadingIcon: true,
-            clientError: '',
+            imageClientError: undefined,
             serverError: '',
             teamIconFile: null,
             haveImageChanges: false,
@@ -261,16 +255,16 @@ export class InfoTab extends React.PureComponent<Props, State> {
 
             if (!ACCEPTED_TEAM_IMAGE_TYPES.includes(file.type)) {
                 this.setState({
-                    clientError: localizeMessage('general_tab.teamIconInvalidFileType', 'Only BMP, JPG or PNG images may be used for team icons'),
+                    imageClientError: {id: 'general_tab.teamIconInvalidFileType', defaultMessage: 'Only BMP, JPG or PNG images may be used for team icons'},
                 });
             } else if (file.size > this.props.maxFileSize) {
                 this.setState({
-                    clientError: localizeMessage('general_tab.teamIconTooLarge', 'Unable to upload team icon. File is too large.'),
+                    imageClientError: {id: 'general_tab.teamIconTooLarge', defaultMessage: 'Unable to upload team icon. File is too large.'},
                 });
             } else {
                 this.setState({
                     teamIconFile: e.target.files[0],
-                    clientError: '',
+                    imageClientError: undefined,
                     submitActive: true,
                     haveImageChanges: true,
                 });
@@ -278,15 +272,13 @@ export class InfoTab extends React.PureComponent<Props, State> {
         } else {
             this.setState({
                 teamIconFile: null,
-                clientError: localizeMessage('general_tab.teamIconError', 'An error occurred while selecting the image.'),
+                imageClientError: {id: 'general_tab.teamIconError', defaultMessage: 'An error occurred while selecting the image.'},
             });
         }
     };
 
     render() {
         const team = this.props.team;
-
-        const clientError = this.state.clientError;
         const serverError = this.state.serverError ?? null;
 
         const nameSectionInput = (
@@ -346,28 +338,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
                 description={{id: 'general_tab.teamDescriptionInfo', defaultMessage: 'Team description provides additional information to help users select the right team. Maximum of 50 characters.'}}
                 content={descriptionSectionInput}
                 className='description-setting-item'
-            />
-        );
-
-        const helpText = (
-            <FormattedMessage
-                id='setting_picture.help.team'
-                defaultMessage='Upload a picture in BMP, JPG, JPEG, or PNG format. \nMaximum file size: 50MB'
-            />
-        );
-        const teamIconSection = (
-            <SettingPicture
-                imageContext='team'
-                title={localizeMessage('general_tab.teamIcon', 'Team Icon')}
-                src={imageURLForTeam(team || {} as Team)}
-                file={this.state.teamIconFile}
-                serverError={this.state.serverError}
-                clientError={this.state.clientError}
-                loadingPicture={this.state.loadingIcon}
-                onFileChange={this.updateTeamIcon}
-                onSubmit={this.handleTeamIconSubmit}
-                onRemove={this.handleTeamIconRemove}
-                helpText={helpText}
+                error={this.state.descriptionClientError}
             />
         );
 
@@ -385,12 +356,13 @@ export class InfoTab extends React.PureComponent<Props, State> {
         );
 
         // todo sinan: fix spacing above 50MB
-        const teamIconSection1 = (
+        const teamIconSection = (
             <BaseSettingItem
                 title={{id: 'setting_picture.title', description: 'Team icon'}}
                 description={teamImageSource ? undefined : {id: 'setting_picture.help.team', defaultMessage: 'Upload a picture in BMP, JPG, JPEG, or PNG format. \nMaximum file size: 50MB'}}
                 content={teamPictureSection}
                 className='picture-setting-item'
+                error={this.state.imageClientError}
             />
         );
 
@@ -401,7 +373,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
                     {nameSection}
                     {descriptionSection}
                 </div>
-                {teamIconSection1}
+                {teamIconSection}
                 {this.state.haveChanges || this.state.haveImageChanges ?
                     <SaveChangesPanel
                         handleCancel={this.handleCancel}
