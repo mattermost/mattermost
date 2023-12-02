@@ -16,7 +16,7 @@ import SaveChangesPanel from 'components/widgets/modals/components/save_changes_
 import Constants from 'utils/constants';
 import {imageURLForTeam} from 'utils/utils';
 
-import TeamPictureSection from '../team_picture_section/team_picture_section';
+import TeamPictureSection from './team_picture_section/team_picture_section';
 
 import type {PropsFromRedux, OwnProps} from '.';
 
@@ -108,6 +108,11 @@ export class InfoTab extends React.PureComponent<Props, State> {
 
         const name = this.state.name?.trim();
 
+        // todo sinan handle case when there is no display name
+        if (name === this.props.team?.display_name) {
+            return;
+        }
+
         if (!name) {
             state.nameClientError = {id: 'general_tab.required', defaultMessage: 'This field is required'};
             valid = false;
@@ -144,6 +149,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
         let valid = true;
 
         const description = this.state.description?.trim();
+        // todo sinan: this is called even only name changes
         if (description === this.props.team?.description) {
             state.descriptionClientError = {id: 'general_tab.chooseDescription', defaultMessage: 'Please choose a new description for your team'};
             valid = false;
@@ -168,7 +174,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
     };
 
     handleTeamIconSubmit = async () => {
-        if (!this.state.teamIconFile || !this.state.submitActive) {
+        if (!this.state.teamIconFile || !this.state.submitActive || !this.state.haveImageChanges) {
             return;
         }
 
@@ -194,16 +200,9 @@ export class InfoTab extends React.PureComponent<Props, State> {
     };
 
     handleSaveChanges = async () => {
-        // todo sinan handle case when there is no display name
-        if (this.state.name !== this.props.team?.display_name) {
-            await this.handleNameSubmit();
-        }
-
+        await this.handleNameSubmit();
         await this.handleDescriptionSubmit();
-
-        if (this.state.haveImageChanges) {
-            await this.handleTeamIconSubmit();
-        }
+        await this.handleTeamIconSubmit();
         this.setState({
             haveChanges: false,
             haveImageChanges: false,
