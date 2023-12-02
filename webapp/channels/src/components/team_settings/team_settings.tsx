@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {Team} from '@mattermost/types/teams';
 
-import AccessTab from './team_access_section';
+import AccessTab from './team_access_tab';
 import InfoTab from './team_info_tab';
 
 // todo sinan: check the behavior for saving 
