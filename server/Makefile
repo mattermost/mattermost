@@ -17,7 +17,7 @@ else
 	export IS_LINUX =
 endif
 
-# Detect M1/M2 Macs and set a flag.
+# Detect Apple Silicon and set a flag.
 ifeq ($(shell uname)/$(shell uname -m),Darwin/arm64)
   ARM_BASED_MAC = true
 endif
@@ -203,7 +203,7 @@ ifneq ("$(wildcard ./docker-compose.override.yaml)","")
 endif
 
 ifeq ($(ARM_BASED_MAC),true)
-  $(info ARM based MAC detected, applying elasticsearch override)
+  $(info Apple Silicon detected, applying elasticsearch override)
   DOCKER_COMPOSE_OVERRIDE := -f docker-compose.makefile.m1.yml $(DOCKER_COMPOSE_OVERRIDE)
 endif
 
