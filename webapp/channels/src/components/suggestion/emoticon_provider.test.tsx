@@ -19,7 +19,7 @@ jest.mock("selectors/emojis", () => ({
 describe("components/EmoticonProvider", () => {
     const resultsCallback = jest.fn();
     const emoticonProvider = new EmoticonProvider();
-    const customEmojis: any = new Map([
+    const customEmojis: Map<string, any> = new Map([
         [
             "thumbsdown-custom",
             { name: "thumbsdown-custom", category: "custom" },
@@ -93,7 +93,7 @@ describe("components/EmoticonProvider", () => {
         const pretext = ":blocklisted";
         const recentEmojis = ["blocklisted-1"];
 
-        const blocklistedEmojis: any = EMOJI_CATEGORY_SUGGESTION_BLOCKLIST.map(
+        const blocklistedEmojis: Array<[string,any]> = EMOJI_CATEGORY_SUGGESTION_BLOCKLIST.map(
             (category, index) => {
                 const name = `blocklisted-${index}`;
                 return [name, { name, category }];
