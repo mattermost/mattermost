@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import type {ChangeEvent} from 'react';
 import {injectIntl, type WrappedComponentProps} from 'react-intl';
 
@@ -38,27 +38,9 @@ const InfoTab = (props: Props) => {
     const [submitActive, setSubmitActive] = useState<boolean>(false);
     const [haveChanges, setHaveChanges] = useState<boolean>(false);
     const [haveImageChanges, setHaveImageChanges] = useState<boolean>(false);
-    const [shouldFetchTeam, setShouldFetchTeam] = useState<boolean>(false);
     const [imageClientError, setImageClientError] = useState<BaseSettingItemProps['error'] | undefined>();
     const [nameClientError, setNameClientError] = useState<BaseSettingItemProps['error'] | undefined>();
     const [descriptionClientError, setDescriptionClientError] = useState<BaseSettingItemProps['error'] | undefined>();
-
-    useEffect(() => {
-        fetchTeam();
-    }, [shouldFetchTeam]);
-
-    const fetchTeam = () => {
-        if (serverError || !props.team) {
-            return;
-        }
-        props.actions.getTeam(props.team.id).then(({error}) => {
-            setShouldFetchTeam(false);
-            setServerError('');
-            if (error) {
-                setServerError(error.message);
-            }
-        });
-    };
 
     const handleNameSubmit = async () => {
         // todo sinan handle case when there is no display name
