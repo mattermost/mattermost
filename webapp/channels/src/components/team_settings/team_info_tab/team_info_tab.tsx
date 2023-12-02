@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ChangeEvent, ReactNode} from 'react';
+import React, {useEffect, useState} from 'react';
+import type {ChangeEvent} from 'react';
 import {injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
@@ -22,302 +22,186 @@ import type {PropsFromRedux, OwnProps} from '.';
 import './team_info_tab.scss';
 
 const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
-
 type Props = PropsFromRedux & OwnProps & WrappedComponentProps;
-
-type State = {
-    name?: Team['display_name'];
-    description?: Team['description'];
-    serverError: ReactNode;
-    imageClientError?: BaseSettingItemProps['error'];
-    nameClientError?: BaseSettingItemProps['error'];
-    descriptionClientError?: BaseSettingItemProps['error'];
-    teamIconFile: File | null;
-    loadingIcon: boolean;
-    submitActive: boolean;
-    isInitialState: boolean;
-    shouldFetchTeam?: boolean;
-    haveChanges: boolean;
-    haveImageChanges: boolean;
-}
 
 // todo sinan: LearnAboutTeamsLink check https://github.com/mattermost/mattermost/blob/af7bc8a4a90d8c4c17a82dc86bc898d378dec2ff/webapp/channels/src/components/team_general_tab/team_general_tab.tsx#L10
 // todo sinan: think about to put name, description and image section into different files
 // todo sinan: how to manage server errors
 // todo sinan: fix tab changes when there is haveChanges
 // todo sinan: fix saveChanges color
-export class InfoTab extends React.PureComponent<Props, State> {
-    constructor(props: Props) {
-        super(props);
-        this.state = this.setupInitialState(props);
-    }
+const InfoTab = (props: Props) => {
+    const [name, setName] = useState<Team['display_name']>(props.team?.display_name ?? '');
+    const [description, setDescription] = useState<Team['description']>(props.team?.description ?? '');
+    const [serverError, setServerError] = useState<string>('');
+    const [teamIconFile, setTeamIconFile] = useState<File | undefined>();
+    const [loadingIcon, setLoadingIcon] = useState<boolean>(false);
+    const [submitActive, setSubmitActive] = useState<boolean>(false);
+    const [haveChanges, setHaveChanges] = useState<boolean>(false);
+    const [haveImageChanges, setHaveImageChanges] = useState<boolean>(false);
+    const [shouldFetchTeam, setShouldFetchTeam] = useState<boolean>(false);
+    const [imageClientError, setImageClientError] = useState<BaseSettingItemProps['error'] | undefined>();
+    const [nameClientError, setNameClientError] = useState<BaseSettingItemProps['error'] | undefined>();
+    const [descriptionClientError, setDescriptionClientError] = useState<BaseSettingItemProps['error'] | undefined>();
 
-    setupInitialState(props: Props) {
-        const team = props.team;
+    useEffect(() => {
+        fetchTeam();
+    }, [shouldFetchTeam]);
 
-        return {
-            name: team?.display_name,
-            description: team?.description,
-            serverError: '',
-            teamIconFile: null,
-            loadingIcon: false,
-            submitActive: false,
-            haveChanges: false,
-            haveImageChanges: false,
-            isInitialState: true,
-        };
-    }
-
-    static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-        const {team} = nextProps;
-        if (!prevState.isInitialState) {
-            return {
-                name: team?.display_name,
-                description: team?.description,
-                isInitialState: false,
-            };
-        }
-        return null;
-    }
-
-    componentDidUpdate(prevProps: Props, prevState: State) {
-        if (!prevState.shouldFetchTeam && this.state.shouldFetchTeam) {
-            this.fetchTeam();
-        }
-    }
-
-    fetchTeam() {
-        if (this.state.serverError) {
+    const fetchTeam = () => {
+        if (serverError || !props.team) {
             return;
         }
-        if (this.props.team) {
-            this.props.actions.getTeam(this.props.team.id).then(({error}) => {
-                const state = {
-                    shouldFetchTeam: false,
-                    serverError: '',
-                };
-                if (error) {
-                    state.serverError = error.message;
-                }
-                this.setState(state);
-            });
-        }
-    }
+        props.actions.getTeam(props.team.id).then(({error}) => {
+            setShouldFetchTeam(false);
+            setServerError('');
+            if (error) {
+                setServerError(error.message);
+            }
+        });
+    };
 
-    handleNameSubmit = async () => {
-        const state: Pick<State, 'serverError' | 'nameClientError'> = {serverError: '', nameClientError: undefined};
-        let valid = true;
-
-        const name = this.state.name?.trim();
-
+    const handleNameSubmit = async () => {
         // todo sinan handle case when there is no display name
-        if (name === this.props.team?.display_name) {
+        if (name?.trim() === props.team?.display_name) {
             return;
         }
 
         if (!name) {
-            state.nameClientError = {id: 'general_tab.required', defaultMessage: 'This field is required'};
-            valid = false;
+            setNameClientError({id: 'general_tab.required', defaultMessage: 'This field is required'});
+            return;
         } else if (name.length < Constants.MIN_TEAMNAME_LENGTH) {
-            state.nameClientError = {
+            setNameClientError({
                 id: 'general_tab.teamNameRestrictions',
                 defaultMessage: 'Team Name must be {min} or more characters up to a maximum of {max}. You can add a longer team description.',
                 values: {min: Constants.MIN_TEAMNAME_LENGTH, max: Constants.MAX_TEAMNAME_LENGTH},
-            };
-
-            valid = false;
-        }
-
-        this.setState(state);
-
-        if (!valid) {
+            });
             return;
         }
-
-        const data = {
-            id: this.props.team?.id,
-            display_name: this.state.name,
-        };
-        const {error} = await this.props.actions.patchTeam(data);
-
+        const data = {id: props.team?.id, display_name: name};
+        const {error} = await props.actions.patchTeam(data);
         if (error) {
-            state.serverError = error.message;
-            this.setState(state);
+            setServerError(error.message);
         }
     };
 
-    handleDescriptionSubmit = async () => {
-        const state: Pick<State, 'serverError' | 'descriptionClientError'> = {serverError: '', descriptionClientError: undefined};
-        let valid = true;
-
-        const description = this.state.description?.trim();
-
+    const handleDescriptionSubmit = async () => {
         // todo sinan: this is called even only name changes
-        if (description === this.props.team?.description) {
-            state.descriptionClientError = {id: 'general_tab.chooseDescription', defaultMessage: 'Please choose a new description for your team'};
-            valid = false;
-        }
-
-        this.setState(state);
-
-        if (!valid) {
+        if (description?.trim() === props.team?.description) {
+            setDescriptionClientError({id: 'general_tab.chooseDescription', defaultMessage: 'Please choose a new description for your team'});
             return;
         }
 
-        const data = {
-            id: this.props.team?.id,
-            description: this.state.description,
-        };
-        const {error} = await this.props.actions.patchTeam(data);
-
+        const data = {id: props.team?.id, description};
+        const {error} = await props.actions.patchTeam(data);
         if (error) {
-            state.serverError = error.message;
-            this.setState(state);
+            setServerError(error.message);
         }
     };
 
-    handleTeamIconSubmit = async () => {
-        if (!this.state.teamIconFile || !this.state.submitActive || !this.state.haveImageChanges) {
+    const handleTeamIconSubmit = async () => {
+        if (!teamIconFile || !submitActive || !haveImageChanges) {
             return;
         }
+        setLoadingIcon(true);
+        setImageClientError(undefined);
+        setServerError('');
 
-        this.setState({
-            loadingIcon: true,
-            imageClientError: undefined,
-            serverError: '',
-        });
-
-        const {error} = await this.props.actions.setTeamIcon(this.props.team?.id || '', this.state.teamIconFile);
-
+        const {error} = await props.actions.setTeamIcon(props.team?.id || '', teamIconFile);
+        setLoadingIcon(false);
         if (error) {
-            this.setState({
-                loadingIcon: false,
-                serverError: error.message,
-            });
+            setServerError(error.message);
         } else {
-            this.setState({
-                loadingIcon: false,
-                submitActive: false,
-            });
+            setSubmitActive(false);
         }
     };
 
-    handleSaveChanges = async () => {
-        await this.handleNameSubmit();
-        await this.handleDescriptionSubmit();
-        await this.handleTeamIconSubmit();
-        this.setState({
-            haveChanges: false,
-            haveImageChanges: false,
-        });
+    const handleSaveChanges = async () => {
+        await handleNameSubmit();
+        await handleDescriptionSubmit();
+        await handleTeamIconSubmit();
+        setHaveChanges(false);
+        setHaveImageChanges(false);
     };
 
-    handleCancel = () => {
-        this.setState({
-            name: this.props.team?.display_name || this.props.team?.name,
-            description: this.props.team?.description,
-            teamIconFile: null,
-            haveChanges: false,
-            imageClientError: undefined,
-            haveImageChanges: false,
-        });
+    const handleCancel = () => {
+        setName(props.team?.display_name ?? props.team?.name ?? '');
+        setDescription(props.team?.description ?? '');
+        setTeamIconFile(undefined);
+        setHaveChanges(false);
+        setHaveImageChanges(false);
+        setImageClientError(undefined);
     };
 
-    handleTeamIconRemove = async () => {
-        this.setState({
-            loadingIcon: true,
-            imageClientError: undefined,
-            serverError: '',
-            teamIconFile: null,
-            haveImageChanges: false,
-        });
+    const handleTeamIconRemove = async () => {
+        setLoadingIcon(true);
+        setImageClientError(undefined);
+        setServerError('');
+        setTeamIconFile(undefined);
+        setHaveImageChanges(false);
 
-        const {error} = await this.props.actions.removeTeamIcon(this.props.team?.id || '');
-
+        const {error} = await props.actions.removeTeamIcon(props.team?.id || '');
+        setLoadingIcon(false);
         if (error) {
-            this.setState({
-                loadingIcon: false,
-                serverError: error.message,
-            });
+            setServerError(error.message);
         } else {
-            this.setState({
-                loadingIcon: false,
-                submitActive: false,
-            });
+            setSubmitActive(false);
         }
     };
 
-    updateTeamIcon = (e: ChangeEvent<HTMLInputElement>) => {
+    const updateTeamIcon = (e: ChangeEvent<HTMLInputElement>) => {
         if (e && e.target && e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
 
             if (!ACCEPTED_TEAM_IMAGE_TYPES.includes(file.type)) {
-                this.setState({
-                    imageClientError: {id: 'general_tab.teamIconInvalidFileType', defaultMessage: 'Only BMP, JPG or PNG images may be used for team icons'},
-                });
-            } else if (file.size > this.props.maxFileSize) {
-                this.setState({
-                    imageClientError: {id: 'general_tab.teamIconTooLarge', defaultMessage: 'Unable to upload team icon. File is too large.'},
-                });
+                setImageClientError({id: 'general_tab.teamIconInvalidFileType', defaultMessage: 'Only BMP, JPG or PNG images may be used for team icons'});
+            } else if (file.size > props.maxFileSize) {
+                setImageClientError({id: 'general_tab.teamIconTooLarge', defaultMessage: 'Unable to upload team icon. File is too large.'});
             } else {
-                this.setState({
-                    teamIconFile: e.target.files[0],
-                    imageClientError: undefined,
-                    submitActive: true,
-                    haveImageChanges: true,
-                });
+                setTeamIconFile(e.target.files[0]);
+                setImageClientError(undefined);
+                setSubmitActive(true);
+                setHaveImageChanges(true);
             }
         } else {
-            this.setState({
-                teamIconFile: null,
-                imageClientError: {id: 'general_tab.teamIconError', defaultMessage: 'An error occurred while selecting the image.'},
-            });
+            setTeamIconFile(undefined);
+            setImageClientError({id: 'general_tab.teamIconError', defaultMessage: 'An error occurred while selecting the image.'});
         }
     };
 
-    render() {
-        const team = this.props.team;
-        const serverError = this.state.serverError ?? null;
-
-        // todo sinan: check mobile view in Figma
-        const modalSectionContent = (
-            <div className='modal-info-tab-content' >
-                <div className='name-description-container' >
-                    <TeamNameSection
-                        setHaveChanges={(haveChanges) => this.setState({haveChanges})}
-                        name={this.state.name}
-                        clientError={this.state.nameClientError}
-                        handleNameChanges={(name) => this.setState({name})}
-                    />
-                    <TeamDescriptionSection
-                        setHaveChanges={(haveChanges) => this.setState({haveChanges})}
-                        description={this.state.description}
-                        clientError={this.state.descriptionClientError}
-                        handleDescriptionChanges={(description) => this.setState({description})}
-                    />
-                </div>
-                <TeamPictureSection
-                    team={team}
-                    file={this.state.teamIconFile}
-                    loadingPicture={this.state.loadingIcon}
-                    onFileChange={this.updateTeamIcon}
-                    onRemove={this.handleTeamIconRemove}
-                    teamName={this.props.team?.display_name ?? this.props.team?.name}
-                    clientError={this.state.imageClientError}
+    // todo sinan: check mobile view in Figma
+    const modalSectionContent = (
+        <div className='modal-info-tab-content' >
+            <div className='name-description-container' >
+                <TeamNameSection
+                    setHaveChanges={(haveChanges) => setHaveChanges(haveChanges)}
+                    name={name}
+                    clientError={nameClientError}
+                    handleNameChanges={(name) => setName(name)}
                 />
-                {this.state.haveChanges || this.state.haveImageChanges ?
-                    <SaveChangesPanel
-                        handleCancel={this.handleCancel}
-                        handleSubmit={this.handleSaveChanges}
-                    /> : undefined}
+                <TeamDescriptionSection
+                    setHaveChanges={(haveChanges) => setHaveChanges(haveChanges)}
+                    description={description}
+                    clientError={descriptionClientError}
+                    handleDescriptionChanges={(description) => setDescription(description)}
+                />
             </div>
-        );
-
-        return (
-            <ModalSection
-                content={modalSectionContent}
+            <TeamPictureSection
+                team={props.team}
+                file={teamIconFile}
+                loadingPicture={loadingIcon}
+                onFileChange={updateTeamIcon}
+                onRemove={handleTeamIconRemove}
+                teamName={props.team?.display_name ?? props.team?.name}
+                clientError={imageClientError}
             />
-        );
-    }
-}
+            {haveChanges || haveImageChanges ?
+                <SaveChangesPanel
+                    handleCancel={handleCancel}
+                    handleSubmit={handleSaveChanges}
+                /> : undefined}
+        </div>
+    );
+
+    return <ModalSection content={modalSectionContent}/>;
+};
 export default injectIntl(InfoTab);
