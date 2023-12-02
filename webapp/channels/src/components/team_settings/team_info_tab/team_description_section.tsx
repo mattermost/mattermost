@@ -13,7 +13,6 @@ import BaseSettingItem, {type BaseSettingItemProps} from 'components/widgets/mod
 import Constants from 'utils/constants';
 
 type Props = {
-    setHaveChanges: (haveChanges: boolean) => void;
     handleDescriptionChanges: (name: string) => void;
     description?: Team['description'];
     clientError: BaseSettingItemProps['error'];
@@ -22,10 +21,7 @@ type Props = {
 const TeamDescriptionSection = (props: Props) => {
     const {formatMessage} = useIntl();
 
-    const updateDescription = (e: ChangeEvent<HTMLInputElement>) => {
-        props.handleDescriptionChanges(e.target.value);
-        props.setHaveChanges(true);
-    };
+    const updateDescription = (e: ChangeEvent<HTMLInputElement>) => props.handleDescriptionChanges(e.target.value);
 
     const descriptionSectionInput = (
         <Input

@@ -36,7 +36,6 @@ const InfoTab = (props: Props) => {
     const [teamIconFile, setTeamIconFile] = useState<File | undefined>();
     const [loadingIcon, setLoadingIcon] = useState<boolean>(false);
     const [submitActive, setSubmitActive] = useState<boolean>(false);
-    const [haveChanges, setHaveChanges] = useState<boolean>(false);
     const [haveImageChanges, setHaveImageChanges] = useState<boolean>(false);
     const [imageClientError, setImageClientError] = useState<BaseSettingItemProps['error'] | undefined>();
     const [nameClientError, setNameClientError] = useState<BaseSettingItemProps['error'] | undefined>();
@@ -59,15 +58,14 @@ const InfoTab = (props: Props) => {
             });
             return;
         }
-        const data = {id: props.team?.id, display_name: name};
-        const {error} = await props.actions.patchTeam(data);
+        const {error} = await props.actions.patchTeam({id: props.team?.id, display_name: name});
         if (error) {
             setServerError(error.message);
         }
     };
 
     const handleDescriptionSubmit = async () => {
-        // todo sinan: this is called even only name changes
+        // todo sinan: this is called even only name or image changes
         if (description?.trim() === props.team?.description) {
             setDescriptionClientError({id: 'general_tab.chooseDescription', defaultMessage: 'Please choose a new description for your team'});
             return;
@@ -87,7 +85,6 @@ const InfoTab = (props: Props) => {
         setLoadingIcon(true);
         setImageClientError(undefined);
         setServerError('');
-
         const {error} = await props.actions.setTeamIcon(props.team?.id || '', teamIconFile);
         setLoadingIcon(false);
         if (error) {
@@ -101,7 +98,6 @@ const InfoTab = (props: Props) => {
         await handleNameSubmit();
         await handleDescriptionSubmit();
         await handleTeamIconSubmit();
-        setHaveChanges(false);
         setHaveImageChanges(false);
     };
 
@@ -109,7 +105,6 @@ const InfoTab = (props: Props) => {
         setName(props.team?.display_name ?? props.team?.name ?? '');
         setDescription(props.team?.description ?? '');
         setTeamIconFile(undefined);
-        setHaveChanges(false);
         setHaveImageChanges(false);
         setImageClientError(undefined);
     };
@@ -155,13 +150,11 @@ const InfoTab = (props: Props) => {
         <div className='modal-info-tab-content' >
             <div className='name-description-container' >
                 <TeamNameSection
-                    setHaveChanges={(haveChanges) => setHaveChanges(haveChanges)}
                     name={name}
                     clientError={nameClientError}
                     handleNameChanges={(name) => setName(name)}
                 />
                 <TeamDescriptionSection
-                    setHaveChanges={(haveChanges) => setHaveChanges(haveChanges)}
                     description={description}
                     clientError={descriptionClientError}
                     handleDescriptionChanges={(description) => setDescription(description)}
@@ -176,7 +169,7 @@ const InfoTab = (props: Props) => {
                 teamName={props.team?.display_name ?? props.team?.name}
                 clientError={imageClientError}
             />
-            {haveChanges || haveImageChanges ?
+            {name !== props.team?.display_name || description !== props.team?.description || haveImageChanges ?
                 <SaveChangesPanel
                     handleCancel={handleCancel}
                     handleSubmit={handleSaveChanges}
