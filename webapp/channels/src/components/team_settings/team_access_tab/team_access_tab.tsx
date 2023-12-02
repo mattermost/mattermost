@@ -7,14 +7,14 @@ import {useIntl} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
+import Input from 'components/widgets/inputs/input/input';
 import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
 import ModalSection from 'components/widgets/modals/components/modal_section';
-
-import {localizeMessage} from 'utils/utils';
 
 import OpenInvite from './open_invite';
 
 import type {PropsFromRedux, OwnProps} from '.';
+import IconButton from '@mattermost/compass-components/components/icon-button';
 
 type Props = PropsFromRedux & OwnProps;
 
@@ -64,6 +64,24 @@ const AccessTab = (props: Props) => {
             </div>
         );
 
+        const inviteSectionInput1 = (
+            <>
+            {/* todo sinan: make same css trick in info tab */}
+                <Input
+                    id='teamInviteId'
+                    className='form-control'
+                    type='text'
+                    value={inviteId}
+                    maxLength={32}
+                />
+                {/* todo sinan: why not visible */}
+                <IconButton
+                    label={formatMessage({id: 'general_tab.regenerate', defaultMessage: 'Regenerate'})}
+                    icon='refresh'
+                />
+            </>
+        );
+
         // inviteSection = (
         //     <SettingItemMax
         //         submit={this.handleInviteIdSubmit}
@@ -77,7 +95,7 @@ const AccessTab = (props: Props) => {
             <BaseSettingItem
                 title={{id: 'general_tab.codeTitle', defaultMessage: 'Invite Code'}}
                 description={{id: 'general_tab.codeLongDesc', defaultMessage: 'The Invite Code is part of the unique team invitation link which is sent to members you’re inviting to this team. Regenerating the code creates a new invitation link and invalidates the previous link.'}}
-                content={inviteSectionInput}
+                content={inviteSectionInput1}
             />
         );
     }
@@ -90,13 +108,12 @@ const AccessTab = (props: Props) => {
             <div className='col-sm-12'>
                 <input
                     id='allowedDomains'
-                    autoFocus={true}
                     className='form-control'
                     type='text'
                     onChange={updateAllowedDomains}
                     value={allowedDomains}
                     placeholder={formatMessage({id: 'general_tab.AllowedDomainsExample', defaultMessage: 'corp.mattermost.com, mattermost.com'})}
-                    aria-label={localizeMessage('general_tab.allowedDomains.ariaLabel', 'Allowed Domains')}
+                    aria-label={formatMessage({id: 'general_tab.allowedDomains.ariaLabel', defaultMessage: 'Allowed Domains'})}
                 />
             </div>
         </div>
