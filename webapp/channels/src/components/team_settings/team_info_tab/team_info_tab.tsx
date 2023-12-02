@@ -3,7 +3,6 @@
 
 import React, {useState} from 'react';
 import type {ChangeEvent} from 'react';
-import {injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
@@ -22,7 +21,7 @@ import type {PropsFromRedux, OwnProps} from '.';
 import './team_info_tab.scss';
 
 const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
-type Props = PropsFromRedux & OwnProps & WrappedComponentProps;
+type Props = PropsFromRedux & OwnProps;
 
 // todo sinan: LearnAboutTeamsLink check https://github.com/mattermost/mattermost/blob/af7bc8a4a90d8c4c17a82dc86bc898d378dec2ff/webapp/channels/src/components/team_general_tab/team_general_tab.tsx#L10
 // todo sinan: think about to put name, description and image section into different files
@@ -179,4 +178,4 @@ const InfoTab = (props: Props) => {
 
     return <ModalSection content={modalSectionContent}/>;
 };
-export default injectIntl(InfoTab);
+export default InfoTab;
