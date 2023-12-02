@@ -15,7 +15,7 @@ import Constants from 'utils/constants';
 
 import TeamDescriptionSection from './team_description_section';
 import TeamNameSection from './team_name_section';
-import TeamPictureSection from './team_picture_section/team_picture_section';
+import TeamPictureSection from './team_picture_section';
 
 import type {PropsFromRedux, OwnProps} from '.';
 
