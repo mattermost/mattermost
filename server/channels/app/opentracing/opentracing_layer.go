@@ -1460,7 +1460,7 @@ func (a *OpenTracingAppLayer) ClearChannelMembersCache(c request.CTX, channelID 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ClearLatestVersionCache() {
+func (a *OpenTracingAppLayer) ClearLatestVersionCache(rctx request.CTX) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClearLatestVersionCache")
 
@@ -1472,7 +1472,7 @@ func (a *OpenTracingAppLayer) ClearLatestVersionCache() {
 	}()
 
 	defer span.Finish()
-	a.app.ClearLatestVersionCache()
+	a.app.ClearLatestVersionCache(rctx)
 }
 
 func (a *OpenTracingAppLayer) ClearSessionCacheForAllUsers() {
@@ -2961,7 +2961,7 @@ func (a *OpenTracingAppLayer) DeleteAllKeysForPlugin(pluginID string) *model.App
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeleteBrandImage() *model.AppError {
+func (a *OpenTracingAppLayer) DeleteBrandImage(rctx request.CTX) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteBrandImage")
 
@@ -2973,7 +2973,7 @@ func (a *OpenTracingAppLayer) DeleteBrandImage() *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DeleteBrandImage()
+	resultVar0 := a.app.DeleteBrandImage(rctx)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -3049,7 +3049,7 @@ func (a *OpenTracingAppLayer) DeleteCommand(commandID string) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeleteDraft(rctx request.CTX, userID string, channelID string, rootID string, connectionID string) (*model.Draft, *model.AppError) {
+func (a *OpenTracingAppLayer) DeleteDraft(rctx request.CTX, draft *model.Draft, connectionID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteDraft")
 
@@ -3061,14 +3061,14 @@ func (a *OpenTracingAppLayer) DeleteDraft(rctx request.CTX, userID string, chann
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.DeleteDraft(rctx, userID, channelID, rootID, connectionID)
+	resultVar0 := a.app.DeleteDraft(rctx, draft, connectionID)
 
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) DeleteEmoji(c request.CTX, emoji *model.Emoji) *model.AppError {
@@ -5123,7 +5123,7 @@ func (a *OpenTracingAppLayer) GetBots(options *model.BotGetOptions) (model.BotLi
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetBrandImage() ([]byte, *model.AppError) {
+func (a *OpenTracingAppLayer) GetBrandImage(rctx request.CTX) ([]byte, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetBrandImage")
 
@@ -5135,7 +5135,7 @@ func (a *OpenTracingAppLayer) GetBrandImage() ([]byte, *model.AppError) {
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetBrandImage()
+	resultVar0, resultVar1 := a.app.GetBrandImage(rctx)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5844,7 +5844,7 @@ func (a *OpenTracingAppLayer) GetClusterPluginStatuses() (model.PluginStatuses, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetClusterStatus() []*model.ClusterInfo {
+func (a *OpenTracingAppLayer) GetClusterStatus(rctx request.CTX) []*model.ClusterInfo {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetClusterStatus")
 
@@ -5856,7 +5856,7 @@ func (a *OpenTracingAppLayer) GetClusterStatus() []*model.ClusterInfo {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GetClusterStatus()
+	resultVar0 := a.app.GetClusterStatus(rctx)
 
 	return resultVar0
 }
@@ -7210,7 +7210,7 @@ func (a *OpenTracingAppLayer) GetLatestTermsOfService() (*model.TermsOfService, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError) {
+func (a *OpenTracingAppLayer) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLatestVersion")
 
@@ -7222,7 +7222,7 @@ func (a *OpenTracingAppLayer) GetLatestVersion(latestVersionUrl string) (*model.
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetLatestVersion(latestVersionUrl)
+	resultVar0, resultVar1 := a.app.GetLatestVersion(rctx, latestVersionUrl)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7254,7 +7254,7 @@ func (a *OpenTracingAppLayer) GetLdapGroup(rctx request.CTX, ldapGroupID string)
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetLogs(c request.CTX, page int, perPage int) ([]string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetLogs(rctx request.CTX, page int, perPage int) ([]string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLogs")
 
@@ -7266,7 +7266,7 @@ func (a *OpenTracingAppLayer) GetLogs(c request.CTX, page int, perPage int) ([]s
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetLogs(c, page, perPage)
+	resultVar0, resultVar1 := a.app.GetLogs(rctx, page, perPage)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7276,7 +7276,7 @@ func (a *OpenTracingAppLayer) GetLogs(c request.CTX, page int, perPage int) ([]s
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetLogsSkipSend(page int, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetLogsSkipSend(rctx request.CTX, page int, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLogsSkipSend")
 
@@ -7288,7 +7288,7 @@ func (a *OpenTracingAppLayer) GetLogsSkipSend(page int, perPage int, logFilter *
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetLogsSkipSend(page, perPage, logFilter)
+	resultVar0, resultVar1 := a.app.GetLogsSkipSend(rctx, page, perPage, logFilter)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13505,7 +13505,7 @@ func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) QueryLogs(c request.CTX, page int, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+func (a *OpenTracingAppLayer) QueryLogs(rctx request.CTX, page int, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.QueryLogs")
 
@@ -13517,7 +13517,7 @@ func (a *OpenTracingAppLayer) QueryLogs(c request.CTX, page int, perPage int, lo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.QueryLogs(c, page, perPage, logFilter)
+	resultVar0, resultVar1 := a.app.QueryLogs(rctx, page, perPage, logFilter)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13549,7 +13549,7 @@ func (a *OpenTracingAppLayer) ReadFile(path string) ([]byte, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) RecycleDatabaseConnection(c request.CTX) {
+func (a *OpenTracingAppLayer) RecycleDatabaseConnection(rctx request.CTX) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RecycleDatabaseConnection")
 
@@ -13561,7 +13561,7 @@ func (a *OpenTracingAppLayer) RecycleDatabaseConnection(c request.CTX) {
 	}()
 
 	defer span.Finish()
-	a.app.RecycleDatabaseConnection(c)
+	a.app.RecycleDatabaseConnection(rctx)
 }
 
 func (a *OpenTracingAppLayer) RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppError) {
@@ -14716,7 +14716,7 @@ func (a *OpenTracingAppLayer) SaveAdminNotifyData(data *model.NotifyAdminData) (
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
+func (a *OpenTracingAppLayer) SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveBrandImage")
 
@@ -14728,7 +14728,7 @@ func (a *OpenTracingAppLayer) SaveBrandImage(imageData *multipart.FileHeader) *m
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SaveBrandImage(imageData)
+	resultVar0 := a.app.SaveBrandImage(rctx, imageData)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -16855,7 +16855,7 @@ func (a *OpenTracingAppLayer) TestElasticsearch(cfg *model.Config) *model.AppErr
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) TestEmail(userID string, cfg *model.Config) *model.AppError {
+func (a *OpenTracingAppLayer) TestEmail(rctx request.CTX, userID string, cfg *model.Config) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestEmail")
 
@@ -16867,7 +16867,7 @@ func (a *OpenTracingAppLayer) TestEmail(userID string, cfg *model.Config) *model
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.TestEmail(userID, cfg)
+	resultVar0 := a.app.TestEmail(rctx, userID, cfg)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -16943,7 +16943,7 @@ func (a *OpenTracingAppLayer) TestLdap(rctx request.CTX) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) TestSiteURL(siteURL string) *model.AppError {
+func (a *OpenTracingAppLayer) TestSiteURL(rctx request.CTX, siteURL string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestSiteURL")
 
@@ -16955,7 +16955,7 @@ func (a *OpenTracingAppLayer) TestSiteURL(siteURL string) *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.TestSiteURL(siteURL)
+	resultVar0 := a.app.TestSiteURL(rctx, siteURL)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

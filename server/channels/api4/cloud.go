@@ -96,18 +96,24 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 			ProductID:       subscription.ProductID,
 			IsFreeTrial:     subscription.IsFreeTrial,
 			TrialEndAt:      subscription.TrialEndAt,
+			EndAt:           subscription.EndAt,
+			CancelAt:        subscription.CancelAt,
+			DelinquentSince: subscription.DelinquentSince,
 			CustomerID:      "",
 			AddOns:          []string{},
 			StartAt:         0,
-			EndAt:           0,
 			CreateAt:        0,
 			Seats:           0,
 			Status:          "",
 			DNS:             "",
 			LastInvoice:     &model.Invoice{},
-			DelinquentSince: subscription.DelinquentSince,
 			BillingType:     "",
 		}
+	}
+
+	if !c.App.Config().FeatureFlags.CloudAnnualRenewals {
+		subscription.WillRenew = ""
+		subscription.CancelAt = nil
 	}
 
 	json, err := json.Marshal(subscription)
