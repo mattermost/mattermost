@@ -7,7 +7,6 @@ import {injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
-import Input from 'components/widgets/inputs/input/input';
 import type {BaseSettingItemProps} from 'components/widgets/modals/components/base_setting_item';
 import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
 import ModalSection from 'components/widgets/modals/components/modal_section';
@@ -16,6 +15,7 @@ import SaveChangesPanel from 'components/widgets/modals/components/save_changes_
 import Constants from 'utils/constants';
 import {imageURLForTeam} from 'utils/utils';
 
+import TeamDescriptionSection from './team_description_section';
 import TeamNameSection from './team_name_section';
 import TeamPictureSection from './team_picture_section/team_picture_section';
 
@@ -191,7 +191,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
 
         const {error} = await this.props.actions.setTeamIcon(this.props.team?.id || '', this.state.teamIconFile);
 
-        if (error) {
+        if (error) {getDerivedStateFromProps
             this.setState({
                 loadingIcon: false,
                 serverError: error.message,
@@ -249,8 +249,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
         }
     };
 
-    updateDescription = (e: ChangeEvent<HTMLInputElement>) => this.setState({description: e.target.value, haveChanges: true});
-
     updateTeamIcon = (e: ChangeEvent<HTMLInputElement>) => {
         if (e && e.target && e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
@@ -282,37 +280,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
     render() {
         const team = this.props.team;
         const serverError = this.state.serverError ?? null;
-
-        const descriptionSectionInput = (
-            <Input
-                id='teamDescription'
-                className='form-control'
-                containerClassName='description-section-input'
-                type='textarea'
-                maxLength={Constants.MAX_TEAMDESCRIPTION_LENGTH}
-                onChange={this.updateDescription}
-                value={this.state.description}
-                label={this.props.intl.formatMessage({id: 'general_tab.teamDescription', defaultMessage: 'Description'})}
-            />
-        );
-
-        // todo sinan: what to do with remaining props
-        // const descriptionSection = (
-        //     <SettingItemMax
-        //         submit={this.handleDescriptionSubmit}
-        //         serverError={serverError}
-        //         clientError={clientError}
-        //     />
-        // );
-
-        const descriptionSection = (
-            <BaseSettingItem
-                description={{id: 'general_tab.teamDescriptionInfo', defaultMessage: 'Team description provides additional information to help users select the right team. Maximum of 50 characters.'}}
-                content={descriptionSectionInput}
-                className='description-setting-item'
-                error={this.state.descriptionClientError}
-            />
-        );
 
         const teamImageSource = imageURLForTeam(team || {} as Team);
 
@@ -348,7 +315,12 @@ export class InfoTab extends React.PureComponent<Props, State> {
                         clientError={this.state.nameClientError}
                         handleNameChanges={(name) => this.setState({name})}
                     />
-                    {descriptionSection}
+                    <TeamDescriptionSection
+                        setHaveChanges={(haveChanges) => this.setState({haveChanges})}
+                        description={this.state.description}
+                        clientError={this.state.descriptionClientError}
+                        handleDescriptionChanges={(description) => this.setState({description})}
+                    />
                 </div>
                 {teamIconSection}
                 {this.state.haveChanges || this.state.haveImageChanges ?
