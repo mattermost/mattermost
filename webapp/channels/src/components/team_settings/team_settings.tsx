@@ -6,7 +6,7 @@ import React from 'react';
 import type {Team} from '@mattermost/types/teams';
 
 import AccessTab from './team_access_section';
-import InfoTab from './team_info_section';
+import InfoTab from './team_info_tab';
 
 // todo sinan: check the behavior for saving 
 // https://mattermost.atlassian.net/wiki/spaces/GLOAB/pages/2281046017/Settings+Revamp#Behavior-for-Saving-Settings

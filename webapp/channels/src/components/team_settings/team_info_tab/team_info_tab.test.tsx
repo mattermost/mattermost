@@ -8,7 +8,7 @@ import type {ChangeEvent, ComponentProps} from 'react';
 import {type MockIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
-import {InfoTab} from './team_info_section';
+import {InfoTab} from './team_info_tab';
 
 describe('components/TeamSettings', () => {
     const getTeam = jest.fn().mockResolvedValue({data: true});

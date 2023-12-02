@@ -20,7 +20,7 @@ import TeamPictureSection from './team_picture_section/team_picture_section';
 
 import type {PropsFromRedux, OwnProps} from '.';
 
-import './team_info_section.scss';
+import './team_info_tab.scss';
 
 const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
 
