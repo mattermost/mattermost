@@ -23,7 +23,6 @@ const TeamNameSection = (props: Props) => {
     const {formatMessage} = useIntl();
 
     const updateName = (e: ChangeEvent<HTMLInputElement>) => {
-        console.log("name: ", e.target.value)
         props.handleNameChanges(e.target.value);
         props.setHaveChanges(true);
     };

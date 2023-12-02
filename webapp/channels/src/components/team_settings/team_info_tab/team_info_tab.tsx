@@ -8,12 +8,10 @@ import {injectIntl, type WrappedComponentProps} from 'react-intl';
 import type {Team} from '@mattermost/types/teams';
 
 import type {BaseSettingItemProps} from 'components/widgets/modals/components/base_setting_item';
-import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
 import ModalSection from 'components/widgets/modals/components/modal_section';
 import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
 
 import Constants from 'utils/constants';
-import {imageURLForTeam} from 'utils/utils';
 
 import TeamDescriptionSection from './team_description_section';
 import TeamNameSection from './team_name_section';
@@ -191,7 +189,7 @@ export class InfoTab extends React.PureComponent<Props, State> {
 
         const {error} = await this.props.actions.setTeamIcon(this.props.team?.id || '', this.state.teamIconFile);
 
-        if (error) {getDerivedStateFromProps
+        if (error) {
             this.setState({
                 loadingIcon: false,
                 serverError: error.message,
@@ -281,30 +279,6 @@ export class InfoTab extends React.PureComponent<Props, State> {
         const team = this.props.team;
         const serverError = this.state.serverError ?? null;
 
-        const teamImageSource = imageURLForTeam(team || {} as Team);
-
-        const teamPictureSection = (
-            <TeamPictureSection
-                src={teamImageSource}
-                file={this.state.teamIconFile}
-                loadingPicture={this.state.loadingIcon}
-                onFileChange={this.updateTeamIcon}
-                onRemove={this.handleTeamIconRemove}
-                teamName={this.props.team?.display_name ?? this.props.team?.name}
-            />
-        );
-
-        // todo sinan: fix spacing above 50MB
-        const teamIconSection = (
-            <BaseSettingItem
-                title={{id: 'setting_picture.title', description: 'Team icon'}}
-                description={teamImageSource ? undefined : {id: 'setting_picture.help.team', defaultMessage: 'Upload a picture in BMP, JPG, JPEG, or PNG format. \nMaximum file size: 50MB'}}
-                content={teamPictureSection}
-                className='picture-setting-item'
-                error={this.state.imageClientError}
-            />
-        );
-
         // todo sinan: check mobile view in Figma
         const modalSectionContent = (
             <div className='modal-info-tab-content' >
@@ -322,7 +296,15 @@ export class InfoTab extends React.PureComponent<Props, State> {
                         handleDescriptionChanges={(description) => this.setState({description})}
                     />
                 </div>
-                {teamIconSection}
+                <TeamPictureSection
+                    team={team}
+                    file={this.state.teamIconFile}
+                    loadingPicture={this.state.loadingIcon}
+                    onFileChange={this.updateTeamIcon}
+                    onRemove={this.handleTeamIconRemove}
+                    teamName={this.props.team?.display_name ?? this.props.team?.name}
+                    clientError={this.state.imageClientError}
+                />
                 {this.state.haveChanges || this.state.haveImageChanges ?
                     <SaveChangesPanel
                         handleCancel={this.handleCancel}

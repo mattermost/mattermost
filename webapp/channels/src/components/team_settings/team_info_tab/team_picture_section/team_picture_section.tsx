@@ -5,21 +5,25 @@ import React, {type ChangeEvent, useRef, useState, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 
 import {TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Team} from '@mattermost/types/teams';
 
 import EditIcon from 'components/widgets/icons/fa_edit_icon';
+import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
+import type {BaseSettingItemProps} from 'components/widgets/modals/components/base_setting_item';
 
 import Constants from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
-
+import {imageURLForTeam} from 'utils/utils';
 import './team_picture_section.scss';
 
 type Props = {
-    src?: string | null;
+    team?: Team;
     file?: File | null;
     teamName?: string;
     loadingPicture?: boolean;
     onFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
     onRemove?: () => void;
+    clientError?: BaseSettingItemProps['error'];
 };
 
 const TeamPictureSection = (props: Props) => {
@@ -27,6 +31,8 @@ const TeamPictureSection = (props: Props) => {
     const [image, setImage] = useState<string>('');
     const [orientationStyles, setOrientationStyles] = useState<{transform: string; transformOrigin: string}>();
     const int = useIntl();
+
+    const teamImageSource = imageURLForTeam(props.team || {} as Team);
 
     useEffect(() => {
         if (props.file) {
@@ -83,11 +89,11 @@ const TeamPictureSection = (props: Props) => {
                 />
             );
         }
-        if (props.src) {
+        if (teamImageSource) {
             return (
                 <img
                     className='team-img-preview'
-                    src={props.src}
+                    src={teamImageSource}
                     onClick={handleInputFile}
                 />
             );
@@ -119,7 +125,7 @@ const TeamPictureSection = (props: Props) => {
     };
 
     const removeImageButton = () => {
-        if (props.file || props.src) {
+        if (props.file || teamImageSource) {
             return (
                 <button
                     onClick={props.onRemove}
@@ -134,7 +140,8 @@ const TeamPictureSection = (props: Props) => {
         return null;
     };
 
-    return (
+    // todo sinan: fix spacing above 50MB
+    const teamPictureSection = (
         <>
             <div className='team-picture-section' >
                 {teamImage()}
@@ -142,6 +149,16 @@ const TeamPictureSection = (props: Props) => {
             </div>
             {removeImageButton()}
         </>
+    );
+
+    return (
+        <BaseSettingItem
+            title={{id: 'setting_picture.title', description: 'Team icon'}}
+            description={teamImageSource ? undefined : {id: 'setting_picture.help.team', defaultMessage: 'Upload a picture in BMP, JPG, JPEG, or PNG format. \nMaximum file size: 50MB'}}
+            content={teamPictureSection}
+            className='picture-setting-item'
+            error={props.clientError}
+        />
     );
 };
 
