@@ -29,7 +29,7 @@ describe('System Console > User Management > Users', () => {
         cy.get('#confirmModal').should('be.visible').within(() => {
             // * Verify the presence of confirmation messages and buttons
             cy.findByText('Revoke all sessions in the system').should('be.visible');
-            cy.findByText('This action revokes all sessions in the system. All users will be logged out from all devices. Are you sure you want to revoke all sessions?').should('be.visible');
+            cy.findByText('This action revokes all sessions in the system. All users will be logged out from all devices, including your session. Are you sure you want to revoke all sessions?').should('be.visible');
             cy.findByText('Cancel').should('be.visible');
             cy.findByText('Revoke All Sessions').should('be.visible');
 
