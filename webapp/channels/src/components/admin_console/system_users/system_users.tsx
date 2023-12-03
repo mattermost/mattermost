@@ -16,8 +16,8 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 import {Constants, UserSearchOptions, SearchUserTeamFilter, UserFilters} from 'utils/constants';
 import {getUserOptionsFromFilter, searchUserOptionsFromFilter} from 'utils/filter_users';
 
-import SystemUsersList from './list';
 import RevokeSessionsButton from './revoke_sessions_button';
+import SystemUsersList from './system_users_list';
 
 const USER_ID_LENGTH = 26;
 const USERS_PER_PAGE = 50;
