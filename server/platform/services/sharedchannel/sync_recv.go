@@ -29,7 +29,7 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 	if scs.server.Log().IsLevelEnabled(mlog.LvlSharedChannelServiceMessagesInbound) {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceMessagesInbound, "inbound message",
 			mlog.String("remote", rc.DisplayName),
-			mlog.String("msg", string(msg.Payload)),
+			mlog.String("msg", msg.Payload),
 		)
 	}
 
@@ -142,7 +142,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *syncMsg, rc *mode
 				mlog.String("user_id", reaction.UserId),
 				mlog.String("post_id", reaction.PostId),
 				mlog.String("emoji", reaction.EmojiName),
-				mlog.Int64("delete_at", reaction.DeleteAt),
+				mlog.Int("delete_at", reaction.DeleteAt),
 				mlog.Err(err),
 			)
 		} else {
@@ -151,7 +151,7 @@ func (scs *Service) processSyncMessage(c request.CTX, syncMsg *syncMsg, rc *mode
 				mlog.String("user_id", reaction.UserId),
 				mlog.String("post_id", reaction.PostId),
 				mlog.String("emoji", reaction.EmojiName),
-				mlog.Int64("delete_at", reaction.DeleteAt),
+				mlog.Int("delete_at", reaction.DeleteAt),
 			)
 
 			if syncResp.ReactionsLastUpdateAt < reaction.UpdateAt {
@@ -248,16 +248,16 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 		user.Email = mungEmail(rc.Name, model.UserEmailMaxLength)
 
 		if userSaved, err = scs.server.GetStore().User().Save(user); err != nil {
-			e, ok := err.(errInvalidInput)
+			field, ok := isConflictError(err)
 			if !ok {
 				break
 			}
-			_, field, value := e.InvalidInputInfo()
 			if field == "email" || field == "username" {
 				// username or email collision; try again with different suffix
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Collision inserting sync user",
 					mlog.String("field", field),
-					mlog.Any("value", value),
+					mlog.String("username", user.Username),
+					mlog.String("email", user.Email),
 					mlog.Int("attempt", i),
 					mlog.Err(err),
 				)
@@ -302,16 +302,16 @@ func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, cha
 		user.Email = mungEmail(rc.Name, model.UserEmailMaxLength)
 
 		if update, err = scs.server.GetStore().User().Update(user, false); err != nil {
-			e, ok := err.(errInvalidInput)
+			field, ok := isConflictError(err)
 			if !ok {
 				break
 			}
-			_, field, value := e.InvalidInputInfo()
 			if field == "email" || field == "username" {
 				// username or email collision; try again with different suffix
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Collision updating sync user",
 					mlog.String("field", field),
-					mlog.Any("value", value),
+					mlog.String("username", user.Username),
+					mlog.String("email", user.Email),
 					mlog.Int("attempt", i),
 					mlog.Err(err),
 				)

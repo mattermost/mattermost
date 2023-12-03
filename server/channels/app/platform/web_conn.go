@@ -477,7 +477,7 @@ func (wc *WebConn) writePump() {
 				logData := []mlog.Field{
 					mlog.String("user_id", wc.UserId),
 					mlog.String("conn_id", wc.GetConnectionID()),
-					mlog.String("type", string(msg.EventType())),
+					mlog.String("type", msg.EventType()),
 					mlog.Int("size", buf.Len()),
 				}
 				if evtOk {
@@ -735,7 +735,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 					"websocket.slow: dropping message",
 					mlog.String("user_id", wc.UserId),
 					mlog.String("conn_id", wc.GetConnectionID()),
-					mlog.String("type", string(msg.EventType())),
+					mlog.String("type", msg.EventType()),
 				)
 				// Reset timer to now.
 				wc.lastLogTimeSlow = time.Now()
