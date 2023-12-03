@@ -84,11 +84,6 @@ type Props = {
         searchProfiles: (term: string, options?: any) => Promise<any> | ActionFunc;
 
         /**
-         * Function to revoke all sessions in the system
-         */
-        revokeSessionsForAllUsers: () => any;
-
-        /**
          * Function to log errors
          */
         logError: (error: {type: string; message: string}) => void;
