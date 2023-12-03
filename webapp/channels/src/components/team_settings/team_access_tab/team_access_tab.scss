@@ -1,0 +1,22 @@
+.access-invite-section {
+    margin-top: 24px;
+    gap: 0;
+
+    #teamInviteContainer {
+        display: flex;
+        align-items: center;
+        margin-top: 24px;
+
+        #regenerateButton {
+            height: 34px;
+        }
+        
+        .Input_container {
+            margin-right: 8px;
+
+            #teamInviteId {
+                background-color: unset;
+            }
+        }
+    }
+}

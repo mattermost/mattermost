@@ -5,6 +5,7 @@ import React, {useState} from 'react';
 import type {ChangeEvent} from 'react';
 import {useIntl} from 'react-intl';
 
+import {RefreshIcon} from '@mattermost/compass-icons/components';
 import type {Team} from '@mattermost/types/teams';
 
 import Input from 'components/widgets/inputs/input/input';
@@ -14,7 +15,8 @@ import ModalSection from 'components/widgets/modals/components/modal_section';
 import OpenInvite from './open_invite';
 
 import type {PropsFromRedux, OwnProps} from '.';
-import IconButton from '@mattermost/compass-components/components/icon-button';
+
+import './team_access_tab.scss';
 
 type Props = PropsFromRedux & OwnProps;
 
@@ -22,7 +24,6 @@ const AccessTab = (props: Props) => {
     const [inviteId, setInviteId] = useState<Team['invite_id']>(props.team?.invite_id ?? '');
     const [allowedDomains, setAllowedDomains] = useState<Team['allowed_domains']>(props.team?.allowed_domains ?? '');
     const [serverError, setServerError] = useState<string>('');
-    const [clientError, setClientError] = useState<string>('');
     const {formatMessage} = useIntl();
 
     const handleAllowedDomainsSubmit = async () => {
@@ -35,38 +36,25 @@ const AccessTab = (props: Props) => {
         }
     };
 
-    const handleInviteIdSubmit = async () => {
-        setClientError('');
-        const {error} = await props.actions.regenerateTeamInviteId(props.team?.id || '');
+    const updateAllowedDomains = (e: ChangeEvent<HTMLInputElement>) => setAllowedDomains(e.target.value);
+
+    const handleRegenerateInviteId = async () => {
+        const {data, error} = await props.actions.regenerateTeamInviteId(props.team?.id || '');
+
+        if (data?.invite_id) {
+            setInviteId(data.invite_id);
+            return;
+        }
+
         if (error) {
             setServerError(error.message);
         }
     };
 
-    const updateAllowedDomains = (e: ChangeEvent<HTMLInputElement>) => setAllowedDomains(e.target.value);
-
     let inviteSection;
     if (props.canInviteTeamMembers) {
         const inviteSectionInput = (
-            <div id='teamInviteSetting'>
-                <label className='col-sm-5 control-label visible-xs-block'/>
-                <div className='col-sm-12'>
-                    <input
-                        id='teamInviteId'
-                        autoFocus={true}
-                        className='form-control'
-                        type='text'
-                        value={inviteId}
-                        maxLength={32}
-                        readOnly={true}
-                    />
-                </div>
-            </div>
-        );
-
-        const inviteSectionInput1 = (
-            <>
-            {/* todo sinan: make same css trick in info tab */}
+            <div id='teamInviteContainer' >
                 <Input
                     id='teamInviteId'
                     className='form-control'
@@ -74,12 +62,15 @@ const AccessTab = (props: Props) => {
                     value={inviteId}
                     maxLength={32}
                 />
-                {/* todo sinan: why not visible */}
-                <IconButton
-                    label={formatMessage({id: 'general_tab.regenerate', defaultMessage: 'Regenerate'})}
-                    icon='refresh'
-                />
-            </>
+                <button
+                    id='regenerateButton'
+                    className='btn btn-tertiary'
+                    onClick={handleRegenerateInviteId}
+                >
+                    <RefreshIcon/>
+                    {formatMessage({id: 'general_tab.regenerate', defaultMessage: 'Regenerate'})}
+                </button>
+            </div>
         );
 
         // inviteSection = (
@@ -93,9 +84,11 @@ const AccessTab = (props: Props) => {
 
         inviteSection = (
             <BaseSettingItem
+                className='access-invite-section'
                 title={{id: 'general_tab.codeTitle', defaultMessage: 'Invite Code'}}
                 description={{id: 'general_tab.codeLongDesc', defaultMessage: 'The Invite Code is part of the unique team invitation link which is sent to members you’re inviting to this team. Regenerating the code creates a new invitation link and invalidates the previous link.'}}
-                content={inviteSectionInput1}
+                content={inviteSectionInput}
+                descriptionAboveContent={true}
             />
         );
     }
@@ -142,12 +135,14 @@ const AccessTab = (props: Props) => {
             content={
                 <div className='user-settings'>
                     {props.team?.group_constrained ? undefined : allowedDomainsSection}
+                    <div className='divider-light'/>
                     <OpenInvite
                         teamId={props.team?.id}
                         isGroupConstrained={props.team?.group_constrained}
                         allowOpenInvite={props.team?.allow_open_invite}
                         patchTeam={props.actions.patchTeam}
                     />
+                    <div className='divider-light'/>
                     {props.team?.group_constrained ? undefined : inviteSection}
                 </div>
             }

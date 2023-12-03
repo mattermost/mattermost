@@ -24,9 +24,10 @@ export type BaseSettingItemProps = {
 type Props = BaseSettingItemProps & {
     content: JSX.Element;
     className?: string;
+    descriptionAboveContent?: boolean;
 }
 
-function BaseSettingItem({title, description, content, className, error}: Props): JSX.Element {
+function BaseSettingItem({title, description, content, className, error, descriptionAboveContent = false}: Props): JSX.Element {
     const {formatMessage} = useIntl();
     const Title = title && (
         <h4 className='mm-modal-generic-section-item__title'>
@@ -52,10 +53,11 @@ function BaseSettingItem({title, description, content, className, error}: Props)
     return (
         <div className={getClassName}>
             {Title}
+            {descriptionAboveContent ? Description : undefined}
             <div className='mm-modal-generic-section-item__content'>
                 {content}
             </div>
-            {Description}
+            {descriptionAboveContent ? undefined : Description}
             {Error}
         </div>
     );
