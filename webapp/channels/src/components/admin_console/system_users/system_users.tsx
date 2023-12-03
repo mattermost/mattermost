@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ChangeEvent} from 'react';
+import React, {type ChangeEvent} from 'react';
 import {FormattedMessage, type IntlShape, injectIntl} from 'react-intl';
 
 import type {ServerError} from '@mattermost/types/errors';
@@ -10,19 +9,15 @@ import type {Team} from '@mattermost/types/teams';
 import type {GetFilteredUsersStatsOpts, UserProfile, UsersStats} from '@mattermost/types/users';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
-import {Permissions} from 'mattermost-redux/constants';
 import type {ActionFunc} from 'mattermost-redux/types/actions';
 
-import {emitUserLoggedOutEvent} from 'actions/global_actions';
-
-import ConfirmModal from 'components/confirm_modal';
-import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {Constants, UserSearchOptions, SearchUserTeamFilter, UserFilters} from 'utils/constants';
 import {getUserOptionsFromFilter, searchUserOptionsFromFilter} from 'utils/filter_users';
 
 import SystemUsersList from './list';
+import RevokeSessionsButton from './revoke_sessions_button';
 
 const USER_ID_LENGTH = 26;
 const USERS_PER_PAGE = 50;
@@ -60,7 +55,6 @@ type Props = {
     teamId: string;
     filter: string;
     users: Record<string, UserProfile>;
-    isDisabled?: boolean;
 
     actions: {
 
@@ -108,7 +102,6 @@ type Props = {
 type State = {
     loading: boolean;
     searching: boolean;
-    showRevokeAllSessionsModal: boolean;
     term?: string;
 };
 
@@ -119,7 +112,6 @@ export class SystemUsers extends React.PureComponent<Props, State> {
         this.state = {
             loading: true,
             searching: false,
-            showRevokeAllSessionsModal: false,
         };
     }
 
@@ -179,23 +171,6 @@ export class SystemUsers extends React.PureComponent<Props, State> {
 
     handleTermChange = (term: string) => {
         this.props.actions.setSystemUsersSearch(term, this.props.teamId, this.props.filter);
-    };
-
-    handleShowRevokeAllSessionsModal = () => {
-        this.setState({showRevokeAllSessionsModal: true});
-    };
-
-    handleRevokeAllSessions = async () => {
-        const {data} = await this.props.actions.revokeSessionsForAllUsers();
-        if (data) {
-            emitUserLoggedOutEvent();
-        } else {
-            this.props.actions.logError({type: 'critical', message: 'Can\'t revoke all sessions'});
-        }
-    };
-
-    handleRevokeAllSessionsCancel = () => {
-        this.setState({showRevokeAllSessionsModal: false});
     };
 
     nextPage = async (page: number) => {
@@ -340,46 +315,7 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                             siteName: this.props.siteName,
                         }}
                     />
-                    <SystemPermissionGate permissions={[Permissions.REVOKE_USER_ACCESS_TOKEN]}>
-                        <>
-                            <button
-                                id='revoke-all-users'
-                                type='button'
-                                className='btn btn-tertiary btn-danger'
-                                onClick={this.handleShowRevokeAllSessionsModal}
-                                disabled={this.props.isDisabled}
-                            >
-                                <FormattedMessage
-                                    id='admin.system_users.revokeAllSessions'
-                                    defaultMessage='Revoke All Sessions'
-                                />
-                            </button>
-                            <ConfirmModal
-                                show={this.state.showRevokeAllSessionsModal}
-                                title={
-                                    <FormattedMessage
-                                        id='admin.system_users.revoke_all_sessions_modal_title'
-                                        defaultMessage='Revoke all sessions in the system'
-                                    />
-                                }
-                                message={
-                                    <FormattedMessage
-                                        id='admin.system_users.revoke_all_sessions_modal_message'
-                                        defaultMessage='This action revokes all sessions in the system. All users will be logged out from all devices. Are you sure you want to revoke all sessions?'
-                                    />
-                                }
-                                confirmButtonClass='btn btn-danger'
-                                confirmButtonText={
-                                    <FormattedMessage
-                                        id='admin.system_users.revoke_all_sessions_button'
-                                        defaultMessage='Revoke All Sessions'
-                                    />
-                                }
-                                onConfirm={this.handleRevokeAllSessions}
-                                onCancel={this.handleRevokeAllSessionsCancel}
-                            />
-                        </>
-                    </SystemPermissionGate>
+                    <RevokeSessionsButton/>
                 </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
@@ -399,7 +335,6 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                                 mfaEnabled={this.props.mfaEnabled}
                                 enableUserAccessTokens={this.props.enableUserAccessTokens}
                                 experimentalEnableAuthenticationTransfer={this.props.experimentalEnableAuthenticationTransfer}
-                                isDisabled={this.props.isDisabled}
                             />
                         </div>
                     </div>
