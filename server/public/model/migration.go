@@ -45,4 +45,5 @@ const (
 	MigrationKeyS3Path                                 = "s3_path_migration"
 	MigrationKeyDeleteEmptyDrafts                      = "delete_empty_drafts_migration"
 	MigrationKeyAddIPFilteringPermissions              = "add_ip_filtering_permissions"
+	MigrationKeyAddChannelBookmarksPermissions         = "add_channel_bookmarks_permissions"
 )
