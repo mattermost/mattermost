@@ -33,7 +33,7 @@ type Props = {
         doManageTeams: (user: UserProfile) => void;
         doManageRoles: (user: UserProfile) => void;
         doManageTokens: (user: UserProfile) => void;
-        isDisabled: boolean | undefined;
+        isDisabled?: boolean;
     };
     actionUserProps?: {
         [userId: string]: {

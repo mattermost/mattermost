@@ -42,7 +42,6 @@ export type Props = {
     config: DeepPartial<AdminConfig>;
     bots: Record<string, Bot>;
     isLicensed: boolean;
-    isDisabled: boolean;
     actions: {
         updateUserActive: (id: string, active: boolean) => Promise<{error: ServerError}>;
         revokeAllSessionsForUser: (id: string) => Promise<{error: ServerError; data: any}>;
@@ -575,13 +574,8 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
     render() {
         const {currentUser, user, isLicensed, config} = this.props;
 
-        let isDisabled = this.props.isDisabled;
-        if (!isDisabled) {
-            // if not already disabled,
-            // disable if SystemAdmin being edited by non SystemAdmin
-            // ie, userManager with EditOtherUsers permissions
-            isDisabled = UserUtils.isSystemAdmin(user.roles) && !UserUtils.isSystemAdmin(currentUser.roles);
-        }
+        // Disable if SystemAdmin being edited by non SystemAdmin eg. userManager with EditOtherUsers permissions
+        const isDisabled = UserUtils.isSystemAdmin(user.roles) && !UserUtils.isSystemAdmin(currentUser.roles);
 
         const isGuest = UserUtils.isGuest(user.roles);
         if (!user) {
