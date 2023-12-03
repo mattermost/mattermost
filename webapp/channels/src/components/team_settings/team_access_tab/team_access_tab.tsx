@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
-import type {ChangeEvent} from 'react';
 import {useIntl} from 'react-intl';
 
 import {RefreshIcon} from '@mattermost/compass-icons/components';
@@ -18,12 +17,26 @@ import OpenInvite from './open_invite';
 import type {PropsFromRedux, OwnProps} from '.';
 
 import './team_access_tab.scss';
+import SelectTextInput, { type SelectTextInputOption } from 'components/common/select_text_input/select_text_input';
 
 type Props = PropsFromRedux & OwnProps;
 
+// todo sinan: complete handle changes
 const AccessTab = (props: Props) => {
+    // todo sinan: cleanup this setAllowedDomains could be string or string of array
+    const generateAllowedDomainOptions = (allowedDomains?: string) => {
+        if (!allowedDomains || allowedDomains.length < 1) {
+            return [];
+        }
+
+        return allowedDomains?.split(', ').map((domain) => ({
+            label: domain,
+            value: domain,
+        }));
+    };
+
     const [inviteId, setInviteId] = useState<Team['invite_id']>(props.team?.invite_id ?? '');
-    const [allowedDomains, setAllowedDomains] = useState<Team['allowed_domains']>(props.team?.allowed_domains ?? '');
+    const [allowedDomains, setAllowedDomains] = useState<SelectTextInputOption[]>(generateAllowedDomainOptions(props.team?.allowed_domains));
     const [showAllowedDomains, setShowAllowedDomains] = useState<boolean>(false);
     const [serverError, setServerError] = useState<string>('');
     const {formatMessage} = useIntl();
@@ -38,8 +51,9 @@ const AccessTab = (props: Props) => {
         }
     };
 
-    const updateAllowedDomains = (e: ChangeEvent<HTMLInputElement>) => setAllowedDomains(e.target.value);
-
+    const updateAllowedDomains = (domain: string) => {
+        setAllowedDomains((prev) => [...prev, {label: domain, value: domain}]);
+    };
     const handleRegenerateInviteId = async () => {
         const {data, error} = await props.actions.regenerateTeamInviteId(props.team?.id || '');
 
@@ -107,14 +121,14 @@ const AccessTab = (props: Props) => {
                 handleChange={(checked) => setShowAllowedDomains(checked)}
             />
             {showAllowedDomains &&
-                <input
+                <SelectTextInput
                     id='allowedDomains'
-                    className='form-control'
-                    type='text'
-                    onChange={updateAllowedDomains}
-                    value={allowedDomains}
                     placeholder={formatMessage({id: 'general_tab.AllowedDomainsExample', defaultMessage: 'corp.mattermost.com, mattermost.com'})}
                     aria-label={formatMessage({id: 'general_tab.allowedDomains.ariaLabel', defaultMessage: 'Allowed Domains'})}
+                    value={allowedDomains}
+                    onChange={(allowedDomainsOptions) => setAllowedDomains(allowedDomainsOptions || [])}
+                    handleNewSelection={updateAllowedDomains}
+                    isClearable={false}
                 />
             }
         </div>
