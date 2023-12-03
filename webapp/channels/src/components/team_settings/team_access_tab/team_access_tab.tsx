@@ -10,6 +10,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import Input from 'components/widgets/inputs/input/input';
 import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
+import CheckboxSettingItem from 'components/widgets/modals/components/checkbox_setting_item';
 import ModalSection from 'components/widgets/modals/components/modal_section';
 
 import OpenInvite from './open_invite';
@@ -23,6 +24,7 @@ type Props = PropsFromRedux & OwnProps;
 const AccessTab = (props: Props) => {
     const [inviteId, setInviteId] = useState<Team['invite_id']>(props.team?.invite_id ?? '');
     const [allowedDomains, setAllowedDomains] = useState<Team['allowed_domains']>(props.team?.allowed_domains ?? '');
+    const [showAllowedDomains, setShowAllowedDomains] = useState<boolean>(false);
     const [serverError, setServerError] = useState<string>('');
     const {formatMessage} = useIntl();
 
@@ -95,10 +97,16 @@ const AccessTab = (props: Props) => {
 
     const allowedDomainsSectionInput = (
         <div
-            key='allowedDomainsSetting'
+            id='allowedDomainsSetting'
             className='form-group'
         >
-            <div className='col-sm-12'>
+            <CheckboxSettingItem
+                css={{marginBottom: '16px'}}
+                inputFieldData={{title: {id: 'general_tab.allowedDomains', defaultMessage: 'Allow only users with a specific email domain to join this team'}, name: 'name'}}
+                inputFieldValue={showAllowedDomains}
+                handleChange={(checked) => setShowAllowedDomains(checked)}
+            />
+            {showAllowedDomains &&
                 <input
                     id='allowedDomains'
                     className='form-control'
@@ -108,7 +116,7 @@ const AccessTab = (props: Props) => {
                     placeholder={formatMessage({id: 'general_tab.AllowedDomainsExample', defaultMessage: 'corp.mattermost.com, mattermost.com'})}
                     aria-label={formatMessage({id: 'general_tab.allowedDomains.ariaLabel', defaultMessage: 'Allowed Domains'})}
                 />
-            </div>
+            }
         </div>
     );
 
@@ -122,6 +130,7 @@ const AccessTab = (props: Props) => {
 
     const allowedDomainsSection = (
         <BaseSettingItem
+            className='access-allowed-domains-section'
             title={{id: 'general_tab.allowedDomainsTitle', defaultMessage: 'Users with a specific email domain'}}
             description={{id: 'general_tab.allowedDomainsInfo', defaultMessage: 'When enabled, users can only join the team if their email matches a specific domain (e.g. "mattermost.org")'}}
             content={allowedDomainsSectionInput}
