@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -77,7 +78,8 @@ func (s *SqlChannelBookmarkStore) Get(Id string, includeDeleted bool) (*model.Ch
 		return nil, errors.Wrapf(row.Err(), "failed to find bookmark")
 	}
 
-	var b model.ChannelBookmarkWithFileInfo
+	var bwf model.ChannelBookmarkWithFileInfo
+	var b model.ChannelBookmark
 	var f model.FileInfo
 
 	if err = row.Scan(&b.Id, &b.OwnerId, &b.ChannelId, &b.FileId, &b.CreateAt, &b.UpdateAt, &b.DeleteAt, &b.DisplayName, &b.SortOrder, &b.LinkUrl, &b.ImageUrl, &b.Emoji, &b.Type, &b.OriginalId,
@@ -85,11 +87,12 @@ func (s *SqlChannelBookmarkStore) Get(Id string, includeDeleted bool) (*model.Ch
 		return nil, errors.Wrap(err, "failed to find bookmark")
 	}
 
+	bwf.ChannelBookmark = &b
 	if b.FileId != "" && f.Id != "" {
-		b.FileInfo = &f
+		bwf.FileInfo = &f
 	}
 
-	return &b, nil
+	return &bwf, nil
 }
 
 func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (b *model.ChannelBookmarkWithFileInfo, err error) {
@@ -157,15 +160,25 @@ func (s *SqlChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error 
 		Set("ImageUrl", bookmark.ImageUrl).
 		Set("Emoji", bookmark.Emoji).
 		Set("UpdateAt", bookmark.UpdateAt).
-		Where(sq.Eq{"Id": bookmark.Id}).
+		Where(sq.Eq{
+			"Id":       bookmark.Id,
+			"DeleteAt": 0,
+		}).
 		ToSql()
 	if err != nil {
 		return errors.Wrap(err, "channel_bookmark_update_tosql")
 	}
 
-	_, err = s.GetMasterX().Exec(query, args...)
+	res, err := s.GetMasterX().Exec(query, args...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to update channel bookmark with id=%s", bookmark.Id)
+	}
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return errors.Wrapf(err, "failed to get affected rows after updating bookmark with id=%s", bookmark.Id)
+	}
+	if rowsAffected == 0 {
+		return errors.Wrapf(sql.ErrNoRows, "cannot find bookmark with id=%s for update", bookmark.Id)
 	}
 	return nil
 }

@@ -236,7 +236,7 @@
     "translation": "Failed to create the channel bookmark."
   },
   {
-    "id": "api.channel.bookmark.create_channel_bookmark.license.error",
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
     "translation": "Your license does not support channel bookmarks."
   },
   {

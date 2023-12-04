@@ -6,7 +6,7 @@
       description: |
         Creates a new channel bookmark for this channel.
 
-        __Minimum server version__: 9.3
+        __Minimum server version__: 9.4
 
         ##### Permissions
         Must have the `add_bookmark_public_channel` or
@@ -61,6 +61,86 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v4/channels/{channel_id}/bookmarks/{bookmark_id}:
+    patch:
+      tags:
+        - bookmarks
+      summary: Update channel bookmark
+      description: |
+        Partially update a channel bookmark by providing only the
+        fields you want to update. Ommited fields will not be
+        updated. The fields that can be updated are defined in the
+        request body, all other provided fields will be ignored.
+
+        __Minimum server version__: 9.4
+
+        ##### Permissions
+        Must have the `edit_bookmark_public_channel` or
+        `edit_bookmark_private_channel` depending on the channel
+        type. If the channel is a DM or GM, must be a non-guest
+        member.
+      operationId: UpdateChannelBookmark
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: bookmark_id
+          in: path
+          description: Bookmark GUID
+          required: true
+          schema:
+            type: string
+      body:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                file_id:
+                  type: string
+                  description: The ID of the file associated with the channel bookmark. Required for bookmarks of type 'file'
+                display_name:
+                  type: string
+                  description: The name of the channel bookmark
+                sort_order:
+                  type: integer
+                  format: int64
+                  description: The order of the channel bookmark
+                link_url:
+                  type: string
+                  description: The URL associated with the channel bookmark. Required for type bookmarks of type 'link'
+                image_url:
+                  type: string
+                  description: The URL of the image associated with the channel bookmark
+                emoji:
+                  type: string
+                  description: The emoji of the channel bookmark
+                type:
+                  type: string
+                  enum: [link, file]
+                  description: |
+                    * `link` for channel bookmarks that reference a link. `link_url` is requied
+                    * `file` for channel bookmarks that reference a file. `file_id` is required
+        description: Channel Bookmark object to be updated
+        required: true
+      responses:
+        "200":
+          description: Channel Bookmark update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateChannelBookmarkResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

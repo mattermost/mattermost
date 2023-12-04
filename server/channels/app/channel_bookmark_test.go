@@ -5,6 +5,7 @@ package app
 
 import (
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
@@ -58,7 +59,7 @@ func TestUpdateBookmark(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	var updateBookmark *model.ChannelBookmark
+	var updateBookmark *model.ChannelBookmarkWithFileInfo
 
 	t.Run("same user update a channel bookmark", func(t *testing.T) {
 		bookmark1 := &model.ChannelBookmark{
@@ -75,6 +76,7 @@ func TestUpdateBookmark(t *testing.T) {
 
 		updateBookmark = bookmarkResp.Clone()
 		updateBookmark.DisplayName = "New name"
+		time.Sleep(1 * time.Millisecond) // to avoid collisions
 		response, _ := th.App.UpdateChannelBookmark(th.Context, updateBookmark, "")
 		assert.Greater(t, response.Updated.UpdateAt, response.Updated.CreateAt)
 	})

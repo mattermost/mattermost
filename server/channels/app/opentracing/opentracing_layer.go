@@ -17232,7 +17232,7 @@ func (a *OpenTracingAppLayer) UpdateChannel(c request.CTX, channel *model.Channe
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateChannelBookmark(c request.CTX, updateBookmark *model.ChannelBookmark, connectionId string) (*model.UpdateChannelBookmarkResponse, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateChannelBookmark(c request.CTX, updateBookmark *model.ChannelBookmarkWithFileInfo, connectionId string) (*model.UpdateChannelBookmarkResponse, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelBookmark")
 

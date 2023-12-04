@@ -47,9 +47,66 @@ func (o *ChannelBookmark) Auditable() map[string]interface{} {
 	}
 }
 
+type ChannelBookmarkPatch struct {
+	FileId      *string              `json:"file_id"`
+	DisplayName *string              `json:"display_name"`
+	SortOrder   *int64               `json:"sort_order"`
+	LinkUrl     *string              `json:"link_url,omitempty"`
+	ImageUrl    *string              `json:"image_url,omitempty"`
+	Emoji       *string              `json:"emoji,omitempty"`
+	Type        *ChannelBookmarkType `json:"type"`
+}
+
+func (o *ChannelBookmarkPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"file_id": o.FileId,
+		"type":    o.Type,
+	}
+}
+
+func (o *ChannelBookmark) Patch(patch *ChannelBookmarkPatch) {
+	if patch.FileId != nil {
+		o.FileId = *patch.FileId
+	}
+
+	if patch.DisplayName != nil {
+		o.DisplayName = *patch.DisplayName
+	}
+	if patch.SortOrder != nil {
+		o.SortOrder = *patch.SortOrder
+	}
+	if patch.LinkUrl != nil {
+		o.LinkUrl = *patch.LinkUrl
+	}
+	if patch.ImageUrl != nil {
+		o.ImageUrl = *patch.ImageUrl
+	}
+	if patch.Emoji != nil {
+		o.Emoji = *patch.Emoji
+	}
+	if patch.Type != nil {
+		o.Type = *patch.Type
+	}
+}
+
 type ChannelBookmarkWithFileInfo struct {
-	ChannelBookmark
+	*ChannelBookmark
 	FileInfo *FileInfo `json:"file,omitempty"`
+}
+
+func (o *ChannelBookmarkWithFileInfo) Auditable() map[string]interface{} {
+	a := o.ChannelBookmark.Auditable()
+	if o.FileInfo != nil {
+		a["file"] = o.FileInfo.Auditable()
+	}
+
+	return a
+}
+
+// Clone returns a shallow copy of the channel bookmark with file info.
+func (o *ChannelBookmarkWithFileInfo) Clone() *ChannelBookmarkWithFileInfo {
+	bCopy := *o
+	return &bCopy
 }
 
 type ChannelWithBookmarks struct {
@@ -60,6 +117,17 @@ type ChannelWithBookmarks struct {
 type UpdateChannelBookmarkResponse struct {
 	Updated *ChannelBookmarkWithFileInfo `json:"updated,omitempty"`
 	Deleted *ChannelBookmarkWithFileInfo `json:"deleted,omitempty"`
+}
+
+func (o *UpdateChannelBookmarkResponse) Auditable() map[string]any {
+	a := map[string]any{}
+	if o.Updated != nil {
+		a["updated"] = o.Updated.Auditable()
+	}
+	if o.Deleted != nil {
+		a["updated"] = o.Deleted.Auditable()
+	}
+	return a
 }
 
 // Clone returns a shallow copy of the channel bookmark.
@@ -150,7 +218,7 @@ func (o *ChannelBookmark) PreUpdate() {
 
 func (o *ChannelBookmark) ToBookmarkWithFileInfo(f *FileInfo) *ChannelBookmarkWithFileInfo {
 	bwf := ChannelBookmarkWithFileInfo{
-		ChannelBookmark: ChannelBookmark{
+		ChannelBookmark: &ChannelBookmark{
 			Id:          o.Id,
 			CreateAt:    o.CreateAt,
 			UpdateAt:    o.UpdateAt,
