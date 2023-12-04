@@ -47,6 +47,7 @@ const config = {
     testEnvironmentOptions: {
         url: 'http://localhost:8065',
     },
+    
     watchPlugins: [
         'jest-watch-typeahead/filename',
         'jest-watch-typeahead/testname',
