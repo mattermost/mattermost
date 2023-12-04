@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "Wystąpił błąd podczas budowania metadanych dostawcy usługi (Service Provider Metadata)."
+    "translation": "Wystąpił błąd podczas budowania Dostawcy Usługi Metadanych."
   },
   {
     "id": "api.admin.saml.not_available.app_error",
@@ -97,7 +97,7 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - Testowanie ustawień e-mail"
+    "translation": "Mattermost - Testowanie Ustawień E-mail"
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
@@ -117,11 +117,11 @@
   },
   {
     "id": "api.admin.upload_brand_image.storage.app_error",
-    "translation": "Nie udało się wgrać obrazu. Przechowywanie obrazów nie zostało skonfigurowane."
+    "translation": "Nie udało się załadować obrazu. Przechowywanie obrazów nie zostało skonfigurowane."
   },
   {
     "id": "api.admin.upload_brand_image.too_large.app_error",
-    "translation": "Nie udało się wgrać obrazu. Plik jest zbyt duży."
+    "translation": "Nie udało się załadować obrazu. Plik jest zbyt duży."
   },
   {
     "id": "api.channel.add_member.added",
@@ -141,11 +141,11 @@
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
-    "translation": "Ten kanał został przekonwertowany do kanału publicznego i może do niego dołączyć każdy członek zespołu."
+    "translation": "Ten kanał został przekonwertowany do Kanału Publicznego i może do niego dołączyć każdy członek zespołu."
   },
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
-    "translation": "Ten kanał został przekonwertowany do kanału prywatnego."
+    "translation": "Ten kanał został przekonwertowany do Kanału Prywatnego."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -5753,7 +5753,7 @@
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
-    "translation": "twoja licencja nie obsługuje grup ldap"
+    "translation": "twoja licencja nie obsługuje grup"
   },
   {
     "id": "api.channel.add_members.user_denied",
@@ -5761,15 +5761,15 @@
   },
   {
     "id": "api.channel.add_members.error",
-    "translation": "Błąd podczas dodawania członka/ów kanału."
+    "translation": "Błąd w trakcie dodawania członka/ów kanału."
   },
   {
     "id": "api.channel.add_guest.added",
-    "translation": "%v został dodany do kanału przez %v."
+    "translation": "%v został dodany jako gość do kanału przez %v."
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Proszę, dodaj mnie do zespołów i kanałów, w których chcesz, żebym uczestniczył. Aby to zrobić, użyj przeglądarki lub aplikacji Mattermost."
+    "translation": "Proszę, dodaj mnie do zespołów i kanałów, w których chcesz, żebym uczestniczył. Aby to zrobić, użyj przeglądarki lub Aplikacji Mattermost."
   },
   {
     "id": "api.bot.create_disabled",
@@ -5777,23 +5777,23 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
-    "translation": "Missing content type."
+    "translation": "Brakujący typ zawartości."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
-    "translation": "Invalid content type."
+    "translation": "Nieprawidłowy typ zawartości."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-    "translation": "Invalid certificate text."
+    "translation": "Nieprawidłowy tekst certyfikatu."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "Missing Identity Provider SSO Services node in the XML."
+    "translation": "Brak węzła usług SSO dostawcy tożsamości w pliku XML."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "Missing Identity Provider Key Descriptors node in the XML."
+    "translation": "Brakujący węzeł deskryptorów klucza dostawcy tożsamości w pliku XML."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
@@ -5829,7 +5829,7 @@
   },
   {
     "id": "api.channel.move_channel.type.invalid",
-    "translation": "Nie można przenosić czatów grupowych lub prywatnych kanałów wiadomości"
+    "translation": "Nie można przenieść bezpośrednich lub grupowych kanałów wiadomości"
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -9945,7 +9945,7 @@
   },
   {
     "id": "api.channel.group_message.converted.to_private_channel",
-    "translation": "{{.ConvertedByUsername}} utworzył ten kanał poprzez wiadomość grupową z {{.GMMembers}}."
+    "translation": "{{.ConvertedByUsername}} utworzył ten kanał z wiadomości grupowej wraz z {{.GMMembers}}."
   },
   {
     "id": "app.thread.mark_all_as_read_by_channels.app_error",
