@@ -2253,7 +2253,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err := th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = 0
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -2274,7 +2274,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post1.CreateAt - 1
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -2298,7 +2298,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post6.CreateAt - 1
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -2325,7 +2325,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post10.CreateAt - 1
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -2350,7 +2350,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post10.CreateAt
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -2389,7 +2389,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post12.CreateAt - 1
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
