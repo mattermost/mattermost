@@ -5,7 +5,7 @@ import React from 'react';
 import type {ReactNode, RefObject} from 'react';
 
 import SettingItemMin from 'components/setting_item_min';
-import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+import type SettingItemMinComponent from 'components/setting_item_min';
 
 type Props = {
 
@@ -27,36 +27,33 @@ type Props = {
     /**
      * The setting UI when it is maximized (open)
      */
-    max: ReactNode | null;
+    max: ReactNode;
 
     // Props to pass through for SettingItemMin
     updateSection: (section: string) => void;
     title?: ReactNode;
-    disableOpen?: boolean;
+    isDisabled?: boolean;
     describe?: ReactNode;
+
+    /**
+     * Replacement in place of edit button when the setting (in collapsed mode) is disabled
+     */
+    collapsedEditButtonWhenDisabled?: ReactNode;
 }
+
 export default class SettingItem extends React.PureComponent<Props> {
     minRef: RefObject<SettingItemMinComponent>;
 
-    static defaultProps = {
-        infoPosition: 'bottom',
-        saving: false,
-        section: '',
-        containerStyle: '',
-    };
-
     constructor(props: Props) {
         super(props);
+
         this.minRef = React.createRef();
     }
 
-    focusEditButton(): void {
-        this.minRef.current?.focus();
-    }
-
     componentDidUpdate(prevProps: Props) {
-        if (prevProps.active && !this.props.active && this.props.areAllSectionsInactive) {
-            this.focusEditButton();
+        // We want to bring back focus to the edit button when the section is opened and then closed along with all sections are closed
+        if (!this.props.active && prevProps.active && this.props.areAllSectionsInactive) {
+            this.minRef.current?.focus();
         }
     }
 
@@ -67,12 +64,13 @@ export default class SettingItem extends React.PureComponent<Props> {
 
         return (
             <SettingItemMin
+                ref={this.minRef}
                 title={this.props.title}
                 updateSection={this.props.updateSection}
                 describe={this.props.describe}
                 section={this.props.section}
-                disableOpen={this.props.disableOpen}
-                ref={this.minRef}
+                isDisabled={this.props.isDisabled}
+                collapsedEditButtonWhenDisabled={this.props.collapsedEditButtonWhenDisabled}
             />
         );
     }

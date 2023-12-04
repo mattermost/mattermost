@@ -49,11 +49,11 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "请求中 'certificate' 下的文件不存在。"
+    "translation": "请求中的“certificate”没有文件。"
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "请求中 'certificate' 下的文件不存在。"
+    "translation": "请求中的“certificate”没有文件。"
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "创建服务商元数据时发生错误。"
+    "translation": "创建服务提供者元数据时发生错误。"
   },
   {
     "id": "api.admin.saml.not_available.app_error",
@@ -105,7 +105,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
-    "translation": "请求中图片数组为空。"
+    "translation": "请求中的“image”为空数组。"
   },
   {
     "id": "api.admin.upload_brand_image.no_file.app_error",
@@ -321,23 +321,23 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "指令 '{{.Trigger}}' 回应失败。请联系您的系统管理员。"
+    "translation": "指令“{{.Trigger}}”发送回复失败。请联系您的系统管理员。"
   },
   {
     "id": "api.command.execute_command.failed.app_error",
-    "translation": "带触发 '{{.Trigger}}' 的命令失败。"
+    "translation": "含有触发器“{{.Trigger}}”的命令失败。"
   },
   {
     "id": "api.command.execute_command.failed_empty.app_error",
-    "translation": "触发 '{{.Trigger}}' 返回空响应。"
+    "translation": "含有触发器“{{.Trigger}}”的命令返回了空响应。"
   },
   {
     "id": "api.command.execute_command.failed_resp.app_error",
-    "translation": "触发 '{{.Trigger}}' 返回响应状态 {{.Status}}。"
+    "translation": "触发器“{{.Trigger}}”返回了响应状态 {{.Status}}。"
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "未找到拥有触发 '{{.Trigger}}' 的命令。如果像发送以 \"/\" 开头的消息，请在前面加个空格。"
+    "translation": "未找到拥有触发器“{{.Trigger}}”的命令。如想发送以“/”开头的消息，请尝试在开头添加一个空格。"
   },
   {
     "id": "api.command.execute_command.start.app_error",
@@ -1147,7 +1147,7 @@
   },
   {
     "id": "api.license.add_license.no_file.app_error",
-    "translation": "请求中没有'许可证'文件。"
+    "translation": "请求中的“license”没有文件。"
   },
   {
     "id": "api.license.add_license.open.app_error",
@@ -1179,11 +1179,11 @@
   },
   {
     "id": "api.oauth.allow_oauth.turn_off.app_error",
-    "translation": "系统管理员已经关闭了 OAuth2 验证服务商。"
+    "translation": "系统管理员关闭了 OAuth2 服务提供者。"
   },
   {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
-    "translation": "系统管理员已经关闭了 OAuth2 验证服务商。"
+    "translation": "系统管理员关闭了 OAuth2 服务提供者。"
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -1203,7 +1203,7 @@
   },
   {
     "id": "api.oauth.get_access_token.disabled.app_error",
-    "translation": "系统管理员已经关闭了 OAuth2 验证服务商。"
+    "translation": "系统管理员关闭了 OAuth2 服务提供者。"
   },
   {
     "id": "api.oauth.get_access_token.expired_code.app_error",
@@ -1247,7 +1247,7 @@
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
-    "translation": "系统管理员已经关闭的 OAuth2 服务商。"
+    "translation": "系统管理员关闭了 OAuth2 服务提供者。"
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
@@ -1531,7 +1531,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "用户 {{.Username}} 在 Slack 导出里没有电子邮箱地址。暂使用 {{.Email}} 代替。用户需要在登入系统后更新他们的邮箱地址。\r\n"
+    "translation": "用户 {{.Username}} 在 Slack 导出中没有邮箱地址。暂使用 {{.Email}} 代替。用户需要在登录至系统后更新其邮箱地址。\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -1587,7 +1587,7 @@
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
-    "translation": "文件设置中驱动名无效。必须为 'local' 或 'amazons3'。"
+    "translation": "文件设置中驱动名无效。必须为“local”或“amazons3”。"
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
@@ -1595,7 +1595,7 @@
   },
   {
     "id": "api.team.import_team.array.app_error",
-    "translation": "请求中 'file' 为空数组。"
+    "translation": "请求中的“file”为空数组。"
   },
   {
     "id": "api.team.import_team.integer.app_error",
@@ -1675,7 +1675,7 @@
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
-    "translation": "请求中 'image' 为空。"
+    "translation": "请求中的“image”为空数组。"
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
@@ -1963,7 +1963,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.response.app_error",
-    "translation": "从 OAuth 服务提供商收到无效的回复。"
+    "translation": "从 OAuth 服务提供者收到无效的回复。"
   },
   {
     "id": "api.user.authorize_oauth_user.service.app_error",
@@ -2187,7 +2187,7 @@
   },
   {
     "id": "api.user.update_password.incorrect.app_error",
-    "translation": "\"当前密码\" 输入有误。请检查大写锁是否关闭后再试一次。"
+    "translation": "“当前密码”输入有误。请检查大写锁是否关闭后再试一次。"
   },
   {
     "id": "api.user.update_password.menu",
@@ -2203,7 +2203,7 @@
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
-    "translation": "根据“图像”请求的空数组。"
+    "translation": "请求中的“image”为空数组。"
   },
   {
     "id": "api.user.upload_profile_user.decode.app_error",
@@ -2423,23 +2423,23 @@
   },
   {
     "id": "app.import.import_line.null_scheme.error",
-    "translation": "导入数据行有类型 \"方案\" 但方案对象是无。"
+    "translation": "导入数据行有类型“方案”但方案对象是 null。"
   },
   {
     "id": "app.import.import_line.null_team.error",
-    "translation": "导入数据行有类型 \"team\" 但团队对象是无。"
+    "translation": "导入数据行有类型“team”但团队对象是 null。"
   },
   {
     "id": "app.import.import_line.null_user.error",
-    "translation": "导入数据行有类型 \"user\" 但用户对象是无。"
+    "translation": "导入数据行有类型“user”但用户对象是 null。"
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",
-    "translation": "导入数据行有无效的类型 \"{{.Type}}\"。"
+    "translation": "导入数据行有无效的类型“{{.Type}}”。"
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
-    "translation": "导入消息失败。无法找到频道 \"{{.ChannelName}}\"。"
+    "translation": "导入消息失败。无法找到频道“{{.ChannelName}}”。"
   },
   {
     "id": "app.import.import_post.save_preferences.error",
@@ -2447,7 +2447,7 @@
   },
   {
     "id": "app.import.import_post.user_not_found.error",
-    "translation": "导入消息失败。无法找到用户 \"{{.Username}}\"。"
+    "translation": "导入消息失败。无法找到用户“{{.Username}}”。"
   },
   {
     "id": "app.import.import_scheme.scope_change.error",
@@ -2531,7 +2531,7 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
-    "translation": "私信频道只能被成员设为最爱。\"{{.Username}}\" 不是成员。"
+    "translation": "私信频道只能被成员设为最爱。“{{.Username}}”不是成员。"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
@@ -2563,7 +2563,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
-    "translation": "私信频道只能被成员标记。\"{{.Username}}\" 不是成员。"
+    "translation": "私信频道只能被成员标记。“{{.Username}}”不是成员。"
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3051,7 +3051,7 @@
   },
   {
     "id": "ent.compliance.run_failed.error",
-    "translation": "导出合规的'{{.JobName}}'在'{{.FilePath}}'的任务失败"
+    "translation": "合规导出在“{{.FilePath}}”的任务“{{.JobName}}”处失败"
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -3311,47 +3311,47 @@
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": "SAML登入因不正确属性而失败。请联系您的系统管理员。"
+    "translation": "SAML 登入因不正确属性而失败。请联系您的系统管理员。"
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "尝试向身份提供商请求时发生错误。请联系您的系统管理员。"
+    "translation": "尝试向身份提供者请求时发生错误。请联系您的系统管理员。"
   },
   {
     "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "尝试编码身份提供商请求时发生错误。请联系您的系统管理员。"
+    "translation": "尝试编码身份提供者请求时发生错误。请联系您的系统管理员。"
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
-    "translation": "SAML登入因加密未开启而失败。请联系您的系统管理员。"
+    "translation": "SAML 登入因加密未开启而失败。请联系您的系统管理员。"
   },
   {
     "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "身份认证提供商公共证书文件没有被发现。请与系统管理员联系。"
+    "translation": "身份认证提供者公共证书文件没有被发现。请与系统管理员联系。"
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "SAML登录失败，因为服务提供商私钥没有被发现。请与系统管理员联系。"
+    "translation": "SAML登录失败，因为服务提供者私钥没有被发现。请与系统管理员联系。"
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": "SAML登录因身份服务提供商回应未加密而失败。请联系您的系统管理员。"
+    "translation": "SAML登录因身份服务提供者回应未加密而失败。请联系您的系统管理员。"
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML登入因解码身份服务提供商回复发生错误而失败。请联系您的系统管理员。"
+    "translation": "SAML 登入因解码身份服务提供者回复发生错误而失败。请联系您的系统管理员。"
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": "我们收到留一份来自身份提供商的空白请求。"
+    "translation": "我们收到留一份来自身份提供者的空白请求。"
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "尝试解析身份提供商回复时发生错误。请联系您的系统管理员。"
+    "translation": "尝试解析身份提供者回复时发生错误。请联系您的系统管理员。"
   },
   {
     "id": "ent.saml.do_login.validate.app_error",
-    "translation": "尝试验证身份提供商回复时发生错误。请联系您的系统管理员。"
+    "translation": "尝试验证身份提供者回复时发生错误。请联系您的系统管理员。"
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -3743,7 +3743,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime 设定必须以 \"hh:mm\" 的时间格式。"
+    "translation": "Elasticsearch PostsAggregatorJobStartTime 设置必须为“hh:mm”格式的时间。"
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
@@ -3759,11 +3759,11 @@
   },
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
-    "translation": "无效邮件通知内容类型。必须为 'full' 或 'generic'。"
+    "translation": "邮件设置中的邮件通知内容类型无效。必须为“full”或“generic”。"
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
-    "translation": "无效的电子邮件设置中的连接安全性。必须为 ''，'TLS' 或 'STARTTLS'。"
+    "translation": "邮件设置中的连接安全性无效。必须为“”、“TLS”或“STARTTLS”。"
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
@@ -3771,7 +3771,7 @@
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
-    "translation": "文件设置中驱动名无效。必须为 'local' 或 'amazons3'。"
+    "translation": "文件设置中的驱动名称无效。必须为“local”或“amazons3”。"
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
@@ -3779,27 +3779,27 @@
   },
   {
     "id": "model.config.is_valid.group_unread_channels.app_error",
-    "translation": "无效未读频道分组的服务设定。必须为 'disabled'、'default_on' 或 'default_off'。"
+    "translation": "服务设置中的分组未读频道无效。必须为“disabled”、“default_on”或“default_off”。"
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "无效的图片代理类型。必须为 'local' 或 'atmos/camo'。"
+    "translation": "无效的图片代理类型。必须为“local”或“atmos/camo”。"
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
-    "translation": "AD/LDAP 栏 \"BaseDN\" 为必须。"
+    "translation": "AD/LDAP 栏“BaseDN”为必需。"
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "AD/LDAP 栏 \"电子邮件\" 为必填。"
+    "translation": "AD/LDAP 栏“邮箱属性”为必需。"
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "AD/LDAP 栏 \"ID\" 为必填。"
+    "translation": "AD/LDAP 栏“ID 属性”为必需。"
   },
   {
     "id": "model.config.is_valid.ldap_login_id",
-    "translation": "AD/LDAP 栏 \"登入 ID 属性\" 为必填。"
+    "translation": "AD/LDAP 栏“登录 ID 属性”为必填。"
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -3811,7 +3811,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_server",
-    "translation": "AD/LDAP 栏 \"AD/LDAP 服务器\" 为必填。"
+    "translation": "AD/LDAP 栏“AD/LDAP 服务器”为必需。"
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
@@ -3819,7 +3819,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "AD/LDAP 栏 \"用户名\" 为必填。"
+    "translation": "AD/LDAP 栏“用户名属性”为必需。"
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -3915,7 +3915,7 @@
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
-    "translation": "服务提供商登入网址必须为有效URL并且以 http:// 或 https:// 开头。"
+    "translation": "服务提供者登录 URL 必须为有效 URL 并且以 http:// 或 https:// 开头。"
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
@@ -3923,11 +3923,11 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "找不到身份识别提供商公开凭证。您忘了上传？"
+    "translation": "找不到身份识别提供者公开凭证。您是否忘记上传？"
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "身份提供商签发网址必须为有效URL并且以 http:// 或 https:// 开头。"
+    "translation": "身份提供者签发者 URL 不能为空字符串。"
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -3935,11 +3935,11 @@
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
-    "translation": "找不到服务提供商私钥。您忘了上传？"
+    "translation": "找不到服务提供者私钥。您是否忘记上传？"
   },
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
-    "translation": "找不到服务提供商公开凭证。您忘了上传？"
+    "translation": "找不到服务提供者公开凭证。您是否忘记上传？"
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -4475,11 +4475,11 @@
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
-    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个小写字母，一个数字，以及一个符号（如\"~!@#$%^&*()\"）。"
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个小写字母，一个数字，以及一个符号（例如：“~!@#$%^&*()”）。"
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
-    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个小写字母以及一个符号（如\"~!@#$%^&*()\"）。"
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个小写字母以及一个符号（例如：“~!@#$%^&*()”）。"
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
@@ -4491,11 +4491,11 @@
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
-    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个小写字母，一个大写字母，一个数字，以及一个符号（如\"~!@#$%^&*()\"）。"
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个小写字母，一个大写字母，一个数字，以及一个符号（例如：“~!@#$%^&*()”）。"
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
-    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个小写字母，一个大写字母，以及一个符号（如\"~!@#$%^&*()\"）。"
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个小写字母，一个大写字母，以及一个符号（例如：“~!@#$%^&*()”）。"
   },
   {
     "id": "model.user.is_valid.pwd_number.app_error",
@@ -4503,11 +4503,11 @@
   },
   {
     "id": "model.user.is_valid.pwd_number_symbol.app_error",
-    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个数字以及一个符号（如\"~!@#$%^&*()\"）。"
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个数字以及一个符号（例如：“~!@#$%^&*()”）。"
   },
   {
     "id": "model.user.is_valid.pwd_symbol.app_error",
-    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个符号（如\"~!@#$%^&*()\"）。"
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个符号（例如：“~!@#$%^&*()”）。"
   },
   {
     "id": "model.user.is_valid.pwd_uppercase.app_error",
@@ -4519,15 +4519,15 @@
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
-    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个大写字母，一个数字，以及一个符号（如\"~!@#$%^&*()\"）。"
+    "translation": "您的密码必须包含至少 {{.Min}} 个字符且至少有一个大写字母，一个数字，以及一个符号（例如：“~!@#$%^&*()”）。"
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
-    "translation": "您的密码必须包含至少 {{.Min}} 个字元且至少有一个大写字母以及一个符号（如\"~!@#$%^&*()\"）。"
+    "translation": "您的密码必须包含至少 {{.Min}} 个字元且至少有一个大写字母以及一个符号（例如：“~!@#$%^&*()”）。"
   },
   {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "用户名必须是一个以字母开头，可以包含数字、小写字母以及符号 \".\"、\"-\" 和 \"_\" 在内的3-22位字符。"
+    "translation": "用户名必须以字母开头，可以包含小写字母、数字以及符号“.”、“-” 和“_”在内的 3 至 22 位字符。"
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -4771,7 +4771,7 @@
   },
   {
     "id": "app.plugin.install_marketplace_plugin.app_error",
-    "translation": "安装集市插件失败。"
+    "translation": "安装市场插件失败。"
   },
   {
     "id": "app.plugin.invalid_version.app_error",
@@ -4779,27 +4779,27 @@
   },
   {
     "id": "app.plugin.marketplace_client.app_error",
-    "translation": "创建集市客户端失败。"
+    "translation": "创建市场客户端失败。"
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
-    "translation": "集市已停用。请检查您的日志了解详情。"
+    "translation": "市场已停用。请检查您的日志了解详情。"
   },
   {
     "id": "app.plugin.marketplace_plugin_request.app_error",
-    "translation": "无法解码集市插件请求。"
+    "translation": "无法解码市场插件请求。"
   },
   {
     "id": "app.plugin.marketplace_plugins.not_found.app_error",
-    "translation": "无法找到请求的集市插件。"
+    "translation": "无法找到请求的市场插件。"
   },
   {
     "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
-    "translation": "无法找到请求的集市插件签字。"
+    "translation": "无法找到请求的市场插件签字。"
   },
   {
     "id": "app.plugin.marshal.app_error",
-    "translation": "封装集市插件失败。"
+    "translation": "封装市场插件失败。"
   },
   {
     "id": "app.plugin.modify_saml.app_error",
@@ -5051,7 +5051,7 @@
   },
   {
     "id": "groups.unsupported_syncable_type",
-    "translation": "不支持的可同步类型 '{{.Value}}'。"
+    "translation": "不支持的可同步类型“{{.Value}}”。"
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -5071,7 +5071,7 @@
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
-    "translation": "无效的管理员属性。必须为格式 '栏=值'。"
+    "translation": "无效的管理员属性。格式必须为“栏=值”。"
   },
   {
     "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
@@ -5155,7 +5155,7 @@
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "解析身份提供商返回的元数据为证书失败。"
+    "translation": "解析身份提供者返回的元数据为证书失败。"
   },
   {
     "id": "api.channel.add_members.error",
@@ -5211,7 +5211,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "会话已超时：请登入再以继续接收通知。{{.siteName}} 的会话过期时间设定为{{.dayhoursCount}} （天-小时）。"
+    "translation": "会话已超时：请登入以继续接收通知。{{.siteName}} 的会话过期时间被您的系统管理员配置为 {{.hoursCount}} 小时。"
   },
   {
     "id": "api.slackimport.slack_import.zip.file_too_large",
@@ -5299,7 +5299,7 @@
   },
   {
     "id": "app.plugin.marketplace_client.failed_to_fetch",
-    "translation": "从集市服务器获取插件失败。"
+    "translation": "从市场服务器获取插件失败。"
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
@@ -5371,7 +5371,7 @@
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
-    "translation": "无效的访客属性。必须为格式 '栏=值'。"
+    "translation": "无效的访客属性。格式必须为“栏=值”。"
   },
   {
     "id": "model.group.name.invalid_chars.app_error",
@@ -5403,7 +5403,7 @@
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "未能从身份提供商网址获取元数据。"
+    "translation": "未能从身份提供者 URL 获取元数据。"
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -5411,15 +5411,15 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "XML 缺少身份提供商 SSO 描述。"
+    "translation": "XML 缺少身份提供者 SSO 描述节点。"
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "XML 缺少身份提供商密钥描述。"
+    "translation": "XML 缺少身份提供者密钥描述节点。"
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "XML 缺少身份提供商服务描述。"
+    "translation": "XML 缺少身份提供者 SSO 服务节点。"
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
@@ -5659,15 +5659,15 @@
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
-    "translation": "无法解码身份提供商返回的 XML 元数据。"
+    "translation": "无法解码身份提供者返回的 XML 元数据。"
   },
   {
     "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
-    "translation": "读取身份提供商返回的数据失败。"
+    "translation": "读取身份提供者返回的数据失败。"
   },
   {
     "id": "app.admin.saml.invalid_response_from_idp.app_error",
-    "translation": "无法读取身份提供商返回的数据。"
+    "translation": "无法读取身份提供者返回的数据。"
   },
   {
     "id": "app.admin.test_site_url.failure",
@@ -5683,7 +5683,7 @@
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
-    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} 已注销。他们管理以下已停用的机器人帐号。\n\n{{.BotNames}}{{else}}{{.UserName}} 已注销。他们管理 {{.NumBots}} 个已停用的机器人帐号，其中包括：\n\n{{.BotNames}}{{end}}您可以在**整合> 机器人帐号**启用并创建新的令牌以获取所有权。\n\n更多详情，参见我们的[文档](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled)。{{else}}{{if .printAllBots}}{{.UserName}} 已注销。他们管理以下机器人帐号。\n\n{{.BotNames}}\n{{else}}{{.UserName}} 已注销。他们管理 {{.NumBots}} 个机器人帐号，其中包括：\n\n{{.BotNames}}{{end}}我们强烈推荐您在**整合> 机器人帐号**启用并创建新的令牌以获取所有权。\n\n更多详情，参见我们的[文档](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled)。\n\n如果您想在用户被注销后自动停用机器人帐号，在**系统控制台 > 整合 > 机器人帐号**设定“在用户注销后自动停用机器人帐号”为是。{{end}}"
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} 已注销。他们管理以下已停用的机器人帐号。\n\n{{.BotNames}}{{else}}{{.UserName}} 已注销。他们管理 {{.NumBots}} 个已停用的机器人帐号，其中包括：\n\n{{.BotNames}}{{end}}您可以在**整合 > 机器人帐号**启用并创建新的令牌以获取所有权。\n\n更多详情，参见我们的[文档](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled)。{{else}}{{if .printAllBots}}{{.UserName}} 已注销。他们管理以下机器人帐号。\n\n{{.BotNames}}\n{{else}}{{.UserName}} 已注销。他们管理 {{.NumBots}} 个机器人帐号，其中包括：\n\n{{.BotNames}}{{end}}我们强烈推荐您在**整合 > 机器人帐号**启用并创建新的令牌以获取所有权。\n\n更多详情，参见我们的[文档](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled)。\n\n如果您想在用户被注销后自动停用机器人帐号，在**系统控制台 > 整合 > 机器人帐号**中设置“在用户注销后自动停用机器人帐号”为是。{{end}}"
   },
   {
     "id": "app.bot.getbot.internal_error",
@@ -5811,15 +5811,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "版本 102+"
+    "translation": "版本 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 116+"
+    "translation": "版本 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 116+"
+    "translation": "版本 118+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5875,7 +5875,7 @@
   },
   {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
-    "translation": "必须提供服务提供商标识"
+    "translation": "必须提供服务提供者标识"
   },
   {
     "id": "ent.elasticsearch.delete_user_posts.error",
@@ -6943,15 +6943,15 @@
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user.app_error",
-    "translation": "Mattermost 无法升级至企业版。Mattermost 系统用户 {{.MattermostUsername}} 没有写入二进制文件权限。系统管理员可在服务器上运行以下指令更新文件权限：\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\n更新文件权限后，请重新尝试升级 Mattermost。当您升级并重启后，请务必恢复二进制文件权限：\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+    "translation": "Mattermost 无法升级至企业版。Mattermost 系统用户 {{.MattermostUsername}} 没有写入必需的二进制文件的权限。系统管理员可在服务器上运行以下命令以更新文件权限：\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\n更改文件权限后，请重新尝试升级 Mattermost。当您升级并重启后，请务必恢复二进制文件权限：\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
-    "translation": "Mattermost 无法升级至企业版。Mattermost 系统用户 {{.MattermostUsername}} 没有写入二进制文件权限。系统管理员可在服务器上运行以下指令更新文件权限：\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\n更新文件权限后，请重新尝试升级 Mattermost。当您升级并重启后，请务必恢复二进制文件权限：\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "Mattermost 无法升级至企业版。Mattermost 系统用户 {{.MattermostUsername}} 没有写入必需的二进制文件的权限。系统管理员可在服务器上运行以下命令以更新文件权限：\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\n更改文件权限后，请重新尝试升级 Mattermost。当您升级并重启后，请务必恢复二进制文件权限：\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
-    "translation": "Mattermost 无法升级至企业版。Mattermost 系统用户 {{.MattermostUsername}} 没有写入二进制文件权限。系统管理员可在服务器上运行以下指令更新文件权限：\n\n```\nchmod +w \"{{.Path}}\"\n```\n\n更新文件权限后，请重新尝试升级 Mattermost。当您升级并重启后，请务必恢复二进制文件权限：\n\n```\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "Mattermost 无法升级至企业版。Mattermost 系统用户 {{.MattermostUsername}} 没有写入必需的二进制文件的权限。系统管理员可在服务器上运行以下命令以更新文件权限：\n\n```\nchmod +w \"{{.Path}}\"\n```\n\n更改文件权限后，请重新尝试升级 Mattermost。当您升级并重启后，请务必恢复二进制文件权限：\n\n```\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.generic_error.app_error",
@@ -7003,7 +7003,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "您的 Mattermost 系统现在有 200 个用户。当您将 Mattermost 与组织的单一登录提供商连接时，用户无需重新输入凭据即可访问 Mattermost。我们建议您将 SAML 2.0 提供商与 Mattermost 服务器集成。[了解有关与 SAML 2.0 集成的更多信息](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)。\n\n通过单击“联系我们”，您将与 Mattermost，Inc. 分享您的信息。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "您的 Mattermost 系统现在有 200 个用户。当您将 Mattermost 与您的组织的单一登录提供者连接时，用户无需重新输入凭据即可访问 Mattermost。我们建议您将 SAML 2.0 提供者与 Mattermost 服务器集成。[深入了解与 SAML 2.0 集成](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)。\n\n通过单击“联系我们”，您将与 Mattermost, Inc. 分享您的信息。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.email_us",
@@ -7115,11 +7115,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "您的企业试用版已激活。转到**系统控制台>验证> SAML 2.0**以与您的 SAML 2.0 提供商集成。"
+    "translation": "您的企业版试用已激活。转到**系统控制台 > 验证 > SAML 2.0** 以集成您的 SAML 2.0 提供者。"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "您的 Mattermost 系统现在有 200 个用户。当您将 Mattermost 与组织的单一登录提供商连接时，用户无需重新输入凭据即可访问 Mattermost。我们建议您将 SAML 2.0 提供商与 Mattermost 服务器集成。[了解有关与 SAML 2.0 集成的更多信息](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)。\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议t](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/pl/privacy-policy/)，并接收产品电子邮件。"
+    "translation": "您的 Mattermost 系统现在有 200 个用户。当您将 Mattermost 与您的组织的单一登录提供者连接时，用户无需重新输入凭据即可访问 Mattermost。我们建议您将 SAML 2.0 提供者与 Mattermost 服务器集成。[深入了解与 SAML 2.0 集成](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)。\n\n单击“开始试用”，即表示我同意 [Mattermost 软件评估协议t](https://mattermost.com/software-evaluation-agreement/)、[隐私政策](https://mattermost.com/pl/privacy-policy/)，并接收产品邮件。"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
@@ -7167,7 +7167,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "您的企业试用版已激活。转到“系统控制台>验证>访客访问”以启用访客帐户。"
+    "translation": "您的企业试用版已激活。转到“系统控制台 > 验证 > 访客访问”以启用访客帐户。"
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
@@ -7331,7 +7331,7 @@
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
-    "translation": "我们在身份提供商的回复中收到了无效的签名。请与系统管理员联系。"
+    "translation": "我们在身份提供者的回复中收到了无效的签名。请与系统管理员联系。"
   },
   {
     "id": "ent.message_export.csv_export.get_attachment_error",
@@ -7411,7 +7411,7 @@
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
-    "translation": "从身份提供商的回复中含有无效的时间。请与系统管理员联系。"
+    "translation": "从身份提供者的回复中含有无效的时间。请与系统管理员联系。"
   },
   {
     "id": "app.channel.autofollow.app_error",
@@ -7523,7 +7523,7 @@
   },
   {
     "id": "app.group.permanent_delete_members_by_user.app_error",
-    "translation": "无法删除成员 ID为 “{{.UserId}}” 的组成员。"
+    "translation": "无法移除 UserID 为“{{.UserId}}”的群组成员。"
   },
   {
     "id": "app.group.no_rows",
@@ -8143,7 +8143,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.app_market_place",
-    "translation": "应用商城。"
+    "translation": "应用市场。"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
@@ -8171,7 +8171,7 @@
   },
   {
     "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
-    "translation": "个人资料图片必须通过用户的登录提供商设置。"
+    "translation": "个人资料图片必须通过用户的登录提供者设置。"
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -8435,7 +8435,7 @@
   },
   {
     "id": "api.command_share.invalid_value.error",
-    "translation": "'{{.Arg}}'的无效值：{{.Error}}"
+    "translation": "“{{.Arg}}”的值无效：{{.Error}}"
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
@@ -8519,7 +8519,7 @@
   },
   {
     "id": "api.oauth.click_redirect",
-    "translation": "如果您没有自动重定向，请点击<a href='{{.Link}}'>链接</a>"
+    "translation": "如果您没有被自动重定向，请点击<a href='{{.Link}}'>链接</a>"
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
@@ -8755,11 +8755,11 @@
   },
   {
     "id": "api.user.update_user.login_provider_attribute_set.app_error",
-    "translation": "字段 '{{.Field}}' 必须通过用户的登录提供商设置。"
+    "translation": "字段 '{{.Field}}' 必须通过用户的登录提供者设置。"
   },
   {
     "id": "api.user.patch_user.login_provider_attribute_set.app_error",
-    "translation": "字段 '{{.Field}}' 必须通过用户的登录提供商设置。"
+    "translation": "字段“{{.Field}}”必须通过用户的登录提供者设置。"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens_parse.error",
@@ -8799,7 +8799,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "登入工作区以在 Windows、Linux、Mac、iOS 以及 Android 上获得最好体验。"
+    "translation": "以在 Windows、Linux、Mac、iOS 以及 Android 上获得最好体验。"
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8975,7 +8975,7 @@
   },
   {
     "id": "app.custom_group.unique_name",
-    "translation": "“组”的名字不是唯一（需要是唯一的。）"
+    "translation": "组名称不是唯一的"
   },
   {
     "id": "app.channel.get_file_count.app_error",
@@ -9059,23 +9059,23 @@
   },
   {
     "id": "api.custom_groups.no_remote_id",
-    "translation": "自定义组的 Remote_id 不能为空"
+    "translation": "自定义组的 remote_id 不能为空"
   },
   {
     "id": "api.custom_groups.must_be_referenceable",
-    "translation": "对于自定义组，Allow_reference必须为'true'"
+    "translation": "对于自定义组，allow_reference 必须为“true”"
   },
   {
     "id": "api.custom_groups.feature_disabled",
-    "translation": "禁用“自定义组”功能"
+    "translation": "自定义组功能已禁用"
   },
   {
     "id": "api.custom_groups.license_error",
-    "translation": "没有为“自定义组”授权"
+    "translation": "没有为自定义组授权"
   },
   {
     "id": "api.custom_groups.count_err",
-    "translation": "统计“组”时出现错误"
+    "translation": "统计组时出现错误"
   },
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
@@ -9171,7 +9171,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost 是一个开源平台，用于跨工具和团队的安全通信、协作和工作编排。\nMattermost 包含三个关键工具：\n\n**频道** - 通过 1:1 和群组消息与您的团队保持联系。\n**[Playbooks](/playbooks)** - 构建和配置可重复的流程以实现特定且可预测的结果。\n**[Boards](/boards)** - 在看板结构中管理项目和任务，以帮助您的团队实现关键里程碑。\n\n[查看文档和指南]({{.HelpLink}})"
+    "translation": "Mattermost 是一个开源平台，用于跨工具和团队的安全通信、协作和工作编排。\nMattermost 包含两个关键工具：\n\n**频道** - 通过 1:1 和群组消息与您的团队保持联系。\n**[Playbooks](/playbooks)** - 构建和配置可重复的流程以实现特定且可预测的结果。\n\n[查看文档和指南]({{.HelpLink}})"
   },
   {
     "id": "api.cloud.delinquency_email.missing_email_to_trigger",
@@ -9187,11 +9187,11 @@
   },
   {
     "id": "api.command_marketplace.name",
-    "translation": "商城"
+    "translation": "市场"
   },
   {
     "id": "api.command_marketplace.desc",
-    "translation": "打开商城"
+    "translation": "打开市场"
   },
   {
     "id": "api.templates.delinquency_75.subject",
@@ -9511,7 +9511,7 @@
   },
   {
     "id": "app.group.username_conflict",
-    "translation": "用户名“{{.Username}}”已存在。"
+    "translation": "用户名为“{{.Username}}”的用户已存在。"
   },
   {
     "id": "app.file.cloud.get.app_error",
@@ -9663,7 +9663,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
-    "translation": "无效的商务试用邮箱"
+    "translation": "无效的用于试用的商务邮箱"
   },
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
@@ -9968,5 +9968,117 @@
   {
     "id": "api.emoji.get_multiple_by_name_too_many.request_error",
     "translation": "无法根据名称获取过多的表情符。每次最多只能请求 {{.MaxNames}} 个表情符。"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "解析 JSON 失败：{{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "无效的格式：{{.Error}}"
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "应用 IP 过滤器时遇到错误"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "获取 IP 过滤器时遇到错误"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "获取客户端的 IP 地址时遇到错误"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP 过滤在此服务器上不可用"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "检查更改"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} 更改了您在 {{ .SiteURL }} 的工作区的 IP 过滤设置"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "对您的工作区的 IP 过滤器的更改"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "您的工作区的 IP 过滤器的更改"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "联系支持"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "登录至客户门户以重置 IP 过滤"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "发送邮件至 {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "访问您的工作区时遇到问题？"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "无法更新上次登录的时间戳"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "受众不能为空。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "无效的 oauth 令牌 url。"
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "解析 SiteURL 子路径失败"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "一些受众 URL 不正确。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "无效的客户端 id。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "无效的客户端密钥。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "“创建于”必须是有效的时间。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "无效的创建者 id。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "无效的授权类型。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "无效的 id。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "无效的名称。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "无效的密码凭据。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "“更新于”必须是有效的时间。"
   }
 ]

@@ -150,7 +150,12 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
   section=""
   serverError=""
   submit={[MockFunction]}
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;
@@ -247,13 +252,18 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
   section=""
   serverError=""
   submit={[MockFunction]}
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;
 
 exports[`components/user_settings/notifications/DesktopNotificationSettings should match snapshot, on buildMinimizedSetting 1`] = `
-<Connect(SettingItemMin)
+<SettingItemMin
   describe={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="For mentions and direct messages, without sound"
@@ -261,13 +271,18 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
     />
   }
   section="desktop"
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;
 
 exports[`components/user_settings/notifications/DesktopNotificationSettings should match snapshot, on buildMinimizedSetting 2`] = `
-<Connect(SettingItemMin)
+<SettingItemMin
   describe={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Off"
@@ -275,7 +290,12 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
     />
   }
   section="desktop"
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;
@@ -430,7 +450,12 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
   section=""
   serverError=""
   submit={[MockFunction]}
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;
@@ -638,7 +663,12 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
   section=""
   serverError=""
   submit={[MockFunction]}
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;
@@ -892,7 +922,12 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
   section=""
   serverError=""
   submit={[MockFunction]}
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;
@@ -1101,13 +1136,18 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
   section=""
   serverError=""
   submit={[MockFunction]}
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;
 
 exports[`components/user_settings/notifications/DesktopNotificationSettings should match snapshot, on min setting 1`] = `
-<Connect(SettingItemMin)
+<SettingItemMin
   describe={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="For mentions and direct messages, without sound"
@@ -1115,7 +1155,12 @@ exports[`components/user_settings/notifications/DesktopNotificationSettings shou
     />
   }
   section="desktop"
-  title="Desktop Notifications"
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Desktop Notifications"
+      id="user.settings.notifications.desktop.title"
+    />
+  }
   updateSection={[Function]}
 />
 `;

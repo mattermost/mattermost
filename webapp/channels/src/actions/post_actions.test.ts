@@ -12,10 +12,12 @@ import * as Actions from 'actions/post_actions';
 
 import mockStore from 'tests/test_store';
 import {Constants, ActionTypes, RHSStates} from 'utils/constants';
+import * as PostUtils from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
+    removeReaction: (...args: any[]) => ({type: 'MOCK_REMOVE_REACTION', args}),
     addReaction: (...args: any[]) => ({type: 'MOCK_ADD_REACTION', args}),
     createPost: (...args: any[]) => ({type: 'MOCK_CREATE_POST', args}),
     createPostImmediately: (...args: any[]) => ({type: 'MOCK_CREATE_POST_IMMEDIATELY', args}),
@@ -47,6 +49,14 @@ jest.mock('utils/user_agent', () => ({
     isIosClassic: jest.fn().mockReturnValueOnce(true).mockReturnValue(false),
     isDesktopApp: jest.fn().mockReturnValue(false),
 }));
+
+jest.mock('utils/post_utils', () => ({
+    makeGetUniqueEmojiNameReactionsForPost: jest.fn(),
+    makeGetIsReactionAlreadyAddedToPost: jest.fn(),
+}));
+
+const mockMakeGetIsReactionAlreadyAddedToPost = PostUtils.makeGetIsReactionAlreadyAddedToPost as unknown as jest.Mock<() => boolean>;
+const mockMakeGetUniqueEmojiNameReactionsForPost = PostUtils.makeGetUniqueEmojiNameReactionsForPost as unknown as jest.Mock<() => string[]>;
 
 const POST_CREATED_TIME = Date.now();
 
@@ -433,14 +443,118 @@ describe('Actions.Posts', () => {
         });
     });
 
-    test('addReaction', async () => {
-        const testStore = mockStore(initialState);
+    describe('submitReaction', () => {
+        describe('addReaction', () => {
+            test('should add reaction when the action is + and the reaction is not added', async () => {
+                const testStore = mockStore(initialState);
 
-        await testStore.dispatch(Actions.addReaction('post_id_1', 'emoji_name_1'));
-        expect(testStore.getActions()).toEqual([
-            {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
-            {args: ['emoji_name_1'], type: 'MOCK_ADD_RECENT_EMOJI'},
-        ]);
+                mockMakeGetIsReactionAlreadyAddedToPost.mockReturnValueOnce(() => false);
+
+                testStore.dispatch(Actions.submitReaction('post_id_1', '+', 'emoji_name_1'));
+
+                expect(testStore.getActions()).toEqual([
+                    {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
+                    {args: ['emoji_name_1'], type: 'MOCK_ADD_RECENT_EMOJI'},
+                ]);
+            });
+
+            test('should take no action when the action is + and the reaction has already been added', async () => {
+                const testStore = mockStore(initialState);
+
+                mockMakeGetIsReactionAlreadyAddedToPost.mockReturnValueOnce(() => true);
+
+                testStore.dispatch(Actions.submitReaction('post_id_1', '+', 'emoji_name_1'));
+
+                expect(testStore.getActions()).toEqual([]);
+            });
+        });
+
+        describe('removeReaction', () => {
+            test('should remove reaction when the action is - and the reaction has already been added', async () => {
+                const testStore = mockStore(initialState);
+
+                mockMakeGetIsReactionAlreadyAddedToPost.mockReturnValueOnce(() => true);
+
+                testStore.dispatch(Actions.submitReaction('post_id_1', '-', 'emoji_name_1'));
+
+                expect(testStore.getActions()).toEqual([
+                    {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_REMOVE_REACTION'},
+                ]);
+            });
+
+            test('should take no action when the action is - and the reaction is not added', async () => {
+                const testStore = mockStore(initialState);
+
+                mockMakeGetIsReactionAlreadyAddedToPost.mockReturnValueOnce(() => false);
+
+                testStore.dispatch(Actions.submitReaction('post_id_1', '-', 'emoji_name_1'));
+
+                expect(testStore.getActions()).toEqual([]);
+            });
+        });
+    });
+
+    describe('toggleReaction', () => {
+        test('should add reaction when the reaction is not added', async () => {
+            const testStore = mockStore(initialState);
+
+            mockMakeGetIsReactionAlreadyAddedToPost.mockReturnValueOnce(() => false);
+
+            testStore.dispatch(Actions.toggleReaction('post_id_1', 'emoji_name_1'));
+
+            expect(testStore.getActions()).toEqual([
+                {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
+                {args: ['emoji_name_1'], type: 'MOCK_ADD_RECENT_EMOJI'},
+            ]);
+        });
+
+        test('should remove reaction when the reaction has already been added', async () => {
+            const testStore = mockStore(initialState);
+
+            mockMakeGetIsReactionAlreadyAddedToPost.mockReturnValueOnce(() => true);
+
+            testStore.dispatch(Actions.toggleReaction('post_id_1', 'emoji_name_1'));
+
+            expect(testStore.getActions()).toEqual([
+                {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_REMOVE_REACTION'},
+            ]);
+        });
+    });
+
+    describe('addReaction', () => {
+        mockMakeGetUniqueEmojiNameReactionsForPost.mockReturnValue(() => []);
+
+        test('should add reaction', async () => {
+            const testStore = mockStore(initialState);
+
+            await testStore.dispatch(Actions.addReaction('post_id_1', 'emoji_name_1'));
+            expect(testStore.getActions()).toEqual([
+                {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
+                {args: ['emoji_name_1'], type: 'MOCK_ADD_RECENT_EMOJI'},
+            ]);
+        });
+        test('should not add reaction if we are over the limit', async () => {
+            mockMakeGetUniqueEmojiNameReactionsForPost.mockReturnValue(() => ['another_emoji']);
+            const testStore = mockStore({
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities.general,
+                        config: {
+                            ...initialState.entities.general.config,
+                            UniqueEmojiReactionLimitPerPost: '1',
+                        },
+                    },
+                },
+            });
+
+            await testStore.dispatch(Actions.addReaction('post_id_1', 'emoji_name_1'));
+            expect(testStore.getActions()).not.toEqual([
+                {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
+                {args: ['emoji_name_1'], type: 'MOCK_ADD_RECENT_EMOJI'},
+            ]);
+        });
     });
 
     test('flagPost', async () => {

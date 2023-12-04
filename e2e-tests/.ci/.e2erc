@@ -11,7 +11,7 @@ export MME2E_ARCHTYPE=$(docker version -f '{{ .Client.Arch }}')
 export NODE_VERSION_REQUIRED=$(cat ../../.nvmrc)
 
 # Default values for optional variables
-export SERVER_IMAGE_DEFAULT="mattermostdevelopment/mm-ee-test:$(git rev-parse --short=7 HEAD)"
+export SERVER_IMAGE_DEFAULT="mattermostdevelopment/mattermost-enterprise-edition:$(git rev-parse --short=7 HEAD)"
 export BROWSER_DEFAULT="chrome"
 export SERVER_DEFAULT="self-hosted"
 export TEST_DEFAULT="cypress"

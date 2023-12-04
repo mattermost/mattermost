@@ -1297,6 +1297,12 @@ func TestLogSettingsIsValid(t *testing.T) {
 			},
 			ExpectError: false,
 		},
+		"AdvancedLoggingConfig contains filepath": {
+			LogSettings: LogSettings{
+				AdvancedLoggingConfig: sToP("/some/Path"),
+			},
+			ExpectError: false,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			test.LogSettings.SetDefaults()

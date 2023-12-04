@@ -48,7 +48,7 @@ exports[`components/channel_header/components/HeaderIconWrapper should match sna
         id="flaggedTooltip"
       >
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="Saved posts"
+          defaultMessage="Saved messages"
           id="channel_header.flagged"
         />
       </Tooltip>
@@ -140,7 +140,7 @@ exports[`components/channel_header/components/HeaderIconWrapper should match sna
         id="pinnedPostTooltip"
       >
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="Pinned posts"
+          defaultMessage="Pinned messages"
           id="channel_header.pinnedPosts"
         />
       </Tooltip>

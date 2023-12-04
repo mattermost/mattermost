@@ -206,6 +206,7 @@
     "no-confusing-arrow": 2,
     "no-console": 2,
     "no-const-assign": 2,
+    "no-constant-binary-expression": 2,
     "no-constant-condition": 2,
     "no-debugger": 2,
     "no-div-regex": 2,
