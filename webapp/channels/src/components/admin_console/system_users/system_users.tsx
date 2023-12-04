@@ -3,8 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent} from 'react';
-import {FormattedMessage, injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
@@ -15,7 +14,7 @@ import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import {Constants, UserSearchOptions, SearchUserTeamFilter, UserFilters} from 'utils/constants';
+import {Constants, UserSearchOptions, SearchUserTeamFilter} from 'utils/constants';
 import {getUserOptionsFromFilter, searchUserOptionsFromFilter} from 'utils/filter_users';
 
 import RevokeSessionsButton from './revoke_sessions_button';
@@ -28,8 +27,6 @@ const USER_ID_LENGTH = 26;
 const USERS_PER_PAGE = 50;
 
 type Props = {
-
-    intl: IntlShape;
 
     /**
      * Array of team objects
@@ -231,8 +228,8 @@ export class SystemUsers extends React.PureComponent<Props, State> {
 
         this.setState({loading: true});
 
-        const newTeamId = typeof teamId !== 'undefined' ? teamId : this.props.teamId;
-        const newFilter = typeof filter !== 'undefined' ? filter : this.props.filter;
+        const newTeamId = typeof teamId === 'undefined' ? this.props.teamId : teamId;
+        const newFilter = typeof filter === 'undefined' ? this.props.filter : filter;
 
         const options = getUserOptionsFromFilter(newFilter);
 
@@ -301,67 +298,6 @@ export class SystemUsers extends React.PureComponent<Props, State> {
         this.getUserById(id);
     };
 
-    renderFilterRow = (doSearch: ((event: React.FormEvent<HTMLInputElement>) => void) | undefined) => {
-        const teams = this.props.teams.map((team) => (
-            <option
-                key={team.id}
-                value={team.id}
-            >
-                {team.display_name}
-            </option>
-        ));
-
-        return (
-            <div className='system-users__filter-row'>
-                <div className='system-users__filter'>
-                    <input
-                        id='searchUsers'
-                        className='form-control filter-textbox'
-                        placeholder={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
-                        onInput={doSearch}
-                    />
-                </div>
-                <label>
-                    <span className='system-users__team-filter-label'>
-                        <FormattedMessage
-                            id='filtered_user_list.team'
-                            defaultMessage='Team:'
-                        />
-                    </span>
-                    <select
-                        className='form-control system-users__team-filter'
-                        onChange={this.handleTeamChange}
-                        value={this.props.teamId}
-                    >
-                        <option value={SearchUserTeamFilter.ALL_USERS}>{this.props.intl.formatMessage({id: 'admin.system_users.allUsers', defaultMessage: 'All Users'})}</option>
-                        <option value={SearchUserTeamFilter.NO_TEAM}>{this.props.intl.formatMessage({id: 'admin.system_users.noTeams', defaultMessage: 'No Teams'})}</option>
-                        {teams}
-                    </select>
-                </label>
-                <label>
-                    <span className='system-users__filter-label'>
-                        <FormattedMessage
-                            id='filtered_user_list.userStatus'
-                            defaultMessage='User Status:'
-                        />
-                    </span>
-                    <select
-                        id='selectUserStatus'
-                        className='form-control system-users__filter'
-                        value={this.props.filter}
-                        onChange={this.handleFilterChange}
-                    >
-                        <option value=''>{this.props.intl.formatMessage({id: 'admin.system_users.allUsers', defaultMessage: 'All Users'})}</option>
-                        <option value={UserFilters.SYSTEM_ADMIN}>{this.props.intl.formatMessage({id: 'admin.system_users.system_admin', defaultMessage: 'System Admin'})}</option>
-                        <option value={UserFilters.SYSTEM_GUEST}>{this.props.intl.formatMessage({id: 'admin.system_users.guest', defaultMessage: 'Guest'})}</option>
-                        <option value={UserFilters.ACTIVE}>{this.props.intl.formatMessage({id: 'admin.system_users.active', defaultMessage: 'Active'})}</option>
-                        <option value={UserFilters.INACTIVE}>{this.props.intl.formatMessage({id: 'admin.system_users.inactive', defaultMessage: 'Inactive'})}</option>
-                    </select>
-                </label>
-            </div>
-        );
-    };
-
     render() {
         return (
             <div className='wrapper--fixed'>
@@ -369,9 +305,7 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                     <FormattedMessage
                         id='admin.system_users.title'
                         defaultMessage='{siteName} Users'
-                        values={{
-                            siteName: this.props.siteName,
-                        }}
+                        values={{siteName: this.props.siteName}}
                     />
                     <RevokeSessionsButton/>
                 </AdminHeader>
@@ -390,11 +324,14 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                                     onChange={this.handleSearchFiltersChange}
                                     onFilter={this.onFilter}
                                 />
-                                <SystemUsersFilterRole/>
+                                <SystemUsersFilterRole
+                                    value={this.props.filter}
+                                    onChange={this.handleSearchFiltersChange}
+                                    onFilter={this.onFilter}
+                                />
                             </div>
                             <SystemUsersList
                                 loading={this.state.loading}
-                                renderFilterRow={this.renderFilterRow}
                                 search={this.doSearch}
                                 nextPage={this.nextPage}
                                 usersPerPage={USERS_PER_PAGE}
@@ -421,4 +358,4 @@ export class SystemUsers extends React.PureComponent<Props, State> {
     }
 }
 
-export default injectIntl(SystemUsers);
+export default SystemUsers;

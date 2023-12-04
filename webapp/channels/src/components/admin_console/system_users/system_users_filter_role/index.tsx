@@ -2,9 +2,26 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {ChangeEvent} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-function SystemUsersFilterRole() {
+import {UserFilters} from 'utils/constants';
+
+type Props = {
+    value?: string;
+    onChange: ({searchTerm, teamId, filter}: {searchTerm?: string; teamId?: string; filter?: string}) => void;
+    onFilter: ({teamId, filter}: {teamId?: string; filter?: string}) => Promise<void>;
+};
+
+function SystemUsersFilterRole(props: Props) {
+    const {formatMessage} = useIntl();
+
+    function handleChange(e: ChangeEvent<HTMLSelectElement>) {
+        const filter = e?.target?.value ?? '';
+        props.onChange({filter});
+        props.onFilter({filter});
+    }
+
     return (
         <label>
             <span className='system-users__filter-label'>
@@ -16,38 +33,23 @@ function SystemUsersFilterRole() {
             <select
                 id='selectUserStatus'
                 className='form-control system-users__filter'
-                value={this.props.filter}
-                onChange={this.handleFilterChange}
+                value={props.value}
+                onChange={handleChange}
             >
                 <option value=''>
-                    {this.props.intl.formatMessage({
-                        id: 'admin.system_users.allUsers',
-                        defaultMessage: 'All Users',
-                    })}
+                    {formatMessage({id: 'admin.system_users.allUsers', defaultMessage: 'All Users'})}
                 </option>
                 <option value={UserFilters.SYSTEM_ADMIN}>
-                    {this.props.intl.formatMessage({
-                        id: 'admin.system_users.system_admin',
-                        defaultMessage: 'System Admin',
-                    })}
+                    {formatMessage({id: 'admin.system_users.system_admin', defaultMessage: 'System Admin'})}
                 </option>
                 <option value={UserFilters.SYSTEM_GUEST}>
-                    {this.props.intl.formatMessage({
-                        id: 'admin.system_users.guest',
-                        defaultMessage: 'Guest',
-                    })}
+                    {formatMessage({id: 'admin.system_users.guest', defaultMessage: 'Guest'})}
                 </option>
                 <option value={UserFilters.ACTIVE}>
-                    {this.props.intl.formatMessage({
-                        id: 'admin.system_users.active',
-                        defaultMessage: 'Active',
-                    })}
+                    {formatMessage({id: 'admin.system_users.active', defaultMessage: 'Active'})}
                 </option>
                 <option value={UserFilters.INACTIVE}>
-                    {this.props.intl.formatMessage({
-                        id: 'admin.system_users.inactive',
-                        defaultMessage: 'Inactive',
-                    })}
+                    {formatMessage({id: 'admin.system_users.inactive', defaultMessage: 'Inactive'})}
                 </option>
             </select>
         </label>

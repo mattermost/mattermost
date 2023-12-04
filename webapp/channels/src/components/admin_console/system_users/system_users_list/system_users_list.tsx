@@ -31,7 +31,6 @@ type Props = {
     nextPage: (page: number) => void;
     search: (term: string) => void;
     focusOnMount?: boolean;
-    renderFilterRow: (doSearch: ((event: React.FormEvent<HTMLInputElement>) => void) | undefined) => JSX.Element;
 
     teamId: string;
     filter: string;
