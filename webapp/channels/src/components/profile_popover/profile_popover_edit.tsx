@@ -50,7 +50,7 @@ const ProfilePopoverEdit = ({
     if (userId !== currentUserId || haveOverrideProp) {
         return null;
     }
-    
+
     const sendMessageTooltip = (
         <Tooltip id='sendMessageTooltip'>
             <FormattedMessage
@@ -59,7 +59,7 @@ const ProfilePopoverEdit = ({
             />
         </Tooltip>
     );
-    
+
     return (
         <div
             data-toggle='tooltip'
