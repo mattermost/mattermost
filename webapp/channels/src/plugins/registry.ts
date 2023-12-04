@@ -1230,7 +1230,9 @@ export default class PluginRegistry {
     // and all values will be stored in the preferences with cateogry pp_${pluginId} and
     // the name of the setting.
     //
-    // Malformed settings will be silently filtered out.
+    // The settings definition can be found in /src/types/plugins/user_settings.ts
+    //
+    // Malformed settings will be filtered out.
     registerUserSettings = reArg(['setting'], ({setting}) => {
         const data = {
             pluginId: this.id,

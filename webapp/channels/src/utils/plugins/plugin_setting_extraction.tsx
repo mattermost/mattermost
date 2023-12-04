@@ -1,11 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// This files needs an update on the typescript library. That is handled in
-// https://github.com/mattermost/mattermost/pull/25535 . When that is done,
-// we can remove the nocheck.
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
 import type {BasePluginConfigurationSetting, PluginConfiguration, PluginConfigurationRadioSetting, PluginConfigurationRadioSettingOption, PluginConfigurationSection} from 'types/plugins/user_settings';
 
 export function extractPluginConfiguration(pluginConfiguration: unknown) {
