@@ -1,20 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import './save_changes_panel.scss';
 import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
+
+import './save_changes_panel.scss';
 
 type Props = {
     handleSubmit: () => void;
     handleCancel: () => void;
+    errorState?: boolean;
 }
-function SaveChangesPanel({handleSubmit, handleCancel}: Props) {
+function SaveChangesPanel({handleSubmit, handleCancel, errorState = false}: Props) {
+    const panelClassName = classNames('mm-save-changes-panel', {error: errorState});
+    const messageClassName = classNames('mm-save-changes-panel__message', {error: errorState});
+    const cancelButtonClassName = classNames('mm-save-changes-panel__cancel-btn', {error: errorState});
+    const saveButtonClassName = classNames('mm-save-changes-panel__save-btn', {error: errorState});
+
     return (
-        <div className='mm-save-changes-panel'>
-            <p className='mm-save-changes-panel__message'>
+        <div className={panelClassName}>
+            <p className={messageClassName}>
                 <AlertCircleOutlineIcon
                     size={18}
                     color={'currentcolor'}
@@ -26,7 +34,7 @@ function SaveChangesPanel({handleSubmit, handleCancel}: Props) {
             </p>
             <div className='mm-save-changes-panel__btn-ctr'>
                 <button
-                    className='mm-save-changes-panel__cancel-btn'
+                    className={cancelButtonClassName}
                     onClick={handleCancel}
                 >
                     <FormattedMessage
@@ -35,7 +43,7 @@ function SaveChangesPanel({handleSubmit, handleCancel}: Props) {
                     />
                 </button>
                 <button
-                    className='mm-save-changes-panel__save-btn'
+                    className={saveButtonClassName}
                     onClick={handleSubmit}
                 >
                     <FormattedMessage

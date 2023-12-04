@@ -168,6 +168,7 @@ const AccessTab = (props: Props) => {
                 <div className='user-settings'>
                     {props.team?.group_constrained ? undefined : allowedDomainsSection}
                     <div className='divider-light'/>
+                    {/* todo sinan: finish open invite section */}
                     <OpenInvite
                         teamId={props.team?.id}
                         isGroupConstrained={props.team?.group_constrained}

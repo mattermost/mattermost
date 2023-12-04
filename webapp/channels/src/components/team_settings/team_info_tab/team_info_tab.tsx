@@ -27,7 +27,7 @@ type Props = PropsFromRedux & OwnProps;
 // todo sinan: think about to put name, description and image section into different files
 // todo sinan: how to manage server errors
 // todo sinan: fix tab changes when there is haveChanges
-// todo sinan: fix saveChanges color
+// todo sinan: check all css color var no -8 etc.
 const InfoTab = (props: Props) => {
     const [name, setName] = useState<Team['display_name']>(props.team?.display_name ?? '');
     const [description, setDescription] = useState<Team['description']>(props.team?.description ?? '');
@@ -172,6 +172,7 @@ const InfoTab = (props: Props) => {
                 <SaveChangesPanel
                     handleCancel={handleCancel}
                     handleSubmit={handleSaveChanges}
+                    // errorState={true} // todo sinan pass if there is a server error
                 /> : undefined}
         </div>
     );

@@ -6,22 +6,42 @@
     display: flex;
     width: calc(100% - 232px - 40px);
     align-items: center;
-    padding: 18px;
-    background-color: var(--dnd-indicator);
+    padding: 12px;
     border-radius: 4px;
     box-shadow: var(--elevation-3);
     font-family: 'Open Sans', sans-serif;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+
+    &.error {
+        background: var(--dnd-indicator);
+        border: none;
+    }
 
     &__message {
         display: flex;
         align-items: center;
         margin: 0;
-        color: var(--sidebar-text);
+        color: var(--center-channel-color);
         font-family: inherit;
         font-size: 14px;
         font-style: normal;
         font-weight: 600;
         line-height: 20px;
+
+        span {
+            margin-left: 8px
+        }
+
+        svg {
+            color: rgba(var(--center-channel-color-rgb), 0.56)
+        }
+
+        &.error {
+            color: var(--button-color);
+            svg {
+                color: var(--button-color);
+            }
+        }
     }
 
     &__btn-ctr {
@@ -33,30 +53,12 @@
 
     &__cancel-btn {
         display: flex;
-        width: 64px;
+        min-width: 64px;
         height: 32px;
         align-items: center;
         padding: 10px 16px;
         border: none;
-        background: rgba(255, 255, 255, 0.12);
-        border-radius: 4px;
-        color: var(--sidebar-text);
-        font-family: inherit;
-        font-size: 12px;
-        font-weight: 600;
-        gap: 10px;
-        line-height: 10px;
-    }
-
-    &__save-btn {
-        display: flex;
-        width: 59px;
-        height: 32px;
-        flex-direction: column;
-        align-items: center;
-        padding: 10px 16px;
-        border: none;
-        background: var(--sidebar-text);
+        background: rgba(var(--denim-button-bg-rgb), 0.08);
         border-radius: 4px;
         color: var(--denim-button-bg);
         font-family: inherit;
@@ -64,5 +66,33 @@
         font-weight: 600;
         gap: 10px;
         line-height: 10px;
+
+        &.error {
+            background: rgba(var(--button-color-rgb), 0.12);
+            color: var(--button-color);
+        }
+    }
+
+    &__save-btn {
+        display: flex;
+        min-width: 59px;
+        height: 32px;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px 16px;
+        border: none;
+        background: var(--denim-button-bg);
+        border-radius: 4px;
+        color: var(--button-color);
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        gap: 10px;
+        line-height: 10px;
+
+        &.error {
+            color: var(--denim-button-bg);
+            background-color: var(--button-color);
+        }
     }
 }
