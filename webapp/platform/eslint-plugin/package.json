@@ -18,7 +18,7 @@
   "peerDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.57.1",
     "eslint-plugin-header": "^3.1.1",
-    "eslint-plugin-react": "^7.32.2"
+    "eslint-plugin-react": "^7.33.2"
   },
   "peerDependenciesMeta": {
     "eslint-plugin-react": {
