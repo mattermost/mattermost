@@ -93,11 +93,11 @@ type Params struct {
 	GroupSource               model.GroupSource
 	FilterHasMember           string
 	IncludeChannelMemberCount string
-	ChannelBookmarkId         string
 
 	//Bookmarks
-	IncludeBookmarks bool
-	BookmarksSince   int64
+	ChannelBookmarkId string
+	IncludeBookmarks  bool
+	BookmarksSince    int64
 
 	// Cloud
 	InvoiceId string
