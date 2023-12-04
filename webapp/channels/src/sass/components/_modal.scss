@@ -239,9 +239,15 @@
     .modal-header {
         display: flex;
         align-items: center;
-        padding: 24px 32px;
+        justify-content: space-between;
+        padding: 24px 64px 24px 32px;
         border: none;
         background: transparent;
+
+        &::before,
+        &::after {
+            content: none;
+        }
 
         .close {
             position: absolute;
