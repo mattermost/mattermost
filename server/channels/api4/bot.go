@@ -122,7 +122,7 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 
-	bot, appErr := c.App.GetBot(botUserId, includeDeleted)
+	bot, appErr := c.App.GetBot(c.AppContext, botUserId, includeDeleted)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -170,7 +170,7 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bots, appErr := c.App.GetBots(&model.BotGetOptions{
+	bots, appErr := c.App.GetBots(c.AppContext, &model.BotGetOptions{
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
 		OwnerId:        OwnerId,
@@ -257,7 +257,7 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 		}
 	}
 
-	bot, err := c.App.UpdateBotOwner(botUserId, userId)
+	bot, err := c.App.UpdateBotOwner(c.AppContext, botUserId, userId)
 	if err != nil {
 		c.Err = err
 		return
@@ -278,7 +278,7 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bot, err := c.App.GetBot(c.Params.BotUserId, false)
+	bot, err := c.App.GetBot(c.AppContext, c.Params.BotUserId, false)
 	if err != nil {
 		c.Err = err
 		return
