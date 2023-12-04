@@ -22,7 +22,7 @@ const Position = ({
     );
     return (
         <div
-            className='overflow--ellipsis text-nowrap'
+            className='text-center'
             key='user-popover-position'
         >
             {positionToRender}
