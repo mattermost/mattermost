@@ -1151,25 +1151,25 @@ func (_m *UserStore) GetUnreadCountForChannel(userID string, channelID string) (
 	return r0, r1
 }
 
-// GetUserReport provides a mock function with given fields: sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt, roleFilter, teamFilter, hasNoTeam, hideActive, hideInactive
-func (_m *UserStore) GetUserReport(sortColumn string, sortDesc bool, pageSize int, lastSortColumnValue string, lastUserId string, startAt int64, endAt int64, roleFilter string, teamFilter string, hasNoTeam bool, hideActive bool, hideInactive bool) ([]*model.UserReportQuery, error) {
-	ret := _m.Called(sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt, roleFilter, teamFilter, hasNoTeam, hideActive, hideInactive)
+// GetUserReport provides a mock function with given fields: filter
+func (_m *UserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
+	ret := _m.Called(filter)
 
 	var r0 []*model.UserReportQuery
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, bool, int, string, string, int64, int64, string, string, bool, bool, bool) ([]*model.UserReportQuery, error)); ok {
-		return rf(sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt, roleFilter, teamFilter, hasNoTeam, hideActive, hideInactive)
+	if rf, ok := ret.Get(0).(func(*model.UserReportOptions) ([]*model.UserReportQuery, error)); ok {
+		return rf(filter)
 	}
-	if rf, ok := ret.Get(0).(func(string, bool, int, string, string, int64, int64, string, string, bool, bool, bool) []*model.UserReportQuery); ok {
-		r0 = rf(sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt, roleFilter, teamFilter, hasNoTeam, hideActive, hideInactive)
+	if rf, ok := ret.Get(0).(func(*model.UserReportOptions) []*model.UserReportQuery); ok {
+		r0 = rf(filter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.UserReportQuery)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, bool, int, string, string, int64, int64, string, string, bool, bool, bool) error); ok {
-		r1 = rf(sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt, roleFilter, teamFilter, hasNoTeam, hideActive, hideInactive)
+	if rf, ok := ret.Get(1).(func(*model.UserReportOptions) error); ok {
+		r1 = rf(filter)
 	} else {
 		r1 = ret.Error(1)
 	}

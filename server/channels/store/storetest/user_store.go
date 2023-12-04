@@ -6244,7 +6244,11 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("should return info for all the users", func(t *testing.T) {
-		userReport, err := ss.User().GetUserReport("Username", false, 50, "", "", 0, 0, "", "", false, false, false)
+
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			SortColumn: "Username",
+			PageSize:   50,
+		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
 		require.Equal(t, 3, len(userReport))
@@ -6260,7 +6264,11 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("should return in the correct order", func(t *testing.T) {
-		userReport, err := ss.User().GetUserReport("Username", true, 50, "", "", 0, 0, "", "", false, false, false)
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			SortColumn: "Username",
+			SortDesc:   true,
+			PageSize:   50,
+		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
 		require.Equal(t, 3, len(userReport))
@@ -6276,13 +6284,20 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("should fail on invalid sort column", func(t *testing.T) {
-		userReport, err := ss.User().GetUserReport("FakeColumn", true, 50, "", "", 0, 0, "", "", false, false, false)
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			SortColumn: "FakeColumn",
+			SortDesc:   true,
+			PageSize:   50,
+		})
 		require.Error(t, err)
 		require.Nil(t, userReport)
 	})
 
 	t.Run("should only return amount of users in page", func(t *testing.T) {
-		userReport, err := ss.User().GetUserReport("Username", false, 2, "", "", 0, 0, "", "", false, false, false)
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			SortColumn: "Username",
+			PageSize:   2,
+		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
 		require.Equal(t, 2, len(userReport))
@@ -6295,7 +6310,13 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("should return correct paging", func(t *testing.T) {
-		userReport, err := ss.User().GetUserReport("Username", false, 50, u2.Username, u2.Id, 0, 0, "", "", false, false, false)
+
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			SortColumn:          "Username",
+			PageSize:            50,
+			LastSortColumnValue: u2.Username,
+			LastUserId:          u2.Id,
+		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
 		require.Equal(t, 1, len(userReport))
@@ -6305,7 +6326,10 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("should return accurate post stats for various date ranges", func(t *testing.T) {
-		userReport, err := ss.User().GetUserReport("Username", false, 50, "", "", 0, 0, "", "", false, false, false)
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			SortColumn: "Username",
+			PageSize:   50,
+		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
 
@@ -6319,7 +6343,11 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, 5, *userReport[2].DaysActive)
 		require.Equal(t, now.UnixMilli(), *userReport[2].LastPostDate)
 
-		userReport, err = ss.User().GetUserReport("Username", false, 50, "", "", now.AddDate(0, 0, -2).UnixMilli(), 0, "", "", false, false, false)
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			SortColumn: "Username",
+			PageSize:   50,
+			StartAt:    now.AddDate(0, 0, -2).UnixMilli(),
+		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
 
@@ -6333,7 +6361,11 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, 3, *userReport[2].DaysActive)
 		require.Equal(t, now.UnixMilli(), *userReport[2].LastPostDate)
 
-		userReport, err = ss.User().GetUserReport("Username", false, 50, "", "", 0, now.AddDate(0, 0, -2).UnixMilli(), "", "", false, false, false)
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			SortColumn: "Username",
+			PageSize:   50,
+			EndAt:      now.AddDate(0, 0, -2).UnixMilli(),
+		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
 
@@ -6347,7 +6379,12 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, 2, *userReport[2].DaysActive)
 		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[2].LastPostDate)
 
-		userReport, err = ss.User().GetUserReport("Username", false, 50, "", "", now.AddDate(0, 0, -3).UnixMilli(), now.AddDate(0, 0, -2).UnixMilli(), "", "", false, false, false)
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			SortColumn: "Username",
+			PageSize:   50,
+			StartAt:    now.AddDate(0, 0, -3).UnixMilli(),
+			EndAt:      now.AddDate(0, 0, -2).UnixMilli(),
+		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
 
@@ -6363,7 +6400,11 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("should filter on roles", func(t *testing.T) {
-		userReport, err := ss.User().GetUserReport("Username", false, 50, "", "", 0, 0, "system", "", false, false, false)
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			SortColumn: "Username",
+			PageSize:   50,
+			Role:       "system",
+		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
 		require.Equal(t, 1, len(userReport))
@@ -6371,14 +6412,22 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("should filter on teams", func(t *testing.T) {
-		userReport, err := ss.User().GetUserReport("Username", false, 50, "", "", 0, 0, "", "", true, false, false)
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			SortColumn: "Username",
+			PageSize:   50,
+			HasNoTeam:  true,
+		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
 		require.Equal(t, 2, len(userReport))
 		require.Equal(t, u1.Id, userReport[0].Id)
 		require.Equal(t, u2.Id, userReport[1].Id)
 
-		userReport, err = ss.User().GetUserReport("Username", false, 50, "", "", 0, 0, "", team.Id, false, false, false)
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			SortColumn: "Username",
+			PageSize:   50,
+			Team:       team.Id,
+		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
 		require.Equal(t, 1, len(userReport))
@@ -6386,14 +6435,22 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("should filter on activation", func(t *testing.T) {
-		userReport, err := ss.User().GetUserReport("Username", false, 50, "", "", 0, 0, "", "", false, false, true)
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			SortColumn:   "Username",
+			PageSize:     50,
+			HideInactive: true,
+		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
 		require.Equal(t, 2, len(userReport))
 		require.Equal(t, u1.Id, userReport[0].Id)
 		require.Equal(t, u2.Id, userReport[1].Id)
 
-		userReport, err = ss.User().GetUserReport("Username", false, 50, "", "", 0, 0, "", team.Id, false, true, false)
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			SortColumn: "Username",
+			PageSize:   50,
+			HideActive: true,
+		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
 		require.Equal(t, 1, len(userReport))

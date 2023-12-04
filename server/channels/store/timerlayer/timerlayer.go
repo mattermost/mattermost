@@ -10709,10 +10709,10 @@ func (s *TimerLayerUserStore) GetUnreadCountForChannel(userID string, channelID 
 	return result, err
 }
 
-func (s *TimerLayerUserStore) GetUserReport(sortColumn string, sortDesc bool, pageSize int, lastSortColumnValue string, lastUserId string, startAt int64, endAt int64, roleFilter string, teamFilter string, hasNoTeam bool, hideActive bool, hideInactive bool) ([]*model.UserReportQuery, error) {
+func (s *TimerLayerUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.GetUserReport(sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt, roleFilter, teamFilter, hasNoTeam, hideActive, hideInactive)
+	result, err := s.UserStore.GetUserReport(filter)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

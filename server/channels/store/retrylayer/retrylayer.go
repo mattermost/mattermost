@@ -13577,11 +13577,11 @@ func (s *RetryLayerUserStore) GetUnreadCountForChannel(userID string, channelID 
 
 }
 
-func (s *RetryLayerUserStore) GetUserReport(sortColumn string, sortDesc bool, pageSize int, lastSortColumnValue string, lastUserId string, startAt int64, endAt int64, roleFilter string, teamFilter string, hasNoTeam bool, hideActive bool, hideInactive bool) ([]*model.UserReportQuery, error) {
+func (s *RetryLayerUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetUserReport(sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt, roleFilter, teamFilter, hasNoTeam, hideActive, hideInactive)
+		result, err := s.UserStore.GetUserReport(filter)
 		if err == nil {
 			return result, nil
 		}

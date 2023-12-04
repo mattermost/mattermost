@@ -1034,6 +1034,21 @@ type UserReport struct {
 	UserPostStats
 }
 
+type UserReportOptions struct {
+	SortColumn          string
+	SortDesc            bool
+	PageSize            int
+	LastSortColumnValue string
+	LastUserId          string
+	StartAt             int64
+	EndAt               int64
+	Role                string
+	Team                string
+	HasNoTeam           bool
+	HideActive          bool
+	HideInactive        bool
+}
+
 func (u *UserReportQuery) ToReport() *UserReport {
 	return &UserReport{
 		Id:            u.Id,

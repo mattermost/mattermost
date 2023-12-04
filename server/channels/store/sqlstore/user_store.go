@@ -2267,20 +2267,7 @@ func (us SqlUserStore) RefreshPostStatsForUsers() error {
 	return nil
 }
 
-func (us SqlUserStore) GetUserReport(
-	sortColumn string,
-	sortDesc bool,
-	pageSize int,
-	lastSortColumnValue string,
-	lastUserId string,
-	startAt int64,
-	endAt int64,
-	roleFilter string,
-	teamFilter string,
-	hasNoTeam bool,
-	hideActive bool,
-	hideInactive bool,
-) ([]*model.UserReportQuery, error) {
+func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
 	isPostgres := us.DriverName() == model.DatabaseDriverPostgres
 	selectColumns := []string{"u.Id", "u.LastLogin", "s.LastActivityAt AS LastStatusAt"}
 	for _, column := range model.UserReportSortColumns {
@@ -2300,8 +2287,8 @@ func (us SqlUserStore) GetUserReport(
 		)
 	}
 
-	sortColumnValue := sortColumn
-	if sortDesc {
+	sortColumnValue := filter.SortColumn
+	if filter.SortDesc {
 		sortColumnValue += " DESC"
 	}
 
@@ -2310,52 +2297,52 @@ func (us SqlUserStore) GetUserReport(
 		From("Users u").
 		LeftJoin("Status s ON s.UserId = u.Id").
 		Where(sq.Or{
-			sq.Gt{sortColumn: lastSortColumnValue},
+			sq.Gt{filter.SortColumn: filter.LastSortColumnValue},
 			sq.And{
-				sq.Eq{sortColumn: lastSortColumnValue},
-				sq.Gt{"u.Id": lastUserId},
+				sq.Eq{filter.SortColumn: filter.LastSortColumnValue},
+				sq.Gt{"u.Id": filter.LastUserId},
 			},
 		}).
 		Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM Bots)")).
 		GroupBy("u.Id", "s.UserId").
 		OrderBy(sortColumnValue, "u.Id")
 
-	if pageSize > 0 {
-		query = query.Limit(uint64(pageSize))
+	if filter.PageSize > 0 {
+		query = query.Limit(uint64(filter.PageSize))
 	}
 
 	if isPostgres {
 		joinQuery := "PostStats ps ON ps.UserId = u.Id"
-		if startAt > 0 {
-			startDate := time.UnixMilli(startAt)
+		if filter.StartAt > 0 {
+			startDate := time.UnixMilli(filter.StartAt)
 			joinQuery += fmt.Sprintf(" AND ps.Day >= '%s'", startDate.Format("2006-01-02"))
 		}
-		if endAt > 0 {
-			endDate := time.UnixMilli(endAt)
+		if filter.EndAt > 0 {
+			endDate := time.UnixMilli(filter.EndAt)
 			joinQuery += fmt.Sprintf(" AND ps.Day < '%s'", endDate.Format("2006-01-02"))
 		}
 		query = query.LeftJoin(joinQuery)
 	} else {
 		joinQuery := "Posts p on p.UserId = u.Id"
-		if startAt > 0 {
-			joinQuery += fmt.Sprintf(" AND p.CreateAt >= %d", startAt)
+		if filter.StartAt > 0 {
+			joinQuery += fmt.Sprintf(" AND p.CreateAt >= %d", filter.StartAt)
 		}
-		if endAt > 0 {
-			joinQuery += fmt.Sprintf(" AND p.CreateAt < %d", endAt)
+		if filter.EndAt > 0 {
+			joinQuery += fmt.Sprintf(" AND p.CreateAt < %d", filter.EndAt)
 		}
 		query = query.LeftJoin(joinQuery)
 	}
 
-	query = applyRoleFilter(query, roleFilter, isPostgres)
-	if hasNoTeam {
+	query = applyRoleFilter(query, filter.Role, isPostgres)
+	if filter.HasNoTeam {
 		query = query.Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM TeamMembers WHERE DeleteAt = 0)"))
-	} else if teamFilter != "" {
-		query = query.Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamFilter)
+	} else if filter.Team != "" {
+		query = query.Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", filter.Team)
 	}
-	if hideActive {
+	if filter.HideActive {
 		query = query.Where(sq.Gt{"u.DeleteAt": 0})
 	}
-	if hideInactive {
+	if filter.HideInactive {
 		query = query.Where(sq.Eq{"u.DeleteAt": 0})
 	}
 

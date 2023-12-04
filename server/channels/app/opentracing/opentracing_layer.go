@@ -10704,7 +10704,7 @@ func (a *OpenTracingAppLayer) GetUsersEtag(restrictionsHash string) string {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetUsersForReporting(sortColumn string, sortDesc bool, pageSize int, lastSortColumnValue string, lastUserId string, startAt int64, endAt int64, roleFilter string, teamFilter string, hasNoTeam bool, hideActive bool, hideInactive bool) ([]*model.UserReport, *model.AppError) {
+func (a *OpenTracingAppLayer) GetUsersForReporting(filter *model.UserReportOptions) ([]*model.UserReport, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersForReporting")
 
@@ -10716,7 +10716,7 @@ func (a *OpenTracingAppLayer) GetUsersForReporting(sortColumn string, sortDesc b
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetUsersForReporting(sortColumn, sortDesc, pageSize, lastSortColumnValue, lastUserId, startAt, endAt, roleFilter, teamFilter, hasNoTeam, hideActive, hideInactive)
+	resultVar0, resultVar1 := a.app.GetUsersForReporting(filter)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

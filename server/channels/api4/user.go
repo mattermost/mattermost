@@ -3457,27 +3457,16 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 		sortColumn = r.URL.Query().Get("sort_column")
 	}
 
-	sortDesc := false
-	if r.URL.Query().Get("sort_direction") == "desc" {
-		sortDesc = true
-	}
-
 	pageSize := 50
 	if pageSizeStr, err := strconv.ParseInt(r.URL.Query().Get("page_size"), 10, 64); err == nil {
 		pageSize = int(pageSizeStr)
 	}
 
-	lastSortColumnValue := r.URL.Query().Get("last_column_value")
-	lastUserId := r.URL.Query().Get("last_id")
-	roleFilter := r.URL.Query().Get("role_filter")
-	hasNoTeam := r.URL.Query().Get("has_no_team") == "true"
 	teamFilter := r.URL.Query().Get("team_filter")
 	if !(teamFilter == "" || model.IsValidId(teamFilter)) {
 		c.Err = model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_team_filter", nil, "", http.StatusBadRequest)
 		return
 	}
-	hideActive := r.URL.Query().Get("hide_active") == "true"
-	hideInactive := r.URL.Query().Get("hide_inctive") == "true"
 
 	startAt := int64(0)
 	endAt := int64(0)
@@ -3493,20 +3482,20 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 		startAt = currentTime.AddDate(0, -6, -0).UnixMilli()
 	}
 
-	userReports, err := c.App.GetUsersForReporting(
-		sortColumn,
-		sortDesc,
-		pageSize,
-		lastSortColumnValue,
-		lastUserId,
-		startAt,
-		endAt,
-		roleFilter,
-		teamFilter,
-		hasNoTeam,
-		hideActive,
-		hideInactive,
-	)
+	userReports, err := c.App.GetUsersForReporting(&model.UserReportOptions{
+		SortColumn:          sortColumn,
+		SortDesc:            r.URL.Query().Get("sort_direction") == "desc",
+		PageSize:            pageSize,
+		Team:                teamFilter,
+		StartAt:             startAt,
+		EndAt:               endAt,
+		LastSortColumnValue: r.URL.Query().Get("last_column_value"),
+		LastUserId:          r.URL.Query().Get("last_id"),
+		Role:                r.URL.Query().Get("role_filter"),
+		HasNoTeam:           r.URL.Query().Get("has_no_team") == "true",
+		HideActive:          r.URL.Query().Get("hide_active") == "true",
+		HideInactive:        r.URL.Query().Get("hide_inctive") == "true",
+	})
 	if err != nil {
 		c.Err = err
 		return

@@ -2819,79 +2819,27 @@ func (a *App) UserIsFirstAdmin(user *model.User) bool {
 	return true
 }
 
-func (a *App) GetUsersForReporting(
-	sortColumn string,
-	sortDesc bool,
-	pageSize int,
-	lastSortColumnValue string,
-	lastUserId string,
-	startAt int64,
-	endAt int64,
-	roleFilter string,
-	teamFilter string,
-	hasNoTeam bool,
-	hideActive bool,
-	hideInactive bool,
-) ([]*model.UserReport, *model.AppError) {
+func (a *App) GetUsersForReporting(filter *model.UserReportOptions) ([]*model.UserReport, *model.AppError) {
 	// Don't allow fetching more than 100 users at a time from the normal query endpoint
-	if pageSize <= 0 || pageSize > 100 {
+	if filter.PageSize <= 0 || filter.PageSize > 100 {
 		return nil, model.NewAppError("GetUsersForReporting", "app.user.get_users_for_reporting.invalid_page_size", nil, "", http.StatusBadRequest)
 	}
 
 	// Validate date range
-	if endAt > 0 && startAt > endAt {
+	if filter.EndAt > 0 && filter.StartAt > filter.EndAt {
 		return nil, model.NewAppError("GetUsersForReporting", "app.user.get_users_for_reporting.bad_date_range", nil, "", http.StatusBadRequest)
 	}
 
-	return a.getUserReport(
-		sortColumn,
-		sortDesc,
-		pageSize,
-		lastSortColumnValue,
-		lastUserId,
-		startAt,
-		endAt,
-		roleFilter,
-		teamFilter,
-		hasNoTeam,
-		hideActive,
-		hideInactive,
-	)
+	return a.getUserReport(filter)
 }
 
-func (a *App) getUserReport(
-	sortColumn string,
-	sortDesc bool,
-	pageSize int,
-	lastSortColumnValue string,
-	lastUserId string,
-	startAt int64,
-	endAt int64,
-	roleFilter string,
-	teamFilter string,
-	hasNoTeam bool,
-	hideActive bool,
-	hideInactive bool,
-) ([]*model.UserReport, *model.AppError) {
+func (a *App) getUserReport(filter *model.UserReportOptions) ([]*model.UserReport, *model.AppError) {
 	// Validate against the columns we allow sorting for
-	if !pUtils.Contains(model.UserReportSortColumns, sortColumn) {
+	if !pUtils.Contains(model.UserReportSortColumns, filter.SortColumn) {
 		return nil, model.NewAppError("GetUsersForReporting", "app.user.get_user_report.invalid_sort_column", nil, "", http.StatusBadRequest)
 	}
 
-	userReportQuery, err := a.Srv().Store().User().GetUserReport(
-		sortColumn,
-		sortDesc,
-		pageSize,
-		lastSortColumnValue,
-		lastUserId,
-		startAt,
-		endAt,
-		roleFilter,
-		teamFilter,
-		hasNoTeam,
-		hideActive,
-		hideInactive,
-	)
+	userReportQuery, err := a.Srv().Store().User().GetUserReport(filter)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersForReporting", "app.user.get_user_report.store_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
