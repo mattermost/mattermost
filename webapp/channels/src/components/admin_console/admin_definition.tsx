@@ -3118,7 +3118,7 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                                it.configIsFalse('ServiceSettings', 'EnableLatex'),
+                                it.stateIsFalse('ServiceSettings.EnableLatex'),
                             ),
                         },
                         {
