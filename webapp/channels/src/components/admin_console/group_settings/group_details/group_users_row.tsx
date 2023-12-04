@@ -16,9 +16,13 @@ type Props = {
     lastPictureUpdate: number;
 };
 
-export default function GroupUsersRow(props: Props) {
-    const {username, displayName, email, userId, lastPictureUpdate} = props;
-
+const GroupUsersRow = ({
+    username,
+    displayName,
+    email,
+    userId,
+    lastPictureUpdate,
+}: Props) => {
     return (
         <div className='group-users-row'>
             <Avatar
@@ -51,4 +55,6 @@ export default function GroupUsersRow(props: Props) {
             </div>
         </div>
     );
-}
+};
+
+export default React.memo(GroupUsersRow);
