@@ -513,7 +513,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
                     }
                 </div>
                 {this.props.saveButtonPosition === 'bottom' &&
-                    <div className='multi-select__footer'>
+                    <div className='modal-footer'>
                         {
                             this.props.backButtonClick &&
                             <button

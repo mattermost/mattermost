@@ -451,18 +451,6 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
             inviteError = (<label className='has-error control-label'>{this.state.inviteError}</label>);
         }
 
-        const header = (
-            <h1>
-                <FormattedMessage
-                    id='channel_invite.addNewMembers'
-                    defaultMessage='Add people to {channel}'
-                    values={{
-                        channel: this.props.channel.display_name,
-                    }}
-                />
-            </h1>
-        );
-
         const buttonSubmitText = localizeMessage('multiselect.add', 'Add');
         const buttonSubmitLoadingText = localizeMessage('multiselect.adding', 'Adding...');
 
@@ -556,14 +544,24 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                 <Modal.Header
                     id='channelInviteModalLabel'
                     closeButton={true}
-                />
+                >
+                    <Modal.Title
+                        componentClass='h1'
+                        id='deletePostModalLabel'
+                    >
+                        <FormattedMessage
+                            id='channel_invite.addNewMembers'
+                            defaultMessage='Add people to {channel}'
+                            values={{
+                                channel: this.props.channel.display_name,
+                            }}
+                        />
+                    </Modal.Title>
+                </Modal.Header>
                 <Modal.Body
                     role='application'
                     className='overflow--visible'
                 >
-                    <div className='channel-invite__header'>
-                        {header}
-                    </div>
                     {inviteError}
                     <div className='channel-invite__content'>
                         {content}

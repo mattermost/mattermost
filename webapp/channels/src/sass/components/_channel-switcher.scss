@@ -7,33 +7,14 @@
             margin-top: calc(50vh - 240px);
         }
 
+        .modal-header {
+            padding-right: 24px;
+            padding-left: 24px;
+        }
+
         .modal-body {
             max-height: 100%;
             padding: 0;
-        }
-
-        .modal-content {
-            border-radius: 8px;
-        }
-
-        .modal-header {
-            min-height: 0;
-            padding: 0;
-            border: none;
-            background: transparent;
-
-            .close {
-                top: 6px;
-                right: 4px;
-                display: flex;
-                width: 4rem;
-                height: 4rem;
-                align-items: center;
-                justify-content: center;
-                border-radius: 4px;
-                font-size: 32px;
-                font-weight: 400;
-            }
         }
     }
 
@@ -198,8 +179,6 @@ body:not(.app__body) {
 
 .channel-switcher__header,
 .channel-invite__header {
-    padding: 2.4rem 2.4rem 1.6rem;
-
     h1 {
         margin: 0 0 0.8rem;
         font-size: 2rem;
