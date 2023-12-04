@@ -33,19 +33,17 @@
         - outgoing_oauth_connections
       summary: Get a connection
       description: >
-        Retrieve an outgoing OAuth connections.
+        Retrieve an outgoing OAuth connection.
 
         __Minimum server version__: 9.4
-      operationId: GetOutgoingOAuthConnections
+      operationId: GetOutgoingOAuthConnection
       responses:
         "200":
           description: Successfully fetched outgoing OAuth connection
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/OutgoingOAuthConnectionGetItem"
+                $ref: "#/components/schemas/OutgoingOAuthConnectionGetItem"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "500":
