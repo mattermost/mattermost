@@ -11,8 +11,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 
-	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
+
+	sq "github.com/mattermost/squirrel"
 )
 
 const (
@@ -333,8 +334,10 @@ func (s SqlSharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*m
 	}
 
 	query, args, err := s.getQueryBuilder().Insert("SharedChannelRemotes").
-		Columns("Id", "ChannelId", "CreatorId", "CreateAt", "UpdateAt", "IsInviteAccepted", "IsInviteConfirmed", "RemoteId", "LastPostUpdateAt", "LastPostId").
-		Values(remote.Id, remote.ChannelId, remote.CreatorId, remote.CreateAt, remote.UpdateAt, remote.IsInviteAccepted, remote.IsInviteConfirmed, remote.RemoteId, remote.LastPostUpdateAt, remote.LastPostId).
+		Columns("Id", "ChannelId", "CreatorId", "CreateAt", "UpdateAt", "IsInviteAccepted", "IsInviteConfirmed", "RemoteId",
+			"LastPostCreateAt", "LastPostCreateId", "LastPostUpdateAt", "LastPostId").
+		Values(remote.Id, remote.ChannelId, remote.CreatorId, remote.CreateAt, remote.UpdateAt, remote.IsInviteAccepted, remote.IsInviteConfirmed, remote.RemoteId,
+			remote.LastPostCreateAt, remote.LastPostCreateID, remote.LastPostUpdateAt, remote.LastPostUpdateID).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "savesharedchannelremote_tosql")
@@ -359,8 +362,10 @@ func (s SqlSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (
 		Set("IsInviteAccepted", remote.IsInviteAccepted).
 		Set("IsInviteConfirmed", remote.IsInviteConfirmed).
 		Set("RemoteId", remote.RemoteId).
+		Set("LastPostCreateAt", remote.LastPostUpdateAt).
+		Set("LastPostCreateId", remote.LastPostCreateID).
 		Set("LastPostUpdateAt", remote.LastPostUpdateAt).
-		Set("LastPostId", remote.LastPostId).
+		Set("LastPostId", remote.LastPostUpdateID).
 		Where(sq.And{
 			sq.Eq{"Id": remote.Id},
 			sq.Eq{"ChannelId": remote.ChannelId},
@@ -398,8 +403,10 @@ func sharedChannelRemoteFields(prefix string) []string {
 		prefix + "IsInviteAccepted",
 		prefix + "IsInviteConfirmed",
 		prefix + "RemoteId",
+		prefix + "LastPostCreateAt",
+		"COALESCE(" + prefix + "LastPostCreateID,'') AS LastPostCreateID",
 		prefix + "LastPostUpdateAt",
-		prefix + "LastPostId",
+		"COALESCE(" + prefix + "LastPostId,'') AS LastPostUpdateID",
 	}
 }
 
@@ -532,14 +539,32 @@ func (s SqlSharedChannelStore) GetRemoteForUser(remoteId string, userId string) 
 	return &rc, nil
 }
 
-// UpdateRemoteCursor updates the LastPostUpdateAt timestamp and LastPostId for the specified SharedChannelRemote.
+// UpdateRemoteCursor updates the cursor for the specified SharedChannelRemote.
 func (s SqlSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
-	squery, args, err := s.getQueryBuilder().
+	var updateNeeded bool
+
+	builder := s.getQueryBuilder().
 		Update("SharedChannelRemotes").
-		Set("LastPostUpdateAt", cursor.LastPostUpdateAt).
-		Set("LastPostId", cursor.LastPostId).
-		Where(sq.Eq{"Id": id}).
-		ToSql()
+		Where(sq.Eq{"Id": id})
+
+	if cursor.LastPostCreateAt > 0 || cursor.LastPostCreateID != "" {
+		builder = builder.Set("LastPostCreateAt", cursor.LastPostCreateAt)
+		builder = builder.Set("LastPostCreateId", cursor.LastPostCreateID)
+		updateNeeded = true
+	}
+
+	if cursor.LastPostUpdateAt > 0 || cursor.LastPostUpdateID != "" {
+		builder = builder.Set("LastPostUpdateAt", cursor.LastPostUpdateAt)
+		builder = builder.Set("LastPostId", cursor.LastPostUpdateID)
+		updateNeeded = true
+	}
+
+	if !updateNeeded {
+		// no new cursor provided.
+		return fmt.Errorf("cursor empty")
+	}
+
+	squery, args, err := builder.ToSql()
 	if err != nil {
 		return errors.Wrap(err, "update_shared_channel_remote_cursor_tosql")
 	}

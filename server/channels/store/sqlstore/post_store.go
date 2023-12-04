@@ -13,8 +13,9 @@ import (
 	"sync"
 	"time"
 
-	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
+
+	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -1396,9 +1397,21 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Posts").
-		Where(sq.Or{sq.Gt{"Posts.UpdateAt": cursor.LastPostUpdateAt}, sq.And{sq.Eq{"Posts.UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Posts.Id": cursor.LastPostId}}}).
 		OrderBy("Posts.UpdateAt", "Id").
 		Limit(uint64(limit))
+
+	if options.SinceCreateAt {
+		query = query.Where(sq.Or{
+			sq.Gt{"Posts.CreateAt": cursor.LastPostCreateAt},
+			sq.And{
+				sq.Eq{"Posts.CreateAt": cursor.LastPostCreateAt},
+				sq.Gt{"Posts.Id": cursor.LastPostCreateID},
+			},
+		})
+	} else {
+		query = query.Where(sq.Or{sq.Gt{"Posts.UpdateAt": cursor.LastPostUpdateAt},
+			sq.And{sq.Eq{"Posts.UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Posts.Id": cursor.LastPostUpdateID}}})
+	}
 
 	if options.ChannelId != "" {
 		query = query.Where(sq.Eq{"Posts.ChannelId": options.ChannelId})
@@ -1424,8 +1437,13 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 	}
 
 	if len(posts) != 0 {
-		cursor.LastPostUpdateAt = posts[len(posts)-1].UpdateAt
-		cursor.LastPostId = posts[len(posts)-1].Id
+		if options.SinceCreateAt {
+			cursor.LastPostCreateAt = posts[len(posts)-1].CreateAt
+			cursor.LastPostCreateID = posts[len(posts)-1].Id
+		} else {
+			cursor.LastPostUpdateAt = posts[len(posts)-1].UpdateAt
+			cursor.LastPostUpdateID = posts[len(posts)-1].Id
+		}
 	}
 	return posts, cursor, nil
 }
