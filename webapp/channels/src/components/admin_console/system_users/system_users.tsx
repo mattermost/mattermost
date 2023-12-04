@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type ChangeEvent} from 'react';
-import {FormattedMessage, type IntlShape, injectIntl} from 'react-intl';
+import React from 'react';
+import type {ChangeEvent} from 'react';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
@@ -17,7 +19,10 @@ import {Constants, UserSearchOptions, SearchUserTeamFilter, UserFilters} from 'u
 import {getUserOptionsFromFilter, searchUserOptionsFromFilter} from 'utils/filter_users';
 
 import RevokeSessionsButton from './revoke_sessions_button';
+import SystemUsersFilterRole from './system_users_filter_role';
+import SystemUsersFilterTeam from './system_users_filter_team';
 import SystemUsersList from './system_users_list';
+import SystemUsersSearch from './system_users_search';
 
 const USER_ID_LENGTH = 26;
 const USERS_PER_PAGE = 50;
@@ -168,6 +173,14 @@ export class SystemUsers extends React.PureComponent<Props, State> {
         this.props.actions.setSystemUsersSearch(term, this.props.teamId, this.props.filter);
     };
 
+    handleSearchFiltersChange = ({searchTerm, teamId, filter}: {searchTerm?: string; teamId?: string; filter?: string}) => {
+        const changedSearchTerm = typeof searchTerm === 'undefined' ? this.props.searchTerm : searchTerm;
+        const changedTeamId = typeof teamId === 'undefined' ? this.props.teamId : teamId;
+        const changedFilter = typeof filter === 'undefined' ? this.props.filter : filter;
+
+        this.props.actions.setSystemUsersSearch(changedSearchTerm, changedTeamId, changedFilter);
+    };
+
     nextPage = async (page: number) => {
         const {teamId, filter} = this.props;
 
@@ -187,6 +200,56 @@ export class SystemUsers extends React.PureComponent<Props, State> {
         } else {
             await loadProfilesAndTeamMembers(page + 1, USERS_PER_PAGE, teamId, options);
         }
+        this.setState({loading: false});
+    };
+
+    onSearch = async (term: string) => {
+        this.setState({loading: true});
+
+        const options = {
+            ...searchUserOptionsFromFilter(this.props.filter),
+            ...this.props.teamId && {team_id: this.props.teamId},
+            ...this.props.teamId === SearchUserTeamFilter.NO_TEAM && {
+                [UserSearchOptions.WITHOUT_TEAM]: true,
+            },
+            allow_inactive: true,
+        };
+
+        const {data: profiles} = await this.props.actions.searchProfiles(term, options);
+        if (profiles.length === 0 && term.length === USER_ID_LENGTH) {
+            await this.getUserByTokenOrId(term);
+        }
+
+        this.setState({loading: false});
+    };
+
+    onFilter = async ({teamId, filter}: {teamId?: string; filter?: string}) => {
+        if (this.props.searchTerm) {
+            this.onSearch(this.props.searchTerm);
+            return;
+        }
+
+        this.setState({loading: true});
+
+        const newTeamId = typeof teamId !== 'undefined' ? teamId : this.props.teamId;
+        const newFilter = typeof filter !== 'undefined' ? filter : this.props.filter;
+
+        const options = getUserOptionsFromFilter(newFilter);
+
+        if (newTeamId === SearchUserTeamFilter.ALL_USERS) {
+            await Promise.all([
+                this.props.actions.getProfiles(0, Constants.PROFILE_CHUNK_SIZE, options),
+                this.props.actions.getFilteredUsersStats({include_bots: false, include_deleted: true}),
+            ]);
+        } else if (newTeamId === SearchUserTeamFilter.NO_TEAM) {
+            await this.props.actions.loadProfilesWithoutTeam(0, Constants.PROFILE_CHUNK_SIZE, options);
+        } else {
+            await Promise.all([
+                this.props.actions.loadProfilesAndTeamMembers(0, Constants.PROFILE_CHUNK_SIZE, newTeamId, options),
+                this.props.actions.getTeamStats(newTeamId),
+            ]);
+        }
+
         this.setState({loading: false});
     };
 
@@ -315,6 +378,20 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         <div className='more-modal__list member-list-holder'>
+                            <div className='system-users__filter-row'>
+                                <SystemUsersSearch
+                                    value={this.props.searchTerm}
+                                    onChange={this.handleSearchFiltersChange}
+                                    onSearch={this.onSearch}
+                                />
+                                <SystemUsersFilterTeam
+                                    options={this.props.teams}
+                                    value={this.props.teamId}
+                                    onChange={this.handleSearchFiltersChange}
+                                    onFilter={this.onFilter}
+                                />
+                                <SystemUsersFilterRole/>
+                            </div>
                             <SystemUsersList
                                 loading={this.state.loading}
                                 renderFilterRow={this.renderFilterRow}
@@ -328,8 +405,13 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                                 term={this.props.searchTerm}
                                 onTermChange={this.handleTermChange}
                                 mfaEnabled={this.props.mfaEnabled}
-                                enableUserAccessTokens={this.props.enableUserAccessTokens}
-                                experimentalEnableAuthenticationTransfer={this.props.experimentalEnableAuthenticationTransfer}
+                                enableUserAccessTokens={
+                                    this.props.enableUserAccessTokens
+                                }
+                                experimentalEnableAuthenticationTransfer={
+                                    this.props.
+                                        experimentalEnableAuthenticationTransfer
+                                }
                             />
                         </div>
                     </div>
