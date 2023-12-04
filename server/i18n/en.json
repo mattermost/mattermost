@@ -8108,7 +8108,7 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connections.app_error",
-    "translation": "There was an error while getting the connections."
+    "translation": "There was an error while getting the outgoing oauth connections."
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
