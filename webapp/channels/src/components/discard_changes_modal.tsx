@@ -12,7 +12,11 @@ type Props = {
     onCancel: (checked: boolean) => void;
 }
 
-const DiscardChangesModal = ({show, onConfirm, onCancel}: Props) => {
+const DiscardChangesModal = ({
+    show,
+    onConfirm,
+    onCancel,
+}: Props) => {
         const title = (
             <FormattedMessage
                 id='discard_changes_modal.title'
