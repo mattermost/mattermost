@@ -6307,6 +6307,10 @@
     "translation": "Unable to store the plugin signature to the configured file store."
   },
   {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Failed to parse SiteURL subpath"
+  },
+  {
     "id": "app.plugin.sync.list_filestore.app_error",
     "translation": "Error reading files from the plugins folder in the file store."
   },
@@ -6521,6 +6525,10 @@
   {
     "id": "app.reaction.save.save.app_error",
     "translation": "Unable to save reaction."
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "Reaction limit has been reached for this post."
   },
   {
     "id": "app.recover.delete.app_error",
@@ -9379,6 +9387,54 @@
     "translation": "Invalid username."
   },
   {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Audience must not be empty."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "Some audience URL is incorrect."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Invalid client id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Invalid client secret."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "Invalid creator id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "Invalid grant type."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "Invalid id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "Invalid name."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "Invalid oauth token url."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "Invalid password credentials."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Update at must be a valid time."
+  },
+  {
     "id": "model.plugin_command.error.app_error",
     "translation": "An error occurred while trying to execute this command."
   },
@@ -9952,11 +10008,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 116+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 116+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",

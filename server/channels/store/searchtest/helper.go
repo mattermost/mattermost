@@ -12,10 +12,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 type SearchTestHelper struct {
+	Context            *request.Context
 	Store              store.Store
 	Team               *model.Team
 	AnotherTeam        *model.Team
@@ -293,7 +295,7 @@ func (th *SearchTestHelper) createDirectChannel(teamID, displayName string, user
 	m2.UserId = users[1].Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	channel, err := th.Store.Channel().SaveDirectChannel(channel, m1, m2)
+	channel, err := th.Store.Channel().SaveDirectChannel(th.Context, channel, m1, m2)
 	if err != nil {
 		return nil, err
 	}
@@ -329,12 +331,12 @@ func (th *SearchTestHelper) createGroupChannel(teamID, displayName string, users
 }
 
 func (th *SearchTestHelper) deleteChannel(channel *model.Channel) error {
-	err := th.Store.Channel().PermanentDeleteMembersByChannel(channel.Id)
+	err := th.Store.Channel().PermanentDeleteMembersByChannel(th.Context, channel.Id)
 	if err != nil {
 		return err
 	}
 
-	return th.Store.Channel().PermanentDelete(channel.Id)
+	return th.Store.Channel().PermanentDelete(th.Context, channel.Id)
 }
 
 func (th *SearchTestHelper) deleteChannels(channels []*model.Channel) error {
@@ -393,7 +395,7 @@ func (th *SearchTestHelper) createFileInfo(creatorID, postID, channelID, name, c
 		creationTime = createAt
 	}
 	fileInfoModel := th.createFileInfoModel(creatorID, postID, channelID, name, content, extension, mimeType, creationTime, size)
-	return th.Store.FileInfo().Save(fileInfoModel)
+	return th.Store.FileInfo().Save(th.Context, fileInfoModel)
 }
 
 func (th *SearchTestHelper) createReply(userID, message, hashtags string, parent *model.Post, createAt int64, pinned bool) (*model.Post, error) {
@@ -403,7 +405,7 @@ func (th *SearchTestHelper) createReply(userID, message, hashtags string, parent
 }
 
 func (th *SearchTestHelper) deleteUserPosts(userID string) error {
-	err := th.Store.Post().PermanentDeleteByUser(userID)
+	err := th.Store.Post().PermanentDeleteByUser(th.Context, userID)
 	if err != nil {
 		return errors.New(err.Error())
 	}
@@ -411,7 +413,7 @@ func (th *SearchTestHelper) deleteUserPosts(userID string) error {
 }
 
 func (th *SearchTestHelper) deleteUserFileInfos(userID string) error {
-	if _, err := th.Store.FileInfo().PermanentDeleteByUser(userID); err != nil {
+	if _, err := th.Store.FileInfo().PermanentDeleteByUser(th.Context, userID); err != nil {
 		return errors.New(err.Error())
 	}
 	return nil

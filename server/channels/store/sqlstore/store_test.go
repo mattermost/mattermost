@@ -24,6 +24,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/db"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/searchtest"
@@ -47,7 +49,7 @@ func newStoreType(name, driver string) *storeType {
 	}
 }
 
-func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
+func StoreTest(t *testing.T, f func(*testing.T, request.CTX, store.Store)) {
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()
@@ -56,11 +58,13 @@ func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	}()
 	for _, st := range storeTypes {
 		st := st
+		rctx := request.TestContext(t)
+
 		t.Run(st.Name, func(t *testing.T) {
 			if testing.Short() {
 				t.SkipNow()
 			}
-			f(t, st.Store)
+			f(t, rctx, st.Store)
 		})
 	}
 }
@@ -83,7 +87,7 @@ func StoreTestWithSearchTestEngine(t *testing.T, f func(*testing.T, store.Store,
 	}
 }
 
-func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storetest.SqlStore)) {
+func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, request.CTX, store.Store, storetest.SqlStore)) {
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()
@@ -92,16 +96,18 @@ func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storete
 	}()
 	for _, st := range storeTypes {
 		st := st
+		rctx := request.TestContext(t)
+
 		t.Run(st.Name, func(t *testing.T) {
 			if testing.Short() {
 				t.SkipNow()
 			}
-			f(t, st.Store, &StoreTestWrapper{st.SqlStore})
+			f(t, rctx, st.Store, &StoreTestWrapper{st.SqlStore})
 		})
 	}
 }
 
-func initStores() {
+func initStores(logger mlog.LoggerIFace) {
 	if testing.Short() {
 		return
 	}
@@ -133,7 +139,7 @@ func initStores() {
 		st := st
 		eg.Go(func() error {
 			var err error
-			st.SqlStore, err = New(*st.SqlSettings, nil)
+			st.SqlStore, err = New(*st.SqlSettings, logger, nil)
 			if err != nil {
 				return err
 			}
@@ -178,12 +184,14 @@ func tearDownStores() {
 // before the fix in MM-28397.
 // Keeping it here to help avoiding future regressions.
 func TestStoreLicenseRace(t *testing.T) {
+	logger := mlog.CreateTestLogger(t)
+
 	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
 	if err != nil {
 		t.Skip(err)
 	}
 
-	store, err := New(*settings, nil)
+	store, err := New(*settings, logger, nil)
 	require.NoError(t, err)
 	defer func() {
 		store.Close()
@@ -213,6 +221,9 @@ func TestStoreLicenseRace(t *testing.T) {
 
 func TestGetReplica(t *testing.T) {
 	t.Parallel()
+
+	logger := mlog.CreateTestLogger(t)
+
 	testCases := []struct {
 		Description                string
 		DataSourceReplicaNum       int
@@ -284,7 +295,7 @@ func TestGetReplica(t *testing.T) {
 
 			settings.DataSourceReplicas = dataSourceReplicas
 			settings.DataSourceSearchReplicas = dataSourceSearchReplicas
-			store, err := New(*settings, nil)
+			store, err := New(*settings, logger, nil)
 			require.NoError(t, err)
 			defer func() {
 				store.Close()
@@ -357,7 +368,7 @@ func TestGetReplica(t *testing.T) {
 
 			settings.DataSourceReplicas = dataSourceReplicas
 			settings.DataSourceSearchReplicas = dataSourceSearchReplicas
-			store, err := New(*settings, nil)
+			store, err := New(*settings, logger, nil)
 			require.NoError(t, err)
 			defer func() {
 				store.Close()
@@ -411,6 +422,8 @@ func TestGetReplica(t *testing.T) {
 }
 
 func TestGetDbVersion(t *testing.T) {
+	logger := mlog.CreateTestLogger(t)
+
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,
 		model.DatabaseDriverMysql,
@@ -425,7 +438,7 @@ func TestGetDbVersion(t *testing.T) {
 				t.Skip(err)
 			}
 
-			store, err := New(*settings, nil)
+			store, err := New(*settings, logger, nil)
 			require.NoError(t, err)
 
 			version, err := store.GetDbVersion(false)
@@ -568,6 +581,9 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 
 func TestGetAllConns(t *testing.T) {
 	t.Parallel()
+
+	logger := mlog.CreateConsoleTestLogger(t)
+
 	testCases := []struct {
 		Description                string
 		DataSourceReplicaNum       int
@@ -649,7 +665,7 @@ func TestGetAllConns(t *testing.T) {
 
 			settings.DataSourceReplicas = dataSourceReplicas
 			settings.DataSourceSearchReplicas = dataSourceSearchReplicas
-			store, err := New(*settings, nil)
+			store, err := New(*settings, logger, nil)
 			require.NoError(t, err)
 			defer func() {
 				store.Close()
@@ -759,6 +775,7 @@ func TestReplicaLagQuery(t *testing.T) {
 				srCounter:   0,
 				settings:    settings,
 				metrics:     mockMetrics,
+				logger:      mlog.CreateConsoleTestLogger(t),
 				quitMonitor: make(chan struct{}),
 				wgMonitor:   &sync.WaitGroup{},
 			}
@@ -803,7 +820,7 @@ func makeSqlSettings(driver string) (*model.SqlSettings, error) {
 }
 
 func TestExecNoTimeout(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		sqlStore := ss.(*SqlStore)
 		var query string
 		timeout := sqlStore.masterX.queryTimeout
@@ -836,6 +853,7 @@ func TestMySQLReadTimeout(t *testing.T) {
 
 	store := &SqlStore{
 		settings:    settings,
+		logger:      mlog.CreateConsoleTestLogger(t),
 		quitMonitor: make(chan struct{}),
 		wgMonitor:   &sync.WaitGroup{},
 	}
@@ -852,6 +870,7 @@ func TestGetDBSchemaVersion(t *testing.T) {
 		model.DatabaseDriverMysql,
 	}
 
+	logger := mlog.CreateConsoleTestLogger(t)
 	assets := db.Assets()
 
 	for _, d := range testDrivers {
@@ -862,7 +881,7 @@ func TestGetDBSchemaVersion(t *testing.T) {
 			if err != nil {
 				t.Skip(err)
 			}
-			store, err := New(*settings, nil)
+			store, err := New(*settings, logger, nil)
 			require.NoError(t, err)
 
 			assetsList, err := assets.ReadDir(filepath.Join("migrations", driver))
@@ -891,6 +910,8 @@ func TestGetLocalSchemaVersion(t *testing.T) {
 		model.DatabaseDriverMysql,
 	}
 
+	logger := mlog.CreateConsoleTestLogger(t)
+
 	for _, d := range testDrivers {
 		driver := d
 		t.Run(driver, func(t *testing.T) {
@@ -898,7 +919,7 @@ func TestGetLocalSchemaVersion(t *testing.T) {
 			if err != nil {
 				t.Skip(err)
 			}
-			store, err := New(*settings, nil)
+			store, err := New(*settings, logger, nil)
 			require.NoError(t, err)
 
 			ver, err := store.GetLocalSchemaVersion()
@@ -917,6 +938,7 @@ func TestGetAppliedMigrations(t *testing.T) {
 		model.DatabaseDriverMysql,
 	}
 
+	logger := mlog.CreateConsoleTestLogger(t)
 	assets := db.Assets()
 
 	for _, d := range testDrivers {
@@ -927,7 +949,7 @@ func TestGetAppliedMigrations(t *testing.T) {
 			if err != nil {
 				t.Skip(err)
 			}
-			store, err := New(*settings, nil)
+			store, err := New(*settings, logger, nil)
 			require.NoError(t, err)
 
 			assetsList, err := assets.ReadDir(filepath.Join("migrations", driver))

@@ -7,6 +7,9 @@ on:
     types:
       - completed
 
+env:
+  COSIGN_VERSION: 2.2.0
+
 jobs:
   ## We only need the condition on the first job
   ## This will run only when a pull request is created with server changes
@@ -24,31 +27,10 @@ jobs:
           description: Artifacts upload and build for mattermost team platform
           status: pending
 
-  ## We need to determine if we're trying to merge to a pre-8.x branch, but 'workflow_run' doesn't give us information about the target branch.
-  ## But we can determine this also by checking if we're in the monorepo directory structure or not.
-  determine-if-monorepo:
-    runs-on: ubuntu-22.04
-    needs:
-      - update-initial-status
-    outputs:
-      is_monorepo: "${{ steps['determine-if-monorepo'].outputs.is_monorepo }}"
-    steps:
-      - name: cd/checkout-mattermost
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-      - name: cd/determine-if-monorepo
-        id: determine-if-monorepo
-        run: |
-          # Assert that the 'server' directory doesn't exist. But if it does, set 'is_monorepo=true'
-          IS_MONOREPO=$([ ! -d server ] || echo -n 'true')
-          echo "is_monorepo=$IS_MONOREPO" | tee --append "$GITHUB_OUTPUT"
-
   upload-artifacts:
     runs-on: ubuntu-22.04
     needs:
       - update-initial-status
-      - determine-if-monorepo
     steps:
       - name: cd/configure-aws-credentials
         uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 #v3.0.1
@@ -56,7 +38,6 @@ jobs:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.PR_BUILDS_BUCKET_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.PR_BUILDS_BUCKET_AWS_SECRET_ACCESS_KEY }}
-        if: needs['determine-if-monorepo'].outputs.is_monorepo == 'true'
 
       - name: cd/download-artifacts-from-PR-workflow
         uses: dawidd6/action-download-artifact@0c49384d39ceb023b8040f480a25596fd6cf441b # v2.26.0
@@ -66,7 +47,6 @@ jobs:
           workflow_conclusion: success
           name: server-dist-artifact
           path: server/dist
-        if: needs['determine-if-monorepo'].outputs.is_monorepo == 'true'
 
       - name: cd/generate-packages-file-list
         working-directory: ./server/dist
@@ -74,11 +54,9 @@ jobs:
           echo "PACKAGES_FILE_LIST<<EOF" >> "${GITHUB_ENV}"
           ls | grep -E "*.(tar.gz|zip)$" >> "${GITHUB_ENV}"
           echo "EOF" >> "${GITHUB_ENV}"
-        if: needs['determine-if-monorepo'].outputs.is_monorepo == 'true'
 
       - name: cd/upload-artifacts-to-s3
         run: aws s3 sync server/dist/ s3://pr-builds.mattermost.com/mattermost/commit/${{ github.event.workflow_run.head_sha }}/ --cache-control no-cache --no-progress --acl public-read
-        if: needs['determine-if-monorepo'].outputs.is_monorepo == 'true'
 
       - name: cd/generate-summary
         run: |
@@ -89,22 +67,24 @@ jobs:
           echo "| --- |" >> "${GITHUB_STEP_SUMMARY}"
           for package in ${PACKAGES_FILE_LIST}
             do 
-              echo "|[${package}](https://s3.amazonaws.com/pr-builds.mattermost.com/mattermost/commit/${{ github.event.workflow_run.head_sha }}/${package})|" >> "${GITHUB_STEP_SUMMARY}"
+              echo "|[${package}](https://pr-builds.mattermost.com/mattermost/commit/${{ github.event.workflow_run.head_sha }}/${package})|" >> "${GITHUB_STEP_SUMMARY}"
           done
-        if: needs['determine-if-monorepo'].outputs.is_monorepo == 'true'
 
   build-docker:
     runs-on: ubuntu-22.04
     needs:
       - upload-artifacts
-      - determine-if-monorepo
     steps:
       - name: cd/docker-login
         uses: docker/login-action@3da7dc6e2b31f99ef2cb9fb4c50fb0971e0d0139 # v2.1.0
         with:
           username: mattermostdev
           password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
-        if: needs['determine-if-monorepo'].outputs.is_monorepo == 'true'
+
+      - name: cd/setup-cosign
+        uses: sigstore/cosign-installer@11086d25041f77fe8fe7b9ea4e48e3b9192b8f19 # v3.1.2
+        with:
+          cosign-release: v${{ env.COSIGN_VERSION }}
 
       - name: cd/download-artifacts-from-PR-workflow
         uses: dawidd6/action-download-artifact@0c49384d39ceb023b8040f480a25596fd6cf441b # v2.26.0
@@ -114,27 +94,36 @@ jobs:
           workflow_conclusion: success
           name: server-build-artifact
           path: server/build/
-        if: needs['determine-if-monorepo'].outputs.is_monorepo == 'true'
 
       - name: cd/setup-docker-buildx
         uses: docker/setup-buildx-action@11e8a2e2910826a92412015c515187a2d6750279 # v2.4
-        if: needs['determine-if-monorepo'].outputs.is_monorepo == 'true'
 
       - name: cd/docker-build-and-push
+        id: docker
         env:
           MM_PACKAGE: https://pr-builds.mattermost.com/mattermost/commit/${{ github.event.workflow_run.head_sha }}/mattermost-team-linux-amd64.tar.gz
         run: |
-          export TAG=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)
           cd server/build
+          export TAG=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)
+          echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
           docker buildx build --no-cache --platform linux/amd64 --push --build-arg MM_PACKAGE=${MM_PACKAGE} -t mattermostdevelopment/mm-te-test:${TAG} -t mattermostdevelopment/mattermost-team-edition:${TAG} .
-        if: needs['determine-if-monorepo'].outputs.is_monorepo == 'true'
+          echo "DOCKERHUB_IMAGE_DIGEST=$(cosign triangulate mattermostdevelopment/mattermost-team-edition:${TAG} | cut -d: -f2 | sed 's/\.sig$//' | tr '-' ':')" >> "${GITHUB_OUTPUT}"
+
+      - name: cd/generate-summary
+        run: |
+          echo "### Docker Image for Mattermost team package" >> "${GITHUB_STEP_SUMMARY}"
+          echo " " >> "${GITHUB_STEP_SUMMARY}"
+          echo "Mattermost Repo SHA: \`${{ github.event.workflow_run.head_sha }}\`" >> "${GITHUB_STEP_SUMMARY}"
+          echo " " >> "${GITHUB_STEP_SUMMARY}"
+          echo "Docker Image: \`mattermostdevelopment/mattermost-team-edition:${{ steps.docker.outputs.tag }}\`" >> "${GITHUB_STEP_SUMMARY}"
+          echo "Image Digest: \`${{ steps.docker.outputs.DOCKERHUB_IMAGE_DIGEST }}\`" >> "${GITHUB_STEP_SUMMARY}"
+          echo "Secure Image: \`mattermostdevelopment/mattermost-team-edition:${{ steps.docker.outputs.tag }}@${{ steps.docker.outputs.DOCKERHUB_IMAGE_DIGEST }}\`" >> "${GITHUB_STEP_SUMMARY}"
 
   update-failure-final-status:
     if: failure() || cancelled()
     runs-on: ubuntu-22.04
     needs:
       - build-docker
-      - determine-if-monorepo
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@a74f6d87f847326c04d326bf1908da40cb9b3556
         env:
@@ -151,7 +140,6 @@ jobs:
     runs-on: ubuntu-22.04
     needs:
       - build-docker
-      - determine-if-monorepo
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@a74f6d87f847326c04d326bf1908da40cb9b3556
         env:

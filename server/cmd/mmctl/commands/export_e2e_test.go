@@ -5,7 +5,6 @@ package commands
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -264,9 +263,9 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 
-		expected, err := ioutil.ReadFile(exportFilePath)
+		expected, err := os.ReadFile(exportFilePath)
 		s.Require().Nil(err)
-		actual, err := ioutil.ReadFile(downloadPath)
+		actual, err := os.ReadFile(downloadPath)
 		s.Require().Nil(err)
 
 		s.Require().Equal(expected, actual)
