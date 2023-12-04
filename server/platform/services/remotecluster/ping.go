@@ -106,6 +106,7 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	if err != nil {
 		return err
 	}
+	rc.LastPingAt = model.GetMillis()
 
 	ping := model.RemoteClusterPing{}
 	err = json.Unmarshal(resp, &ping)
@@ -120,7 +121,6 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 			mlog.Err(err),
 		)
 	}
-	rc.LastPingAt = model.GetMillis()
 
 	if metrics := rcs.server.GetMetrics(); metrics != nil {
 		sentAt := time.Unix(0, ping.SentAt*int64(time.Millisecond))
