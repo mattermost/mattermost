@@ -1452,6 +1452,384 @@ func (z *UserReport) Msgsize() (s int) {
 }
 
 // DecodeMsg implements msgp.Decodable
+func (z *UserReportOptions) DecodeMsg(dc *msgp.Reader) (err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, err = dc.ReadMapKeyPtr()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "SortColumn":
+			z.SortColumn, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "SortColumn")
+				return
+			}
+		case "SortDesc":
+			z.SortDesc, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "SortDesc")
+				return
+			}
+		case "PageSize":
+			z.PageSize, err = dc.ReadInt()
+			if err != nil {
+				err = msgp.WrapError(err, "PageSize")
+				return
+			}
+		case "LastSortColumnValue":
+			z.LastSortColumnValue, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "LastSortColumnValue")
+				return
+			}
+		case "LastUserId":
+			z.LastUserId, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "LastUserId")
+				return
+			}
+		case "StartAt":
+			z.StartAt, err = dc.ReadInt64()
+			if err != nil {
+				err = msgp.WrapError(err, "StartAt")
+				return
+			}
+		case "EndAt":
+			z.EndAt, err = dc.ReadInt64()
+			if err != nil {
+				err = msgp.WrapError(err, "EndAt")
+				return
+			}
+		case "Role":
+			z.Role, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Role")
+				return
+			}
+		case "Team":
+			z.Team, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "Team")
+				return
+			}
+		case "HasNoTeam":
+			z.HasNoTeam, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "HasNoTeam")
+				return
+			}
+		case "HideActive":
+			z.HideActive, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "HideActive")
+				return
+			}
+		case "HideInactive":
+			z.HideInactive, err = dc.ReadBool()
+			if err != nil {
+				err = msgp.WrapError(err, "HideInactive")
+				return
+			}
+		default:
+			err = dc.Skip()
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z *UserReportOptions) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 12
+	// write "SortColumn"
+	err = en.Append(0x8c, 0xaa, 0x53, 0x6f, 0x72, 0x74, 0x43, 0x6f, 0x6c, 0x75, 0x6d, 0x6e)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.SortColumn)
+	if err != nil {
+		err = msgp.WrapError(err, "SortColumn")
+		return
+	}
+	// write "SortDesc"
+	err = en.Append(0xa8, 0x53, 0x6f, 0x72, 0x74, 0x44, 0x65, 0x73, 0x63)
+	if err != nil {
+		return
+	}
+	err = en.WriteBool(z.SortDesc)
+	if err != nil {
+		err = msgp.WrapError(err, "SortDesc")
+		return
+	}
+	// write "PageSize"
+	err = en.Append(0xa8, 0x50, 0x61, 0x67, 0x65, 0x53, 0x69, 0x7a, 0x65)
+	if err != nil {
+		return
+	}
+	err = en.WriteInt(z.PageSize)
+	if err != nil {
+		err = msgp.WrapError(err, "PageSize")
+		return
+	}
+	// write "LastSortColumnValue"
+	err = en.Append(0xb3, 0x4c, 0x61, 0x73, 0x74, 0x53, 0x6f, 0x72, 0x74, 0x43, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x56, 0x61, 0x6c, 0x75, 0x65)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.LastSortColumnValue)
+	if err != nil {
+		err = msgp.WrapError(err, "LastSortColumnValue")
+		return
+	}
+	// write "LastUserId"
+	err = en.Append(0xaa, 0x4c, 0x61, 0x73, 0x74, 0x55, 0x73, 0x65, 0x72, 0x49, 0x64)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.LastUserId)
+	if err != nil {
+		err = msgp.WrapError(err, "LastUserId")
+		return
+	}
+	// write "StartAt"
+	err = en.Append(0xa7, 0x53, 0x74, 0x61, 0x72, 0x74, 0x41, 0x74)
+	if err != nil {
+		return
+	}
+	err = en.WriteInt64(z.StartAt)
+	if err != nil {
+		err = msgp.WrapError(err, "StartAt")
+		return
+	}
+	// write "EndAt"
+	err = en.Append(0xa5, 0x45, 0x6e, 0x64, 0x41, 0x74)
+	if err != nil {
+		return
+	}
+	err = en.WriteInt64(z.EndAt)
+	if err != nil {
+		err = msgp.WrapError(err, "EndAt")
+		return
+	}
+	// write "Role"
+	err = en.Append(0xa4, 0x52, 0x6f, 0x6c, 0x65)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Role)
+	if err != nil {
+		err = msgp.WrapError(err, "Role")
+		return
+	}
+	// write "Team"
+	err = en.Append(0xa4, 0x54, 0x65, 0x61, 0x6d)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.Team)
+	if err != nil {
+		err = msgp.WrapError(err, "Team")
+		return
+	}
+	// write "HasNoTeam"
+	err = en.Append(0xa9, 0x48, 0x61, 0x73, 0x4e, 0x6f, 0x54, 0x65, 0x61, 0x6d)
+	if err != nil {
+		return
+	}
+	err = en.WriteBool(z.HasNoTeam)
+	if err != nil {
+		err = msgp.WrapError(err, "HasNoTeam")
+		return
+	}
+	// write "HideActive"
+	err = en.Append(0xaa, 0x48, 0x69, 0x64, 0x65, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65)
+	if err != nil {
+		return
+	}
+	err = en.WriteBool(z.HideActive)
+	if err != nil {
+		err = msgp.WrapError(err, "HideActive")
+		return
+	}
+	// write "HideInactive"
+	err = en.Append(0xac, 0x48, 0x69, 0x64, 0x65, 0x49, 0x6e, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65)
+	if err != nil {
+		return
+	}
+	err = en.WriteBool(z.HideInactive)
+	if err != nil {
+		err = msgp.WrapError(err, "HideInactive")
+		return
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z *UserReportOptions) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	// map header, size 12
+	// string "SortColumn"
+	o = append(o, 0x8c, 0xaa, 0x53, 0x6f, 0x72, 0x74, 0x43, 0x6f, 0x6c, 0x75, 0x6d, 0x6e)
+	o = msgp.AppendString(o, z.SortColumn)
+	// string "SortDesc"
+	o = append(o, 0xa8, 0x53, 0x6f, 0x72, 0x74, 0x44, 0x65, 0x73, 0x63)
+	o = msgp.AppendBool(o, z.SortDesc)
+	// string "PageSize"
+	o = append(o, 0xa8, 0x50, 0x61, 0x67, 0x65, 0x53, 0x69, 0x7a, 0x65)
+	o = msgp.AppendInt(o, z.PageSize)
+	// string "LastSortColumnValue"
+	o = append(o, 0xb3, 0x4c, 0x61, 0x73, 0x74, 0x53, 0x6f, 0x72, 0x74, 0x43, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x56, 0x61, 0x6c, 0x75, 0x65)
+	o = msgp.AppendString(o, z.LastSortColumnValue)
+	// string "LastUserId"
+	o = append(o, 0xaa, 0x4c, 0x61, 0x73, 0x74, 0x55, 0x73, 0x65, 0x72, 0x49, 0x64)
+	o = msgp.AppendString(o, z.LastUserId)
+	// string "StartAt"
+	o = append(o, 0xa7, 0x53, 0x74, 0x61, 0x72, 0x74, 0x41, 0x74)
+	o = msgp.AppendInt64(o, z.StartAt)
+	// string "EndAt"
+	o = append(o, 0xa5, 0x45, 0x6e, 0x64, 0x41, 0x74)
+	o = msgp.AppendInt64(o, z.EndAt)
+	// string "Role"
+	o = append(o, 0xa4, 0x52, 0x6f, 0x6c, 0x65)
+	o = msgp.AppendString(o, z.Role)
+	// string "Team"
+	o = append(o, 0xa4, 0x54, 0x65, 0x61, 0x6d)
+	o = msgp.AppendString(o, z.Team)
+	// string "HasNoTeam"
+	o = append(o, 0xa9, 0x48, 0x61, 0x73, 0x4e, 0x6f, 0x54, 0x65, 0x61, 0x6d)
+	o = msgp.AppendBool(o, z.HasNoTeam)
+	// string "HideActive"
+	o = append(o, 0xaa, 0x48, 0x69, 0x64, 0x65, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65)
+	o = msgp.AppendBool(o, z.HideActive)
+	// string "HideInactive"
+	o = append(o, 0xac, 0x48, 0x69, 0x64, 0x65, 0x49, 0x6e, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65)
+	o = msgp.AppendBool(o, z.HideInactive)
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *UserReportOptions) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, bts, err = msgp.ReadMapKeyZC(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "SortColumn":
+			z.SortColumn, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "SortColumn")
+				return
+			}
+		case "SortDesc":
+			z.SortDesc, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "SortDesc")
+				return
+			}
+		case "PageSize":
+			z.PageSize, bts, err = msgp.ReadIntBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "PageSize")
+				return
+			}
+		case "LastSortColumnValue":
+			z.LastSortColumnValue, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "LastSortColumnValue")
+				return
+			}
+		case "LastUserId":
+			z.LastUserId, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "LastUserId")
+				return
+			}
+		case "StartAt":
+			z.StartAt, bts, err = msgp.ReadInt64Bytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "StartAt")
+				return
+			}
+		case "EndAt":
+			z.EndAt, bts, err = msgp.ReadInt64Bytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "EndAt")
+				return
+			}
+		case "Role":
+			z.Role, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Role")
+				return
+			}
+		case "Team":
+			z.Team, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "Team")
+				return
+			}
+		case "HasNoTeam":
+			z.HasNoTeam, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "HasNoTeam")
+				return
+			}
+		case "HideActive":
+			z.HideActive, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "HideActive")
+				return
+			}
+		case "HideInactive":
+			z.HideInactive, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "HideInactive")
+				return
+			}
+		default:
+			bts, err = msgp.Skip(bts)
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z *UserReportOptions) Msgsize() (s int) {
+	s = 1 + 11 + msgp.StringPrefixSize + len(z.SortColumn) + 9 + msgp.BoolSize + 9 + msgp.IntSize + 20 + msgp.StringPrefixSize + len(z.LastSortColumnValue) + 11 + msgp.StringPrefixSize + len(z.LastUserId) + 8 + msgp.Int64Size + 6 + msgp.Int64Size + 5 + msgp.StringPrefixSize + len(z.Role) + 5 + msgp.StringPrefixSize + len(z.Team) + 10 + msgp.BoolSize + 11 + msgp.BoolSize + 13 + msgp.BoolSize
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
 func (z *UserReportQuery) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
