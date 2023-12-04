@@ -17,7 +17,7 @@ type Props = {
     autoFocus?: boolean;
 }
 
-const BoolSetting: React.FC<Props> = ({
+const BoolSetting = ({
     id,
     label,
     labelClassName = '',
@@ -28,7 +28,7 @@ const BoolSetting: React.FC<Props> = ({
     inputClassName = '',
     onChange,
     autoFocus
-}) => {
+}: Props) => {
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         onChange(id, e.target.checked);
     };
@@ -58,4 +58,4 @@ const BoolSetting: React.FC<Props> = ({
     );
 }
 
-export default BoolSetting;
+export default React.memo(BoolSetting);
