@@ -4,6 +4,7 @@
 import React from 'react';
 import {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+import type {RouteComponentProps} from 'react-router';
 
 import type {TermsOfService as ReduxTermsOfService} from '@mattermost/types/terms_of_service';
 
@@ -29,8 +30,7 @@ export interface UpdateMyTermsOfServiceStatusResponse {
     user_id: number;
 }
 
-export interface TermsOfServiceProps {
-    location: {search: string};
+export interface TermsOfServiceProps extends RouteComponentProps {
     termsEnabled: boolean;
     actions: {
         getTermsOfService: () => Promise<{ data: ReduxTermsOfService }>;
@@ -109,7 +109,7 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
         this.registerUserAction(
             true,
             () => {
-                const query = new URLSearchParams(this.props.location.search);
+                const query = new URLSearchParams(this.props.location?.search);
                 const redirectTo = query.get('redirect_to');
                 if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
                     getHistory().push(redirectTo);
