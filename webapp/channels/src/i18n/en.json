@@ -2423,7 +2423,7 @@
   "admin.system_users.inactive": "Inactive",
   "admin.system_users.noTeams": "No Teams",
   "admin.system_users.revoke_all_sessions_button": "Revoke All Sessions",
-  "admin.system_users.revoke_all_sessions_modal_message": "This action revokes all sessions in the system. All users will be logged out from all devices. Are you sure you want to revoke all sessions?",
+  "admin.system_users.revoke_all_sessions_modal_message": "This action revokes all sessions in the system. All users will be logged out from all devices, including your session. Are you sure you want to revoke all sessions?",
   "admin.system_users.revoke_all_sessions_modal_title": "Revoke all sessions in the system",
   "admin.system_users.revokeAllSessions": "Revoke All Sessions",
   "admin.system_users.system_admin": "System Admin",
