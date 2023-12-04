@@ -12794,9 +12794,9 @@ func (a *OpenTracingAppLayer) OriginChecker() func(*http.Request) bool {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) OutgoingOAuthConnection() einterfaces.OutgoingOAuthConnectionInterface {
+func (a *OpenTracingAppLayer) OutgoingOAuthConnections() einterfaces.OutgoingOAuthConnectionInterface {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OutgoingOAuthConnection")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OutgoingOAuthConnections")
 
 	a.ctx = newCtx
 	a.app.Srv().Store().SetContext(newCtx)
@@ -12806,7 +12806,7 @@ func (a *OpenTracingAppLayer) OutgoingOAuthConnection() einterfaces.OutgoingOAut
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.OutgoingOAuthConnection()
+	resultVar0 := a.app.OutgoingOAuthConnections()
 
 	return resultVar0
 }

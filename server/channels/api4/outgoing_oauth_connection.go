@@ -29,11 +29,11 @@ func ensureOutgoingOAuthConnectionInterface(c *Context, where string) (einterfac
 		return nil, false
 	}
 
-	if c.App.OutgoingOAuthConnection() == nil || c.App.License() == nil || c.App.License().SkuShortName != model.LicenseShortSkuEnterprise {
+	if c.App.OutgoingOAuthConnections() == nil || c.App.License() == nil || c.App.License().SkuShortName != model.LicenseShortSkuEnterprise {
 		c.Err = model.NewAppError(where, "api.license.upgrade_needed.app_error", nil, "", http.StatusNotImplemented)
 		return nil, false
 	}
-	return c.App.OutgoingOAuthConnection(), true
+	return c.App.OutgoingOAuthConnections(), true
 }
 
 type listOutgoingOAuthConnectionsQuery struct {
