@@ -50,14 +50,14 @@ func TestCustomStatusErrors(t *testing.T) {
 
 	tests := map[string]struct {
 		customStatus string
-		successFn    string
-		failFn       string
+		getFails     bool
+		updateFails  bool
 		expectedErr  string
 	}{
-		"set custom status fails on get user":       {customStatus: "set", successFn: "Update", failFn: "Get", expectedErr: MissingAccountError},
-		"set custom status fails on update user":    {customStatus: "set", successFn: "Get", failFn: "Update", expectedErr: "app.user.update.finding.app_error"},
-		"remove custom status fails on get user":    {customStatus: "remove", successFn: "Update", failFn: "Get", expectedErr: MissingAccountError},
-		"remove custom status fails on update user": {customStatus: "remove", successFn: "Get", failFn: "Update", expectedErr: "app.user.update.finding.app_error"},
+		"set custom status fails on get user":       {customStatus: "set", getFails: true, updateFails: false, expectedErr: MissingAccountError},
+		"set custom status fails on update user":    {customStatus: "set", getFails: false, updateFails: true, expectedErr: "app.user.update.finding.app_error"},
+		"remove custom status fails on get user":    {customStatus: "remove", getFails: true, updateFails: false, expectedErr: MissingAccountError},
+		"remove custom status fails on update user": {customStatus: "remove", getFails: false, updateFails: true, expectedErr: "app.user.update.finding.app_error"},
 	}
 
 	for name, tc := range tests {
@@ -67,8 +67,17 @@ func TestCustomStatusErrors(t *testing.T) {
 
 			mockUserStore := mocks.UserStore{}
 
-			mockUserStore.On(tc.successFn, mock.Anything, mock.Anything).Return(mockUser, nil)
-			mockUserStore.On(tc.failFn, mock.Anything, mock.Anything).Return(nil, mockErr)
+			if tc.getFails {
+				mockUserStore.On("Get", mock.Anything, mock.Anything).Return(nil, mockErr)
+			} else {
+				mockUserStore.On("Get", mock.Anything, mock.Anything).Return(mockUser, nil)
+			}
+
+			if tc.updateFails {
+				mockUserStore.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil, mockErr)
+			} else {
+				mockUserStore.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(mockUser, nil)
+			}
 
 			var err error
 			mockSessionStore := mocks.SessionStore{}

@@ -565,8 +565,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }
 
         this.isDraftSubmitting = false;
-        this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, null, channelId);
-        this.draftsForChannel[channelId] = null;
+        this.removeDraft(channelId);
     };
 
     handleNotifyAllConfirmation = () => {
@@ -796,7 +795,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     sendReaction(isReaction: RegExpExecArray) {
-        const channelId = this.props.currentChannel.id;
         const action = isReaction[1];
         const emojiName = isReaction[2];
         const postId = this.props.latestReplyablePostId;
@@ -805,8 +803,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             this.props.actions.submitReaction(postId, action, emojiName);
         }
 
-        this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, null, channelId);
-        this.draftsForChannel[channelId] = null;
+        this.removeDraft();
     }
 
     focusTextbox = (keepFocus = false) => {
@@ -891,9 +888,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.handleDraftChange(draft);
     };
 
-    handleDraftChange = (draft: PostDraft, instant = false) => {
-        const channelId = this.props.currentChannel.id;
-
+    handleDraftChange = (draft: PostDraft, channelId = this.props.currentChannel.id, instant = false) => {
         if (this.saveDraftFrame) {
             clearTimeout(this.saveDraftFrame);
         }
@@ -909,6 +904,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.draftsForChannel[channelId] = draft;
     };
 
+    removeDraft = (channelId = this.props.currentChannel.id) => {
+        this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, null, channelId);
+        this.draftsForChannel[channelId] = null;
+    };
+
     handleFileUploadChange = () => {
         this.focusTextbox();
     };
@@ -921,8 +921,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             uploadsInProgress,
         };
 
-        this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, draft, channelId);
-        this.draftsForChannel[channelId] = draft;
+        this.handleDraftChange(draft, channelId, true);
 
         // this is a bit redundant with the code that sets focus when the file input is clicked,
         // but this also resets the focus after a drag and drop
@@ -955,7 +954,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             draft.fileInfos = sortFileInfos(draft.fileInfos.concat(fileInfos), this.props.locale);
         }
 
-        this.handleDraftChange(draft, true);
+        this.handleDraftChange(draft, channelId, true);
     };
 
     handleUploadError = (uploadError: string | ServerError | null, clientId?: string, channelId?: string) => {
@@ -971,8 +970,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                         ...draft,
                         uploadsInProgress,
                     };
-                    this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, modifiedDraft, channelId);
-                    this.draftsForChannel[channelId] = modifiedDraft;
+                    this.handleDraftChange(modifiedDraft, channelId, true);
                 }
             }
         }
@@ -989,7 +987,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     removePreview = (id: string) => {
         let modifiedDraft = {} as PostDraft;
         const draft = {...this.props.draft};
-        const channelId = this.props.currentChannel.id;
 
         // Clear previous errors
         this.setState({serverError: null});
@@ -1020,9 +1017,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             };
         }
 
-        this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, modifiedDraft, channelId, false);
-        this.draftsForChannel[channelId] = modifiedDraft;
-
+        this.handleDraftChange(modifiedDraft, this.props.currentChannel.id, true);
         this.handleFileUploadChange();
 
         if (this.saveDraftFrame) {
@@ -1284,7 +1279,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             updatedDraft.metadata = {};
         }
 
-        this.handleDraftChange(updatedDraft, true);
+        this.handleDraftChange(updatedDraft, this.props.currentChannel.id, true);
         this.focusTextbox();
     };
 

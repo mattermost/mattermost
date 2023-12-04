@@ -53,6 +53,7 @@ import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
 import Constants from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import {t} from 'utils/i18n';
 import {showNotification} from 'utils/notifications';
 import {isDesktopApp} from 'utils/user_agent';
@@ -239,6 +240,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const onDismissSessionExpired = useCallback(() => {
         LocalStorageStore.setWasLoggedIn(false);
         setSessionExpired(false);
+        DesktopApp.setSessionExpired(false);
         dismissAlert();
     }, []);
 
@@ -430,9 +432,12 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 // our session after we use it to complete the sign in change.
                 LocalStorageStore.setWasLoggedIn(false);
             } else {
+                setSessionExpired(true);
+                DesktopApp.setSessionExpired(true);
+
                 // Although the authority remains the local sessionExpired bit on the state, set this
                 // extra field in the querystring to signal the desktop app.
-                setSessionExpired(true);
+                // This is legacy support for older Desktop Apps and can be removed eventually
                 const newSearchParam = new URLSearchParams(search);
                 newSearchParam.set('extra', Constants.SESSION_EXPIRED);
                 history.replace(`${pathname}?${newSearchParam}`);
@@ -455,6 +460,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
             window.removeEventListener('resize', onWindowResize);
             window.removeEventListener('focus', onWindowFocus);
+
+            DesktopApp.setSessionExpired(false);
         };
     }, []);
 
