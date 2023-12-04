@@ -3303,6 +3303,31 @@
           schema:
             type: string
             default: 'alltime'
+        - name: role_filter
+          in: query
+          description: Filter users by their role.
+          schema:
+            type: string
+        - name: team_filter
+          in: query
+          description: Filter users by a specified team ID.
+          schema:
+            type: string
+        - name: has_no_team
+          in: query
+          description: If true, show only users that have no team. Will ignore provided "team_filter" if true.
+          schema:
+            type: boolean
+        - name: hide_active
+          in: query
+          description: If true, show only users that are inactive. Cannot be used at the same time as "hide_inactive"
+          schema:
+            type: boolean
+        - name: hide_inactive
+          in: query
+          description: If true, show only users that are active. Cannot be used at the same time as "hide_active"
+          schema:
+            type: boolean
       responses:
         "200":
           description: User page retrieval successful
