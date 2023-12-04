@@ -17,6 +17,7 @@ import type {Address, CloudCustomer, Product, Invoice, Feedback, Subscription, I
 import {areShippingDetailsValid} from '@mattermost/types/cloud';
 import type {Team} from '@mattermost/types/teams';
 
+import {Client4} from 'mattermost-redux/client';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -24,6 +25,7 @@ import {trackEvent, pageVisited} from 'actions/telemetry_actions';
 
 import BillingHistoryModal from 'components/admin_console/billing/billing_history_modal';
 import PaymentDetails from 'components/admin_console/billing/payment_details';
+import CloudInvoicePreview from 'components/cloud_invoice_preview';
 import PlanLabel from 'components/common/plan_label';
 import ComplianceScreenFailedSvg from 'components/common/svg_images_components/access_denied_happy_svg';
 import BackgroundSvg from 'components/common/svg_images_components/background_svg';
@@ -436,13 +438,24 @@ class PurchaseModal extends React.PureComponent<Props, State> {
     };
 
     handleViewBreakdownClick = () => {
-        this.props.actions.openModal({
-            modalId: ModalIdentifiers.BILLING_HISTORY,
-            dialogType: BillingHistoryModal,
-            dialogProps: {
-                invoices: this.props.invoices,
-            },
-        });
+        // If there is only one invoice, we can skip the summary and go straight to the invoice PDF preview for this singular invoice.
+        if (this.props.invoices?.length === 1) {
+            this.props.actions.openModal({
+                modalId: ModalIdentifiers.CLOUD_INVOICE_PREVIEW,
+                dialogType: CloudInvoicePreview,
+                dialogProps: {
+                    url: Client4.getInvoicePdfUrl(this.props.invoices[0].id),
+                },
+            });
+        } else {
+            this.props.actions.openModal({
+                modalId: ModalIdentifiers.BILLING_HISTORY,
+                dialogType: BillingHistoryModal,
+                dialogProps: {
+                    invoices: this.props.invoices,
+                },
+            });
+        }
     };
 
     purchaseScreenCard = () => {
