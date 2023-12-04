@@ -12,16 +12,15 @@ type Props = {
     onCancel: (checked: boolean) => void;
 }
 
-export default class DiscardChangesModal extends React.PureComponent<Props> {
-    public render(): JSX.Element {
-        const title: JSX.Element = (
+const DiscardChangesModal = ({show, onConfirm, onCancel}: Props) => {
+        const title = (
             <FormattedMessage
                 id='discard_changes_modal.title'
                 defaultMessage='Discard Changes?'
             />
         );
 
-        const message: JSX.Element = (
+        const message = (
             <FormattedMessage
                 id='discard_changes_modal.message'
                 defaultMessage='You have unsaved changes, are you sure you want to discard them?'
@@ -29,7 +28,7 @@ export default class DiscardChangesModal extends React.PureComponent<Props> {
         );
 
         const buttonClass = 'btn btn-primary';
-        const button: JSX.Element = (
+        const button = (
             <FormattedMessage
                 id='discard_changes_modal.leave'
                 defaultMessage='Yes, Discard'
@@ -37,8 +36,6 @@ export default class DiscardChangesModal extends React.PureComponent<Props> {
         );
 
         const modalClass = 'discard-changes-modal';
-
-        const {show, onConfirm, onCancel} = this.props;
 
         return (
             <ConfirmModal
@@ -52,5 +49,6 @@ export default class DiscardChangesModal extends React.PureComponent<Props> {
                 onCancel={onCancel}
             />
         );
-    }
 }
+
+export default React.memo(DiscardChangesModal);
