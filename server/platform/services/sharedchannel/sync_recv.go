@@ -197,7 +197,7 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 			Timezone:  user.Timezone,
 			RemoteId:  user.RemoteId,
 		}
-		if userSaved, err = scs.updateSyncUser(patch, euser, channel, rc); err != nil {
+		if userSaved, err = scs.updateSyncUser(c, patch, euser, channel, rc); err != nil {
 			return nil, err
 		}
 	}
@@ -270,7 +270,7 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 	return nil, fmt.Errorf("error inserting sync user %s: %w", user.Id, err)
 }
 
-func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
+func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
 	var err error
 	var update *model.UserUpdate
 	var suffix string
@@ -301,7 +301,7 @@ func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, cha
 		user.Username = mungUsername(user.Username, rc.Name, suffix, model.UserNameMaxLength)
 		user.Email = mungEmail(rc.Name, model.UserEmailMaxLength)
 
-		if update, err = scs.server.GetStore().User().Update(user, false); err != nil {
+		if update, err = scs.server.GetStore().User().Update(rctx, user, false); err != nil {
 			field, ok := isConflictError(err)
 			if !ok {
 				break
