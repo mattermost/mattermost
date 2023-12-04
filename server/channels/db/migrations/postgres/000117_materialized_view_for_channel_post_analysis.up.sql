@@ -1,4 +1,4 @@
-CREATE MATERIALIZED VIEW IF NOT EXISTS postchannelstats AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS channelpoststats AS
 SELECT channelid, to_timestamp(channels.createat/1000)::date as day, COUNT(*) as numposts
 FROM posts
          join channels on posts.channelid = channels.id

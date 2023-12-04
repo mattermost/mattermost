@@ -1,1 +1,1 @@
-DROP MATERIALIZED VIEW IF EXISTS postchannelstats;
+DROP MATERIALIZED VIEW IF EXISTS channelpoststats;
