@@ -23,12 +23,16 @@
 
 .access-allowed-domains-section {
     #allowedDomainsSetting {
-        label {
-            font-weight: unset;
-        }
-
         #allowedDomains {
             margin-top: 16px;
         }
+    }
+}
+
+.access-invite-domains-section {
+    margin: 24px 0;
+
+    .mm-modal-generic-section-item__fieldset-checkbox-ctr {
+        margin-top: 24px;
     }
 }

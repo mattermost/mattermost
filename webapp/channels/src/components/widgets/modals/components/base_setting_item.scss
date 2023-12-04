@@ -63,9 +63,12 @@
         align-items: center;
         cursor: pointer;
         font-size: 14px;
-        font-weight: 400;
         gap: 8px;
         line-height: 20px;
+
+        span {
+            font-weight: 400;
+        }
     }
 
     &__fieldset-radio {

@@ -18,6 +18,8 @@ type Props = BaseSettingItemProps & {
     inputFieldData: FieldsetCheckbox;
     inputFieldValue: boolean;
     handleChange: (e: boolean) => void;
+    className?: string;
+    descriptionAboveContent?: boolean;
 }
 function CheckboxSettingItem({
     title,
@@ -25,6 +27,8 @@ function CheckboxSettingItem({
     inputFieldData,
     inputFieldValue,
     handleChange,
+    className,
+    descriptionAboveContent = false,
 }: Props): JSX.Element {
     const content = (
         <fieldset
@@ -53,6 +57,8 @@ function CheckboxSettingItem({
             content={content}
             title={title}
             description={description}
+            className={className}
+            descriptionAboveContent={descriptionAboveContent}
         />
     );
 }

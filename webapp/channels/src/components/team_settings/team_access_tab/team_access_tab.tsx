@@ -96,15 +96,6 @@ const AccessTab = (props: Props) => {
             </div>
         );
 
-        // inviteSection = (
-        //     <SettingItemMax
-        //         submit={this.handleInviteIdSubmit}
-        //         serverError={serverError}
-        //         clientError={clientError}
-        //         saveButtonText={localizeMessage('general_tab.regenerate', 'Regenerate')}
-        //     />
-        // );
-
         inviteSection = (
             <BaseSettingItem
                 className='access-invite-section'
@@ -122,7 +113,6 @@ const AccessTab = (props: Props) => {
             className='form-group'
         >
             <CheckboxSettingItem
-                css={{marginBottom: '16px', marginTop: '24px'}}
                 inputFieldData={{title: {id: 'general_tab.allowedDomains', defaultMessage: 'Allow only users with a specific email domain to join this team'}, name: 'name'}}
                 inputFieldValue={showAllowedDomains}
                 handleChange={handleEnableAllowedDomains}
@@ -142,14 +132,7 @@ const AccessTab = (props: Props) => {
         </div>
     );
 
-    // const allowedDomainsSection = (
-    //     <SettingItemMax
-    //         submit={this.handleAllowedDomainsSubmit}
-    //         serverError={serverError}
-    //         clientError={clientError}
-    //     />
-    // );
-
+    // todo sinan: convert it to <CheckboxSettingItem like in open invite
     const allowedDomainsSection = (
         <BaseSettingItem
             className='access-allowed-domains-section'
@@ -161,7 +144,6 @@ const AccessTab = (props: Props) => {
     );
 
     // todo sinan: check title font size is same as figma
-    // todo sinan: descriptions are placed above content. Waiting an input from Matt
     return (
         <ModalSection
             content={
