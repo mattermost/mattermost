@@ -17,42 +17,42 @@ const DiscardChangesModal = ({
     onConfirm,
     onCancel,
 }: Props) => {
-        const title = (
-            <FormattedMessage
-                id='discard_changes_modal.title'
-                defaultMessage='Discard Changes?'
-            />
-        );
+    const title = (
+        <FormattedMessage
+            id='discard_changes_modal.title'
+            defaultMessage='Discard Changes?'
+        />
+    );
 
-        const message = (
-            <FormattedMessage
-                id='discard_changes_modal.message'
-                defaultMessage='You have unsaved changes, are you sure you want to discard them?'
-            />
-        );
+    const message = (
+        <FormattedMessage
+            id='discard_changes_modal.message'
+            defaultMessage='You have unsaved changes, are you sure you want to discard them?'
+        />
+    );
 
-        const buttonClass = 'btn btn-primary';
-        const button = (
-            <FormattedMessage
-                id='discard_changes_modal.leave'
-                defaultMessage='Yes, Discard'
-            />
-        );
+    const buttonClass = 'btn btn-primary';
+    const button = (
+        <FormattedMessage
+            id='discard_changes_modal.leave'
+            defaultMessage='Yes, Discard'
+        />
+    );
 
-        const modalClass = 'discard-changes-modal';
+    const modalClass = 'discard-changes-modal';
 
-        return (
-            <ConfirmModal
-                show={show}
-                title={title}
-                message={message}
-                modalClass={modalClass}
-                confirmButtonClass={buttonClass}
-                confirmButtonText={button}
-                onConfirm={onConfirm}
-                onCancel={onCancel}
-            />
-        );
-}
+    return (
+        <ConfirmModal
+            show={show}
+            title={title}
+            message={message}
+            modalClass={modalClass}
+            confirmButtonClass={buttonClass}
+            confirmButtonText={button}
+            onConfirm={onConfirm}
+            onCancel={onCancel}
+        />
+    );
+};
 
 export default React.memo(DiscardChangesModal);
