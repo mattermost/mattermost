@@ -6229,7 +6229,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Team().SaveMember(&model.TeamMember{UserId: u3.Id, TeamId: team.Id}, 1)
 	require.NoError(t, err)
 	defer func() {
-		require.NoError(t, ss.Team().RemoveMember(team.Id, u3.Id))
+		require.NoError(t, ss.Team().RemoveMember(rctx, team.Id, u3.Id))
 		require.NoError(t, ss.Team().PermanentDelete(team.Id))
 	}()
 
