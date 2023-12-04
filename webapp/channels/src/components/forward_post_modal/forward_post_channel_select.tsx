@@ -5,7 +5,7 @@ import React, {useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {components} from 'react-select';
-import type {IndicatorProps, OptionProps, SingleValueProps, ValueType} from 'react-select';
+import type {IndicatorProps, OptionProps, SingleValueProps, ValueType, OptionTypeBase} from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import {
@@ -222,7 +222,7 @@ const DropdownIndicator = (props: IndicatorProps<ChannelOption>) => {
     );
 };
 
-type Props<O> = {
+type Props<O extends OptionTypeBase> = {
     onSelect: (channel: ValueType<O>) => void;
     currentBodyHeight: number;
     value?: O;

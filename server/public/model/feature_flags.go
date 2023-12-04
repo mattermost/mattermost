@@ -48,6 +48,8 @@ type FeatureFlags struct {
 
 	CloudIPFiltering bool
 	ConsumePostHook  bool
+
+	CloudAnnualRenewals bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -66,6 +68,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.StreamlinedMarketplace = true
 	f.CloudIPFiltering = false
 	f.ConsumePostHook = false
+	f.CloudAnnualRenewals = false
 }
 
 // ToMap returns the feature flags as a map[string]string
