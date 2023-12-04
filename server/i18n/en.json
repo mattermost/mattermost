@@ -8107,6 +8107,10 @@
     "translation": "There was an error while deleting the connection."
   },
   {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "There was an error while getting the outgoing oauth connection."
+  },
+  {
     "id": "ent.outgoing_oauth_connections.get_connections.app_error",
     "translation": "There was an error while getting the outgoing oauth connections."
   },
