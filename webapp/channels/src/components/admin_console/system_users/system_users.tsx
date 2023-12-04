@@ -342,13 +342,8 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                                 term={this.props.searchTerm}
                                 onTermChange={this.handleTermChange}
                                 mfaEnabled={this.props.mfaEnabled}
-                                enableUserAccessTokens={
-                                    this.props.enableUserAccessTokens
-                                }
-                                experimentalEnableAuthenticationTransfer={
-                                    this.props.
-                                        experimentalEnableAuthenticationTransfer
-                                }
+                                enableUserAccessTokens={this.props.enableUserAccessTokens}
+                                experimentalEnableAuthenticationTransfer={this.props.experimentalEnableAuthenticationTransfer}
                             />
                         </div>
                     </div>
