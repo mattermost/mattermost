@@ -1,51 +1,51 @@
 [
   {
     "id": "April",
-    "translation": "四月"
+    "translation": "4"
   },
   {
     "id": "August",
-    "translation": "八月"
+    "translation": "8"
   },
   {
     "id": "December",
-    "translation": "十二月"
+    "translation": "12"
   },
   {
     "id": "February",
-    "translation": "二月"
+    "translation": "2"
   },
   {
     "id": "January",
-    "translation": "一月"
+    "translation": "1"
   },
   {
     "id": "July",
-    "translation": "七月"
+    "translation": "7"
   },
   {
     "id": "June",
-    "translation": "六月"
+    "translation": "6"
   },
   {
     "id": "March",
-    "translation": "三月"
+    "translation": "3"
   },
   {
     "id": "May",
-    "translation": "五月"
+    "translation": "5"
   },
   {
     "id": "November",
-    "translation": "十一月"
+    "translation": "11"
   },
   {
     "id": "October",
-    "translation": "十月"
+    "translation": "10"
   },
   {
     "id": "September",
-    "translation": "九月"
+    "translation": "9"
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
@@ -982,7 +982,7 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "other": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} 的新通知[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} 的新通知"
+      "other": "[{{.SiteName}}] {{.Year}} 年 {{.Month}} 月 {{.Day}} 日的新通知"
     }
   },
   {
@@ -2843,19 +2843,19 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] 来自 @{{ .SenderDisplayName}} 于 {{.Month}} {{.Day}}, {{.Year}} 发送的新私信消息"
+    "translation": "[{{.SiteName}}] {{.Year}} 年 {{.Month}} 月 {{.Day}} 日来自 {{.SenderDisplayName}} 的新私信"
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{ .SiteName }}] 在 [{{ .SiteName }}] 于 {{.Month}} {{.Day}}, {{.Year}} 的新团体消息"
+    "translation": "[{{ .SiteName }}] {{.Year}} 年 {{.Month}} 月 {{.Day}} 日在 {{ .ChannelName}} 中的新组消息"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] 于 {{.Month}} {{.Day}}, {{.Year}} 的新团体消息"
+    "translation": "[{{ .SiteName }}] {{.Year}} 年 {{.Month}} 月 {{.Day}} 日的新组消息"
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{ .SiteName }}] 在 [{{ .SiteName }}] 的通知于 {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] {{.Year}} 年 {{.Month}} 月 {{.Day}} 日在 {{ .TeamName}} 中的通知"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -8707,11 +8707,11 @@
   },
   {
     "id": "app.notification.footer.infoLogin",
-    "translation": "登入到 Mattermost"
+    "translation": "登录至 Mattermost"
   },
   {
     "id": "app.notification.footer.info",
-    "translation": " 并转至设定 > 通知"
+    "translation": " 并转到设定 > 通知"
   },
   {
     "id": "app.notification.body.mention.title",
@@ -8811,7 +8811,7 @@
   },
   {
     "id": "app.notification.body.thread.title",
-    "translation": "{{.SenderName}}回复了主题"
+    "translation": "{{.SenderName}} 回复了话题"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
@@ -8843,7 +8843,7 @@
   },
   {
     "id": "app.notification.body.thread_gm.subTitle",
-    "translation": "当您不在时，{{.SenderName}} 回复了您群组中的一个主题。"
+    "translation": "当您不在时，{{.SenderName}} 回复了您群组中的一个话题。"
   },
   {
     "id": "app.notification.body.thread_dm.subTitle",
@@ -8851,7 +8851,7 @@
   },
   {
     "id": "app.notification.body.thread_channel_full.subTitle",
-    "translation": "当您不在时，{{.SenderName}} 在 {{.ChannelName}} 回复了您关注的话题。"
+    "translation": "当您不在时，{{.SenderName}} 回复了您在 {{.ChannelName}} 中关注的话题。"
   },
   {
     "id": "app.notification.body.thread_channel.subTitle",
@@ -9263,7 +9263,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "我们自 {{.DeliquencyDate}} 后便无法通过您提供的支付信息进行扣款。您的工作区有被降级的风险。"
+    "translation": "我们自 {{.DelinquencyDate}} 后便无法通过您提供的支付信息进行扣款。您的工作区有被降级的风险。"
   },
   {
     "id": "api.templates.delinquency_45.subject",
@@ -10080,5 +10080,9 @@
   {
     "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
     "translation": "“更新于”必须是有效的时间。"
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "此消息已达到反应上限。"
   }
 ]
