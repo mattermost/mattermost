@@ -52,7 +52,7 @@ import {
     ChannelSearchOpts,
     ServerChannel,
 } from '@mattermost/types/channels';
-import {Options, StatusOK, ClientResponse, LogLevel, FetchPaginatedThreadOptions} from '@mattermost/types/client4';
+import {Options, StatusOK, ClientResponse, LogLevel, FetchPaginatedThreadOptions, UserReportOptions} from '@mattermost/types/client4';
 import {Compliance} from '@mattermost/types/compliance';
 import {
     ClientConfig,
@@ -983,32 +983,8 @@ export default class Client4 {
         );
     };
 
-    getUsersForReporting = (
-        pageSize?: number,
-        dateRange?: 'alltime' | 'last30days' | 'previousmonth' | 'last6months',
-        sortColumn?: 'CreateAt' | 'Username' | 'FirstName' | 'LastName' | 'Nickname' | 'Email',
-        sortDirection?: 'asc' | 'desc',
-        lastColumnValue = '',
-        lastUserId = '',
-        roleFilter = '',
-        teamFilter = '',
-        hasNoTeam = false,
-        hideActive = false,
-        hideInactive = false,
-    ) => {
-        const queryString = buildQueryString({
-            date_range: dateRange,
-            sort_column: sortColumn,
-            sort_direction: sortDirection,
-            page_size: pageSize,
-            last_column_value: lastColumnValue,
-            last_id: lastUserId,
-            role_filter: roleFilter,
-            has_no_team: hasNoTeam,
-            team_filter: teamFilter,
-            hide_active: hideActive,
-            hide_inactive: hideInactive,
-        });
+    getUsersForReporting = (filter: UserReportOptions) => {
+        const queryString = buildQueryString(filter);
         return this.doFetch<UserReport[]>(
             `${this.getUsersRoute()}/report${queryString}`,
             {method: 'get'},

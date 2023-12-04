@@ -3472,14 +3472,21 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 	endAt := int64(0)
 	currentTime := time.Now()
 	dateRangeStr := r.URL.Query().Get("date_range")
-	if dateRangeStr == "last30days" {
+	if dateRangeStr == model.ReportDurationLast30Days {
 		startAt = currentTime.AddDate(0, 0, -30).UnixMilli()
-	} else if dateRangeStr == "previousmonth" {
+	} else if dateRangeStr == model.ReportDurationPreviousMonth {
 		startOfMonth := time.Date(currentTime.Year(), currentTime.Month(), 1, 0, 0, 0, 0, time.Local)
 		startAt = startOfMonth.AddDate(0, -1, 0).UnixMilli()
 		endAt = startOfMonth.UnixMilli()
-	} else if dateRangeStr == "last6months" {
+	} else if dateRangeStr == model.ReportDurationLast6Months {
 		startAt = currentTime.AddDate(0, -6, -0).UnixMilli()
+	}
+
+	hideActive := r.URL.Query().Get("hide_active") == "true"
+	hideInactive := r.URL.Query().Get("hide_inactive") == "true"
+	if hideActive && hideInactive {
+		c.Err = model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_active_filter", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	userReports, err := c.App.GetUsersForReporting(&model.UserReportOptions{
@@ -3493,8 +3500,8 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 		LastUserId:          r.URL.Query().Get("last_id"),
 		Role:                r.URL.Query().Get("role_filter"),
 		HasNoTeam:           r.URL.Query().Get("has_no_team") == "true",
-		HideActive:          r.URL.Query().Get("hide_active") == "true",
-		HideInactive:        r.URL.Query().Get("hide_inctive") == "true",
+		HideActive:          hideActive,
+		HideInactive:        hideInactive,
 	})
 	if err != nil {
 		c.Err = err

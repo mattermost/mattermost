@@ -48,6 +48,10 @@ const (
 	PushThreadsNotifyProp          = "push_threads"
 	EmailThreadsNotifyProp         = "email_threads"
 
+	ReportDurationLast30Days    = "last_30_days"
+	ReportDurationPreviousMonth = "previous_month"
+	ReportDurationLast6Months   = "last_6_months"
+
 	DefaultLocale        = "en"
 	UserAuthServiceEmail = "email"
 

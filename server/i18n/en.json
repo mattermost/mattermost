@@ -2017,6 +2017,14 @@
     "translation": "Before and After parameters to getThreadsForUser are mutually exclusive"
   },
   {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Cannot hide both active and inactive users."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Invalid team id provided."
+  },
+  {
     "id": "api.image.get.app_error",
     "translation": "Requested image url cannot be parsed."
   },
