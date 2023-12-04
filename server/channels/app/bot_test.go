@@ -79,7 +79,7 @@ func TestCreateBot(t *testing.T) {
 			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(bot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 		assert.Equal(t, "username", bot.Username)
 		assert.Equal(t, "a bot", bot.Description)
 		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
@@ -123,7 +123,7 @@ func TestPatchBot(t *testing.T) {
 			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(bot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 		botPatch := &model.BotPatch{
 			Username:    sToP("invalid username"),
@@ -146,7 +146,7 @@ func TestPatchBot(t *testing.T) {
 			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(bot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 		botPatch := &model.BotPatch{
 			Username:    sToP("username"),
@@ -172,7 +172,7 @@ func TestPatchBot(t *testing.T) {
 
 		createdBot, err := th.App.CreateBot(th.Context, bot)
 		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		botPatch := &model.BotPatch{
 			Username:    sToP("username2"),
@@ -204,7 +204,7 @@ func TestPatchBot(t *testing.T) {
 			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(bot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 		botPatch := &model.BotPatch{
 			Username: sToP(th.BasicUser2.Username),
@@ -226,7 +226,7 @@ func TestGetBot(t *testing.T) {
 		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(bot1.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot1.UserId)
 
 	bot2, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username2",
@@ -234,7 +234,7 @@ func TestGetBot(t *testing.T) {
 		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(bot2.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot2.UserId)
 
 	deletedBot, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username3",
@@ -244,7 +244,7 @@ func TestGetBot(t *testing.T) {
 	require.Nil(t, err)
 	deletedBot, err = th.App.UpdateBotActive(th.Context, deletedBot.UserId, false)
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(deletedBot.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, deletedBot.UserId)
 
 	t.Run("get unknown bot", func(t *testing.T) {
 		_, err := th.App.GetBot(th.Context, model.NewId(), false)
@@ -253,25 +253,25 @@ func TestGetBot(t *testing.T) {
 	})
 
 	t.Run("get bot1", func(t *testing.T) {
-		bot, err := th.App.GetBot(bot1.UserId, false)
+		bot, err := th.App.GetBot(th.Context, bot1.UserId, false)
 		require.Nil(t, err)
 		assert.Equal(t, bot1, bot)
 	})
 
 	t.Run("get bot2", func(t *testing.T) {
-		bot, err := th.App.GetBot(bot2.UserId, false)
+		bot, err := th.App.GetBot(th.Context, bot2.UserId, false)
 		require.Nil(t, err)
 		assert.Equal(t, bot2, bot)
 	})
 
 	t.Run("get deleted bot", func(t *testing.T) {
-		_, err := th.App.GetBot(deletedBot.UserId, false)
+		_, err := th.App.GetBot(th.Context, deletedBot.UserId, false)
 		require.NotNil(t, err)
 		require.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
 	})
 
 	t.Run("get deleted bot, include deleted", func(t *testing.T) {
-		bot, err := th.App.GetBot(deletedBot.UserId, true)
+		bot, err := th.App.GetBot(th.Context, deletedBot.UserId, true)
 		require.Nil(t, err)
 		assert.Equal(t, deletedBot, bot)
 	})
@@ -290,7 +290,7 @@ func TestGetBots(t *testing.T) {
 		OwnerId:     OwnerId1,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(bot1.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot1.UserId)
 
 	deletedBot1, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username4",
@@ -300,7 +300,7 @@ func TestGetBots(t *testing.T) {
 	require.Nil(t, err)
 	deletedBot1, err = th.App.UpdateBotActive(th.Context, deletedBot1.UserId, false)
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(deletedBot1.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, deletedBot1.UserId)
 
 	bot2, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username2",
@@ -308,7 +308,7 @@ func TestGetBots(t *testing.T) {
 		OwnerId:     OwnerId1,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(bot2.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot2.UserId)
 
 	bot3, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username3",
@@ -316,7 +316,7 @@ func TestGetBots(t *testing.T) {
 		OwnerId:     OwnerId1,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(bot3.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot3.UserId)
 
 	bot4, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username5",
@@ -324,7 +324,7 @@ func TestGetBots(t *testing.T) {
 		OwnerId:     OwnerId2,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(bot4.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot4.UserId)
 
 	deletedBot2, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username6",
@@ -334,10 +334,10 @@ func TestGetBots(t *testing.T) {
 	require.Nil(t, err)
 	deletedBot2, err = th.App.UpdateBotActive(th.Context, deletedBot2.UserId, false)
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(deletedBot2.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, deletedBot2.UserId)
 
 	t.Run("get bots, page=0, perPage=10", func(t *testing.T) {
-		bots, err := th.App.GetBots(&model.BotGetOptions{
+		bots, err := th.App.GetBots(th.Context, &model.BotGetOptions{
 			Page:           0,
 			PerPage:        10,
 			OwnerId:        "",
@@ -348,7 +348,7 @@ func TestGetBots(t *testing.T) {
 	})
 
 	t.Run("get bots, page=0, perPage=1", func(t *testing.T) {
-		bots, err := th.App.GetBots(&model.BotGetOptions{
+		bots, err := th.App.GetBots(th.Context, &model.BotGetOptions{
 			Page:           0,
 			PerPage:        1,
 			OwnerId:        "",
@@ -359,7 +359,7 @@ func TestGetBots(t *testing.T) {
 	})
 
 	t.Run("get bots, page=1, perPage=2", func(t *testing.T) {
-		bots, err := th.App.GetBots(&model.BotGetOptions{
+		bots, err := th.App.GetBots(th.Context, &model.BotGetOptions{
 			Page:           1,
 			PerPage:        2,
 			OwnerId:        "",
@@ -370,7 +370,7 @@ func TestGetBots(t *testing.T) {
 	})
 
 	t.Run("get bots, page=2, perPage=2", func(t *testing.T) {
-		bots, err := th.App.GetBots(&model.BotGetOptions{
+		bots, err := th.App.GetBots(th.Context, &model.BotGetOptions{
 			Page:           2,
 			PerPage:        2,
 			OwnerId:        "",
@@ -381,7 +381,7 @@ func TestGetBots(t *testing.T) {
 	})
 
 	t.Run("get bots, page=0, perPage=10, include deleted", func(t *testing.T) {
-		bots, err := th.App.GetBots(&model.BotGetOptions{
+		bots, err := th.App.GetBots(th.Context, &model.BotGetOptions{
 			Page:           0,
 			PerPage:        10,
 			OwnerId:        "",
@@ -392,7 +392,7 @@ func TestGetBots(t *testing.T) {
 	})
 
 	t.Run("get bots, page=0, perPage=1, include deleted", func(t *testing.T) {
-		bots, err := th.App.GetBots(&model.BotGetOptions{
+		bots, err := th.App.GetBots(th.Context, &model.BotGetOptions{
 			Page:           0,
 			PerPage:        1,
 			OwnerId:        "",
@@ -403,7 +403,7 @@ func TestGetBots(t *testing.T) {
 	})
 
 	t.Run("get bots, page=1, perPage=2, include deleted", func(t *testing.T) {
-		bots, err := th.App.GetBots(&model.BotGetOptions{
+		bots, err := th.App.GetBots(th.Context, &model.BotGetOptions{
 			Page:           1,
 			PerPage:        2,
 			OwnerId:        "",
@@ -414,7 +414,7 @@ func TestGetBots(t *testing.T) {
 	})
 
 	t.Run("get bots, page=2, perPage=2, include deleted", func(t *testing.T) {
-		bots, err := th.App.GetBots(&model.BotGetOptions{
+		bots, err := th.App.GetBots(th.Context, &model.BotGetOptions{
 			Page:           2,
 			PerPage:        2,
 			OwnerId:        "",
@@ -425,7 +425,7 @@ func TestGetBots(t *testing.T) {
 	})
 
 	t.Run("get offset=0, limit=10, creator id 1", func(t *testing.T) {
-		bots, err := th.App.GetBots(&model.BotGetOptions{
+		bots, err := th.App.GetBots(th.Context, &model.BotGetOptions{
 			Page:           0,
 			PerPage:        10,
 			OwnerId:        OwnerId1,
@@ -436,7 +436,7 @@ func TestGetBots(t *testing.T) {
 	})
 
 	t.Run("get offset=0, limit=10, creator id 2", func(t *testing.T) {
-		bots, err := th.App.GetBots(&model.BotGetOptions{
+		bots, err := th.App.GetBots(th.Context, &model.BotGetOptions{
 			Page:           0,
 			PerPage:        10,
 			OwnerId:        OwnerId2,
@@ -447,7 +447,7 @@ func TestGetBots(t *testing.T) {
 	})
 
 	t.Run("get offset=0, limit=10, include deleted, creator id 1", func(t *testing.T) {
-		bots, err := th.App.GetBots(&model.BotGetOptions{
+		bots, err := th.App.GetBots(th.Context, &model.BotGetOptions{
 			Page:           0,
 			PerPage:        10,
 			OwnerId:        OwnerId1,
@@ -458,7 +458,7 @@ func TestGetBots(t *testing.T) {
 	})
 
 	t.Run("get offset=0, limit=10, include deleted, creator id 2", func(t *testing.T) {
-		bots, err := th.App.GetBots(&model.BotGetOptions{
+		bots, err := th.App.GetBots(th.Context, &model.BotGetOptions{
 			Page:           0,
 			PerPage:        10,
 			OwnerId:        OwnerId2,
@@ -489,7 +489,7 @@ func TestUpdateBotActive(t *testing.T) {
 			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(bot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 		disabledBot, err := th.App.UpdateBotActive(th.Context, bot.UserId, false)
 		require.Nil(t, err)
@@ -522,9 +522,9 @@ func TestPermanentDeleteBot(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	require.Nil(t, th.App.PermanentDeleteBot(bot.UserId))
+	require.Nil(t, th.App.PermanentDeleteBot(th.Context, bot.UserId))
 
-	_, err = th.App.GetBot(bot.UserId, false)
+	_, err = th.App.GetBot(th.Context, bot.UserId, false)
 	require.NotNil(t, err)
 	require.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
 }
@@ -539,7 +539,7 @@ func TestDisableUserBots(t *testing.T) {
 	bots := []*model.Bot{}
 	defer func() {
 		for _, bot := range bots {
-			th.App.PermanentDeleteBot(bot.UserId)
+			th.App.PermanentDeleteBot(th.Context, bot.UserId)
 		}
 	}()
 
@@ -560,20 +560,20 @@ func TestDisableUserBots(t *testing.T) {
 		OwnerId:     ownerId2,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(u2bot1.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, u2bot1.UserId)
 
 	err = th.App.disableUserBots(th.Context, ownerId1)
 	require.Nil(t, err)
 
 	// Check all bots and corresponding users are disabled for creator 1
 	for _, bot := range bots {
-		retbot, err2 := th.App.GetBot(bot.UserId, true)
+		retbot, err2 := th.App.GetBot(th.Context, bot.UserId, true)
 		require.Nil(t, err2)
 		require.NotZero(t, retbot.DeleteAt, bot.Username)
 	}
 
 	// Check bots and corresponding user not disabled for creator 2
-	bot, err := th.App.GetBot(u2bot1.UserId, true)
+	bot, err := th.App.GetBot(th.Context, u2bot1.UserId, true)
 	require.Nil(t, err)
 	require.Zero(t, bot.DeleteAt)
 
@@ -593,7 +593,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	userBots := []*model.Bot{}
 	defer func() {
 		for _, bot := range userBots {
-			th.App.PermanentDeleteBot(bot.UserId)
+			th.App.PermanentDeleteBot(th.Context, bot.UserId)
 		}
 	}()
 
@@ -688,12 +688,12 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 
 	// print all bots
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = true })
-	message := th.App.getDisableBotSysadminMessage(user1, userBots)
+	message := th.App.getDisableBotSysadminMessage(th.Context, user1, userBots)
 	assert.Equal(t, "user1_disabled was deactivated. They managed the following bot accounts which have now been disabled.\n\n* bot0\n* bot1\n* bot2\n* bot3\n* bot4\n* bot5\n* bot6\n* bot7\n* bot8\n* bot9\nYou can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).", message)
 
 	// print all bots
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = false })
-	message = th.App.getDisableBotSysadminMessage(user1, userBots)
+	message = th.App.getDisableBotSysadminMessage(th.Context, user1, userBots)
 	assert.Equal(t, "user1_disabled was deactivated. They managed the following bot accounts which are still enabled.\n\n* bot0\n* bot1\n* bot2\n* bot3\n* bot4\n* bot5\n* bot6\n* bot7\n* bot8\n* bot9\n\nWe strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after owner deactivation, set “Disable bot accounts when owner is deactivated” in **System Console > Integrations > Bot Accounts** to true.", message)
 
 	// create additional bot to go over the printable limit
@@ -710,12 +710,12 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 
 	// truncate number bots printed
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = true })
-	message = th.App.getDisableBotSysadminMessage(user1, userBots)
+	message = th.App.getDisableBotSysadminMessage(th.Context, user1, userBots)
 	assert.Equal(t, "user1_disabled was deactivated. They managed 11 bot accounts which have now been disabled, including the following:\n\n* bot0\n* bot1\n* bot2\n* bot3\n* bot4\n* bot5\n* bot6\n* bot7\n* bot8\n* bot9\nYou can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).", message)
 
 	// truncate number bots printed
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = false })
-	message = th.App.getDisableBotSysadminMessage(user1, userBots)
+	message = th.App.getDisableBotSysadminMessage(th.Context, user1, userBots)
 	assert.Equal(t, "user1_disabled was deactivated. They managed 11 bot accounts which are still enabled, including the following:\n\n* bot0\n* bot1\n* bot2\n* bot3\n* bot4\n* bot5\n* bot6\n* bot7\n* bot8\n* bot9\nWe strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after owner deactivation, set “Disable bot accounts when owner is deactivated” in **System Console > Integrations > Bot Accounts** to true.", message)
 }
 
@@ -725,7 +725,7 @@ func TestConvertUserToBot(t *testing.T) {
 			th := Setup(t).InitBasic()
 			defer th.TearDown()
 
-			_, err := th.App.ConvertUserToBot(&model.User{
+			_, err := th.App.ConvertUserToBot(th.Context, &model.User{
 				Username: "username",
 				Id:       "",
 			})
@@ -737,7 +737,7 @@ func TestConvertUserToBot(t *testing.T) {
 			th := Setup(t).InitBasic()
 			defer th.TearDown()
 
-			_, err := th.App.ConvertUserToBot(&model.User{
+			_, err := th.App.ConvertUserToBot(th.Context, &model.User{
 				Username: "invalid username",
 				Id:       th.BasicUser.Id,
 			})
@@ -750,12 +750,12 @@ func TestConvertUserToBot(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		bot, err := th.App.ConvertUserToBot(&model.User{
+		bot, err := th.App.ConvertUserToBot(th.Context, &model.User{
 			Username: "username",
 			Id:       th.BasicUser.Id,
 		})
 		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(bot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 		assert.Equal(t, "username", bot.Username)
 		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
 	})
