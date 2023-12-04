@@ -6,6 +6,8 @@ import iconWS from 'images/icon_WS.png';
 import Constants from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 
+let lastNotification;
+
 // showNotification displays a platform notification with the configured parameters.
 //
 // If successful in showing a notification, it resolves with a callback to manually close the

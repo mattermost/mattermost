@@ -3,7 +3,7 @@
 
 /* eslint-disable max-lines */
 
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import type {ChangeEvent} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
@@ -17,12 +17,14 @@ import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ExternalLink from 'components/external_link';
+import SaveButton from 'components/save_button';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
 import Constants, {NotificationLevels, MattermostFeatures, LicenseSkus} from 'utils/constants';
 import {stopTryNotificationRing} from 'utils/notification_sounds';
+import {showNotification} from 'utils/notifications';
 import {a11yFocus} from 'utils/utils';
 
 import DesktopNotificationSettings from './desktop_notification_setting/desktop_notification_settings';
@@ -33,6 +35,9 @@ import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
 
 import type {PropsFromRedux} from './index';
+
+import './user_settings_notifications.scss';
+
 
 const WHITE_SPACE_REGEX = /\s+/g;
 const COMMA_REGEX = /,/g;
@@ -1367,6 +1372,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         </>
                     )}
                     <div className='divider-dark'/>
+                    <TestNotificationsSection/>
                 </div>
             </div>
 
@@ -1415,3 +1421,38 @@ const customKeywordsSelectorStyles: ReactSelectStyles = {
 };
 
 export default injectIntl(NotificationsTab);
+
+function TestNotificationsSection() {
+    const [perm, setPerm] = useState(Notification.permission);
+    const [checking, setChecking] = useState(false);
+
+    const handleClick = useCallback((e) => {
+        e.preventDefault();
+
+        if (checking) {
+            return;
+        }
+
+        showNotification({
+            title: 'Test Notification',
+            body: 'Test notification body',
+            requireInteraction: false,
+            silent: false,
+        }).then(() => {
+            setChecking(false);
+            setPerm(Notification.permission);
+        });
+    }, [checking]);
+
+    return (
+        <fieldset>
+            {'Notifications are currently: ' + perm}
+            <hr/>
+            <SaveButton
+                defaultMessage='Request permission'
+                onClick={handleClick}
+                saving={checking}
+            />
+        </fieldset>
+    );
+}

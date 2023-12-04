@@ -63,6 +63,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
     }
 
     public componentDidMount(): void {
+        console.log('LoggedIn componentDidMount');
         // Initialize websocket
         WebSocketActions.initialize();
 
@@ -110,6 +111,7 @@ export default class LoggedIn extends React.PureComponent<Props> {
     }
 
     public componentWillUnmount(): void {
+        console.log('LoggedIn componentWillUnmount');
         WebSocketActions.close();
 
         window.removeEventListener('keydown', this.handleBackSpace);
