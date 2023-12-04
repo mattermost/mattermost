@@ -1,3 +1,9 @@
-.select-text-input {
-
+.select-text-description {
+    color: var(--denim-64-center-channel-text, var(--center-channel-color-64, rgba(63, 67, 80, 0.64)));
+    font-family: Open Sans;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 16px;
+    margin-top: 8px;
 }

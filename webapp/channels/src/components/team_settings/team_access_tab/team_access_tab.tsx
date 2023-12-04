@@ -37,7 +37,7 @@ const AccessTab = (props: Props) => {
 
     const [inviteId, setInviteId] = useState<Team['invite_id']>(props.team?.invite_id ?? '');
     const [allowedDomains, setAllowedDomains] = useState<SelectTextInputOption[]>(generateAllowedDomainOptions(props.team?.allowed_domains));
-    const [showAllowedDomains, setShowAllowedDomains] = useState<boolean>(false);
+    const [showAllowedDomains, setShowAllowedDomains] = useState<boolean>(allowedDomains?.length > 0);
     const [serverError, setServerError] = useState<string>('');
     const {formatMessage} = useIntl();
 
@@ -64,6 +64,13 @@ const AccessTab = (props: Props) => {
 
         if (error) {
             setServerError(error.message);
+        }
+    };
+
+    const handleEnableAllowedDomains = (enabled: boolean) => {
+        setShowAllowedDomains(enabled);
+        if (!enabled) {
+            setAllowedDomains([]);
         }
     };
 
@@ -115,10 +122,10 @@ const AccessTab = (props: Props) => {
             className='form-group'
         >
             <CheckboxSettingItem
-                css={{marginBottom: '16px'}}
+                css={{marginBottom: '16px', marginTop: '24px'}}
                 inputFieldData={{title: {id: 'general_tab.allowedDomains', defaultMessage: 'Allow only users with a specific email domain to join this team'}, name: 'name'}}
                 inputFieldValue={showAllowedDomains}
-                handleChange={(checked) => setShowAllowedDomains(checked)}
+                handleChange={handleEnableAllowedDomains}
             />
             {showAllowedDomains &&
                 <SelectTextInput
@@ -129,6 +136,7 @@ const AccessTab = (props: Props) => {
                     onChange={(allowedDomainsOptions) => setAllowedDomains(allowedDomainsOptions || [])}
                     handleNewSelection={updateAllowedDomains}
                     isClearable={false}
+                    description={formatMessage({id: 'general_tab.AllowedDomainsTip', defaultMessage: 'Seperate multiple domains with a space or comma.'})}
                 />
             }
         </div>
@@ -148,6 +156,7 @@ const AccessTab = (props: Props) => {
             title={{id: 'general_tab.allowedDomainsTitle', defaultMessage: 'Users with a specific email domain'}}
             description={{id: 'general_tab.allowedDomainsInfo', defaultMessage: 'When enabled, users can only join the team if their email matches a specific domain (e.g. "mattermost.org")'}}
             content={allowedDomainsSectionInput}
+            descriptionAboveContent={true}
         />
     );
 

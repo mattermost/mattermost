@@ -5,7 +5,7 @@ import React from 'react';
 import type {CSSProperties, KeyboardEventHandler} from 'react';
 import CreatableSelect from 'react-select/creatable';
 
-import './select_text_input';
+import './select_text_input.scss';
 
 const components = {
     DropdownIndicator: null,
@@ -23,6 +23,7 @@ type Props = {
     onChange: (option?: SelectTextInputOption[] | null) => void;
     id?: string;
     isClearable?: boolean;
+    description?: string;
 }
 
 const styles = {
@@ -70,10 +71,9 @@ const SelectTextInput = (props: Props) => {
             return;
         }
         switch (event.key) {
-        case 'Tab':
         case ' ':
         case ',':
-            // setValue((prev) => [...prev, createOption(inputValue)]);
+            // todo sinan: how to handle a case if text already exist in the list
             props.handleNewSelection(inputValue);
             setInputValue('');
             event.preventDefault();
@@ -81,21 +81,24 @@ const SelectTextInput = (props: Props) => {
     };
 
     return (
-        <CreatableSelect
-            id={props.id}
-            className='select-text-input'
-            styles={styles}
-            components={components}
-            isClearable={props.isClearable}
-            onChange={(value) => props.onChange(value as SelectTextInputOption[])}
-            inputValue={inputValue}
-            isMulti={true}
-            menuIsOpen={false}
-            onInputChange={(newValue) => setInputValue(newValue)}
-            onKeyDown={handleKeyDown}
-            placeholder={props.placeholder}
-            value={props.value}
-        />
+        <>
+            <CreatableSelect
+                id={props.id}
+                className='select-text-input'
+                styles={styles}
+                components={components}
+                isClearable={props.isClearable}
+                onChange={(value) => props.onChange(value as SelectTextInputOption[])}
+                inputValue={inputValue}
+                isMulti={true}
+                menuIsOpen={false}
+                onInputChange={(newValue) => setInputValue(newValue)}
+                onKeyDown={handleKeyDown}
+                placeholder={props.placeholder}
+                value={props.value}
+            />
+            {props.description ? <p className='select-text-description'>{props.description}</p> : undefined}
+        </>
     );
 };
 
