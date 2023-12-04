@@ -36,7 +36,6 @@ describe('components/admin_console/system_users', () => {
             loadProfilesWithoutTeam: jest.fn().mockResolvedValue({data: true}),
             getProfiles: jest.fn().mockResolvedValue({data: []}),
             searchProfiles: jest.fn().mockResolvedValue({data: []}),
-            revokeSessionsForAllUsers: jest.fn().mockResolvedValue({data: true}),
             logError: jest.fn(),
             getFilteredUsersStats: jest.fn(),
         },
