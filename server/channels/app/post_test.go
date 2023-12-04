@@ -1005,51 +1005,49 @@ func TestCreatePost(t *testing.T) {
 		directChannel, err := th.App.createDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, err)
 
-		referencedPost := &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			Message:   "hello world",
-			UserId:    th.BasicUser.Id,
-		}
-
 		th.Context.Session().UserId = th.BasicUser.Id
-
-		referencedPost, err = th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, false, false)
-		require.Nil(t, err)
-
-		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 
 		testCases := []struct {
 			Description string
 			Channel     *model.Channel
 			Author      string
-			Assert      func(t assert.TestingT, object any, msgAndArgs ...any) bool
+			Length      int
 		}{
 			{
 				Description: "removes metadata from post for members who cannot read channel",
 				Channel:     directChannel,
 				Author:      user1.Id,
-				Assert:      assert.Nil,
+				Length:      0,
 			},
 			{
 				Description: "does not remove metadata from post for members who can read channel",
 				Channel:     th.BasicChannel,
 				Author:      th.BasicUser.Id,
-				Assert:      assert.NotNil,
+				Length:      1,
 			},
 		}
 
 		for _, testCase := range testCases {
 			t.Run(testCase.Description, func(t *testing.T) {
-				previewPost := &model.Post{
+				referencedPost := &model.Post{
 					ChannelId: testCase.Channel.Id,
-					Message:   permalink,
+					Message:   "hello world",
 					UserId:    testCase.Author,
 				}
-
-				previewPost, err = th.App.CreatePost(th.Context, previewPost, testCase.Channel, false, false)
+				referencedPost, err = th.App.CreatePost(th.Context, referencedPost, testCase.Channel, false, false)
 				require.Nil(t, err)
 
-				testCase.Assert(t, previewPost.Metadata.Embeds[0].Data)
+				permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+				previewPost := &model.Post{
+					ChannelId: th.BasicChannel.Id,
+					Message:   permalink,
+					UserId:    th.BasicUser.Id,
+				}
+
+				previewPost, err = th.App.CreatePost(th.Context, previewPost, th.BasicChannel, false, false)
+				require.Nil(t, err)
+
+				require.Len(t, previewPost.Metadata.Embeds, testCase.Length)
 			})
 		}
 	})
@@ -1471,54 +1469,51 @@ func TestUpdatePost(t *testing.T) {
 		directChannel, err := th.App.createDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, err)
 
-		referencedPost := &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			Message:   "hello world",
-			UserId:    th.BasicUser.Id,
-		}
-
 		th.Context.Session().UserId = th.BasicUser.Id
-
-		referencedPost, err = th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, false, false)
-		require.Nil(t, err)
-
-		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 
 		testCases := []struct {
 			Description string
 			Channel     *model.Channel
 			Author      string
-			Assert      func(t assert.TestingT, object any, msgAndArgs ...any) bool
+			Length      int
 		}{
 			{
 				Description: "removes metadata from post for members who cannot read channel",
 				Channel:     directChannel,
 				Author:      user1.Id,
-				Assert:      assert.Nil,
+				Length:      0,
 			},
 			{
 				Description: "does not remove metadata from post for members who can read channel",
 				Channel:     th.BasicChannel,
 				Author:      th.BasicUser.Id,
-				Assert:      assert.NotNil,
+				Length:      1,
 			},
 		}
 
 		for _, testCase := range testCases {
 			t.Run(testCase.Description, func(t *testing.T) {
-				previewPost := &model.Post{
+				referencedPost := &model.Post{
 					ChannelId: testCase.Channel.Id,
+					Message:   "hello world",
 					UserId:    testCase.Author,
 				}
-
-				previewPost, err = th.App.CreatePost(th.Context, previewPost, testCase.Channel, false, false)
+				_, err = th.App.CreatePost(th.Context, referencedPost, testCase.Channel, false, false)
 				require.Nil(t, err)
 
+				previewPost := &model.Post{
+					ChannelId: th.BasicChannel.Id,
+					UserId:    th.BasicUser.Id,
+				}
+				previewPost, err = th.App.CreatePost(th.Context, previewPost, th.BasicChannel, false, false)
+				require.Nil(t, err)
+
+				permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 				previewPost.Message = permalink
 				previewPost, err = th.App.UpdatePost(th.Context, previewPost, false)
 				require.Nil(t, err)
 
-				testCase.Assert(t, previewPost.Metadata.Embeds[0].Data)
+				require.Len(t, previewPost.Metadata.Embeds, testCase.Length)
 			})
 		}
 	})
@@ -3047,26 +3042,64 @@ func TestGetPostIfAuthorized(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: privateChannel.Id, Message: "Hello"}, privateChannel, false, false)
-	require.Nil(t, err)
-	require.NotNil(t, post)
+	t.Run("Private channel", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+		post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: privateChannel.Id, Message: "Hello"}, privateChannel, false, false)
+		require.Nil(t, err)
+		require.NotNil(t, post)
 
-	session1, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
-	require.Nil(t, err)
-	require.NotNil(t, session1)
+		session1, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+		require.NotNil(t, session1)
 
-	session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id, Props: model.StringMap{}})
-	require.Nil(t, err)
-	require.NotNil(t, session2)
+		session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+		require.NotNil(t, session2)
 
-	// User is not authorized to get post
-	_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
-	require.NotNil(t, err)
+		// User is not authorized to get post
+		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
+		require.NotNil(t, err)
 
-	// User is authorized to get post
-	_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
-	require.Nil(t, err)
+		// User is authorized to get post
+		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
+		require.Nil(t, err)
+	})
+
+	t.Run("Public channel", func(t *testing.T) {
+		publicChannel := th.CreateChannel(th.Context, th.BasicTeam)
+		post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: publicChannel.Id, Message: "Hello"}, publicChannel, false, false)
+		require.Nil(t, err)
+		require.NotNil(t, post)
+
+		session1, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+		require.NotNil(t, session1)
+
+		session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+		require.NotNil(t, session2)
+
+		// User is authorized to get post
+		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
+		require.Nil(t, err)
+
+		// User is authorized to get post
+		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
+		require.Nil(t, err)
+
+		th.App.UpdateConfig(func(c *model.Config) {
+			b := true
+			c.ComplianceSettings.Enable = &b
+		})
+
+		// User is not authorized to get post
+		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
+		require.NotNil(t, err)
+
+		// User is authorized to get post
+		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
+		require.Nil(t, err)
+	})
 }
 
 func TestShouldNotRefollowOnOthersReply(t *testing.T) {

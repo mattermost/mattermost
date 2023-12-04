@@ -248,16 +248,16 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 		user.Email = mungEmail(rc.Name, model.UserEmailMaxLength)
 
 		if userSaved, err = scs.server.GetStore().User().Save(user); err != nil {
-			e, ok := err.(errInvalidInput)
+			field, ok := isConflictError(err)
 			if !ok {
 				break
 			}
-			_, field, value := e.InvalidInputInfo()
 			if field == "email" || field == "username" {
 				// username or email collision; try again with different suffix
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Collision inserting sync user",
 					mlog.String("field", field),
-					mlog.Any("value", value),
+					mlog.String("username", user.Username),
+					mlog.String("email", user.Email),
 					mlog.Int("attempt", i),
 					mlog.Err(err),
 				)
@@ -302,16 +302,16 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 		user.Email = mungEmail(rc.Name, model.UserEmailMaxLength)
 
 		if update, err = scs.server.GetStore().User().Update(rctx, user, false); err != nil {
-			e, ok := err.(errInvalidInput)
+			field, ok := isConflictError(err)
 			if !ok {
 				break
 			}
-			_, field, value := e.InvalidInputInfo()
 			if field == "email" || field == "username" {
 				// username or email collision; try again with different suffix
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Collision updating sync user",
 					mlog.String("field", field),
-					mlog.Any("value", value),
+					mlog.String("username", user.Username),
+					mlog.String("email", user.Email),
 					mlog.Int("attempt", i),
 					mlog.Err(err),
 				)
