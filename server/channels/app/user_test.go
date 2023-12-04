@@ -1938,7 +1938,10 @@ func TestGetUsersForReporting(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		userReports, err := th.App.GetUsersForReporting("Username", false, 999, "", "", 0, 0, "", "", false, false, false)
+		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
+			SortColumn: "Username",
+			PageSize:   999,
+		})
 		require.Error(t, err)
 		require.Nil(t, userReports)
 	})
@@ -1947,7 +1950,12 @@ func TestGetUsersForReporting(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		userReports, err := th.App.GetUsersForReporting("Username", false, 50, "", "", 1000, 500, "", "", false, false, false)
+		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
+			SortColumn: "Username",
+			PageSize:   50,
+			StartAt:    1000,
+			EndAt:      500,
+		})
 		require.Error(t, err)
 		require.Nil(t, userReports)
 	})
@@ -1956,7 +1964,10 @@ func TestGetUsersForReporting(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		userReports, err := th.App.GetUsersForReporting("FakeColumn", false, 50, "", "", 0, 0, "", "", false, false, false)
+		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
+			SortColumn: "FakeColumn",
+			PageSize:   50,
+		})
 		require.Error(t, err)
 		require.Nil(t, userReports)
 	})
@@ -1997,7 +2008,10 @@ func TestGetUsersForReporting(t *testing.T) {
 
 		mockStore.On("User").Return(&mockUserStore)
 
-		userReports, err := th.App.GetUsersForReporting("Username", false, 50, "", "", 0, 0, "", "", false, false, false)
+		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
+			SortColumn: "Username",
+			PageSize:   50,
+		})
 		require.Nil(t, err)
 		require.NotNil(t, userReports)
 		require.Equal(t, "Bob Bobson", userReports[0].DisplayName)

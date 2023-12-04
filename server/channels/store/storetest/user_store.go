@@ -6244,7 +6244,6 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("should return info for all the users", func(t *testing.T) {
-
 		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
 			SortColumn: "Username",
 			PageSize:   50,
@@ -6310,7 +6309,6 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("should return correct paging", func(t *testing.T) {
-
 		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
 			SortColumn:          "Username",
 			PageSize:            50,
