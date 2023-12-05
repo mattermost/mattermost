@@ -3,18 +3,22 @@
 
 import {connect} from 'react-redux';
 
+import {bindActionCreators} from 'redux';
+
+import type {Dispatch} from 'redux';
+
 import {t} from 'utils/i18n';
 
-import GroupList from './group_list';
-import type { Props } from './group_list';
+import type {GlobalState} from 'types/store';
 
-import type { GlobalState } from 'types/store';
-import {bindActionCreators} from 'redux';
-import type {Dispatch} from 'redux';
+import GroupList from './group_list';
+import type {Props} from './group_list';
+
 import type {GenericAction} from 'mattermost-redux/types/actions';
+
 import type {Group} from '@mattermost/types/groups';
 
-function mapStateToProps(state : GlobalState, ownProps: Props) {
+function mapStateToProps(state: GlobalState, ownProps: Props) {
     return {
         data: ownProps.data,
         removeGroup: ownProps.removeGroup,
