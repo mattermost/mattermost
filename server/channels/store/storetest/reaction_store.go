@@ -27,6 +27,8 @@ func TestReactionStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("PermanentDeleteBatch", func(t *testing.T) { testReactionStorePermanentDeleteBatch(t, ss) })
 	t.Run("ReactionBulkGetForPosts", func(t *testing.T) { testReactionBulkGetForPosts(t, ss) })
 	t.Run("ReactionDeadlock", func(t *testing.T) { testReactionDeadlock(t, ss) })
+	t.Run("ExistsOnPost", func(t *testing.T) { testExistsOnPost(t, ss) })
+	t.Run("GetUniqueCountForPost", func(t *testing.T) { testGetUniqueCountForPost(t, ss) })
 }
 
 func testReactionSave(t *testing.T, ss store.Store) {
@@ -777,4 +779,67 @@ func testReactionDeadlock(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 	}()
 	wg.Wait()
+}
+
+func testExistsOnPost(t *testing.T, ss store.Store) {
+	post, _ := ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+	})
+	emojiName := model.NewId()
+	reaction := &model.Reaction{
+		UserId:    model.NewId(),
+		PostId:    post.Id,
+		EmojiName: emojiName,
+	}
+	_, nErr := ss.Reaction().Save(reaction)
+	require.NoError(t, nErr)
+	exists, err := ss.Reaction().ExistsOnPost(post.Id, emojiName)
+	require.NoError(t, err)
+	require.True(t, exists)
+	exists, err = ss.Reaction().ExistsOnPost(post.Id, model.NewId())
+	require.NoError(t, err)
+	require.False(t, exists)
+}
+
+func testGetUniqueCountForPost(t *testing.T, ss store.Store) {
+	post, _ := ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+	})
+
+	userId := model.NewId()
+	emojiName := model.NewId()
+
+	reaction := &model.Reaction{
+		UserId:    userId,
+		PostId:    post.Id,
+		EmojiName: emojiName,
+	}
+	_, nErr := ss.Reaction().Save(reaction)
+	require.NoError(t, nErr)
+
+	sameReaction := &model.Reaction{
+		UserId:    model.NewId(),
+		PostId:    post.Id,
+		EmojiName: emojiName,
+	}
+	_, nErr = ss.Reaction().Save(sameReaction)
+	require.NoError(t, nErr)
+
+	newReaction := &model.Reaction{
+		UserId:    userId,
+		PostId:    post.Id,
+		EmojiName: model.NewId(),
+	}
+	_, nErr = ss.Reaction().Save(newReaction)
+	require.NoError(t, nErr)
+
+	totalReactions, err := ss.Reaction().GetForPost(post.Id, false)
+	require.NoError(t, err)
+	require.Equal(t, 3, len(totalReactions))
+
+	count, err := ss.Reaction().GetUniqueCountForPost(post.Id)
+	require.NoError(t, err)
+	require.Equal(t, 2, count)
 }

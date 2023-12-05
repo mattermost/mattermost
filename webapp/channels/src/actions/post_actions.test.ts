@@ -11,6 +11,7 @@ import {Posts} from 'mattermost-redux/constants';
 
 import * as Actions from 'actions/post_actions';
 import {Constants, ActionTypes, RHSStates} from 'utils/constants';
+import * as PostUtils from 'utils/post_utils';
 
 import mockStore from 'tests/test_store';
 
@@ -46,6 +47,12 @@ jest.mock('utils/user_agent', () => ({
     isIosClassic: jest.fn().mockReturnValueOnce(true).mockReturnValue(false),
     isDesktopApp: jest.fn().mockReturnValue(false),
 }));
+
+jest.mock('utils/post_utils', () => ({
+    makeGetUniqueEmojiNameReactionsForPost: jest.fn(),
+}));
+
+const mockMakeGetUniqueEmojiNameReactionsForPost = PostUtils.makeGetUniqueEmojiNameReactionsForPost as unknown as jest.Mock<() => string[]>;
 
 const POST_CREATED_TIME = Date.now();
 
@@ -432,14 +439,40 @@ describe('Actions.Posts', () => {
         });
     });
 
-    test('addReaction', async () => {
-        const testStore = mockStore(initialState);
+    describe('addReaction', () => {
+        mockMakeGetUniqueEmojiNameReactionsForPost.mockReturnValue(() => []);
 
-        await testStore.dispatch(Actions.addReaction('post_id_1', 'emoji_name_1'));
-        expect(testStore.getActions()).toEqual([
-            {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
-            {args: ['emoji_name_1'], type: 'MOCK_ADD_RECENT_EMOJI'},
-        ]);
+        test('should add reaction', async () => {
+            const testStore = mockStore(initialState);
+
+            await testStore.dispatch(Actions.addReaction('post_id_1', 'emoji_name_1'));
+            expect(testStore.getActions()).toEqual([
+                {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
+                {args: ['emoji_name_1'], type: 'MOCK_ADD_RECENT_EMOJI'},
+            ]);
+        });
+        test('should not add reaction if we are over the limit', async () => {
+            mockMakeGetUniqueEmojiNameReactionsForPost.mockReturnValue(() => ['another_emoji']);
+            const testStore = mockStore({
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities.general,
+                        config: {
+                            ...initialState.entities.general.config,
+                            UniqueEmojiReactionLimitPerPost: '1',
+                        },
+                    },
+                },
+            });
+
+            await testStore.dispatch(Actions.addReaction('post_id_1', 'emoji_name_1'));
+            expect(testStore.getActions()).not.toEqual([
+                {args: ['post_id_1', 'emoji_name_1'], type: 'MOCK_ADD_REACTION'},
+                {args: ['emoji_name_1'], type: 'MOCK_ADD_RECENT_EMOJI'},
+            ]);
+        });
     });
 
     test('flagPost', async () => {

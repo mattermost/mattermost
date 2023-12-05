@@ -177,6 +177,7 @@ const defaultServerConfig: AdminConfig = {
         PersistentNotificationMaxRecipients: 5,
         PersistentNotificationIntervalMinutes: 5,
         AllowPersistentNotificationsForGuests: false,
+        UniqueEmojiReactionLimitPerPost: 25,
     },
     TeamSettings: {
         SiteName: 'Mattermost',
