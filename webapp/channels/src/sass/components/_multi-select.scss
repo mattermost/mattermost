@@ -3,15 +3,12 @@
 .multi-select__container {
     display: flex;
     width: 100%;
+    height: 40px;
     justify-content: space-between;
     padding: 0 15px;
 
-    .modal & {
-        padding: 0 32px;
-    }
-
     .btn {
-        height: 36px;
+        height: 40px;
         margin-left: 16px;
     }
 }
@@ -31,10 +28,6 @@
     display: flex;
     justify-content: space-between;
     padding: 10px 15px 0;
-
-    .modal & {
-        padding: 12px 32px 0;
-    }
 
     &:empty {
         display: none;

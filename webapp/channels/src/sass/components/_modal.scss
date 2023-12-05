@@ -640,8 +640,13 @@
     }
 
     .filter-row {
-        width: 300px;
+        padding: 0 16px;
         margin: 5px 0 10px;
+
+        .form-control {
+            height: 40px;
+            padding: 0 16px;
+        }
 
         &.filter-row--full {
             width: 100%;
@@ -827,7 +832,7 @@
         min-height: 65px;
         align-items: center;
         padding: 10px 32px;
-        border-bottom: 1px solid $light-gray;
+        border-top: 1px solid $light-gray;
 
         &.clickable {
             cursor: pointer;
