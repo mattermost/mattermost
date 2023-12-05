@@ -25,7 +25,7 @@ func cleanupStoreState(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err, "failed cleaning up test user %s", u.Username)
 
 		//remove all posts by this user
-		nErr := ss.Post().PermanentDeleteByUser(u.Id)
+		nErr := ss.Post().PermanentDeleteByUser(rctx, u.Id)
 		require.NoError(t, nErr, "failed cleaning all posts of test user %s", u.Username)
 	}
 
@@ -33,7 +33,7 @@ func cleanupStoreState(t *testing.T, rctx request.CTX, ss store.Store) {
 	allChannels, nErr := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.NoError(t, nErr, "error cleaning all test channels", nErr)
 	for _, channel := range allChannels {
-		nErr = ss.Channel().PermanentDelete(channel.Id)
+		nErr = ss.Channel().PermanentDelete(rctx, channel.Id)
 		require.NoError(t, nErr, "failed cleaning up test channel %s", channel.Id)
 	}
 
@@ -269,7 +269,7 @@ func testComplianceExportDirectMessages(t *testing.T, rctx request.CTX, ss store
 	c1, nErr = ss.Channel().Save(c1, -1)
 	require.NoError(t, nErr)
 
-	cDM, nErr := ss.Channel().CreateDirectChannel(u1, u2)
+	cDM, nErr := ss.Channel().CreateDirectChannel(rctx, u1, u2)
 	require.NoError(t, nErr)
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -650,7 +650,7 @@ func testMessageExportDirectMessageChannel(t *testing.T, rctx request.CTX, ss st
 	require.NoError(t, nErr)
 
 	// as well as a DM channel between those users
-	directMessageChannel, nErr := ss.Channel().CreateDirectChannel(user1, user2)
+	directMessageChannel, nErr := ss.Channel().CreateDirectChannel(rctx, user1, user2)
 	require.NoError(t, nErr)
 
 	// user1 also sends a DM to user2
@@ -840,7 +840,7 @@ func testEditExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
 	post1e := post1.Clone()
 	post1e.Message = "edit " + post1.Message
 
-	post1e, err = ss.Post().Update(post1e, post1)
+	post1e, err = ss.Post().Update(rctx, post1e, post1)
 	require.NoError(t, err)
 
 	// fetch the message exports from the start
@@ -951,7 +951,7 @@ func testEditAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store) 
 	post1e := post1.Clone()
 	post1e.EditAt = postEditTime
 	post1e.Message = "edit " + post1.Message
-	post1e, err = ss.Post().Update(post1e, post1)
+	post1e, err = ss.Post().Update(rctx, post1e, post1)
 	require.NoError(t, err)
 
 	// fetch the message exports after edit
@@ -1041,7 +1041,7 @@ func testDeleteExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	//user 1 deletes the previous post
 	postDeleteTime := post1.UpdateAt + 1
-	err = ss.Post().Delete(post1.Id, postDeleteTime, user1.Id)
+	err = ss.Post().Delete(rctx, post1.Id, postDeleteTime, user1.Id)
 	require.NoError(t, err)
 
 	// fetch the message exports from the start
@@ -1144,7 +1144,7 @@ func testDeleteAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store
 
 	//user 1 deletes the previous post
 	postDeleteTime := post1.UpdateAt + 1
-	err = ss.Post().Delete(post1.Id, postDeleteTime, user1.Id)
+	err = ss.Post().Delete(rctx, post1.Id, postDeleteTime, user1.Id)
 	require.NoError(t, err)
 
 	// fetch the message exports after delete
