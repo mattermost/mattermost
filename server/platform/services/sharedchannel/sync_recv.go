@@ -33,7 +33,7 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 		)
 	}
 
-	var sm syncMsg
+	var sm model.SyncMsg
 
 	if err := json.Unmarshal(msg.Payload, &sm); err != nil {
 		return fmt.Errorf("invalid sync message: %w", err)
@@ -41,12 +41,12 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 	return scs.processSyncMessage(request.EmptyContext(scs.server.Log()), &sm, rc, response)
 }
 
-func (scs *Service) processSyncMessage(c request.CTX, syncMsg *syncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+func (scs *Service) processSyncMessage(c request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 	var channel *model.Channel
 	var team *model.Team
 
 	var err error
-	syncResp := SyncResponse{
+	syncResp := model.SyncResponse{
 		UserErrors:     make([]string, 0),
 		UsersSyncd:     make([]string, 0),
 		PostErrors:     make([]string, 0),
