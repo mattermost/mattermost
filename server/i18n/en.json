@@ -8895,6 +8895,10 @@
     "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set."
   },
   {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Invalid domain for move thread settings"
+  },
+  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "Minimum password length must be a whole number greater than or equal to {{.MinLength}} and less than or equal to {{.MaxLength}}."
   },
@@ -9049,10 +9053,6 @@
   {
     "id": "model.config.is_valid.websocket_url.app_error",
     "translation": "Websocket URL must be a valid URL and start with ws:// or wss://."
-  },
-  {
-    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
-    "translation": "Invalid domain for move thread settings"
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",
