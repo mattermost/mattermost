@@ -255,7 +255,7 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	// in local mode, we tell the server to directly read from this file.
 	if isLocal && bypassUpload {
 		if _, err := os.Stat(importFile); errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("file %s doesn't exist. NOTE: If this file was uploaded to the server via mmctl import upload, please use the --legacy flag to revert to old behavior.", importFile)
+			return fmt.Errorf("file %s doesn't exist. NOTE: If this file was uploaded to the server via mmctl import upload, please omit the --bypass-upload flag to revert to old behavior.", importFile)
 		}
 		// If it's not an absolute path, then we make it
 		if !path.IsAbs(importFile) {
