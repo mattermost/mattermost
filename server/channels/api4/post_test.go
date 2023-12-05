@@ -731,7 +731,7 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 }
 
 func TestMoveThread(t *testing.T) {
-	th := SetupEnterprise(t).InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	client := th.Client
