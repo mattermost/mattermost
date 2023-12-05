@@ -720,5 +720,5 @@ const defaultServerConfig: AdminConfig = {
         MoveThreadFromPrivateChannelEnable: true,
         MoveThreadFromDirectMessageChannelEnable: true,
         MoveThreadFromGroupMessageChannelEnable: true,
-    }
+    },
 };
