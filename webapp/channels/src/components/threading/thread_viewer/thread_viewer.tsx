@@ -30,7 +30,7 @@ export type Props = Attrs & {
     appsEnabled: boolean;
     userThread?: UserThread | null;
     channel: Channel | null;
-    selected: Post | FakePost;
+    selected?: Post | FakePost;
     currentUserId: string;
     currentTeamId: string;
     socketConnectionStatus: boolean;
@@ -49,6 +49,7 @@ export type Props = Attrs & {
     selectedPostFocusedAt?: number;
     isThreadView?: boolean;
     inputPlaceholder?: string;
+    rootPostId: string;
 };
 
 type State = {
@@ -72,7 +73,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         this.onInit();
 
         if (this.props.appsEnabled) {
-            this.props.actions.fetchRHSAppsBindings(this.props.channel?.id || '', this.props.selected.id);
+            this.props.actions.fetchRHSAppsBindings(this.props.channel?.id || '', this.props.selected?.id || this.props.rootPostId);
         }
     }
 
@@ -83,7 +84,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
             return;
         }
 
-        const selectedChanged = this.props.selected.id !== prevProps.selected.id;
+        const selectedChanged = this.props.selected.id !== prevProps.selected?.id;
 
         if (reconnected || selectedChanged) {
             this.onInit(reconnected);
@@ -97,7 +98,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         }
 
         if (this.props.appsEnabled && (
-            this.props.channel?.id !== prevProps.channel?.id || this.props.selected.id !== prevProps.selected.id
+            this.props.channel?.id !== prevProps.channel?.id || this.props.selected.id !== prevProps.selected?.id
         )) {
             this.props.actions.fetchRHSAppsBindings(this.props.channel?.id || '', this.props.selected.id);
         }
@@ -105,7 +106,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
 
     public morePostsToFetch(): boolean {
         const replyCount = this.getReplyCount();
-        return this.props.selected && this.props.postIds.length < (replyCount + 1);
+        return Boolean(this.props.selected) && this.props.postIds.length < (replyCount + 1);
     }
 
     public getReplyCount(): number {
@@ -150,7 +151,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                 this.props.actions.updateThreadRead(
                     this.props.currentUserId,
                     this.props.currentTeamId,
-                    this.props.selected.id,
+                    this.props.selected?.id || this.props.rootPostId,
                     Date.now(),
                 );
             }
@@ -163,9 +164,9 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
     private onInit = async (reconnected = false): Promise<void> => {
         this.setState({isLoading: !reconnected});
         if (reconnected || this.morePostsToFetch()) {
-            await this.props.actions.getPostThread(this.props.selected.id, !reconnected);
+            await this.props.actions.getPostThread(this.props.selected?.id || this.props.rootPostId, !reconnected);
         } else {
-            await this.props.actions.getNewestPostThread(this.props.selected.id);
+            await this.props.actions.getNewestPostThread(this.props.selected?.id || this.props.rootPostId);
         }
 
         if (

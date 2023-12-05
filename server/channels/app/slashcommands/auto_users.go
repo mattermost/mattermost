@@ -127,7 +127,7 @@ func (cfg *AutoUserCreator) createRandomUser(c request.CTX) (*model.User, error)
 			return nil, appErr
 		}
 		teamMember.CreateAt = cfg.JoinTime
-		_, err := cfg.app.Srv().Store().Team().UpdateMember(teamMember)
+		_, err := cfg.app.Srv().Store().Team().UpdateMember(c, teamMember)
 		if err != nil {
 			return nil, err
 		}

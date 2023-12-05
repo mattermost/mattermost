@@ -40,14 +40,17 @@ exports[`components/TeamSettings hide invite code if no permissions for team inv
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <div
+      className="GeneralTab__header"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="General Settings"
-        id="general_tab.title"
-      />
-    </h3>
+      <h3>
+        <MemoizedFormattedMessage
+          defaultMessage="General Settings"
+          id="general_tab.title"
+        />
+      </h3>
+      <LearnAboutTeamsLink />
+    </div>
     <div
       className="divider-dark first"
     />
@@ -165,14 +168,17 @@ exports[`components/TeamSettings hide invite code if no permissions for team inv
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <div
+      className="GeneralTab__header"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="General Settings"
-        id="general_tab.title"
-      />
-    </h3>
+      <h3>
+        <MemoizedFormattedMessage
+          defaultMessage="General Settings"
+          id="general_tab.title"
+        />
+      </h3>
+      <LearnAboutTeamsLink />
+    </div>
     <div
       className="divider-dark first"
     />
@@ -284,14 +290,17 @@ exports[`components/TeamSettings should match snapshot when team is group constr
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
+    <div
+      className="GeneralTab__header"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="General Settings"
-        id="general_tab.title"
-      />
-    </h3>
+      <h3>
+        <MemoizedFormattedMessage
+          defaultMessage="General Settings"
+          id="general_tab.title"
+        />
+      </h3>
+      <LearnAboutTeamsLink />
+    </div>
     <div
       className="divider-dark first"
     />
