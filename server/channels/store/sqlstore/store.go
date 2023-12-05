@@ -52,7 +52,8 @@ const (
 	// 9.6.3 would be 90603.
 	minimumRequiredPostgresVersion = 110000
 	// major*1000 + minor*100 + patch
-	minimumRequiredMySQLVersion = 5712
+	minimumRequiredMySQLVersion    = 5712
+	minimumRecommendedMySQLVersion = 8000
 
 	migrationsDirectionUp   migrationDirection = "up"
 	migrationsDirectionDown migrationDirection = "down"
@@ -1231,6 +1232,9 @@ func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
 			return false, fmt.Errorf("cannot parse MySQL DB version: %w", err2)
 		}
 		intVer := majorVer*1000 + minorVer*100 + patchVer
+		if intVer < minimumRecommendedMySQLVersion {
+			mlog.Warn("The currently installed MySQL version is at EOL. Please upgrade to a higher version.", mlog.Int("current_version", intVer), mlog.Int("minimum_recommended_version", minimumRecommendedMySQLVersion))
+		}
 		if intVer < minimumRequiredMySQLVersion {
 			return false, fmt.Errorf("minimum MySQL version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *ss.settings.DriverName), versionString(minimumRequiredMySQLVersion, *ss.settings.DriverName))
 		}
