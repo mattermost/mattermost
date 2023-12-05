@@ -178,7 +178,7 @@ export default class CreateUserGroupsModal extends React.PureComponent<Props, St
                 <Modal.Header closeButton={true}>
                     {
                         typeof this.props.backButtonCallback === 'function' ? (
-                            <>
+                            <div className='d-flex align-items-center'>
                                 <button
                                     type='button'
                                     className='modal-header-back-button btn btn-icon'
@@ -201,7 +201,7 @@ export default class CreateUserGroupsModal extends React.PureComponent<Props, St
                                         defaultMessage='Create Group'
                                     />
                                 </Modal.Title>
-                            </>
+                            </div>
                         ) : (
                             <Modal.Title
                                 componentClass='h1'

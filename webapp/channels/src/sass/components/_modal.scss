@@ -41,6 +41,8 @@
 
 .app__body {
     .modal {
+        color: rgb(var(--center-channel-color-rgb));
+
         .modal-content {
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
             background: var(--center-channel-bg);
@@ -633,7 +635,7 @@
     }
 
     .modal-body {
-        padding: 10px 0 15px;
+        padding: 0;
         overflow-x: hidden;
     }
 
@@ -824,7 +826,7 @@
         display: flex;
         min-height: 65px;
         align-items: center;
-        padding: 10px 15px;
+        padding: 10px 32px;
         border-bottom: 1px solid $light-gray;
 
         &.clickable {

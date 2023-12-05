@@ -6,6 +6,10 @@
     justify-content: space-between;
     padding: 0 15px;
 
+    .modal & {
+        padding: 0 32px;
+    }
+
     .btn {
         height: 36px;
         margin-left: 16px;
@@ -27,6 +31,10 @@
     display: flex;
     justify-content: space-between;
     padding: 10px 15px 0;
+
+    .modal & {
+        padding: 12px 32px 0;
+    }
 
     &:empty {
         display: none;

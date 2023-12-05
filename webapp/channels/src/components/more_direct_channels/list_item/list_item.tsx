@@ -77,7 +77,7 @@ const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>
 
             <div className='more-modal__actions'>
                 <div className='more-modal__actions--round'>
-                    <AddIcon/>
+                    <i className='icon icon-plus'/>
                 </div>
             </div>
         </div>

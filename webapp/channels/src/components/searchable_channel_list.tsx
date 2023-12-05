@@ -403,7 +403,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     id='searchIcon'
                     aria-hidden='true'
                 >
-                    <MagnifyIcon size={18}/>
+                    <i className='icon icon-magnify'/>
                 </span>
                 <QuickInput
                     id='searchChannelsTextbox'

@@ -158,14 +158,17 @@
     display: flex;
     flex-direction: column;
 
+    .modal-footer {
+        order: 2;
+    }
+
     .filtered-user-list {
         order: 0;
     }
 
     .invite-as-guest {
         margin-top: 8px;
-        margin-right: 2.4rem;
-        margin-bottom: 22px;
+        margin-right: 3.2rem;
         margin-left: auto;
     }
 

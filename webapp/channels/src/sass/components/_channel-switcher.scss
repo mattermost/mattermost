@@ -8,8 +8,8 @@
         }
 
         .modal-header {
-            padding-right: 24px;
-            padding-left: 24px;
+            padding-right: 32px;
+            padding-left: 32px;
         }
 
         .modal-body {
@@ -37,7 +37,7 @@
         .icon-magnify {
             position: absolute;
             top: 1.1rem;
-            left: 3.4rem;
+            left: 4.2rem;
             display: flex;
             width: 2rem;
             height: 2rem;
@@ -46,10 +46,10 @@
         }
 
         .form-control {
-            width: calc(100% - 48px);
+            width: calc(100% - 64px);
             height: 40px;
             padding: 0 34px;
-            margin: 0 24px;
+            margin: 0 32px;
             border-radius: 4px;
 
             &:focus {
@@ -106,6 +106,8 @@
         }
 
         .suggestion-list__divider {
+            padding: 1.6rem 3.2rem;
+
             &:first-child {
                 margin: 0;
 

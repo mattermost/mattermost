@@ -218,7 +218,7 @@ export default class AddGroupsToChannelModal extends React.PureComponent<Props, 
                 </div>
                 <div className='more-modal__actions'>
                     <div className='more-modal__actions--round'>
-                        <AddIcon/>
+                        <i className='icon icon-plus'/>
                     </div>
                 </div>
             </div>

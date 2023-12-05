@@ -425,7 +425,9 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                     </div>
                     <div className='more-modal__actions'>
                         <div className='more-modal__actions--round'>
-                            <AddIcon/>
+                            <i
+                                className='icon icon-plus'
+                            />
                         </div>
                     </div>
                 </div>
@@ -570,6 +572,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                             teamId={this.props.channel.team_id}
                             users={this.state.usersNotInTeam}
                         />
+                        {inviteGuestLink}
                         {(this.props.emailInvitationsEnabled && this.props.canInviteGuests) && inviteGuestLink}
                     </div>
                 </Modal.Body>
