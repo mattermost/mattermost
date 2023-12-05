@@ -672,7 +672,7 @@ func TestBuildPostReplies(t *testing.T) {
 	createPostWithAttachments := func(th *TestHelper, n int, rootID string) *model.Post {
 		var fileIDs []string
 		for i := 0; i < n; i++ {
-			info, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
+			info, err := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
 				CreatorId: th.BasicUser.Id,
 				Name:      fmt.Sprintf("file%d", i),
 				Path:      fmt.Sprintf("/data/file%d", i),
