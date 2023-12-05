@@ -8,10 +8,10 @@
     display: flex;
     width: 386px;
     padding: 18px 20px 0;
-    border: 1px solid alpha-color($black, 0.15);
+    border: 1px solid rgba(var(--center-channel-color-rgb, 0.12));
     background-color: var(--center-channel-bg);
     border-radius: 4px;
-    box-shadow: 0 20px 30px alpha-color($black, 0.07), 0 14px 20px alpha-color($black, 0.07);
+    box-shadow: rgba(var(--center-channel-color-rgb), 0.1) 0 20px 30px 0, rgba(var(--center-channel-color-rgb), 0.1) 0 14px 20px 0;
 }
 
 .system-notice__logo {
@@ -45,7 +45,7 @@
 
 .system-notice__body {
     padding: 0 0 16px 16px;
-    line-height: 16px;
+    line-height: 20px;
 }
 
 .system-notice__footer {

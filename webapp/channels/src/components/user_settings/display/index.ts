@@ -44,7 +44,6 @@ export function makeMapStateToProps() {
         const enableLinkPreviews = config.EnableLinkPreviews === 'true';
         const defaultClientLocale = config.DefaultClientLocale as string;
         const enableThemeSelection = config.EnableThemeSelection === 'true';
-        const enableTimezone = config.ExperimentalTimezone === 'true';
         const lockTeammateNameDisplay = getLicense(state).LockTeammateNameDisplay === 'true' && config.LockTeammateNameDisplay === 'true';
         const configTeammateNameDisplay = config.TeammateNameDisplay as string;
         const emojiPickerEnabled = config.EnableEmojiPicker === 'true';
@@ -62,7 +61,6 @@ export function makeMapStateToProps() {
             enableLinkPreviews,
             defaultClientLocale,
             enableThemeSelection,
-            enableTimezone,
             timezones,
             timezoneLabel,
             userTimezone,

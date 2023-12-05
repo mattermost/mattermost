@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 const (
@@ -462,7 +463,7 @@ func (wc *WebConn) writePump() {
 			var err error
 			if evtOk {
 				evt = evt.SetSequence(wc.Sequence)
-				err = evt.Encode(enc)
+				err = evt.Encode(enc, &buf)
 				wc.Sequence++
 			} else {
 				err = enc.Encode(msg)
@@ -510,7 +511,7 @@ func (wc *WebConn) writePump() {
 
 		case <-authTicker.C:
 			if wc.GetSessionToken() == "" {
-				mlog.Debug("websocket.authTicker: did not authenticate", mlog.Any("ip_address", wc.WebSocket.RemoteAddr()))
+				mlog.Debug("websocket.authTicker: did not authenticate", mlog.Stringer("ip_address", wc.WebSocket.RemoteAddr()))
 				return
 			}
 			authTicker.Stop()
@@ -529,7 +530,7 @@ func (wc *WebConn) writeMessage(msg *model.WebSocketEvent) error {
 	// We don't use the encoder from the write pump because it's unwieldy to pass encoders
 	// around, and this is only called during initialization of the webConn.
 	var buf bytes.Buffer
-	err := msg.Encode(json.NewEncoder(&buf))
+	err := msg.Encode(json.NewEncoder(&buf), &buf)
 	if err != nil {
 		mlog.Warn("Error in encoding websocket message", mlog.Err(err))
 		return nil
@@ -701,7 +702,11 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 		return true
 	}
 
-	canSee, err := wc.Suite.UserCanSeeOtherUser(wc.UserId, userID)
+	// In the future, other methods in WebConn will use a request.Context.
+	// For now, it's fine to create it here.
+	c := request.EmptyContext(wc.Platform.logger)
+
+	canSee, err := wc.Suite.UserCanSeeOtherUser(c, wc.UserId, userID)
 	if err != nil {
 		mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 		return false
@@ -738,6 +743,13 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 			return false
 		}
 	}
+
+	// There are two checks here which differentiates between what to send to an admin user and what to send to a normal user.
+	// For websocket events containing sensitive data, we split that to create two events:
+	// 1. We sanitize all fields, and set ContainsSanitizedData to true. This goes to normal users.
+	// 2. We don't sanitize, and set ContainsSensitiveData to true. This goes to admins.
+	// Setting both ContainsSanitizedData and ContainsSensitiveData for the same event is a bug, and in that case
+	// the event gets sent to no one. This is unit tested in TestWebConnShouldSendEvent.
 
 	// If the event contains sanitized data, only send to users that don't have permission to
 	// see sensitive data. Prevents admin clients from receiving events with bad data

@@ -52,7 +52,6 @@ button {
         padding: 0;
         background-color: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 24px;
 
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
@@ -66,39 +65,51 @@ button {
         }
 
         i {
-            font-size: inherit;
+            font-size: 24px;
         }
 
         &.btn-xs {
             width: 24px;
             height: 24px;
-            font-size: 14.4px;
+            padding: 0;
 
             &.btn-compact {
                 width: 20px;
                 height: 20px;
+            }
+
+            i {
+                font-size: 14.4px;
             }
         }
 
         &.btn-sm {
             width: 32px;
             height: 32px;
-            font-size: 18px;
+            padding: 0;
 
             &.btn-compact {
                 width: 28px;
                 height: 28px;
+            }
+
+            i {
+                font-size: 18px;
             }
         }
 
         &.btn-lg {
             width: 48px;
             height: 48px;
-            font-size: 31.2px;
+            padding: 0;
 
             &.btn-compact {
                 width: 36px;
                 height: 36px;
+            }
+
+            i {
+                font-size: 31.2px;
             }
         }
     }
@@ -168,18 +179,32 @@ button {
         }
     }
 
+    &.btn-link {
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: rgba(var(--button-bg-rgb), 1);
+
+        &:hover,
+        &:focus,
+        &:active {
+            text-decoration: underline;
+        }
+    }
+
     &.btn-primary {
         position: relative;
         border-color: transparent;
         background-color: rgb(var(--button-bg-rgb));
-        color: rgb(var(--button-color-rgb));
+        color: rgb(var(--button-color-rgb)) !important;
 
         // These hover and active values are for things outside the app__body, the correct theme styles for the primary button are applied in utils.jsx
         &:hover {
             background-color: #1a51c8;
         }
 
-        &:active {
+        &:active,
+        &:focus {
             background-color: #184ab6;
         }
 
@@ -244,6 +269,22 @@ button {
             background: rgba(var(--center-channel-color-rgb), 0.08);
             color: rgba(var(--center-channel-color-rgb), 0.32);
             opacity: 1;
+        }
+
+        &.btn-danger {
+            background-color: rgba(var(--error-text-color-rgb), 0.08);
+            color: var(--error-text);
+
+            &:hover {
+                background-color: rgba(var(--error-text-color-rgb), 0.12);
+                color: var(--error-text);
+            }
+
+            &:active,
+            &:focus {
+                background-color: rgba(var(--error-text-color-rgb), 0.16);
+                color: var(--error-text);
+            }
         }
     }
 

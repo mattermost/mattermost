@@ -8,7 +8,7 @@
 
 import {ChainableT} from '../../types';
 
-function apiCreateCustomUserGroup(displayName: string, name: string, userIds: string[]): ChainableT<Cypress.Group> {
+function apiCreateCustomUserGroup(displayName: string, name: string, userIds: string[]): ChainableT<Cypress.Response<any>> {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/groups',

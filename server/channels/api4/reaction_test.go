@@ -55,7 +55,7 @@ func TestSaveReaction(t *testing.T) {
 	})
 
 	t.Run("save-second-reaction", func(t *testing.T) {
-		reaction.EmojiName = "sad"
+		reaction.EmojiName = "cry"
 
 		rr, _, err := client.SaveReaction(context.Background(), reaction)
 		require.NoError(t, err)
@@ -290,7 +290,7 @@ func TestDeleteReaction(t *testing.T) {
 	r2 := &model.Reaction{
 		UserId:    userId,
 		PostId:    postId,
-		EmojiName: "smile-",
+		EmojiName: "cry",
 	}
 
 	r3 := &model.Reaction{
@@ -302,7 +302,7 @@ func TestDeleteReaction(t *testing.T) {
 	r4 := &model.Reaction{
 		UserId:    user2Id,
 		PostId:    postId,
-		EmojiName: "smile_",
+		EmojiName: "grin",
 	}
 
 	// Check the appropriate permissions are enforced.
@@ -574,7 +574,6 @@ func TestGetBulkReactions(t *testing.T) {
 		assert.ElementsMatch(t, expectedPostIdsReactionsMap[post4.Id], postIdsReactionsMap[post4.Id])
 		assert.ElementsMatch(t, expectedPostIdsReactionsMap[post5.Id], postIdsReactionsMap[post5.Id])
 		assert.Equal(t, expectedPostIdsReactionsMap, postIdsReactionsMap)
-
 	})
 
 	t.Run("get-reactions-as-anonymous-user", func(t *testing.T) {

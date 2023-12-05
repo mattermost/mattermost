@@ -173,6 +173,26 @@ func TestCreatePost(t *testing.T) {
 		}
 	})
 
+	t.Run("err with integrations-reserved props", func(t *testing.T) {
+		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
+		})
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
+		})
+
+		_, postResp, postErr := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "with props",
+			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
+		})
+
+		require.Error(t, postErr)
+		CheckBadRequestStatus(t, postResp)
+	})
+
 	post.RootId = ""
 	post.Type = model.PostTypeSystemGeneric
 	_, resp, err := client.CreatePost(context.Background(), post)
@@ -405,7 +425,7 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 	})
 	require.Nil(t, appErr, "should create an OAuthApp")
 
-	session, appErr := th.App.CreateSession(&model.Session{
+	session, appErr := th.App.CreateSession(th.Context, &model.Session{
 		UserId:  th.BasicUser.Id,
 		Token:   "token",
 		IsOAuth: true,
@@ -418,7 +438,7 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 		Message:   "test message",
 	})
 	require.NoError(t, err)
-	assert.NotContains(t, post.GetProps(), "from_oauth_app", "contains from_oauth_app prop when not using OAuth client")
+	assert.NotContains(t, post.GetProps(), model.PostPropsFromOAuthApp, fmt.Sprintf("contains %s prop when not using OAuth client", model.PostPropsOverrideUsername))
 
 	client := th.CreateClient()
 	client.SetOAuthToken(session.Token)
@@ -428,7 +448,28 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-	assert.Contains(t, post.GetProps(), "from_oauth_app", "missing from_oauth_app prop when using OAuth client")
+	assert.Contains(t, post.GetProps(), model.PostPropsFromOAuthApp, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideUsername))
+
+	t.Run("allow username and icon overrides", func(t *testing.T) {
+		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
+		})
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
+		})
+
+		post, _, err = client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test message",
+			Props:     model.StringInterface{model.PostPropsOverrideUsername: "newUsernameValue", model.PostPropsOverrideIconURL: "iconUrlOverrideValue"},
+		})
+
+		require.NoError(t, err)
+		assert.Contains(t, post.GetProps(), model.PostPropsOverrideUsername, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideUsername))
+		assert.Contains(t, post.GetProps(), model.PostPropsOverrideIconURL, fmt.Sprintf("missing %s prop when using OAuth client", model.PostPropsOverrideIconURL))
+	})
 }
 
 func TestCreatePostEphemeral(t *testing.T) {
@@ -722,7 +763,7 @@ func TestCreatePostPublic(t *testing.T) {
 
 	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
-	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllPublicRoleId)
+	th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllPublicRoleId)
 	th.App.Srv().InvalidateAllCaches()
 
 	client.Login(context.Background(), user.Email, user.Password)
@@ -775,7 +816,7 @@ func TestCreatePostAll(t *testing.T) {
 
 	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
-	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllRoleId)
+	th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllRoleId)
 	th.App.Srv().InvalidateAllCaches()
 
 	client.Login(context.Background(), user.Email, user.Password)
@@ -1085,6 +1126,26 @@ func TestUpdatePost(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("err with integrations-reserved props", func(t *testing.T) {
+		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
+		})
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
+		})
+
+		_, resp, err := client.UpdatePost(context.Background(), rpost.Id, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "with props",
+			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
+		})
+
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("logged out", func(t *testing.T) {
 		client.Logout(context.Background())
 		_, resp, err := client.UpdatePost(context.Background(), rpost.Id, rpost)
@@ -1294,6 +1355,32 @@ func TestPatchPost(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id, "should be time limit error")
+	})
+
+	t.Run("err with integrations-reserved props", func(t *testing.T) {
+		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
+		})
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
+		})
+
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "#hashtag a message",
+			CreateAt:  model.GetMillis() - 2000,
+		}
+		post, _, createErr := th.SystemAdminClient.CreatePost(context.Background(), post)
+		require.NoError(t, createErr)
+
+		patch := &model.PostPatch{}
+		patch.Props = &model.StringInterface{model.PostPropsFromWebhook: "true"}
+		_, patchResp, patchErr := client.PatchPost(context.Background(), post.Id, patch)
+
+		require.Error(t, patchErr)
+		CheckBadRequestStatus(t, patchResp)
 	})
 }
 
@@ -2166,7 +2253,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err := th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = 0
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -2187,7 +2274,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post1.CreateAt - 1
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -2211,7 +2298,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post6.CreateAt - 1
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -2238,7 +2325,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post10.CreateAt - 1
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -2263,7 +2350,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post10.CreateAt
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -2302,7 +2389,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post12.CreateAt - 1
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -3708,7 +3795,7 @@ func TestPostGetInfo(t *testing.T) {
 	dmPost, _, err := client.CreatePost(context.Background(), &model.Post{ChannelId: dmChannel.Id})
 	require.NoError(t, err)
 
-	openTeam, _, err := sysadminClient.CreateTeam(context.Background(), &model.Team{Type: model.TeamOpen, Name: "open-team", DisplayName: "Open Team"})
+	openTeam, _, err := sysadminClient.CreateTeam(context.Background(), &model.Team{Type: model.TeamOpen, Name: "open-team", DisplayName: "Open Team", AllowOpenInvite: true})
 	require.NoError(t, err)
 	openTeamOpenChannel, _, err := sysadminClient.CreateChannel(context.Background(), &model.Channel{TeamId: openTeam.Id, Type: model.ChannelTypeOpen, Name: "open-team-open-channel", DisplayName: "Open Team - Open Channel"})
 	require.NoError(t, err)
@@ -3716,7 +3803,7 @@ func TestPostGetInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	// Alt team is a team without the sysadmin in it.
-	altOpenTeam, _, err := client.CreateTeam(context.Background(), &model.Team{Type: model.TeamOpen, Name: "alt-open-team", DisplayName: "Alt Open Team"})
+	altOpenTeam, _, err := client.CreateTeam(context.Background(), &model.Team{Type: model.TeamOpen, Name: "alt-open-team", DisplayName: "Alt Open Team", AllowOpenInvite: true})
 	require.NoError(t, err)
 	altOpenTeamOpenChannel, _, err := client.CreateChannel(context.Background(), &model.Channel{TeamId: altOpenTeam.Id, Type: model.ChannelTypeOpen, Name: "alt-open-team-open-channel", DisplayName: "Open Team - Open Channel"})
 	require.NoError(t, err)
@@ -3921,8 +4008,12 @@ func TestPostGetInfo(t *testing.T) {
 			require.Equal(t, tc.channel.DisplayName, info.ChannelDisplayName)
 			require.Equal(t, tc.hasJoinedChannel, info.HasJoinedChannel)
 			if tc.team != nil {
+				teamType := "I"
+				if tc.team.AllowOpenInvite {
+					teamType = "O"
+				}
 				require.Equal(t, tc.team.Id, info.TeamId)
-				require.Equal(t, tc.team.Type, info.TeamType)
+				require.Equal(t, teamType, info.TeamType)
 				require.Equal(t, tc.team.DisplayName, info.TeamDisplayName)
 				require.Equal(t, tc.hasJoinedTeam, info.HasJoinedTeam)
 			}

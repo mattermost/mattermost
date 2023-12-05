@@ -59,7 +59,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		ruser := th.CreateUser(&user)
 		defer th.DeleteUser(&user)
 
-		_, alreadyAdded, err := th.service.JoinUserToTeam(team, ruser)
+		_, alreadyAdded, err := th.service.JoinUserToTeam(th.Context, team, ruser)
 		require.False(t, alreadyAdded, "Should return already added equal to false")
 		require.NoError(t, err)
 	})
@@ -69,10 +69,10 @@ func TestJoinUserToTeam(t *testing.T) {
 		ruser := th.CreateUser(&user)
 		defer th.DeleteUser(&user)
 
-		_, _, err := th.service.JoinUserToTeam(team, ruser)
+		_, _, err := th.service.JoinUserToTeam(th.Context, team, ruser)
 		require.NoError(t, err)
 
-		_, alreadyAdded, err := th.service.JoinUserToTeam(team, ruser)
+		_, alreadyAdded, err := th.service.JoinUserToTeam(th.Context, team, ruser)
 		require.True(t, alreadyAdded, "Should return already added")
 		require.NoError(t, err)
 	})
@@ -82,12 +82,12 @@ func TestJoinUserToTeam(t *testing.T) {
 		ruser := th.CreateUser(&user)
 		defer th.DeleteUser(&user)
 
-		member, _, err := th.service.JoinUserToTeam(team, ruser)
+		member, _, err := th.service.JoinUserToTeam(th.Context, team, ruser)
 		require.NoError(t, err)
-		err = th.service.RemoveTeamMember(member)
+		err = th.service.RemoveTeamMember(th.Context, member)
 		require.NoError(t, err)
 
-		_, alreadyAdded, err := th.service.JoinUserToTeam(team, ruser)
+		_, alreadyAdded, err := th.service.JoinUserToTeam(th.Context, team, ruser)
 		require.False(t, alreadyAdded, "Should return already added equal to false")
 		require.NoError(t, err)
 	})
@@ -101,10 +101,10 @@ func TestJoinUserToTeam(t *testing.T) {
 		defer th.DeleteUser(&user1)
 		defer th.DeleteUser(&user2)
 
-		_, _, err := th.service.JoinUserToTeam(team, ruser1)
+		_, _, err := th.service.JoinUserToTeam(th.Context, team, ruser1)
 		require.NoError(t, err)
 
-		_, _, err = th.service.JoinUserToTeam(team, ruser2)
+		_, _, err = th.service.JoinUserToTeam(th.Context, team, ruser2)
 		require.Error(t, err, "Should fail")
 	})
 
@@ -118,14 +118,14 @@ func TestJoinUserToTeam(t *testing.T) {
 		defer th.DeleteUser(&user1)
 		defer th.DeleteUser(&user2)
 
-		member, _, err := th.service.JoinUserToTeam(team, ruser1)
+		member, _, err := th.service.JoinUserToTeam(th.Context, team, ruser1)
 		require.NoError(t, err)
-		err = th.service.RemoveTeamMember(member)
+		err = th.service.RemoveTeamMember(th.Context, member)
 		require.NoError(t, err)
-		_, _, err = th.service.JoinUserToTeam(team, ruser2)
+		_, _, err = th.service.JoinUserToTeam(th.Context, team, ruser2)
 		require.NoError(t, err)
 
-		_, _, err = th.service.JoinUserToTeam(team, ruser1)
+		_, _, err = th.service.JoinUserToTeam(th.Context, team, ruser1)
 		require.Error(t, err, "Should fail")
 	})
 }

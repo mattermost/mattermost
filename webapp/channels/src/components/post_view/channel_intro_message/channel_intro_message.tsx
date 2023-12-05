@@ -2,19 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedDate, FormattedMessage} from 'react-intl';
+import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
 
 import {BellRingOutlineIcon} from '@mattermost/compass-icons/components';
-import type {Channel} from '@mattermost/types/channels';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
+import {NotificationLevel} from 'mattermost-redux/constants/channels';
+import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import LocalizedIcon from 'components/localized_icon';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import ProfilePicture from 'components/profile_picture';
@@ -23,7 +24,7 @@ import UserProfile from 'components/user_profile';
 import EditIcon from 'components/widgets/icons/fa_edit_icon';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
-import {getMonthLong, t} from 'utils/i18n';
+import {getMonthLong} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import AddMembersButton from './add_members_button';
@@ -43,6 +44,7 @@ type Props = {
     teammateName?: string;
     stats: any;
     usersLimit: number;
+    channelMember?: ChannelMembership;
     actions: {
         getTotalUsersStats: () => any;
     };
@@ -54,10 +56,12 @@ export default class ChannelIntroMessage extends React.PureComponent<Props> {
             this.props.actions.getTotalUsersStats();
         }
     }
+
     render() {
         const {
             currentUserId,
             channel,
+            channelMember,
             creatorName,
             fullWidth,
             locale,
@@ -79,7 +83,7 @@ export default class ChannelIntroMessage extends React.PureComponent<Props> {
         if (channel.type === Constants.DM_CHANNEL) {
             return createDMIntroMessage(channel, centeredIntro, teammate, teammateName);
         } else if (channel.type === Constants.GM_CHANNEL) {
-            return createGMIntroMessage(channel, centeredIntro, channelProfiles, currentUserId);
+            return createGMIntroMessage(channel, centeredIntro, channelProfiles, currentUserId, channelMember);
         } else if (channel.name === Constants.DEFAULT_CHANNEL) {
             return createDefaultIntroMessage(channel, centeredIntro, stats, usersLimit, enableUserCreation, isReadOnly, teamIsGroupConstrained);
         } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
@@ -91,7 +95,47 @@ export default class ChannelIntroMessage extends React.PureComponent<Props> {
     }
 }
 
-function createGMIntroMessage(channel: Channel, centeredIntro: string, profiles: UserProfileType[], currentUserId: string) {
+const gmIntroMessages = defineMessages({
+    muted: {id: 'intro_messages.GM.muted', defaultMessage: 'This group message is currently <b>muted</b>, so you will not be notified.'},
+    [NotificationLevel.ALL]: {id: 'intro_messages.GM.all', defaultMessage: 'You\'ll be notified <b>for all activity</b> in this group message.'},
+    [NotificationLevel.DEFAULT]: {id: 'intro_messages.GM.all', defaultMessage: 'You\'ll be notified <b>for all activity</b> in this group message.'},
+    [NotificationLevel.MENTION]: {id: 'intro_messages.GM.mention', defaultMessage: 'You have selected to be notified <b>only when mentioned</b> in this group message.'},
+    [NotificationLevel.NONE]: {id: 'intro_messages.GM.none', defaultMessage: 'You have selected to <b>never</b> be notified in this group message.'},
+});
+
+const getGMIntroMessageSpecificPart = (userProfile: UserProfileType | undefined, membership: ChannelMembership | undefined) => {
+    const isMuted = isChannelMuted(membership);
+    if (isMuted) {
+        return (
+            <FormattedMessage
+                {...gmIntroMessages.muted}
+                values={{
+                    b: (chunks) => <b>{chunks}</b>,
+                }}
+            />
+        );
+    }
+    const channelNotifyProp = membership?.notify_props?.desktop || NotificationLevel.DEFAULT;
+    const userNotifyProp = userProfile?.notify_props?.desktop || NotificationLevel.MENTION;
+    let notifyLevelToUse = channelNotifyProp;
+    if (notifyLevelToUse === NotificationLevel.DEFAULT) {
+        notifyLevelToUse = userNotifyProp;
+    }
+    if (channelNotifyProp === NotificationLevel.DEFAULT && userNotifyProp === NotificationLevel.MENTION) {
+        notifyLevelToUse = NotificationLevel.ALL;
+    }
+
+    return (
+        <FormattedMessage
+            {...gmIntroMessages[notifyLevelToUse]}
+            values={{
+                b: (chunks) => <b>{chunks}</b>,
+            }}
+        />
+    );
+};
+
+function createGMIntroMessage(channel: Channel, centeredIntro: string, profiles: UserProfileType[], currentUserId: string, channelMembership?: ChannelMembership) {
     const channelIntroId = 'channelIntro';
 
     if (profiles.length > 0) {
@@ -118,14 +162,14 @@ function createGMIntroMessage(channel: Channel, centeredIntro: string, profiles:
                 </div>
                 <p className='channel-intro-text'>
                     <FormattedMessage
-                        id='intro_messages.GM'
-                        defaultMessage={'This is the start of your group message history with {names}.{br}You\'ll be notified <b>for all activity</b> in this group message.'}
+                        id='intro_messages.GM.common'
+                        defaultMessage={'This is the start of your group message history with {names}.{br}'}
                         values={{
-                            b: (chunks) => <b>{chunks}</b>,
                             names: channel.display_name,
                             br: <br/>,
                         }}
                     />
+                    {getGMIntroMessageSpecificPart(currentUserProfile, channelMembership)}
                 </p>
                 <div style={{display: 'flex'}}>
                     {createNotificationPreferencesButton(channel, currentUserProfile)}
@@ -272,7 +316,7 @@ function createOffTopicIntroMessage(channel: Channel, centeredIntro: string, sta
     );
 }
 
-export function createDefaultIntroMessage(
+function createDefaultIntroMessage(
     channel: Channel,
     centeredIntro: string,
     stats: any,
@@ -329,9 +373,8 @@ export function createDefaultIntroMessage(
                         dialogType={AddGroupsToTeamModal}
                         dialogProps={{channel}}
                     >
-                        <LocalizedIcon
+                        <i
                             className='fa fa-user-plus'
-                            title={{id: t('generic_icons.add'), defaultMessage: 'Add Icon'}}
                         />
                         <FormattedMessage
                             id='intro_messages.addGroupsToTeam'

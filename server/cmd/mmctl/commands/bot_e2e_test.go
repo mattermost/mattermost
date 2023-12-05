@@ -426,7 +426,7 @@ func (s *MmctlE2ETestSuite) TestBotCreateCmdF() {
 		token, ok := printer.GetLines()[1].(*model.UserAccessToken)
 		s.Require().True(ok)
 		defer func() {
-			err := s.th.App.RevokeUserAccessToken(token)
+			err := s.th.App.RevokeUserAccessToken(s.th.Context, token)
 			s.Require().Nil(err)
 		}()
 		s.Require().Empty(printer.GetErrorLines())

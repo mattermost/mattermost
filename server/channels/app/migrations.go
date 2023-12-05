@@ -467,7 +467,6 @@ func (s *Server) doPlaybooksRolesCreationMigration() {
 	if err := s.Store().System().Save(&system); err != nil {
 		mlog.Fatal("Failed to mark playbook roles creation migration as completed.", mlog.Err(err))
 	}
-
 }
 
 // arbitrary choice, though if there is an longstanding installation with less than 10 messages,
@@ -555,25 +554,32 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() {
 	}
 }
 
-func (s *Server) doElasticsearchFixChannelIndex(c *request.Context) {
+func (s *Server) doElasticsearchFixChannelIndex(c request.CTX) {
+	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		s.elasticsearchFixChannelIndex(c, newLicense)
+	})
+
+	s.elasticsearchFixChannelIndex(c, s.License())
+}
+
+func (s *Server) elasticsearchFixChannelIndex(c request.CTX, license *model.License) {
+	if model.BuildEnterpriseReady != "true" || license == nil || !*license.Features.Elasticsearch {
+		mlog.Debug("Skipping triggering Elasticsearch channel index fix job as build is not Enterprise ready")
+		return
+	}
+
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store().System().GetByName(model.MigrationKeyElasticsearchFixChannelIndex); err == nil {
+		mlog.Debug("Skipping triggering Elasticsearch channel index fix job as it is already marked completed in database")
 		return
 	}
 
-	license := s.License()
-	if model.BuildEnterpriseReady != "true" || license == nil || !*license.Features.Elasticsearch {
-		mlog.Info("Skipping triggering Elasticsearch channel index fix job as build is not Enterprise ready")
-		return
-	}
-
-	if _, appErr := s.Jobs.CreateJob(c, model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
+	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
 		mlog.Fatal("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
-		return
 	}
 }
 
-func (s *Server) doCloudS3PathMigrations(c *request.Context) {
+func (s *Server) doCloudS3PathMigrations(c request.CTX) {
 	// This migration is only applicable for cloud environments
 	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
 		return
@@ -599,7 +605,27 @@ func (s *Server) doCloudS3PathMigrations(c *request.Context) {
 		mlog.Fatal("failed to start job for migrating s3 file paths", mlog.Err(appErr))
 		return
 	}
+}
 
+func (s *Server) doDeleteEmptyDraftsMigration(c request.CTX) {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteEmptyDrafts); err == nil {
+		return
+	}
+
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteEmptyDraftsMigration, model.JobStatusPending)
+	if err != nil {
+		mlog.Fatal("failed to get jobs by type and status", mlog.Err(err))
+		return
+	}
+	if len(jobs) > 0 {
+		return
+	}
+
+	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteEmptyDraftsMigration, nil); appErr != nil {
+		mlog.Fatal("failed to start job for deleting empty drafts", mlog.Err(appErr))
+		return
+	}
 }
 
 func (a *App) DoAppMigrations() {
@@ -627,4 +653,5 @@ func (s *Server) doAppMigrations() {
 	s.doPostPriorityConfigDefaultTrueMigration()
 	s.doElasticsearchFixChannelIndex(c)
 	s.doCloudS3PathMigrations(c)
+	s.doDeleteEmptyDraftsMigration(c)
 }

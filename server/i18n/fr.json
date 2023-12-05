@@ -221,7 +221,7 @@
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
-    "translation": "Impossible de modifier le message de politique de vie privée du canal."
+    "translation": "Échec de l'envoi du message de mise à jour de la confidentialité du canal."
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -649,11 +649,11 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[nom d'utilisateur] ~[canal]"
+    "translation": "@[nom d'utilisateur]... ~[canal]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Nom d'utilisateur et canal manquants."
+    "translation": "Nom d'utilisateur et/ou canal manquants."
   },
   {
     "id": "api.command_invite.missing_user.app_error",
@@ -669,7 +669,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Impossible de trouver le canal {{.Channel}}. Veuillez utiliser l'identifiant de canal pour identifier les canaux."
+    "translation": "Impossible de trouver le canal {{.Canal}}. Veuillez utiliser le [channel handle] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pour identifier les canaux."
   },
   {
     "id": "api.command_invite.success",
@@ -677,7 +677,11 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} est déjà membre de ce canal."
+    "translation": {
+      "many": "{{.User}} sont déjà membres de ce canal.",
+      "one": "{{.User}} est déjà membre de ce canal.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -721,11 +725,11 @@
   },
   {
     "id": "api.command_leave.name",
-    "translation": "leave"
+    "translation": "quitter"
   },
   {
     "id": "api.command_logout.desc",
-    "translation": "Se déconnecte de Mattermost"
+    "translation": "Se déconnecter de Mattermost"
   },
   {
     "id": "api.command_logout.name",
@@ -733,7 +737,7 @@
   },
   {
     "id": "api.command_me.desc",
-    "translation": "Effectue une action"
+    "translation": "Effectuer une action"
   },
   {
     "id": "api.command_me.hint",
@@ -765,7 +769,7 @@
   },
   {
     "id": "api.command_msg.name",
-    "translation": "[message]"
+    "translation": "message"
   },
   {
     "id": "api.command_msg.permission.app_error",
@@ -1362,10 +1366,6 @@
       "one": "{{.Count}} image envoyée : {{.Filenames}}",
       "other": ""
     }
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Les aperçus de liens ont été désactivées par l'administrateur système."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -4749,15 +4749,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 91+"
+    "translation": "Version 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 100+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5693,11 +5693,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} n'est pas membre de cette équipe."
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Ce canal est géré par des groupes. Cet utilisateur n'est pas membre d'un groupe lié à ce canal."
+    "translation": "Vous pouvez ajouter {{.Users}} à ce canal une fois membres de l'équipe **{{.Team}}**."
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -8801,7 +8797,7 @@
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
-    "translation": " "
+    "translation": "Déjà notifié à l'administrateur"
   },
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
@@ -8821,7 +8817,7 @@
   },
   {
     "id": "ent.ldap.do_login.certificate.app_error",
-    "translation": " "
+    "translation": "Erreur de chargement du fichier de certificat LDAP TLS."
   },
   {
     "id": "app.upload.upload_data.gen_info.app_error",
@@ -8881,7 +8877,7 @@
   },
   {
     "id": "ent.ldap.do_login.key.app_error",
-    "translation": " "
+    "translation": "Erreur de chargement du fichier de clés LDAP TLS."
   },
   {
     "id": "common.parse_error_int64",
@@ -9097,7 +9093,7 @@
   },
   {
     "id": "ent.ldap.no.users.checkcertificate",
-    "translation": " "
+    "translation": "Aucun utilisateur LDAP n'a été trouvé, vérifiez votre filtre d'utilisateur et vos certificats."
   },
   {
     "id": "model.session.is_valid.user_id.app_error",
@@ -9141,7 +9137,7 @@
   },
   {
     "id": "ent.ldap.do_login.x509.app_error",
-    "translation": " "
+    "translation": "Erreur dans la création de la paire de clés"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
@@ -9186,5 +9182,113 @@
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "Vous ne pouvez par retirer un acquittement dans un canal archivé."
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "L'utilisateur n'est pas autorisé à convertir un message de groupe en canal privé"
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Vous n'êtes pas autorisé à mettre à jour le nom, le nom d'affichage et l'objet des messages directs ou des messages de groupe."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Vous n'êtes pas autorisé à mettre à jour le nom, le nom d'affichage et l'objet des messages directs ou des messages de groupe."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Impossible de générer l'url de la signature."
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost est une plateforme open source pour la communication sécurisée, la collaboration et l'orchestration du travail à travers les outils et les équipes.\nMattermost contient deux outils clés :\n\n**Canaux** - Restez en contact avec votre équipe via des messages 1:1 et de groupe.\n**[Playbooks](/playbooks)** - Créez et configurez des processus reproductibles pour obtenir des résultats spécifiques et prévisibles.\n\n[Voir la documentation et les guides]({{.HelpLink}})"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Échec de la mise à jour des traductions du serveur."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Impossible d'enregistrer un brouillon sur un canal supprimé"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "La fonction Brouillons est désactivée."
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Générer un lien pour télécharger une exportation."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "Le pilote du système de stockage de fichiers ne prend pas en charge la génération de liens."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Aucun fichier d'exportation n'a été trouvé."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|zip filename|{{.LatestMsg}}]]"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Impossible de trouver le fichier demandé."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Vous pouvez télécharger votre fichier ici : {{.Lien}}.\nCe lien expirera dans {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Impossible de récupérer la liste d'exportation."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "lien d'exportation"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "Vous ne disposez pas d'autorisations suffisantes pour exécuter cette commande."
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} a créé ce canal à partir d'un message de groupe avec {{.GMMembers}}."
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Il manque des champs obligatoires pour l'envoi d'un courrier électronique relatif à une infraction."
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} et {{.Others}} ajoutés au canal {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Ce canal est géré par des groupes.  Cet utilisateur ne fait pas partie d'un groupe synchronisé avec ce canal."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Vous pouvez ajouter d'autres {{.FirstUser}} et {{.Others}} à ce canal une fois qu'ils sont membres de l'équipe **{{.Team}}**."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "Les autres {{.FirstUser}} et {{.Others}} sont déjà dans le canal."
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Ouvrir le Marketplace"
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "Marketplace"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "La commande marketplace n'est pas prise en charge par votre appareil."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Adresse e-mail professionnelle invalide pour l'essai"
   }
 ]

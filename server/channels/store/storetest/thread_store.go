@@ -13,27 +13,27 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("ThreadStorePopulation", func(t *testing.T) { testThreadStorePopulation(t, ss) })
+func TestThreadStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("ThreadStorePopulation", func(t *testing.T) { testThreadStorePopulation(t, rctx, ss) })
 	t.Run("ThreadStorePermanentDeleteBatchForRetentionPolicies", func(t *testing.T) {
-		testThreadStorePermanentDeleteBatchForRetentionPolicies(t, ss)
+		testThreadStorePermanentDeleteBatchForRetentionPolicies(t, rctx, ss)
 	})
 	t.Run("ThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies", func(t *testing.T) {
-		testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t, ss, s)
+		testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t, rctx, ss, s)
 	})
-	t.Run("GetTeamsUnreadForUser", func(t *testing.T) { testGetTeamsUnreadForUser(t, ss) })
-	t.Run("GetVarious", func(t *testing.T) { testVarious(t, ss) })
-	t.Run("MarkAllAsReadByChannels", func(t *testing.T) { testMarkAllAsReadByChannels(t, ss) })
-	t.Run("MarkAllAsReadByTeam", func(t *testing.T) { testMarkAllAsReadByTeam(t, ss) })
-	t.Run("DeleteMembershipsForChannel", func(t *testing.T) { testDeleteMembershipsForChannel(t, ss) })
+	t.Run("GetTeamsUnreadForUser", func(t *testing.T) { testGetTeamsUnreadForUser(t, rctx, ss) })
+	t.Run("GetVarious", func(t *testing.T) { testVarious(t, rctx, ss) })
+	t.Run("MarkAllAsReadByChannels", func(t *testing.T) { testMarkAllAsReadByChannels(t, rctx, ss) })
+	t.Run("MarkAllAsReadByTeam", func(t *testing.T) { testMarkAllAsReadByTeam(t, rctx, ss) })
+	t.Run("DeleteMembershipsForChannel", func(t *testing.T) { testDeleteMembershipsForChannel(t, rctx, ss) })
 }
 
-func testThreadStorePopulation(t *testing.T, ss store.Store) {
+func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 	makeSomePosts := func(urgent bool) []*model.Post {
-
 		u1 := model.User{
 			Email:    MakeEmail(),
 			Username: model.NewId(),
@@ -150,7 +150,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.Equal(t, int64(2), thread.ReplyCount)
 		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, thread.Participants)
 
-		err = ss.Post().Delete(newPosts[1].Id, 1234, model.NewId())
+		err = ss.Post().Delete(rctx, newPosts[1].Id, 1234, model.NewId())
 		require.NoError(t, err, "couldn't delete post")
 
 		thread, err = ss.Thread().Get(newPosts[0].Id)
@@ -262,14 +262,14 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.EqualValues(t, thread.ReplyCount, 3)
 		require.EqualValues(t, thread.Participants, model.StringArray{replyPost.UserId, replyPost3.UserId})
 
-		err = ss.Post().Delete(replyPost2.Id, 123, model.NewId())
+		err = ss.Post().Delete(rctx, replyPost2.Id, 123, model.NewId())
 		require.NoError(t, err)
 		thread, err = ss.Thread().Get(rootPost.Id)
 		require.NoError(t, err)
 		require.EqualValues(t, thread.ReplyCount, 2)
 		require.EqualValues(t, thread.Participants, model.StringArray{replyPost.UserId, replyPost3.UserId})
 
-		err = ss.Post().Delete(replyPost.Id, 123, model.NewId())
+		err = ss.Post().Delete(rctx, replyPost.Id, 123, model.NewId())
 		require.NoError(t, err)
 		thread, err = ss.Thread().Get(rootPost.Id)
 		require.NoError(t, err)
@@ -309,7 +309,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.EqualValues(t, thread1.ReplyCount, 1)
 		require.Len(t, thread1.Participants, 1)
 
-		err = ss.Post().PermanentDeleteByUser(rootPost.UserId)
+		err = ss.Post().PermanentDeleteByUser(rctx, rootPost.UserId)
 		require.NoError(t, err)
 
 		thread2, _ := ss.Thread().Get(rootPost.Id)
@@ -389,7 +389,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 		editedPost := newPosts[2].Clone()
 		editedPost.Message = "This is an edited post"
-		_, err = ss.Post().Update(editedPost, newPosts[2])
+		_, err = ss.Post().Update(rctx, editedPost, newPosts[2])
 		require.NoError(t, err)
 
 		th, err = ss.Thread().GetThreadForUser(m, false, false)
@@ -491,7 +491,7 @@ func threadStoreCreateReply(t *testing.T, ss store.Store, channelID, postID, use
 	return reply
 }
 
-func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss store.Store) {
+func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx request.CTX, ss store.Store) {
 	const limit = 1000
 	team, err := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
@@ -565,7 +565,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 	assert.Nil(t, thread, "thread should have been deleted by team policy")
 }
 
-func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t *testing.T, ss store.Store, s SqlStore) {
+func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	const limit = 1000
 	userID := model.NewId()
 	createThreadMembership := func(userID, postID string) *model.ThreadMembership {
@@ -663,7 +663,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	require.Error(t, err, "thread membership should have been deleted because thread no longer exists")
 }
 
-func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
+func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	userID := model.NewId()
 	createThreadMembership := func(userID, postID string) {
 		t.Helper()
@@ -777,7 +777,7 @@ func (a byPostId) Len() int           { return len(a) }
 func (a byPostId) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byPostId) Less(i, j int) bool { return a[i].Id < a[j].Id }
 
-func testVarious(t *testing.T, ss store.Store) {
+func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 	createThreadMembership := func(userID, postID string, isMention bool) {
 		t.Helper()
 
@@ -852,7 +852,7 @@ func testVarious(t *testing.T, ss store.Store) {
 	}, -1)
 	require.NoError(t, err)
 
-	dm1, err := ss.Channel().CreateDirectChannel(&model.User{Id: user1ID}, &model.User{Id: user2ID})
+	dm1, err := ss.Channel().CreateDirectChannel(rctx, &model.User{Id: user1ID}, &model.User{Id: user2ID})
 	require.NoError(t, err)
 
 	gm1, err := ss.Channel().Save(&model.Channel{
@@ -956,7 +956,7 @@ func testVarious(t *testing.T, ss store.Store) {
 	threadStoreCreateReply(t, ss, team1channel1.Id, team1channel1post2.Id, user2ID, model.GetMillis())
 
 	// Actually make team2channel1post2deleted deleted
-	err = ss.Post().Delete(team2channel1post2deleted.Id, model.GetMillis(), user1ID)
+	err = ss.Post().Delete(rctx, team2channel1post2deleted.Id, model.GetMillis(), user1ID)
 	require.NoError(t, err)
 
 	// Re-fetch posts to ensure metadata up-to-date
@@ -1204,7 +1204,7 @@ func testVarious(t *testing.T, ss store.Store) {
 	})
 }
 
-func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
+func testMarkAllAsReadByChannels(t *testing.T, rctx request.CTX, ss store.Store) {
 	postingUserId := model.NewId()
 	userAID := model.NewId()
 	userBID := model.NewId()
@@ -1348,7 +1348,7 @@ func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
 	})
 }
 
-func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
+func testMarkAllAsReadByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	createThreadMembership := func(userID, postID string) {
 		t.Helper()
 		opts := store.ThreadMembershipOpts{
@@ -1574,7 +1574,7 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 	})
 }
 
-func testDeleteMembershipsForChannel(t *testing.T, ss store.Store) {
+func testDeleteMembershipsForChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	createThreadMembership := func(userID, postID string) (*model.ThreadMembership, func()) {
 		t.Helper()
 		opts := store.ThreadMembershipOpts{

@@ -1,0 +1,4 @@
+# SC1091: Not following: <file>
+# https://www.shellcheck.net/wiki/SC1091
+disable=SC1091
+# Used to ignore for sourcing ".e2erc*"

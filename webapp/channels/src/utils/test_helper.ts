@@ -68,6 +68,7 @@ export class TestHelper {
                 first_name: 'false',
                 mark_unread: 'mention',
                 mention_keys: '',
+                highlight_keys: '',
                 push: 'none',
                 push_status: 'offline',
             },
@@ -558,5 +559,16 @@ export class TestHelper {
             create_at: 0,
             ...override,
         };
+    }
+
+    public static getMockMouseButtonEvent() {
+        return {
+            preventDefault: jest.fn(),
+            stopPropagation: jest.fn(),
+            currentTarget: {
+                click: jest.fn(),
+                value: 'test value',
+            },
+        } as unknown as React.MouseEvent<HTMLButtonElement>;
     }
 }

@@ -5,6 +5,7 @@ import {Channel, ChannelType} from './channels';
 import {CustomEmoji} from './emojis';
 import {FileInfo} from './files';
 import {Reaction} from './reactions';
+import { TeamType } from './teams';
 import {UserProfile} from './users';
 import {
     RelationOneToOne,
@@ -148,7 +149,6 @@ export type PostsState = {
     postEditHistory: Post[];
     currentFocusedPostId: string;
     messagesHistory: MessageHistory;
-    expandedURLs: Record<string, string>;
     limitedViews: {
         channels: Record<Channel['id'], number>;
         threads: Record<Post['root_id'], number>;
@@ -209,4 +209,15 @@ export type ActivityEntry = {
     actorId: string[];
     userIds: string[];
     usernames: string[];
+}
+
+export type PostInfo = {
+    channel_id: string;
+    channel_type: ChannelType;
+    channel_display_name: string;
+    has_joined_channel: boolean;
+    team_id: string;
+    team_type: TeamType;
+    team_display_name: string;
+    has_joined_team: boolean;
 }

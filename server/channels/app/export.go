@@ -540,7 +540,6 @@ func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImp
 	}
 
 	return &reactionsOfPost, nil
-
 }
 
 func (a *App) buildPostAttachments(postID string) ([]imports.AttachmentImportData, *model.AppError) {

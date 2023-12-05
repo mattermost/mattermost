@@ -11,7 +11,6 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 
-import LocalizedInput from 'components/localized_input/localized_input';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
@@ -32,10 +31,6 @@ const holders = defineMessages({
     defaultError: {
         id: 'rename_channel.defaultError',
         defaultMessage: ' - Cannot be changed for the default channel',
-    },
-    displayNameHolder: {
-        id: 'rename_channel.displayNameHolder',
-        defaultMessage: 'Enter display name',
     },
 });
 
@@ -291,13 +286,16 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                                     defaultMessage='Display Name'
                                 />
                             </label>
-                            <LocalizedInput
+                            <input
                                 onChange={this.onDisplayNameChange}
                                 type='text'
                                 ref={this.getTextbox}
                                 id='display_name'
                                 className='form-control'
-                                placeholder={holders.displayNameHolder}
+                                placeholder={formatMessage({
+                                    id: 'rename_channel.displayNameHolder',
+                                    defaultMessage: 'Enter display name',
+                                })}
                                 value={this.state.displayName}
                                 maxLength={Constants.MAX_CHANNELNAME_LENGTH}
                                 aria-label={formatMessage({id: 'rename_channel.displayName', defaultMessage: 'Display Name'}).toLowerCase()}

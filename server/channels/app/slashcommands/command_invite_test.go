@@ -74,7 +74,7 @@ func TestInviteProvider(t *testing.T) {
 		channel2 := th.createChannel(th.BasicTeam, model.ChannelTypeOpen)
 
 		msg := "@" + th.BasicUser2.Username + " @" + anotherUser.Username + " ~" + channel1.Name + " ~" + channel2.Name
-		expected := "api.command_invite.success"
+		expected := "api.command_invite.success\napi.command_invite.success"
 		runCmd(msg, expected)
 		checkIsMember(channel1.Id, th.BasicUser2.Id)
 		checkIsMember(channel2.Id, th.BasicUser2.Id)

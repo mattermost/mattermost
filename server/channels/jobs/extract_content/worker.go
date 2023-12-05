@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -20,7 +21,7 @@ var ignoredFiles = map[string]bool{
 }
 
 type AppIface interface {
-	ExtractContentFromFileInfo(fileInfo *model.FileInfo) error
+	ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileInfo) error
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) *jobs.SimpleWorker {
@@ -29,8 +30,8 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) *job
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
-	execute := func(job *model.Job) error {
-		jobServer.HandleJobPanic(job)
+	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+		jobServer.HandleJobPanic(logger, job)
 
 		var err error
 		var fromTS int64
@@ -65,10 +66,11 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) *job
 			}
 			for _, fileInfo := range fileInfos {
 				if !ignoredFiles[fileInfo.Extension] {
-					job.Logger.Debug("Extracting file", mlog.String("filename", fileInfo.Name), mlog.String("filepath", fileInfo.Path))
-					err = app.ExtractContentFromFileInfo(fileInfo)
+					logger.Debug("Extracting file", mlog.String("filename", fileInfo.Name), mlog.String("filepath", fileInfo.Path))
+
+					err = app.ExtractContentFromFileInfo(request.EmptyContext(logger), fileInfo)
 					if err != nil {
-						job.Logger.Warn("Failed to extract file content", mlog.Err(err), mlog.String("file_info_id", fileInfo.Id))
+						logger.Warn("Failed to extract file content", mlog.Err(err), mlog.String("file_info_id", fileInfo.Id))
 						nErrs++
 					}
 					nFiles++
@@ -85,7 +87,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) *job
 		job.Data["processed"] = strconv.Itoa(nFiles)
 
 		if err := jobServer.UpdateInProgressJobData(job); err != nil {
-			job.Logger.Error("Worker: Failed to update job data", mlog.Err(err))
+			logger.Error("Worker: Failed to update job data", mlog.Err(err))
 		}
 		return nil
 	}

@@ -104,7 +104,3 @@ export function loadRolesIfNeeded(roles: Iterable<string>): ActionFunc {
         return {data: state.entities.roles.roles};
     };
 }
-
-export function convertRolesNamesArrayToString(roles: Role[]): string {
-    return roles.map((role) => role.name!).join(' ') ?? '';
-}

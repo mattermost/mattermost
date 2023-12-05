@@ -20,7 +20,7 @@ import {
     getCurrentRelativeTeamUrl,
     getTeamMember,
 } from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentTimezone, isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {displayLastActiveLabel, getCurrentUserId, getLastActiveTimestampUnits, getLastActivityForUserId, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
@@ -51,20 +51,15 @@ function getDefaultChannelId(state: GlobalState) {
 }
 
 export function checkUserInCall(state: GlobalState, userId: string) {
-    let isUserInCall = false;
-
-    const profilesInCalls = getProfilesInCalls(state);
-    Object.keys(profilesInCalls).forEach((channelId) => {
-        const profiles = profilesInCalls[channelId] || [];
-
-        for (const user of profiles) {
-            if (user.id === userId) {
-                isUserInCall = true;
-                break;
+    for (const profilesMap of Object.values(getProfilesInCalls(state))) {
+        for (const profile of Object.values(profilesMap || {})) {
+            if (profile?.id === userId) {
+                return true;
             }
         }
-    });
-    return isUserInCall;
+    }
+
+    return false;
 }
 
 function makeMapStateToProps() {
@@ -98,7 +93,6 @@ function makeMapStateToProps() {
         return {
             currentTeamId: team.id,
             currentUserId,
-            enableTimezone: isTimezoneEnabled(state),
             isTeamAdmin,
             isChannelAdmin,
             isInCurrentTeam: Boolean(teamMember) && teamMember?.delete_at === 0,

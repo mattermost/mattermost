@@ -185,5 +185,4 @@ func TestGetAtmosCamoImageURL(t *testing.T) {
 			assert.Equal(t, test.Expected, backend.getAtmosCamoImageURL(test.Input))
 		})
 	}
-
 }

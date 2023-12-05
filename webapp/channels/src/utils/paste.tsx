@@ -1,6 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {isNil} from 'lodash';
+
+import type {TextboxElement} from 'components/textbox';
+
+import {Locations} from 'utils/constants';
+import {execCommandInsertText} from 'utils/exec_commands';
 import {DEFAULT_PLACEHOLDER_URL} from 'utils/markdown/apply_markdown';
 import {splitMessageBasedOnCaretPosition, splitMessageBasedOnTextSelection} from 'utils/post_utils';
 import turndownService from 'utils/turndown';
@@ -10,6 +16,7 @@ export function parseHtmlTable(html: string): HTMLTableElement | null {
 }
 
 export function getHtmlTable(clipboardData: DataTransfer): HTMLTableElement | null {
+    // Check if clipboard data has html as one of its types
     if (Array.from(clipboardData.types).indexOf('text/html') === -1) {
         return null;
     }
@@ -40,6 +47,18 @@ export function isGitHubCodeBlock(tableClassName: string): boolean {
 export function isTextUrl(clipboardData: DataTransfer): boolean {
     const clipboardText = clipboardData.getData('text/plain');
     return clipboardText.startsWith('http://') || clipboardText.startsWith('https://');
+}
+
+/**
+ * Checks if the clipboard data contains plain text from list of types.
+**/
+export function hasPlainText(clipboardData: DataTransfer): boolean {
+    if (Array.from(clipboardData.types).includes('text/plain')) {
+        const clipboardText = clipboardData.getData('text/plain');
+
+        return clipboardText.trim().length > 0;
+    }
+    return false;
 }
 
 function isTableWithoutHeaderRow(table: HTMLTableElement): boolean {
@@ -139,4 +158,72 @@ export function formatMarkdownLinkMessage({message, clipboardData, selectionStar
 
     const markdownLink = `[${selectedText}](${clipboardUrl})`;
     return markdownLink;
+}
+
+export function pasteHandler(event: ClipboardEvent, location: string, message: string, isNonFormattedPaste?: boolean, caretPosition?: number) {
+    const {clipboardData, target} = event;
+
+    const textboxId = location === Locations.RHS_COMMENT ? 'reply_textbox' : 'post_textbox';
+
+    if (!clipboardData || !clipboardData.items || !target || (target as TextboxElement)?.id !== textboxId) {
+        return;
+    }
+
+    const {selectionStart, selectionEnd} = target as TextboxElement;
+
+    const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
+    const hasTextUrl = isTextUrl(clipboardData);
+    const hasHTMLLinks = !isNonFormattedPaste && hasHtmlLink(clipboardData);
+    const htmlTable = getHtmlTable(clipboardData);
+    const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
+    const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);
+
+    if (!htmlTable && !hasHTMLLinks && !shouldApplyLinkMarkdown) {
+        return;
+    }
+
+    event.preventDefault();
+
+    // execCommand's insertText' triggers a 'change' event, hence we need not set respective state explicitly.
+    if (shouldApplyLinkMarkdown) {
+        const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message, clipboardData});
+        execCommandInsertText(formattedLink);
+    } else if (shouldApplyGithubCodeBlock) {
+        const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message, clipboardData});
+        execCommandInsertText(formattedCodeBlock);
+    } else {
+        const {formattedMarkdown} = formatMarkdownMessage(clipboardData, message, caretPosition);
+        execCommandInsertText(formattedMarkdown);
+    }
+}
+
+export function createFileFromClipboardDataItem(item: DataTransferItem, fileNamePrefixIfNoName: string): File | null {
+    const file = item.getAsFile();
+
+    if (!file) {
+        return null;
+    }
+
+    let ext = '';
+    if (file.name && file.name.includes('.')) {
+        ext = file.name.slice(file.name.lastIndexOf('.'));
+    } else if (item.type.includes('/')) {
+        ext = '.' + item.type.slice(item.type.lastIndexOf('/') + 1).toLowerCase();
+    }
+
+    let name = '';
+    if (file.name) {
+        name = file.name;
+    } else {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        const date = now.getDate();
+        const hour = now.getHours().toString().padStart(2, '0');
+        const minute = now.getMinutes().toString().padStart(2, '0');
+
+        name = `${fileNamePrefixIfNoName}${year}-${month}-${date} ${hour}-${minute}${ext}`;
+    }
+
+    return new File([file as Blob], name, {type: file.type});
 }

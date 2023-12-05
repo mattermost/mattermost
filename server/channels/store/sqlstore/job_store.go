@@ -202,7 +202,7 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 	return true, nil
 }
 
-func (jss SqlJobStore) Get(c *request.Context, id string) (*model.Job, error) {
+func (jss SqlJobStore) Get(c request.CTX, id string) (*model.Job, error) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
 		From("Jobs").
@@ -219,12 +219,10 @@ func (jss SqlJobStore) Get(c *request.Context, id string) (*model.Job, error) {
 		return nil, errors.Wrapf(err, "failed to get Job with id=%s", id)
 	}
 
-	status.InitLogger(c.Logger())
-
 	return &status, nil
 }
 
-func (jss SqlJobStore) GetAllByTypesPage(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, error) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
 		From("Jobs").
@@ -240,14 +238,11 @@ func (jss SqlJobStore) GetAllByTypesPage(c *request.Context, jobTypes []string, 
 	if err = jss.GetReplicaX().Select(&jobs, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Jobs with types")
 	}
-	for _, j := range jobs {
-		j.InitLogger(c.Logger())
-	}
 
 	return jobs, nil
 }
 
-func (jss SqlJobStore) GetAllByType(c *request.Context, jobType string) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job, error) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
 		From("Jobs").
@@ -261,14 +256,11 @@ func (jss SqlJobStore) GetAllByType(c *request.Context, jobType string) ([]*mode
 	if err = jss.GetReplicaX().Select(&statuses, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Jobs with type=%s", jobType)
 	}
-	for _, j := range statuses {
-		j.InitLogger(c.Logger())
-	}
 
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByTypeAndStatus(c *request.Context, jobType string, status string) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
 		From("Jobs").
@@ -282,14 +274,11 @@ func (jss SqlJobStore) GetAllByTypeAndStatus(c *request.Context, jobType string,
 	if err = jss.GetReplicaX().Select(&jobs, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Jobs with type=%s", jobType)
 	}
-	for _, j := range jobs {
-		j.InitLogger(c.Logger())
-	}
 
 	return jobs, nil
 }
 
-func (jss SqlJobStore) GetAllByTypePage(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypePage(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, error) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
 		From("Jobs").
@@ -305,14 +294,11 @@ func (jss SqlJobStore) GetAllByTypePage(c *request.Context, jobType string, offs
 	if err = jss.GetReplicaX().Select(&statuses, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Jobs with type=%s", jobType)
 	}
-	for _, j := range statuses {
-		j.InitLogger(c.Logger())
-	}
 
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByStatus(c *request.Context, status string) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Job, error) {
 	statuses := []*model.Job{}
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
@@ -325,9 +311,6 @@ func (jss SqlJobStore) GetAllByStatus(c *request.Context, status string) ([]*mod
 
 	if err = jss.GetReplicaX().Select(&statuses, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Jobs with status=%s", status)
-	}
-	for _, j := range statuses {
-		j.InitLogger(c.Logger())
 	}
 
 	return statuses, nil

@@ -17,7 +17,6 @@
 
     &:not(.expanded):not(.resize-disabled) {
         min-width: 400px;
-        max-width: 400px;
 
         &.sidebar--right--width-holder {
             @media screen and (min-width: 901px) and (max-width: 1200px) {
@@ -280,13 +279,6 @@
         li {
             padding-bottom: 10px;
             font-size: 0.95em;
-        }
-
-        .usage__icon {
-            position: relative;
-            top: 3px;
-            margin: 0 3px;
-            opacity: 0.9;
         }
 
         &.sidebar-expanded {

@@ -106,7 +106,6 @@ type Props = {
     enableThemeSelection: boolean;
     configTeammateNameDisplay: string;
     currentUserTimezone: string;
-    enableTimezone: boolean;
     shouldAutoUpdateTimezone: boolean | string;
     lockTeammateNameDisplay: boolean;
     militaryTime: string;
@@ -181,9 +180,9 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     }
 
     componentDidMount() {
-        const {actions, enableTimezone, shouldAutoUpdateTimezone} = this.props;
+        const {actions, shouldAutoUpdateTimezone} = this.props;
 
-        if (enableTimezone && shouldAutoUpdateTimezone) {
+        if (shouldAutoUpdateTimezone) {
             actions.autoUpdateTimezone(getBrowserTimezone());
         }
     }
@@ -845,7 +844,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         });
 
         let timezoneSelection;
-        if (this.props.enableTimezone && !this.props.shouldAutoUpdateTimezone) {
+        if (!this.props.shouldAutoUpdateTimezone) {
             const userTimezone = this.props.userTimezone;
             const active = this.props.activeSection === 'timezone';
             let max = null;

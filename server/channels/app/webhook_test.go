@@ -584,11 +584,9 @@ func TestCreateOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 	assert.Equal(t, createdHook.IconURL, outgoingWebhook.IconURL)
 	assert.Equal(t, createdHook.DisplayName, outgoingWebhook.DisplayName)
 	assert.Equal(t, createdHook.Description, outgoingWebhook.Description)
-
 }
 
 func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
-
 	getPayload := func(hook *model.OutgoingWebhook, th *TestHelper, channel *model.Channel) *model.OutgoingWebhookPayload {
 		return &model.OutgoingWebhookPayload{
 			Token:       hook.Token,
@@ -647,7 +645,6 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 	}
 
 	getTestCases := func() map[string]TestCaseOutgoing {
-
 		webHookResponse := "sample response text from test server"
 		testCasesOutgoing := map[string]TestCaseOutgoing{
 
@@ -682,7 +679,6 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 
 	for name, testCase := range getTestCases() {
 		t.Run(name, func(t *testing.T) {
-
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.EnableOutgoingWebhooks = true
 				*cfg.ServiceSettings.EnablePostUsernameOverride = testCase.EnablePostUsernameOverride
@@ -726,10 +722,8 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 			case <-time.After(5 * time.Second):
 				require.Fail(t, "Timeout, webhook response not created as post")
 			}
-
 		})
 	}
-
 }
 
 type InfiniteReader struct {

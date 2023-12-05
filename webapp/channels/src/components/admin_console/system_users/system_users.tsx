@@ -1,37 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import type {ChangeEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, {type ChangeEvent} from 'react';
+import {FormattedMessage, type IntlShape, injectIntl} from 'react-intl';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 import type {GetFilteredUsersStatsOpts, UserProfile, UsersStats} from '@mattermost/types/users';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
-import {Permissions} from 'mattermost-redux/constants';
 import type {ActionFunc} from 'mattermost-redux/types/actions';
 
-import {emitUserLoggedOutEvent} from 'actions/global_actions';
-
-import ConfirmModal from 'components/confirm_modal';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import LocalizedInput from 'components/localized_input/localized_input';
-import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {Constants, UserSearchOptions, SearchUserTeamFilter, UserFilters} from 'utils/constants';
 import {getUserOptionsFromFilter, searchUserOptionsFromFilter} from 'utils/filter_users';
-import {t} from 'utils/i18n';
-import * as Utils from 'utils/utils';
 
 import SystemUsersList from './list';
+import RevokeSessionsButton from './revoke_sessions_button';
 
 const USER_ID_LENGTH = 26;
 const USERS_PER_PAGE = 50;
 
 type Props = {
+
+    intl: IntlShape;
 
     /**
      * Array of team objects
@@ -62,7 +55,6 @@ type Props = {
     teamId: string;
     filter: string;
     users: Record<string, UserProfile>;
-    isDisabled?: boolean;
 
     actions: {
 
@@ -92,11 +84,6 @@ type Props = {
         searchProfiles: (term: string, options?: any) => Promise<any> | ActionFunc;
 
         /**
-         * Function to revoke all sessions in the system
-         */
-        revokeSessionsForAllUsers: () => any;
-
-        /**
          * Function to log errors
          */
         logError: (error: {type: string; message: string}) => void;
@@ -110,18 +97,16 @@ type Props = {
 type State = {
     loading: boolean;
     searching: boolean;
-    showRevokeAllSessionsModal: boolean;
     term?: string;
 };
 
-export default class SystemUsers extends React.PureComponent<Props, State> {
+export class SystemUsers extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
         this.state = {
             loading: true,
             searching: false,
-            showRevokeAllSessionsModal: false,
         };
     }
 
@@ -181,20 +166,6 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
 
     handleTermChange = (term: string) => {
         this.props.actions.setSystemUsersSearch(term, this.props.teamId, this.props.filter);
-    };
-    handleRevokeAllSessions = async () => {
-        const {data} = await this.props.actions.revokeSessionsForAllUsers();
-        if (data) {
-            emitUserLoggedOutEvent();
-        } else {
-            this.props.actions.logError({type: 'critical', message: 'Can\'t revoke all sessions'});
-        }
-    };
-    handleRevokeAllSessionsCancel = () => {
-        this.setState({showRevokeAllSessionsModal: false});
-    };
-    handleShowRevokeAllSessionsModal = () => {
-        this.setState({showRevokeAllSessionsModal: true});
     };
 
     nextPage = async (page: number) => {
@@ -267,44 +238,6 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
         this.getUserById(id);
     };
 
-    renderRevokeAllUsersModal = () => {
-        const title = (
-            <FormattedMessage
-                id='admin.system_users.revoke_all_sessions_modal_title'
-                defaultMessage='Revoke all sessions in the system'
-            />
-        );
-
-        const message = (
-            <div>
-                <FormattedMarkdownMessage
-                    id='admin.system_users.revoke_all_sessions_modal_message'
-                    defaultMessage='This action revokes all sessions in the system. All users will be logged out from all devices. Are you sure you want to revoke all sessions?'
-                />
-            </div>
-        );
-
-        const confirmButtonClass = 'btn btn-danger';
-        const revokeAllButton = (
-            <FormattedMessage
-                id='admin.system_users.revoke_all_sessions_button'
-                defaultMessage='Revoke All Sessions'
-            />
-        );
-
-        return (
-            <ConfirmModal
-                show={this.state.showRevokeAllSessionsModal}
-                title={title}
-                message={message}
-                confirmButtonClass={confirmButtonClass}
-                confirmButtonText={revokeAllButton}
-                onConfirm={this.handleRevokeAllSessions}
-                onCancel={this.handleRevokeAllSessionsCancel}
-            />
-        );
-    };
-
     renderFilterRow = (doSearch: ((event: React.FormEvent<HTMLInputElement>) => void) | undefined) => {
         const teams = this.props.teams.map((team) => (
             <option
@@ -318,10 +251,10 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
         return (
             <div className='system-users__filter-row'>
                 <div className='system-users__filter'>
-                    <LocalizedInput
+                    <input
                         id='searchUsers'
                         className='form-control filter-textbox'
-                        placeholder={{id: t('filtered_user_list.search'), defaultMessage: 'Search users'}}
+                        placeholder={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
                         onInput={doSearch}
                     />
                 </div>
@@ -337,8 +270,8 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
                         onChange={this.handleTeamChange}
                         value={this.props.teamId}
                     >
-                        <option value={SearchUserTeamFilter.ALL_USERS}>{Utils.localizeMessage('admin.system_users.allUsers', 'All Users')}</option>
-                        <option value={SearchUserTeamFilter.NO_TEAM}>{Utils.localizeMessage('admin.system_users.noTeams', 'No Teams')}</option>
+                        <option value={SearchUserTeamFilter.ALL_USERS}>{this.props.intl.formatMessage({id: 'admin.system_users.allUsers', defaultMessage: 'All Users'})}</option>
+                        <option value={SearchUserTeamFilter.NO_TEAM}>{this.props.intl.formatMessage({id: 'admin.system_users.noTeams', defaultMessage: 'No Teams'})}</option>
                         {teams}
                     </select>
                 </label>
@@ -355,11 +288,11 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
                         value={this.props.filter}
                         onChange={this.handleFilterChange}
                     >
-                        <option value=''>{Utils.localizeMessage('admin.system_users.allUsers', 'All Users')}</option>
-                        <option value={UserFilters.SYSTEM_ADMIN}>{Utils.localizeMessage('admin.system_users.system_admin', 'System Admin')}</option>
-                        <option value={UserFilters.SYSTEM_GUEST}>{Utils.localizeMessage('admin.system_users.guest', 'Guest')}</option>
-                        <option value={UserFilters.ACTIVE}>{Utils.localizeMessage('admin.system_users.active', 'Active')}</option>
-                        <option value={UserFilters.INACTIVE}>{Utils.localizeMessage('admin.system_users.inactive', 'Inactive')}</option>
+                        <option value=''>{this.props.intl.formatMessage({id: 'admin.system_users.allUsers', defaultMessage: 'All Users'})}</option>
+                        <option value={UserFilters.SYSTEM_ADMIN}>{this.props.intl.formatMessage({id: 'admin.system_users.system_admin', defaultMessage: 'System Admin'})}</option>
+                        <option value={UserFilters.SYSTEM_GUEST}>{this.props.intl.formatMessage({id: 'admin.system_users.guest', defaultMessage: 'Guest'})}</option>
+                        <option value={UserFilters.ACTIVE}>{this.props.intl.formatMessage({id: 'admin.system_users.active', defaultMessage: 'Active'})}</option>
+                        <option value={UserFilters.INACTIVE}>{this.props.intl.formatMessage({id: 'admin.system_users.inactive', defaultMessage: 'Inactive'})}</option>
                     </select>
                 </label>
             </div>
@@ -367,8 +300,6 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const revokeAllUsersModal = this.renderRevokeAllUsersModal();
-
         return (
             <div className='wrapper--fixed'>
                 <AdminHeader>
@@ -379,6 +310,7 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
                             siteName: this.props.siteName,
                         }}
                     />
+                    <RevokeSessionsButton/>
                 </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
@@ -398,29 +330,13 @@ export default class SystemUsers extends React.PureComponent<Props, State> {
                                 mfaEnabled={this.props.mfaEnabled}
                                 enableUserAccessTokens={this.props.enableUserAccessTokens}
                                 experimentalEnableAuthenticationTransfer={this.props.experimentalEnableAuthenticationTransfer}
-                                isDisabled={this.props.isDisabled}
                             />
                         </div>
-                        <SystemPermissionGate permissions={[Permissions.REVOKE_USER_ACCESS_TOKEN]}>
-                            {revokeAllUsersModal}
-                            <div className='pt-3 pb-3'>
-                                <button
-                                    id='revoke-all-users'
-                                    type='button'
-                                    className='btn btn-tertiary'
-                                    onClick={() => this.handleShowRevokeAllSessionsModal()}
-                                    disabled={this.props.isDisabled}
-                                >
-                                    <FormattedMessage
-                                        id='admin.system_users.revokeAllSessions'
-                                        defaultMessage='Revoke All Sessions'
-                                    />
-                                </button>
-                            </div>
-                        </SystemPermissionGate>
                     </div>
                 </div>
             </div>
         );
     }
 }
+
+export default injectIntl(SystemUsers);

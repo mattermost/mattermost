@@ -8,7 +8,7 @@ import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {getChannelTimezones, getChannelMemberCountsByGroup} from 'mattermost-redux/actions/channels';
-import {resetCreatePostRequest, resetHistoryIndex} from 'mattermost-redux/actions/posts';
+import {moveHistoryIndexBack, moveHistoryIndexForward, resetCreatePostRequest, resetHistoryIndex} from 'mattermost-redux/actions/posts';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions, Preferences, Posts} from 'mattermost-redux/constants';
 import {getAllChannelStats, getChannelMemberCountsByGroup as selectChannelMemberCountsByGroup} from 'mattermost-redux/selectors/entities/channels';
@@ -25,7 +25,6 @@ import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {
     clearCommentDraftUploads,
     updateCommentDraft,
-    makeOnMoveHistoryIndex,
     makeOnSubmit,
     makeOnEditLatestPost,
 } from 'actions/views/create_comment';
@@ -73,7 +72,6 @@ function makeMapStateToProps() {
         const enableEmojiPicker = config.EnableEmojiPicker === 'true';
         const enableGifPicker = config.EnableGifPicker === 'true';
         const badConnection = connectionErrorCount(state) > 1;
-        const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
         const canPost = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST);
         const useChannelMentions = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS);
         const isLDAPEnabled = license?.IsLicensed === 'true' && license?.LDAPGroups === 'true';
@@ -103,7 +101,6 @@ function makeMapStateToProps() {
             maxPostSize: parseInt(config.MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT,
             rhsExpanded: getIsRhsExpanded(state),
             badConnection,
-            isTimezoneEnabled,
             selectedPostFocussedAt: getSelectedPostFocussedAt(state),
             canPost,
             useChannelMentions,
@@ -132,14 +129,14 @@ type Actions = {
     updateCommentDraftWithRootId: (rootID: string, draft: PostDraft, save?: boolean) => void;
     onSubmit: (draft: PostDraft, options: {ignoreSlash: boolean}) => void;
     onResetHistoryIndex: () => void;
-    onMoveHistoryIndexBack: () => void;
-    onMoveHistoryIndexForward: () => void;
+    moveHistoryIndexBack: (index: string) => Promise<void>;
+    moveHistoryIndexForward: (index: string) => Promise<void>;
     onEditLatestPost: () => ActionResult;
     resetCreatePostRequest: () => void;
     getChannelTimezones: (channelId: string) => Promise<ActionResult>;
     emitShortcutReactToLastPostFrom: (location: string) => void;
     setShowPreview: (showPreview: boolean) => void;
-    getChannelMemberCountsByGroup: (channelID: string, includeTimezones: boolean) => void;
+    getChannelMemberCountsByGroup: (channelID: string) => void;
     openModal: <P>(modalData: ModalData<P>) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
@@ -152,14 +149,6 @@ function makeMapDispatchToProps() {
         draft: PostDraft,
         options: {ignoreSlash: boolean},
     ) => (dispatch: DispatchFunc, getState: () => GlobalState) => Promise<ActionResult | ActionResult[]> | ActionResult;
-    let onMoveHistoryIndexBack: () => (
-        dispatch: DispatchFunc,
-        getState: () => GlobalState,
-    ) => Promise<ActionResult | ActionResult[]> | ActionResult;
-    let onMoveHistoryIndexForward: () => (
-        dispatch: DispatchFunc,
-        getState: () => GlobalState,
-    ) => Promise<ActionResult | ActionResult[]> | ActionResult;
     let onEditLatestPost: () => ActionFunc;
 
     function onResetHistoryIndex() {
@@ -173,8 +162,6 @@ function makeMapDispatchToProps() {
     return (dispatch: Dispatch, ownProps: OwnProps) => {
         if (rootId !== ownProps.rootId) {
             onUpdateCommentDraft = makeOnUpdateCommentDraft(ownProps.rootId, ownProps.channelId);
-            onMoveHistoryIndexBack = makeOnMoveHistoryIndex(ownProps.rootId, -1);
-            onMoveHistoryIndexForward = makeOnMoveHistoryIndex(ownProps.rootId, 1);
         }
 
         if (channelId !== ownProps.channelId) {
@@ -200,8 +187,8 @@ function makeMapDispatchToProps() {
                 updateCommentDraftWithRootId,
                 onSubmit,
                 onResetHistoryIndex,
-                onMoveHistoryIndexBack,
-                onMoveHistoryIndexForward,
+                moveHistoryIndexBack,
+                moveHistoryIndexForward,
                 onEditLatestPost,
                 resetCreatePostRequest,
                 getChannelTimezones,

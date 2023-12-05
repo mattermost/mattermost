@@ -4,10 +4,11 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
+
 import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import type {Notice} from 'components/system_notice/types';
-import InfoIcon from 'components/widgets/icons/info_icon';
 
 import {DocLinks} from 'utils/constants';
 import * as ServerVersion from 'utils/server_version';
@@ -193,7 +194,7 @@ const notices: Notice[] = [
                 defaultMessage='Updates to Group Messages'
             />
         ),
-        icon: (<InfoIcon/>),
+        icon: (<InformationOutlineIcon/>),
         body: (
             <FormattedMessage
                 id='system_noticy.body.gm_as_dm'

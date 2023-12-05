@@ -21,6 +21,7 @@ type Props = {
     sidebarLoaded: boolean;
 
     unreadChannels: Channel[];
+
     actions: {
         prefetchChannelPosts: (channelId: string, delay?: number) => Promise<any>;
         trackPreloadedChannels: (prefetchQueueObj: Record<string, string[]>) => void;

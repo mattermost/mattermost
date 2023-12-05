@@ -98,6 +98,7 @@ export type PluginComponent = {
     filter?: (id: string) => boolean;
     action?: (...args: any) => void; // TODO Add more concrete types?
     shouldRender?: (state: GlobalState) => boolean;
+    hook?: (post: Post, message?: string) => string;
 };
 
 export type AppBarComponent = PluginComponent & {

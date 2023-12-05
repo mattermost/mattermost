@@ -10,7 +10,7 @@ import {Link} from 'react-router-dom';
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import ColorSetting from 'components/admin_console/color_setting';
 import DropdownSetting from 'components/admin_console/dropdown_setting';
-import FileUploadSetting from 'components/admin_console/file_upload_setting.jsx';
+import FileUploadSetting from 'components/admin_console/file_upload_setting';
 import GeneratedSetting from 'components/admin_console/generated_setting';
 import JobsTable from 'components/admin_console/jobs';
 import MultiSelectSetting from 'components/admin_console/multiselect_settings';

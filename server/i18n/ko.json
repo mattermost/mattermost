@@ -1356,10 +1356,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "시스템 관리자 권한으로 Link previews를 활성화시키세요."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
   },
@@ -5686,10 +5682,6 @@
   {
     "id": "api.command_invite.user_not_in_team.app_error",
     "translation": "{{.Username}}은(는) 이 팀의 구성원이 아닙니다."
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "이 채널은 그룹별로 관리합니다. 해당 사용자는 이 채널에 동기화 되는 그룹의 일부가 아닙니다."
   },
   {
     "id": "api.command.execute_command.format.app_error",

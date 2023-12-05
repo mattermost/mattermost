@@ -462,7 +462,6 @@ func TestDisableOnRemove(t *testing.T) {
 }
 
 func TestGetMarketplacePlugins(t *testing.T) {
-
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -683,7 +682,6 @@ func TestGetMarketplacePlugins(t *testing.T) {
 }
 
 func TestGetInstalledMarketplacePlugins(t *testing.T) {
-
 	samplePlugins := []*model.MarketplacePlugin{
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
@@ -827,7 +825,6 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 }
 
 func TestSearchGetMarketplacePlugins(t *testing.T) {
-
 	samplePlugins := []*model.MarketplacePlugin{
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
@@ -953,7 +950,6 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 }
 
 func TestGetLocalPluginInMarketplace(t *testing.T) {
-
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1115,7 +1111,6 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 }
 
 func TestGetRemotePluginInMarketplace(t *testing.T) {
-
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1172,7 +1167,6 @@ func TestGetRemotePluginInMarketplace(t *testing.T) {
 }
 
 func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
-
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1304,7 +1298,6 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 }
 
 func TestInstallMarketplacePlugin(t *testing.T) {
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1655,7 +1648,6 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 }
 
 func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
-
 	path, _ := fileutils.FindDir("tests")
 
 	signatureFilename := "testplugin2.tar.gz.sig"

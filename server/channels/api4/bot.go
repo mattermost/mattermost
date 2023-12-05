@@ -27,7 +27,7 @@ func (api *API) InitBot() {
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	var botPatch *model.BotPatch
 	err := json.NewDecoder(r.Body).Decode(&botPatch)
-	if err != nil {
+	if err != nil || botPatch == nil {
 		c.SetInvalidParamWithErr("bot", err)
 		return
 	}
@@ -83,7 +83,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var botPatch *model.BotPatch
 	err := json.NewDecoder(r.Body).Decode(&botPatch)
-	if err != nil {
+	if err != nil || botPatch == nil {
 		c.SetInvalidParamWithErr("bot", err)
 		return
 	}
@@ -98,7 +98,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedBot, appErr := c.App.PatchBot(botUserId, botPatch)
+	updatedBot, appErr := c.App.PatchBot(c.AppContext, botUserId, botPatch)
 	if appErr != nil {
 		c.Err = appErr
 		return

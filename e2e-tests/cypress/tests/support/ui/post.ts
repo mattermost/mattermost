@@ -111,7 +111,7 @@ export function verifySavedPost(postId, message) {
     cy.get('#searchContainer').should('be.visible').within(() => {
         cy.get('.sidebar--right__title').
             should('be.visible').
-            and('have.text', 'Saved Posts');
+            and('have.text', 'Saved messages');
 
         // * Check that the post pre-header is not shown for the saved message in RHS
         cy.get(`#searchResult_${postId}`).within(() => {
@@ -129,14 +129,14 @@ export function verifyUnsavedPost(postId) {
     cy.get(`#post_${postId}`).trigger('mouseover', {force: true});
     cy.get(`#CENTER_flagIcon_${postId}`).
         should('have.class', 'post-menu__item').
-        and('have.attr', 'aria-label', 'save');
+        and('have.attr', 'aria-label', 'save message');
 
     // # Open the post-dotmenu
     cy.clickPostDotMenu(postId, 'CENTER');
 
     // * Check that the dotmenu item is changed accordingly
     cy.findAllByTestId(`post-menu-${postId}`).eq(0).should('be.visible');
-    cy.findByText('Save').scrollIntoView().should('be.visible');
+    cy.findByText('Save Message').scrollIntoView().should('be.visible');
     cy.get(`#CENTER_dropdown_${postId}`).should('be.visible').type('{esc}');
 
     cy.get('#postListContent').within(() => {
@@ -165,7 +165,7 @@ export function verifyUnsavedPost(postId) {
     cy.get('#searchContainer').should('be.visible').within(() => {
         cy.get('.sidebar--right__title').
             should('be.visible').
-            and('have.text', 'Saved Posts');
+            and('have.text', 'Saved messages');
 
         // * Check that the post pre-header is not shown for the saved message in RHS
         cy.get('#search-items-container').within(() => {

@@ -555,6 +555,10 @@ func (c *Client4) sharedChannelsRoute() string {
 	return "/sharedchannels"
 }
 
+func (c *Client4) ipFiltersRoute() string {
+	return "/ip_filtering"
+}
+
 func (c *Client4) permissionsRoute() string {
 	return "/permissions"
 }
@@ -6618,6 +6622,26 @@ func (c *Client4) GetSortedEmojiList(ctx context.Context, page, perPage int, sor
 	return list, BuildResponse(r), nil
 }
 
+// GetEmojisByNames takes an array of custom emoji names and returns an array of those emojis.
+func (c *Client4) GetEmojisByNames(ctx context.Context, names []string) ([]*Emoji, *Response, error) {
+	buf, err := json.Marshal(names)
+	if err != nil {
+		return nil, nil, NewAppError("GetEmojisByNames", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPostBytes(ctx, c.emojisRoute()+"/names", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var list []*Emoji
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetEmojisByNames", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
 // DeleteEmoji delete an custom emoji on the provided emoji id string.
 func (c *Client4) DeleteEmoji(ctx context.Context, emojiId string) (*Response, error) {
 	r, err := c.DoAPIDelete(ctx, c.emojiRoute(emojiId))
@@ -8006,6 +8030,52 @@ func (c *Client4) GetProductLimits(ctx context.Context) (*ProductLimits, *Respon
 	json.NewDecoder(r.Body).Decode(&productLimits)
 
 	return productLimits, BuildResponse(r), nil
+}
+
+func (c *Client4) GetIPFilters(ctx context.Context) (*AllowedIPRanges, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.ipFiltersRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+
+	var allowedIPRanges *AllowedIPRanges
+	json.NewDecoder(r.Body).Decode(&allowedIPRanges)
+	return allowedIPRanges, BuildResponse(r), nil
+}
+
+func (c *Client4) ApplyIPFilters(ctx context.Context, allowedRanges *AllowedIPRanges) (*AllowedIPRanges, *Response, error) {
+	payload, err := json.Marshal(allowedRanges)
+	if err != nil {
+		return nil, nil, NewAppError("ApplyIPFilters", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPostBytes(ctx, c.ipFiltersRoute(), payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+
+	var allowedIPRanges *AllowedIPRanges
+	json.NewDecoder(r.Body).Decode(&allowedIPRanges)
+
+	return allowedIPRanges, BuildResponse(r), nil
+}
+
+func (c *Client4) GetMyIP(ctx context.Context) (*GetIPAddressResponse, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.ipFiltersRoute()+"/my_ip", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+
+	var response *GetIPAddressResponse
+	json.NewDecoder(r.Body).Decode(&response)
+
+	return response, BuildResponse(r), nil
 }
 
 func (c *Client4) CreateCustomerPayment(ctx context.Context) (*StripeSetupIntent, *Response, error) {

@@ -9,7 +9,7 @@ type DialogError = {
     values?: any;
 };
 export function checkDialogElementForError(elem: DialogElement, value: any): DialogError | undefined | null {
-    if (!value && !elem.optional) {
+    if ((!value && value !== 0) && !elem.optional) {
         return {
             id: 'interactive_dialog.error.required',
             defaultMessage: 'This field is required.',
