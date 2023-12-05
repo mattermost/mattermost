@@ -64,7 +64,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
-	f.MoveThreadsEnabled = true
+	f.MoveThreadsEnabled = false
 	f.StreamlinedMarketplace = true
 	f.CloudIPFiltering = false
 	f.ConsumePostHook = false

@@ -731,6 +731,8 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 }
 
 func TestMoveThread(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_MOVETHREADSENABLED", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_MOVETHREADSENABLED")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
