@@ -1295,7 +1295,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Usernames}}にメンションしましたが、彼らはこのチャンネルには属していないため通知を受け取ることができませんでした。"
+    "translation": "@{{.Username}}にメンションしましたが、彼らはこのチャンネルには属していないため通知を受け取ることができませんでした。"
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -1723,7 +1723,7 @@
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "チームを{{.Domain}}に制限することはシステム設定により許可されていません。詳細はシステム管理者に問い合わせてください。"
+    "translation": "チームを{{ .Domain }}に制限することはシステム設定により許可されていません。詳細はシステム管理者に問い合わせてください。"
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2847,7 +2847,7 @@
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{ .SiteName }}] {{.Month}} {{.Day}}, {{.Year}} {{.ChannelName}}の新しいグループメッセージ"
+    "translation": "[{{ .SiteName }}] {{.Month}} {{.Day}}, {{.Year}} {{ .ChannelName}}の新しいグループメッセージ"
   },
   {
     "id": "app.notification.subject.group_message.generic",
@@ -2855,7 +2855,7 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} {{.TeamName}}の通知"
+    "translation": "[{{ .SiteName }}] {{.Month}} {{.Day}}, {{.Year}} {{ .TeamName}}の通知"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -4743,11 +4743,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 116+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 116+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5631,7 +5631,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Usernames}}はこのチャンネルにいないため、通知は行われません。また、彼らはリンクされたグループのメンバーではないため、チャンネルに追加することもできません。彼らをこのチャンネルに追加するには、リンクされたグループに追加しなければなりません。"
+    "translation": "@{{.Username}}はこのチャンネルにいないため、通知は行われません。また、彼らはリンクされたグループのメンバーではないため、チャンネルに追加することもできません。彼らをこのチャンネルに追加するには、リンクされたグループに追加しなければなりません。"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -5751,7 +5751,7 @@
   },
   {
     "id": "api.channel.add_members.user_denied",
-    "translation": "チャンネルメンバーシップはグループ制約により以下のユーザーを拒否しました: {{.UserIDs }}"
+    "translation": "チャンネルメンバーシップはグループ制約により以下のユーザーを拒否しました: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.add_members.error",
@@ -9135,7 +9135,7 @@
   },
   {
     "id": "common.parse_error_int64",
-    "translation": " "
+    "translation": "値を解析できませんでした: {{.Value}} から int64"
   },
   {
     "id": "app.last_accessible_post.app_error",
@@ -9215,7 +9215,7 @@
   },
   {
     "id": "api.templates.delinquency_75.subject",
-    "translation": "あなたのMattermostワークスペースは15日後にダウングレードされます"
+    "translation": "あなたのMattermost {{.Plan}} は15日後にダウングレードされます"
   },
   {
     "id": "api.templates.delinquency_75.downgrade_to_free",
@@ -9976,5 +9976,109 @@
   {
     "id": "model.config.is_valid.log.advanced_logging.json",
     "translation": "JSONを解析できませんでした: {{.Error}}"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "IP フィルタの取得中にエラーが発生しました"
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "IPフィルタの適用中にエラーが発生しました"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "{{ .InitiatingUserEmail }} にメールを送信する"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "変更内容の確認"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }}が、次のワークスペースのIPフィルタリング設定を変更しました: {{ .SiteURL }}"
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "SiteURLのサブパスを解析できませんでした"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Audienceは空欄にできません。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "いくつかのAudience URLが正しくありません。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "不正なclient idです。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "不正なclient secretです。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Create atは有効な時刻にしてください。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "不正なcreator idです。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "不正なgrant typedです。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "不正なidです。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "不正なnameです。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "不正なoauth token urlです。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "不正なpassword credentialsです。"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Update atは有効な時刻にしてください。"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "クライアントのIPアドレス取得中にエラーが発生しました"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "このサーバーではIPフィルタリングは利用できません"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "ワークスペースのIPフィルターの変更"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "サポートに連絡する"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "カスタマーポータルにログインしてIPフィルタリングをリセットする"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "ワークスペースのIPフィルタリングの変更"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "ワークスペースへのアクセスでお困りですか?"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "最終ログイン日時を更新できませんでした"
   }
 ]

@@ -5829,11 +5829,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 116+"
+    "translation": "Версия 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 116+"
+    "translation": "Версия 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -9986,5 +9986,61 @@
   {
     "id": "model.config.is_valid.log.advanced_logging.json",
     "translation": "Не удалось разобрать JSON: {{.Error}}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "Изменение IP-фильтрации для рабочего пространства"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} изменил настройки IP-фильтрации для рабочей области по адресу URL: {{ .SiteURL }}"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Не удалось обновить временную метку последнего входа в систему"
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Не удалось разобрать подпуть SiteURL"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Недопустимый идентификатор клиента."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Некорректный секрет клиента."
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "При применении IP-фильтров произошла ошибка"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "При получении IP-фильтров произошла ошибка"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "При получении IP-адреса клиента произошла ошибка"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP-фильтрация на этом сервере недоступна"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Изменения в IP-фильтрах рабочей области"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Связаться со службой поддержки"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Отправить письмо по адресу {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Возникают проблемы с доступом к рабочему пространству?"
   }
 ]

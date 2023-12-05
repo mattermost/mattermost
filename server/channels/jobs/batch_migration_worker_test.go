@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +20,7 @@ type MockApp struct {
 	clusterInfo []*model.ClusterInfo
 }
 
-func (ma MockApp) GetClusterStatus() []*model.ClusterInfo {
+func (ma MockApp) GetClusterStatus(rctx request.CTX) []*model.ClusterInfo {
 	return ma.clusterInfo
 }
 

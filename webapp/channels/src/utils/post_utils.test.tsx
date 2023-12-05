@@ -1353,3 +1353,43 @@ describe('makeGetIsReactionAlreadyAddedToPost', () => {
         expect(getIsReactionAlreadyAddedToPost(baseState, 'post_id_1', 'smile')).toBeTruthy();
     });
 });
+
+describe('makeGetUniqueEmojiNameReactionsForPost', () => {
+    const baseState = {
+        entities: {
+            posts: {
+                reactions: {
+                    post_id_1: {
+                        user_1_post_id_1_smile: {
+                            emoji_name: 'smile',
+                            post_id: 'post_id_1',
+                        },
+                        user_2_post_id_1_smile: {
+                            emoji_name: 'smile',
+                            post_id: 'post_id_1',
+                        },
+                        user_3_post_id_1_smile: {
+                            emoji_name: 'smile',
+                            post_id: 'post_id_1',
+                        },
+                        user_1_post_id_1_cry: {
+                            emoji_name: 'cry',
+                            post_id: 'post_id_1',
+                        },
+                    },
+
+                },
+            },
+            general: {
+                config: {},
+            },
+            emojis: {},
+        },
+    } as unknown as GlobalState;
+
+    test('should only return names of unique reactions', () => {
+        const getUniqueEmojiNameReactionsForPost = PostUtils.makeGetUniqueEmojiNameReactionsForPost();
+
+        expect(getUniqueEmojiNameReactionsForPost(baseState, 'post_id_1')).toEqual(['smile', 'cry']);
+    });
+});
