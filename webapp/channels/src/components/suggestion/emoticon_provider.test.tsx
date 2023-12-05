@@ -17,6 +17,9 @@ jest.mock('selectors/emojis', () => ({
     getRecentEmojisNames: jest.fn(),
 }));
 
+const mockedGetEmojiMap = jest.mocked(getEmojiMap);
+const mockedGetRecentEmojisNames = jest.mocked(getRecentEmojisNames);
+
 describe('components/EmoticonProvider', () => {
     const resultsCallback = jest.fn();
     const emoticonProvider = new EmoticonProvider();
@@ -37,9 +40,6 @@ describe('components/EmoticonProvider', () => {
             expect(resultsCallback).not.toHaveBeenCalled();
         }
     });
-
-    const mockedGetEmojiMap = jest.mocked(getEmojiMap);
-    const mockedGetRecentEmojisNames = jest.mocked(getRecentEmojisNames);
 
     it('should suggest emojis when partial name >= MIN_EMOTICON_LENGTH', () => {
         mockedGetEmojiMap.mockReturnValue(emojiMap);
