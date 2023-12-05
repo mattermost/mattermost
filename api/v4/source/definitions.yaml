@@ -340,6 +340,13 @@ components:
         parent_id:
           description: The ID of the parent channel bookmark
           type: string
+    ChannelBookmarkWithFileInfo:
+      allOf:
+        - $ref: "#/components/schemas/ChannelBookmark"
+        - type: object
+          properties:
+            file:
+              $ref: "#/components/schemas/FileInfo"
     Post:
       type: object
       properties:

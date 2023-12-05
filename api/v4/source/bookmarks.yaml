@@ -37,16 +37,12 @@
                 display_name:
                   type: string
                   description: The name of the channel bookmark
-                sort_order:
-                  type: integer
-                  format: int64
-                  description: The order of the channel bookmark
                 link_url:
                   type: string
-                  description: The URL associated with the channel bookmark. Required for type bookmarks of type 'link'
+                  description: The URL associated with the channel bookmark. Required for bookmarks of type 'link'
                 image_url:
                   type: string
-                  description: The URL of the image associated with the channel bookmark
+                  description: The URL of the image associated with the channel bookmark. Optional, only applies for bookmarks of type 'link'
                 emoji:
                   type: string
                   description: The emoji of the channel bookmark
@@ -64,7 +60,7 @@
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ChannelBookmark"
+                $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
