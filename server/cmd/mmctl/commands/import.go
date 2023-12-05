@@ -111,7 +111,7 @@ func init() {
 	ImportValidateCmd.Flags().Bool("ignore-attachments", false, "Don't check if the attached files are present in the archive")
 	ImportValidateCmd.Flags().Bool("check-server-duplicates", true, "Set to false to ignore teams, channels, and users already present on the server")
 
-	ImportProcessCmd.Flags().Bool("legacy", false, "Set this to indicate that the file path passed exists on the server side.")
+	ImportProcessCmd.Flags().Bool("bypass-upload", false, "If this is set, the file is not processed from the server, but rather directly read from the filesystem. Works only in --local mode.")
 
 	ImportListCmd.AddCommand(
 		ImportListAvailableCmd,
@@ -251,11 +251,11 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	importFile := args[0]
 
 	isLocal, _ := command.Flags().GetBool("local")
-	isLegacy, _ := command.Flags().GetBool("legacy")
+	bypassUpload, _ := command.Flags().GetBool("bypass-upload")
 	// in local mode, we tell the server to directly read from this file.
-	if isLocal && !isLegacy {
+	if isLocal && bypassUpload {
 		if _, err := os.Stat(importFile); errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("file %s doesn't exist. NOTE: If this file was uploaded to the server, please use the --legacy flag to revert to old behavior.", importFile)
+			return fmt.Errorf("file %s doesn't exist. NOTE: If this file was uploaded to the server via mmctl import upload, please use the --legacy flag to revert to old behavior.", importFile)
 		}
 		// If it's not an absolute path, then we make it
 		if !path.IsAbs(importFile) {
@@ -271,7 +271,7 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 		Type: model.JobTypeImportProcess,
 		Data: map[string]string{
 			"import_file": importFile,
-			"local_mode":  strconv.FormatBool(isLocal && !isLegacy),
+			"local_mode":  strconv.FormatBool(isLocal && bypassUpload),
 		},
 	})
 	if err != nil {
