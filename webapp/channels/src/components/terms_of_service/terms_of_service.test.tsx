@@ -25,10 +25,12 @@ describe('components/terms_of_service/TermsOfService', () => {
             getTermsOfService,
             updateMyTermsOfServiceStatus,
         },
-        location: {search: ''},
+        location: {search: '', hash: '', pathname: '', state: ''},
         termsEnabled: true,
         emojiMap: {} as EmojiMap,
         onboardingFlowEnabled: false,
+        match: {} as any,
+        history: {} as any,
     };
 
     test('should match snapshot', () => {

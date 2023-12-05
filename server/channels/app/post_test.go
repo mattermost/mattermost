@@ -203,22 +203,24 @@ func TestAttachFilesToPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		info1, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
-			CreatorId: th.BasicUser.Id,
-			Path:      "path.txt",
-		})
+		info1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
 		require.NoError(t, err)
 
-		info2, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
-			CreatorId: th.BasicUser.Id,
-			Path:      "path.txt",
-		})
+		info2, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
 		require.NoError(t, err)
 
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		appErr := th.App.attachFilesToPost(post)
+		appErr := th.App.attachFilesToPost(th.Context, post)
 		assert.Nil(t, appErr)
 
 		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
@@ -230,23 +232,25 @@ func TestAttachFilesToPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		info1, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
-			CreatorId: th.BasicUser.Id,
-			Path:      "path.txt",
-			PostId:    model.NewId(),
-		})
+		info1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+				PostId:    model.NewId(),
+			})
 		require.NoError(t, err)
 
-		info2, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
-			CreatorId: th.BasicUser.Id,
-			Path:      "path.txt",
-		})
+		info2, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
 		require.NoError(t, err)
 
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		appErr := th.App.attachFilesToPost(post)
+		appErr := th.App.attachFilesToPost(th.Context, post)
 		assert.Nil(t, appErr)
 
 		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
@@ -790,7 +794,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(info1.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
 		th.App.RemoveFile(info1.Path)
 	}()
 
@@ -1448,6 +1452,70 @@ func TestUpdatePost(t *testing.T) {
 		testPost, err = th.App.UpdatePost(th.Context, testPost, false)
 		require.Nil(t, err)
 		assert.Equal(t, testPost.GetProps(), model.StringInterface{"previewed_post": referencedPost.Id})
+	})
+
+	t.Run("sanitizes post metadata appropriately", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+		})
+
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+		directChannel, err := th.App.createDirectChannel(th.Context, user1.Id, user2.Id)
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		testCases := []struct {
+			Description string
+			Channel     *model.Channel
+			Author      string
+			Length      int
+		}{
+			{
+				Description: "removes metadata from post for members who cannot read channel",
+				Channel:     directChannel,
+				Author:      user1.Id,
+				Length:      0,
+			},
+			{
+				Description: "does not remove metadata from post for members who can read channel",
+				Channel:     th.BasicChannel,
+				Author:      th.BasicUser.Id,
+				Length:      1,
+			},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				referencedPost := &model.Post{
+					ChannelId: testCase.Channel.Id,
+					Message:   "hello world",
+					UserId:    testCase.Author,
+				}
+				_, err = th.App.CreatePost(th.Context, referencedPost, testCase.Channel, false, false)
+				require.Nil(t, err)
+
+				previewPost := &model.Post{
+					ChannelId: th.BasicChannel.Id,
+					UserId:    th.BasicUser.Id,
+				}
+				previewPost, err = th.App.CreatePost(th.Context, previewPost, th.BasicChannel, false, false)
+				require.Nil(t, err)
+
+				permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+				previewPost.Message = permalink
+				previewPost, err = th.App.UpdatePost(th.Context, previewPost, false)
+				require.Nil(t, err)
+
+				require.Len(t, previewPost.Metadata.Embeds, testCase.Length)
+			})
+		}
 	})
 }
 
@@ -2717,7 +2785,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			th.Server.Store().Post().PermanentDeleteByUser(user1.Id)
+			th.Server.Store().Post().PermanentDeleteByUser(th.Context, user1.Id)
 		}()
 
 		require.NotPanics(t, func() {

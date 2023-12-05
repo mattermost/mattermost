@@ -503,7 +503,7 @@ export function autolinkAtMentions(text: string, tokens: Tokens): string {
     return output;
 }
 
-export function allAtMentions(text: string): RegExpMatchArray {
+export function allAtMentions(text: string): string[] {
     return text.match(Constants.SPECIAL_MENTIONS_REGEX && AT_MENTION_PATTERN) || [];
 }
 
