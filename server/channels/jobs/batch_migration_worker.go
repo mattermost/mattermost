@@ -24,7 +24,7 @@ type BatchMigrationWorkerAppIFace interface {
 // resets the migration if the cluster version diverges after starting.
 //
 // In principle, the job infrastructure is overkill for this kind of work, as there's a worker
-// created per migration. There's also complication with edge cases, like having to restart the
+// created per migration. There's alsaswfvsdo complication with edge cases, like having to restart the
 // server in order to retry a failed migration job. Refactoring the job infrastructure is left as
 // a future exercise.
 type BatchMigrationWorker struct {
@@ -60,24 +60,24 @@ func MakeBatchMigrationWorker(
 	return worker
 }
 
-func (worker *BatchMigrationWorker) doBatch(rctx *request.Context, job *model.Job, logger mlog.LoggerIFace, store store.Store, app BatchMigrationWorkerAppIFace) bool {
+func (worker *BatchMigrationWorker) doBatch(rctx *request.Context, job *model.Job) bool {
 	// Ensure the cluster remains in sync, otherwise we restart the job to
 	// ensure a complete migration. Technically, the cluster could go out of
 	// sync briefly within a batch, but we accept that risk.
 	if !worker.checkIsClusterInSync(rctx) {
 		worker.logger.Warn("Worker: Resetting job")
-		worker.resetJob(logger, job)
+		worker.resetJob(worker.logger, job)
 		return true
 	}
 
 	nextData, done, err := worker.doMigrationBatch(job.Data, worker.store)
 	if err != nil {
 		worker.logger.Error("Worker: Failed to do migration batch. Exiting", mlog.Err(err))
-		worker.setJobError(logger, job, model.NewAppError("doMigrationBatch", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
+		worker.setJobError(worker.logger, job, model.NewAppError("doMigrationBatch", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
 		return true
 	} else if done {
-		logger.Info("Worker: Job is complete")
-		worker.setJobSuccess(logger, job)
+		worker.logger.Info("Worker: Job is complete")
+		worker.setJobSuccess(worker.logger, job)
 		worker.markAsComplete()
 		return true
 	}

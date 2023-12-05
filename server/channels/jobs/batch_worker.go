@@ -25,7 +25,7 @@ type BatchWorker[T interface{}] struct {
 	jobs    chan model.Job
 
 	timeBetweenBatches time.Duration
-	doBatch            func(rctx *request.Context, job *model.Job, logger mlog.LoggerIFace, store store.Store, app T) bool
+	doBatch            func(rctx *request.Context, job *model.Job) bool
 }
 
 // MakeBatchWorker creates a worker to process the given batch function.
@@ -34,7 +34,7 @@ func MakeBatchWorker[T interface{}](
 	store store.Store,
 	app T,
 	timeBetweenBatches time.Duration,
-	doBatch func(rctx *request.Context, job *model.Job, logger mlog.LoggerIFace, store store.Store, app T) bool,
+	doBatch func(rctx *request.Context, job *model.Job) bool,
 	onComplete func(),
 ) model.Worker {
 	worker := &BatchWorker[T]{
@@ -139,7 +139,7 @@ func (worker *BatchWorker[T]) DoJob(job *model.Job) {
 			}
 			return
 		case <-time.After(worker.timeBetweenBatches):
-			if stop := worker.doBatch(c, job, logger, worker.store, worker.app); stop {
+			if stop := worker.doBatch(c, job); stop {
 				return
 			}
 		}
