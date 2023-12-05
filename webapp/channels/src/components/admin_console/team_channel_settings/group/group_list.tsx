@@ -40,7 +40,7 @@ const Header = () => {
     );
 };
 
-interface Props {
+export interface Props {
     data?: Group[];
     onPageChangedCallback?: () => void;
     total: number;
