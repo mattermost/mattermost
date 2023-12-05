@@ -277,7 +277,7 @@ export function cloudReverseTrial(state: GlobalState): boolean {
 }
 
 export function moveThreadsEnabled(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'MoveThreadsEnabled') === 'true' && getLicense(state).sku_short_name === 'enterprise';
+    return getFeatureFlagValue(state, 'MoveThreadsEnabled') === 'true' && getLicense(state).SkuShortName === 'enterprise';
 }
 
 export function streamlinedMarketplaceEnabled(state: GlobalState): boolean {

@@ -30,6 +30,9 @@ describe('Move thread', () => {
                 ThreadAutoFollow: true,
                 CollapsedThreads: 'default_on',
             },
+            WranglerSettings: {
+                MoveThreadFromPrivateChannelEnable: true,
+            },
         });
 
         // # Login as new user, create new team and visit its URL
@@ -128,6 +131,26 @@ describe('Move thread', () => {
         });
     });
 
+    it('Should not be able to move post from private channel if configured off', () => {
+        cy.apiUpdateConfig({
+            WranglerSettings: {
+                MoveThreadFromPrivateChannelEnable: false,
+            }
+        });
+
+        // # Open the RHS with replies to the root post
+        cy.uiClickPostDropdownMenu(testPost.id, 'Reply', 'CENTER');
+
+        // * Assert RHS is open
+        cy.get('#rhsContainer').should('be.visible');
+
+        // # Click on ... button of reply post
+        cy.clickPostDotMenu(replyPost.id, 'RHS_COMMENT');
+
+        // * Assert availability of the Move Thread menu-item
+        cy.findByText('Move Thread').should('not.exist');
+    })
+
     /**
      * Verify that the post has been moved
      *
@@ -166,7 +189,7 @@ describe('Move thread', () => {
 
             if (cancel) {
                 // * Assert if button is active
-                cy.get('.GenericModal__button.cancel').should('not.be.disabled').click();
+                cy.get('.MoveThreadModal__cancel-button').should('not.be.disabled').click();
             } else {
                 // * Assert if button is active
                 cy.get('.GenericModal__button.confirm').should('not.be.disabled').click();

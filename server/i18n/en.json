@@ -9051,8 +9051,8 @@
     "translation": "Websocket URL must be a valid URL and start with ws:// or wss://."
   },
   {
-    "id": "model.config.is_valid.wrangler_settings.domain_invalid.app_error",
-    "translation": "Invalid domain for wrangler settings"
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Invalid domain for move thread settings"
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",

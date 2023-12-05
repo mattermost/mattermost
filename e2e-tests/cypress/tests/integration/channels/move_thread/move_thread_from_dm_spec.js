@@ -24,10 +24,14 @@ describe('Move Thread', () => {
     const replyMessage = 'Move this reply';
 
     beforeEach(() => {
+        cy.shouldHaveFeatureFlag('MoveThreadsEnabled', true);
         cy.apiUpdateConfig({
             ServiceSettings: {
                 ThreadAutoFollow: true,
                 CollapsedThreads: 'default_on',
+            },
+            WranglerSettings: {
+                MoveThreadFromDirectMessageChannelEnable: true,
             },
         });
 
@@ -118,6 +122,7 @@ describe('Move Thread', () => {
         verifyMovedThread({post: testPost});
     });
 
+
     it('Move post from DM - Cancel using escape key', () => {
         // # Check if ... button is visible in last post right side
         cy.get(`#CENTER_button_${testPost.id}`).should('not.be.visible');
@@ -139,6 +144,26 @@ describe('Move Thread', () => {
             assert.isEqual(id, testPost.id);
         });
     });
+
+    it('Should not be able to move post from DM if configured off', () => {
+        cy.apiUpdateConfig({
+            WranglerSettings: {
+                MoveThreadFromDirectMessageChannelEnable: false,
+            }
+        });
+
+        // # Open the RHS with replies to the root post
+        cy.uiClickPostDropdownMenu(testPost.id, 'Reply', 'CENTER');
+
+        // * Assert RHS is open
+        cy.get('#rhsContainer').should('be.visible');
+
+        // # Click on ... button of reply post
+        cy.clickPostDotMenu(replyPost.id, 'RHS_COMMENT');
+
+        // * Assert availability of the Move Thread menu-item
+        cy.findByText('Move Thread').should('not.exist');
+    })
 
     /**
      * Verify that the post has been moved
@@ -179,7 +204,7 @@ describe('Move Thread', () => {
 
             if (cancel) {
                 // * Assert if button is active
-                cy.get('.GenericModal__button.cancel').should('not.be.disabled').type('{esc}', {force: true});
+                cy.get('.MoveThreadModal__cancel-button').should('not.be.disabled').type('{esc}', {force: true});
             } else {
                 // * Assert if button is active
                 cy.get('.GenericModal__button.confirm').should('not.be.disabled').type('{enter}', {force: true});

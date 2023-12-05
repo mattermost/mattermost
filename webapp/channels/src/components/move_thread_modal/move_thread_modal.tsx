@@ -202,6 +202,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
                 id: 'move_thread_modal.button.cancel',
                 defaultMessage: 'Cancel',
             })}
+            cancelButtonClassName={'MoveThreadModal__cancel-button'}
             isConfirmDisabled={isButtonClicked}
             handleConfirm={handleSubmit}
             handleEnterKeyPress={handleSubmit}

@@ -3201,21 +3201,21 @@ const AdminDefinition: AdminDefinitionType = {
             },
             wrangler: {
                 url: 'site_config/wrangler',
-                title: t('admin.sidebar.wrangler'),
+                title: t('admin.sidebar.move_thread'),
                 title_default: 'Wrangler',
                 isHidden: it.any(it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.POSTS)), it.configIsFalse('FeatureFlags', 'MoveThreadsEnabled'), it.not(it.licensedForSku('enterprise'))),
                 schema: {
                     id: 'WranglerSettings',
-                    name: t('admin.site.wrangler'),
+                    name: t('admin.site.move_thread'),
                     name_default: 'Wrangler',
                     settings: [
                         {
                             type: 'roles',
                             multiple: true,
                             key: 'WranglerSettings.PermittedWranglerRoles',
-                            label: t('admin.experimental.PermittedWranglerRoles.title'),
+                            label: t('admin.experimental.PermittedMoveThreadRoles.title'),
                             label_default: 'Permitted Roles',
-                            help_text: t('admin.experimental.PermittedWranglerRoles.desc'),
+                            help_text: t('admin.experimental.PermittedMoveThreadRoles.desc'),
                             help_text_default: 'Choose who is allowed to move threads to other channels based on roles. (Other permissions below still apply).',
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),

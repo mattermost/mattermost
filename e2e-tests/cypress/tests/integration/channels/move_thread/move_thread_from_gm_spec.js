@@ -26,10 +26,14 @@ describe('Move thread', () => {
     const replyMessage = 'Move this reply';
 
     beforeEach(() => {
+        cy.shouldHaveFeatureFlag('MoveThreadsEnabled', true);
         cy.apiUpdateConfig({
             ServiceSettings: {
                 ThreadAutoFollow: true,
                 CollapsedThreads: 'default_on',
+            },
+            WranglerSettings: {
+                MoveThreadFromGroupMessageChannelEnable: true,
             },
         });
 
@@ -150,6 +154,26 @@ describe('Move thread', () => {
             assert.isEqual(id, testPost.id);
         });
     });
+
+    it('Should not be able to move post from GM if configured off', () => {
+        cy.apiUpdateConfig({
+            WranglerSettings: {
+                MoveThreadFromGroupMessageChannelEnable: false,
+            }
+        });
+
+        // # Open the RHS with replies to the root post
+        cy.uiClickPostDropdownMenu(testPost.id, 'Reply', 'CENTER');
+
+        // * Assert RHS is open
+        cy.get('#rhsContainer').should('be.visible');
+
+        // # Click on ... button of reply post
+        cy.clickPostDotMenu(replyPost.id, 'RHS_COMMENT');
+
+        // * Assert availability of the Move Thread menu-item
+        cy.findByText('Move Thread').should('not.exist');
+    })
 
     /**
      * Verify that the post has been moved
