@@ -38,9 +38,12 @@ describe('components/EmoticonProvider', () => {
         }
     });
 
+    const mockedGetEmojiMap = jest.mocked(getEmojiMap);
+    const mockedGetRecentEmojisNames = jest.mocked(getRecentEmojisNames);
+
     it('should suggest emojis when partial name >= MIN_EMOTICON_LENGTH', () => {
-        (getEmojiMap as unknown as jest.Mock).mockReturnValue(emojiMap);
-        (getRecentEmojisNames as unknown as jest.Mock).mockReturnValue([]);
+        mockedGetEmojiMap.mockReturnValue(emojiMap);
+        mockedGetRecentEmojisNames.mockReturnValue([]);
 
         for (const i of [MIN_EMOTICON_LENGTH, MIN_EMOTICON_LENGTH + 1]) {
             const pretext = `:${'s'.repeat(i)}`;
@@ -53,10 +56,8 @@ describe('components/EmoticonProvider', () => {
     it('should order suggested emojis', () => {
         const pretext = ':thu';
         const recentEmojis = ['smile'];
-        (getEmojiMap as unknown as jest.Mock).mockReturnValue(emojiMap);
-        (getRecentEmojisNames as unknown as jest.Mock).mockReturnValue(
-            recentEmojis,
-        );
+        mockedGetEmojiMap.mockReturnValue(emojiMap);
+        mockedGetRecentEmojisNames.mockReturnValue(recentEmojis);
 
         emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
@@ -79,10 +80,8 @@ describe('components/EmoticonProvider', () => {
         const pretext = ':supercalifragilisticexpialidocious';
         const recentEmojis = ['smile'];
 
-        (getEmojiMap as unknown as jest.Mock).mockReturnValue(emojiMap);
-        (getRecentEmojisNames as unknown as jest.Mock).mockReturnValue(
-            recentEmojis,
-        );
+        mockedGetEmojiMap.mockReturnValue(emojiMap);
+        mockedGetRecentEmojisNames.mockReturnValue(recentEmojis);
 
         emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
@@ -109,12 +108,8 @@ describe('components/EmoticonProvider', () => {
         ]);
         const emojiMapWithBlocklist = new EmojiMap(customEmojisWithBlocklist);
 
-        (getEmojiMap as unknown as jest.Mock).mockReturnValue(
-            emojiMapWithBlocklist,
-        );
-        (getRecentEmojisNames as unknown as jest.Mock).mockReturnValue(
-            recentEmojis,
-        );
+        mockedGetEmojiMap.mockReturnValue(emojiMapWithBlocklist);
+        mockedGetRecentEmojisNames.mockReturnValue(recentEmojis);
 
         emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
@@ -128,10 +123,8 @@ describe('components/EmoticonProvider', () => {
         const emojis = ['thunder_cloud_and_rain', 'smile'];
         for (const thumbsup of ['+1', 'thumbsup']) {
             const recentEmojis = [...emojis, thumbsup];
-            (getEmojiMap as unknown as jest.Mock).mockReturnValue(emojiMap);
-            (getRecentEmojisNames as unknown as jest.Mock).mockReturnValue(
-                recentEmojis,
-            );
+            mockedGetEmojiMap.mockReturnValue(emojiMap);
+            mockedGetRecentEmojisNames.mockReturnValue(recentEmojis);
 
             emoticonProvider.handlePretextChanged(pretext, resultsCallback);
             expect(resultsCallback).toHaveBeenCalled();
@@ -154,10 +147,8 @@ describe('components/EmoticonProvider', () => {
     it('should suggest emojis ordered by recently used first (custom only)', () => {
         const pretext = ':thu';
         const recentEmojis = ['lithuania-custom', 'thumbsdown-custom', 'smile'];
-        (getEmojiMap as unknown as jest.Mock).mockReturnValue(emojiMap);
-        (getRecentEmojisNames as unknown as jest.Mock).mockReturnValue(
-            recentEmojis,
-        );
+        mockedGetEmojiMap.mockReturnValue(emojiMap);
+        mockedGetRecentEmojisNames.mockReturnValue(recentEmojis);
 
         emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
@@ -185,10 +176,8 @@ describe('components/EmoticonProvider', () => {
             '-1',
             'smile',
         ];
-        (getEmojiMap as unknown as jest.Mock).mockReturnValue(emojiMap);
-        (getRecentEmojisNames as unknown as jest.Mock).mockReturnValue(
-            recentEmojis,
-        );
+        mockedGetEmojiMap.mockReturnValue(emojiMap);
+        mockedGetRecentEmojisNames.mockReturnValue(recentEmojis);
 
         emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
@@ -215,10 +204,8 @@ describe('components/EmoticonProvider', () => {
             '+1',
             'smile',
         ];
-        (getEmojiMap as unknown as jest.Mock).mockReturnValue(emojiMap);
-        (getRecentEmojisNames as unknown as jest.Mock).mockReturnValue(
-            recentEmojis,
-        );
+        mockedGetEmojiMap.mockReturnValue(emojiMap);
+        mockedGetRecentEmojisNames.mockReturnValue(recentEmojis);
 
         emoticonProvider.handlePretextChanged(pretext, resultsCallback);
         expect(resultsCallback).toHaveBeenCalled();
