@@ -834,7 +834,7 @@ migrations-extract:
 	find channels/db/migrations -maxdepth 2 -mindepth 2 | sort >> channels/db/migrations/migrations.list
 
 test-migration:
-	$(GO) install github.com/mattermost/morph/cmd/morph@latest
+	$(GO) install github.com/mattermost/morph/cmd/morph@v1.0.4
 	# apply postgres migrations to the new db
 	bin/morph apply up --driver postgres --dsn "${POSTGRES_DSN}" --path ${POSTGRES_MIGRATIONS_PATH} --number -1
 
@@ -855,7 +855,7 @@ test-migration:
 	# run pgloader and save the logs
 	pgloader tests/temp.load > migration.log
 
-	$(GO) install github.com/mattermost/dbcmp/cmd/dbcmp@latest
+	$(GO) install github.com/mattermost/dbcmp/cmd/dbcmp@708face0bb53ee067cf705eb38e3c1f0cf649734
 	# compare two database contents
 	# db_migrations differ due to a typo in the 92. migration name
 	# for now we exclude plugins such as playbooks and focalboard
