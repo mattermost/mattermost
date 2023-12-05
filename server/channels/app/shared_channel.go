@@ -13,6 +13,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+var (
+	errNotFound = errors.New("not found")
+)
+
 func (a *App) checkChannelNotShared(c request.CTX, channelId string) error {
 	// check that channel exists.
 	if _, err := a.GetChannel(c, channelId); err != nil {
@@ -57,13 +61,27 @@ func (a *App) CheckCanInviteToSharedChannel(channelId string) error {
 	return nil
 }
 
+func (a *App) notifyClientsForSharedChannelUpdate(sc *model.SharedChannel) {
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, sc.TeamId, "", "", nil, "")
+	messageWs.Add("channel_id", sc.ChannelId)
+	a.Publish(messageWs)
+}
+
 // SharedChannels
 
-func (a *App) SaveSharedChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error) {
+func (a *App) ShareChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error) {
 	if err := a.checkChannelNotShared(c, sc.ChannelId); err != nil {
 		return nil, err
 	}
-	return a.Srv().Store().SharedChannel().Save(sc)
+
+	// stores a SharedChannel and set the share flag on the channel.
+	scNew, err := a.Srv().Store().SharedChannel().Save(sc)
+	if err != nil {
+		return nil, err
+	}
+
+	a.notifyClientsForSharedChannelUpdate(scNew)
+	return scNew, nil
 }
 
 func (a *App) GetSharedChannel(channelID string) (*model.SharedChannel, error) {
@@ -87,14 +105,96 @@ func (a *App) GetSharedChannelsCount(opts model.SharedChannelFilterOpts) (int64,
 }
 
 func (a *App) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
-	return a.Srv().Store().SharedChannel().Update(sc)
+	scUpdated, err := a.Srv().Store().SharedChannel().Update(sc)
+	if err != nil {
+		return nil, err
+	}
+	a.notifyClientsForSharedChannelUpdate(scUpdated)
+	return scUpdated, nil
 }
 
-func (a *App) DeleteSharedChannel(channelID string) (bool, error) {
-	return a.Srv().Store().SharedChannel().Delete(channelID)
+func (a *App) UnshareChannel(channelID string) (bool, error) {
+	// fetch the SharedChannel first
+	sc, err := a.GetSharedChannel(channelID)
+	if err != nil {
+		return false, err
+	}
+
+	// deletes the ShareChannel, unsets the share flag on the channel, deletes all remotes for the channel
+	deleted, err := a.Srv().Store().SharedChannel().Delete(channelID)
+	if err != nil {
+		return false, err
+	}
+	a.notifyClientsForSharedChannelUpdate(sc)
+	return deleted, nil
 }
 
 // SharedChannelRemotes
+
+func (a *App) InviteRemoteToChannel(channelID, remoteID, userID string) error {
+	hasRemote, err := a.HasRemote(channelID, remoteID)
+	if err != nil {
+		return model.NewAppError("InviteRemoteToChannel", "api.command_share.fetch_remote.error",
+			map[string]any{"Error": err.Error()}, "", http.StatusBadRequest)
+	}
+	if hasRemote {
+		// already invited
+		return nil
+	}
+
+	// Check if channel is shared or not.
+	hasChan, err := a.HasSharedChannel(channelID)
+	if err != nil {
+		return model.NewAppError("InviteRemoteToChannel", "api.command_share.check_channel_exist.error",
+			map[string]any{"ChannelID": channelID, "Error": err.Error()}, "", http.StatusBadRequest)
+	}
+	if !hasChan {
+		return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_not_shared.error",
+			map[string]any{"ChannelID": channelID}, "", http.StatusBadRequest)
+	}
+
+	// don't allow invitation to shared channel originating from remote.
+	// (also blocks cyclic invitations)
+	if err := a.CheckCanInviteToSharedChannel(channelID); err != nil {
+		return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite_not_home.error", nil, "", http.StatusBadRequest)
+	}
+
+	rc, appErr := a.GetRemoteCluster(remoteID)
+	if appErr != nil {
+		return model.NewAppError("InviteRemoteToChannel", "api.command_share.remote_id_invalid.error",
+			map[string]any{"Error": appErr.Error()}, "", http.StatusBadRequest).Wrap(appErr)
+	}
+
+	channel, errApp := a.GetChannel(request.EmptyContext(a.Log()), channelID)
+	if errApp != nil {
+		return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite.error",
+			map[string]any{"Name": rc.DisplayName, "Error": errApp.Error()}, "", http.StatusBadRequest).Wrap(appErr)
+	}
+	// send channel invite to remote cluster. Will notify clients of channel change.
+	if err := a.Srv().GetSharedChannelSyncService().SendChannelInvite(channel, userID, rc); err != nil {
+		return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite.error",
+			map[string]any{"Name": rc.DisplayName, "Error": err.Error()}, "", http.StatusBadRequest).Wrap(err)
+	}
+	return nil
+}
+
+func (a *App) UninviteRemoteFromChannel(channelID, remoteID string) error {
+	scr, err := a.GetSharedChannelRemoteByIds(channelID, remoteID)
+	if err != nil || scr.ChannelId != channelID {
+		return model.NewAppError("UninviteRemoteFromChannel", "api.command_share.channel_remote_id_not_exists",
+			map[string]any{"RemoteId": remoteID}, "", http.StatusBadRequest)
+	}
+
+	deleted, err := a.Srv().Store().SharedChannel().DeleteRemote(scr.Id)
+	if err != nil || !deleted {
+		if err == nil {
+			err = errNotFound
+		}
+		return model.NewAppError("UninviteRemoteFromChannel", "api.command_share.could_not_uninvite.error",
+			map[string]any{"RemoteId": remoteID, "Error": err.Error()}, "", http.StatusBadRequest)
+	}
+	return nil
+}
 
 func (a *App) SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
 	if err := a.checkChannelIsShared(remote.ChannelId); err != nil {
@@ -163,4 +263,14 @@ func (a *App) onUserProfileChange(userID string) {
 		return
 	}
 	syncService.NotifyUserProfileChanged(userID)
+}
+
+// Sync
+
+func (a *App) UpdateSharedChannelCursor(channelID, remoteID string, cusror model.GetPostsSinceForSyncCursor) error {
+	return errors.New("not implemented yet")
+}
+
+func (a *App) SyncSharedChannel(channelID string) error {
+	return errors.New("not implemented yet")
 }

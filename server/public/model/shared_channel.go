@@ -297,3 +297,11 @@ type SyncResponse struct {
 	ReactionsLastUpdateAt int64    `json:"reactions_last_update_at"`
 	ReactionErrors        []string `json:"reaction_errors"`
 }
+
+// RegisterPluginOpts is passed by plugins to the `RegisterPluginForSharedChannels` plugin API
+// to provide options for registering as a shared channels remote.
+type RegisterPluginOpts struct {
+	Displayname  string // a displayname used in status reports
+	PluginID     string // id of this plugin registering
+	AutoShareDMs bool   // when true, all DMs are automatically shared to this remote
+}

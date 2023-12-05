@@ -14,6 +14,22 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+func (a *App) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error) {
+	//  check if plugin already registered
+
+	// create model.RemoteCluster
+
+	// call rc, err := a.Srv().Store().RemoteCluster().Save(rc)
+
+	// handle unique constraint error etc
+
+	return "", errors.New("not implemented yet")
+}
+
+func (a *App) UnregisterPluginForSharedChannels(pluginID string) error {
+	return errors.New("not implemented yet")
+}
+
 func (a *App) AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError) {
 	rc, err := a.Srv().Store().RemoteCluster().Save(rc)
 	if err != nil {

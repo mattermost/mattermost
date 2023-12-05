@@ -53,7 +53,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 			event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
 			return err == nil && event.EventType() == model.WebsocketEventChannelConverted
 		})
-		assert.Len(t, channelConvertedMessages, 1)
+		assert.Len(t, channelConvertedMessages, 1) // one msg for share creation
 	})
 
 	t.Run("unshare command sends a websocket channel converted event", func(t *testing.T) {
@@ -88,6 +88,6 @@ func TestShareProviderDoCommand(t *testing.T) {
 			event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
 			return err == nil && event.EventType() == model.WebsocketEventChannelConverted
 		})
-		require.Len(t, channelConvertedMessages, 1)
+		require.Len(t, channelConvertedMessages, 2) // one msg for share creation, one for unshare.
 	})
 }
