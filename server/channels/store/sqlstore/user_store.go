@@ -2270,7 +2270,7 @@ func (us SqlUserStore) RefreshPostStatsForUsers() error {
 
 func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
 	isPostgres := us.DriverName() == model.DatabaseDriverPostgres
-	selectColumns := []string{"u.Id", "u.LastLogin", "s.LastActivityAt AS LastStatusAt"}
+	selectColumns := []string{"u.Id", "u.LastLogin", "MAX(s.LastActivityAt) AS LastStatusAt"}
 	for _, column := range model.UserReportSortColumns {
 		selectColumns = append(selectColumns, "u."+column)
 	}
@@ -2305,7 +2305,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 			},
 		}).
 		Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM Bots)")).
-		GroupBy("u.Id", "s.UserId").
+		GroupBy("u.Id").
 		OrderBy(sortColumnValue, "u.Id")
 
 	if filter.PageSize > 0 {
@@ -2313,32 +2313,43 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 	}
 
 	if isPostgres {
-		joinQuery := "PostStats ps ON ps.UserId = u.Id"
+		query = query.LeftJoin("PostStats ps ON ps.UserId = u.Id")
 		if filter.StartAt > 0 {
 			startDate := time.UnixMilli(filter.StartAt)
-			joinQuery += fmt.Sprintf(" AND ps.Day >= '%s'", startDate.Format("2006-01-02"))
+			query = query.Where(sq.Or{
+				sq.Expr("ps.UserId IS NULL"),
+				sq.GtOrEq{"ps.Day": startDate.Format("2006-01-02")},
+			})
 		}
 		if filter.EndAt > 0 {
 			endDate := time.UnixMilli(filter.EndAt)
-			joinQuery += fmt.Sprintf(" AND ps.Day < '%s'", endDate.Format("2006-01-02"))
+			query = query.Where(sq.Or{
+				sq.Expr("ps.UserId IS NULL"),
+				sq.Lt{"ps.Day": endDate.Format("2006-01-02")},
+			})
 		}
-		query = query.LeftJoin(joinQuery)
 	} else {
-		joinQuery := "Posts p on p.UserId = u.Id"
+		query = query.LeftJoin("Posts p on p.UserId = u.Id")
 		if filter.StartAt > 0 {
-			joinQuery += fmt.Sprintf(" AND p.CreateAt >= %d", filter.StartAt)
+			query = query.Where(sq.Or{
+				sq.Expr("p.UserId IS NULL"),
+				sq.GtOrEq{"p.CreateAt": filter.StartAt},
+			})
 		}
 		if filter.EndAt > 0 {
-			joinQuery += fmt.Sprintf(" AND p.CreateAt < %d", filter.EndAt)
+			query = query.Where(sq.Or{
+				sq.Expr("p.UserId IS NULL"),
+				sq.Lt{"p.CreateAt": filter.EndAt},
+			})
 		}
-		query = query.LeftJoin(joinQuery)
 	}
 
 	query = applyRoleFilter(query, filter.Role, isPostgres)
 	if filter.HasNoTeam {
 		query = query.Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM TeamMembers WHERE DeleteAt = 0)"))
 	} else if filter.Team != "" {
-		query = query.Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", filter.Team)
+		query = query.Join("TeamMembers tm ON (tm.UserId = u.Id AND tm.DeleteAt = 0)").
+			Where(sq.Eq{"tm.TeamId": filter.Team})
 	}
 	if filter.HideActive {
 		query = query.Where(sq.Gt{"u.DeleteAt": 0})
@@ -2346,6 +2357,9 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 	if filter.HideInactive {
 		query = query.Where(sq.Eq{"u.DeleteAt": 0})
 	}
+
+	sql, _, _ := query.ToSql()
+	mlog.Debug(sql)
 
 	userResults := []*model.UserReportQuery{}
 	err := us.GetReplicaX().SelectBuilder(&userResults, query)
