@@ -17,7 +17,7 @@ type Props = {
 export default class DoughnutChart extends React.PureComponent<Props> {
     private canvasRef = React.createRef<HTMLCanvasElement>();
 
-    public chart: Chart | null = null;
+    public chart: Chart<'doughnut'> | null = null;
 
     public componentDidMount(): void {
         this.initChart();

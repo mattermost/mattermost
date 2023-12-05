@@ -49,7 +49,7 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.TestElasticsearch(cfg); err != nil {
+	if err := c.App.TestElasticsearch(c.AppContext, cfg); err != nil {
 		c.Err = err
 		return
 	}
@@ -71,7 +71,7 @@ func purgeElasticsearchIndexes(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err := c.App.PurgeElasticsearchIndexes(); err != nil {
+	if err := c.App.PurgeElasticsearchIndexes(c.AppContext); err != nil {
 		c.Err = err
 		return
 	}
