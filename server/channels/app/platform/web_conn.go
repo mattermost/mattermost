@@ -463,7 +463,7 @@ func (wc *WebConn) writePump() {
 			var err error
 			if evtOk {
 				evt = evt.SetSequence(wc.Sequence)
-				err = evt.Encode(enc)
+				err = evt.Encode(enc, &buf)
 				wc.Sequence++
 			} else {
 				err = enc.Encode(msg)
@@ -511,7 +511,7 @@ func (wc *WebConn) writePump() {
 
 		case <-authTicker.C:
 			if wc.GetSessionToken() == "" {
-				mlog.Debug("websocket.authTicker: did not authenticate", mlog.Any("ip_address", wc.WebSocket.RemoteAddr()))
+				mlog.Debug("websocket.authTicker: did not authenticate", mlog.Stringer("ip_address", wc.WebSocket.RemoteAddr()))
 				return
 			}
 			authTicker.Stop()
@@ -530,7 +530,7 @@ func (wc *WebConn) writeMessage(msg *model.WebSocketEvent) error {
 	// We don't use the encoder from the write pump because it's unwieldy to pass encoders
 	// around, and this is only called during initialization of the webConn.
 	var buf bytes.Buffer
-	err := msg.Encode(json.NewEncoder(&buf))
+	err := msg.Encode(json.NewEncoder(&buf), &buf)
 	if err != nil {
 		mlog.Warn("Error in encoding websocket message", mlog.Err(err))
 		return nil

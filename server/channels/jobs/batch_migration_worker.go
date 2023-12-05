@@ -5,6 +5,7 @@ package jobs
 
 import (
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -14,7 +15,7 @@ import (
 )
 
 type BatchMigrationWorkerAppIFace interface {
-	GetClusterStatus() []*model.ClusterInfo
+	GetClusterStatus(rctx request.CTX) []*model.ClusterInfo
 }
 
 // BatchMigrationWorker processes database migration jobs in batches to help avoid table locks.
@@ -33,8 +34,9 @@ type BatchMigrationWorker struct {
 	store     store.Store
 	app       BatchMigrationWorkerAppIFace
 
-	stop    chan bool
+	stop    chan struct{}
 	stopped chan bool
+	closed  atomic.Bool
 	jobs    chan model.Job
 
 	migrationKey       string
@@ -49,7 +51,7 @@ func MakeBatchMigrationWorker(jobServer *JobServer, store store.Store, app Batch
 		logger:             jobServer.Logger().With(mlog.String("worker_name", migrationKey)),
 		store:              store,
 		app:                app,
-		stop:               make(chan bool, 1),
+		stop:               make(chan struct{}),
 		stopped:            make(chan bool, 1),
 		jobs:               make(chan model.Job),
 		migrationKey:       migrationKey,
@@ -64,7 +66,9 @@ func (worker *BatchMigrationWorker) Run() {
 	worker.logger.Debug("Worker started")
 	// We have to re-assign the stop channel again, because
 	// it might happen that the job was restarted due to a config change.
-	worker.stop = make(chan bool, 1)
+	if worker.closed.CompareAndSwap(true, false) {
+		worker.stop = make(chan struct{})
+	}
 
 	defer func() {
 		worker.logger.Debug("Worker finished")
@@ -84,6 +88,11 @@ func (worker *BatchMigrationWorker) Run() {
 
 // Stop interrupts the worker even if the migration has not yet completed.
 func (worker *BatchMigrationWorker) Stop() {
+	// Set to close, and if already closed before, then return.
+	if !worker.closed.CompareAndSwap(false, true) {
+		return
+	}
+
 	worker.logger.Debug("Worker stopping")
 	close(worker.stop)
 	<-worker.stopped
@@ -101,11 +110,11 @@ func (worker *BatchMigrationWorker) IsEnabled(_ *model.Config) bool {
 
 // checkIsClusterInSync returns true if all nodes in the cluster are running the same version,
 // logging a warning on the first mismatch found.
-func (worker *BatchMigrationWorker) checkIsClusterInSync() bool {
-	clusterStatus := worker.app.GetClusterStatus()
+func (worker *BatchMigrationWorker) checkIsClusterInSync(rctx request.CTX) bool {
+	clusterStatus := worker.app.GetClusterStatus(rctx)
 	for i := 1; i < len(clusterStatus); i++ {
 		if clusterStatus[i].SchemaVersion != clusterStatus[0].SchemaVersion {
-			worker.logger.Warn(
+			rctx.Logger().Warn(
 				"Worker: cluster not in sync",
 				mlog.String("schema_version_a", clusterStatus[0].SchemaVersion),
 				mlog.String("schema_version_b", clusterStatus[1].SchemaVersion),
@@ -163,7 +172,7 @@ func (worker *BatchMigrationWorker) DoJob(job *model.Job) {
 			// Ensure the cluster remains in sync, otherwise we restart the job to
 			// ensure a complete migration. Technically, the cluster could go out of
 			// sync briefly within a batch, but we accept that risk.
-			if !worker.checkIsClusterInSync() {
+			if !worker.checkIsClusterInSync(c) {
 				worker.logger.Warn("Worker: Resetting job")
 				worker.resetJob(logger, job)
 				return

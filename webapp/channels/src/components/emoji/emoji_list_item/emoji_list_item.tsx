@@ -14,10 +14,10 @@ import AnyTeamPermissionGate from 'components/permissions_gates/any_team_permiss
 import DeleteEmojiButton from './delete_emoji_button';
 
 export type Props = {
-    emoji: CustomEmoji;
+    emoji?: CustomEmoji;
     emojiId?: string;
-    currentUserId: string;
-    creatorDisplayName: string;
+    currentUserId?: string;
+    creatorDisplayName?: string;
     creatorUsername?: string;
     onDelete?: (emojiId: string) => void;
     actions: {
@@ -33,6 +33,10 @@ export default class EmojiListItem extends React.PureComponent<Props> {
     };
 
     handleDelete = (): void => {
+        if (!this.props.emoji) {
+            return;
+        }
+
         if (this.props.onDelete) {
             this.props.onDelete(this.props.emoji.id);
         }
@@ -41,7 +45,7 @@ export default class EmojiListItem extends React.PureComponent<Props> {
     };
 
     render(): JSX.Element {
-        const emoji = this.props.emoji;
+        const emoji = this.props.emoji as CustomEmoji;
         const creatorUsername = this.props.creatorUsername;
         let creatorDisplayName = this.props.creatorDisplayName;
 

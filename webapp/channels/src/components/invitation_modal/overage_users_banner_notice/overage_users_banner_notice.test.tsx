@@ -11,9 +11,8 @@ import {General} from 'mattermost-redux/constants';
 import {trackEvent} from 'actions/telemetry_actions';
 
 import {
-    act,
     fireEvent,
-    renderWithIntlAndStore,
+    renderWithContext,
     screen,
 } from 'tests/react_testing_utils';
 import {LicenseLinks, OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
@@ -23,10 +22,6 @@ import {generateId} from 'utils/utils';
 import type {GlobalState} from 'types/store';
 
 import OverageUsersBannerNotice from './index';
-
-type RenderComponentArgs = {
-    store?: any;
-}
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
@@ -128,13 +123,8 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         windowSpy.mockRestore();
     });
 
-    const renderComponent = ({store}: RenderComponentArgs = {store: initialState}) => {
-        return renderWithIntlAndStore(
-            <OverageUsersBannerNotice/>, store);
-    };
-
     it('should not render the banner because we are not on overage state', () => {
-        renderComponent();
+        renderWithContext(<OverageUsersBannerNotice/>);
 
         expect(screen.queryByText(notifyText, {exact: false})).not.toBeInTheDocument();
     });
@@ -153,9 +143,10 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderComponent({
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
             store,
-        });
+        );
 
         expect(screen.queryByText(notifyText, {exact: false})).not.toBeInTheDocument();
     });
@@ -168,9 +159,10 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             Cloud: 'true',
         };
 
-        renderComponent({
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
             store,
-        });
+        );
 
         expect(screen.queryByText(notifyText, {exact: false})).not.toBeInTheDocument();
     });
@@ -195,9 +187,10 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderComponent({
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
             store,
-        });
+        );
 
         expect(screen.queryByText(text5PercentageState)).not.toBeInTheDocument();
     });
@@ -212,9 +205,10 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderComponent({
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
             store,
-        });
+        );
 
         expect(screen.getByText(text5PercentageState)).toBeInTheDocument();
         expect(screen.getByText(notifyText, {exact: false})).toBeInTheDocument();
@@ -238,9 +232,10 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderComponent({
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
             store,
-        });
+        );
 
         fireEvent.click(screen.getByText(contactSalesTextLink));
         expect(screen.getByRole('link')).toHaveAttribute(
@@ -275,9 +270,10 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderComponent({
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
             store,
-        });
+        );
 
         expect(screen.getByText(text5PercentageState)).toBeInTheDocument();
         expect(screen.getByText(notifyText, {exact: false})).toBeInTheDocument();
@@ -293,9 +289,10 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderComponent({
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
             store,
-        });
+        );
 
         fireEvent.click(screen.getByRole('button'));
 
@@ -318,9 +315,10 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderComponent({
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
             store,
-        });
+        );
 
         expect(screen.getByText(text10PercentageState)).toBeInTheDocument();
         expect(screen.getByText(notifyText, {exact: false})).toBeInTheDocument();
@@ -344,9 +342,10 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderComponent({
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
             store,
-        });
+        );
 
         fireEvent.click(screen.getByText(contactSalesTextLink));
         expect(screen.getByRole('link')).toHaveAttribute(
@@ -381,9 +380,10 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderComponent({
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
             store,
-        });
+        );
 
         expect(screen.getByText(text10PercentageState)).toBeInTheDocument();
         expect(screen.getByText(notifyText, {exact: false})).toBeInTheDocument();
@@ -409,9 +409,10 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderComponent({
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
             store,
-        });
+        );
 
         expect(screen.queryByText(text10PercentageState)).not.toBeInTheDocument();
         expect(screen.queryByText(notifyText, {exact: false})).not.toBeInTheDocument();
@@ -427,9 +428,10 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderComponent({
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
             store,
-        });
+        );
 
         fireEvent.click(screen.getByRole('button'));
 
@@ -460,9 +462,10 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderComponent({
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
             store,
-        });
+        );
 
         fireEvent.click(screen.getByText(expandSeatsTextLink));
         expect(screen.getByRole('link')).toHaveAttribute('href', `http://testing/subscribe/expand?licenseId=${licenseId}`);
@@ -491,9 +494,10 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderComponent({
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
             store,
-        });
+        );
 
         fireEvent.click(screen.getByText(expandSeatsTextLink));
         expect(screen.getByRole('link')).toHaveAttribute('href', `http://testing/subscribe/expand?licenseId=${licenseId}`);
@@ -523,11 +527,10 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         };
         store.entities.general.license.IsGovSku = 'true';
 
-        await act(async () => {
-            renderComponent({
-                store,
-            });
-        });
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
+            store,
+        );
 
         screen.getByText(text10PercentageState);
         expect(screen.queryByText(notifyText)).not.toBeInTheDocument();

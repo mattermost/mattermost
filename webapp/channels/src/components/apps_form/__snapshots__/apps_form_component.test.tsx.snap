@@ -75,7 +75,7 @@ exports[`AppsFormComponent should set match snapshot 1`] = `
         <div
           className="apps-form-modal-body-common apps-form-modal-body-loaded"
         >
-          <injectIntl(LoadingSpinner)
+          <Memo(LoadingSpinner)
             style={
               Object {
                 "fontSize": "24px",

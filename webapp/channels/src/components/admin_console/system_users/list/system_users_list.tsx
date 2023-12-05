@@ -37,7 +37,6 @@ type Props = {
     filter: string;
     term: string;
     onTermChange: (term: string) => void;
-    isDisabled?: boolean;
 
     /**
      * Whether MFA is licensed and enabled.
@@ -345,7 +344,6 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
                         doManageTeams: this.doManageTeams,
                         doManageRoles: this.doManageRoles,
                         doManageTokens: this.doManageTokens,
-                        isDisabled: this.props.isDisabled,
                     }}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}

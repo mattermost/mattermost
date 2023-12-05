@@ -324,6 +324,10 @@ func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError
 	return api.app.UpdateUser(api.ctx, user, true)
 }
 
+func (api *PluginAPI) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
+	return api.app.UpdateUserAuth(api.ctx, userID, userAuth)
+}
+
 func (api *PluginAPI) UpdateUserActive(userID string, active bool) *model.AppError {
 	return api.app.UpdateUserActive(api.ctx, userID, active)
 }
@@ -409,7 +413,7 @@ func (api *PluginAPI) GetLDAPUserAttributes(userID string, attributes []string) 
 	// Only bother running the query if the user's auth service is LDAP or it's SAML and sync is enabled.
 	if user.AuthService == model.UserAuthServiceLdap ||
 		(user.AuthService == model.UserAuthServiceSaml && *api.app.Config().SamlSettings.EnableSyncWithLdap) {
-		return api.app.Ldap().GetUserAttributes(*user.AuthData, attributes)
+		return api.app.Ldap().GetUserAttributes(api.ctx, *user.AuthData, attributes)
 	}
 
 	return map[string]string{}, nil
@@ -508,7 +512,7 @@ func (api *PluginAPI) SearchUsers(search *model.UserSearch) ([]*model.User, *mod
 		AllowInactive: search.AllowInactive,
 		Limit:         search.Limit,
 	}
-	return api.app.SearchUsers(search, pluginSearchUsersOptions)
+	return api.app.SearchUsers(api.ctx, search, pluginSearchUsersOptions)
 }
 
 func (api *PluginAPI) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError) {
@@ -759,19 +763,19 @@ func (api *PluginAPI) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 }
 
 func (api *PluginAPI) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
-	return api.app.CopyFileInfos(userID, fileIDs)
+	return api.app.CopyFileInfos(api.ctx, userID, fileIDs)
 }
 
 func (api *PluginAPI) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
-	return api.app.GetFileInfo(fileID)
+	return api.app.GetFileInfo(api.ctx, fileID)
 }
 
 func (api *PluginAPI) SetFileSearchableContent(fileID string, content string) *model.AppError {
-	return api.app.SetFileSearchableContent(fileID, content)
+	return api.app.SetFileSearchableContent(api.ctx, fileID, content)
 }
 
 func (api *PluginAPI) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
-	return api.app.GetFileInfos(page, perPage, opt)
+	return api.app.GetFileInfos(api.ctx, page, perPage, opt)
 }
 
 func (api *PluginAPI) GetFileLink(fileID string) (string, *model.AppError) {
@@ -779,7 +783,7 @@ func (api *PluginAPI) GetFileLink(fileID string) (string, *model.AppError) {
 		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	info, err := api.app.GetFileInfo(fileID)
+	info, err := api.app.GetFileInfo(api.ctx, fileID)
 	if err != nil {
 		return "", err
 	}
@@ -796,7 +800,7 @@ func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) GetFile(fileID string) ([]byte, *model.AppError) {
-	return api.app.GetFile(fileID)
+	return api.app.GetFile(api.ctx, fileID)
 }
 
 func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
@@ -953,7 +957,7 @@ func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
 }
 
 func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
-	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", api.id, event), "", "", "", nil, "")
+	ev := model.NewWebSocketEvent(model.WebsocketEventType(fmt.Sprintf("custom_%v_%v", api.id, event)), "", "", "", nil, "")
 	ev = ev.SetBroadcast(broadcast).SetData(payload)
 	api.app.Publish(ev)
 }
@@ -1004,7 +1008,7 @@ func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 }
 
 func (api *PluginAPI) PatchBot(userID string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
-	return api.app.PatchBot(userID, botPatch)
+	return api.app.PatchBot(api.ctx, userID, botPatch)
 }
 
 func (api *PluginAPI) GetBot(userID string, includeDeleted bool) (*model.Bot, *model.AppError) {
@@ -1263,7 +1267,7 @@ func (api *PluginAPI) UploadData(us *model.UploadSession, rd io.Reader) (*model.
 
 func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, error) {
 	// We want to fetch from master DB to avoid a potential read-after-write on the plugin side.
-	api.ctx.SetContext(WithMaster(api.ctx.Context()))
+	api.ctx = api.ctx.With(RequestContextWithMaster)
 	fi, err := api.app.GetUploadSession(api.ctx, uploadID)
 	if err != nil {
 		return nil, err

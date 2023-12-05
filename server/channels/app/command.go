@@ -368,24 +368,24 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 		return nil, nil, model.NewAppError("ExecuteCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	chanChan := make(chan store.StoreResult, 1)
+	chanChan := make(chan store.GenericStoreResult[*model.Channel], 1)
 	go func() {
 		channel, err := a.Srv().Store().Channel().Get(args.ChannelId, true)
-		chanChan <- store.StoreResult{Data: channel, NErr: err}
+		chanChan <- store.GenericStoreResult[*model.Channel]{Data: channel, NErr: err}
 		close(chanChan)
 	}()
 
-	teamChan := make(chan store.StoreResult, 1)
+	teamChan := make(chan store.GenericStoreResult[*model.Team], 1)
 	go func() {
 		team, err := a.Srv().Store().Team().Get(args.TeamId)
-		teamChan <- store.StoreResult{Data: team, NErr: err}
+		teamChan <- store.GenericStoreResult[*model.Team]{Data: team, NErr: err}
 		close(teamChan)
 	}()
 
-	userChan := make(chan store.StoreResult, 1)
+	userChan := make(chan store.GenericStoreResult[*model.User], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), args.UserId)
-		userChan <- store.StoreResult{Data: user, NErr: err}
+		userChan <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
 
@@ -404,7 +404,7 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(tr.NErr)
 		}
 	}
-	team := tr.Data.(*model.Team)
+	team := tr.Data
 
 	ur := <-userChan
 	if ur.NErr != nil {
@@ -416,7 +416,7 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
 		}
 	}
-	user := ur.Data.(*model.User)
+	user := ur.Data
 
 	cr := <-chanChan
 	if cr.NErr != nil {
@@ -428,7 +428,7 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(cr.NErr)
 		}
 	}
-	channel := cr.Data.(*model.Channel)
+	channel := cr.Data
 
 	var cmd *model.Command
 
@@ -547,7 +547,7 @@ func (a *App) HandleCommandResponse(c request.CTX, command *model.Command, args 
 	_, err := a.HandleCommandResponsePost(c, command, args, response, builtIn)
 
 	if err != nil {
-		mlog.Debug("Error occurred in handling command response post", mlog.Err(err))
+		c.Logger().Debug("Error occurred in handling command response post", mlog.Err(err))
 		lastError = err
 	}
 
@@ -556,7 +556,7 @@ func (a *App) HandleCommandResponse(c request.CTX, command *model.Command, args 
 			_, err := a.HandleCommandResponsePost(c, command, args, resp, builtIn)
 
 			if err != nil {
-				mlog.Debug("Error occurred in handling command response post", mlog.Err(err))
+				c.Logger().Debug("Error occurred in handling command response post", mlog.Err(err))
 				lastError = err
 			}
 		}

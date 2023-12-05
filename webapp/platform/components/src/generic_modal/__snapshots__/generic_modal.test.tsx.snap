@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`GenericModal should match snapshot for base case 1`] = `
-Object {
+{
   "asFragment": [Function],
   "baseElement": <body
     class="modal-open"

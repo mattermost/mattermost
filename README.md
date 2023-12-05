@@ -87,6 +87,7 @@ See the [LICENSE file](LICENSE.txt) for license rights and limitations.
 - **Email** - Subscribe to our [newsletter](https://mattermost.us11.list-manage.com/subscribe?u=6cdba22349ae374e188e7ab8e&id=2add1c8034) (1 or 2 per month).
 - **Mattermost** - Join the ~contributors channel on [the Mattermost Community Server](https://community.mattermost.com).
 - **IRC** - Join the #matterbridge channel on [Freenode](https://freenode.net/) (thanks to [matterircd](https://github.com/42wim/matterircd)).
+- **YouTube** -  Subscribe to [Mattermost](https://www.youtube.com/@MattermostHQ).
 
 ## Contributing
 

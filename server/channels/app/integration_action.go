@@ -70,24 +70,24 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 
 	// See if the post exists in the DB, if so ignore the cookie.
 	// Start all queries here for parallel execution
-	pchan := make(chan store.StoreResult, 1)
+	pchan := make(chan store.GenericStoreResult[*model.Post], 1)
 	go func() {
 		post, err := a.Srv().Store().Post().GetSingle(postID, false)
-		pchan <- store.StoreResult{Data: post, NErr: err}
+		pchan <- store.GenericStoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()
 
-	cchan := make(chan store.StoreResult, 1)
+	cchan := make(chan store.GenericStoreResult[*model.Channel], 1)
 	go func() {
 		channel, err := a.Srv().Store().Channel().GetForPost(postID)
-		cchan <- store.StoreResult{Data: channel, NErr: err}
+		cchan <- store.GenericStoreResult[*model.Channel]{Data: channel, NErr: err}
 		close(cchan)
 	}()
 
-	userChan := make(chan store.StoreResult, 1)
+	userChan := make(chan store.GenericStoreResult[*model.User], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), upstreamRequest.UserId)
-		userChan <- store.StoreResult{Data: user, NErr: err}
+		userChan <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
 
@@ -133,12 +133,12 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 		rootPostId = cookie.RootPostId
 		upstreamURL = cookie.Integration.URL
 	} else {
-		post := result.Data.(*model.Post)
-		result = <-cchan
-		if result.NErr != nil {
+		post := result.Data
+		chResult := <-cchan
+		if chResult.NErr != nil {
 			return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
-		channel := result.Data.(*model.Channel)
+		channel := chResult.Data
 
 		action := post.GetAction(actionId)
 		if action == nil || action.Integration == nil {
@@ -175,7 +175,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 		upstreamURL = action.Integration.URL
 	}
 
-	teamChan := make(chan store.StoreResult, 1)
+	teamChan := make(chan store.GenericStoreResult[*model.Team], 1)
 
 	go func() {
 		defer close(teamChan)
@@ -186,7 +186,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 		}
 
 		team, err := a.Srv().Store().Team().Get(upstreamRequest.TeamId)
-		teamChan <- store.StoreResult{Data: team, NErr: err}
+		teamChan <- store.GenericStoreResult[*model.Team]{Data: team, NErr: err}
 	}()
 
 	ur := <-userChan
@@ -199,7 +199,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 			return "", model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
 		}
 	}
-	user := ur.Data.(*model.User)
+	user := ur.Data
 	upstreamRequest.UserName = user.Username
 
 	tr, ok := <-teamChan
@@ -214,7 +214,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 			}
 		}
 
-		team := tr.Data.(*model.Team)
+		team := tr.Data
 		upstreamRequest.TeamName = team.Name
 	}
 
@@ -456,7 +456,7 @@ func (a *App) doLocalWarnMetricsRequest(c request.CTX, rawURL string, upstreamRe
 
 	license := a.Srv().License()
 	if license != nil {
-		mlog.Debug("License is present, skip this call")
+		c.Logger().Debug("License is present, skip this call")
 		return nil
 	}
 
@@ -554,7 +554,7 @@ func (a *App) buildWarnMetricMailtoLink(rctx request.CTX, warnMetricId string, u
 
 	registeredUsersCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
-		mlog.Warn("Error retrieving the number of registered users", mlog.Err(err))
+		rctx.Logger().Warn("Error retrieving the number of registered users", mlog.Err(err))
 	} else {
 		mailBody += i18n.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]any{"NoRegisteredUsers": registeredUsersCount})
 		mailBody += "\r\n"

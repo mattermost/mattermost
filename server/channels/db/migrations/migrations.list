@@ -226,6 +226,12 @@ channels/db/migrations/mysql/000113_create_retentionidsfordeletion_table.down.sq
 channels/db/migrations/mysql/000113_create_retentionidsfordeletion_table.up.sql
 channels/db/migrations/mysql/000114_sharedchannelremotes_drop_nextsyncat_description.down.sql
 channels/db/migrations/mysql/000114_sharedchannelremotes_drop_nextsyncat_description.up.sql
+channels/db/migrations/mysql/000115_user_reporting_changes.down.sql
+channels/db/migrations/mysql/000115_user_reporting_changes.up.sql
+channels/db/migrations/mysql/000116_create_outgoing_oauth_connections.down.sql
+channels/db/migrations/mysql/000116_create_outgoing_oauth_connections.up.sql
+channels/db/migrations/mysql/000117_msteams_shared_channels.down.sql
+channels/db/migrations/mysql/000117_msteams_shared_channels.up.sql
 channels/db/migrations/postgres/000001_create_teams.down.sql
 channels/db/migrations/postgres/000001_create_teams.up.sql
 channels/db/migrations/postgres/000002_create_team_members.down.sql
@@ -452,3 +458,9 @@ channels/db/migrations/postgres/000113_create_retentionidsfordeletion_table.down
 channels/db/migrations/postgres/000113_create_retentionidsfordeletion_table.up.sql
 channels/db/migrations/postgres/000114_sharedchannelremotes_drop_nextsyncat_description.down.sql
 channels/db/migrations/postgres/000114_sharedchannelremotes_drop_nextsyncat_description.up.sql
+channels/db/migrations/postgres/000115_user_reporting_changes.down.sql
+channels/db/migrations/postgres/000115_user_reporting_changes.up.sql
+channels/db/migrations/postgres/000116_create_outgoing_oauth_connections.down.sql
+channels/db/migrations/postgres/000116_create_outgoing_oauth_connections.up.sql
+channels/db/migrations/postgres/000117_msteams_shared_channels.down.sql
+channels/db/migrations/postgres/000117_msteams_shared_channels.up.sql

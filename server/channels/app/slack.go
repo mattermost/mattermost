@@ -41,7 +41,7 @@ func (a *App) SlackImport(c request.CTX, fileData multipart.File, fileSize int64
 		InvalidateAllCaches:    func() { a.ch.srv.InvalidateAllCaches() },
 		MaxPostSize:            func() int { return a.ch.srv.platform.MaxPostSize() },
 		PrepareImage: func(fileData []byte) (image.Image, string, func(), error) {
-			img, imgType, release, err := prepareImage(a.ch.imgDecoder, bytes.NewReader(fileData))
+			img, imgType, release, err := prepareImage(c, a.ch.imgDecoder, bytes.NewReader(fileData))
 			if err != nil {
 				return nil, "", nil, err
 			}
