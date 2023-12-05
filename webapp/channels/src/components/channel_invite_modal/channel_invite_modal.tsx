@@ -572,7 +572,6 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                             teamId={this.props.channel.team_id}
                             users={this.state.usersNotInTeam}
                         />
-                        {inviteGuestLink}
                         {(this.props.emailInvitationsEnabled && this.props.canInviteGuests) && inviteGuestLink}
                     </div>
                 </Modal.Body>
