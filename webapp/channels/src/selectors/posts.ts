@@ -107,7 +107,7 @@ export function makeCanWrangler() {
             if (Number(WranglerMoveThreadMaxCount) < replyCount) {
                 return false;
             }
-            
+
             if (channelType === 'P' && WranglerMoveThreadFromPrivateChannelEnable === 'false') {
                 return false;
             }
