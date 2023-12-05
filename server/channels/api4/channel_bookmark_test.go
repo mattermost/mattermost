@@ -5,7 +5,9 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
@@ -207,5 +209,51 @@ func TestCreateChannelBookmark(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
 		require.Nil(t, cb)
+	})
+
+	t.Run("a websockets event should be fired as part of creating a bookmark", func(t *testing.T) {
+		webSocketClient, err := th.CreateWebSocketClient()
+		require.NoError(t, err)
+		webSocketClient.Listen()
+		defer webSocketClient.Close()
+
+		bookmark1 := &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "Link bookmark test",
+			LinkUrl:     "https://mattermost.com",
+			Type:        model.ChannelBookmarkLink,
+			Emoji:       ":smile:",
+		}
+
+		// set the user for the session
+		originalSessionUserId := th.Context.Session().UserId
+		th.Context.Session().UserId = th.BasicUser.Id
+		defer func() { th.Context.Session().UserId = originalSessionUserId }()
+
+		_, appErr := th.App.CreateChannelBookmark(th.Context, bookmark1, "")
+		require.Nil(t, appErr)
+
+		var received bool
+		var b model.ChannelBookmarkWithFileInfo
+		for {
+			var exit bool
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventChannelBookmarkCreated {
+					err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
+					require.NoError(t, err)
+					received = true
+				}
+			case <-time.After(2 * time.Second):
+				exit = true
+			}
+			if exit {
+				break
+			}
+		}
+
+		require.True(t, received)
+		require.NotNil(t, b)
+		require.NotEmpty(t, b.Id)
 	})
 }
