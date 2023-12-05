@@ -120,7 +120,7 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 			if err != nil {
 				return fmt.Errorf("invalid config source for audit, %w", err)
 			}
-			mlog.Debug("Loaded audit configuration", mlog.String("source", dsn))
+			s.Log().Debug("Loaded audit configuration", mlog.String("source", dsn))
 		} else {
 			s.Log().Debug("Advanced logging config not provided for audit")
 		}
@@ -136,10 +136,10 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 }
 
 func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) bool {
-	mlog.Error("Audit queue full, dropping record.", mlog.String("qname", qname), mlog.Int("queueSize", maxQSize))
+	s.Log().Error("Audit queue full, dropping record.", mlog.String("qname", qname), mlog.Int("queueSize", maxQSize))
 	return true // drop it
 }
 
 func (s *Server) onAuditError(err error) {
-	mlog.Error("Audit Error", mlog.Err(err))
+	s.Log().Error("Audit Error", mlog.Err(err))
 }
