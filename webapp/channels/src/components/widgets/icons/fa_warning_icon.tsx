@@ -10,15 +10,13 @@ type Props = {
     intl: IntlShape;
 }
 
-class WarningIcon extends React.PureComponent<Props> {
-    public render(): JSX.Element {
-        return (
-            <i
-                className={classNames('fa fa-warning', this.props.additionalClassName)}
-                title={this.props.intl.formatMessage({id: 'generic_icons.warning', defaultMessage: 'Warning Icon'})}
-            />
-        );
-    }
-}
+const WarningIcon = ({additionalClassName, intl}: Props) => {
+    return (
+        <i
+            className={classNames('fa fa-warning', additionalClassName)}
+            title={intl.formatMessage({id: 'generic_icons.warning', defaultMessage: 'Warning Icon'})}
+        />
+    );
+};
 
-export default injectIntl(WarningIcon);
+export default React.memo(injectIntl(WarningIcon));
