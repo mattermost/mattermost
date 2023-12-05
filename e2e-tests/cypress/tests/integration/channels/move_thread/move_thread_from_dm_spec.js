@@ -122,7 +122,6 @@ describe('Move Thread', () => {
         verifyMovedThread({post: testPost});
     });
 
-
     it('Move post from DM - Cancel using escape key', () => {
         // # Check if ... button is visible in last post right side
         cy.get(`#CENTER_button_${testPost.id}`).should('not.be.visible');
@@ -149,7 +148,7 @@ describe('Move Thread', () => {
         cy.apiUpdateConfig({
             WranglerSettings: {
                 MoveThreadFromDirectMessageChannelEnable: false,
-            }
+            },
         });
 
         // # Open the RHS with replies to the root post
@@ -163,7 +162,7 @@ describe('Move Thread', () => {
 
         // * Assert availability of the Move Thread menu-item
         cy.findByText('Move Thread').should('not.exist');
-    })
+    });
 
     /**
      * Verify that the post has been moved

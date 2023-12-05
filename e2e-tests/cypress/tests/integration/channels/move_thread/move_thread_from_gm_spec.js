@@ -159,7 +159,7 @@ describe('Move thread', () => {
         cy.apiUpdateConfig({
             WranglerSettings: {
                 MoveThreadFromGroupMessageChannelEnable: false,
-            }
+            },
         });
 
         // # Open the RHS with replies to the root post
@@ -173,7 +173,7 @@ describe('Move thread', () => {
 
         // * Assert availability of the Move Thread menu-item
         cy.findByText('Move Thread').should('not.exist');
-    })
+    });
 
     /**
      * Verify that the post has been moved
