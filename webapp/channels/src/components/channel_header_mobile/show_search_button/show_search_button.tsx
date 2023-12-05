@@ -15,7 +15,7 @@ type Props = {
     actions: Actions;
 }
 
-export default function ShowSearchButton({actions}: Props) {
+const ShowSearchButton = ({actions}: Props) => {
     const handleClick = () => {
         actions.openRHSSearch();
     };
@@ -33,4 +33,5 @@ export default function ShowSearchButton({actions}: Props) {
             />
         </button>
     );
-}
+};
+export default React.memo(ShowSearchButton);
