@@ -14,6 +14,7 @@
     "@mattermost/client": "*",
     "@mattermost/compass-components": "^0.2.12",
     "@mattermost/compass-icons": "0.1.39",
+    "@mattermost/desktop-api": "5.7.0-1",
     "@mattermost/types": "*",
     "@mui/base": "5.0.0-alpha.127",
     "@mui/material": "5.11.16",

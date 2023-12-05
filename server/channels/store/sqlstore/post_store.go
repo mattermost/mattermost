@@ -13,11 +13,13 @@ import (
 	"sync"
 	"time"
 
-	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
+
+	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -329,7 +331,7 @@ func (s *SqlPostStore) populateReplyCount(posts []*model.Post) error {
 	return nil
 }
 
-func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
+func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
 	newPost.UpdateAt = model.GetMillis()
 	newPost.PreCommit()
 
@@ -451,7 +453,7 @@ func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) (_ []*model.Post, 
 	return posts, -1, nil
 }
 
-func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, error) {
+func (s *SqlPostStore) Overwrite(rctx request.CTX, post *model.Post) (*model.Post, error) {
 	posts, _, err := s.OverwriteMultiple([]*model.Post{post})
 	if err != nil {
 		return nil, err
@@ -870,7 +872,7 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThread
 
 // Soft deletes a post
 // and cleans up the thread if it's a comment
-func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) (err error) {
+func (s *SqlPostStore) Delete(rctx request.CTX, postID string, time int64, deleteByID string) (err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
@@ -1010,7 +1012,7 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) (err error
 // cleans up threads (removes said user from participants and decreases reply count),
 // permanent delete all root posts by user,
 // and delete threads and thread memberships for those root posts
-func (s *SqlPostStore) PermanentDeleteByUser(userId string) error {
+func (s *SqlPostStore) PermanentDeleteByUser(rctx request.CTX, userId string) error {
 	// First attempt to delete all the comments for a user
 	if err := s.permanentDeleteAllCommentByUser(userId); err != nil {
 		return err
@@ -1048,7 +1050,7 @@ func (s *SqlPostStore) PermanentDeleteByUser(userId string) error {
 // deletes all threads and thread memberships
 // deletes all reactions
 // no thread comment cleanup needed, since we are deleting threads and thread memberships
-func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) (err error) {
+func (s *SqlPostStore) PermanentDeleteByChannel(rctx request.CTX, channelId string) (err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
@@ -1395,9 +1397,21 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Posts").
-		Where(sq.Or{sq.Gt{"Posts.UpdateAt": cursor.LastPostUpdateAt}, sq.And{sq.Eq{"Posts.UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Posts.Id": cursor.LastPostId}}}).
 		OrderBy("Posts.UpdateAt", "Id").
 		Limit(uint64(limit))
+
+	if options.SinceCreateAt {
+		query = query.Where(sq.Or{
+			sq.Gt{"Posts.CreateAt": cursor.LastPostCreateAt},
+			sq.And{
+				sq.Eq{"Posts.CreateAt": cursor.LastPostCreateAt},
+				sq.Gt{"Posts.Id": cursor.LastPostCreateID},
+			},
+		})
+	} else {
+		query = query.Where(sq.Or{sq.Gt{"Posts.UpdateAt": cursor.LastPostUpdateAt},
+			sq.And{sq.Eq{"Posts.UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Posts.Id": cursor.LastPostUpdateID}}})
+	}
 
 	if options.ChannelId != "" {
 		query = query.Where(sq.Eq{"Posts.ChannelId": options.ChannelId})
@@ -1423,8 +1437,13 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 	}
 
 	if len(posts) != 0 {
-		cursor.LastPostUpdateAt = posts[len(posts)-1].UpdateAt
-		cursor.LastPostId = posts[len(posts)-1].Id
+		if options.SinceCreateAt {
+			cursor.LastPostCreateAt = posts[len(posts)-1].CreateAt
+			cursor.LastPostCreateID = posts[len(posts)-1].Id
+		} else {
+			cursor.LastPostUpdateAt = posts[len(posts)-1].UpdateAt
+			cursor.LastPostUpdateID = posts[len(posts)-1].Id
+		}
 	}
 	return posts, cursor, nil
 }
@@ -2713,7 +2732,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 }
 
 //nolint:unparam
-func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
+func (s *SqlPostStore) SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
 	// Since we don't support paging for DB search, we just return nothing for later pages
 	if page > 0 {
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
