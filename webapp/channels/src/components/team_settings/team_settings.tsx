@@ -8,11 +8,15 @@ import type {Team} from '@mattermost/types/teams';
 import AccessTab from './team_access_tab';
 import InfoTab from './team_info_tab';
 
-// todo sinan: check the behavior for saving 
+// todo sinan: check the behavior for saving
 // https://mattermost.atlassian.net/wiki/spaces/GLOAB/pages/2281046017/Settings+Revamp#Behavior-for-Saving-Settings
 type Props = {
     activeTab: string;
+    hasChanges: boolean;
+    hasChangesError: boolean;
     closeModal: () => void;
+    setHasChanges: (hasChanges: boolean) => void;
+    setHasChangesError: (hasChangesError: boolean) => void;
     team?: Team;
 };
 
@@ -20,6 +24,10 @@ const TeamSettings = ({
     activeTab = '',
     closeModal,
     team,
+    hasChanges,
+    hasChangesError,
+    setHasChanges,
+    setHasChangesError,
 }: Props): JSX.Element | null => {
     if (!team) {
         return null;
@@ -29,7 +37,15 @@ const TeamSettings = ({
     let result;
     switch (activeTab) {
     case 'info':
-        result = <InfoTab team={team}/>;
+        result = (
+            <InfoTab
+                team={team}
+                hasChanges={hasChanges}
+                setHasChanges={setHasChanges}
+                hasChangesError={hasChangesError}
+                setHasChangesError={setHasChangesError}
+            />
+        );
         break;
     case 'access':
         result = (

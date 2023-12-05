@@ -16,15 +16,27 @@ type Props = {
 const TeamSettingsModal = (props: Props) => {
     const [activeTab, setActiveTab] = useState('info');
     const [show, setShow] = useState<boolean>(true);
+    const [hasChanges, setHasChanges] = useState<boolean>(false);
+    const [hasChangesError, setHasChangesError] = useState<boolean>(false);
     const modalBodyRef = useRef<ModalBody>(null);
     const {formatMessage} = useIntl();
 
-    const updateTab = (tab: string) => setActiveTab(tab);
+    const updateTab = (tab: string) => {
+        if (hasChanges) {
+            setHasChangesError(true);
+            return;
+        }
+        setActiveTab(tab);
+        setHasChanges(false);
+        setHasChangesError(false);
+    };
 
     const handleHide = () => setShow(false);
 
     const handleHidden = () => {
         setActiveTab('info');
+        setHasChanges(false);
+        setHasChangesError(false);
         props.onExited();
     };
 
@@ -66,6 +78,10 @@ const TeamSettingsModal = (props: Props) => {
                         <TeamSettings
                             activeTab={activeTab}
                             closeModal={handleHide}
+                            hasChanges={hasChanges}
+                            setHasChanges={setHasChanges}
+                            hasChangesError={hasChangesError}
+                            setHasChangesError={setHasChangesError}
                         />
                     </div>
                 </div>

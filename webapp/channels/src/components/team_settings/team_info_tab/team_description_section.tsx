@@ -15,7 +15,7 @@ import Constants from 'utils/constants';
 type Props = {
     handleDescriptionChanges: (name: string) => void;
     description?: Team['description'];
-    clientError: BaseSettingItemProps['error'];
+    clientError?: BaseSettingItemProps['error'];
 };
 
 const TeamDescriptionSection = (props: Props) => {

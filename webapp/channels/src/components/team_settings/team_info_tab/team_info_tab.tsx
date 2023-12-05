@@ -35,10 +35,8 @@ const InfoTab = (props: Props) => {
     const [teamIconFile, setTeamIconFile] = useState<File | undefined>();
     const [loadingIcon, setLoadingIcon] = useState<boolean>(false);
     const [submitActive, setSubmitActive] = useState<boolean>(false);
-    const [haveImageChanges, setHaveImageChanges] = useState<boolean>(false);
     const [imageClientError, setImageClientError] = useState<BaseSettingItemProps['error'] | undefined>();
     const [nameClientError, setNameClientError] = useState<BaseSettingItemProps['error'] | undefined>();
-    const [descriptionClientError, setDescriptionClientError] = useState<BaseSettingItemProps['error'] | undefined>();
 
     const handleNameSubmit = async () => {
         // todo sinan handle case when there is no display name
@@ -64,9 +62,7 @@ const InfoTab = (props: Props) => {
     };
 
     const handleDescriptionSubmit = async () => {
-        // todo sinan: this is called even only name or image changes
         if (description?.trim() === props.team?.description) {
-            setDescriptionClientError({id: 'general_tab.chooseDescription', defaultMessage: 'Please choose a new description for your team'});
             return;
         }
 
@@ -78,7 +74,7 @@ const InfoTab = (props: Props) => {
     };
 
     const handleTeamIconSubmit = async () => {
-        if (!teamIconFile || !submitActive || !haveImageChanges) {
+        if (!teamIconFile || !submitActive) {
             return;
         }
         setLoadingIcon(true);
@@ -97,15 +93,17 @@ const InfoTab = (props: Props) => {
         await handleNameSubmit();
         await handleDescriptionSubmit();
         await handleTeamIconSubmit();
-        setHaveImageChanges(false);
+        props.setHasChanges(false);
+        props.setHasChangesError(false);
     };
 
     const handleCancel = () => {
         setName(props.team?.display_name ?? props.team?.name ?? '');
         setDescription(props.team?.description ?? '');
         setTeamIconFile(undefined);
-        setHaveImageChanges(false);
+        props.setHasChanges(false);
         setImageClientError(undefined);
+        props.setHasChangesError(false);
     };
 
     const handleTeamIconRemove = async () => {
@@ -113,7 +111,8 @@ const InfoTab = (props: Props) => {
         setImageClientError(undefined);
         setServerError('');
         setTeamIconFile(undefined);
-        setHaveImageChanges(false);
+        props.setHasChanges(false);
+        props.setHasChangesError(false);
 
         const {error} = await props.actions.removeTeamIcon(props.team?.id || '');
         setLoadingIcon(false);
@@ -136,12 +135,22 @@ const InfoTab = (props: Props) => {
                 setTeamIconFile(e.target.files[0]);
                 setImageClientError(undefined);
                 setSubmitActive(true);
-                setHaveImageChanges(true);
+                props.setHasChanges(true);
             }
         } else {
             setTeamIconFile(undefined);
             setImageClientError({id: 'general_tab.teamIconError', defaultMessage: 'An error occurred while selecting the image.'});
         }
+    };
+
+    const handleNameChanges = (name: string) => {
+        props.setHasChanges(true);
+        setName(name);
+    };
+
+    const handleDescriptionChanges = (description: string) => {
+        props.setHasChanges(true);
+        setDescription(description);
     };
 
     // todo sinan: check mobile view in Figma
@@ -151,12 +160,11 @@ const InfoTab = (props: Props) => {
                 <TeamNameSection
                     name={name}
                     clientError={nameClientError}
-                    handleNameChanges={(name) => setName(name)}
+                    handleNameChanges={handleNameChanges}
                 />
                 <TeamDescriptionSection
                     description={description}
-                    clientError={descriptionClientError}
-                    handleDescriptionChanges={(description) => setDescription(description)}
+                    handleDescriptionChanges={handleDescriptionChanges}
                 />
             </div>
             <TeamPictureSection
@@ -168,11 +176,12 @@ const InfoTab = (props: Props) => {
                 teamName={props.team?.display_name ?? props.team?.name}
                 clientError={imageClientError}
             />
-            {name !== props.team?.display_name || description !== props.team?.description || haveImageChanges ?
+            {/* {name !== props.team?.display_name || description !== props.team?.description || haveImageChanges ? */}
+            {props.hasChanges ?
                 <SaveChangesPanel
                     handleCancel={handleCancel}
                     handleSubmit={handleSaveChanges}
-                    // errorState={true} // todo sinan pass if there is a server error
+                    errorState={props.hasChangesError}
                 /> : undefined}
         </div>
     );
