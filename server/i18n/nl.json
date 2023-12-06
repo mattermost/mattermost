@@ -4772,11 +4772,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 116+"
+    "translation": "Versie 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 116+"
+    "translation": "Versie 118+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10024,5 +10024,81 @@
   {
     "id": "api.templates.ip_filters_changed.subject",
     "translation": "Wijzigingen in de IP-filters van je werkruimte"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Stuur een e-mail naar {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Timestamp van de laatste aanmelding kon niet worden bijgewerkt"
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Fout bij het parsen van het subpad van de  SiteURL"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "IP-filterwijzigingen voor je werkruimte"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Neem contact met de helpdesk"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Log in op het klantenportaal om de IP-filtering opnieuw in te stellen"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Problemen met de toegang tot je werkruimte?"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Audience mag niet leeg zijn."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "Sommige audience URL's zijn onjuist."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Ongeldig client id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Ongeldig client geheim."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Aangemaakt op moet een geldige tijd bevatten."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "Ongeldig aanmaker-id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "Ongeldig granttype."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "Ongeldig id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "Ongeldige naam."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "Ongeldige oauth token url."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "Ongeldige wachtwoordgegevens."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Bijgewerkt op moet een geldige tijd zijn."
   }
 ]

@@ -17,9 +17,9 @@ else
 	export IS_LINUX =
 endif
 
-# Detect M1/M2 Macs and set a flag.
+# Detect Apple Silicon and set a flag.
 ifeq ($(shell uname)/$(shell uname -m),Darwin/arm64)
-  M1_MAC = true
+  ARM_BASED_MAC = true
 endif
 
 define LICENSE_HEADER
@@ -146,7 +146,7 @@ PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.7
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.7.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
-PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.5
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.0.1
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
@@ -202,8 +202,8 @@ ifneq ("$(wildcard ./docker-compose.override.yaml)","")
   DOCKER_COMPOSE_OVERRIDE=-f docker-compose.override.yaml
 endif
 
-ifeq ($(M1_MAC),true)
-  $(info M1 detected, applying elasticsearch override)
+ifeq ($(ARM_BASED_MAC),true)
+  $(info Apple Silicon detected, applying elasticsearch override)
   DOCKER_COMPOSE_OVERRIDE := -f docker-compose.makefile.m1.yml $(DOCKER_COMPOSE_OVERRIDE)
 endif
 
@@ -389,9 +389,6 @@ mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einte
 layers: app-layers store-layers pluginapi
 
 generated: mocks layers
-
-check-prereqs: ## Checks prerequisite software status.
-	./scripts/prereq-check.sh
 
 check-prereqs-enterprise: setup-go-work ## Checks prerequisite software status for enterprise.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -623,7 +620,7 @@ run-client-fullmap: client ## Legacy alias to run-client
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run
 
-run: check-prereqs run-server run-client ## Runs the server and webapp.
+run: run-server run-client ## Runs the server and webapp.
 
 run-fullmap: run-server run-client ## Legacy alias to run
 

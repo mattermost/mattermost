@@ -10036,5 +10036,57 @@
   {
     "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
     "translation": "Melde dich im Kundenportal an, um die IP-Filterung zurückzusetzen"
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "SiteURL-Unterpfad konnte nicht geparst werden"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Audience darf nicht leer sein."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "Einige Audience URLs sind nicht korrekt."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Ungültige Client-ID."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Ungültiges Client Secret."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Erstellt am muss eine gültige Zeit sein."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "Ungültiger Grant-Typ."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "Ungültiger Name."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "Ungültige OAuth Token URL."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "Ungültige Kennwortdaten."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Aktualisiert am muss eine gültige Zeit sein."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "Ungültige Ersteller ID."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "Ungültige ID."
   }
 ]

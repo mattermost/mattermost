@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
@@ -56,6 +57,7 @@ type Store struct {
 	SharedChannelStore              mocks.SharedChannelStore
 	ProductNoticesStore             mocks.ProductNoticesStore
 	DraftStore                      mocks.DraftStore
+	logger                          mlog.LoggerIFace
 	context                         context.Context
 	NotifyAdminStore                mocks.NotifyAdminStore
 	PostPriorityStore               mocks.PostPriorityStore
@@ -67,6 +69,7 @@ type Store struct {
 
 func (s *Store) SetContext(context context.Context)            { s.context = context }
 func (s *Store) Context() context.Context                      { return s.context }
+func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
 func (s *Store) Team() store.TeamStore                         { return &s.TeamStore }
 func (s *Store) Channel() store.ChannelStore                   { return &s.ChannelStore }
 func (s *Store) Post() store.PostStore                         { return &s.PostStore }
