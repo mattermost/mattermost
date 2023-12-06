@@ -456,3 +456,7 @@ t('admin.permissions.permission.restore_custom_group.name');
 t('admin.permissions.permission.restore_custom_group.description');
 t('admin.permissions.permission.edit_custom_group.name');
 t('admin.permissions.permission.edit_custom_group.description');
+t('admin.permissions.group.manage_public_channel_bookmarks.name');
+t('admin.permissions.group.manage_public_channel_bookmarks.description');
+t('admin.permissions.group.manage_private_channel_bookmarks.name');
+t('admin.permissions.group.manage_private_channel_bookmarks.description');

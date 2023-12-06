@@ -553,3 +553,117 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 		}
 	}
 }
+
+func TestHasPermissionToReadChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	ttcc := []struct {
+		name                    string
+		configViewArchived      bool
+		configComplianceEnabled bool
+		channelDeleted          bool
+		canReadChannel          bool
+		channelIsOpen           bool
+		canReadPublicChannel    bool
+		expected                bool
+	}{
+		{
+			name:                    "Cannot read archived channels if the config doesn't allow it",
+			configViewArchived:      false,
+			configComplianceEnabled: true,
+			channelDeleted:          true,
+			canReadChannel:          true,
+			channelIsOpen:           true,
+			canReadPublicChannel:    true,
+			expected:                false,
+		},
+		{
+			name:                    "Can read if it has permissions to read",
+			configViewArchived:      false,
+			configComplianceEnabled: true,
+			channelDeleted:          false,
+			canReadChannel:          true,
+			channelIsOpen:           false,
+			canReadPublicChannel:    true,
+			expected:                true,
+		},
+		{
+			name:                    "Cannot read private channels if it has no permission",
+			configViewArchived:      false,
+			configComplianceEnabled: false,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelIsOpen:           false,
+			canReadPublicChannel:    true,
+			expected:                false,
+		},
+		{
+			name:                    "Cannot read open channels if compliance is enabled",
+			configViewArchived:      false,
+			configComplianceEnabled: true,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelIsOpen:           true,
+			canReadPublicChannel:    true,
+			expected:                false,
+		},
+		{
+			name:                    "Cannot read open channels if it has no team permissions",
+			configViewArchived:      false,
+			configComplianceEnabled: false,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelIsOpen:           true,
+			canReadPublicChannel:    false,
+			expected:                false,
+		},
+		{
+			name:                    "Can read open channels if it has team permissions and compliance is not enabled",
+			configViewArchived:      false,
+			configComplianceEnabled: false,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelIsOpen:           true,
+			canReadPublicChannel:    true,
+			expected:                true,
+		},
+	}
+
+	for _, tc := range ttcc {
+		t.Run(tc.name, func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				configViewArchived := tc.configViewArchived
+				configComplianceEnabled := tc.configComplianceEnabled
+				cfg.TeamSettings.ExperimentalViewArchivedChannels = &configViewArchived
+				cfg.ComplianceSettings.Enable = &configComplianceEnabled
+			})
+
+			team := th.CreateTeam()
+			if tc.canReadPublicChannel {
+				th.LinkUserToTeam(th.BasicUser2, team)
+			}
+
+			var channel *model.Channel
+			if tc.channelIsOpen {
+				channel = th.CreateChannel(th.Context, team)
+			} else {
+				channel = th.CreatePrivateChannel(th.Context, team)
+			}
+			if tc.canReadChannel {
+				_, err := th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
+				require.Nil(t, err)
+			}
+
+			if tc.channelDeleted {
+				err := th.App.DeleteChannel(th.Context, channel, th.SystemAdminUser.Id)
+				require.Nil(t, err)
+				channel, err = th.App.GetChannel(th.Context, channel.Id)
+				require.Nil(t, err)
+			}
+
+			result := th.App.HasPermissionToReadChannel(th.Context, th.BasicUser2.Id, channel)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}

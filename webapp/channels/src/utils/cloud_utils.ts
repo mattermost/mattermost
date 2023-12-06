@@ -36,3 +36,10 @@ export function isCloudFreePlan(product: Product | undefined, limits: Limits): b
 }
 
 export const FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS = 30;
+
+export function daysToExpiration(expirationDate: number): number {
+    const now = new Date();
+    const expiration = new Date(expirationDate);
+    const diff = expiration.getTime() - now.getTime();
+    return Math.ceil(diff / (1000 * 3600 * 24));
+}
