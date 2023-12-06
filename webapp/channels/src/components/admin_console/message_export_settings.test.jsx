@@ -4,7 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import MessageExportSettings from 'components/admin_console/message_export_settings.jsx';
+import MessageExportSettings from 'components/admin_console/message_export_settings';
 
 describe('components/MessageExportSettings', () => {
     test('should match snapshot, disabled, actiance', () => {

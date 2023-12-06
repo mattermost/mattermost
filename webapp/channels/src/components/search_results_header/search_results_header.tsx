@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, type WrappedComponentProps, injectIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import KeyboardShortcutSequence, {
@@ -29,7 +29,7 @@ const BackButtonIcon = styled(LocalizedIcon)`
     font-size: 18px;
 `;
 
-type Props = {
+interface Props extends WrappedComponentProps {
     isExpanded: boolean;
     previousRhsState?: RhsState;
     canGoBack: boolean;
@@ -39,9 +39,9 @@ type Props = {
         toggleRhsExpanded: () => void;
         goBack: () => void;
     };
-};
+}
 
-export default class SearchResultsHeader extends React.PureComponent<Props> {
+class SearchResultsHeader extends React.PureComponent<Props> {
     render(): React.ReactNode {
         const closeSidebarTooltip = (
             <Tooltip id='closeSidebarTooltip'>
@@ -111,13 +111,13 @@ export default class SearchResultsHeader extends React.PureComponent<Props> {
                                 className='sidebar--right__expand btn btn-icon btn-sm'
                                 onClick={this.props.actions.toggleRhsExpanded}
                             >
-                                <LocalizedIcon
+                                <i
                                     className='icon icon-arrow-expand'
-                                    ariaLabel={{id: t('rhs_header.expandSidebarTooltip.icon'), defaultMessage: 'Expand Sidebar Icon'}}
+                                    aria-label={this.props.intl.formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'})}
                                 />
-                                <LocalizedIcon
+                                <i
                                     className='icon icon-arrow-collapse'
-                                    ariaLabel={{id: t('rhs_header.collapseSidebarTooltip.icon'), defaultMessage: 'Collapse Sidebar Icon'}}
+                                    aria-label={this.props.intl.formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
                                 />
                             </button>
                         </OverlayTrigger>
@@ -134,9 +134,9 @@ export default class SearchResultsHeader extends React.PureComponent<Props> {
                             aria-label='Close'
                             onClick={this.props.actions.closeRightHandSide}
                         >
-                            <LocalizedIcon
+                            <i
                                 className='icon icon-close'
-                                ariaLabel={{id: t('rhs_header.closeTooltip.icon'), defaultMessage: 'Close Sidebar Icon'}}
+                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                             />
                         </button>
                     </OverlayTrigger>
@@ -145,3 +145,5 @@ export default class SearchResultsHeader extends React.PureComponent<Props> {
         );
     }
 }
+
+export default injectIntl(SearchResultsHeader);

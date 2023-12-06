@@ -20,6 +20,7 @@ import InfiniteScroll from 'components/common/infinite_scroll';
 import SiteNameAndDescription from 'components/common/site_name_and_description';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingScreen from 'components/loading_screen';
+import LearnAboutTeamsLink from 'components/main_menu/learn_about_teams_link';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import LogoutIcon from 'components/widgets/icons/fa_logout_icon';
 
@@ -28,6 +29,7 @@ import Constants from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 
 import SelectTeamItem from './components/select_team_item';
+import './select_team.scss';
 
 export const TEAMS_PER_PAGE = 30;
 const TEAM_MEMBERSHIP_DENIAL_ERROR_ID = 'api.team.add_members.user_denied';
@@ -276,12 +278,15 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                     id='teamsYouCanJoinContent'
                     className='signup__content'
                 >
-                    <h4>
-                        <FormattedMessage
-                            id='signup_team.join_open'
-                            defaultMessage='Teams you can join: '
-                        />
-                    </h4>
+                    <div className='SelectTeam__sub-header'>
+                        <h4>
+                            <FormattedMessage
+                                id='signup_team.join_open'
+                                defaultMessage='Teams you can join: '
+                            />
+                        </h4>
+                        <LearnAboutTeamsLink/>
+                    </div>
                     <InfiniteScroll
                         callBack={this.fetchMoreTeams}
                         styleClass='signup-team-all'

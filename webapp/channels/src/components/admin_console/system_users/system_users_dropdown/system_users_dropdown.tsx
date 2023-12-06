@@ -42,7 +42,6 @@ export type Props = {
     config: DeepPartial<AdminConfig>;
     bots: Record<string, Bot>;
     isLicensed: boolean;
-    isDisabled: boolean;
     actions: {
         updateUserActive: (id: string, active: boolean) => Promise<{error: ServerError}>;
         revokeAllSessionsForUser: (id: string) => Promise<{error: ServerError; data: any}>;
@@ -84,8 +83,12 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
         };
     }
 
-    handleMakeActive = (e: {preventDefault: () => void}) => {
+    handleMakeActive = (e: React.MouseEvent<HTMLButtonElement>, disableActivationToggle: boolean) => {
         e.preventDefault();
+        e.stopPropagation();
+        if (disableActivationToggle) {
+            return;
+        }
         this.props.actions.updateUserActive(this.props.user.id, true).
             then(this.onUpdateActiveResult);
     };
@@ -123,8 +126,11 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
         adminResetMfa(this.props.user.id, null, this.props.onError);
     };
 
-    handleShowDeactivateMemberModal = async (e: {preventDefault: () => void}) => {
+    handleShowDeactivateMemberModal = async (e: React.MouseEvent<HTMLButtonElement>, disableActivationToggle: boolean) => {
         e.preventDefault();
+        if (disableActivationToggle) {
+            return;
+        }
         if (this.shouldDisableBotsWhenOwnerIsDeactivated()) {
             await this.props.actions.loadBots(
                 Constants.Integrations.START_PAGE_NUM,
@@ -568,13 +574,8 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
     render() {
         const {currentUser, user, isLicensed, config} = this.props;
 
-        let isDisabled = this.props.isDisabled;
-        if (!isDisabled) {
-            // if not already disabled,
-            // disable if SystemAdmin being edited by non SystemAdmin
-            // ie, userManager with EditOtherUsers permissions
-            isDisabled = UserUtils.isSystemAdmin(user.roles) && !UserUtils.isSystemAdmin(currentUser.roles);
-        }
+        // Disable if SystemAdmin being edited by non SystemAdmin eg. userManager with EditOtherUsers permissions
+        const isDisabled = UserUtils.isSystemAdmin(user.roles) && !UserUtils.isSystemAdmin(currentUser.roles);
 
         const isGuest = UserUtils.isGuest(user.roles);
         if (!user) {
@@ -637,6 +638,12 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
         const demoteToGuestModal = this.renderDemoteToGuestModal();
         const createGroupSyncablesMembershipsModal = this.renderCreateGroupSyncablesMembershipsModal();
 
+        const getExtraText = (disableActivationToggle: boolean) => {
+            return disableActivationToggle ? {
+                extraText: Utils.localizeMessage('admin.user_item.managedByLdap', 'Managed by LDAP'),
+            } : {};
+        };
+
         const {index, totalUsers} = this.props;
         return (
             <React.Fragment>
@@ -664,15 +671,17 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
                     >
                         <Menu.ItemAction
                             show={showMakeActive}
-                            onClick={this.handleMakeActive}
+                            onClick={(e: React.MouseEvent<HTMLButtonElement>) => this.handleMakeActive(e, disableActivationToggle)}
                             text={Utils.localizeMessage('admin.user_item.makeActive', 'Activate')}
                             disabled={disableActivationToggle}
+                            {...getExtraText(disableActivationToggle)}
                         />
                         <Menu.ItemAction
                             show={showMakeNotActive}
-                            onClick={this.handleShowDeactivateMemberModal}
+                            onClick={(e: React.MouseEvent<HTMLButtonElement>) => this.handleShowDeactivateMemberModal(e, disableActivationToggle)}
                             text={Utils.localizeMessage('admin.user_item.makeInactive', 'Deactivate')}
                             disabled={disableActivationToggle}
+                            {...getExtraText(disableActivationToggle)}
                         />
                         <Menu.ItemAction
                             show={showManageRoles}

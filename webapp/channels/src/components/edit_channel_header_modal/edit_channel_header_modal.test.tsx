@@ -7,7 +7,6 @@ import React from 'react';
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 
 import EditChannelHeaderModal from 'components/edit_channel_header_modal/edit_channel_header_modal';
-import type {default as EditChannelHeaderModalClass} from 'components/edit_channel_header_modal/edit_channel_header_modal';
 import Textbox from 'components/textbox';
 
 import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
@@ -275,7 +274,7 @@ describe('components/EditChannelHeaderModal', () => {
                 }}
             />
         ),
-        (instance: EditChannelHeaderModalClass) => instance.state.header,
+        (instance: React.Component<any, any>) => instance.state.header,
         false,
     );
 });

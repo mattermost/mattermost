@@ -20,7 +20,7 @@ import {
     getCurrentRelativeTeamUrl,
     getTeamMember,
 } from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentTimezone, isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {displayLastActiveLabel, getCurrentUserId, getLastActiveTimestampUnits, getLastActivityForUserId, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
@@ -93,7 +93,6 @@ function makeMapStateToProps() {
         return {
             currentTeamId: team.id,
             currentUserId,
-            enableTimezone: isTimezoneEnabled(state),
             isTeamAdmin,
             isChannelAdmin,
             isInCurrentTeam: Boolean(teamMember) && teamMember?.delete_at === 0,

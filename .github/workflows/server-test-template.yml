@@ -14,8 +14,7 @@ on:
       logsartifact:
         required: true
         type: string
-env:
-  go-version: "1.20.7"
+
 jobs:
   test:
     name: ${{ inputs.name }}
@@ -26,18 +25,22 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Calculate Golang Version
+        id: go
+        working-directory: ./server
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: server/go.sum
       - name: Run docker compose
         run: |
           cd server/build
-          docker-compose --ansi never run --rm start_dependencies
-          cat ../tests/test-data.ldif | docker-compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-          docker-compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
-          docker-compose --ansi never ps
+          docker compose --ansi never run --rm start_dependencies
+          cat ../tests/test-data.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+          docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+          docker compose --ansi never ps
       - name: Run Tests
         run: |
           if [[ ${{ github.ref_name }} == 'master' ]]; then
@@ -59,7 +62,7 @@ jobs:
       - name: Stop docker compose
         run: |
           cd server/build
-          docker-compose --ansi never stop
+          docker compose --ansi never stop
       - name: Archive logs
         if: ${{ always() }}
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2

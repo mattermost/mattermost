@@ -18,7 +18,6 @@ import {TestHelper} from 'utils/test_helper';
 
 describe('components/ProfilePopover', () => {
     const baseProps = {
-        enableTimezone: false,
         userId: '0',
         user: TestHelper.getUserMock({
             username: 'some_username',
@@ -67,6 +66,12 @@ describe('components/ProfilePopover', () => {
             },
             users: {
                 currentUserId: '',
+                profiles: {
+                    user1: {
+                        id: 'user1',
+                        roles: '',
+                    },
+                },
             },
             preferences: {
                 myPreferences: {},

@@ -119,8 +119,8 @@ const UserGroupsList = (props: Props) => {
         if (groups.length === 0 && searchTerm) {
             return (
                 <NoResultsIndicator
-                    variant={NoResultsVariant.ChannelSearch}
-                    titleValues={{channelName: `"${searchTerm}"`}}
+                    variant={NoResultsVariant.Search}
+                    titleValues={{channelName: `${searchTerm}`}}
                 />
             );
         }

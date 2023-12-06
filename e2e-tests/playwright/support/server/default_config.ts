@@ -179,6 +179,8 @@ const defaultServerConfig: AdminConfig = {
         EnableCustomGroups: true,
         SelfHostedPurchase: true,
         AllowSyncedDrafts: true,
+        UniqueEmojiReactionLimitPerPost: 25,
+        RefreshPostStatsRunTime: '00:00',
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -667,7 +669,6 @@ const defaultServerConfig: AdminConfig = {
     DisplaySettings: {
         CustomURLSchemes: [],
         MaxMarkdownNodes: 0,
-        ExperimentalTimezone: true,
     },
     GuestAccountsSettings: {
         Enable: false,

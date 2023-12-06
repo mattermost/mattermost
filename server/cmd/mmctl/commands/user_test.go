@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -615,7 +614,7 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 			Times(1)
 
 		err := searchUserCmdF(s.client, &cobra.Command{}, []string{arg})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Equal("1 error occurred:\n\t* user example@example.com not found\n\n", printer.GetErrorLines()[0])
 	})
@@ -625,8 +624,77 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 		arg := "test/../hello?@mattermost.com"
 
 		err := searchUserCmdF(s.client, &cobra.Command{}, []string{arg})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Equal("1 error occurred:\n\t* user test/../hello?@mattermost.com not found\n\n", printer.GetErrorLines()[0])
+	})
+
+	s.Run("Error while getting user by email", func() {
+		printer.Clean()
+		emailArg := "example@mailexample.com"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(context.Background(), emailArg, "").
+			Return(nil, &model.Response{}, errors.New("Error while getting user by email")).
+			Times(1)
+
+		err := searchUserCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Equal("1 error occurred:\n\t* Error while getting user by email\n\n", err.Error())
+		s.Require().Equal("1 error occurred:\n\t* Error while getting user by email\n\n", printer.GetErrorLines()[0])
+	})
+
+	s.Run("Error while getting user by username", func() {
+		printer.Clean()
+		usernameArg := "exampleUser"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(context.Background(), usernameArg, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.Background(), usernameArg, "").
+			Return(nil, &model.Response{}, errors.New("Error while getting user by username")).
+			Times(1)
+
+		err := searchUserCmdF(s.client, &cobra.Command{}, []string{usernameArg})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Equal("1 error occurred:\n\t* Error while getting user by username\n\n", err.Error())
+		s.Require().Equal("1 error occurred:\n\t* Error while getting user by username\n\n", printer.GetErrorLines()[0])
+	})
+
+	s.Run("Error while getting user", func() {
+		printer.Clean()
+		userArg := "exampleUser"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(context.Background(), userArg, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.Background(), userArg, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(context.Background(), userArg, "").
+			Return(nil, &model.Response{}, errors.New("Error while getting user")).
+			Times(1)
+
+		err := searchUserCmdF(s.client, &cobra.Command{}, []string{userArg})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Equal("1 error occurred:\n\t* Error while getting user\n\n", err.Error())
+		s.Require().Equal("1 error occurred:\n\t* Error while getting user\n\n", printer.GetErrorLines()[0])
 	})
 }
 
@@ -2492,7 +2560,7 @@ func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
 		fromAuth := "email"
 		toAuth := "saml"
 
-		file, err := ioutil.TempFile("", "users.json")
+		file, err := os.CreateTemp("", "users.json")
 		s.Require().NoError(err)
 		defer os.Remove(file.Name())
 		usersFile := file.Name()

@@ -22,6 +22,16 @@ describe('components/interactive_dialog/DialogElement', () => {
         onChange: jest.fn(),
     };
 
+    it('type textarea', () => {
+        const wrapper = shallow(
+            <DialogElement
+                {...baseDialogProps}
+                type='textarea'
+            />,
+        );
+        expect(wrapper.find(TextSetting).dive().find('textarea').exists()).toBe(true);
+    });
+
     it('subtype blank', () => {
         const wrapper = shallow(
             <DialogElement

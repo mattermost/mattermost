@@ -146,6 +146,10 @@ func (o *Post) Auditable() map[string]interface{} {
 	}
 }
 
+func (o *Post) LogClone() any {
+	return o.Auditable()
+}
+
 type PostEphemeral struct {
 	UserID string `json:"user_id"`
 	Post   *Post  `json:"post"`
@@ -323,13 +327,20 @@ type GetPostsSinceOptions struct {
 
 type GetPostsSinceForSyncCursor struct {
 	LastPostUpdateAt int64
-	LastPostId       string
+	LastPostUpdateID string
+	LastPostCreateAt int64
+	LastPostCreateID string
+}
+
+func (c GetPostsSinceForSyncCursor) IsEmpty() bool {
+	return c.LastPostCreateAt == 0 && c.LastPostCreateID == "" && c.LastPostUpdateAt == 0 && c.LastPostUpdateID == ""
 }
 
 type GetPostsSinceForSyncOptions struct {
 	ChannelId       string
 	ExcludeRemoteId string
 	IncludeDeleted  bool
+	SinceCreateAt   bool // determines whether the cursor will be based on CreateAt or UpdateAt
 }
 
 type GetPostsOptions struct {

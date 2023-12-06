@@ -12,8 +12,7 @@ import {emailToOAuth} from 'actions/admin_actions.jsx';
 import LoginMfa from 'components/login/login_mfa';
 
 import Constants, {ClaimErrors} from 'utils/constants';
-import {t} from 'utils/i18n';
-import {localizeMessage, toTitleCase} from 'utils/utils';
+import {toTitleCase} from 'utils/utils';
 
 import type {SubmitOptions} from './email_to_ldap';
 import ErrorLabel from './error_label';
@@ -37,7 +36,7 @@ const EmailToOAuth = (props: Props) => {
 
         const password = passwordInput.current?.value;
         if (!password) {
-            setServerError(localizeMessage('claim.email_to_oauth.pwdError', 'Please enter your password.'));
+            setServerError(formatMessage({id: 'claim.email_to_oauth.pwdError', defaultMessage: 'Please enter your password.'}));
             return;
         }
 
@@ -72,17 +71,13 @@ const EmailToOAuth = (props: Props) => {
 
     const type = (props.newType === Constants.SAML_SERVICE ? Constants.SAML_SERVICE.toUpperCase() : toTitleCase(props.newType || ''));
     const uiType = `${type} SSO`;
-    const titleMessage = {
-        id: t('claim.email_to_oauth.title'),
-        defaultMessage: 'Switch Email/Password Account to {uiType}',
-    };
 
     if (showMfa) {
         return (
             <LoginMfa
                 loginId={props.email}
                 password={password}
-                title={titleMessage}
+                title={formatMessage({id: 'claim.email_to_oauth.title', defaultMessage: 'Switch Email/Password Account to {uiType}'})}
                 onSubmit={submit}
             />
         );

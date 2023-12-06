@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -40,7 +39,7 @@ func (*msgProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command 
 	}
 }
 
-func (*msgProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*msgProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	splitMessage := strings.SplitN(message, " ", 2)
 
 	parsedMessage := ""
@@ -54,7 +53,7 @@ func (*msgProvider) DoCommand(a *app.App, c *request.Context, args *model.Comman
 
 	userProfile, nErr := a.Srv().Store().User().GetByUsername(targetUsername)
 	if nErr != nil {
-		mlog.Error(nErr.Error())
+		c.Logger().Error(nErr.Error())
 		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
@@ -64,7 +63,7 @@ func (*msgProvider) DoCommand(a *app.App, c *request.Context, args *model.Comman
 
 	canSee, err := a.UserCanSeeOtherUser(c, args.UserId, userProfile.Id)
 	if err != nil {
-		mlog.Error(err.Error())
+		c.Logger().Error(err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 	if !canSee {
@@ -84,12 +83,12 @@ func (*msgProvider) DoCommand(a *app.App, c *request.Context, args *model.Comman
 
 			var directChannel *model.Channel
 			if directChannel, err = a.GetOrCreateDirectChannel(c, args.UserId, userProfile.Id); err != nil {
-				mlog.Error(err.Error())
+				c.Logger().Error(err.Error())
 				return &model.CommandResponse{Text: args.T(err.Id), ResponseType: model.CommandResponseTypeEphemeral}
 			}
 			targetChannelId = directChannel.Id
 		} else {
-			mlog.Error(channelErr.Error())
+			c.Logger().Error(channelErr.Error())
 			return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	} else {
