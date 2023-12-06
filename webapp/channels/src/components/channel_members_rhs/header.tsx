@@ -30,6 +30,7 @@ const HeaderTitle = styled.span`
 `;
 
 const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
+    const {formatMessage} = useIntl();
     const closeSidebarTooltip = (
         <Tooltip id='closeSidebarTooltip'>
             <FormattedMessage
@@ -84,10 +85,10 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
                     onClick={onClose}
                 >
                     <i
-                        className='icon icon-close'
-                        aria-label={useIntl().formatMessage({
-                            id: 'rhs_header.closeTooltip.icon',
-                            defaultMessage: 'Close Sidebar Icon',
+                        className='icon icon-close icon icon'
+                        aria-label={formatMessage({
+                            id: 'rhs_header.closeTooltip.icon', 
+                            defaultMessage: 'Close Sidebar Icon'
                         })}
                     />
                 </button>
