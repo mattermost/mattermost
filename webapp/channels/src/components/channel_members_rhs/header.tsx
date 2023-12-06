@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage,useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -86,8 +86,8 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
                     <i
                         className='icon icon-close'
                         aria-label={useIntl().formatMessage({
-                            id:'rhs_header.closeTooltip.icon',
-                            defaultMessage: "Close Sidebar Icon"
+                            id: 'rhs_header.closeTooltip.icon',
+                            defaultMessage: 'Close Sidebar Icon',
                         })}
                     />
                 </button>
