@@ -72,7 +72,7 @@ func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfa
 		}
 		token, err := a.Srv().Store().Token().GetByToken(cwsToken)
 		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
-			mlog.Debug("Error retrieving the cws token from the store", mlog.Err(err))
+			c.Logger().Debug("Error retrieving the cws token from the store", mlog.Err(err))
 			return nil, model.NewAppError("AuthenticateUserForLogin",
 				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -90,7 +90,7 @@ func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfa
 			}
 			err := a.Srv().Store().Token().Save(token)
 			if err != nil {
-				mlog.Debug("Error storing the cws token in the store", mlog.Err(err))
+				c.Logger().Debug("Error storing the cws token in the store", mlog.Err(err))
 				return nil, model.NewAppError("AuthenticateUserForLogin",
 					"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
 			}

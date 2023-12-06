@@ -8,15 +8,15 @@ import type {ComponentProps} from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {TeamType} from '@mattermost/types/teams';
 
-import FaviconTitleHandler from 'components/favicon_title_handler/favicon_title_handler';
-import type {FaviconTitleHandlerClass} from 'components/favicon_title_handler/favicon_title_handler';
+import UnreadsStatusHandler from 'components/unreads_status_handler/unreads_status_handler';
+import type {UnreadsStatusHandlerClass} from 'components/unreads_status_handler/unreads_status_handler';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {isChrome, isFirefox} from 'utils/user_agent';
 
-type Props = ComponentProps<typeof FaviconTitleHandlerClass>;
+type Props = ComponentProps<typeof UnreadsStatusHandlerClass>;
 
 jest.mock('utils/user_agent', () => {
     const original = jest.requireActual('utils/user_agent');
@@ -27,7 +27,7 @@ jest.mock('utils/user_agent', () => {
     };
 });
 
-describe('components/FaviconTitleHandler', () => {
+describe('components/UnreadsStatusHandler', () => {
     const defaultProps = {
         unreadStatus: false,
         siteName: 'Test site',
@@ -51,8 +51,8 @@ describe('components/FaviconTitleHandler', () => {
 
     test('set correctly the title when needed', () => {
         const wrapper = shallowWithIntl(
-            <FaviconTitleHandler {...defaultProps}/>,
-        ) as unknown as ShallowWrapper<Props, any, FaviconTitleHandlerClass>;
+            <UnreadsStatusHandler {...defaultProps}/>,
+        ) as unknown as ShallowWrapper<Props, any, UnreadsStatusHandlerClass>;
         const instance = wrapper.instance();
         instance.updateTitle();
         instance.componentDidUpdate = jest.fn();
@@ -91,8 +91,8 @@ describe('components/FaviconTitleHandler', () => {
         (isFirefox as jest.Mock).mockImplementation(() => false);
         (isChrome as jest.Mock).mockImplementation(() => false);
         const wrapper = shallowWithIntl(
-            <FaviconTitleHandler {...defaultProps}/>,
-        ) as unknown as ShallowWrapper<Props, any, FaviconTitleHandlerClass>;
+            <UnreadsStatusHandler {...defaultProps}/>,
+        ) as unknown as ShallowWrapper<Props, any, UnreadsStatusHandlerClass>;
         const instance = wrapper.instance();
 
         wrapper.setProps({
@@ -115,8 +115,8 @@ describe('components/FaviconTitleHandler', () => {
         document.head.appendChild(link);
 
         const wrapper = shallowWithIntl(
-            <FaviconTitleHandler {...defaultProps}/>,
-        ) as unknown as ShallowWrapper<Props, any, FaviconTitleHandlerClass>;
+            <UnreadsStatusHandler {...defaultProps}/>,
+        ) as unknown as ShallowWrapper<Props, any, UnreadsStatusHandlerClass>;
         const instance = wrapper.instance();
         instance.updateFavicon = jest.fn();
 
@@ -138,13 +138,13 @@ describe('components/FaviconTitleHandler', () => {
 
     test('should display correct title when in drafts', () => {
         const wrapper = shallowWithIntl(
-            <FaviconTitleHandler
+            <UnreadsStatusHandler
                 {...defaultProps}
                 inDrafts={true}
                 currentChannel={undefined}
                 siteName={undefined}
             />,
-        ) as unknown as ShallowWrapper<Props, any, FaviconTitleHandlerClass>;
+        ) as unknown as ShallowWrapper<Props, any, UnreadsStatusHandlerClass>;
         wrapper.instance().updateTitle();
 
         expect(document.title).toBe('Drafts - Test team display name');
