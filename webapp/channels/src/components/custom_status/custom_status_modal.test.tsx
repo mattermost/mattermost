@@ -138,8 +138,7 @@ describe('CustomStatusModal', () => {
         expect(screen.getByText('SUGGESTIONS')).toBeInTheDocument();
         expect(screen.getByText('Existing')).toBeInTheDocument();
         expect(screen.getByLabelText(':existent:')).toBeInTheDocument();
-
-        // expect(screen.queryByText('Not existing')).not.toBeInTheDocument();
-        // expect(screen.queryByLabelText(':nonexistent:')).not.toBeInTheDocument();
+        expect(screen.queryByText('Not existing')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText(':nonexistent:')).not.toBeInTheDocument();
     });
 });
