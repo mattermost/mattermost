@@ -1447,14 +1447,9 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelNam
 		if err != nil {
 			return nil, err
 		}
-		if (channel != nil) {
-			return channel, nil
-		}
+		return channel, nil
 	}
-	if strings.HasPrefix(channelName, "~") || strings.HasPrefix(channelName, "@") {
-		channelName = channelName[1:]
-	}
-
+	channelName = strings.TrimPrefix(channelName, "~")
 	channel, err := a.GetChannelByName(c, channelName, teamID, includeDeleted)
 	if err != nil {
 		return nil, err
