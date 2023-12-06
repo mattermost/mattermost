@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage, IntlShape, injectIntl} from 'react-intl';
+import {FormattedMessage, type IntlShape, injectIntl} from 'react-intl';
 
 import type {GroupCreateWithUserIds} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
@@ -189,8 +189,8 @@ class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                                     <i
                                         className='icon icon-arrow-left'
                                         aria-label={this.props.intl.formatMessage({
-                                            id:'user_groups_modal.goBackLabel',
-                                            defaultMessage: "Back"
+                                            id: 'user_groups_modal.goBackLabel',
+                                            defaultMessage: 'Back',
                                         })}
                                     />
                                 </button>
