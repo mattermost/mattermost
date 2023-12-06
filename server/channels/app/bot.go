@@ -476,7 +476,7 @@ func (a *App) disableUserBots(rctx request.CTX, userID string) *model.AppError {
 			Page:           0,
 			PerPage:        perPage,
 		}
-		userBots, err := a.GetBots(options)
+		userBots, err := a.GetBots(rctx, options)
 		if err != nil {
 			return err
 		}
