@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/widgets/popover plain 1`] = `
+<Popover
+  bsClass="popover"
+  bsSize="small"
+  bsStyle="info"
+  id="test"
+  placement="right"
+>
+  Some text
+</Popover>
+`;

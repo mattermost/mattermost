@@ -1,0 +1,407 @@
+  /api/v4/files:
+    post:
+      tags:
+        - files
+      summary: Upload a file
+      description: >
+        Uploads a file that can later be attached to a post.
+
+
+        This request can either be a multipart/form-data request with a channel_id, files and optional
+
+        client_ids defined in the FormData, or it can be a request with the channel_id and filename
+
+        defined as query parameters with the contents of a single file in the body of the request.
+
+
+        Only multipart/form-data requests are supported by server versions up to and including 4.7.
+
+        Server versions 4.8 and higher support both types of requests.
+
+
+        ##### Permissions
+
+        Must have `upload_file` permission.
+      operationId: UploadFile
+      parameters:
+        - name: channel_id
+          in: query
+          description: The ID of the channel that this file will be uploaded to
+          required: false
+          schema:
+            type: string
+        - name: filename
+          in: query
+          description: The name of the file to be uploaded
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  description: A file to be uploaded
+                  type: string
+                  format: binary
+                channel_id:
+                  description: The ID of the channel that this file will be uploaded to
+                  type: string
+                client_ids:
+                  description: A unique identifier for the file that will be returned in
+                    the response
+                  type: string
+      responses:
+        "201":
+          description: Corresponding lists of the provided client_ids and the metadata that
+            has been stored in the database for each one
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  file_infos:
+                    description: A list of file metadata that has been stored in the
+                      database
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FileInfo"
+                  client_ids:
+                    description: A list of the client_ids that were provided in the request
+                    type: array
+                    items:
+                      type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/TooLarge"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/files/{file_id}":
+    get:
+      tags:
+        - files
+      summary: Get a file
+      description: |
+        Gets a file that has been uploaded previously.
+        ##### Permissions
+        Must have `read_channel` permission or be uploader of the file.
+      operationId: GetFile
+      parameters:
+        - name: file_id
+          in: path
+          description: The ID of the file to get
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Do not have appropriate permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+          headers:
+            First-Inaccessible-File-Time:
+              schema:
+                type: integer
+              description: This header is included with the value "1" if the file is past the cloud's plan limit.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/files/{file_id}/thumbnail":
+    get:
+      tags:
+        - files
+      summary: Get a file's thumbnail
+      description: |
+        Gets a file's thumbnail.
+        ##### Permissions
+        Must have `read_channel` permission or be uploader of the file.
+      operationId: GetFileThumbnail
+      parameters:
+        - name: file_id
+          in: path
+          description: The ID of the file to get
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Do not have appropriate permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+          headers:
+            First-Inaccessible-File-Time:
+              schema:
+                type: integer
+              description: This header is included with the value "1" if the file is past the cloud's plan limit.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/files/{file_id}/preview":
+    get:
+      tags:
+        - files
+      summary: Get a file's preview
+      description: |
+        Gets a file's preview.
+        ##### Permissions
+        Must have `read_channel` permission or be uploader of the file.
+      operationId: GetFilePreview
+      parameters:
+        - name: file_id
+          in: path
+          description: The ID of the file to get
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Do not have appropriate permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+          headers:
+            First-Inaccessible-File-Time:
+              schema:
+                type: integer
+              description: This header is included with the value "1" if the file is past the cloud's plan limit.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/files/{file_id}/link":
+    get:
+      tags:
+        - files
+      summary: Get a public file link
+      description: >
+        Gets a public link for a file that can be accessed without logging into
+        Mattermost.
+
+        ##### Permissions
+
+        Must have `read_channel` permission or be uploader of the file.
+      operationId: GetFileLink
+      parameters:
+        - name: file_id
+          in: path
+          description: The ID of the file to get a link for
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A publicly accessible link to the given file
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  link:
+                    type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Do not have appropriate permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+          headers:
+            First-Inaccessible-File-Time:
+              schema:
+                type: integer
+              description: This header is included with the value "1" if the file is past the cloud's plan limit.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/files/{file_id}/info":
+    get:
+      tags:
+        - files
+      summary: Get metadata for a file
+      description: |
+        Gets a file's info.
+        ##### Permissions
+        Must have `read_channel` permission or be uploader of the file.
+      operationId: GetFileInfo
+      parameters:
+        - name: file_id
+          in: path
+          description: The ID of the file info to get
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The stored metadata for the given file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileInfo"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Do not have appropriate permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+          headers:
+            First-Inaccessible-File-Time:
+              schema:
+                type: integer
+              description: This header is included with the value "1" if the file is past the cloud's plan limit.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/files/{file_id}/public":
+    get:
+      tags:
+        - files
+      summary: Get a public file
+      description: |
+        ##### Permissions
+        No permissions required.
+      operationId: GetFilePublic
+      parameters:
+        - name: file_id
+          in: path
+          description: The ID of the file to get
+          required: true
+          schema:
+            type: string
+        - name: h
+          in: query
+          description: File hash
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Do not have appropriate permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+          headers:
+            First-Inaccessible-File-Time:
+              schema:
+                type: integer
+              description: This header is included with the value "1" if the file is past the cloud's plan limit.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+
+  "/api/v4/teams/{team_id}/files/search":
+    post:
+      tags:
+        - teams
+        - files
+        - search
+      summary: Search files in a team
+      description: >
+        Search for files in a team based on file name, extention and file
+        content (if file content extraction is enabled and supported for the
+        files).
+
+        __Minimum server version__: 5.34
+
+        ##### Permissions
+
+        Must be authenticated and have the `view_team` permission.
+      operationId: SearchFiles
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - terms
+                - is_or_search
+              properties:
+                terms:
+                  type: string
+                  description: The search terms as inputed by the user. To search for files
+                    from a user include `from:someusername`, using a user's
+                    username. To search in a specific channel include
+                    `in:somechannel`, using the channel name (not the display
+                    name). To search for specific extensions included `ext:extension`.
+                is_or_search:
+                  type: boolean
+                  description: Set to true if an Or search should be performed vs an And
+                    search.
+                time_zone_offset:
+                  type: integer
+                  default: 0
+                  description: Offset from UTC of user timezone for date searches.
+                include_deleted_channels:
+                  type: boolean
+                  description: Set to true if deleted channels should be included in the
+                    search. (archived channels)
+                page:
+                  type: integer
+                  default: 0
+                  description: The page to select. (Only works with Elasticsearch)
+                per_page:
+                  type: integer
+                  default: 60
+                  description: The number of posts per page. (Only works with Elasticsearch)
+        description: The search terms and logic to use in the search.
+        required: true
+      responses:
+        "200":
+          description: Files list retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileInfoList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"

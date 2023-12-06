@@ -1,0 +1,77 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/post_view/post_list snapshot for loading when there are no posts 1`] = `
+<div
+  className="post-list-holder-by-time"
+  key="postlist-fake-id"
+>
+  <div
+    className="post-list__table"
+  >
+    <div
+      className="post-list__content"
+      id="virtualizedPostListContent"
+    >
+      <PostList
+        actions={
+          Object {
+            "canLoadMorePosts": [Function],
+            "changeUnreadChunkTimeStamp": [MockFunction],
+            "loadNewerPosts": [Function],
+            "loadOlderPosts": [Function],
+            "toggleShouldStartFromBottomWhenUnread": [MockFunction],
+            "updateNewMessagesAtInChannel": [MockFunction],
+          }
+        }
+        atLatestPost={false}
+        autoRetryEnable={true}
+        channelId="fake-id"
+        isMobileView={false}
+        lastViewedAt={1532345226632}
+        loadingNewerPosts={false}
+        loadingOlderPosts={false}
+        postListIds={Array []}
+        shouldStartFromBottomWhenUnread={false}
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/post_list snapshot with couple of posts 1`] = `
+<div
+  className="post-list-holder-by-time"
+  key="postlist-fake-id"
+>
+  <div
+    className="post-list__table"
+  >
+    <div
+      className="post-list__content"
+      id="virtualizedPostListContent"
+    >
+      <PostList
+        actions={
+          Object {
+            "canLoadMorePosts": [Function],
+            "changeUnreadChunkTimeStamp": [MockFunction],
+            "loadNewerPosts": [Function],
+            "loadOlderPosts": [Function],
+            "toggleShouldStartFromBottomWhenUnread": [MockFunction],
+            "updateNewMessagesAtInChannel": [MockFunction],
+          }
+        }
+        atLatestPost={false}
+        autoRetryEnable={true}
+        channelId="fake-id"
+        isMobileView={false}
+        lastViewedAt={1532345226632}
+        loadingNewerPosts={false}
+        loadingOlderPosts={false}
+        postListIds={Array []}
+        shouldStartFromBottomWhenUnread={false}
+      />
+    </div>
+  </div>
+</div>
+`;

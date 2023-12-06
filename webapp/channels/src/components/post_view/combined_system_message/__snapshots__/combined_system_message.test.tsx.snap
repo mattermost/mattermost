@@ -1,0 +1,263 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/post_view/CombinedSystemMessage should match snapshot 1`] = `
+<Fragment>
+  <Connect(Markdown)
+    message="@AddedUser1 **added to the channel** by @User1."
+    options={
+      Object {
+        "atMentions": true,
+        "mentionHighlight": false,
+        "mentionKeys": Array [
+          Object {
+            "key": "@AddedUser1",
+          },
+          Object {
+            "key": undefined,
+          },
+          Object {
+            "key": "@User1",
+          },
+        ],
+        "singleline": true,
+      }
+    }
+  />
+  <br />
+  <Connect(Markdown)
+    message="You were **added to the channel** by @User1."
+    options={
+      Object {
+        "atMentions": true,
+        "mentionHighlight": false,
+        "mentionKeys": Array [
+          Object {
+            "key": "You",
+          },
+          Object {
+            "key": undefined,
+          },
+          Object {
+            "key": "@User1",
+          },
+        ],
+        "singleline": true,
+      }
+    }
+  />
+  <br />
+  <Connect(Markdown)
+    message="@AddedUser2 **added to the channel** by you."
+    options={
+      Object {
+        "atMentions": true,
+        "mentionHighlight": false,
+        "mentionKeys": Array [
+          Object {
+            "key": "@AddedUser2",
+          },
+          Object {
+            "key": undefined,
+          },
+          Object {
+            "key": "you",
+          },
+        ],
+        "singleline": true,
+      }
+    }
+  />
+  <br />
+</Fragment>
+`;
+
+exports[`components/post_view/CombinedSystemMessage should match snapshot when join leave messages are turned off 1`] = `
+<Fragment>
+  <Connect(Markdown)
+    message="You were **added to the channel** by @User1."
+    options={
+      Object {
+        "atMentions": true,
+        "mentionHighlight": false,
+        "mentionKeys": Array [
+          Object {
+            "key": "You",
+          },
+          Object {
+            "key": undefined,
+          },
+          Object {
+            "key": "@User1",
+          },
+        ],
+        "singleline": true,
+      }
+    }
+  />
+  <br />
+  <Connect(Markdown)
+    message="@AddedUser2 **added to the channel** by you."
+    options={
+      Object {
+        "atMentions": true,
+        "mentionHighlight": false,
+        "mentionKeys": Array [
+          Object {
+            "key": "@AddedUser2",
+          },
+          Object {
+            "key": undefined,
+          },
+          Object {
+            "key": "you",
+          },
+        ],
+        "singleline": true,
+      }
+    }
+  />
+  <br />
+</Fragment>
+`;
+
+exports[`components/post_view/CombinedSystemMessage should match snapshot, "removed from channel" message when join leave messages are turned off 1`] = `
+<Fragment>
+  <Connect(Markdown)
+    message="@removed_username_1 was **removed from the channel**."
+    options={
+      Object {
+        "atMentions": true,
+        "mentionHighlight": false,
+        "mentionKeys": Array [
+          Object {
+            "key": "@removed_username_1",
+          },
+          Object {
+            "key": undefined,
+          },
+          Object {
+            "key": "you",
+          },
+        ],
+        "singleline": true,
+      }
+    }
+  />
+  <br />
+</Fragment>
+`;
+
+exports[`components/post_view/CombinedSystemMessage should render messages in chronological order 1`] = `
+<Fragment>
+  <Connect(Markdown)
+    message="@removed_username_1 was **removed from the channel**."
+    options={
+      Object {
+        "atMentions": true,
+        "mentionHighlight": false,
+        "mentionKeys": Array [
+          Object {
+            "key": "@removed_username_1",
+          },
+          Object {
+            "key": undefined,
+          },
+          Object {
+            "key": "you",
+          },
+        ],
+        "singleline": true,
+      }
+    }
+  />
+  <br />
+  <Connect(Markdown)
+    message="@removed_username_2 **added to the channel** by Someone."
+    options={
+      Object {
+        "atMentions": true,
+        "mentionHighlight": false,
+        "mentionKeys": Array [
+          Object {
+            "key": "@removed_username_2",
+          },
+          Object {
+            "key": undefined,
+          },
+          Object {
+            "key": "Someone",
+          },
+        ],
+        "singleline": true,
+      }
+    }
+  />
+  <br />
+  <Connect(Markdown)
+    message="@removed_username_2 was **removed from the channel**."
+    options={
+      Object {
+        "atMentions": true,
+        "mentionHighlight": false,
+        "mentionKeys": Array [
+          Object {
+            "key": "@removed_username_2",
+          },
+          Object {
+            "key": undefined,
+          },
+          Object {
+            "key": "Someone",
+          },
+        ],
+        "singleline": true,
+      }
+    }
+  />
+  <br />
+  <Connect(Markdown)
+    message="@User2 **added to the channel** by @User1."
+    options={
+      Object {
+        "atMentions": true,
+        "mentionHighlight": false,
+        "mentionKeys": Array [
+          Object {
+            "key": "@User2",
+          },
+          Object {
+            "key": undefined,
+          },
+          Object {
+            "key": "@User1",
+          },
+        ],
+        "singleline": true,
+      }
+    }
+  />
+  <br />
+  <Connect(Markdown)
+    message="Someone **joined the channel**."
+    options={
+      Object {
+        "atMentions": true,
+        "mentionHighlight": false,
+        "mentionKeys": Array [
+          Object {
+            "key": "Someone",
+          },
+          Object {
+            "key": undefined,
+          },
+          Object {
+            "key": "Someone",
+          },
+        ],
+        "singleline": true,
+      }
+    }
+  />
+  <br />
+</Fragment>
+`;

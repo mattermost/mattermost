@@ -1,0 +1,362 @@
+  /api/v4/ldap/sync:
+    post:
+      tags:
+        - LDAP
+      summary: Sync with LDAP
+      description: >
+        Synchronize any user attribute changes in the configured AD/LDAP server
+        with Mattermost.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: SyncLdap
+      responses:
+        "200":
+          description: LDAP sync successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/ldap/test:
+    post:
+      tags:
+        - LDAP
+      summary: Test LDAP configuration
+      description: >
+        Test the current AD/LDAP configuration to see if the AD/LDAP server can
+        be contacted successfully.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: TestLdap
+      responses:
+        "200":
+          description: LDAP test successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/ldap/groups:
+    get:
+      tags:
+        - ldap
+      summary: Returns a list of LDAP groups
+      description: >
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 5.11
+      operationId: GetLdapGroups
+      parameters:
+        - name: q
+          in: query
+          description: Search term
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of users per page. There is a maximum limit of 200 users
+            per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: LDAP group page retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LDAPGroupsPaged"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v4/ldap/groups/{remote_id}/link:
+    post:
+      tags:
+        - ldap
+      summary: Link a LDAP group
+      description: >
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 5.11
+      operationId: LinkLdapGroup
+      parameters:
+        - name: remote_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: LDAP group successfully linked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    delete:
+      tags:
+        - groups
+      summary: Delete a link for LDAP group
+      description: >
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 5.11
+      operationId: UnlinkLdapGroup
+      parameters:
+        - name: remote_id
+          in: path
+          description: Group GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully deleted ldap group link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v4/ldap/migrateid:
+    post:
+      tags:
+        - LDAP
+      summary: Migrate Id LDAP
+      description: >
+        Migrate LDAP IdAttribute to new value.
+  
+        ##### Permissions
+  
+        Must have `manage_system` permission.
+  
+        __Minimum server version__: 5.26
+      operationId: MigrateIdLdap
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - toAttribute
+              properties:
+                toAttribute:
+                  description: New IdAttribute value
+                  type: string
+        required: true
+      responses:
+        "200":
+          description: Migration successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/ldap/certificate/public:
+    post:
+      tags:
+        - LDAP
+      summary: Upload public certificate
+      description: >
+        Upload the public certificate to be used for TLS verification. The server will pick a hard-coded filename for the
+        PublicCertificateFile setting in your `config.json`.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: UploadLdapPublicCertificate
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                certificate:
+                  description: The public certificate file
+                  type: string
+                  format: binary
+              required:
+                - certificate
+      responses:
+        "200":
+          description: LDAP certificate upload successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - LDAP
+      summary: Remove public certificate
+      description: >
+        Delete the current public certificate being used for TLS verification.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: DeleteLdapPublicCertificate
+      responses:
+        "200":
+          description: LDAP certificate delete successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/ldap/certificate/private:
+    post:
+      tags:
+        - LDAP
+      summary: Upload private key
+      description: >
+        Upload the private key to be used for TLS verification. The server will pick a hard-coded filename for the
+        PrivateKeyFile setting in your `config.json`.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: UploadLdapPrivateCertificate
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                certificate:
+                  description: The private key file
+                  type: string
+                  format: binary
+              required:
+                - certificate
+      responses:
+        "200":
+          description: LDAP certificate upload successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - LDAP
+      summary: Remove private key
+      description: >
+        Delete the current private key being used with your TLS verification.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: DeleteLdapPrivateCertificate
+      responses:
+        "200":
+          description: LDAP certificate delete successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/ldap/users/{user_id}/group_sync_memberships:
+    post:
+      tags:
+        - LDAP
+      summary: Create memberships for LDAP configured channels and teams for this user
+      description: >
+        Add the user to each channel and team configured for each LDAP group of whicht the user is
+        a member.
+
+        ##### Permissions
+
+        Must have `sysconsole_write_user_management_groups` permission.
+      operationId: AddUserToGroupSyncables
+      parameters:
+        - name: user_id
+          in: path
+          description: User Id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Channel and team memberships created as needed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

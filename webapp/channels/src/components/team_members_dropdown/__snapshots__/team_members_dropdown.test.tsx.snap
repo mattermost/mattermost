@@ -1,0 +1,163 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/team_members_dropdown should match snapshot for a bot with group-constrained team 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+>
+  <button
+    aria-expanded="true"
+    className="dropdown-toggle theme color--link style--none"
+    id="teamMembersDropdown_bot"
+    type="button"
+  >
+    <span>
+      <MemoizedFormattedMessage
+        defaultMessage="Team Admin"
+        id="team_members_dropdown.teamAdmin"
+      />
+       
+    </span>
+    <DropdownIcon />
+  </button>
+  <div>
+    <Menu
+      ariaLabel="Change the role of a team member"
+      openLeft={true}
+      openUp={false}
+    >
+      <MenuItemAction
+        id="removeFromTeam"
+        onClick={[Function]}
+        show={true}
+        text="Remove From Team"
+      />
+      <MenuItemAction
+        onClick={[Function]}
+        show={true}
+        text="Make Member"
+      />
+    </Menu>
+  </div>
+</MenuWrapper>
+`;
+
+exports[`components/team_members_dropdown should match snapshot for team_members_dropdown 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+>
+  <button
+    aria-expanded="true"
+    className="dropdown-toggle theme color--link style--none"
+    id="teamMembersDropdown_username2"
+    type="button"
+  >
+    <span>
+      <MemoizedFormattedMessage
+        defaultMessage="Team Admin"
+        id="team_members_dropdown.teamAdmin"
+      />
+       
+    </span>
+    <DropdownIcon />
+  </button>
+  <div>
+    <Menu
+      ariaLabel="Change the role of a team member"
+      openLeft={true}
+      openUp={false}
+    >
+      <MenuItemAction
+        id="removeFromTeam"
+        onClick={[Function]}
+        show={true}
+        text="Remove From Team"
+      />
+      <MenuItemAction
+        onClick={[Function]}
+        show={true}
+        text="Make Member"
+      />
+    </Menu>
+  </div>
+</MenuWrapper>
+`;
+
+exports[`components/team_members_dropdown should match snapshot opening dropdown upwards 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+>
+  <button
+    aria-expanded="true"
+    className="dropdown-toggle theme color--link style--none"
+    id="teamMembersDropdown_username2"
+    type="button"
+  >
+    <span>
+      <MemoizedFormattedMessage
+        defaultMessage="Team Admin"
+        id="team_members_dropdown.teamAdmin"
+      />
+       
+    </span>
+    <DropdownIcon />
+  </button>
+  <div>
+    <Menu
+      ariaLabel="Change the role of a team member"
+      openLeft={true}
+      openUp={true}
+    >
+      <MenuItemAction
+        id="removeFromTeam"
+        onClick={[Function]}
+        show={true}
+        text="Remove From Team"
+      />
+      <MenuItemAction
+        onClick={[Function]}
+        show={true}
+        text="Make Member"
+      />
+    </Menu>
+  </div>
+</MenuWrapper>
+`;
+
+exports[`components/team_members_dropdown should match snapshot with group-constrained team 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+>
+  <button
+    aria-expanded="true"
+    className="dropdown-toggle theme color--link style--none"
+    id="teamMembersDropdown_username2"
+    type="button"
+  >
+    <span>
+      <MemoizedFormattedMessage
+        defaultMessage="Team Admin"
+        id="team_members_dropdown.teamAdmin"
+      />
+       
+    </span>
+    <DropdownIcon />
+  </button>
+  <div>
+    <Menu
+      ariaLabel="Change the role of a team member"
+      openLeft={true}
+      openUp={false}
+    >
+      <MenuItemAction
+        onClick={[Function]}
+        show={true}
+        text="Make Member"
+      />
+    </Menu>
+  </div>
+</MenuWrapper>
+`;

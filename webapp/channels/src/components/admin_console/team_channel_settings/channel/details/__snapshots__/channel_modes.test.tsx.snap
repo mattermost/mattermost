@@ -1,0 +1,62 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/team_channel_settings/channel/ChannelModes should match snapshot - not licensed for Group 1`] = `
+<AdminPanel
+  className=""
+  id="channel_manage"
+  subtitleDefault="Choose between inviting members manually or syncing members automatically from groups."
+  subtitleId="admin.channel_settings.channel_detail.manageDescription"
+  titleDefault="Channel Management"
+  titleId="admin.channel_settings.channel_detail.manageTitle"
+>
+  <div
+    className="group-teams-and-channels"
+  >
+    <div
+      className="group-teams-and-channels--body"
+    >
+      <AllowAllToggle
+        isDefault={false}
+        isDisabled={false}
+        isPublic={true}
+        isSynced={false}
+        onToggle={[MockFunction]}
+      />
+    </div>
+  </div>
+</AdminPanel>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModes should match snapshot 1`] = `
+<AdminPanel
+  className=""
+  id="channel_manage"
+  subtitleDefault="Choose between inviting members manually or syncing members automatically from groups."
+  subtitleId="admin.channel_settings.channel_detail.manageDescription"
+  titleDefault="Channel Management"
+  titleId="admin.channel_settings.channel_detail.manageTitle"
+>
+  <div
+    className="group-teams-and-channels"
+  >
+    <div
+      className="group-teams-and-channels--body"
+    >
+      <SyncGroupsToggle
+        isDefault={false}
+        isDisabled={false}
+        isPublic={true}
+        isSynced={false}
+        onToggle={[MockFunction]}
+      />
+      <AllowAllToggle
+        isDefault={false}
+        isDisabled={false}
+        isPublic={true}
+        isSynced={false}
+        onToggle={[MockFunction]}
+      />
+    </div>
+  </div>
+</AdminPanel>
+`;

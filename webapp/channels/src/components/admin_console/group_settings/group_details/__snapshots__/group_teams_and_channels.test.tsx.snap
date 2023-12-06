@@ -1,0 +1,176 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChannels should match snapshot, with teams, with channels and loaded 1`] = `
+<div
+  className="AdminPanel__content"
+>
+  <table
+    className="AdminPanel__table group-teams-and-channels"
+    id="team_and_channel_membership_table"
+  >
+    <thead
+      className="group-teams-and-channels--header"
+    >
+      <tr>
+        <th
+          style={
+            Object {
+              "width": "30%",
+            }
+          }
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Name"
+            id="admin.group_settings.group_profile.group_teams_and_channels.name"
+          />
+        </th>
+        <th
+          style={
+            Object {
+              "width": "25%",
+            }
+          }
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Type"
+            id="admin.group_settings.group_profile.group_teams_and_channels.type"
+          />
+        </th>
+        <th
+          style={
+            Object {
+              "width": "25%",
+            }
+          }
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Assigned Roles"
+            id="admin.group_settings.group_profile.group_teams_and_channels.assignedRoles"
+          />
+        </th>
+        <th
+          style={
+            Object {
+              "width": "20%",
+            }
+          }
+        />
+      </tr>
+    </thead>
+    <tbody
+      className="group-teams-and-channels--body"
+    >
+      <GroupTeamsAndChannelsRow
+        hasChildren={true}
+        id="11111111111111111111111111"
+        key="11111111111111111111111111"
+        name="Team 1"
+        onChangeRoles={[Function]}
+        onRemoveItem={[Function]}
+        onToggleCollapse={[Function]}
+        type="public-team"
+      />
+      <GroupTeamsAndChannelsRow
+        id="44444444444444444444444444"
+        key="44444444444444444444444444"
+        name="Channel 4"
+        onChangeRoles={[Function]}
+        onRemoveItem={[Function]}
+        onToggleCollapse={[Function]}
+        type="public-channel"
+      />
+      <GroupTeamsAndChannelsRow
+        hasChildren={false}
+        id="22222222222222222222222222"
+        key="22222222222222222222222222"
+        name="Team 2"
+        onChangeRoles={[Function]}
+        onRemoveItem={[Function]}
+        onToggleCollapse={[Function]}
+        type="private-team"
+      />
+      <GroupTeamsAndChannelsRow
+        hasChildren={false}
+        id="33333333333333333333333333"
+        key="33333333333333333333333333"
+        name="Team 3"
+        onChangeRoles={[Function]}
+        onRemoveItem={[Function]}
+        onToggleCollapse={[Function]}
+        type="private-team"
+      />
+      <GroupTeamsAndChannelsRow
+        hasChildren={true}
+        id="99999999999999999999999999"
+        key="99999999999999999999999999"
+        name="Team 9"
+        onChangeRoles={[Function]}
+        onRemoveItem={[Function]}
+        onToggleCollapse={[Function]}
+        type="public-team"
+      />
+      <GroupTeamsAndChannelsRow
+        id="55555555555555555555555555"
+        key="55555555555555555555555555"
+        name="Channel 5"
+        onChangeRoles={[Function]}
+        onRemoveItem={[Function]}
+        onToggleCollapse={[Function]}
+        type="private-channel"
+      />
+      <GroupTeamsAndChannelsRow
+        id="55555555555555555555555555"
+        key="55555555555555555555555555"
+        name="Channel 5"
+        onChangeRoles={[Function]}
+        onRemoveItem={[Function]}
+        onToggleCollapse={[Function]}
+        type="private-channel"
+      />
+    </tbody>
+  </table>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChannels should match snapshot, with teams, with channels and loading 1`] = `
+<div
+  className="group-teams-and-channels"
+>
+  <div
+    className="group-teams-and-channels-loading"
+  >
+    <i
+      className="fa fa-spinner fa-pulse fa-2x"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChannels should match snapshot, without teams, without channels and loaded 1`] = `
+<div
+  className="group-teams-and-channels"
+>
+  <div
+    className="group-teams-and-channels-empty"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="No teams or channels specified yet"
+      id="admin.group_settings.group_details.group_teams_and_channels.no-teams-or-channels-speicified"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChannels should match snapshot, without teams, without channels and loading 1`] = `
+<div
+  className="group-teams-and-channels"
+>
+  <div
+    className="group-teams-and-channels-loading"
+  >
+    <i
+      className="fa fa-spinner fa-pulse fa-2x"
+    />
+  </div>
+</div>
+`;

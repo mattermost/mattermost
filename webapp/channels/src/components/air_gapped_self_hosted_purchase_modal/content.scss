@@ -1,0 +1,22 @@
+.air-gapped-purchase-modal .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    text-align: center;
+}
+
+#air-gapped-modal-title {
+    span {
+        font-size: 22px;
+        font-weight: bold;
+    }
+}
+
+#air-gapped-modal-content {
+    span {
+        padding-right: 32px;
+        padding-left: 32px;
+    }
+}

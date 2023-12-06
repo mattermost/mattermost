@@ -1,0 +1,159 @@
+@charset 'UTF-8';
+
+.grid-statistics {
+    display: grid;
+    gap: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(218px, 1fr));
+
+    &__card {
+        min-height: 1px;
+    }
+}
+
+.team_statistics {
+    &--warning {
+        // Adding the !important because this class has less preference in some html elements
+        color: var(--warning-text) !important;
+        font-weight: 600 !important;
+    }
+
+    &--error {
+        // Adding the !important because this class has less preference in some html elements
+        color: var(--error-text) !important;
+        font-weight: 600 !important;
+    }
+
+    &__message {
+        display: flex;
+        align-items: center;
+        font-family: 'Open Sans';
+        font-size: 12px;
+        font-weight: 600;
+        gap: 7px;
+        line-height: 16px;
+
+        &__text {
+            color: var(--error-text);
+            font-size: 14px;
+        }
+
+        &__icon {
+            display: inline-flex;
+            width: 14px;
+            height: 14px;
+            flex-grow: 0;
+            align-items: center;
+        }
+    }
+
+    .total-count {
+        width: 100%;
+        border: 1px solid $light-gray;
+        margin: 1em 0;
+        background: $white;
+        border-radius: 3px;
+        text-align: center;
+
+        &--has-message {
+            margin-bottom: 4px;
+        }
+
+        .title {
+            padding: 7px 10px;
+            border-bottom: 1px solid $light-gray;
+            font-size: 13px;
+            font-weight: 400;
+            text-align: left;
+
+            span {
+                display: inline-block;
+                overflow: hidden;
+                width: calc(100% - 20px);
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .fa {
+                margin: 0;
+                color: #555;
+                float: right;
+                font-size: 16px;
+            }
+        }
+
+        .content {
+            overflow: auto;
+            padding: 0.3em 0 0.35em;
+            color: #555;
+            font-size: 30px;
+            font-weight: 600;
+        }
+    }
+
+    .total-count--day {
+        width: 760px;
+        height: 275px;
+        padding: 5px 10px 10px;
+        border: 1px solid $light-gray;
+        margin: 10px;
+        background: $white;
+        clear: both;
+
+        > div {
+            font-size: 18px;
+            font-weight: 300;
+        }
+    }
+
+    .recent-active-users {
+        table {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .content {
+            overflow: auto;
+            max-height: 400px;
+            padding: 0;
+        }
+
+        tr {
+            &:first-child {
+                td {
+                    border-top: none;
+                }
+            }
+
+            td {
+                @include clearfix;
+
+                padding: 5px 5px 6px;
+                border-top: 1px solid $light-gray;
+                border-left: 1px solid $light-gray;
+                font-size: 13px;
+                font-weight: 400;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+
+                &:first-child {
+                    border-left: none;
+                }
+            }
+        }
+    }
+
+    .admin-console__header {
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .team-statistics__header-row {
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .team-statistics__team-filter {
+        display: inline-block;
+        width: 200px;
+    }
+}

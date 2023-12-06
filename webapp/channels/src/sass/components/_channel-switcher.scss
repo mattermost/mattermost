@@ -1,0 +1,208 @@
+@charset "UTF-8";
+
+.modal {
+    .channel-switcher,
+    .channel-invite {
+        &.modal-dialog {
+            margin-top: calc(50vh - 240px);
+        }
+
+        .modal-body {
+            max-height: 100%;
+            padding: 0;
+        }
+
+        .modal-content {
+            border-radius: 8px;
+        }
+
+        .modal-header {
+            min-height: 0;
+            padding: 0;
+            border: none;
+            background: transparent;
+
+            .close {
+                top: 6px;
+                right: 4px;
+                display: flex;
+                width: 4rem;
+                height: 4rem;
+                align-items: center;
+                justify-content: center;
+                border-radius: 4px;
+                font-size: 32px;
+                font-weight: 400;
+            }
+        }
+    }
+
+    .channel-switcher {
+        .suggestion-list {
+            position: relative;
+        }
+
+        .suggestion-list__content {
+            height: calc(100vh - 110px);
+            max-height: 100%;
+        }
+    }
+
+    .channel-switcher__suggestion-box {
+        position: relative;
+        height: 362px;
+        padding: 0;
+
+        .icon-magnify {
+            position: absolute;
+            top: 1.1rem;
+            left: 3.4rem;
+            display: flex;
+            width: 2rem;
+            height: 2rem;
+            align-items: center;
+            opacity: 0.48;
+        }
+
+        .form-control {
+            width: calc(100% - 48px);
+            height: 40px;
+            padding: 0 34px;
+            margin: 0 24px;
+            border-radius: 4px;
+
+            &:focus {
+                padding: 0 33px;
+                border: 2px solid v(button-bg);
+            }
+        }
+
+        .suggestion-list {
+            padding-top: 0.6rem;
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            margin-top: 2.3rem;
+
+            &:first-child {
+                padding-top: 0;
+                border: none;
+                margin-top: 1rem;
+            }
+        }
+
+        .suggestion-list__content {
+            overflow: auto;
+            width: 100%;
+            height: auto;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+        }
+
+        .status-wrapper {
+            overflow: visible;
+            height: 24px;
+            margin-top: 4px;
+            margin-right: 12px;
+
+            .status {
+                right: -2px;
+                bottom: -4px;
+
+                svg {
+                    left: 2px;
+                    max-width: 11px;
+                }
+            }
+        }
+
+        .Avatar {
+            width: 24px;
+            height: 24px;
+
+            &-sm {
+                margin: 0;
+            }
+        }
+
+        .suggestion-list__divider {
+            &:first-child {
+                margin: 0;
+
+                &::before {
+                    display: none;
+                }
+            }
+        }
+
+        .suggestion-list__icon {
+            height: auto;
+        }
+    }
+}
+
+body.app__body {
+    .modal {
+        .channel-switcher,
+        .channel-invite {
+            .modal-header {
+                .close {
+                    // This rule needs to be very specific to override the colour of the close button used for other modals
+                    color: rgba(var(--center-channel-color-rgb), 0.56);
+
+                    &:hover {
+                        background-color:
+                            rgba(
+                                var(--center-channel-color-rgb),
+                                0.08
+                            );
+                        color: rgba(var(--center-channel-color-rgb), 0.72);
+                    }
+
+                    &:active {
+                        background-color: rgba(var(--button-bg-rgb), 0.08);
+                        color: var(--button-bg);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Colour overrides for the System Console
+body:not(.app__body) {
+    .channel-switcher,
+    .channel-invite {
+        .close {
+            color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+
+            &:hover {
+                background-color:
+                    rgba(
+                        var(--sys-center-channel-color-rgb),
+                        0.08
+                    );
+                color: rgba(var(--sys-center-channel-color-rgb), 0.72);
+            }
+
+            &:active {
+                background-color: rgba(var(--sys-button-bg-rgb), 0.08);
+                color: var(--sys-button-bg);
+            }
+        }
+    }
+}
+
+.channel-switcher__hint {
+    font-size: 12px;
+}
+
+.channel-switcher__header,
+.channel-invite__header {
+    padding: 2.4rem 2.4rem 1.6rem;
+
+    h1 {
+        margin: 0 0 0.8rem;
+        font-size: 2rem;
+        font-weight: 600;
+    }
+}

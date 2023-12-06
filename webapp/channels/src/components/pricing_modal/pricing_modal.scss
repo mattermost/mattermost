@@ -1,0 +1,473 @@
+.PricingModal {
+    .modal-dialog {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 1440px;
+        margin: auto;
+        transform: translate(-50%, -50%) !important;
+
+        .modal-content {
+            background-color: var(--center-channel-bg);
+        }
+    }
+
+    .modal-header {
+        height: 77px;
+        min-height: 77px;
+    }
+
+    .PricingModal__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 28px 32px;
+        border: none;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        font-size: 22px;
+        font-weight: 600;
+
+        .header_lhs {
+            display: flex;
+            align-items: center;
+
+            h1 {
+                margin: 0;
+                color: var(--center-channel-color);
+                font-family: 'Metropolis', sans-serif;
+                font-size: 22px;
+                font-style: normal;
+                font-weight: 600;
+                line-height: 28px;
+            }
+
+            div {
+                padding-left: 8px;
+                border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                margin-left: 8px;
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+                font-family: 'Open Sans';
+                font-size: 12px;
+                font-style: normal;
+                font-weight: 400;
+                line-height: 20px;
+            }
+        }
+
+        &::before,
+        &::after {
+            display: none;
+        }
+
+        // beat regular modal-header in specificity
+        &.modal-header {
+            background-color: var(--center-channel-bg);
+            color: var(--center-channel-color);
+        }
+
+        .icon-close {
+            padding: 0;
+            border: none;
+            -moz-appearance: none;
+            -webkit-appearance: none;
+            appearance: none;
+            background: none;
+            color: rgb(var(--center-channel-color-rgb), 0.56);
+            cursor: pointer;
+            font: inherit;
+            outline: inherit;
+
+            &:hover,
+            &:active,
+            &:focus {
+                color: rgb(var(--center-channel-color-rgb), 0.56);
+            }
+        }
+    }
+
+    .modal-body {
+        display: flex;
+        height: 623px;
+        min-height: 623px;
+        flex-direction: column;
+        padding: 0 71px;
+        overflow-x: visible;
+        overflow-y: scroll;
+
+        .alert-option {
+            display: flex;
+            width: 100%;
+            flex-direction: column;
+            text-align: right;
+
+            span {
+                color: var(--center-channel-color);
+                font-family: 'Open Sans';
+                font-size: 14px;
+                font-style: normal;
+                font-weight: 600;
+                line-height: 20px;
+                text-align: right;
+            }
+
+            a {
+                color: var(--denim-button-bg);
+                font-family: 'Open Sans';
+                font-size: 14px;
+                font-style: normal;
+                font-weight: 600;
+                line-height: 20px;
+            }
+        }
+    }
+
+    .PricingModal__body {
+        position: relative;
+        display: flex;
+        align-self: center;
+        margin-bottom: 111px;
+        gap: 48px;
+
+        .BlankCard {
+            position: relative;
+            width: 280px;
+
+            .image {
+                margin-top: 8px;
+            }
+
+            hr {
+                border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            }
+
+            .description {
+                border-bottom: 1px solid rgba(var(--center-channel-color-rgb) 0.16);
+                text-align: left;
+
+                .title {
+                    margin-top: 24px;
+                    margin-bottom: 8px;
+                    font-family: 'Open Sans';
+                    font-size: 14px;
+                    font-style: normal;
+                    font-weight: 600;
+                    line-height: 20px;
+
+                    .questions {
+                        margin-right: 2px;
+                        color: var(--center-channel-color);
+                    }
+
+                    .contact {
+                        color: var(--denim-button-bg);
+                    }
+                }
+
+                .content {
+                    margin-bottom: 25px;
+                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                    font-family: 'Open Sans';
+                    font-size: 14px;
+                    font-style: normal;
+                    font-weight: 400;
+                    line-height: 20px;
+                }
+            }
+
+            .self-hosted-interest {
+                padding: 8px;
+                margin-top: 24px;
+                background: rgba(var(--denim-button-bg-rgb), 0.08);
+                border-radius: 8px;
+                font-family: 'Open Sans';
+                font-size: 14px;
+                font-style: normal;
+                font-weight: 600;
+                line-height: 20px;
+
+                .interested {
+                    margin-right: 2px;
+                    color: var(--center-channel-color);
+                }
+
+                .learn {
+                    color: var(--denim-button-bg);
+                }
+            }
+        }
+
+        .PlanCard {
+            position: relative;
+            width: 280px;
+
+            .planLabel {
+                position: absolute;
+                top: -36px;
+                right: 0;
+                left: 0;
+                display: flex;
+                width: auto;
+                height: 36px;
+                align-items: center;
+                justify-content: center;
+                padding: 14px;
+                margin-right: auto;
+                margin-left: auto;
+                border-radius: 13px 13px 0 0;
+                font-size: 12px;
+                font-style: normal;
+                font-weight: 600;
+                gap: 5px;
+                letter-spacing: 0.02em;
+                line-height: 16px;
+                text-align: center;
+                text-transform: uppercase;
+            }
+
+            .top {
+                height: 18px;
+                border-radius: 4px 4px 0 0;
+            }
+
+            .bottom {
+                height: auto;
+                border: 1px solid rgba(var(--center-channel-text-rgb), 0.08);
+                border-top: 1px solid var(--center-channel-bg);
+                background-color: var(--center-channel-bg);
+                border-radius: 0 0 4px 4px;
+                box-shadow: var(--elevation-6);
+
+                .bottom_container {
+                    padding-right: 24px;
+                    padding-left: 24px;
+                    margin-bottom: 24px;
+
+                    .plan_price_rate_section {
+                        width: 100%;
+                        height: 221px;
+                        text-align: center;
+
+                        h3 {
+                            margin-top: 32px;
+                            color: var(--center-channel-color);
+                            font-family: 'Metropolis';
+                            font-size: 24px;
+                            font-style: normal;
+                            font-weight: 700;
+                            line-height: 31px;
+                            text-align: center;
+                        }
+
+                        h1 {
+                            margin: 0;
+                            color: var(--center-channel-color);
+                            font-family: 'Metropolis';
+                            font-size: 52px;
+                            font-style: normal;
+                            font-weight: 700;
+                            letter-spacing: -0.02em;
+                            line-height: 60px;
+                        }
+
+                        span,
+                        p {
+                            margin-bottom: 32px;
+                            color: rgba(var(--center-channel-color-rgb), 0.72);
+                            font-family: 'Metropolis';
+                            font-size: 16px;
+                            font-style: normal;
+                            font-weight: 400;
+                            line-height: 24px;
+                        }
+
+                        .plan_rate {
+                            margin-bottom: 0;
+                        }
+
+                        .building_img {
+                            padding-top: 0;
+                        }
+
+                        .building_img__expanded {
+                            padding-top: 14px;
+                        }
+
+                        .billed_annually {
+                            font-family: 'Open sans', sans-serif;
+                            font-size: 16px;
+                        }
+                    }
+
+                    .plan_price_rate_section__expanded {
+                        height: 244px;
+
+                        span,
+                        p {
+                            margin-bottom: 45px;
+                        }
+                    }
+
+                    .contact_sales_cta {
+                        height: 49px;
+                        margin-top: 16px;
+                        text-align: center;
+                    }
+
+                    .contact_sales_cta__reduced {
+                        height: 32px;
+                        margin-top: 0;
+                    }
+
+                    .plan_limits_cta {
+                        height: 21px;
+                    }
+
+                    .plan_limits_cta__expanded {
+                        height: 32px;
+                    }
+
+                    .plan_buttons {
+                        height: auto;
+
+                        .plan_action_btn {
+                            width: 100%;
+                            height: 40px;
+                            padding: 10px 24px;
+                            border: none;
+                            background: none;
+                            border-radius: 4px;
+                            color: var(--denim-button-bg);
+                            font-weight: 600;
+
+                            &.grayed {
+                                background: rgba(var(--center-channel-color-rgb), 0.08);
+                                color: rgba(var(--center-channel-color-rgb), 0.32);
+                                cursor: not-allowed;
+                            }
+
+                            &.secondary {
+                                background: rgba(var(--denim-button-bg-rgb), 0.08);
+                                color: var(--denim-button-bg);
+                            }
+
+                            &.active {
+                                border: 1px solid var(--denim-button-bg);
+                            }
+
+                            &.special {
+                                background: var(--denim-button-bg);
+                                color: var(--button-color);
+                            }
+
+                            &.green {
+                                background: var(--denim-status-online);
+                                color: var(--button-color);
+                            }
+                        }
+                    }
+
+                    .plan_briefing {
+                        height: auto;
+
+                        hr {
+                            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                        }
+
+                        .plan_briefing_content {
+                            margin-top: 16px;
+
+                            .title {
+                                color: var(--center-channel-color);
+                                font-family: 'Metropolis';
+                                font-size: 13px;
+                                font-style: normal;
+                                font-weight: 600;
+                                letter-spacing: -0.02em;
+                                line-height: 24px;
+                                white-space: nowrap;
+                            }
+
+                            .item {
+                                display: flex;
+                                max-height: 72px;
+
+                                .bullet {
+                                    display: inline-block;
+                                    margin: 8px 8px 0 0;
+                                    color: var(--button-bg);
+                                    font-size: 10px;
+                                }
+
+                                p {
+                                    margin: 0;
+                                    color: rgba(var(--center-channel-color-rgb), 0.72);
+                                    font-family: 'Metropolis';
+                                    font-size: 14px;
+                                    font-style: normal;
+                                    font-weight: 400;
+                                    letter-spacing: -0.02em;
+                                    line-height: 24px;
+                                }
+                            }
+                        }
+
+                        .plan_briefing_content__reduced {
+                            margin-top: 0;
+                        }
+                    }
+                }
+
+                .plan_add_ons {
+                    position: relative;
+                    height: auto;
+                    padding: 37px 24px 24px 24px;
+                    background-color: rgba(var(--center-channel-text-rgb), 0.56);
+                    border-radius: 0 0 4px 4px;
+                    color: var(--sidebar-text);
+
+                    .illustration {
+                        position: absolute;
+                        top: 24px;
+                        right: 36px;
+                    }
+
+                    .title {
+                        font-family: 'Metropolis';
+                        font-size: 16px;
+                        font-style: normal;
+                        font-weight: 700;
+                        line-height: 24px;
+                    }
+
+                    .item,
+                    .subitem {
+                        font-weight: 400;
+
+                        &_title {
+                            display: flex;
+
+                            .bullet {
+                                display: inline-block;
+                                margin: 8px 8px 0 0;
+                                font-size: 5px;
+                            }
+                        }
+                    }
+
+                    .item {
+                        margin-left: 5px;
+                    }
+
+                    .subitem {
+                        margin-left: 20px;
+                    }
+                }
+            }
+
+            .bottom__round {
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                border-radius: 8px;
+            }
+        }
+    }
+}

@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "es2022",
+        "declaration": true,
+        "strict": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "jsx": "react",
+        "outDir": "./lib",
+        "rootDir": "./src",
+        "composite": true
+    },
+    "include": [
+        "./src/**/*"
+    ],
+    "exclude": [
+        "**/*.test.*"
+    ],
+    "references": [
+        {"path": "../types"}
+    ]
+}

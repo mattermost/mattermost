@@ -1,0 +1,206 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/post_view/PostAttachment should match snapshot 1`] = `
+<Connect(ShowMore)
+  checkOverflow={0}
+  text="post message"
+>
+  <div
+    className="post-message__text"
+    dir="auto"
+    id="postMessageText_post_id"
+    onClick={[Function]}
+    tabIndex={0}
+  >
+    <Connect(PostMarkdown)
+      imageProps={
+        Object {
+          "onImageHeightChanged": [Function],
+          "onImageLoaded": [Function],
+        }
+      }
+      message="post message"
+      options={Object {}}
+      post={
+        Object {
+          "id": "post_id",
+          "message": "post message",
+        }
+      }
+    />
+  </div>
+  <Connect(Pluggable)
+    onHeightChange={[Function]}
+    pluggableName="PostMessageAttachment"
+    postId="post_id"
+  />
+</Connect(ShowMore)>
+`;
+
+exports[`components/post_view/PostAttachment should match snapshot, on Show Less 1`] = `
+<Connect(ShowMore)
+  checkOverflow={0}
+  text="post message"
+>
+  <div
+    className="post-message__text"
+    dir="auto"
+    id="postMessageText_post_id"
+    onClick={[Function]}
+    tabIndex={0}
+  >
+    <Connect(PostMarkdown)
+      imageProps={
+        Object {
+          "onImageHeightChanged": [Function],
+          "onImageLoaded": [Function],
+        }
+      }
+      message="post message"
+      options={Object {}}
+      post={
+        Object {
+          "id": "post_id",
+          "message": "post message",
+        }
+      }
+    />
+  </div>
+  <Connect(Pluggable)
+    onHeightChange={[Function]}
+    pluggableName="PostMessageAttachment"
+    postId="post_id"
+  />
+</Connect(ShowMore)>
+`;
+
+exports[`components/post_view/PostAttachment should match snapshot, on Show More 1`] = `
+<Connect(ShowMore)
+  checkOverflow={0}
+  text="post message"
+>
+  <div
+    className="post-message__text"
+    dir="auto"
+    id="postMessageText_post_id"
+    onClick={[Function]}
+    tabIndex={0}
+  >
+    <Connect(PostMarkdown)
+      imageProps={
+        Object {
+          "onImageHeightChanged": [Function],
+          "onImageLoaded": [Function],
+        }
+      }
+      message="post message"
+      options={Object {}}
+      post={
+        Object {
+          "id": "post_id",
+          "message": "post message",
+        }
+      }
+    />
+  </div>
+  <Connect(Pluggable)
+    onHeightChange={[Function]}
+    pluggableName="PostMessageAttachment"
+    postId="post_id"
+  />
+</Connect(ShowMore)>
+`;
+
+exports[`components/post_view/PostAttachment should match snapshot, on deleted post 1`] = `
+<p>
+  <MemoizedFormattedMessage
+    defaultMessage="(message deleted)"
+    id="post_body.deleted"
+  />
+</p>
+`;
+
+exports[`components/post_view/PostAttachment should match snapshot, on deleted post 2`] = `
+<p>
+  <Memo(MemoizedFormattedMessage)
+    defaultMessage="(message deleted)"
+    id="post_body.deleted"
+  />
+</p>
+`;
+
+exports[`components/post_view/PostAttachment should match snapshot, on edited post 1`] = `
+<Connect(ShowMore)
+  checkOverflow={0}
+  text="post message"
+>
+  <div
+    className="post-message__text"
+    dir="auto"
+    id="postMessageText_post_id"
+    onClick={[Function]}
+    tabIndex={0}
+  >
+    <Connect(PostMarkdown)
+      imageProps={
+        Object {
+          "onImageHeightChanged": [Function],
+          "onImageLoaded": [Function],
+        }
+      }
+      message="post message"
+      options={Object {}}
+      post={
+        Object {
+          "edit_at": 1,
+          "id": "post_id",
+          "message": "post message",
+        }
+      }
+    />
+  </div>
+  <Connect(Pluggable)
+    onHeightChange={[Function]}
+    pluggableName="PostMessageAttachment"
+    postId="post_id"
+  />
+</Connect(ShowMore)>
+`;
+
+exports[`components/post_view/PostAttachment should match snapshot, on ephemeral post 1`] = `
+<Connect(ShowMore)
+  checkOverflow={0}
+  text="post message"
+>
+  <div
+    className="post-message__text"
+    dir="auto"
+    id="postMessageText_post_id"
+    onClick={[Function]}
+    tabIndex={0}
+  >
+    <Connect(PostMarkdown)
+      imageProps={
+        Object {
+          "onImageHeightChanged": [Function],
+          "onImageLoaded": [Function],
+        }
+      }
+      message="post message"
+      options={Object {}}
+      post={
+        Object {
+          "id": "post_id",
+          "message": "post message",
+          "type": "system_ephemeral",
+        }
+      }
+    />
+  </div>
+  <Connect(Pluggable)
+    onHeightChange={[Function]}
+    pluggableName="PostMessageAttachment"
+    postId="post_id"
+  />
+</Connect(ShowMore)>
+`;

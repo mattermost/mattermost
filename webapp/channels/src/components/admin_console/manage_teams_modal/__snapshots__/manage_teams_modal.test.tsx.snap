@@ -1,0 +1,84 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ManageTeamsModal should match snapshot init 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="manageTeamsModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal manage-teams modal--overflow-visible"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onHide={[MockFunction]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="manageTeamsModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Manage Teams"
+        id="admin.user_item.manageTeams"
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div>
+      <div
+        className="manage-teams__user"
+      >
+        <Memo(Avatar)
+          size="lg"
+          url="/api/v4/users/currentUserId/image?_=1234"
+          username="currentUsername"
+        />
+        <div
+          className="manage-teams__info"
+        >
+          <div
+            className="manage-teams__name"
+          >
+            @currentUsername
+          </div>
+          <div
+            className="manage-teams__email"
+          >
+            currentUser@test.com
+          </div>
+        </div>
+      </div>
+      <div
+        className="manage-teams__teams"
+      >
+        <LoadingScreen />
+      </div>
+    </div>
+  </ModalBody>
+</Modal>
+`;

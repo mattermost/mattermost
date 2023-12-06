@@ -1,0 +1,137 @@
+  /api/v4/reactions:
+    post:
+      tags:
+        - reactions
+      summary: Create a reaction
+      description: |
+        Create a reaction.
+        ##### Permissions
+        Must have `read_channel` permission for the channel the post is in.
+      operationId: SaveReaction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Reaction"
+        description: The user's reaction with its post_id, user_id, and emoji_name fields
+          set
+        required: true
+      responses:
+        "201":
+          description: Reaction creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reaction"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/posts/{post_id}/reactions":
+    get:
+      tags:
+        - reactions
+      summary: Get a list of reactions to a post
+      description: |
+        Get a list of reactions made by all users to a given post.
+        ##### Permissions
+        Must have `read_channel` permission for the channel the post is in.
+      operationId: GetReactions
+      parameters:
+        - name: post_id
+          in: path
+          description: ID of a post
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List reactions retrieve successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reaction"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/posts/{post_id}/reactions/{emoji_name}":
+    delete:
+      tags:
+        - reactions
+      summary: Remove a reaction from a post
+      description: |
+        Deletes a reaction made by a user from the given post.
+        ##### Permissions
+        Must be user or have `manage_system` permission.
+      operationId: DeleteReaction
+      parameters:
+        - name: user_id
+          in: path
+          description: ID of the user
+          required: true
+          schema:
+            type: string
+        - name: post_id
+          in: path
+          description: ID of the post
+          required: true
+          schema:
+            type: string
+        - name: emoji_name
+          in: path
+          description: emoji name
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Reaction deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v4/posts/ids/reactions:
+    post:
+      tags:
+        - reactions
+      summary: Bulk get the reaction for posts
+      description: |
+        Get a list of reactions made by all users to a given post.
+        ##### Permissions
+        Must have `read_channel` permission for the channel the post is in.
+
+        __Minimum server version__: 5.8
+      operationId: GetBulkReactions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        description: Array of post IDs
+        required: true
+      responses:
+        "200":
+          description: Reactions retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostIdToReactionsMap"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"

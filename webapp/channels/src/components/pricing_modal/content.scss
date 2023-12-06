@@ -1,0 +1,35 @@
+.Content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    &.Content--self-hosted {
+        .alert-option {
+            padding: 40px 0;
+        }
+    }
+}
+
+.pricing-options-container {
+    display: flex;
+    min-height: 120px;
+    align-items: center;
+
+    .alert-option-container {
+        flex: 1;
+    }
+
+    .save-text {
+        flex: 1;
+        margin: 0;
+        margin-right: 12px;
+        color: var(--denim-status-online);
+        font-family: 'Metropolis';
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: 18px;
+        text-align: right;
+    }
+}

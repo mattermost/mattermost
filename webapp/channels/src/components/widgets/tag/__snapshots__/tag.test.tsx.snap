@@ -1,0 +1,89 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/widgets/tag/Tag should match the snapshot on show 1`] = `
+<TagWrapper
+  as="div"
+  className="Tag Tag--xs test"
+  uppercase={false}
+>
+  <TagText>
+    Test text
+  </TagText>
+</TagWrapper>
+`;
+
+exports[`components/widgets/tag/Tag should match the snapshot with "success" variant 1`] = `
+<TagWrapper
+  as="div"
+  className="Tag Tag--success Tag--xs test"
+  uppercase={false}
+>
+  <TagText>
+    Test text
+  </TagText>
+</TagWrapper>
+`;
+
+exports[`components/widgets/tag/Tag should match the snapshot with icon 1`] = `
+<TagWrapper
+  as="div"
+  className="Tag Tag--xs test"
+  uppercase={false}
+>
+  <AlertCircleOutlineIcon
+    size={10}
+  />
+  <TagText>
+    Test text
+  </TagText>
+</TagWrapper>
+`;
+
+exports[`components/widgets/tag/Tag should match the snapshot with size "sm" 1`] = `
+<TagWrapper
+  as="div"
+  className="Tag Tag--sm test"
+  uppercase={false}
+>
+  <TagText>
+    Test text
+  </TagText>
+</TagWrapper>
+`;
+
+exports[`components/widgets/tag/Tag should match the snapshot with uppercase prop 1`] = `
+<TagWrapper
+  as="div"
+  className="Tag Tag--xs test"
+  uppercase={true}
+>
+  <TagText>
+    Test text
+  </TagText>
+</TagWrapper>
+`;
+
+exports[`components/widgets/tag/Tag should transform into a button if onClick provided 1`] = `
+<TagWrapper
+  as="button"
+  className="Tag Tag--xs test"
+  onClick={
+    [MockFunction] {
+      "calls": Array [
+        Array [],
+      ],
+      "results": Array [
+        Object {
+          "type": "return",
+          "value": undefined,
+        },
+      ],
+    }
+  }
+  uppercase={false}
+>
+  <TagText>
+    Test text
+  </TagText>
+</TagWrapper>
+`;

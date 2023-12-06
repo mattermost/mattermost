@@ -1,0 +1,268 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/channel_header/components/UserGuideDropdown should match snapshot 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className="userGuideHelp"
+  id="helpMenuPortal"
+  onToggle={[Function]}
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={500}
+    overlay={
+      <Tooltip
+        className="hidden-xs"
+        id="userGuideHelpTooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Help"
+          id="channel_header.userHelpGuide"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <ForwardRef
+      active={false}
+      aria-controls="AddChannelDropdown"
+      aria-expanded={false}
+      aria-label="Help"
+      compact={true}
+      icon="help-circle-outline"
+      inverted={true}
+      onClick={[Function]}
+      size="sm"
+    />
+  </OverlayTrigger>
+  <Menu
+    ariaLabel="Add Channel Dropdown"
+    id="AddChannelDropdown"
+    openLeft={false}
+    openUp={false}
+  >
+    <Memo(MenuGroup)>
+      <MenuItemExternalLink
+        iconClassName="icon-file-text-outline"
+        id="mattermostUserGuideLink"
+        show={true}
+        text="Mattermost user guide"
+        url="https://docs.mattermost.com/guides/use-mattermost.html"
+      />
+      <MenuItemExternalLink
+        iconClassName="icon-lightbulb-outline"
+        id="trainingResourcesLink"
+        show={true}
+        text="Training resources"
+        url="https://academy.mattermost.com/"
+      />
+      <MenuItemExternalLink
+        iconClassName="icon-help"
+        id="askTheCommunityLink"
+        onClick={[Function]}
+        show={true}
+        text="Ask the community"
+        url="https://mattermost.com/pl/default-ask-mattermost-community/"
+      />
+      <MenuItemExternalLink
+        iconClassName="icon-alert-outline"
+        id="reportAProblemLink"
+        show={true}
+        text="Report a problem"
+        url="reportAProblemLink"
+      />
+      <MenuItemAction
+        iconClassName="icon-keyboard-return"
+        id="keyboardShortcuts"
+        onClick={[Function]}
+        show={true}
+        text="Keyboard shortcuts"
+      />
+    </Memo(MenuGroup)>
+  </Menu>
+</MenuWrapper>
+`;
+
+exports[`components/channel_header/components/UserGuideDropdown should match snapshot for false of enableAskCommunityLink 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className="userGuideHelp"
+  id="helpMenuPortal"
+  onToggle={[Function]}
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={500}
+    overlay={
+      <Tooltip
+        className="hidden-xs"
+        id="userGuideHelpTooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Help"
+          id="channel_header.userHelpGuide"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <ForwardRef
+      active={false}
+      aria-controls="AddChannelDropdown"
+      aria-expanded={false}
+      aria-label="Help"
+      compact={true}
+      icon="help-circle-outline"
+      inverted={true}
+      onClick={[Function]}
+      size="sm"
+    />
+  </OverlayTrigger>
+  <Menu
+    ariaLabel="Add Channel Dropdown"
+    id="AddChannelDropdown"
+    openLeft={false}
+    openUp={false}
+  >
+    <Memo(MenuGroup)>
+      <MenuItemExternalLink
+        iconClassName="icon-file-text-outline"
+        id="mattermostUserGuideLink"
+        show={true}
+        text="Mattermost user guide"
+        url="https://docs.mattermost.com/guides/use-mattermost.html"
+      />
+      <MenuItemExternalLink
+        iconClassName="icon-lightbulb-outline"
+        id="trainingResourcesLink"
+        show={true}
+        text="Training resources"
+        url="https://academy.mattermost.com/"
+      />
+      <MenuItemExternalLink
+        iconClassName="icon-alert-outline"
+        id="reportAProblemLink"
+        show={true}
+        text="Report a problem"
+        url="reportAProblemLink"
+      />
+      <MenuItemAction
+        iconClassName="icon-keyboard-return"
+        id="keyboardShortcuts"
+        onClick={[Function]}
+        show={true}
+        text="Keyboard shortcuts"
+      />
+    </Memo(MenuGroup)>
+  </Menu>
+</MenuWrapper>
+`;
+
+exports[`components/channel_header/components/UserGuideDropdown should match snapshot when have plugin menu items 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className="userGuideHelp"
+  id="helpMenuPortal"
+  onToggle={[Function]}
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayShow={500}
+    overlay={
+      <Tooltip
+        className="hidden-xs"
+        id="userGuideHelpTooltip"
+      >
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Help"
+          id="channel_header.userHelpGuide"
+        />
+      </Tooltip>
+    }
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <ForwardRef
+      active={false}
+      aria-controls="AddChannelDropdown"
+      aria-expanded={false}
+      aria-label="Help"
+      compact={true}
+      icon="help-circle-outline"
+      inverted={true}
+      onClick={[Function]}
+      size="sm"
+    />
+  </OverlayTrigger>
+  <Menu
+    ariaLabel="Add Channel Dropdown"
+    id="AddChannelDropdown"
+    openLeft={false}
+    openUp={false}
+  >
+    <Memo(MenuGroup)>
+      <MenuItemExternalLink
+        iconClassName="icon-file-text-outline"
+        id="mattermostUserGuideLink"
+        show={true}
+        text="Mattermost user guide"
+        url="https://docs.mattermost.com/guides/use-mattermost.html"
+      />
+      <MenuItemExternalLink
+        iconClassName="icon-lightbulb-outline"
+        id="trainingResourcesLink"
+        show={true}
+        text="Training resources"
+        url="https://academy.mattermost.com/"
+      />
+      <MenuItemExternalLink
+        iconClassName="icon-help"
+        id="askTheCommunityLink"
+        onClick={[Function]}
+        show={true}
+        text="Ask the community"
+        url="https://mattermost.com/pl/default-ask-mattermost-community/"
+      />
+      <MenuItemExternalLink
+        iconClassName="icon-alert-outline"
+        id="reportAProblemLink"
+        show={true}
+        text="Report a problem"
+        url="reportAProblemLink"
+      />
+      <MenuItemAction
+        iconClassName="icon-keyboard-return"
+        id="keyboardShortcuts"
+        onClick={[Function]}
+        show={true}
+        text="Keyboard shortcuts"
+      />
+      <MenuItemAction
+        iconClassName="icon-thumbs-up-down"
+        id="testId_pluginmenuitem"
+        key="testId_pluginmenuitem"
+        onClick={[Function]}
+        show={true}
+        text="Test Item"
+      />
+    </Memo(MenuGroup)>
+  </Menu>
+</MenuWrapper>
+`;

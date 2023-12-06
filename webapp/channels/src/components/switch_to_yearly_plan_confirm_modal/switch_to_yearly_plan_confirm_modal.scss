@@ -1,0 +1,65 @@
+.SwitchToYearlyPlanConfirmModal {
+    .modal-header {
+        border-bottom: none !important;
+        background: none !important;
+
+        button.close {
+            span {
+                color: rgba(63, 67, 80, 0.56) !important;
+            }
+        }
+    }
+
+    .modal-body {
+        padding-top: 0 !important;
+    }
+
+    .content-body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        .alert-svg {
+            margin-top: -20px;
+            margin-bottom: -47px;
+        }
+
+        .title {
+            margin: 10px 0;
+            color: var(--sys-denim-center-channel-text);
+            font-family: Metropolis;
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 28px;
+        }
+
+        .subtitle {
+            width: 90%;
+            color: var(--sys-denim-center-channel-text);
+            font-size: 14px;
+            font-style: normal;
+            font-weight: normal;
+            line-height: 20px;
+            text-align: center;
+        }
+
+        .sales-info {
+            margin: 10px 0;
+            color: var(--sys-denim-center-channel-text);
+        }
+    }
+
+    .content-footer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: center;
+        padding: 32px 32px 48px 32px;
+    }
+}

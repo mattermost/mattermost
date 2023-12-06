@@ -1,0 +1,87 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/threading/common/thread_menu should match snapshot 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+  stopPropagationOnToggle={true}
+>
+  <button>
+    test
+  </button>
+  <Menu
+    ariaLabel=""
+    openLeft={true}
+  >
+    <MenuItemAction
+      extraText="You will be notified about replies"
+      onClick={[Function]}
+      show={true}
+      text="Follow thread"
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text="Open in channel"
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text="Mark as unread"
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text="Save"
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text="Copy link"
+    />
+  </Menu>
+</MenuWrapper>
+`;
+
+exports[`components/threading/common/thread_menu should match snapshot after opening 1`] = `
+<MenuWrapper
+  animationComponent={[Function]}
+  className=""
+  stopPropagationOnToggle={true}
+>
+  <button>
+    test
+  </button>
+  <Menu
+    ariaLabel=""
+    openLeft={true}
+  >
+    <MenuItemAction
+      extraText="You will be notified about replies"
+      onClick={[Function]}
+      show={true}
+      text="Follow thread"
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text="Open in channel"
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text="Mark as unread"
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text="Save"
+    />
+    <MenuItemAction
+      onClick={[Function]}
+      show={true}
+      text="Copy link"
+    />
+  </Menu>
+</MenuWrapper>
+`;

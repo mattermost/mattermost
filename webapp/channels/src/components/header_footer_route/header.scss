@@ -1,0 +1,69 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@import 'utils/mixins';
+
+.hfroute-header {
+    position: relative;
+    display: flex;
+    width: 100%;
+    max-width: 1520px;
+    min-height: 100px;
+    align-self: center;
+    padding: 0 40px;
+
+    .header-main {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        flex-flow: wrap;
+        align-items: center;
+        justify-content: space-between;
+
+        .header-logo-link {
+            @include link;
+
+            display: flex;
+            color: var(--center-channel-color);
+            font-family: 'Metropolis';
+            font-size: 20px;
+            font-weight: 600;
+            line-height: 28px;
+            text-decoration: none;
+
+            svg {
+                width: 170px;
+                fill: var(--center-channel-color);
+            }
+        }
+    }
+
+    .header-back-button {
+        position: absolute;
+        top: unset;
+        bottom: 0;
+        width: auto;
+        padding: 0 0 0 40px;
+        background: none;
+
+        a {
+            @include link;
+        }
+    }
+}
+
+@media screen and (max-width: 699px) {
+    .hfroute-header {
+        padding: 0 24px;
+
+        .header-main {
+            .header-logo-link svg {
+                width: 145px;
+            }
+        }
+
+        .header-back-button {
+            padding: 0 0 0 24px;
+        }
+    }
+}

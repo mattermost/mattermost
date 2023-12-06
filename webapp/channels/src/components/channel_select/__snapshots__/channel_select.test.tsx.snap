@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ChannelSelect should match snapshot 1`] = `
+<select
+  className="form-control"
+  id="channelSelect"
+  onChange={[MockFunction]}
+  value="testValue"
+>
+  <option
+    key=""
+    value=""
+  >
+    --- Select a channel ---
+  </option>
+</select>
+`;

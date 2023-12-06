@@ -1,0 +1,20 @@
+---
+tags:
+  - name: Playbooks
+    description: Playbooks
+  - name: PlaybookRuns
+    description: Playbook runs
+  - name: Internal
+    description: Internal endpoints
+  - name: Timeline
+    description: Timeline
+  - name: PlaybookAutofollows
+    description: Playbook Autofollows
+x-tagGroups:
+  - name: Playbooks
+    tags:
+      - Playbooks
+      - PlaybookRuns
+      - PlaybookAutofollows
+      - Timeline
+      - Internal

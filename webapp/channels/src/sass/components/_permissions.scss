@@ -1,0 +1,389 @@
+@keyframes rowhighlight {
+    0% {
+        background-color: $transparent;
+    }
+
+    20% {
+        background-color: beige;
+    }
+
+    80% {
+        background-color: beige;
+    }
+
+    100% {
+        background-color: $transparent;
+    }
+}
+
+.permissions-block {
+    .more-schemes {
+        width: 100%;
+        padding: 10px;
+        text-align: center;
+        text-decoration: none;
+    }
+
+    &.closed {
+        .permissions-tree {
+            max-height: 0;
+            padding: 0 1.5rem;
+            overflow-y: hidden;
+        }
+    }
+
+    .no-team-schemes {
+        padding: 20px;
+        margin: 20px;
+        background: rgba(255, 255, 255, 0.5);
+        color: $gray;
+        font-size: 16px;
+        text-align: center;
+    }
+
+    .team-override-unavailable {
+        padding: 20px;
+        color: #3333337d;
+        opacity: 50%;
+
+        .team-override-unavailable__inner {
+            padding: 20px;
+            background-color: $white;
+        }
+    }
+
+    .teams-list {
+        padding: 20px;
+
+        .no-team-schemes {
+            margin: 0;
+        }
+
+        .team {
+            display: flex;
+            padding: 10px;
+
+            &:nth-child(even) {
+                background: rgba(255, 255, 255, 0.5);
+            }
+
+            .remove {
+                flex-grow: 0;
+            }
+        }
+    }
+}
+
+.permissions-tree {
+    max-height: 2000px;
+    padding: 0.8em 1.5rem;
+    transition: all 0.4s ease-in-out 0s;
+
+    &.guest {
+        .permission-row {
+            padding-left: 15px;
+        }
+
+        .permission-group {
+            .permission-group-row {
+                padding-left: 15px;
+
+                .permission-name {
+                    min-width: 300px;
+                }
+            }
+        }
+    }
+
+    .permissions-tree--header {
+        display: flex;
+        flex-direction: row;
+        padding: 0.5em 0;
+        border-bottom: 1px solid #ccc;
+        font-size: 1.1em;
+        font-weight: bold;
+
+        .permission-name {
+            min-width: 300px;
+            margin-left: 16px;
+        }
+
+        .permission-description {
+            display: block;
+            width: 100%;
+            color: $black;
+            opacity: 1;
+        }
+    }
+
+    .permissions-tree--body {
+        background-color: $bg--gray;
+        background-image: linear-gradient(transparent 50%, alpha-color($white, 0.5) 50%);
+        background-size: 68px 68px;
+        cursor: pointer;
+    }
+
+    .permission-arrow {
+        display: flex;
+        min-width: 10px;
+        min-height: 10px;
+        align-items: center;
+        justify-content: space-around;
+        margin: 5px 7px 4px 6px;
+        transition: transform 300ms;
+
+        &.open {
+            margin-top: 6px;
+            transform: rotate(90deg);
+            transform-origin: 55% 50%;
+            transition: transform 300ms;
+        }
+    }
+
+    .permission-check {
+        display: flex;
+        min-width: 18px;
+        min-height: 18px;
+        align-items: center;
+        justify-content: space-around;
+        border: 2px solid $dark-gray;
+        margin-right: 5px;
+        border-radius: 3px;
+
+        &.checked,
+        &.intermediate {
+            border: 0;
+
+            svg {
+                background: $white;
+                fill: $primary-color;
+            }
+        }
+    }
+
+    .permission-name {
+        display: inline-block;
+        min-width: 300px;
+    }
+
+    .permission-description {
+        display: flex;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        opacity: 0.65;
+
+        span {
+            display: inline-block;
+            overflow: hidden;
+            width: 100%;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .permission-group {
+        .permission-group-row {
+            .permission-name {
+                min-width: 268px;
+            }
+        }
+
+        .permission-group-permissions {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 300ms;
+
+            &.open {
+                max-height: 400px;
+                transition: max-height 300ms;
+            }
+
+            .permission-row {
+                padding: 0 0 0 48px;
+
+                .permission-name {
+                    min-width: 242px;
+                }
+            }
+
+            .permission-group-row {
+                padding: 0 0 0 25px;
+
+                &.combined {
+                    padding: 0 0 0 48px;
+                }
+
+                .permission-name {
+                    min-width: 244px;
+                }
+            }
+
+            .permission-group-permissions {
+                .permission-row {
+                    padding: 0 0 0 78px;
+
+                    .permission-name {
+                        min-width: 213px;
+                    }
+                }
+
+                .permission-group-row {
+                    padding: 0 0 0 60px;
+
+                    &.combined {
+                        padding: 0 0 0 78px;
+                    }
+
+                    .permission-name {
+                        min-width: 192px;
+                    }
+                }
+            }
+        }
+    }
+
+    .permission-row,
+    .permission-group-row {
+        display: flex;
+        height: 34px;
+        flex-direction: row;
+        align-items: center;
+        border: 2px solid $transparent;
+
+        &:hover {
+            border-left: 2px solid $primary-color;
+            background-color: lighten($primary-color, 40%);
+
+            .permission-description {
+                opacity: 1;
+            }
+        }
+
+        &.selected {
+            animation-duration: 3s;
+            animation-name: rowhighlight;
+        }
+
+        &.read-only {
+            .permission-check {
+                border: none;
+                background-color: $gray;
+
+                &.checked,
+                &.intermediate {
+                    svg {
+                        background: $white;
+                        fill: $gray;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.permissions-scheme-summary {
+    padding: 10px 20px 0 20px;
+    border-left: 2px solid $transparent;
+    margin: 0 20px;
+    cursor: pointer;
+
+    &:nth-child(2) {
+        margin-top: 20px;
+    }
+
+    &:last-child {
+        margin-bottom: 20px;
+    }
+
+    &:nth-child(odd) {
+        background: rgba(255, 255, 255, 0.5);
+    }
+
+    &:hover {
+        border-left: 2px solid $primary-color;
+        background-color: lighten($primary-color, 40%);
+    }
+
+    .permissions-scheme-summary--header {
+        display: flex;
+        flex-direction: row;
+        font-size: 1.1em;
+
+        .title {
+            flex-grow: 1;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .actions {
+            flex-grow: 0;
+
+            a {
+                display: inline-block;
+                padding: 0 3px;
+            }
+        }
+    }
+
+    .permissions-scheme-summary--teams {
+        padding: 1.5em 0 0.5em;
+
+        .team {
+            display: inline-flex;
+            height: 25px;
+            align-items: center;
+            justify-content: center;
+            padding: 0 8px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 13px;
+            color: alpha-color($black, 0.6);
+            font-size: 11px;
+        }
+    }
+}
+
+.team-scheme-extra-teams-overlay {
+    .tooltip-inner {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+.permission-scheme-summary-error-message {
+    color: $red;
+}
+
+.team-scheme-details {
+    padding: 20px 20px 5px 20px;
+
+    .form-group {
+        display: flex;
+
+        label {
+            width: 240px;
+        }
+    }
+}
+
+.team-info-block {
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+
+    .team-data {
+        flex-grow: 1;
+        padding: 0 0 0 10px;
+
+        .title {
+            font-weight: bold;
+        }
+    }
+
+    .TeamIcon {
+        background: rgba(0, 0, 0, 0.12);
+    }
+}

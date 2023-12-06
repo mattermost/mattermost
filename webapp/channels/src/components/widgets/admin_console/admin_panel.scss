@@ -1,0 +1,68 @@
+@import 'utils/module';
+
+.AdminPanel {
+    padding: 0;
+    border: solid 1px alpha-color($black, 0.1);
+    margin: 2em 0 1em;
+    border-radius: $border-rad;
+    box-shadow: 0 1px 2px 0 alpha-color($black, 0.5);
+    font-size: 0.95em;
+
+    .AdminPanel__content {
+        padding: 10px 20px 20px;
+    }
+
+    .AdminPanel__table {
+        width: 100%;
+
+        th {
+            border-bottom: solid 1px alpha-color($black, 0.1);
+        }
+
+        td,
+        th {
+            padding: 6px 20px;
+
+            &:first-child {
+                padding-left: 20px;
+            }
+        }
+    }
+
+    .header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px;
+        background: $white;
+
+        h3 {
+            padding: 0;
+            margin: 0;
+            font-size: 18px;
+            font-weight: normal;
+        }
+
+        .button {
+            align-self: flex-end;
+            margin-left: 10px;
+
+            svg {
+                transform: rotate(0deg);
+                transition: transform 300ms;
+            }
+        }
+    }
+
+    &.closed {
+        .header {
+            .button {
+                svg {
+                    transform: rotate(90deg);
+                    transition: transform 300ms;
+                }
+            }
+        }
+    }
+}

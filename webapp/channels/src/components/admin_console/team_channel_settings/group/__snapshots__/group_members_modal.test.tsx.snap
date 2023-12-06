@@ -1,0 +1,73 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/team_channel_settings/group/GroupList should match snapshot while visible 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="groupMemberModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal settings-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="groupMembersModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="groupMemberModalLabel"
+    >
+      group_display_name
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <Connect(MemberListGroup)
+      groupID="group_id"
+    />
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      autoFocus={true}
+      className="btn btn-primary"
+      id="closeModalButton"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Close"
+        id="admin.team_channel_settings.groupMembers.close"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;

@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ChannelHeaderDropdown/MenuItem.CloseChannel shoud be hidden if the channel is not archived 1`] = `
+<MenuItemAction
+  onClick={[MockFunction]}
+  show={false}
+  text="Close Channel"
+/>
+`;
+
+exports[`components/ChannelHeaderDropdown/MenuItem.CloseChannel should match snapshot 1`] = `
+<MenuItemAction
+  onClick={[MockFunction]}
+  show={true}
+  text="Close Channel"
+/>
+`;

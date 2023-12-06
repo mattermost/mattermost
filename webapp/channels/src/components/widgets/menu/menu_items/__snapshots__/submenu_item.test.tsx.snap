@@ -1,0 +1,239 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/widgets/menu/menu_items/submenu_item empty subMenu should match snapshot 1`] = `
+<SubMenuItem
+  action={[MockFunction]}
+  direction="left"
+  id="1"
+  renderSelected={true}
+  root={true}
+  show={true}
+  subMenu={Array []}
+  subMenuClass="pl-4"
+  text="test"
+>
+  <li
+    className="SubMenuItem MenuItem"
+    id="1_menuitem"
+    onClick={[Function]}
+    role="menuitem"
+  >
+    <div
+      className=""
+      id="1"
+      onClick={[Function]}
+      onKeyDown={[Function]}
+      onMouseEnter={[Function]}
+      onMouseLeave={[Function]}
+      tabIndex={0}
+    >
+      <div
+        className="flex"
+      >
+        test
+        <span
+          className="selected"
+        />
+        <span
+          aria-label="submenu icon"
+          className="fa fa-angle-right SubMenu__icon-right-empty"
+          id="channelHeaderDropdownIconRight_1"
+        />
+      </div>
+      <ul
+        className="a11y__popup Menu dropdown-menu SubMenu"
+        style={
+          Object {
+            "right": "100%",
+            "top": "unset",
+            "visibility": "hidden",
+          }
+        }
+      />
+    </div>
+  </li>
+</SubMenuItem>
+`;
+
+exports[`components/widgets/menu/menu_items/submenu_item present subMenu should match snapshot with submenu 1`] = `
+<SubMenuItem
+  action={[MockFunction]}
+  direction="left"
+  id="1"
+  renderSelected={true}
+  root={true}
+  show={true}
+  subMenu={
+    Array [
+      Object {
+        "direction": "left",
+        "id": "A",
+        "text": "Test A",
+      },
+      Object {
+        "direction": "left",
+        "id": "B",
+        "text": "Test B",
+      },
+    ]
+  }
+  subMenuClass="pl-4"
+  text="test"
+>
+  <li
+    className="SubMenuItem MenuItem"
+    id="1_menuitem"
+    onClick={[Function]}
+    role="menuitem"
+  >
+    <div
+      className=""
+      id="1"
+      onClick={[Function]}
+      onKeyDown={[Function]}
+      onMouseEnter={[Function]}
+      onMouseLeave={[Function]}
+      tabIndex={0}
+    >
+      <div
+        className="flex"
+      >
+        test
+        <span
+          className="selected"
+        />
+        <span
+          aria-label="submenu icon"
+          className="fa fa-angle-right SubMenu__icon-right"
+          id="channelHeaderDropdownIconRight_1"
+        />
+      </div>
+      <ul
+        className="a11y__popup Menu dropdown-menu SubMenu"
+        style={
+          Object {
+            "right": "100%",
+            "top": "unset",
+            "visibility": "hidden",
+          }
+        }
+      >
+        <span
+          className="SubMenuItemContainer"
+          key="A"
+          tabIndex={0}
+        >
+          <SubMenuItem
+            direction="left"
+            id="A"
+            renderSelected={true}
+            root={false}
+            show={true}
+            subMenuClass="pl-4"
+            tabIndex={1}
+            text="Test A"
+          >
+            <li
+              className="SubMenuItem MenuItem"
+              id="A_menuitem"
+              onClick={[Function]}
+              role="menuitem"
+            >
+              <div
+                className=""
+                id="A"
+                onClick={[Function]}
+                onKeyDown={[Function]}
+                onMouseEnter={[Function]}
+                onMouseLeave={[Function]}
+                tabIndex={1}
+              >
+                <div
+                  className="flex"
+                >
+                  Test A
+                  <span
+                    className="selected"
+                  />
+                  <span
+                    aria-label="submenu icon"
+                    className="fa fa-angle-right SubMenu__icon-right-empty"
+                    id="channelHeaderDropdownIconRight_A"
+                  />
+                </div>
+                <ul
+                  className="a11y__popup Menu dropdown-menu SubMenu"
+                  style={
+                    Object {
+                      "right": "100%",
+                      "top": "unset",
+                      "visibility": "hidden",
+                    }
+                  }
+                />
+              </div>
+            </li>
+          </SubMenuItem>
+        </span>
+        <span
+          className="SubMenuItemContainer"
+          key="B"
+          tabIndex={0}
+        >
+          <SubMenuItem
+            direction="left"
+            id="B"
+            renderSelected={true}
+            root={false}
+            show={true}
+            subMenuClass="pl-4"
+            tabIndex={1}
+            text="Test B"
+          >
+            <li
+              className="SubMenuItem MenuItem"
+              id="B_menuitem"
+              onClick={[Function]}
+              role="menuitem"
+            >
+              <div
+                className=""
+                id="B"
+                onClick={[Function]}
+                onKeyDown={[Function]}
+                onMouseEnter={[Function]}
+                onMouseLeave={[Function]}
+                tabIndex={1}
+              >
+                <div
+                  className="flex"
+                >
+                  Test B
+                  <span
+                    className="selected"
+                  />
+                  <span
+                    aria-label="submenu icon"
+                    className="fa fa-angle-right SubMenu__icon-right-empty"
+                    id="channelHeaderDropdownIconRight_B"
+                  />
+                </div>
+                <ul
+                  className="a11y__popup Menu dropdown-menu SubMenu"
+                  style={
+                    Object {
+                      "right": "100%",
+                      "top": "unset",
+                      "visibility": "hidden",
+                    }
+                  }
+                />
+              </div>
+            </li>
+          </SubMenuItem>
+        </span>
+      </ul>
+    </div>
+  </li>
+</SubMenuItem>
+`;

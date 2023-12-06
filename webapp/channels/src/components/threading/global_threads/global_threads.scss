@@ -1,0 +1,129 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.GlobalThreads___title {
+    span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.GlobalThreads {
+    --border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+
+    .GlobalThreads___header {
+        border-bottom: var(--border);
+        grid-area: header;
+    }
+
+    .channel-header__icon,
+    .search__form {
+        margin-top: 1px;
+    }
+
+    .ThreadList {
+        border-right: var(--border);
+        grid-area: list;
+    }
+
+    .ThreadPane,
+    .ThreadList + .no-results__holder {
+        grid-area: pane;
+    }
+
+    > .no-results__holder {
+        grid-area: list/list/pane/pane;
+
+        @media screen and (max-width: 1020px) {
+            grid-area: main;
+        }
+    }
+
+    .no-results__wrapper svg {
+        margin-bottom: 20px;
+    }
+
+    .no-results__subtitle {
+        max-width: 378px;
+    }
+
+    .ThreadPane {
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* === Responsiveness === */
+    --list: minmax(min-content, 300px);
+    --pane: minmax(min-content, auto);
+
+    display: grid;
+    overflow: hidden;
+    grid-template-areas:
+        'header header'
+        'list pane';
+
+    // 2-column
+    grid-template-columns: var(--list) var(--pane);
+    grid-template-rows: 63px 1fr;
+
+    // single column
+    @media screen and (max-width: 1020px) {
+        grid-template-areas:
+            'header header'
+            'main main';
+
+        &:not(.thread-selected) {
+            .ThreadList {
+                grid-area: main;
+            }
+
+            .ThreadPane,
+            .ThreadList + .no-results__holder {
+                display: none;
+            }
+        }
+
+        &.thread-selected {
+            .ThreadList {
+                display: none;
+            }
+
+            .ThreadPane {
+                grid-area: main;
+
+                .Header {
+                    padding-left: 5px;
+                }
+
+                .back {
+                    display: unset;
+                }
+            }
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        grid-template-rows: 0 1fr;
+
+        > .Header {
+            display: none;
+        }
+
+        .Header {
+            border-top: var(--border);
+        }
+    }
+
+    @media screen and (min-width: 1021px) {
+        --list: minmax(min-content, 350px);
+    }
+
+    @media screen and (min-width: 1267px) {
+        --list: minmax(min-content, 400px);
+    }
+
+    @media screen and (min-width: 1680px) {
+        --list: minmax(min-content, 500px);
+    }
+}

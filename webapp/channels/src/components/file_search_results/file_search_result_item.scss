@@ -1,0 +1,121 @@
+.FileSearchResultItem {
+    display: flex;
+    overflow: hidden;
+    max-width: 600px;
+    flex-direction: row;
+    flex-grow: 1;
+    align-items: center;
+    padding: 11px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    margin: 0 14px 8px 14px;
+    background: transparent;
+    border-radius: 4px;
+    color: var(--center-channel-color);
+    cursor: pointer;
+    transition: box-shadow 0.15s ease;
+
+    .Menu__content {
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        background-color: var(--center-channel-bg);
+    }
+
+    &:hover,
+    &:focus-within,
+    &.keep-open {
+        overflow: visible;
+        box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.1), 0 2px 3px 0 rgba(0, 0, 0, 0.1);
+
+        .action-icon {
+            display: flex;
+            opacity: 1;
+        }
+
+        .MenuWrapper {
+            display: block;
+            opacity: 1;
+        }
+
+        .fileData {
+            overflow: hidden;
+        }
+    }
+
+    .file-icon {
+        width: 4rem;
+        min-width: 4rem;
+        height: 4rem;
+    }
+
+    .fileData {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        flex-grow: 1;
+        padding: 0 11px;
+        font-size: 12px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        .fileDataName {
+            overflow: hidden;
+            margin-bottom: 3px;
+            text-align: left;
+            text-overflow: ellipsis;
+        }
+
+        .fileMetadata {
+            display: flex;
+            flex-direction: row;
+            font-weight: 400;
+            gap: 8px;
+
+            > :not(.Tag) {
+                opacity: 0.56;
+            }
+
+            .Tag {
+                max-width: 100px;
+            }
+        }
+    }
+
+    .post-image {
+        min-width: 4rem;
+    }
+
+    .action-icon {
+        display: flex;
+        width: 32px;
+        min-width: 32px;
+        height: 32px;
+        justify-content: center;
+        margin-left: 8px;
+        background-color: var(--center-channel-bg);
+        border-radius: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        cursor: pointer;
+        fill: rgba(var(--center-channel-color-rgb), 0.72);
+        opacity: 0;
+        text-decoration: none;
+        transition: opacity 0.15s ease;
+
+        &.download-icon {
+            margin-right: 6px;
+        }
+
+        svg {
+            display: flex;
+        }
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+    }
+
+    .MenuWrapper {
+        display: flex;
+        opacity: 0;
+    }
+}

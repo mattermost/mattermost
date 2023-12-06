@@ -1,0 +1,82 @@
+  "/api/v4/sharedchannels/{team_id}":
+    get:
+      tags:
+        - shared channels
+      summary: Get all shared channels for team.
+      description: |
+        Get all shared channels for a team.
+
+        __Minimum server version__: 5.50
+
+        ##### Permissions
+        Must be authenticated.
+      operationId: GetAllSharedChannels
+      parameters:
+        - name: team_id
+          in: path
+          description: Team Id
+          required: true
+          schema:
+            type: string
+        - name: page
+          description: The page to select.
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          description: The number of sharedchannels per page.
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Shared channels fetch successful. Result may be empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharedChannel"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/sharedchannels/remote_info/{remote_id}":
+    get:
+      tags:
+        - shared channels
+      summary: Get remote cluster info by ID for user.
+      description: |
+        Get remote cluster info based on remoteId.
+
+        __Minimum server version__: 5.50
+
+        ##### Permissions
+        Must be authenticated and user must belong to at least one channel shared with the remote cluster.
+      operationId: GetRemoteClusterInfo
+      parameters:
+        - name: remote_id
+          in: path
+          description: Remote Cluster GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Remote cluster info retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoteClusterInfo"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"

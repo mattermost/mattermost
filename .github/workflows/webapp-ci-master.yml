@@ -1,0 +1,11 @@
+name: Web App CI Master
+on:
+  push:
+    branches:
+      - master
+      - cloud
+      - release-*
+
+jobs:
+  master-ci:
+    uses: ./.github/workflows/webapp-ci-template.yml

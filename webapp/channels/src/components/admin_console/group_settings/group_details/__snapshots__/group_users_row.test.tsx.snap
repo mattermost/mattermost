@@ -1,0 +1,47 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/group_settings/group_details/GroupUsersRow should match snapshot 1`] = `
+<div
+  className="group-users-row"
+>
+  <Memo(Avatar)
+    size="lg"
+    url="/api/v4/users/xxxxxxxxxxxxxxxxxxxxxxxxxx/image"
+    username="test"
+  />
+  <div
+    className="user-data"
+  >
+    <div
+      className="name-row"
+    >
+      <span
+        className="username"
+      >
+        @test
+      </span>
+      -
+      <span
+        className="display-name"
+      >
+        Test display name
+      </span>
+    </div>
+    <div>
+      <span
+        className="email-label"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Email:"
+          id="admin.group_settings.group_details.group_users.email"
+        />
+      </span>
+      <span
+        className="email"
+      >
+        test@test.com
+      </span>
+    </div>
+  </div>
+</div>
+`;

@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/custom_status/date_time_input should match snapshot 1`] = `
+<DateTimeInputContainer
+  handleChange={[MockFunction]}
+  time={"2021-05-03T14:53:39.127Z"}
+  timezone="Australia/Sydney"
+/>
+`;

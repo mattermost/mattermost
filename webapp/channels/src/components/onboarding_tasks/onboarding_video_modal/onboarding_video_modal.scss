@@ -1,0 +1,61 @@
+
+@charset 'UTF-8';
+
+.on-boarding-video_modal {
+    .modal & {
+        width: 100%;
+        max-width: 899px;
+        height: unset;
+        margin-top: calc(50vh - 252px);
+        box-shadow: var(--elevation-6);
+    }
+
+    .wistia_embed {
+        width: 100%;
+        max-width: 899px;
+        height: 100%;
+        max-height: 506px;
+    }
+
+    .modal-header {
+        min-height: 0;
+        padding: 0;
+        border: none;
+
+        .close {
+            top: -12px;
+            right: -12px;
+            border-radius: 16px;
+            opacity: 0.8;
+
+            :hover {
+                opacity: 1;
+            }
+
+            .app__body .modal & {
+                background: var(--center-channel-bg);
+                color: var(--center-channel-color);
+            }
+        }
+    }
+
+    .modal-content {
+        height: 100vh;
+        max-height: 506px;
+        padding: 0;
+        border: none;
+        border-radius: 8px;
+    }
+
+    .modal-body {
+        overflow: hidden;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+        border-radius: 8px;
+    }
+
+    .modal-footer {
+        display: none;
+    }
+}

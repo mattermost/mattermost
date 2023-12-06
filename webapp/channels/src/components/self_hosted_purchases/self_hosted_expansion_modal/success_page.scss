@@ -1,0 +1,23 @@
+.SelfHostedPurchaseModal__success {
+    display: flex;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    flex-direction: row;
+    flex-grow: 1;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    padding: 77px 107px;
+    color: var(--center-channel-color);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.self_hosted_expansion_success {
+    overflow: hidden;
+
+    .selfHostedExpansionModal__success {
+        margin-top: 163px;
+    }
+}

@@ -1,0 +1,31 @@
+.config-section {
+    margin-top: 20px;
+    background: white;
+    border-radius: 4px;
+
+    .admin-console__wrapper {
+        padding: 0;
+    }
+
+    .section-header {
+        padding: 24px 32px;
+        border-bottom: 1px solid rgba(61, 60, 64, 0.08);
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+        }
+    }
+
+    .section-body {
+        padding: 28px 32px;
+    }
+}
+
+.config-section:nth-child(1) {
+    margin-top: 0;
+}

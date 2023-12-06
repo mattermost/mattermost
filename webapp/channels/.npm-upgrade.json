@@ -1,0 +1,108 @@
+{
+  "ignore": {
+    "@formatjs/intl-pluralrules": {
+      "versions": "",
+      "reason": "MM-34912 - Breaking changes to how locale data is loaded."
+    },
+    "@formatjs/intl-relativetimeformat": {
+      "versions": "",
+      "reason": "MM-34912 - Breaking changes to how locale data is loaded."
+    },
+    "@stripe/react-stripe-js": {
+      "versions": "",
+      "reason": "MM-34916 - Upgrades involve sensitive parts of the code."
+    },
+    "@stripe/stripe-js": {
+      "versions": "",
+      "reason": "MM-34916 - Upgrades involve sensitive parts of the code."
+    },
+    "bootstrap": {
+      "versions": "",
+      "reason": "MM-10786 - Bootstrap is heavily integrated in the code base and signficantly out of date."
+    },
+    "@types/bootstrap": {
+      "versions": "",
+      "reason": "MM-10786 - Bootstrap is heavily integrated in the code base and signficantly out of date."
+    },
+    "chart.js": {
+      "versions": "",
+      "reason": "MM-34915 - Breaking changes to how components are loaded."
+    },
+    "emoji-datasource": {
+      "versions": "",
+      "reason": "MM-36772 - Emoji updates are handled separately from regular dependencies."
+    },
+    "emoji-datasource-apple": {
+      "versions": "",
+      "reason": "MM-36772 - Emoji updates are handled separately from regular dependencies."
+    },
+    "p-queue": {
+      "versions": "",
+      "reason": "MM-34914 - Breaking changes to how modules are loaded."
+    },
+    "pdfjs-dist": {
+      "versions": "",
+      "reason": "MM-32929 - Breaking changes to how library is loaded and used."
+    },
+    "react": {
+      "versions": "",
+      "reason": "MM-45255 - React updates are handled separately from regular dependencies."
+    },
+    "@types/react": {
+      "versions": "",
+      "reason": "MM-45255 - React updates are handled separately from regular dependencies."
+    },
+    "react-dom": {
+      "versions": "",
+      "reason": "MM-45255 - React updates are handled separately from regular dependencies."
+    },
+    "@types/react-dom": {
+      "versions": "",
+      "reason": "MM-45255 - React updates are handled separately from regular dependencies."
+    },
+    "react-is": {
+      "versions": "",
+      "reason": "MM-45255 - React updates are handled separately from regular dependencies."
+    },
+    "@types/react-is": {
+      "versions": "",
+      "reason": "MM-45255 - React updates are handled separately from regular dependencies."
+    },
+    "react-overlays": {
+      "versions": "",
+      "reason": "MM-10786 - Bootstrap is heavily integrated in the code base and signficantly out of date."
+    },
+    "redux-persist": {
+      "versions": "",
+      "reason": "MM-34911 - Library is no longer supported and we're significantly out of date on it."
+    },
+    "serialize-error": {
+      "versions": "",
+      "reason": "MM-34914 - Breaking changes to how modules are loaded."
+    },
+    "@hot-loader/react-dom": {
+      "versions": "",
+      "reason": "MM-45255 - React updates are handled separately from other dependencies."
+    },
+    "@types/marked": {
+      "versions": "",
+      "reason": "Ignored since our forked version is wildly different from upstream."
+    },
+    "@types/react-bootstrap": {
+      "versions": "",
+      "reason": "MM-10786 - Bootstrap is heavily integrated in the code base and signficantly out of date."
+    },
+    "react-select": {
+      "versions": "",
+      "reason": "MM-18031 - Breaking changes."
+    },
+    "@types/react-select": {
+      "versions": "",
+      "reason": "MM-18031 - Breaking changes."
+    },
+    "flexsearch": {
+      "versions": "",
+      "reason": "MM-37116 - Breaking changes in API"
+    }
+  }
+}

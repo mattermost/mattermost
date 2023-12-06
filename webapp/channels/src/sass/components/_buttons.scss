@@ -1,0 +1,352 @@
+@charset 'UTF-8';
+
+.style--none {
+    padding: 0;
+    border: none;
+    background: transparent;
+
+    &:focus {
+        outline: 0;
+        text-decoration: none;
+    }
+
+    &.btn--block {
+        width: 100%;
+        text-align: left;
+    }
+
+    &:hover,
+    &:active {
+        text-decoration: none;
+    }
+}
+
+button {
+    .unread-badge {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        margin: 0 0 0 40px;
+        background: #f74343;
+        border-radius: 50%;
+    }
+}
+
+.btn {
+    // Important is given to override bootstrap styles on different states
+    display: inline-flex;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+    border: none;
+    border-radius: $border-rad * 2;
+    font-size: 14px;
+    font-weight: 600;
+    gap: 8px;
+    outline: none !important;
+    transition: all 0.15s ease;
+
+    &.btn-icon {
+        width: 40px;
+        padding: 0;
+        background-color: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+
+        &:focus,
+        &:active {
+            background-color: rgba(var(--button-bg-rgb), 0.08);
+            color: rgba(var(--button-bg-rgb), 1);
+        }
+
+        i {
+            font-size: 24px;
+        }
+
+        &.btn-xs {
+            width: 24px;
+            height: 24px;
+            padding: 0;
+
+            &.btn-compact {
+                width: 20px;
+                height: 20px;
+            }
+
+            i {
+                font-size: 14.4px;
+            }
+        }
+
+        &.btn-sm {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+
+            &.btn-compact {
+                width: 28px;
+                height: 28px;
+            }
+
+            i {
+                font-size: 18px;
+            }
+        }
+
+        &.btn-lg {
+            width: 48px;
+            height: 48px;
+            padding: 0;
+
+            &.btn-compact {
+                width: 36px;
+                height: 36px;
+            }
+
+            i {
+                font-size: 31.2px;
+            }
+        }
+    }
+
+    &:not(.a11y--active) {
+        box-shadow: none;
+    }
+
+    &:active {
+        box-shadow: none;
+    }
+
+    & + .btn {
+        margin-left: 8px !important;
+    }
+
+    &.btn-full {
+        width: 100%;
+    }
+
+    i {
+        display: inline-flex;
+        width: 16px;
+        height: 16px;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0;
+        font-size: 18px;
+    }
+
+    &.btn-xs {
+        height: 24px;
+        padding: 0 10px;
+        font-size: 11px;
+        gap: 6px;
+
+        i {
+            width: 12px;
+            height: 12px;
+            font-size: 14.4px;
+        }
+    }
+
+    &.btn-sm {
+        height: 32px;
+        padding: 0 16px;
+        font-size: 12px;
+        gap: 6px;
+
+        i {
+            width: 12px;
+            height: 12px;
+            font-size: 14.4px;
+        }
+    }
+
+    &.btn-lg {
+        height: 48px;
+        padding: 0 24px;
+        font-size: 16px;
+        gap: 10px;
+
+        i {
+            width: 20px;
+            height: 20px;
+            font-size: 24px;
+        }
+    }
+
+    &.btn-link {
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: rgba(var(--button-bg-rgb), 1);
+
+        &:hover,
+        &:focus,
+        &:active {
+            text-decoration: underline;
+        }
+    }
+
+    &.btn-primary {
+        position: relative;
+        border-color: transparent;
+        background-color: rgb(var(--button-bg-rgb));
+        color: rgb(var(--button-color-rgb)) !important;
+
+        // These hover and active values are for things outside the app__body, the correct theme styles for the primary button are applied in utils.jsx
+        &:hover {
+            background-color: #1a51c8;
+        }
+
+        &:active,
+        &:focus {
+            background-color: #184ab6;
+        }
+
+        &:disabled,
+        &:disabled:hover,
+        &:disabled:active {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+            opacity: 1;
+        }
+    }
+
+    &.btn-secondary {
+        border: 1px solid rgb(var(--button-bg-rgb));
+        background: transparent;
+        color: rgb(var(--button-bg-rgb));
+
+        &.btn-danger {
+            border-color: currentColor;
+            background: transparent;
+            color: var(--error-text);
+
+            &:hover {
+                border-color: currentColor;
+                background-color: rgba(var(--error-text-color-rgb), 0.08);
+                color: var(--error-text);
+            }
+
+            &:active,
+            &:focus {
+                border-color: currentColor;
+                background-color: rgba(var(--error-text-color-rgb), 0.16);
+                color: var(--error-text);
+            }
+        }
+
+        &:hover {
+            background-color: rgb(var(--button-bg-rgb), 0.08);
+        }
+
+        &:active {
+            background-color: rgb(var(--button-bg-rgb), 0.16);
+        }
+    }
+
+    &.btn-tertiary {
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: rgb(var(--button-bg-rgb));
+
+        &:hover {
+            background-color: rgb(var(--button-bg-rgb), 0.12);
+        }
+
+        &:active {
+            background-color: rgb(var(--button-bg-rgb), 0.16);
+            outline: none;
+        }
+
+        &:disabled,
+        &:disabled:hover,
+        &:disabled:active {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+            opacity: 1;
+        }
+
+        &.btn-danger {
+            background-color: rgba(var(--error-text-color-rgb), 0.08);
+            color: var(--error-text);
+
+            &:hover {
+                background-color: rgba(var(--error-text-color-rgb), 0.12);
+                color: var(--error-text);
+            }
+
+            &:active,
+            &:focus {
+                background-color: rgba(var(--error-text-color-rgb), 0.16);
+                color: var(--error-text);
+            }
+        }
+    }
+
+    &.btn-quaternary {
+        background: transparent;
+        color: rgb(var(--button-bg-rgb));
+
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+
+        &:active {
+            background-color: rgb(var(--button-bg-rgb), 0.12);
+        }
+    }
+
+    &.btn-danger {
+        background: var(--error-text);
+        color: $white;
+
+        .app__body & {
+            color: $white;
+
+            &:hover,
+            &:focus,
+            &:active {
+                color: $white;
+            }
+        }
+
+        &:hover,
+        &:focus,
+        &:active {
+            color: $white;
+        }
+    }
+
+    &.btn-transparent {
+        padding: 7px 12px;
+        border: none;
+        background: transparent;
+    }
+
+    &.btn-inactive {
+        border-color: transparent;
+        background: $light-gray;
+        color: $white;
+    }
+
+    .fa {
+        margin-right: 3px;
+
+        &.margin-right {
+            margin-right: 6px;
+        }
+
+        &.margin-left {
+            margin-left: 6px;
+        }
+    }
+}
+
+%btn-transition {
+    transition: all 0.15s ease;
+}

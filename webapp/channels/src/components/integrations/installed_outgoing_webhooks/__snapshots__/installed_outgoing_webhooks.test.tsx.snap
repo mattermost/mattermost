@@ -1,0 +1,287 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot 1`] = `
+<div>
+  <InstalledOutgoingWebhook
+    canChange={true}
+    channel={
+      Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "town-square",
+        "group_constrained": false,
+        "header": "header",
+        "id": "mdpzfpfcxi85zkkqkzkch4b85h",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "town-square",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+    creator={
+      Object {
+        "auth_service": "",
+        "bot_description": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "email": "",
+        "first_name": "sudheer",
+        "id": "zaktnt8bpbgu8mb6ez9k64r7sa",
+        "is_bot": false,
+        "last_activity_at": 0,
+        "last_name": "",
+        "last_password_update": 0,
+        "last_picture_update": 0,
+        "locale": "",
+        "mfa_active": false,
+        "nickname": "",
+        "notify_props": Object {
+          "calls_desktop_sound": "true",
+          "channel": "false",
+          "comments": "never",
+          "desktop": "default",
+          "desktop_sound": "false",
+          "email": "false",
+          "first_name": "false",
+          "highlight_keys": "",
+          "mark_unread": "mention",
+          "mention_keys": "",
+          "push": "none",
+          "push_status": "offline",
+        },
+        "password": "",
+        "position": "",
+        "props": Object {},
+        "roles": "system_admin system_user",
+        "terms_of_service_create_at": 0,
+        "terms_of_service_id": "",
+        "update_at": 0,
+        "username": "sudheerdev",
+      }
+    }
+    key="7h88x419ubbyuxzs7dfwtgkfgr"
+    onDelete={[Function]}
+    onRegenToken={[Function]}
+    outgoingWebhook={
+      Object {
+        "0": "asdf",
+        "callback_urls": Array [
+          "http://adsfdasd.com",
+        ],
+        "channel_id": "mdpzfpfcxi85zkkqkzkch4b85h",
+        "content_type": "application/x-www-form-urlencoded",
+        "create_at": 1508327769020,
+        "creator_id": "zaktnt8bpbgu8mb6ez9k64r7sa",
+        "delete_at": 0,
+        "description": "build status",
+        "display_name": "",
+        "id": "7h88x419ubbyuxzs7dfwtgkfgr",
+        "team_id": "eatxocwc3bg9ffo9xyybnj4omr",
+        "token": "xoxz1z7c3tgi9xhrfudn638q9r",
+        "trigger_when": 0,
+        "trigger_words": Array [
+          "build",
+        ],
+        "update_at": 1508329149618,
+      }
+    }
+    team={
+      Object {
+        "allow_open_invite": false,
+        "allowed_domains": "",
+        "company_name": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "description": "",
+        "display_name": "name",
+        "email": "",
+        "group_constrained": false,
+        "id": "testteamid",
+        "invite_id": "",
+        "name": "test",
+        "scheme_id": "id",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+  />
+  <InstalledOutgoingWebhook
+    canChange={true}
+    channel={
+      Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "town-square",
+        "group_constrained": false,
+        "header": "header",
+        "id": "mdpzfpfcxi85zkkqkzkch4b85h",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "town-square",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+    creator={
+      Object {
+        "auth_service": "",
+        "bot_description": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "email": "",
+        "first_name": "sudheer",
+        "id": "zaktnt8bpbgu8mb6ez9k64r7sa",
+        "is_bot": false,
+        "last_activity_at": 0,
+        "last_name": "",
+        "last_password_update": 0,
+        "last_picture_update": 0,
+        "locale": "",
+        "mfa_active": false,
+        "nickname": "",
+        "notify_props": Object {
+          "calls_desktop_sound": "true",
+          "channel": "false",
+          "comments": "never",
+          "desktop": "default",
+          "desktop_sound": "false",
+          "email": "false",
+          "first_name": "false",
+          "highlight_keys": "",
+          "mark_unread": "mention",
+          "mention_keys": "",
+          "push": "none",
+          "push_status": "offline",
+        },
+        "password": "",
+        "position": "",
+        "props": Object {},
+        "roles": "system_admin system_user",
+        "terms_of_service_create_at": 0,
+        "terms_of_service_id": "",
+        "update_at": 0,
+        "username": "sudheerdev",
+      }
+    }
+    key="7h88x419ubbyuxzs7dfwtgkffr"
+    onDelete={[Function]}
+    onRegenToken={[Function]}
+    outgoingWebhook={
+      Object {
+        "0": "asdf",
+        "callback_urls": Array [
+          "http://adsfdasd.com",
+        ],
+        "channel_id": "mdpzfpfcxi85zkkqkzkch4b85h",
+        "content_type": "application/x-www-form-urlencoded",
+        "create_at": 1508327769020,
+        "creator_id": "zaktnt8bpbgu8mb6ez9k64r7sa",
+        "delete_at": 0,
+        "description": "test",
+        "display_name": "",
+        "id": "7h88x419ubbyuxzs7dfwtgkffr",
+        "team_id": "eatxocwc3bg9ffo9xyybnj4omr",
+        "token": "xoxz1z7c3tgi9xhrfudn638q9r",
+        "trigger_when": 0,
+        "trigger_words": Array [
+          "test",
+        ],
+        "update_at": 1508329149618,
+      }
+    }
+    team={
+      Object {
+        "allow_open_invite": false,
+        "allowed_domains": "",
+        "company_name": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "description": "",
+        "display_name": "name",
+        "email": "",
+        "group_constrained": false,
+        "id": "testteamid",
+        "invite_id": "",
+        "name": "test",
+        "scheme_id": "id",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+  />
+</div>
+`;
+
+exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot 2`] = `<div />`;
+
+exports[`components/integrations/InstalledOutgoingWebhooks should match snapshot 3`] = `
+<BackstageList
+  addButtonId="addOutgoingWebhook"
+  addLink="/test/integrations/outgoing_webhooks/add"
+  addText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Add Outgoing Webhook"
+      id="installed_outgoing_webhooks.add"
+    />
+  }
+  emptyText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="No outgoing webhooks found"
+      id="installed_outgoing_webhooks.empty"
+    />
+  }
+  emptyTextSearch={
+    <FormattedMarkdownMessage
+      defaultMessage="No outgoing webhooks match {searchTerm}"
+      id="installed_outgoing_webhooks.emptySearch"
+    />
+  }
+  header={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Installed Outgoing Webhooks"
+      id="installed_outgoing_webhooks.header"
+    />
+  }
+  helpText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Use outgoing webhooks to connect external tools to Mattermost. {buildYourOwn} or visit the {appDirectory} to find self-hosted, third-party apps and integrations."
+      id="installed_outgoing_webhooks.help"
+      values={
+        Object {
+          "appDirectory": <ExternalLink
+            href="https://mattermost.com/marketplace"
+            location="installed_outgoing_webhooks"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="App Directory"
+              id="installed_outgoing_webhooks.help.appDirectory"
+            />
+          </ExternalLink>,
+          "buildYourOwn": <ExternalLink
+            href="https://mattermost.com/pl/setup-outgoing-webhooks"
+            location="installed_outgoing_webhooks"
+          >
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Build your own"
+              id="installed_outgoing_webhooks.help.buildYourOwn"
+            />
+          </ExternalLink>,
+        }
+      }
+    />
+  }
+  loading={true}
+  searchPlaceholder="Search Outgoing Webhooks"
+>
+  <Component />
+</BackstageList>
+`;

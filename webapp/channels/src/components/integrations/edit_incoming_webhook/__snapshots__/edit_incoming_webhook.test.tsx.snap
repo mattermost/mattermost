@@ -1,0 +1,253 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/EditIncomingWebhook should have called submitHook when editIncomingHook is initiated (no server error) 1`] = `
+<AbstractIncomingWebhook
+  action={[Function]}
+  enablePostIconOverride={true}
+  enablePostUsernameOverride={true}
+  footer={
+    Object {
+      "defaultMessage": "Update",
+      "id": "update_incoming_webhook.update",
+    }
+  }
+  header={
+    Object {
+      "defaultMessage": "Edit",
+      "id": "integrations.edit",
+    }
+  }
+  initialHook={
+    Object {
+      "channel_id": "channel_id",
+      "channel_locked": false,
+      "create_at": 0,
+      "delete_at": 20,
+      "description": "description",
+      "display_name": "display_name",
+      "icon_url": "http://test/icon.png",
+      "id": "id",
+      "team_id": "team_id",
+      "update_at": 10,
+      "user_id": "user_id",
+      "username": "username",
+    }
+  }
+  loading={
+    Object {
+      "defaultMessage": "Updating...",
+      "id": "update_incoming_webhook.updating",
+    }
+  }
+  serverError=""
+  team={
+    Object {
+      "allow_open_invite": false,
+      "allowed_domains": "",
+      "company_name": "",
+      "create_at": 0,
+      "delete_at": 0,
+      "description": "",
+      "display_name": "name",
+      "email": "",
+      "group_constrained": false,
+      "id": "team_id",
+      "invite_id": "",
+      "name": "DN",
+      "scheme_id": "id",
+      "type": "O",
+      "update_at": 0,
+    }
+  }
+/>
+`;
+
+exports[`components/integrations/EditIncomingWebhook should have called submitHook when editIncomingHook is initiated (with data) 1`] = `
+<AbstractIncomingWebhook
+  action={[Function]}
+  enablePostIconOverride={true}
+  enablePostUsernameOverride={true}
+  footer={
+    Object {
+      "defaultMessage": "Update",
+      "id": "update_incoming_webhook.update",
+    }
+  }
+  header={
+    Object {
+      "defaultMessage": "Edit",
+      "id": "integrations.edit",
+    }
+  }
+  initialHook={
+    Object {
+      "channel_id": "channel_id",
+      "channel_locked": false,
+      "create_at": 0,
+      "delete_at": 20,
+      "description": "description",
+      "display_name": "display_name",
+      "icon_url": "http://test/icon.png",
+      "id": "id",
+      "team_id": "team_id",
+      "update_at": 10,
+      "user_id": "user_id",
+      "username": "username",
+    }
+  }
+  loading={
+    Object {
+      "defaultMessage": "Updating...",
+      "id": "update_incoming_webhook.updating",
+    }
+  }
+  serverError=""
+  team={
+    Object {
+      "allow_open_invite": false,
+      "allowed_domains": "",
+      "company_name": "",
+      "create_at": 0,
+      "delete_at": 0,
+      "description": "",
+      "display_name": "name",
+      "email": "",
+      "group_constrained": false,
+      "id": "team_id",
+      "invite_id": "",
+      "name": "DN",
+      "scheme_id": "id",
+      "type": "O",
+      "update_at": 0,
+    }
+  }
+/>
+`;
+
+exports[`components/integrations/EditIncomingWebhook should have called submitHook when editIncomingHook is initiated (with server error) 1`] = `
+<AbstractIncomingWebhook
+  action={[Function]}
+  enablePostIconOverride={true}
+  enablePostUsernameOverride={true}
+  footer={
+    Object {
+      "defaultMessage": "Update",
+      "id": "update_incoming_webhook.update",
+    }
+  }
+  header={
+    Object {
+      "defaultMessage": "Edit",
+      "id": "integrations.edit",
+    }
+  }
+  initialHook={
+    Object {
+      "channel_id": "channel_id",
+      "channel_locked": false,
+      "create_at": 0,
+      "delete_at": 20,
+      "description": "description",
+      "display_name": "display_name",
+      "icon_url": "http://test/icon.png",
+      "id": "id",
+      "team_id": "team_id",
+      "update_at": 10,
+      "user_id": "user_id",
+      "username": "username",
+    }
+  }
+  loading={
+    Object {
+      "defaultMessage": "Updating...",
+      "id": "update_incoming_webhook.updating",
+    }
+  }
+  serverError=""
+  team={
+    Object {
+      "allow_open_invite": false,
+      "allowed_domains": "",
+      "company_name": "",
+      "create_at": 0,
+      "delete_at": 0,
+      "description": "",
+      "display_name": "name",
+      "email": "",
+      "group_constrained": false,
+      "id": "team_id",
+      "invite_id": "",
+      "name": "DN",
+      "scheme_id": "id",
+      "type": "O",
+      "update_at": 0,
+    }
+  }
+/>
+`;
+
+exports[`components/integrations/EditIncomingWebhook should not call getIncomingHook 1`] = `<LoadingScreen />`;
+
+exports[`components/integrations/EditIncomingWebhook should show AbstractIncomingWebhook 1`] = `
+<AbstractIncomingWebhook
+  action={[Function]}
+  enablePostIconOverride={true}
+  enablePostUsernameOverride={true}
+  footer={
+    Object {
+      "defaultMessage": "Update",
+      "id": "update_incoming_webhook.update",
+    }
+  }
+  header={
+    Object {
+      "defaultMessage": "Edit",
+      "id": "integrations.edit",
+    }
+  }
+  initialHook={
+    Object {
+      "channel_id": "channel_id",
+      "channel_locked": false,
+      "create_at": 0,
+      "delete_at": 20,
+      "description": "description",
+      "display_name": "display_name",
+      "icon_url": "http://test/icon.png",
+      "id": "id",
+      "team_id": "team_id",
+      "update_at": 10,
+      "user_id": "user_id",
+      "username": "username",
+    }
+  }
+  loading={
+    Object {
+      "defaultMessage": "Updating...",
+      "id": "update_incoming_webhook.updating",
+    }
+  }
+  serverError=""
+  team={
+    Object {
+      "allow_open_invite": false,
+      "allowed_domains": "",
+      "company_name": "",
+      "create_at": 0,
+      "delete_at": 0,
+      "description": "",
+      "display_name": "name",
+      "email": "",
+      "group_constrained": false,
+      "id": "team_id",
+      "invite_id": "",
+      "name": "DN",
+      "scheme_id": "id",
+      "type": "O",
+      "update_at": 0,
+    }
+  }
+/>
+`;
+
+exports[`components/integrations/EditIncomingWebhook should show Loading screen when no hook is provided 1`] = `<LoadingScreen />`;

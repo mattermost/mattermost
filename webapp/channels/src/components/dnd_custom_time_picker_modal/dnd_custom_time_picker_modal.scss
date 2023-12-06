@@ -1,0 +1,162 @@
+@import '../../sass/utils/module';
+
+.DndModal {
+    width: 600px;
+
+    .btn-primary {
+        height: 4rem;
+        padding: 0 2rem;
+        border-radius: $border-rad*2;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .GenericModal__header {
+        padding: 28px 24px 0;
+    }
+
+    .DayPickerInput-OverlayWrapper {
+        position: initial;
+    }
+
+    .DayPickerInput-Overlay {
+        top: 42px;
+        left: -1px;
+        width: calc(100% + 2px);
+    }
+
+    .DayPickerInput {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: block;
+        display: flex;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        padding-left: 40px;
+    }
+
+    .DayPicker-Day.DayPicker-Day--outside {
+        &.DayPicker-Day--today {
+            background-color: rgba(var(--center-channel-bg-rgb), 1);
+        }
+    }
+}
+
+.DndModal__content {
+    display: flex;
+    margin: 32px -10px 10px;
+
+    > div {
+        flex: 1;
+        margin: 0 10px;
+    }
+
+    .dropdown-menu {
+        overflow: auto;
+        width: 100%;
+        max-height: 268px;
+    }
+}
+
+.DndModal__input {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 40px;
+    align-items: center;
+    padding: 0 16px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    background: rgba(var(--center-channel-bg-rgb), 1);
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+
+    .MenuWrapper--open & {
+        border-color: var(--button-bg);
+        box-shadow: inset 0 0 0 1px var(--button-bg);
+    }
+
+    .icon {
+        margin: 0 8px 0 0;
+    }
+
+    input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        padding: 0 0 2px 40px;
+        border: none;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        background: transparent;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: inherit;
+
+        &:focus {
+            border-color: var(--button-bg);
+            box-shadow: inset 0 0 0 1px var(--button-bg);
+        }
+    }
+}
+
+.DndModal__input--no-border {
+    border: none;
+}
+
+.DndModal__input__label {
+    position: absolute;
+    z-index: 1;
+    top: -11px;
+    left: 0;
+    padding: 0 4px;
+    margin: 0 14px;
+    background: rgba(var(--center-channel-bg-rgb), 1);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 10px;
+}
+
+.DndModal__calendar-input {
+    height: 40px;
+
+    &:hover {
+        cursor: pointer;
+    }
+
+    &.popper-open {
+        border-color: var(--button-bg);
+        box-shadow: inset 0 0 0 1px var(--button-bg);
+        color: var(--button-bg);
+    }
+
+    .Input_wrapper {
+        padding-left: 8px;
+
+        button.dateTime__calendar-icon {
+            margin: 0 8px 0 0;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+
+            &:active {
+                background-color: transparent;
+            }
+        }
+
+        input#DndModal__calendar-input {
+            height: auto;
+            border: 0;
+
+            &[readonly] {
+                background: transparent;
+            }
+
+            &:hover {
+                cursor: pointer;
+            }
+        }
+    }
+}

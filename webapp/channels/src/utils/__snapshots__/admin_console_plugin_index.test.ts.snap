@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AdminConsolePluginsIndex.getPluginEntries should return map with the text extracted from plugins 1`] = `
+Object {
+  "plugin_mattermost-autolink": Array [
+    "admin.plugin.enable_plugin",
+    "admin.plugin.enable_plugin.help",
+    "PluginSettings.PluginStates.mattermost-autolink.Enable",
+    "Autolink",
+    "mattermost-autolink",
+    "Configure this plugin directly in the config.json file. Learn more in our documentation. To report an issue, make a suggestion or a contribution, check the plugin repository.",
+    "Enable administration with /autolink command",
+    "EnableAdminCommand",
+  ],
+}
+`;
+
+exports[`AdminConsolePluginsIndex.getPluginEntries should return map with the text extracted from plugins 2`] = `
+Object {
+  "plugin_Some-random-plugin": Array [
+    "admin.plugin.enable_plugin",
+    "admin.plugin.enable_plugin.help",
+    "PluginSettings.PluginStates.Some-random-plugin.Enable",
+    "Random",
+    "Some-random-plugin",
+    "random plugin footer",
+    "random plugin header",
+    "Generate with /generateRand command",
+    "/generateRand 10",
+    "GenerateRandomNumber",
+    "set range with /setRange command",
+    "setRange",
+  ],
+  "plugin_mattermost-autolink": Array [
+    "admin.plugin.enable_plugin",
+    "admin.plugin.enable_plugin.help",
+    "PluginSettings.PluginStates.mattermost-autolink.Enable",
+    "Autolink",
+    "mattermost-autolink",
+    "Configure this plugin directly in the config.json file. Learn more in our documentation. To report an issue, make a suggestion or a contribution, check the plugin repository.",
+    "Enable administration with /autolink command",
+    "EnableAdminCommand",
+  ],
+}
+`;

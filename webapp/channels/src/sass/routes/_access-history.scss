@@ -1,0 +1,32 @@
+@charset 'UTF-8';
+
+.access-history__table {
+    display: table;
+    width: 100%;
+    padding-top: 15px;
+    line-height: 1.6;
+
+    &:first-child {
+        padding: 0;
+    }
+
+    > div {
+        display: table-cell;
+        vertical-align: top;
+    }
+
+    .access__date {
+        width: 190px;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .access__report {
+        padding-bottom: 15px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .report__info {
+        opacity: 0.8;
+    }
+}

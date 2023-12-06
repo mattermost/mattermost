@@ -1,0 +1,158 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component/file_preview/file_progress_preview should match snapshot 1`] = `
+<div
+  className="file-preview post-image__column"
+  data-client-id="clientId"
+  key="clientId"
+>
+  <div
+    className="post-image__thumbnail"
+  >
+    <div
+      className="file-icon image"
+    />
+  </div>
+  <div
+    className="post-image__details"
+  >
+    <div
+      className="post-image__detail_wrapper"
+    >
+      <div
+        className="post-image__detail"
+      >
+        <FilenameOverlay
+          canDownload={false}
+          compactDisplay={false}
+          fileInfo={
+            Object {
+              "archived": false,
+              "clientId": "",
+              "create_at": 0,
+              "delete_at": 0,
+              "extension": "png",
+              "has_preview_image": true,
+              "height": 80,
+              "id": "file",
+              "mime_type": "",
+              "name": "test_filename",
+              "percent": 50,
+              "size": 100,
+              "type": "image/png",
+              "update_at": 0,
+              "user_id": "",
+              "width": 100,
+            }
+          }
+        />
+        <span
+          className="post-image__uploadingTxt"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Uploading..."
+            id="admin.plugin.uploading"
+          />
+          <span>
+             (50%)
+          </span>
+        </span>
+      </div>
+    </div>
+    <div>
+      <a
+        className="file-preview__remove"
+        onClick={[Function]}
+      >
+        <i
+          className="icon icon-close"
+        />
+      </a>
+    </div>
+    <ProgressBar
+      active={false}
+      bsClass="progress-bar"
+      className="post-image__progressBar"
+      isChild={false}
+      max={100}
+      min={0}
+      now={50}
+      srOnly={false}
+      striped={false}
+    />
+  </div>
+</div>
+`;
+
+exports[`component/file_preview/file_progress_preview snapshot for percent value undefined 1`] = `
+<div
+  className="file-preview post-image__column"
+  data-client-id="clientId"
+  key="clientId"
+>
+  <div
+    className="post-image__thumbnail"
+  >
+    <div
+      className="file-icon image"
+    />
+  </div>
+  <div
+    className="post-image__details"
+  >
+    <div
+      className="post-image__detail_wrapper"
+    >
+      <div
+        className="post-image__detail"
+      >
+        <FilenameOverlay
+          canDownload={false}
+          compactDisplay={false}
+          fileInfo={
+            Object {
+              "archived": false,
+              "clientId": "",
+              "create_at": 0,
+              "delete_at": 0,
+              "extension": "png",
+              "has_preview_image": true,
+              "height": 80,
+              "id": "file",
+              "mime_type": "",
+              "name": "test_filename",
+              "percent": undefined,
+              "size": 100,
+              "type": "image/png",
+              "update_at": 0,
+              "user_id": "",
+              "width": 100,
+            }
+          }
+        />
+        <span
+          className="post-image__uploadingTxt"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Uploading..."
+            id="admin.plugin.uploading"
+          />
+          <span>
+             (0%)
+          </span>
+        </span>
+      </div>
+    </div>
+    <div>
+      <a
+        className="file-preview__remove"
+        onClick={[Function]}
+      >
+        <i
+          className="icon icon-close"
+        />
+      </a>
+    </div>
+  </div>
+</div>
+`;

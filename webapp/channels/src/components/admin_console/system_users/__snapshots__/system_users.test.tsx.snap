@@ -1,0 +1,48 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/system_users should match default snapshot 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="{siteName} Users"
+      id="admin.system_users.title"
+      values={
+        Object {
+          "siteName": "Site name",
+        }
+      }
+    />
+    <RevokeSessionsButton />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <div
+        className="more-modal__list member-list-holder"
+      >
+        <Connect(SystemUsersList)
+          enableUserAccessTokens={false}
+          experimentalEnableAuthenticationTransfer={false}
+          filter=""
+          loading={true}
+          mfaEnabled={false}
+          nextPage={[Function]}
+          onTermChange={[Function]}
+          renderFilterRow={[Function]}
+          search={[Function]}
+          teamId=""
+          teams={Array []}
+          term=""
+          total={0}
+          usersPerPage={50}
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -1,0 +1,154 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/AccessHistoryModal should match snapshot when audits exist 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="accessHistoryModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  bsSize="large"
+  dialogClassName="a11y__modal modal--scroll access-history-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="accessHistoryModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Access History"
+        id="access_history.title"
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <Connect(injectIntl(AuditTable))
+      audits={
+        Array [
+          "audit1",
+          "audit2",
+        ]
+      }
+      showIp={true}
+      showSession={true}
+    />
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    className="modal-footer--invisible"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-tertiary"
+      id="closeModalButton"
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Close"
+        id="general_button.close"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`components/AccessHistoryModal should match snapshot when no audits exist 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="accessHistoryModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  bsSize="large"
+  dialogClassName="a11y__modal modal--scroll access-history-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="accessHistoryModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Access History"
+        id="access_history.title"
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <LoadingScreen />
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    className="modal-footer--invisible"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-tertiary"
+      id="closeModalButton"
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Close"
+        id="general_button.close"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;

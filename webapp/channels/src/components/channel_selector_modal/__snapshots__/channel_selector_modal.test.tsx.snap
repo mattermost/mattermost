@@ -1,0 +1,247 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ChannelSelectorModal exclude already selected 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="channelSelectorModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal more-modal more-direct-channels channel-selector-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="channelSelectorModalLabel"
+    >
+      <FormattedMarkdownMessage
+        defaultMessage="Add Channels to **Channel Selection** List"
+        id="add_channels_to_scheme.title"
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <MultiSelect
+      ariaLabelRenderer={[Function]}
+      buttonSubmitText="Add"
+      focusOnLoad={true}
+      handleAdd={[Function]}
+      handleDelete={[Function]}
+      handleInput={[Function]}
+      handlePageChange={[Function]}
+      handleSubmit={[Function]}
+      key="addChannelsToSchemeKey"
+      loading={true}
+      numRemainingText={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Use ↑↓ to browse, ↵ to select."
+          id="multiselect.selectChannels"
+        />
+      }
+      optionRenderer={[Function]}
+      options={
+        Array [
+          Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "channel-3",
+            "label": "name",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_display_name": "teamDisplayName",
+            "team_id": "teamid1",
+            "team_name": "teamName",
+            "team_update_at": 0,
+            "type": "O",
+            "update_at": 0,
+            "value": "channel-3",
+          },
+        ]
+      }
+      perPage={50}
+      placeholderText="Search and add channels"
+      saveButtonPosition="top"
+      saving={false}
+      savingEnabled={true}
+      selectedItemRef={
+        Object {
+          "current": null,
+        }
+      }
+      valueRenderer={[Function]}
+      valueWithImage={false}
+      values={Array []}
+    />
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/ChannelSelectorModal should match snapshot 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="channelSelectorModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal more-modal more-direct-channels channel-selector-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="channelSelectorModalLabel"
+    >
+      <FormattedMarkdownMessage
+        defaultMessage="Add Channels to **Channel Selection** List"
+        id="add_channels_to_scheme.title"
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <MultiSelect
+      ariaLabelRenderer={[Function]}
+      buttonSubmitText="Add"
+      focusOnLoad={true}
+      handleAdd={[Function]}
+      handleDelete={[Function]}
+      handleInput={[Function]}
+      handlePageChange={[Function]}
+      handleSubmit={[Function]}
+      key="addChannelsToSchemeKey"
+      loading={true}
+      numRemainingText={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Use ↑↓ to browse, ↵ to select."
+          id="multiselect.selectChannels"
+        />
+      }
+      optionRenderer={[Function]}
+      options={
+        Array [
+          Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "channel-2",
+            "label": "name",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_display_name": "teamDisplayName",
+            "team_id": "teamid2",
+            "team_name": "teamName",
+            "team_update_at": 0,
+            "type": "O",
+            "update_at": 0,
+            "value": "channel-2",
+          },
+          Object {
+            "create_at": 0,
+            "creator_id": "id",
+            "delete_at": 0,
+            "display_name": "name",
+            "group_constrained": false,
+            "header": "header",
+            "id": "channel-3",
+            "label": "name",
+            "last_post_at": 0,
+            "last_root_post_at": 0,
+            "name": "DN",
+            "purpose": "purpose",
+            "scheme_id": "id",
+            "team_display_name": "teamDisplayName",
+            "team_id": "teamid1",
+            "team_name": "teamName",
+            "team_update_at": 0,
+            "type": "O",
+            "update_at": 0,
+            "value": "channel-3",
+          },
+        ]
+      }
+      perPage={50}
+      placeholderText="Search and add channels"
+      saveButtonPosition="top"
+      saving={false}
+      savingEnabled={true}
+      selectedItemRef={
+        Object {
+          "current": null,
+        }
+      }
+      valueRenderer={[Function]}
+      valueWithImage={false}
+      values={Array []}
+    />
+  </ModalBody>
+</Modal>
+`;

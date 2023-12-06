@@ -1,0 +1,77 @@
+.file-view--single {
+    margin: 0;
+
+    .file__image {
+        position: relative;
+
+        .image-header {
+            // this and the following hover block need to use such an excessive
+            // number of selectors to override the specificity in _files.scss
+            .image-name,
+            button.single-image-view__toggle {
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+            }
+
+            &:hover .image-name,
+            &:hover button.single-image-view__toggle {
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+            }
+
+            button.single-image-view__toggle {
+                display: inline-block;
+                padding: 0;
+                border: none;
+                background: transparent;
+                border-radius: 4px;
+                font-size: 18px;
+                line-height: 18px;
+
+                .icon {
+                    width: 18px;
+                    height: 18px;
+
+                    &::before {
+                        margin-right: 0;
+                        margin-left: 0;
+                    }
+                }
+            }
+
+            &--expanded {
+                position: absolute;
+                z-index: 3;
+                top: -6px;
+                left: -2px;
+
+                button.single-image-view__toggle {
+                    display: none;
+                    width: 24px;
+                    height: 24px;
+                    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                    background-color: var(--center-channel-bg);
+                    border-radius: 16px;
+                    box-shadow: $elevation-1;
+                    line-height: 20px;
+
+                    &:hover {
+                        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+                        box-shadow: $elevation-2;
+                    }
+                }
+            }
+        }
+
+        &:hover .image-header--expanded button.single-image-view__toggle {
+            display: block;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+
+        .image-container {
+            margin: 5px 0;
+
+            &.image-permalink {
+                margin: 5px 0 0;
+            }
+        }
+    }
+}

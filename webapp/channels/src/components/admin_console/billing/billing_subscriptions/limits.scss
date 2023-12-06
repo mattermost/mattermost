@@ -1,0 +1,65 @@
+@import 'utils/variables';
+@import './mixins';
+
+.ProductLimitsPanel {
+    @include cloud-card;
+
+    &--left-panel {
+        max-width: 568px;
+        padding: 24px 32px;
+    }
+
+    &--single-panel {
+        padding: 24px calc(100% - 536px) 24px 32px;
+    }
+
+    &__title {
+        @include cloud-card-title;
+
+        padding-bottom: 8px;
+    }
+
+    &__description {
+        padding-bottom: 16px;
+        font-size: 14px;
+    }
+
+    &__limits {
+        display: flex;
+    }
+
+    &__actions {
+        padding-top: 20px;
+
+        &--single {
+            padding-top: 30px;
+        }
+    }
+
+    .btn {
+        padding: 11px 16px;
+        margin-right: 8px;
+        background: $primary-color;
+        border-radius: 4px;
+        color: $white;
+        font-size: 12px;
+        font-weight: bold;
+        line-height: 9.5px;
+
+        &:focus,
+        &:active,
+        &:focus:active {
+            border-color: transparent;
+            outline: none;
+        }
+
+        &.btn-secondary {
+            background: rgba(var(--denim-button-bg-rgb), 0.08);
+            color: var(--denim-button-bg);
+        }
+    }
+
+    &__contact-link {
+        font-weight: bold;
+    }
+}

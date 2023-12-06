@@ -1,0 +1,52 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ProductBranding should show correct icon glyph when we are on Boards 1`] = `
+<ProductBrandingContainer
+  tabIndex={0}
+>
+  <ProductBoardsIcon
+    size={24}
+  />
+  <Heading
+    element="h1"
+    margin="none"
+    size={200}
+  >
+    Boards
+  </Heading>
+</ProductBrandingContainer>
+`;
+
+exports[`components/ProductBranding should show correct icon glyph when we are on Channels 1`] = `
+<ProductBrandingContainer
+  tabIndex={0}
+>
+  <ProductChannelsIcon
+    size={24}
+  />
+  <Heading
+    element="h1"
+    margin="none"
+    size={200}
+  >
+    Channels
+  </Heading>
+</ProductBrandingContainer>
+`;
+
+exports[`components/ProductBranding should show correct icon glyph when we are on Playbooks 1`] = `
+<ProductBrandingContainer
+  tabIndex={0}
+>
+  <ProductPlaybooksIcon
+    size={24}
+  />
+  <Heading
+    element="h1"
+    margin="none"
+    size={200}
+  >
+    Playbooks
+  </Heading>
+</ProductBrandingContainer>
+`;

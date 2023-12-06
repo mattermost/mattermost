@@ -1,0 +1,280 @@
+  "/api/v4/users/{user_id}/status":
+    get:
+      tags:
+        - status
+      summary: Get user status
+      description: |
+        Get user status by id from the server.
+        ##### Permissions
+        Must be authenticated.
+      operationId: GetUserStatus
+      parameters:
+        - name: user_id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User status retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    put:
+      tags:
+        - status
+      summary: Update user status
+      description: >
+        Manually set a user's status. When setting a user's status, the status
+        will remain that value until set "online" again, which will return the
+        status to being automatically updated based on user activity.
+
+        ##### Permissions
+
+        Must have `edit_other_users` permission for the team.
+      operationId: UpdateUserStatus
+      parameters:
+        - name: user_id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+                - user_id
+              properties:
+                user_id:
+                  type: string
+                  description: User ID
+                status:
+                  type: string
+                  description: User status, can be `online`, `away`, `offline` and `dnd`
+                dnd_end_time:
+                  type: integer
+                  description: Time in epoch seconds at which a dnd status would be unset.
+        description: Status object that is to be updated
+        required: true
+      responses:
+        "200":
+          description: User status update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v4/users/status/ids:
+    post:
+      tags:
+        - status
+      summary: Get user statuses by id
+      description: |
+        Get a list of user statuses by id from the server.
+        ##### Permissions
+        Must be authenticated.
+      operationId: GetUsersStatusesByIds
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        description: List of user ids to fetch
+        required: true
+      responses:
+        "200":
+          description: User statuses retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Status"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  "/api/v4/users/{user_id}/status/custom":
+    put:
+      tags:
+        - status
+      summary: Update user custom status
+      description: |
+        Updates a user's custom status by setting the value in the user's props and updates the user. Also save the given custom status to the recent custom statuses in the user's props
+        ##### Permissions
+        Must be logged in as the user whose custom status is being updated.
+      operationId: UpdateUserCustomStatus
+      parameters:
+        - name: user_id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - emoji
+                - text
+              properties:
+                emoji:
+                  type: string
+                  description: Any emoji
+                text:
+                  type: string
+                  description: Any custom status text
+                duration:
+                  type: string
+                  description: Duration of custom status, can be `thirty_minutes`, `one_hour`, `four_hours`, `today`, `this_week` or `date_and_time`
+                expires_at:
+                  type: string
+                  description: The time at which custom status should be expired. It should be in ISO format.
+        description: Custom status object that is to be updated
+        required: true
+      responses:
+        "200":
+          description: User custom status update successful
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    delete:
+      tags:
+        - status
+      summary: Unsets user custom status
+      description: |
+        Unsets a user's custom status by updating the user's props and updates the user
+        ##### Permissions
+        Must be logged in as the user whose custom status is being removed.
+      operationId: UnsetUserCustomStatus
+      parameters:
+        - name: user_id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User custom status delete successful
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  "/api/v4/users/{user_id}/status/custom/recent":
+    delete:
+      tags:
+        - status
+      summary: Delete user's recent custom status
+      description: |
+        Deletes a user's recent custom status by removing the specific status from the recentCustomStatuses in the user's props and updates the user.
+        ##### Permissions
+        Must be logged in as the user whose recent custom status is being deleted.
+      operationId: RemoveRecentCustomStatus
+      parameters:
+        - name: user_id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - emoji
+                - text
+                - duration
+                - expires_at
+              properties:
+                emoji:
+                  type: string
+                  description: Any emoji
+                text:
+                  type: string
+                  description: Any custom status text
+                duration:
+                  type: string
+                  description: Duration of custom status, can be `thirty_minutes`, `one_hour`, `four_hours`, `today`, `this_week` or `date_and_time`
+                expires_at:
+                  type: string
+                  description: The time at which custom status should be expired. It should be in ISO format.
+        description: Custom Status object that is to be removed from the recent custom statuses.
+        required: true
+      responses:
+        "200":
+          description: User recent custom status delete successful
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  "/api/v4/users/{user_id}/status/custom/recent/delete":
+    post:
+      tags:
+        - status
+      summary: Delete user's recent custom status
+      description: |
+        Deletes a user's recent custom status by removing the specific status from the recentCustomStatuses in the user's props and updates the user.
+        ##### Permissions
+        Must be logged in as the user whose recent custom status is being deleted.
+      operationId: PostUserRecentCustomStatusDelete
+      parameters:
+        - name: user_id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - emoji
+                - text
+                - duration
+                - expires_at
+              properties:
+                emoji:
+                  type: string
+                  description: Any emoji
+                text:
+                  type: string
+                  description: Any custom status text
+                duration:
+                  type: string
+                  description: Duration of custom status, can be `thirty_minutes`, `one_hour`, `four_hours`, `today`, `this_week` or `date_and_time`
+                expires_at:
+                  type: string
+                  description: The time at which custom status should be expired. It should be in ISO format.
+        description: Custom Status object that is to be removed from the recent custom statuses.
+        required: true
+      responses:
+        "200":
+          description: User recent custom status delete successful
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"

@@ -1,0 +1,150 @@
+@charset 'UTF-8';
+
+.announcement-bar {
+    z-index: 999;
+    display: flex;
+    overflow: hidden;
+    width: 100%;
+    min-height: $announcement-bar-height;
+    max-height: $announcement-bar-height;
+    align-items: center;
+    justify-content: center;
+    background-color: #579eff;
+    color: $white;
+    text-align: center;
+
+    .announcement-bar__text {
+        display: flex;
+        overflow: hidden;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+
+        > span {
+            overflow: hidden;
+            padding: 0 8px;
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 600;
+            line-height: 20px;
+            text-overflow: ellipsis;
+
+            .announcement-bar__configuration {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            &::after {
+                display: block;
+                content: '';
+            }
+        }
+
+        .annnouncementBar__purchaseNow,
+        .annnouncementBar__renewLicense {
+            margin-top: 0;
+        }
+
+        .annnouncementBar__renewLicense {
+            border-color: $white;
+        }
+    }
+
+    a {
+        color: inherit !important;
+        text-decoration: underline;
+
+        &:hover,
+        &:active,
+        &:focus {
+            color: inherit !important;
+        }
+
+        &.announcement-bar__close {
+            position: absolute;
+            top: 5px;
+            right: 0;
+            padding: 0 10px;
+            color: $white;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            text-decoration: none;
+
+            &:hover {
+                color: $white;
+                text-decoration: none;
+            }
+        }
+    }
+
+    .fa-wrapper {
+        margin: 0 5px;
+    }
+
+    .resend-verification-wrapper::before {
+        content: "\00a0 ";
+    }
+
+    .content__icon,
+    i {
+        margin-right: 4px;
+        color: #fff;
+        font-family: 'compass-icons';
+        font-size: 16px;
+    }
+
+    button {
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        height: 24px;
+        box-sizing: border-box;
+        padding: 4px 8px;
+        padding-top: 2px;
+        border: 1px solid #fff;
+        margin-left: 8px;
+        background-color: inherit !important;
+        border-radius: 4px;
+        font-family: Open Sans;
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: 16px;
+    }
+}
+
+.announcement-bar-critical {
+    background-color: #f74343;
+}
+
+.announcement-bar-success {
+    background-color: #06d6a0;
+}
+
+.announcement-bar-advisor {
+    background-color: #579eff;
+}
+
+.announcement-bar-advisor-ack {
+    background-color: #06d6a0;
+}
+
+.announcement-bar-general {
+    background-color: #3d3c40;
+}
+
+.announcement-bar__link {
+    margin-left: 4px;
+}
+
+.advisor-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    margin-bottom: 2px;
+    margin-left: 8px;
+}

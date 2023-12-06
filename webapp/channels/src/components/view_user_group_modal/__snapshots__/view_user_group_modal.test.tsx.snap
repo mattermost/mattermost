@@ -1,0 +1,120 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component/view_user_group_modal should match snapshot 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="viewUserGroupModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal view-user-groups-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <Connect(Component)
+    backButtonAction={[MockFunction]}
+    backButtonCallback={[MockFunction]}
+    decrementMemberCount={[Function]}
+    groupId="groupid123"
+    incrementMemberCount={[Function]}
+    onExited={[MockFunction]}
+  />
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      className="group-mention-name"
+    >
+      <span
+        className="group-name"
+      >
+        @group
+      </span>
+    </div>
+    <div
+      className="user-groups-search"
+    >
+      <ForwardRef
+        className="user-group-search-input"
+        data-testid="searchInput"
+        inputPrefix={
+          <i
+            className="icon icon-magnify"
+          />
+        }
+        onChange={[Function]}
+        placeholder="Search group members"
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      className="user-groups-modal__content group-member-list"
+      onScroll={[Function]}
+    >
+      <h2
+        className="group-member-count"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="{member_count} {member_count, plural, one {Member} other {Members}}"
+          id="view_user_group_modal.memberCount"
+          values={
+            Object {
+              "member_count": 6,
+            }
+          }
+        />
+      </h2>
+      <Connect(Component)
+        decrementMemberCount={[Function]}
+        groupId="groupid123"
+        key="user-1"
+        user={
+          Object {
+            "delete_at": 0,
+            "first_name": "user",
+            "id": "user-1",
+            "last_name": "one",
+            "username": "user1",
+          }
+        }
+      />
+      <Connect(Component)
+        decrementMemberCount={[Function]}
+        groupId="groupid123"
+        key="user-2"
+        user={
+          Object {
+            "delete_at": 0,
+            "first_name": "user",
+            "id": "user-2",
+            "last_name": "otwo",
+            "username": "user2",
+          }
+        }
+      />
+      <LoadingScreen />
+    </div>
+  </ModalBody>
+</Modal>
+`;

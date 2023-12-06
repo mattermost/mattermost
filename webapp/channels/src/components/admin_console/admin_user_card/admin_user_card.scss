@@ -1,0 +1,51 @@
+.AdminUserCard {
+    padding: 0;
+    margin: 2em 0 1em;
+    border-radius: 2px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+.AdminUserCard__header {
+    display: flex;
+    height: 92px;
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 30px 20px 12px 30px;
+    background-color: #295eb9;
+}
+
+.AdminUserCard__header .Avatar.Avatar-xxl {
+    border: solid 2px #fff;
+}
+
+.AdminUserCard__body {
+    padding: 12px 20px 20px 178px;
+    background-color: #fff;
+}
+
+.AdminUserCard__footer {
+    padding: 20px;
+    border-top: solid 1px rgba(0, 0, 0, 0.2);
+    background-color: #fff;
+}
+
+.AdminUserCard__user-info {
+    align-self: flex-end;
+    padding: 0;
+    margin-left: 20px;
+    color: #fff;
+    font-size: 20px;
+    font-weight: normal;
+}
+
+.AdminUserCard__user-nickname {
+    opacity: 0.5;
+}
+
+.AdminUserCard__user-id {
+    align-self: flex-end;
+    margin-left: auto;
+    color: #fff;
+    font-size: 12px;
+    opacity: 0.5;
+}

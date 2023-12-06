@@ -1,0 +1,465 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with multiple items 1`] = `
+<CustomURLSchemesSetting
+  disabled={false}
+  id="MySetting"
+  intl={
+    Object {
+      "$t": [Function],
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "onWarn": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  onChange={[MockFunction]}
+  setByEnv={false}
+  value={
+    Array [
+      "git",
+      "smtp",
+      "steam",
+    ]
+  }
+>
+  <Memo(Settings)
+    helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
+    inputId="MySetting"
+    label="Custom URL Schemes:"
+    setByEnv={false}
+  >
+    <div
+      className="form-group"
+      data-testid="MySetting"
+    >
+      <label
+        className="control-label col-sm-4"
+        htmlFor="MySetting"
+      >
+        Custom URL Schemes:
+      </label>
+      <div
+        className="col-sm-8"
+      >
+        <input
+          className="form-control"
+          disabled={false}
+          id="MySetting"
+          onChange={[Function]}
+          placeholder="E.g.: \\"git,smtp\\""
+          type="text"
+          value="git,smtp,steam"
+        />
+        <div
+          className="help-text"
+          data-testid="MySettinghelp-text"
+        >
+          Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: "http", "https", "ftp", "tel", and "mailto".
+        </div>
+      </div>
+    </div>
+  </Memo(Settings)>
+</CustomURLSchemesSetting>
+`;
+
+exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with no items 1`] = `
+<CustomURLSchemesSetting
+  disabled={false}
+  id="MySetting"
+  intl={
+    Object {
+      "$t": [Function],
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "onWarn": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  onChange={[MockFunction]}
+  setByEnv={false}
+  value={Array []}
+>
+  <Memo(Settings)
+    helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
+    inputId="MySetting"
+    label="Custom URL Schemes:"
+    setByEnv={false}
+  >
+    <div
+      className="form-group"
+      data-testid="MySetting"
+    >
+      <label
+        className="control-label col-sm-4"
+        htmlFor="MySetting"
+      >
+        Custom URL Schemes:
+      </label>
+      <div
+        className="col-sm-8"
+      >
+        <input
+          className="form-control"
+          disabled={false}
+          id="MySetting"
+          onChange={[Function]}
+          placeholder="E.g.: \\"git,smtp\\""
+          type="text"
+          value=""
+        />
+        <div
+          className="help-text"
+          data-testid="MySettinghelp-text"
+        >
+          Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: "http", "https", "ftp", "tel", and "mailto".
+        </div>
+      </div>
+    </div>
+  </Memo(Settings)>
+</CustomURLSchemesSetting>
+`;
+
+exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with one item 1`] = `
+<CustomURLSchemesSetting
+  disabled={false}
+  id="MySetting"
+  intl={
+    Object {
+      "$t": [Function],
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "onWarn": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  onChange={[MockFunction]}
+  setByEnv={false}
+  value={
+    Array [
+      "git",
+    ]
+  }
+>
+  <Memo(Settings)
+    helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
+    inputId="MySetting"
+    label="Custom URL Schemes:"
+    setByEnv={false}
+  >
+    <div
+      className="form-group"
+      data-testid="MySetting"
+    >
+      <label
+        className="control-label col-sm-4"
+        htmlFor="MySetting"
+      >
+        Custom URL Schemes:
+      </label>
+      <div
+        className="col-sm-8"
+      >
+        <input
+          className="form-control"
+          disabled={false}
+          id="MySetting"
+          onChange={[Function]}
+          placeholder="E.g.: \\"git,smtp\\""
+          type="text"
+          value="git"
+        />
+        <div
+          className="help-text"
+          data-testid="MySettinghelp-text"
+        >
+          Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: "http", "https", "ftp", "tel", and "mailto".
+        </div>
+      </div>
+    </div>
+  </Memo(Settings)>
+</CustomURLSchemesSetting>
+`;
+
+exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when disabled 1`] = `
+<CustomURLSchemesSetting
+  disabled={true}
+  id="MySetting"
+  intl={
+    Object {
+      "$t": [Function],
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "onWarn": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  onChange={[MockFunction]}
+  setByEnv={false}
+  value={
+    Array [
+      "git",
+      "smtp",
+    ]
+  }
+>
+  <Memo(Settings)
+    helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
+    inputId="MySetting"
+    label="Custom URL Schemes:"
+    setByEnv={false}
+  >
+    <div
+      className="form-group"
+      data-testid="MySetting"
+    >
+      <label
+        className="control-label col-sm-4"
+        htmlFor="MySetting"
+      >
+        Custom URL Schemes:
+      </label>
+      <div
+        className="col-sm-8"
+      >
+        <input
+          className="form-control"
+          disabled={true}
+          id="MySetting"
+          onChange={[Function]}
+          placeholder="E.g.: \\"git,smtp\\""
+          type="text"
+          value="git,smtp"
+        />
+        <div
+          className="help-text"
+          data-testid="MySettinghelp-text"
+        >
+          Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: "http", "https", "ftp", "tel", and "mailto".
+        </div>
+      </div>
+    </div>
+  </Memo(Settings)>
+</CustomURLSchemesSetting>
+`;
+
+exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when set by environment variable 1`] = `
+<CustomURLSchemesSetting
+  disabled={false}
+  id="MySetting"
+  intl={
+    Object {
+      "$t": [Function],
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "onWarn": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  onChange={[MockFunction]}
+  setByEnv={true}
+  value={
+    Array [
+      "git",
+      "smtp",
+    ]
+  }
+>
+  <Memo(Settings)
+    helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
+    inputId="MySetting"
+    label="Custom URL Schemes:"
+    setByEnv={true}
+  >
+    <div
+      className="form-group"
+      data-testid="MySetting"
+    >
+      <label
+        className="control-label col-sm-4"
+        htmlFor="MySetting"
+      >
+        Custom URL Schemes:
+      </label>
+      <div
+        className="col-sm-8"
+      >
+        <input
+          className="form-control"
+          disabled={true}
+          id="MySetting"
+          onChange={[Function]}
+          placeholder="E.g.: \\"git,smtp\\""
+          type="text"
+          value="git,smtp"
+        />
+        <div
+          className="help-text"
+          data-testid="MySettinghelp-text"
+        >
+          Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: "http", "https", "ftp", "tel", and "mailto".
+        </div>
+        <SetByEnv>
+          <div
+            className="alert alert-warning"
+          >
+            <FormattedMessage
+              defaultMessage="This setting has been set through an environment variable. It cannot be changed through the System Console."
+              id="admin.set_by_env"
+            >
+              <span>
+                This setting has been set through an environment variable. It cannot be changed through the System Console.
+              </span>
+            </FormattedMessage>
+          </div>
+        </SetByEnv>
+      </div>
+    </div>
+  </Memo(Settings)>
+</CustomURLSchemesSetting>
+`;

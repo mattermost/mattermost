@@ -1,0 +1,39 @@
+@charset 'UTF-8';
+
+.compliance-panel__table,
+.audit-panel__table,
+.cluster-panel__table {
+    overflow: auto;
+    width: 100%;
+    min-height: 100px;
+    max-height: 70vh;
+    padding: 5px;
+    border: 1px solid $border-gray;
+    margin-top: 10px;
+    background-color: $white;
+}
+
+.compliance-panel,
+.audit-panel {
+    .row {
+        > .form-group {
+            padding-left: 0;
+
+            &:first-child {
+                padding-left: 15px;
+            }
+        }
+
+        label {
+            font-weight: 600;
+        }
+    }
+
+    .fa-refresh {
+        margin-right: 5px;
+    }
+}
+
+.compliance-panel {
+    margin-bottom: 3em;
+}

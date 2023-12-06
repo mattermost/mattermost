@@ -1,0 +1,27 @@
+package main
+
+import (
+	"fmt"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+)
+
+type TestPlugin struct {
+	plugin.MattermostPlugin
+}
+
+func (p *TestPlugin) OnActivate() error {
+	fmt.Println("activated")
+	return nil
+}
+
+// This acts like a template as the content of this file gets passed to
+// fmt.Sprintf to inject additional logic based on the test case.
+func (p *TestPlugin) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error) {
+	%s
+}
+
+func main() {
+	plugin.ClientMain(&TestPlugin{})
+}

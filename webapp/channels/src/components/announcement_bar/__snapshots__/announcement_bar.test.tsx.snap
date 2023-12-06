@@ -1,0 +1,411 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/AnnouncementBar should match snapshot, bar not showing 1`] = `
+<_StyledDiv
+  className="announcement-bar announcement-bar-critical"
+  style={
+    Object {
+      "backgroundColor": "",
+      "color": "",
+    }
+  }
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayHide={0}
+    delayShow={400}
+    overlay={<React.Fragment />}
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <div
+      className="announcement-bar__text"
+    >
+      <span
+        onMouseEnter={[Function]}
+      >
+        <FormattedMarkdownMessage
+          id="text"
+        />
+      </span>
+      <span
+        className="announcement-bar__link"
+      />
+    </div>
+  </OverlayTrigger>
+</_StyledDiv>
+`;
+
+exports[`components/AnnouncementBar should match snapshot, bar showing 1`] = `
+<_StyledDiv
+  className="announcement-bar announcement-bar-critical"
+  style={
+    Object {
+      "backgroundColor": "",
+      "color": "",
+    }
+  }
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayHide={0}
+    delayShow={400}
+    overlay={<React.Fragment />}
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <div
+      className="announcement-bar__text"
+    >
+      <span
+        onMouseEnter={[Function]}
+      >
+        <FormattedMarkdownMessage
+          id="text"
+        />
+      </span>
+      <span
+        className="announcement-bar__link"
+      />
+    </div>
+  </OverlayTrigger>
+</_StyledDiv>
+`;
+
+exports[`components/AnnouncementBar should match snapshot, bar showing, no dismissal 1`] = `
+<_StyledDiv
+  className="announcement-bar announcement-bar-critical"
+  style={
+    Object {
+      "backgroundColor": "",
+      "color": "",
+    }
+  }
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayHide={0}
+    delayShow={400}
+    overlay={<React.Fragment />}
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <div
+      className="announcement-bar__text"
+    >
+      <span
+        onMouseEnter={[Function]}
+      >
+        <FormattedMarkdownMessage
+          id="text"
+        />
+      </span>
+      <span
+        className="announcement-bar__link"
+      />
+    </div>
+  </OverlayTrigger>
+</_StyledDiv>
+`;
+
+exports[`components/AnnouncementBar should match snapshot, dismissal 1`] = `
+<_StyledDiv
+  className="announcement-bar announcement-bar-critical"
+  style={
+    Object {
+      "backgroundColor": "",
+      "color": "",
+    }
+  }
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayHide={0}
+    delayShow={400}
+    overlay={<React.Fragment />}
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <div
+      className="announcement-bar__text"
+    >
+      <span
+        onMouseEnter={[Function]}
+      >
+        <FormattedMarkdownMessage
+          id="text"
+        />
+      </span>
+      <span
+        className="announcement-bar__link"
+      />
+    </div>
+  </OverlayTrigger>
+</_StyledDiv>
+`;
+
+exports[`components/AnnouncementBar should match snapshot, dismissal 2`] = `
+<_StyledDiv
+  className="announcement-bar announcement-bar-critical"
+  style={
+    Object {
+      "backgroundColor": "",
+      "color": "",
+    }
+  }
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayHide={0}
+    delayShow={400}
+    overlay={<React.Fragment />}
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <div
+      className="announcement-bar__text"
+    >
+      <span
+        onMouseEnter={[Function]}
+      >
+        <FormattedMarkdownMessage
+          id="text"
+        />
+      </span>
+      <span
+        className="announcement-bar__link"
+      />
+    </div>
+  </OverlayTrigger>
+</_StyledDiv>
+`;
+
+exports[`components/AnnouncementBar should match snapshot, dismissal 3`] = `
+<_StyledDiv
+  className="announcement-bar announcement-bar-critical"
+  style={
+    Object {
+      "backgroundColor": "",
+      "color": "",
+    }
+  }
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayHide={0}
+    delayShow={400}
+    overlay={<React.Fragment />}
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <div
+      className="announcement-bar__text"
+    >
+      <span
+        onMouseEnter={[Function]}
+      >
+        <FormattedMarkdownMessage
+          id="text"
+        />
+      </span>
+      <span
+        className="announcement-bar__link"
+      />
+    </div>
+  </OverlayTrigger>
+</_StyledDiv>
+`;
+
+exports[`components/AnnouncementBar should match snapshot, props change 1`] = `
+<_StyledDiv
+  className="announcement-bar announcement-bar-critical"
+  style={
+    Object {
+      "backgroundColor": "",
+      "color": "",
+    }
+  }
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayHide={0}
+    delayShow={400}
+    overlay={<React.Fragment />}
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <div
+      className="announcement-bar__text"
+    >
+      <span
+        onMouseEnter={[Function]}
+      >
+        <FormattedMarkdownMessage
+          id="text"
+        />
+      </span>
+      <span
+        className="announcement-bar__link"
+      />
+    </div>
+  </OverlayTrigger>
+</_StyledDiv>
+`;
+
+exports[`components/AnnouncementBar should match snapshot, props change 2`] = `
+<_StyledDiv
+  className="announcement-bar announcement-bar-critical"
+  style={
+    Object {
+      "backgroundColor": "",
+      "color": "",
+    }
+  }
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayHide={0}
+    delayShow={400}
+    overlay={<React.Fragment />}
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <div
+      className="announcement-bar__text"
+    >
+      <span
+        onMouseEnter={[Function]}
+      >
+        <FormattedMarkdownMessage
+          id="text"
+        />
+      </span>
+      <span
+        className="announcement-bar__link"
+      />
+    </div>
+  </OverlayTrigger>
+</_StyledDiv>
+`;
+
+exports[`components/AnnouncementBar should match snapshot, props change 3`] = `
+<_StyledDiv
+  className="announcement-bar announcement-bar-critical"
+  style={
+    Object {
+      "backgroundColor": "",
+      "color": "",
+    }
+  }
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayHide={0}
+    delayShow={400}
+    overlay={<React.Fragment />}
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <div
+      className="announcement-bar__text"
+    >
+      <span
+        onMouseEnter={[Function]}
+      >
+        <FormattedMarkdownMessage
+          id="text"
+        />
+      </span>
+      <span
+        className="announcement-bar__link"
+      />
+    </div>
+  </OverlayTrigger>
+</_StyledDiv>
+`;
+
+exports[`components/AnnouncementBar should match snapshot, props change 4`] = `
+<_StyledDiv
+  className="announcement-bar announcement-bar-critical"
+  style={
+    Object {
+      "backgroundColor": "",
+      "color": "",
+    }
+  }
+>
+  <OverlayTrigger
+    defaultOverlayShown={false}
+    delayHide={0}
+    delayShow={400}
+    overlay={<React.Fragment />}
+    placement="bottom"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <div
+      className="announcement-bar__text"
+    >
+      <span
+        onMouseEnter={[Function]}
+      >
+        <FormattedMarkdownMessage
+          id="text"
+        />
+      </span>
+      <span
+        className="announcement-bar__link"
+      />
+    </div>
+  </OverlayTrigger>
+</_StyledDiv>
+`;

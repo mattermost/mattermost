@@ -1,0 +1,21 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.Panel {
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    background-color: var(--center-channel-bg);
+    border-radius: 4px;
+    box-shadow: var(--elevation-1);
+    cursor: pointer;
+    transition: box-shadow 0.3s ease-in-out;
+
+    & + .Panel {
+        margin-top: 16px;
+    }
+
+    &:hover {
+        border-color: rgba(var(--center-channel-color-rgb), 0.16);
+        box-shadow: var(--elevation-2);
+        transition-duration: 0.15s;
+    }
+}

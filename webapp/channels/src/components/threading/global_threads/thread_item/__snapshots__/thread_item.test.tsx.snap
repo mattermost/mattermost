@@ -1,0 +1,362 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/threading/global_threads/thread_item should report total number of replies 1`] = `
+<article
+  className="ThreadItem"
+  id=""
+  onClick={[Function]}
+  tabIndex={0}
+>
+  <h1>
+    <div
+      className="ThreadItem__author"
+    >
+      Someone
+    </div>
+    <div
+      className="ThreadItem__tags"
+    >
+      <Memo(Tag)
+        onClick={[Function]}
+        text="Team name"
+      />
+    </div>
+    <Connect(injectIntl(Timestamp))
+      className="alt-hidden"
+      day="numeric"
+      units={
+        Array [
+          "now",
+          "minute",
+          "hour",
+          "day",
+          "week",
+        ]
+      }
+      useTime={false}
+    />
+  </h1>
+  <div
+    className="menu-anchor alt-visible"
+  >
+    <Memo(ThreadMenu)
+      hasUnreads={false}
+      isFollowing={true}
+      threadId="1y8hpek81byspd4enyk9mp1ncw"
+      unreadTimestamp={1611786714912}
+    >
+      <SimpleTooltip
+        content={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Actions"
+            id="threading.threadItem.menu"
+          />
+        }
+        id="threadActionMenu"
+      >
+        <Memo(Button)
+          className="Button___icon"
+          marginTop={true}
+        >
+          <DotsVerticalIcon
+            size={18}
+          />
+        </Memo(Button)>
+      </SimpleTooltip>
+    </Memo(ThreadMenu)>
+  </div>
+  <div
+    aria-readonly="true"
+    className="preview"
+    dir="auto"
+    onClick={[Function]}
+    tabIndex={0}
+  >
+    <Connect(Markdown)
+      imageProps={
+        Object {
+          "onImageHeightChanged": [Function],
+          "onImageLoaded": [Function],
+        }
+      }
+      message="test msg"
+      options={
+        Object {
+          "atMentions": false,
+          "mentionHighlight": false,
+          "singleline": true,
+        }
+      }
+    />
+  </div>
+  <div
+    className="activity"
+  >
+    <Memo(Avatars)
+      size="xs"
+      userIds={
+        Array [
+          "mt5td9mdriyapmwuh5pc84dmhr",
+          "ij61jet1bbdk8fhhxitywdj4ih",
+          "7n4ach3i53bbmj84dfmu5b7c1c",
+        ]
+      }
+    />
+    <MemoizedFormattedMessage
+      defaultMessage="{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}"
+      id="threading.numReplies"
+      values={
+        Object {
+          "totalReplies": 9,
+        }
+      }
+    />
+  </div>
+</article>
+`;
+
+exports[`components/threading/global_threads/thread_item should report unread mentions 1`] = `
+<article
+  className="ThreadItem has-unreads"
+  id=""
+  onClick={[Function]}
+  tabIndex={0}
+>
+  <h1>
+    <div
+      className="indicator"
+    >
+      <div
+        className="dot-mentions"
+      >
+        2
+      </div>
+    </div>
+    <div
+      className="ThreadItem__author"
+    >
+      Someone
+    </div>
+    <div
+      className="ThreadItem__tags"
+    >
+      <Memo(Tag)
+        onClick={[Function]}
+        text="Team name"
+      />
+    </div>
+    <Connect(injectIntl(Timestamp))
+      className="alt-hidden"
+      day="numeric"
+      units={
+        Array [
+          "now",
+          "minute",
+          "hour",
+          "day",
+          "week",
+        ]
+      }
+      useTime={false}
+    />
+  </h1>
+  <div
+    className="menu-anchor alt-visible"
+  >
+    <Memo(ThreadMenu)
+      hasUnreads={true}
+      isFollowing={true}
+      threadId="1y8hpek81byspd4enyk9mp1ncw"
+      unreadTimestamp={1611786714912}
+    >
+      <SimpleTooltip
+        content={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Actions"
+            id="threading.threadItem.menu"
+          />
+        }
+        id="threadActionMenu"
+      >
+        <Memo(Button)
+          className="Button___icon"
+          marginTop={true}
+        >
+          <DotsVerticalIcon
+            size={18}
+          />
+        </Memo(Button)>
+      </SimpleTooltip>
+    </Memo(ThreadMenu)>
+  </div>
+  <div
+    aria-readonly="true"
+    className="preview"
+    dir="auto"
+    onClick={[Function]}
+    tabIndex={0}
+  >
+    <Connect(Markdown)
+      imageProps={
+        Object {
+          "onImageHeightChanged": [Function],
+          "onImageLoaded": [Function],
+        }
+      }
+      message="test msg"
+      options={
+        Object {
+          "atMentions": false,
+          "mentionHighlight": false,
+          "singleline": true,
+        }
+      }
+    />
+  </div>
+  <div
+    className="activity"
+  >
+    <Memo(Avatars)
+      size="xs"
+      userIds={
+        Array [
+          "mt5td9mdriyapmwuh5pc84dmhr",
+          "ij61jet1bbdk8fhhxitywdj4ih",
+          "7n4ach3i53bbmj84dfmu5b7c1c",
+        ]
+      }
+    />
+    <MemoizedFormattedMessage
+      defaultMessage="{newReplies, plural, =1 {# new reply} other {# new replies}}"
+      id="threading.numNewReplies"
+      values={
+        Object {
+          "newReplies": 5,
+        }
+      }
+    />
+  </div>
+</article>
+`;
+
+exports[`components/threading/global_threads/thread_item should report unread messages 1`] = `
+<article
+  className="ThreadItem has-unreads"
+  id=""
+  onClick={[Function]}
+  tabIndex={0}
+>
+  <h1>
+    <div
+      className="indicator"
+    >
+      <div
+        className="dot-unreads"
+      />
+    </div>
+    <div
+      className="ThreadItem__author"
+    >
+      Someone
+    </div>
+    <div
+      className="ThreadItem__tags"
+    >
+      <Memo(Tag)
+        onClick={[Function]}
+        text="Team name"
+      />
+    </div>
+    <Connect(injectIntl(Timestamp))
+      className="alt-hidden"
+      day="numeric"
+      units={
+        Array [
+          "now",
+          "minute",
+          "hour",
+          "day",
+          "week",
+        ]
+      }
+      useTime={false}
+    />
+  </h1>
+  <div
+    className="menu-anchor alt-visible"
+  >
+    <Memo(ThreadMenu)
+      hasUnreads={true}
+      isFollowing={true}
+      threadId="1y8hpek81byspd4enyk9mp1ncw"
+      unreadTimestamp={1611786714912}
+    >
+      <SimpleTooltip
+        content={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Actions"
+            id="threading.threadItem.menu"
+          />
+        }
+        id="threadActionMenu"
+      >
+        <Memo(Button)
+          className="Button___icon"
+          marginTop={true}
+        >
+          <DotsVerticalIcon
+            size={18}
+          />
+        </Memo(Button)>
+      </SimpleTooltip>
+    </Memo(ThreadMenu)>
+  </div>
+  <div
+    aria-readonly="true"
+    className="preview"
+    dir="auto"
+    onClick={[Function]}
+    tabIndex={0}
+  >
+    <Connect(Markdown)
+      imageProps={
+        Object {
+          "onImageHeightChanged": [Function],
+          "onImageLoaded": [Function],
+        }
+      }
+      message="test msg"
+      options={
+        Object {
+          "atMentions": false,
+          "mentionHighlight": false,
+          "singleline": true,
+        }
+      }
+    />
+  </div>
+  <div
+    className="activity"
+  >
+    <Memo(Avatars)
+      size="xs"
+      userIds={
+        Array [
+          "mt5td9mdriyapmwuh5pc84dmhr",
+          "ij61jet1bbdk8fhhxitywdj4ih",
+          "7n4ach3i53bbmj84dfmu5b7c1c",
+        ]
+      }
+    />
+    <MemoizedFormattedMessage
+      defaultMessage="{newReplies, plural, =1 {# new reply} other {# new replies}}"
+      id="threading.numNewReplies"
+      values={
+        Object {
+          "newReplies": 2,
+        }
+      }
+    />
+  </div>
+</article>
+`;

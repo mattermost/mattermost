@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/system_role_permission should match snapshot 1`] = `
+<div
+  className="PermissionRow"
+>
+  <div
+    className="PermissionSection"
+    key="environemnt"
+  >
+    <div
+      className="PermissionSectionText"
+    >
+      <div
+        className="PermissionSectionText_title"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="environemnt"
+          id="admin.permissions.sysconsole_section_environemnt.name"
+        />
+      </div>
+      <div
+        className="PermissionSection_description"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage=""
+          id="admin.permissions.sysconsole_section_environemnt.description"
+        />
+      </div>
+    </div>
+    <div
+      className="PermissionSectionDropdown"
+    >
+      <SystemRolePermissionDropdown
+        access={false}
+        isDisabled={true}
+        section={
+          Object {
+            "hasDescription": true,
+            "name": "environemnt",
+            "subsections": Array [],
+          }
+        }
+        updatePermissions={[MockFunction]}
+      />
+    </div>
+  </div>
+</div>
+`;

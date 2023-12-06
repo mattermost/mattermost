@@ -1,0 +1,61 @@
+  /api/v4/elasticsearch/test:
+    post:
+      tags:
+        - elasticsearch
+      summary: Test Elasticsearch configuration
+      description: >
+        Test the current Elasticsearch configuration to see if the Elasticsearch
+        server can be contacted successfully.
+
+        Optionally provide a configuration in the request body to test. If no valid configuration is present in the
+
+        request body the current server configuration will be tested.
+
+
+        __Minimum server version__: 4.1
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: TestElasticsearch
+      responses:
+        "200":
+          description: Elasticsearch test successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/elasticsearch/purge_indexes:
+    post:
+      tags:
+        - elasticsearch
+      summary: Purge all Elasticsearch indexes
+      description: >
+        Deletes all Elasticsearch indexes and their contents. After calling this
+        endpoint, it is
+
+        necessary to schedule a new Elasticsearch indexing job to repopulate the indexes.
+
+        __Minimum server version__: 4.1
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: PurgeElasticsearchIndexes
+      responses:
+        "200":
+          description: Indexes purged successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

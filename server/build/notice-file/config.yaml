@@ -1,0 +1,9 @@
+---
+title: "Mattermost Server"
+copyright: "©2015-present Mattermost,Inc. All Rights Reserved. See LICENSE for license information."
+description: "This document includes a list of open source components used in Mattermost Server, including those that have been modified."
+search:
+  - "server/go.mod"
+  - "webapp/package.json"
+  - "webapp/channels/package.json"
+includeDevDependencies: false

@@ -1,0 +1,388 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/audit_table/audit_row/AuditRow should match snapshot with channel audit 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <table>
+    <tbody>
+      <FormatAudit
+        actionURL="/dummy/url"
+        audit={
+          Object {
+            "action": "/api/v4/channels",
+            "create_at": 50778112674,
+            "extra_info": "name=default-name",
+            "id": "id_2",
+            "ip_address": "::1",
+            "session_id": "hb8febm9ytdiz8zqaxj18efqhy",
+            "user_id": "user_id_1",
+          }
+        }
+        showIp={true}
+        showSession={true}
+        showUserId={true}
+      >
+        <ChannelRow
+          actionURL="/channels"
+          audit={
+            Object {
+              "action": "/api/v4/channels",
+              "create_at": 50778112674,
+              "extra_info": "name=default-name",
+              "id": "id_2",
+              "ip_address": "::1",
+              "session_id": "hb8febm9ytdiz8zqaxj18efqhy",
+              "user_id": "user_id_1",
+            }
+          }
+          showIp={true}
+          showSession={true}
+          showUserId={true}
+        >
+          <ChannelDefaultRow
+            actionURL="/channels"
+            audit={
+              Object {
+                "action": "/api/v4/channels",
+                "create_at": 50778112674,
+                "extra_info": "name=default-name",
+                "id": "id_2",
+                "ip_address": "::1",
+                "session_id": "hb8febm9ytdiz8zqaxj18efqhy",
+                "user_id": "user_id_1",
+              }
+            }
+            channelInfo={
+              Array [
+                "name=default-name",
+              ]
+            }
+            channelName="Default"
+            channelURL="default-name"
+            showIp={true}
+            showSession={true}
+            showUserId={true}
+          >
+            <AuditRow
+              actionURL="/channels"
+              audit={
+                Object {
+                  "action": "/api/v4/channels",
+                  "create_at": 50778112674,
+                  "extra_info": "name=default-name",
+                  "id": "id_2",
+                  "ip_address": "::1",
+                  "session_id": "hb8febm9ytdiz8zqaxj18efqhy",
+                  "user_id": "user_id_1",
+                }
+              }
+              desc=""
+              showIp={true}
+              showSession={true}
+              showUserId={true}
+            >
+              <tr
+                key="id_2"
+              >
+                <td
+                  className="whitespace--nowrap word-break--all"
+                >
+                  <div>
+                    <div>
+                      <FormattedDate
+                        day="2-digit"
+                        month="short"
+                        value={1971-08-11T17:01:52.674Z}
+                        year="numeric"
+                      >
+                        <span>
+                          Aug 11, 1971
+                        </span>
+                      </FormattedDate>
+                    </div>
+                    <div>
+                      <FormattedTime
+                        hour="2-digit"
+                        minute="2-digit"
+                        value={1971-08-11T17:01:52.674Z}
+                      >
+                        <span>
+                          05:01 PM
+                        </span>
+                      </FormattedTime>
+                    </div>
+                  </div>
+                </td>
+                <td
+                  className="word-break--all"
+                >
+                  test@example.com
+                </td>
+                <td
+                  className="word-break--all"
+                >
+                  Channels default-name
+                </td>
+                <td
+                  className="whitespace--nowrap word-break--all"
+                >
+                  ::1
+                </td>
+                <td
+                  className="whitespace--nowrap word-break--all"
+                >
+                  hb8febm9ytdiz8zqaxj18efqhy
+                </td>
+              </tr>
+            </AuditRow>
+          </ChannelDefaultRow>
+        </ChannelRow>
+      </FormatAudit>
+    </tbody>
+  </table>
+</Provider>
+`;
+
+exports[`components/audit_table/audit_row/AuditRow should match snapshot with user audit 1`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <table>
+    <tbody>
+      <FormatAudit
+        actionURL="/dummy/url"
+        audit={
+          Object {
+            "action": "/api/v4/users/login",
+            "create_at": 51053522355,
+            "extra_info": "success",
+            "id": "id_1",
+            "ip_address": "::1",
+            "session_id": "",
+            "user_id": "user_id_1",
+          }
+        }
+        showIp={true}
+        showSession={true}
+        showUserId={true}
+      >
+        <UserRow
+          actionURL="/users/login"
+          audit={
+            Object {
+              "action": "/api/v4/users/login",
+              "create_at": 51053522355,
+              "extra_info": "success",
+              "id": "id_1",
+              "ip_address": "::1",
+              "session_id": "",
+              "user_id": "user_id_1",
+            }
+          }
+          showIp={true}
+          showSession={true}
+          showUserId={true}
+        >
+          <AuditRow
+            actionURL="/users/login"
+            audit={
+              Object {
+                "action": "/api/v4/users/login",
+                "create_at": 51053522355,
+                "extra_info": "success",
+                "id": "id_1",
+                "ip_address": "::1",
+                "session_id": "",
+                "user_id": "user_id_1",
+              }
+            }
+            desc="Successfully logged in"
+            showIp={true}
+            showSession={true}
+            showUserId={true}
+          >
+            <tr
+              key="id_1"
+            >
+              <td
+                className="whitespace--nowrap word-break--all"
+              >
+                <div>
+                  <div>
+                    <FormattedDate
+                      day="2-digit"
+                      month="short"
+                      value={1971-08-14T21:32:02.355Z}
+                      year="numeric"
+                    >
+                      <span>
+                        Aug 14, 1971
+                      </span>
+                    </FormattedDate>
+                  </div>
+                  <div>
+                    <FormattedTime
+                      hour="2-digit"
+                      minute="2-digit"
+                      value={1971-08-14T21:32:02.355Z}
+                    >
+                      <span>
+                        09:32 PM
+                      </span>
+                    </FormattedTime>
+                  </div>
+                </div>
+              </td>
+              <td
+                className="word-break--all"
+              >
+                test@example.com
+              </td>
+              <td
+                className="word-break--all"
+              >
+                Successfully logged in
+              </td>
+              <td
+                className="whitespace--nowrap word-break--all"
+              >
+                ::1
+              </td>
+              <td
+                className="whitespace--nowrap word-break--all"
+              />
+            </tr>
+          </AuditRow>
+        </UserRow>
+      </FormatAudit>
+    </tbody>
+  </table>
+</Provider>
+`;
+
+exports[`components/audit_table/audit_row/AuditRow should match snapshot with user audit 2`] = `
+<Provider
+  store={
+    Object {
+      "clearActions": [Function],
+      "dispatch": [Function],
+      "getActions": [Function],
+      "getState": [Function],
+      "replaceReducer": [Function],
+      "subscribe": [Function],
+    }
+  }
+>
+  <table>
+    <tbody>
+      <FormatAudit
+        actionURL="/dummy/url"
+        audit={
+          Object {
+            "action": "/api/v4/oauth/register",
+            "create_at": 51053522355,
+            "extra_info": "client_id=client_id",
+            "id": "id_1",
+            "ip_address": "::1",
+            "session_id": "",
+            "user_id": "user_id_1",
+          }
+        }
+        showIp={true}
+        showSession={true}
+        showUserId={true}
+      >
+        <AuditRow
+          actionURL="/oauth/register"
+          audit={
+            Object {
+              "action": "/api/v4/oauth/register",
+              "create_at": 51053522355,
+              "extra_info": "client_id=client_id",
+              "id": "id_1",
+              "ip_address": "::1",
+              "session_id": "",
+              "user_id": "user_id_1",
+            }
+          }
+          desc="Attempted to register a new OAuth Application with ID client_id"
+          showIp={true}
+          showSession={true}
+          showUserId={true}
+        >
+          <tr
+            key="id_1"
+          >
+            <td
+              className="whitespace--nowrap word-break--all"
+            >
+              <div>
+                <div>
+                  <FormattedDate
+                    day="2-digit"
+                    month="short"
+                    value={1971-08-14T21:32:02.355Z}
+                    year="numeric"
+                  >
+                    <span>
+                      Aug 14, 1971
+                    </span>
+                  </FormattedDate>
+                </div>
+                <div>
+                  <FormattedTime
+                    hour="2-digit"
+                    minute="2-digit"
+                    value={1971-08-14T21:32:02.355Z}
+                  >
+                    <span>
+                      09:32 PM
+                    </span>
+                  </FormattedTime>
+                </div>
+              </div>
+            </td>
+            <td
+              className="word-break--all"
+            >
+              test@example.com
+            </td>
+            <td
+              className="word-break--all"
+            >
+              Attempted to register a new OAuth Application with ID client_id
+            </td>
+            <td
+              className="whitespace--nowrap word-break--all"
+            >
+              ::1
+            </td>
+            <td
+              className="whitespace--nowrap word-break--all"
+            />
+          </tr>
+        </AuditRow>
+      </FormatAudit>
+    </tbody>
+  </table>
+</Provider>
+`;

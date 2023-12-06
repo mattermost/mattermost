@@ -1,0 +1,345 @@
+#statusDropdownMenu {
+    .icon {
+        position: relative;
+        display: inline-flex;
+        width: 24px;
+        height: 24px;
+        justify-content: center;
+        padding: 0;
+        margin: 0 8px 0 0;
+
+        span {
+            display: flex;
+        }
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    #status-menu-dnd {
+        padding: 4px 16px;
+
+        .dropdown-menu {
+            margin: auto;
+
+            #dndSubMenu-header {
+                font-weight: bold;
+                pointer-events: none;
+            }
+        }
+
+        .icon {
+            top: 2px;
+        }
+
+        .SubMenu__icon-right {
+            padding-top: 5px;
+        }
+    }
+}
+
+#status-menu-dnd_menuitem {
+    .SubMenuItem.MenuItem {
+        flex-grow: 1;
+    }
+
+    .SubMenuItemContainer {
+        &:hover,
+        &:focus {
+            background-color: unset;
+        }
+    }
+
+    #dndTime-tomorrow .dndTime-tomorrow_timestamp {
+        &::before {
+            content: "\00a0";
+        }
+
+        margin-left: auto;
+        opacity: 0.7;
+    }
+}
+
+button.custom_status__row {
+    position: relative;
+    height: auto;
+    font-size: inherit;
+
+    &.flex {
+        display: flex;
+    }
+
+    &:hover {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+
+        .custom-status-emoji {
+            fill: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+    }
+
+    &:active {
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+    }
+}
+
+.custom_status {
+    &__container {
+        display: flex;
+        padding: 7px 0;
+        line-height: 20px;
+    }
+
+    &__icon {
+        margin-right: 12px;
+    }
+
+    &__text {
+        overflow: hidden;
+        max-width: 73%;
+        height: 16px;
+        line-height: 16px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__expiry {
+        font-size: 12px;
+        line-height: 16px;
+        opacity: 0.7;
+
+        &.padded {
+            display: block;
+            padding-left: 28px;
+        }
+    }
+}
+
+#custom_status__clear {
+    position: absolute;
+    top: 0;
+    right: 10px;
+    width: auto;
+    padding: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.52);
+
+    &:hover {
+        background: transparent;
+    }
+}
+
+.custom-status {
+    &-emoji {
+        fill: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    &-suggestion-emoji > span:first-child {
+        background-size: 20px;
+    }
+}
+
+.status-dropdown-menu-global-header {
+    padding: 4px 8px;
+    border-radius: 4px;
+
+    .icon > i:not(.status-icon) {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-family: "compass-icons";
+    }
+
+    &:hover {
+        background: var(--sidebar-text-08);
+        cursor: pointer;
+
+        .status {
+            background-image:
+                linear-gradient(
+                    0deg,
+                    rgba(var(--global-header-text-rgb), 0.08),
+                    rgba(var(--global-header-text-rgb), 0.08)
+                );
+        }
+    }
+
+    &.active {
+        background: rgba(var(--global-header-text-rgb), 0.16);
+
+        .status {
+            background-image:
+                linear-gradient(
+                    0deg,
+                    rgba(var(--global-header-text-rgb), 0.16),
+                    rgba(var(--global-header-text-rgb), 0.16)
+                );
+        }
+    }
+
+    .Menu__content {
+        right: -1px;
+        left: inherit;
+        width: 264px;
+    }
+
+    .custom_status__row > #custom_status__clear {
+        top: 4px;
+    }
+
+    .custom_status__container {
+        align-items: center;
+        line-height: 14px;
+    }
+
+    .username-wrapper {
+        padding: 0 12px;
+
+        > p {
+            overflow: hidden;
+            max-width: 150px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            &.bold {
+                font-weight: 600;
+            }
+        }
+    }
+
+    .MenuHeader {
+        height: 50px;
+        padding: 0 16px;
+        cursor: pointer;
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.1);
+        }
+    }
+
+    .MenuItem > button,
+    #status-menu-dnd {
+        padding: 1px 16px;
+
+        .flex {
+            display: flex;
+        }
+
+        .MenuItem__primary-text,
+        .grid {
+            display: grid;
+            align-items: center;
+            grid-template-columns: auto 1fr auto auto auto;
+
+            .SubMenu__icon-right {
+                padding-top: 0;
+                padding-left: 12px;
+            }
+        }
+
+        > .MenuItem__help-text {
+            padding-left: 28px;
+        }
+    }
+
+    #statusDropdownMenu,
+    #statusDropdownMenu #status-menu-dnd {
+        .icon {
+            top: unset;
+            width: auto;
+            height: auto;
+            padding: 0 12px 0 0;
+            margin: 0;
+        }
+
+        .SubMenu__icon-right {
+            padding-top: 0;
+        }
+    }
+
+    .dnd--icon {
+        vertical-align: middle;
+    }
+
+    .status-wrapper {
+        display: flex;
+        height: auto;
+        align-items: center;
+
+        .status {
+            position: absolute;
+            top: auto;
+            right: -4px;
+            bottom: -4px;
+            display: inline-flex;
+            width: 16px;
+            height: 16px;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--global-header-background);
+            color: var(--global-header-text);
+
+            &:hover {
+                cursor: pointer;
+            }
+
+            svg {
+                top: 0;
+            }
+        }
+    }
+}
+
+@keyframes pulse1 {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    80% {
+        opacity: 0;
+        transform: scale(2.5);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(2.5);
+    }
+}
+
+@keyframes pulse2 {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    30% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(2.5);
+    }
+}
+
+.status-dropdpwn-menu .status-dropdown-menu__clear-container .input-clear {
+    position: absolute;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    opacity: 1;
+}
+
+.status-dropdpwn-account-settings {
+    position: relative;
+}
+
+#accountSettings {
+    position: relative;
+}
+
+.account-settings-complete {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}

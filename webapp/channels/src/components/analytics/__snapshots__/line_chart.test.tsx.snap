@@ -1,0 +1,83 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/analytics/line_chart.tsx should match snapshot, loaded with data 1`] = `
+<div
+  className="col-sm-12"
+>
+  <div
+    className="total-count by-day"
+  >
+    <div
+      className="title"
+    >
+      Test
+    </div>
+    <div
+      className="content"
+    >
+      <canvas
+        data-labels={
+          Array [
+            "test1",
+            "test2",
+            "test3",
+          ]
+        }
+        data-testid="test"
+        height={400}
+        width={600}
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/analytics/line_chart.tsx should match snapshot, loaded without data 1`] = `
+<div
+  className="col-sm-12"
+>
+  <div
+    className="total-count by-day"
+  >
+    <div
+      className="title"
+    >
+      Test
+    </div>
+    <div
+      className="content"
+    >
+      <h5>
+        <MemoizedFormattedMessage
+          defaultMessage="Not enough data for a meaningful representation."
+          id="analytics.chart.meaningful"
+        />
+      </h5>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/analytics/line_chart.tsx should match snapshot, on loading 1`] = `
+<div
+  className="col-sm-12"
+>
+  <div
+    className="total-count by-day"
+  >
+    <div
+      className="title"
+    >
+      Test
+    </div>
+    <div
+      className="content"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Loading..."
+        id="analytics.chart.loading"
+      />
+    </div>
+  </div>
+</div>
+`;

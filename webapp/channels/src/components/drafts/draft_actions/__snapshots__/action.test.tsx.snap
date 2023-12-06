@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/drafts/draft_actions/action should match snapshot 1`] = `
+<div
+  className="DraftAction"
+>
+  <OverlayTrigger
+    className="hidden-xs"
+    defaultOverlayShown={false}
+    delayShow={400}
+    overlay={
+      <Tooltip
+        bsClass="tooltip"
+        className="hidden-xs"
+        id="tooltip_"
+        placement="right"
+      >
+        
+      </Tooltip>
+    }
+    placement="top"
+    trigger={
+      Array [
+        "hover",
+        "focus",
+      ]
+    }
+  >
+    <button
+      className="DraftAction__button"
+      id="draft_{icon}_"
+      onClick={[MockFunction]}
+    >
+      <i
+        className="icon "
+      />
+    </button>
+  </OverlayTrigger>
+</div>
+`;

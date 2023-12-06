@@ -1,0 +1,353 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match snapshot 1`] = `
+<Link
+  aria-label="channel_label"
+  className="SidebarLink"
+  id="sidebarItem_"
+  onClick={[Function]}
+  tabIndex={0}
+  to="http://a.fake.link"
+>
+  <SidebarChannelIcon
+    icon={null}
+    isDeleted={false}
+  />
+  <div
+    className="SidebarChannelLinkLabel_wrapper"
+  >
+    <span
+      className="SidebarChannelLinkLabel"
+    >
+      channel_label
+    </span>
+    <Connect(Pluggable)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "",
+          "delete_at": 0,
+          "display_name": "channel_display_name",
+          "group_constrained": false,
+          "header": "",
+          "id": "channel_id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "",
+          "purpose": "",
+          "scheme_id": "",
+          "team_id": "",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      pluggableName="SidebarChannelLinkLabel"
+    />
+  </div>
+  <Connect(Component)
+    id="channel_id"
+  />
+  <ChannelMentionBadge
+    hasUrgent={false}
+    unreadMentions={0}
+  />
+  <div
+    className="SidebarMenu MenuWrapper"
+  >
+    <Connect(Component)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "",
+          "delete_at": 0,
+          "display_name": "channel_display_name",
+          "group_constrained": false,
+          "header": "",
+          "id": "channel_id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "",
+          "purpose": "",
+          "scheme_id": "",
+          "team_id": "",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      channelLink="http://a.fake.link"
+      isUnread={false}
+      onMenuToggle={[Function]}
+    />
+  </div>
+</Link>
+`;
+
+exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match snapshot for desktop 1`] = `
+<Link
+  aria-label="channel_label"
+  className="SidebarLink"
+  id="sidebarItem_"
+  onClick={[Function]}
+  tabIndex={0}
+  to="http://a.fake.link"
+>
+  <SidebarChannelIcon
+    icon={null}
+    isDeleted={false}
+  />
+  <div
+    className="SidebarChannelLinkLabel_wrapper"
+  >
+    <span
+      className="SidebarChannelLinkLabel"
+    >
+      channel_label
+    </span>
+    <Connect(Pluggable)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "",
+          "delete_at": 0,
+          "display_name": "channel_display_name",
+          "group_constrained": false,
+          "header": "",
+          "id": "channel_id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "",
+          "purpose": "",
+          "scheme_id": "",
+          "team_id": "",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      pluggableName="SidebarChannelLinkLabel"
+    />
+  </div>
+  <Connect(Component)
+    id="channel_id"
+  />
+  <ChannelMentionBadge
+    hasUrgent={false}
+    unreadMentions={0}
+  />
+  <div
+    className="SidebarMenu MenuWrapper"
+  >
+    <Connect(Component)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "",
+          "delete_at": 0,
+          "display_name": "channel_display_name",
+          "group_constrained": false,
+          "header": "",
+          "id": "channel_id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "",
+          "purpose": "",
+          "scheme_id": "",
+          "team_id": "",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      channelLink="http://a.fake.link"
+      isUnread={false}
+      onMenuToggle={[Function]}
+    />
+  </div>
+</Link>
+`;
+
+exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match snapshot when tooltip is enabled 1`] = `
+<Link
+  aria-label="channel_label"
+  className="SidebarLink"
+  id="sidebarItem_"
+  onClick={[Function]}
+  tabIndex={0}
+  to="http://a.fake.link"
+>
+  <SidebarChannelIcon
+    icon={null}
+    isDeleted={false}
+  />
+  <div
+    className="SidebarChannelLinkLabel_wrapper"
+  >
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={400}
+      onEntering={[Function]}
+      overlay={
+        <Tooltip
+          id="channel-displayname__tooltip"
+        >
+          channel_label
+        </Tooltip>
+      }
+      placement="top"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <div
+        className="truncated"
+      >
+        <span
+          className="SidebarChannelLinkLabel"
+        >
+          channel_label
+        </span>
+      </div>
+    </OverlayTrigger>
+    <Connect(Pluggable)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "",
+          "delete_at": 0,
+          "display_name": "channel_display_name",
+          "group_constrained": false,
+          "header": "",
+          "id": "channel_id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "",
+          "purpose": "",
+          "scheme_id": "",
+          "team_id": "",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      pluggableName="SidebarChannelLinkLabel"
+    />
+  </div>
+  <Connect(Component)
+    id="channel_id"
+  />
+  <ChannelMentionBadge
+    hasUrgent={false}
+    unreadMentions={0}
+  />
+  <div
+    className="SidebarMenu MenuWrapper"
+  >
+    <Connect(Component)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "",
+          "delete_at": 0,
+          "display_name": "channel_display_name",
+          "group_constrained": false,
+          "header": "",
+          "id": "channel_id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "",
+          "purpose": "",
+          "scheme_id": "",
+          "team_id": "",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      channelLink="http://a.fake.link"
+      isUnread={false}
+      onMenuToggle={[Function]}
+    />
+  </div>
+</Link>
+`;
+
+exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match snapshot with aria label prefix and unread mentions 1`] = `
+<Link
+  aria-label="channel_label aria_label_prefix_ 2 mentions"
+  className="SidebarLink unread-title"
+  id="sidebarItem_"
+  onClick={[Function]}
+  tabIndex={0}
+  to="http://a.fake.link"
+>
+  <SidebarChannelIcon
+    icon={null}
+    isDeleted={false}
+  />
+  <div
+    className="SidebarChannelLinkLabel_wrapper"
+  >
+    <span
+      className="SidebarChannelLinkLabel"
+    >
+      channel_label
+    </span>
+    <Connect(Pluggable)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "",
+          "delete_at": 0,
+          "display_name": "channel_display_name",
+          "group_constrained": false,
+          "header": "",
+          "id": "channel_id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "",
+          "purpose": "",
+          "scheme_id": "",
+          "team_id": "",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      pluggableName="SidebarChannelLinkLabel"
+    />
+  </div>
+  <Connect(Component)
+    id="channel_id"
+  />
+  <ChannelMentionBadge
+    hasUrgent={false}
+    unreadMentions={2}
+  />
+  <div
+    className="SidebarMenu MenuWrapper"
+  >
+    <Connect(Component)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "",
+          "delete_at": 0,
+          "display_name": "channel_display_name",
+          "group_constrained": false,
+          "header": "",
+          "id": "channel_id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "",
+          "purpose": "",
+          "scheme_id": "",
+          "team_id": "",
+          "type": "O",
+          "update_at": 0,
+        }
+      }
+      channelLink="http://a.fake.link"
+      isUnread={true}
+      onMenuToggle={[Function]}
+    />
+  </div>
+</Link>
+`;

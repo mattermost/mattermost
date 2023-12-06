@@ -1,0 +1,61 @@
+@import 'utils/variables';
+
+.AddToChannels {
+    &__messageInput {
+        width: 100%;
+        height: 90px;
+        padding: 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.64);
+        margin-bottom: 8px;
+        background: var(--center-channel-bg);
+        border-radius: 4px;
+        resize: vertical;
+
+        &:focus {
+            padding: 11px;
+            border: 2px solid var(--button-bg);
+        }
+    }
+
+    .help-text {
+        // override default from _inputs.scss
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
+    &__customMessage {
+        position: relative;
+        width: 100%;
+        max-width: 720px;
+
+        &Title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        a {
+            color: rgba(var(--button-bg-rgb), 0.88);
+            font-weight: 600;
+        }
+
+        svg {
+            &:hover {
+                fill: rgba(var(--center-channel-color-rgb), 0.56);
+            }
+
+            position: relative;
+            top: 3px;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            fill: rgba(var(--center-channel-color-rgb), 0.64);
+        }
+
+        .help-text {
+            span {
+                font-weight: normal;
+            }
+        }
+    }
+}

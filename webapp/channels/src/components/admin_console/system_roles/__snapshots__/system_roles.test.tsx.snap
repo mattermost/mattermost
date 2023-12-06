@@ -1,0 +1,101 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`admin_console/system_roles should match snapshot 1`] = `
+<div
+  className="wrapper--fixed"
+>
+  <AdminHeader>
+    <MemoizedFormattedMessage
+      defaultMessage="System Roles"
+      id="admin.permissions.systemRoles"
+    />
+  </AdminHeader>
+  <div
+    className="admin-console__wrapper"
+  >
+    <div
+      className="admin-console__content"
+    >
+      <AdminPanel
+        className=""
+        id="SystemRoles"
+        subtitleDefault="Manage different levels of access to the system console."
+        subtitleId="admin.permissions.systemRolesBannerText"
+        titleDefault="Admin Roles"
+        titleId="admin.permissions.systemRolesBannerTitle"
+      >
+        <div
+          className="SystemRoles"
+        >
+          <DataGrid
+            columns={
+              Array [
+                Object {
+                  "field": "role",
+                  "name": "Role",
+                  "width": 2,
+                },
+                Object {
+                  "field": "description",
+                  "name": "Description",
+                  "width": 3,
+                },
+                Object {
+                  "field": "type",
+                  "name": "Type",
+                  "width": 2,
+                },
+                Object {
+                  "field": "edit",
+                  "name": "",
+                  "textAlign": "right",
+                  "width": 1,
+                },
+              ]
+            }
+            endCount={1}
+            loading={false}
+            nextPage={[Function]}
+            page={1}
+            previousPage={[Function]}
+            rows={
+              Array [
+                Object {
+                  "cells": Object {
+                    "description": <Memo(MemoizedFormattedMessage)
+                      id="admin.permissions.roles.system_admin.description"
+                    />,
+                    "edit": <span
+                      className="SystemRoles_editRow"
+                      data-testid="system_admin_edit"
+                    >
+                      <Link
+                        to="/admin_console/user_management/system_roles/system_admin"
+                      >
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Edit"
+                          id="admin.permissions.roles.edit"
+                        />
+                      </Link>
+                    </span>,
+                    "role": <Memo(MemoizedFormattedMessage)
+                      id="admin.permissions.roles.system_admin.name"
+                    />,
+                    "type": <Memo(MemoizedFormattedMessage)
+                      id="admin.permissions.roles.system_admin.type"
+                    />,
+                  },
+                  "onClick": [Function],
+                },
+              ]
+            }
+            searchPlaceholder=""
+            startCount={0}
+            term=""
+          />
+        </div>
+      </AdminPanel>
+    </div>
+  </div>
+</div>
+`;

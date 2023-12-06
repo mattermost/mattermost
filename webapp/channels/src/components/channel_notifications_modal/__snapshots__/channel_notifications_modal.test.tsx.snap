@@ -1,0 +1,2449 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/channel_notifications_modal/ChannelNotificationsModal should Ignore mentions for @channel, @here and @all 1`] = `
+Object {
+  "asFragment": [Function],
+  "baseElement": <body
+    class="modal-open"
+    style="padding-right: 0px;"
+  >
+    <div
+      aria-hidden="true"
+    />
+    <div
+      role="dialog"
+    >
+      <div
+        class="fade modal-backdrop"
+      />
+      <div
+        aria-labelledby="channelNotificationModalLabel"
+        class="fade modal"
+        role="dialog"
+        style="display: flex; place-items: center; padding-right: 0px;"
+        tabindex="-1"
+      >
+        <div
+          class="a11y__modal channel-notifications-settings-modal modal-dialog"
+        >
+          <div
+            class="modal-content"
+            role="document"
+          >
+            <header
+              class="mm-modal-header"
+            >
+              <h1
+                class="mm-modal-header__title"
+                id="mm-modal-header-channelNotificationModalLabel"
+                tabindex="0"
+              >
+                Notification Preferences
+              </h1>
+              <div
+                class="mm-modal-header__vertical-divider"
+              />
+              <p
+                class="mm-modal-header__subtitle"
+              >
+                channel_display_name
+              </p>
+              <div
+                class="mm-modal-header__ctr"
+              >
+                <button
+                  class="style--none mm-modal-header__close-btn"
+                >
+                  <svg
+                    fill="currentcolor"
+                    height="24"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </header>
+            <main
+              class="channel-notifications-settings-modal__body"
+            >
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <h4
+                    class="mm-modal-generic-section__title"
+                  >
+                    Mute or ignore
+                  </h4>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="muteChannel"
+                            name="mute channel"
+                            type="checkbox"
+                          />
+                          Mute channel
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                    <p
+                      class="mm-modal-generic-section-item__description"
+                    >
+                      Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
+                    </p>
+                  </div>
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="ignoreMentions"
+                            name="ignore mentions"
+                            type="checkbox"
+                          />
+                          Ignore mentions for @channel, @here and @all
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                    <p
+                      class="mm-modal-generic-section-item__description"
+                    >
+                      When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
+                    </p>
+                  </div>
+                </div>
+              </section>
+              <div
+                class="channel-notifications-settings-modal__divider"
+              />
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <div
+                    class="mm-modal-generic-section__row"
+                  >
+                    <h4
+                      class="mm-modal-generic-section__title"
+                    >
+                      Desktop Notifications
+                    </h4>
+                  </div>
+                  <p
+                    class="mm-modal-generic-section__description"
+                  >
+                    Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.
+                  </p>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <h4
+                      class="mm-modal-generic-section-item__title"
+                    >
+                      Notify me about…
+                    </h4>
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-radio"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            checked=""
+                            data-testid="desktopNotification-all"
+                            id="desktopNotification-all"
+                            name="desktopNotification-all"
+                            type="radio"
+                            value="all"
+                          />
+                          All new messages
+                          (default)
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="desktopNotification-mention"
+                            id="desktopNotification-mention"
+                            name="desktopNotification-mention"
+                            type="radio"
+                            value="mention"
+                          />
+                          Mentions, direct messages, and keywords only
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="desktopNotification-none"
+                            id="desktopNotification-none"
+                            name="desktopNotification-none"
+                            type="radio"
+                            value="none"
+                          />
+                          Nothing
+                        </label>
+                      </fieldset>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <div
+                class="channel-notifications-settings-modal__divider"
+              />
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <div
+                    class="mm-modal-generic-section__row"
+                  >
+                    <h4
+                      class="mm-modal-generic-section__title"
+                    >
+                      Mobile Notifications
+                    </h4>
+                    <button
+                      class="channel-notifications-settings-modal__reset-btn"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"
+                        />
+                      </svg>
+                      Reset to default
+                    </button>
+                  </div>
+                  <p
+                    class="mm-modal-generic-section__description"
+                  >
+                    Notification alerts are pushed to your mobile device when there is activity in Mattermost.
+                  </p>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="sameMobileSettingsDesktop"
+                            name="same mobile settings as Desktop"
+                            type="checkbox"
+                          />
+                          Use the same notification settings as desktop
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                  </div>
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <h4
+                      class="mm-modal-generic-section-item__title"
+                    >
+                      Notify me about…
+                    </h4>
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-radio"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            checked=""
+                            data-testid="MobileNotification-all"
+                            id="MobileNotification-all"
+                            name="MobileNotification-all"
+                            type="radio"
+                            value="all"
+                          />
+                          All new messages
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="MobileNotification-mention"
+                            id="MobileNotification-mention"
+                            name="MobileNotification-mention"
+                            type="radio"
+                            value="mention"
+                          />
+                          Mentions, direct messages, and keywords only
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="MobileNotification-none"
+                            id="MobileNotification-none"
+                            name="MobileNotification-none"
+                            type="radio"
+                            value="none"
+                          />
+                          Nothing
+                        </label>
+                      </fieldset>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </main>
+            <footer
+              class="channel-notifications-settings-modal__footer"
+            >
+              
+              <button
+                class="channel-notifications-settings-modal__cancel-btn"
+              >
+                Cancel
+              </button>
+              <button
+                class="channel-notifications-settings-modal__save-btn"
+              >
+                Save
+              </button>
+            </footer>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div
+    aria-hidden="true"
+  />,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "replaceStoreState": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+  "updateStoreState": [Function],
+}
+`;
+
+exports[`components/channel_notifications_modal/ChannelNotificationsModal should check the options in the desktop notifications 1`] = `
+Object {
+  "asFragment": [Function],
+  "baseElement": <body
+    class="modal-open"
+    style="padding-right: 0px;"
+  >
+    <div
+      aria-hidden="true"
+    />
+    <div
+      role="dialog"
+    >
+      <div
+        class="fade modal-backdrop"
+      />
+      <div
+        aria-labelledby="channelNotificationModalLabel"
+        class="fade modal"
+        role="dialog"
+        style="display: flex; place-items: center; padding-right: 0px;"
+        tabindex="-1"
+      >
+        <div
+          class="a11y__modal channel-notifications-settings-modal modal-dialog"
+        >
+          <div
+            class="modal-content"
+            role="document"
+          >
+            <header
+              class="mm-modal-header"
+            >
+              <h1
+                class="mm-modal-header__title"
+                id="mm-modal-header-channelNotificationModalLabel"
+                tabindex="0"
+              >
+                Notification Preferences
+              </h1>
+              <div
+                class="mm-modal-header__vertical-divider"
+              />
+              <p
+                class="mm-modal-header__subtitle"
+              >
+                channel_display_name
+              </p>
+              <div
+                class="mm-modal-header__ctr"
+              >
+                <button
+                  class="style--none mm-modal-header__close-btn"
+                >
+                  <svg
+                    fill="currentcolor"
+                    height="24"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </header>
+            <main
+              class="channel-notifications-settings-modal__body"
+            >
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <h4
+                    class="mm-modal-generic-section__title"
+                  >
+                    Mute or ignore
+                  </h4>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="muteChannel"
+                            name="mute channel"
+                            type="checkbox"
+                          />
+                          Mute channel
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                    <p
+                      class="mm-modal-generic-section-item__description"
+                    >
+                      Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
+                    </p>
+                  </div>
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="ignoreMentions"
+                            name="ignore mentions"
+                            type="checkbox"
+                          />
+                          Ignore mentions for @channel, @here and @all
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                    <p
+                      class="mm-modal-generic-section-item__description"
+                    >
+                      When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
+                    </p>
+                  </div>
+                </div>
+              </section>
+              <div
+                class="channel-notifications-settings-modal__divider"
+              />
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <div
+                    class="mm-modal-generic-section__row"
+                  >
+                    <h4
+                      class="mm-modal-generic-section__title"
+                    >
+                      Desktop Notifications
+                    </h4>
+                    <button
+                      class="channel-notifications-settings-modal__reset-btn"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"
+                        />
+                      </svg>
+                      Reset to default
+                    </button>
+                  </div>
+                  <p
+                    class="mm-modal-generic-section__description"
+                  >
+                    Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.
+                  </p>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <h4
+                      class="mm-modal-generic-section-item__title"
+                    >
+                      Notify me about…
+                    </h4>
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-radio"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            checked=""
+                            data-testid="desktopNotification-all"
+                            id="desktopNotification-all"
+                            name="desktopNotification-all"
+                            type="radio"
+                            value="all"
+                          />
+                          All new messages
+                          (default)
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="desktopNotification-mention"
+                            id="desktopNotification-mention"
+                            name="desktopNotification-mention"
+                            type="radio"
+                            value="mention"
+                          />
+                          Mentions, direct messages, and keywords only
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="desktopNotification-none"
+                            id="desktopNotification-none"
+                            name="desktopNotification-none"
+                            type="radio"
+                            value="none"
+                          />
+                          Nothing
+                        </label>
+                      </fieldset>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <div
+                class="channel-notifications-settings-modal__divider"
+              />
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <div
+                    class="mm-modal-generic-section__row"
+                  >
+                    <h4
+                      class="mm-modal-generic-section__title"
+                    >
+                      Mobile Notifications
+                    </h4>
+                    <button
+                      class="channel-notifications-settings-modal__reset-btn"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"
+                        />
+                      </svg>
+                      Reset to default
+                    </button>
+                  </div>
+                  <p
+                    class="mm-modal-generic-section__description"
+                  >
+                    Notification alerts are pushed to your mobile device when there is activity in Mattermost.
+                  </p>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="sameMobileSettingsDesktop"
+                            name="same mobile settings as Desktop"
+                            type="checkbox"
+                          />
+                          Use the same notification settings as desktop
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                  </div>
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <h4
+                      class="mm-modal-generic-section-item__title"
+                    >
+                      Notify me about…
+                    </h4>
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-radio"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            checked=""
+                            data-testid="MobileNotification-all"
+                            id="MobileNotification-all"
+                            name="MobileNotification-all"
+                            type="radio"
+                            value="all"
+                          />
+                          All new messages
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="MobileNotification-mention"
+                            id="MobileNotification-mention"
+                            name="MobileNotification-mention"
+                            type="radio"
+                            value="mention"
+                          />
+                          Mentions, direct messages, and keywords only
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="MobileNotification-none"
+                            id="MobileNotification-none"
+                            name="MobileNotification-none"
+                            type="radio"
+                            value="none"
+                          />
+                          Nothing
+                        </label>
+                      </fieldset>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </main>
+            <footer
+              class="channel-notifications-settings-modal__footer"
+            >
+              
+              <button
+                class="channel-notifications-settings-modal__cancel-btn"
+              >
+                Cancel
+              </button>
+              <button
+                class="channel-notifications-settings-modal__save-btn"
+              >
+                Save
+              </button>
+            </footer>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div
+    aria-hidden="true"
+  />,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "replaceStoreState": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+  "updateStoreState": [Function],
+}
+`;
+
+exports[`components/channel_notifications_modal/ChannelNotificationsModal should check the options in the mobile notifications 1`] = `
+Object {
+  "asFragment": [Function],
+  "baseElement": <body
+    class="modal-open"
+    style="padding-right: 0px;"
+  >
+    <div
+      aria-hidden="true"
+    />
+    <div
+      role="dialog"
+    >
+      <div
+        class="fade modal-backdrop"
+      />
+      <div
+        aria-labelledby="channelNotificationModalLabel"
+        class="fade modal"
+        role="dialog"
+        style="display: flex; place-items: center; padding-right: 0px;"
+        tabindex="-1"
+      >
+        <div
+          class="a11y__modal channel-notifications-settings-modal modal-dialog"
+        >
+          <div
+            class="modal-content"
+            role="document"
+          >
+            <header
+              class="mm-modal-header"
+            >
+              <h1
+                class="mm-modal-header__title"
+                id="mm-modal-header-channelNotificationModalLabel"
+                tabindex="0"
+              >
+                Notification Preferences
+              </h1>
+              <div
+                class="mm-modal-header__vertical-divider"
+              />
+              <p
+                class="mm-modal-header__subtitle"
+              >
+                channel_display_name
+              </p>
+              <div
+                class="mm-modal-header__ctr"
+              >
+                <button
+                  class="style--none mm-modal-header__close-btn"
+                >
+                  <svg
+                    fill="currentcolor"
+                    height="24"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </header>
+            <main
+              class="channel-notifications-settings-modal__body"
+            >
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <h4
+                    class="mm-modal-generic-section__title"
+                  >
+                    Mute or ignore
+                  </h4>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="muteChannel"
+                            name="mute channel"
+                            type="checkbox"
+                          />
+                          Mute channel
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                    <p
+                      class="mm-modal-generic-section-item__description"
+                    >
+                      Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
+                    </p>
+                  </div>
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="ignoreMentions"
+                            name="ignore mentions"
+                            type="checkbox"
+                          />
+                          Ignore mentions for @channel, @here and @all
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                    <p
+                      class="mm-modal-generic-section-item__description"
+                    >
+                      When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
+                    </p>
+                  </div>
+                </div>
+              </section>
+              <div
+                class="channel-notifications-settings-modal__divider"
+              />
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <div
+                    class="mm-modal-generic-section__row"
+                  >
+                    <h4
+                      class="mm-modal-generic-section__title"
+                    >
+                      Desktop Notifications
+                    </h4>
+                  </div>
+                  <p
+                    class="mm-modal-generic-section__description"
+                  >
+                    Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.
+                  </p>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <h4
+                      class="mm-modal-generic-section-item__title"
+                    >
+                      Notify me about…
+                    </h4>
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-radio"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            checked=""
+                            data-testid="desktopNotification-all"
+                            id="desktopNotification-all"
+                            name="desktopNotification-all"
+                            type="radio"
+                            value="all"
+                          />
+                          All new messages
+                          (default)
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="desktopNotification-mention"
+                            id="desktopNotification-mention"
+                            name="desktopNotification-mention"
+                            type="radio"
+                            value="mention"
+                          />
+                          Mentions, direct messages, and keywords only
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="desktopNotification-none"
+                            id="desktopNotification-none"
+                            name="desktopNotification-none"
+                            type="radio"
+                            value="none"
+                          />
+                          Nothing
+                        </label>
+                      </fieldset>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <div
+                class="channel-notifications-settings-modal__divider"
+              />
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <div
+                    class="mm-modal-generic-section__row"
+                  >
+                    <h4
+                      class="mm-modal-generic-section__title"
+                    >
+                      Mobile Notifications
+                    </h4>
+                    <button
+                      class="channel-notifications-settings-modal__reset-btn"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"
+                        />
+                      </svg>
+                      Reset to default
+                    </button>
+                  </div>
+                  <p
+                    class="mm-modal-generic-section__description"
+                  >
+                    Notification alerts are pushed to your mobile device when there is activity in Mattermost.
+                  </p>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="sameMobileSettingsDesktop"
+                            name="same mobile settings as Desktop"
+                            type="checkbox"
+                          />
+                          Use the same notification settings as desktop
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                  </div>
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <h4
+                      class="mm-modal-generic-section-item__title"
+                    >
+                      Notify me about…
+                    </h4>
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-radio"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            checked=""
+                            data-testid="MobileNotification-all"
+                            id="MobileNotification-all"
+                            name="MobileNotification-all"
+                            type="radio"
+                            value="all"
+                          />
+                          All new messages
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="MobileNotification-mention"
+                            id="MobileNotification-mention"
+                            name="MobileNotification-mention"
+                            type="radio"
+                            value="mention"
+                          />
+                          Mentions, direct messages, and keywords only
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="MobileNotification-none"
+                            id="MobileNotification-none"
+                            name="MobileNotification-none"
+                            type="radio"
+                            value="none"
+                          />
+                          Nothing
+                        </label>
+                      </fieldset>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </main>
+            <footer
+              class="channel-notifications-settings-modal__footer"
+            >
+              
+              <button
+                class="channel-notifications-settings-modal__cancel-btn"
+              >
+                Cancel
+              </button>
+              <button
+                class="channel-notifications-settings-modal__save-btn"
+              >
+                Save
+              </button>
+            </footer>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div
+    aria-hidden="true"
+  />,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "replaceStoreState": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+  "updateStoreState": [Function],
+}
+`;
+
+exports[`components/channel_notifications_modal/ChannelNotificationsModal should not show other settings if channel is mute 1`] = `
+Object {
+  "asFragment": [Function],
+  "baseElement": <body
+    class="modal-open"
+    style="padding-right: 0px;"
+  >
+    <div
+      aria-hidden="true"
+    />
+    <div
+      role="dialog"
+    >
+      <div
+        class="fade modal-backdrop"
+      />
+      <div
+        aria-labelledby="channelNotificationModalLabel"
+        class="fade modal"
+        role="dialog"
+        style="display: flex; place-items: center; padding-right: 0px;"
+        tabindex="-1"
+      >
+        <div
+          class="a11y__modal channel-notifications-settings-modal modal-dialog"
+        >
+          <div
+            class="modal-content"
+            role="document"
+          >
+            <header
+              class="mm-modal-header"
+            >
+              <h1
+                class="mm-modal-header__title"
+                id="mm-modal-header-channelNotificationModalLabel"
+                tabindex="0"
+              >
+                Notification Preferences
+              </h1>
+              <div
+                class="mm-modal-header__vertical-divider"
+              />
+              <p
+                class="mm-modal-header__subtitle"
+              >
+                channel_display_name
+              </p>
+              <div
+                class="mm-modal-header__ctr"
+              >
+                <button
+                  class="style--none mm-modal-header__close-btn"
+                >
+                  <svg
+                    fill="currentcolor"
+                    height="24"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </header>
+            <main
+              class="channel-notifications-settings-modal__body"
+            >
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <h4
+                    class="mm-modal-generic-section__title"
+                  >
+                    Mute or ignore
+                  </h4>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="muteChannel"
+                            name="mute channel"
+                            type="checkbox"
+                          />
+                          Mute channel
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                    <p
+                      class="mm-modal-generic-section-item__description"
+                    >
+                      Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
+                    </p>
+                  </div>
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="ignoreMentions"
+                            name="ignore mentions"
+                            type="checkbox"
+                          />
+                          Ignore mentions for @channel, @here and @all
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                    <p
+                      class="mm-modal-generic-section-item__description"
+                    >
+                      When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
+                    </p>
+                  </div>
+                </div>
+              </section>
+              <div
+                class="AlertBanner info AlertBanner--app"
+              >
+                <div
+                  class="AlertBanner__icon"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="24"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M22.11,21.46L2.39,1.73L1.11,3L5.83,7.72C5.29,8.73 5,9.86 5,11V17L3,19V20H18.11L20.84,22.73L22.11,21.46M7,18V11C7,10.39 7.11,9.79 7.34,9.23L16.11,18H7M10,21H14A2,2 0 0,1 12,23A2,2 0 0,1 10,21M8.29,5.09C8.82,4.75 9.4,4.5 10,4.29C10,4.19 10,4.1 10,4A2,2 0 0,1 12,2A2,2 0 0,1 14,4C14,4.1 14,4.19 14,4.29C16.97,5.17 19,7.9 19,11V15.8L17,13.8V11A5,5 0 0,0 12,6C11.22,6 10.45,6.2 9.76,6.56L8.29,5.09Z"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="AlertBanner__body"
+                >
+                  <div
+                    class="AlertBanner__title"
+                  >
+                    This channel is muted
+                  </div>
+                  <div
+                    class="AlertBanner__message"
+                  >
+                    All other notification preferences for this channel are disabled
+                  </div>
+                </div>
+              </div>
+            </main>
+            <footer
+              class="channel-notifications-settings-modal__footer"
+            >
+              
+              <button
+                class="channel-notifications-settings-modal__cancel-btn"
+              >
+                Cancel
+              </button>
+              <button
+                class="channel-notifications-settings-modal__save-btn"
+              >
+                Save
+              </button>
+            </footer>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div
+    aria-hidden="true"
+  />,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "replaceStoreState": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+  "updateStoreState": [Function],
+}
+`;
+
+exports[`components/channel_notifications_modal/ChannelNotificationsModal should save the options exactly same as Desktop for mobile if use same as desktop checkbox is checked 1`] = `
+Object {
+  "asFragment": [Function],
+  "baseElement": <body
+    class="modal-open"
+    style="padding-right: 0px;"
+  >
+    <div
+      aria-hidden="true"
+    />
+    <div
+      role="dialog"
+    >
+      <div
+        class="fade modal-backdrop"
+      />
+      <div
+        aria-labelledby="channelNotificationModalLabel"
+        class="fade modal"
+        role="dialog"
+        style="display: flex; place-items: center; padding-right: 0px;"
+        tabindex="-1"
+      >
+        <div
+          class="a11y__modal channel-notifications-settings-modal modal-dialog"
+        >
+          <div
+            class="modal-content"
+            role="document"
+          >
+            <header
+              class="mm-modal-header"
+            >
+              <h1
+                class="mm-modal-header__title"
+                id="mm-modal-header-channelNotificationModalLabel"
+                tabindex="0"
+              >
+                Notification Preferences
+              </h1>
+              <div
+                class="mm-modal-header__vertical-divider"
+              />
+              <p
+                class="mm-modal-header__subtitle"
+              >
+                channel_display_name
+              </p>
+              <div
+                class="mm-modal-header__ctr"
+              >
+                <button
+                  class="style--none mm-modal-header__close-btn"
+                >
+                  <svg
+                    fill="currentcolor"
+                    height="24"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </header>
+            <main
+              class="channel-notifications-settings-modal__body"
+            >
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <h4
+                    class="mm-modal-generic-section__title"
+                  >
+                    Mute or ignore
+                  </h4>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="muteChannel"
+                            name="mute channel"
+                            type="checkbox"
+                          />
+                          Mute channel
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                    <p
+                      class="mm-modal-generic-section-item__description"
+                    >
+                      Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
+                    </p>
+                  </div>
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="ignoreMentions"
+                            name="ignore mentions"
+                            type="checkbox"
+                          />
+                          Ignore mentions for @channel, @here and @all
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                    <p
+                      class="mm-modal-generic-section-item__description"
+                    >
+                      When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
+                    </p>
+                  </div>
+                </div>
+              </section>
+              <div
+                class="channel-notifications-settings-modal__divider"
+              />
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <div
+                    class="mm-modal-generic-section__row"
+                  >
+                    <h4
+                      class="mm-modal-generic-section__title"
+                    >
+                      Desktop Notifications
+                    </h4>
+                  </div>
+                  <p
+                    class="mm-modal-generic-section__description"
+                  >
+                    Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.
+                  </p>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <h4
+                      class="mm-modal-generic-section-item__title"
+                    >
+                      Notify me about…
+                    </h4>
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-radio"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            checked=""
+                            data-testid="desktopNotification-all"
+                            id="desktopNotification-all"
+                            name="desktopNotification-all"
+                            type="radio"
+                            value="all"
+                          />
+                          All new messages
+                          (default)
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="desktopNotification-mention"
+                            id="desktopNotification-mention"
+                            name="desktopNotification-mention"
+                            type="radio"
+                            value="mention"
+                          />
+                          Mentions, direct messages, and keywords only
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="desktopNotification-none"
+                            id="desktopNotification-none"
+                            name="desktopNotification-none"
+                            type="radio"
+                            value="none"
+                          />
+                          Nothing
+                        </label>
+                      </fieldset>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <div
+                class="channel-notifications-settings-modal__divider"
+              />
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <div
+                    class="mm-modal-generic-section__row"
+                  >
+                    <h4
+                      class="mm-modal-generic-section__title"
+                    >
+                      Mobile Notifications
+                    </h4>
+                    <button
+                      class="channel-notifications-settings-modal__reset-btn"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"
+                        />
+                      </svg>
+                      Reset to default
+                    </button>
+                  </div>
+                  <p
+                    class="mm-modal-generic-section__description"
+                  >
+                    Notification alerts are pushed to your mobile device when there is activity in Mattermost.
+                  </p>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="sameMobileSettingsDesktop"
+                            name="same mobile settings as Desktop"
+                            type="checkbox"
+                          />
+                          Use the same notification settings as desktop
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </main>
+            <footer
+              class="channel-notifications-settings-modal__footer"
+            >
+              
+              <button
+                class="channel-notifications-settings-modal__cancel-btn"
+              >
+                Cancel
+              </button>
+              <button
+                class="channel-notifications-settings-modal__save-btn"
+              >
+                Save
+              </button>
+            </footer>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div
+    aria-hidden="true"
+  />,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "replaceStoreState": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+  "updateStoreState": [Function],
+}
+`;
+
+exports[`components/channel_notifications_modal/ChannelNotificationsModal should show auto follow, desktop threads and mobile threads settings if collapsed reply threads is enabled 1`] = `
+Object {
+  "asFragment": [Function],
+  "baseElement": <body
+    class="modal-open"
+    style="padding-right: 0px;"
+  >
+    <div
+      aria-hidden="true"
+    />
+    <div
+      role="dialog"
+    >
+      <div
+        class="fade modal-backdrop"
+      />
+      <div
+        aria-labelledby="channelNotificationModalLabel"
+        class="fade modal"
+        role="dialog"
+        style="display: flex; place-items: center; padding-right: 0px;"
+        tabindex="-1"
+      >
+        <div
+          class="a11y__modal channel-notifications-settings-modal modal-dialog"
+        >
+          <div
+            class="modal-content"
+            role="document"
+          >
+            <header
+              class="mm-modal-header"
+            >
+              <h1
+                class="mm-modal-header__title"
+                id="mm-modal-header-channelNotificationModalLabel"
+                tabindex="0"
+              >
+                Notification Preferences
+              </h1>
+              <div
+                class="mm-modal-header__vertical-divider"
+              />
+              <p
+                class="mm-modal-header__subtitle"
+              >
+                channel_display_name
+              </p>
+              <div
+                class="mm-modal-header__ctr"
+              >
+                <button
+                  class="style--none mm-modal-header__close-btn"
+                >
+                  <svg
+                    fill="currentcolor"
+                    height="24"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </header>
+            <main
+              class="channel-notifications-settings-modal__body"
+            >
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <h4
+                    class="mm-modal-generic-section__title"
+                  >
+                    Mute or ignore
+                  </h4>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="muteChannel"
+                            name="mute channel"
+                            type="checkbox"
+                          />
+                          Mute channel
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                    <p
+                      class="mm-modal-generic-section-item__description"
+                    >
+                      Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
+                    </p>
+                  </div>
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="ignoreMentions"
+                            name="ignore mentions"
+                            type="checkbox"
+                          />
+                          Ignore mentions for @channel, @here and @all
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                    <p
+                      class="mm-modal-generic-section-item__description"
+                    >
+                      When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
+                    </p>
+                  </div>
+                </div>
+              </section>
+              <div
+                class="channel-notifications-settings-modal__divider"
+              />
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <div
+                    class="mm-modal-generic-section__row"
+                  >
+                    <h4
+                      class="mm-modal-generic-section__title"
+                    >
+                      Desktop Notifications
+                    </h4>
+                  </div>
+                  <p
+                    class="mm-modal-generic-section__description"
+                  >
+                    Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.
+                  </p>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <h4
+                      class="mm-modal-generic-section-item__title"
+                    >
+                      Notify me about…
+                    </h4>
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-radio"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            checked=""
+                            data-testid="desktopNotification-all"
+                            id="desktopNotification-all"
+                            name="desktopNotification-all"
+                            type="radio"
+                            value="all"
+                          />
+                          All new messages
+                          (default)
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="desktopNotification-mention"
+                            id="desktopNotification-mention"
+                            name="desktopNotification-mention"
+                            type="radio"
+                            value="mention"
+                          />
+                          Mentions, direct messages, and keywords only
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="desktopNotification-none"
+                            id="desktopNotification-none"
+                            name="desktopNotification-none"
+                            type="radio"
+                            value="none"
+                          />
+                          Nothing
+                        </label>
+                      </fieldset>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <div
+                class="channel-notifications-settings-modal__divider"
+              />
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <div
+                    class="mm-modal-generic-section__row"
+                  >
+                    <h4
+                      class="mm-modal-generic-section__title"
+                    >
+                      Mobile Notifications
+                    </h4>
+                    <button
+                      class="channel-notifications-settings-modal__reset-btn"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"
+                        />
+                      </svg>
+                      Reset to default
+                    </button>
+                  </div>
+                  <p
+                    class="mm-modal-generic-section__description"
+                  >
+                    Notification alerts are pushed to your mobile device when there is activity in Mattermost.
+                  </p>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="sameMobileSettingsDesktop"
+                            name="same mobile settings as Desktop"
+                            type="checkbox"
+                          />
+                          Use the same notification settings as desktop
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                  </div>
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <h4
+                      class="mm-modal-generic-section-item__title"
+                    >
+                      Notify me about…
+                    </h4>
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-radio"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            checked=""
+                            data-testid="MobileNotification-all"
+                            id="MobileNotification-all"
+                            name="MobileNotification-all"
+                            type="radio"
+                            value="all"
+                          />
+                          All new messages
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="MobileNotification-mention"
+                            id="MobileNotification-mention"
+                            name="MobileNotification-mention"
+                            type="radio"
+                            value="mention"
+                          />
+                          Mentions, direct messages, and keywords only
+                        </label>
+                        <label
+                          class="mm-modal-generic-section-item__label-radio"
+                        >
+                          <input
+                            data-testid="MobileNotification-none"
+                            id="MobileNotification-none"
+                            name="MobileNotification-none"
+                            type="radio"
+                            value="none"
+                          />
+                          Nothing
+                        </label>
+                      </fieldset>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <div
+                class="channel-notifications-settings-modal__divider"
+              />
+              <section
+                class="mm-modal-generic-section"
+              >
+                <div
+                  class="mm-modal-generic-section__info-ctr"
+                >
+                  <h4
+                    class="mm-modal-generic-section__title"
+                  >
+                    Follow all threads in this channel
+                  </h4>
+                  <p
+                    class="mm-modal-generic-section__description"
+                  >
+                    When enabled, all new replies in this channel will be automatically followed and will appear in your Threads view.
+                  </p>
+                </div>
+                <div
+                  class="mm-modal-generic-section__content"
+                >
+                  <div
+                    class="mm-modal-generic-section-item"
+                  >
+                    <div
+                      class="mm-modal-generic-section-item__content"
+                    >
+                      <fieldset
+                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      >
+                        <label
+                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        >
+                          <input
+                            class="mm-modal-generic-section-item__input-checkbox"
+                            data-testid="autoFollowThreads"
+                            name="auto follow threads"
+                            type="checkbox"
+                          />
+                          Automatically follow threads in this channel
+                        </label>
+                        <br />
+                      </fieldset>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </main>
+            <footer
+              class="channel-notifications-settings-modal__footer"
+            >
+              
+              <button
+                class="channel-notifications-settings-modal__cancel-btn"
+              >
+                Cancel
+              </button>
+              <button
+                class="channel-notifications-settings-modal__save-btn"
+              >
+                Save
+              </button>
+            </footer>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div
+    aria-hidden="true"
+  />,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "replaceStoreState": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+  "updateStoreState": [Function],
+}
+`;

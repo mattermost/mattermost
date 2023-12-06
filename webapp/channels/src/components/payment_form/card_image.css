@@ -1,0 +1,8 @@
+.CardImage {
+    width: auto;
+    max-width: 30px;
+    height: auto;
+    max-height: 30px;
+    margin-top: -1px;
+    margin-right: 9px;
+}

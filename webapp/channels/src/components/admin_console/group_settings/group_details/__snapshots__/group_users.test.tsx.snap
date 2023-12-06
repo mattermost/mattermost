@@ -1,0 +1,1401 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, loaded with data 1`] = `
+<div
+  className="group-users"
+>
+  <div
+    className="group-users--header"
+  >
+    <FormattedMarkdownMessage
+      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
+      id="admin.group_settings.group_profile.group_users.ldapConnector"
+      values={
+        Object {
+          "siteURL": "http://localhost:8065",
+        }
+      }
+    />
+  </div>
+  <div
+    className="group-users--body"
+  >
+    <div
+      className="group-users-loading "
+    >
+      <i
+        className="fa fa-spinner fa-pulse fa-2x"
+      />
+    </div>
+    <Memo(GroupUsersRow)
+      displayName="Name0 Surname0"
+      email="test0@test.com"
+      key="id0"
+      lastPictureUpdate={0}
+      userId="id0"
+      username="username0"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name1 Surname1"
+      email="test1@test.com"
+      key="id1"
+      lastPictureUpdate={1}
+      userId="id1"
+      username="username1"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name2 Surname2"
+      email="test2@test.com"
+      key="id2"
+      lastPictureUpdate={2}
+      userId="id2"
+      username="username2"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name3 Surname3"
+      email="test3@test.com"
+      key="id3"
+      lastPictureUpdate={3}
+      userId="id3"
+      username="username3"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name4 Surname4"
+      email="test4@test.com"
+      key="id4"
+      lastPictureUpdate={4}
+      userId="id4"
+      username="username4"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name5 Surname5"
+      email="test5@test.com"
+      key="id5"
+      lastPictureUpdate={5}
+      userId="id5"
+      username="username5"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name6 Surname6"
+      email="test6@test.com"
+      key="id6"
+      lastPictureUpdate={6}
+      userId="id6"
+      username="username6"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name7 Surname7"
+      email="test7@test.com"
+      key="id7"
+      lastPictureUpdate={7}
+      userId="id7"
+      username="username7"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name8 Surname8"
+      email="test8@test.com"
+      key="id8"
+      lastPictureUpdate={8}
+      userId="id8"
+      username="username8"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name9 Surname9"
+      email="test9@test.com"
+      key="id9"
+      lastPictureUpdate={9}
+      userId="id9"
+      username="username9"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name10 Surname10"
+      email="test10@test.com"
+      key="id10"
+      lastPictureUpdate={10}
+      userId="id10"
+      username="username10"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name11 Surname11"
+      email="test11@test.com"
+      key="id11"
+      lastPictureUpdate={11}
+      userId="id11"
+      username="username11"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name12 Surname12"
+      email="test12@test.com"
+      key="id12"
+      lastPictureUpdate={12}
+      userId="id12"
+      username="username12"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name13 Surname13"
+      email="test13@test.com"
+      key="id13"
+      lastPictureUpdate={13}
+      userId="id13"
+      username="username13"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name14 Surname14"
+      email="test14@test.com"
+      key="id14"
+      lastPictureUpdate={14}
+      userId="id14"
+      username="username14"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name15 Surname15"
+      email="test15@test.com"
+      key="id15"
+      lastPictureUpdate={15}
+      userId="id15"
+      username="username15"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name16 Surname16"
+      email="test16@test.com"
+      key="id16"
+      lastPictureUpdate={16}
+      userId="id16"
+      username="username16"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name17 Surname17"
+      email="test17@test.com"
+      key="id17"
+      lastPictureUpdate={17}
+      userId="id17"
+      username="username17"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name18 Surname18"
+      email="test18@test.com"
+      key="id18"
+      lastPictureUpdate={18}
+      userId="id18"
+      username="username18"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name19 Surname19"
+      email="test19@test.com"
+      key="id19"
+      lastPictureUpdate={19}
+      userId="id19"
+      username="username19"
+    />
+  </div>
+  <div
+    className="group-users--footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.group_settings.groups_list.paginatorCount"
+        values={
+          Object {
+            "endCount": 20,
+            "startCount": 1,
+            "total": 20,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-tertiary prev disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <Memo(PreviousIcon) />
+    </button>
+    <button
+      className="btn btn-tertiary next disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <Memo(NextIcon) />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, loaded with multiple pages 1`] = `
+<div
+  className="group-users"
+>
+  <div
+    className="group-users--header"
+  >
+    <FormattedMarkdownMessage
+      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
+      id="admin.group_settings.group_profile.group_users.ldapConnector"
+      values={
+        Object {
+          "siteURL": "http://localhost:8065",
+        }
+      }
+    />
+  </div>
+  <div
+    className="group-users--body"
+  >
+    <div
+      className="group-users-loading "
+    >
+      <i
+        className="fa fa-spinner fa-pulse fa-2x"
+      />
+    </div>
+    <Memo(GroupUsersRow)
+      displayName="Name0 Surname0"
+      email="test0@test.com"
+      key="id0"
+      lastPictureUpdate={0}
+      userId="id0"
+      username="username0"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name1 Surname1"
+      email="test1@test.com"
+      key="id1"
+      lastPictureUpdate={1}
+      userId="id1"
+      username="username1"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name2 Surname2"
+      email="test2@test.com"
+      key="id2"
+      lastPictureUpdate={2}
+      userId="id2"
+      username="username2"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name3 Surname3"
+      email="test3@test.com"
+      key="id3"
+      lastPictureUpdate={3}
+      userId="id3"
+      username="username3"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name4 Surname4"
+      email="test4@test.com"
+      key="id4"
+      lastPictureUpdate={4}
+      userId="id4"
+      username="username4"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name5 Surname5"
+      email="test5@test.com"
+      key="id5"
+      lastPictureUpdate={5}
+      userId="id5"
+      username="username5"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name6 Surname6"
+      email="test6@test.com"
+      key="id6"
+      lastPictureUpdate={6}
+      userId="id6"
+      username="username6"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name7 Surname7"
+      email="test7@test.com"
+      key="id7"
+      lastPictureUpdate={7}
+      userId="id7"
+      username="username7"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name8 Surname8"
+      email="test8@test.com"
+      key="id8"
+      lastPictureUpdate={8}
+      userId="id8"
+      username="username8"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name9 Surname9"
+      email="test9@test.com"
+      key="id9"
+      lastPictureUpdate={9}
+      userId="id9"
+      username="username9"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name10 Surname10"
+      email="test10@test.com"
+      key="id10"
+      lastPictureUpdate={10}
+      userId="id10"
+      username="username10"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name11 Surname11"
+      email="test11@test.com"
+      key="id11"
+      lastPictureUpdate={11}
+      userId="id11"
+      username="username11"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name12 Surname12"
+      email="test12@test.com"
+      key="id12"
+      lastPictureUpdate={12}
+      userId="id12"
+      username="username12"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name13 Surname13"
+      email="test13@test.com"
+      key="id13"
+      lastPictureUpdate={13}
+      userId="id13"
+      username="username13"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name14 Surname14"
+      email="test14@test.com"
+      key="id14"
+      lastPictureUpdate={14}
+      userId="id14"
+      username="username14"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name15 Surname15"
+      email="test15@test.com"
+      key="id15"
+      lastPictureUpdate={15}
+      userId="id15"
+      username="username15"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name16 Surname16"
+      email="test16@test.com"
+      key="id16"
+      lastPictureUpdate={16}
+      userId="id16"
+      username="username16"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name17 Surname17"
+      email="test17@test.com"
+      key="id17"
+      lastPictureUpdate={17}
+      userId="id17"
+      username="username17"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name18 Surname18"
+      email="test18@test.com"
+      key="id18"
+      lastPictureUpdate={18}
+      userId="id18"
+      username="username18"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name19 Surname19"
+      email="test19@test.com"
+      key="id19"
+      lastPictureUpdate={19}
+      userId="id19"
+      username="username19"
+    />
+  </div>
+  <div
+    className="group-users--footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.group_settings.groups_list.paginatorCount"
+        values={
+          Object {
+            "endCount": 20,
+            "startCount": 1,
+            "total": 55,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-tertiary prev disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <Memo(PreviousIcon) />
+    </button>
+    <button
+      className="btn btn-tertiary next "
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <Memo(NextIcon) />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, loaded with multiple pages 2`] = `
+<div
+  className="group-users"
+>
+  <div
+    className="group-users--header"
+  >
+    <FormattedMarkdownMessage
+      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
+      id="admin.group_settings.group_profile.group_users.ldapConnector"
+      values={
+        Object {
+          "siteURL": "http://localhost:8065",
+        }
+      }
+    />
+  </div>
+  <div
+    className="group-users--body"
+  >
+    <div
+      className="group-users-loading "
+    >
+      <i
+        className="fa fa-spinner fa-pulse fa-2x"
+      />
+    </div>
+    <Memo(GroupUsersRow)
+      displayName="Name20 Surname20"
+      email="test20@test.com"
+      key="id20"
+      lastPictureUpdate={20}
+      userId="id20"
+      username="username20"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name21 Surname21"
+      email="test21@test.com"
+      key="id21"
+      lastPictureUpdate={21}
+      userId="id21"
+      username="username21"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name22 Surname22"
+      email="test22@test.com"
+      key="id22"
+      lastPictureUpdate={22}
+      userId="id22"
+      username="username22"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name23 Surname23"
+      email="test23@test.com"
+      key="id23"
+      lastPictureUpdate={23}
+      userId="id23"
+      username="username23"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name24 Surname24"
+      email="test24@test.com"
+      key="id24"
+      lastPictureUpdate={24}
+      userId="id24"
+      username="username24"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name25 Surname25"
+      email="test25@test.com"
+      key="id25"
+      lastPictureUpdate={25}
+      userId="id25"
+      username="username25"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name26 Surname26"
+      email="test26@test.com"
+      key="id26"
+      lastPictureUpdate={26}
+      userId="id26"
+      username="username26"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name27 Surname27"
+      email="test27@test.com"
+      key="id27"
+      lastPictureUpdate={27}
+      userId="id27"
+      username="username27"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name28 Surname28"
+      email="test28@test.com"
+      key="id28"
+      lastPictureUpdate={28}
+      userId="id28"
+      username="username28"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name29 Surname29"
+      email="test29@test.com"
+      key="id29"
+      lastPictureUpdate={29}
+      userId="id29"
+      username="username29"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name30 Surname30"
+      email="test30@test.com"
+      key="id30"
+      lastPictureUpdate={30}
+      userId="id30"
+      username="username30"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name31 Surname31"
+      email="test31@test.com"
+      key="id31"
+      lastPictureUpdate={31}
+      userId="id31"
+      username="username31"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name32 Surname32"
+      email="test32@test.com"
+      key="id32"
+      lastPictureUpdate={32}
+      userId="id32"
+      username="username32"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name33 Surname33"
+      email="test33@test.com"
+      key="id33"
+      lastPictureUpdate={33}
+      userId="id33"
+      username="username33"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name34 Surname34"
+      email="test34@test.com"
+      key="id34"
+      lastPictureUpdate={34}
+      userId="id34"
+      username="username34"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name35 Surname35"
+      email="test35@test.com"
+      key="id35"
+      lastPictureUpdate={35}
+      userId="id35"
+      username="username35"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name36 Surname36"
+      email="test36@test.com"
+      key="id36"
+      lastPictureUpdate={36}
+      userId="id36"
+      username="username36"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name37 Surname37"
+      email="test37@test.com"
+      key="id37"
+      lastPictureUpdate={37}
+      userId="id37"
+      username="username37"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name38 Surname38"
+      email="test38@test.com"
+      key="id38"
+      lastPictureUpdate={38}
+      userId="id38"
+      username="username38"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name39 Surname39"
+      email="test39@test.com"
+      key="id39"
+      lastPictureUpdate={39}
+      userId="id39"
+      username="username39"
+    />
+  </div>
+  <div
+    className="group-users--footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.group_settings.groups_list.paginatorCount"
+        values={
+          Object {
+            "endCount": 40,
+            "startCount": 21,
+            "total": 55,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-tertiary prev "
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <Memo(PreviousIcon) />
+    </button>
+    <button
+      className="btn btn-tertiary next "
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <Memo(NextIcon) />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, loaded with multiple pages 3`] = `
+<div
+  className="group-users"
+>
+  <div
+    className="group-users--header"
+  >
+    <FormattedMarkdownMessage
+      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
+      id="admin.group_settings.group_profile.group_users.ldapConnector"
+      values={
+        Object {
+          "siteURL": "http://localhost:8065",
+        }
+      }
+    />
+  </div>
+  <div
+    className="group-users--body"
+  >
+    <div
+      className="group-users-loading "
+    >
+      <i
+        className="fa fa-spinner fa-pulse fa-2x"
+      />
+    </div>
+    <Memo(GroupUsersRow)
+      displayName="Name40 Surname40"
+      email="test40@test.com"
+      key="id40"
+      lastPictureUpdate={40}
+      userId="id40"
+      username="username40"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name41 Surname41"
+      email="test41@test.com"
+      key="id41"
+      lastPictureUpdate={41}
+      userId="id41"
+      username="username41"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name42 Surname42"
+      email="test42@test.com"
+      key="id42"
+      lastPictureUpdate={42}
+      userId="id42"
+      username="username42"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name43 Surname43"
+      email="test43@test.com"
+      key="id43"
+      lastPictureUpdate={43}
+      userId="id43"
+      username="username43"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name44 Surname44"
+      email="test44@test.com"
+      key="id44"
+      lastPictureUpdate={44}
+      userId="id44"
+      username="username44"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name45 Surname45"
+      email="test45@test.com"
+      key="id45"
+      lastPictureUpdate={45}
+      userId="id45"
+      username="username45"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name46 Surname46"
+      email="test46@test.com"
+      key="id46"
+      lastPictureUpdate={46}
+      userId="id46"
+      username="username46"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name47 Surname47"
+      email="test47@test.com"
+      key="id47"
+      lastPictureUpdate={47}
+      userId="id47"
+      username="username47"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name48 Surname48"
+      email="test48@test.com"
+      key="id48"
+      lastPictureUpdate={48}
+      userId="id48"
+      username="username48"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name49 Surname49"
+      email="test49@test.com"
+      key="id49"
+      lastPictureUpdate={49}
+      userId="id49"
+      username="username49"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name50 Surname50"
+      email="test50@test.com"
+      key="id50"
+      lastPictureUpdate={50}
+      userId="id50"
+      username="username50"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name51 Surname51"
+      email="test51@test.com"
+      key="id51"
+      lastPictureUpdate={51}
+      userId="id51"
+      username="username51"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name52 Surname52"
+      email="test52@test.com"
+      key="id52"
+      lastPictureUpdate={52}
+      userId="id52"
+      username="username52"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name53 Surname53"
+      email="test53@test.com"
+      key="id53"
+      lastPictureUpdate={53}
+      userId="id53"
+      username="username53"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name54 Surname54"
+      email="test54@test.com"
+      key="id54"
+      lastPictureUpdate={54}
+      userId="id54"
+      username="username54"
+    />
+  </div>
+  <div
+    className="group-users--footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.group_settings.groups_list.paginatorCount"
+        values={
+          Object {
+            "endCount": 55,
+            "startCount": 41,
+            "total": 55,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-tertiary prev "
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <Memo(PreviousIcon) />
+    </button>
+    <button
+      className="btn btn-tertiary next disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <Memo(NextIcon) />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, loaded with one page 1`] = `
+<div
+  className="group-users"
+>
+  <div
+    className="group-users--header"
+  >
+    <FormattedMarkdownMessage
+      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
+      id="admin.group_settings.group_profile.group_users.ldapConnector"
+      values={
+        Object {
+          "siteURL": "http://localhost:8065",
+        }
+      }
+    />
+  </div>
+  <div
+    className="group-users--body"
+  >
+    <div
+      className="group-users-loading "
+    >
+      <i
+        className="fa fa-spinner fa-pulse fa-2x"
+      />
+    </div>
+    <Memo(GroupUsersRow)
+      displayName="Name0 Surname0"
+      email="test0@test.com"
+      key="id0"
+      lastPictureUpdate={0}
+      userId="id0"
+      username="username0"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name1 Surname1"
+      email="test1@test.com"
+      key="id1"
+      lastPictureUpdate={1}
+      userId="id1"
+      username="username1"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name2 Surname2"
+      email="test2@test.com"
+      key="id2"
+      lastPictureUpdate={2}
+      userId="id2"
+      username="username2"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name3 Surname3"
+      email="test3@test.com"
+      key="id3"
+      lastPictureUpdate={3}
+      userId="id3"
+      username="username3"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name4 Surname4"
+      email="test4@test.com"
+      key="id4"
+      lastPictureUpdate={4}
+      userId="id4"
+      username="username4"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name5 Surname5"
+      email="test5@test.com"
+      key="id5"
+      lastPictureUpdate={5}
+      userId="id5"
+      username="username5"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name6 Surname6"
+      email="test6@test.com"
+      key="id6"
+      lastPictureUpdate={6}
+      userId="id6"
+      username="username6"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name7 Surname7"
+      email="test7@test.com"
+      key="id7"
+      lastPictureUpdate={7}
+      userId="id7"
+      username="username7"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name8 Surname8"
+      email="test8@test.com"
+      key="id8"
+      lastPictureUpdate={8}
+      userId="id8"
+      username="username8"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name9 Surname9"
+      email="test9@test.com"
+      key="id9"
+      lastPictureUpdate={9}
+      userId="id9"
+      username="username9"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name10 Surname10"
+      email="test10@test.com"
+      key="id10"
+      lastPictureUpdate={10}
+      userId="id10"
+      username="username10"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name11 Surname11"
+      email="test11@test.com"
+      key="id11"
+      lastPictureUpdate={11}
+      userId="id11"
+      username="username11"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name12 Surname12"
+      email="test12@test.com"
+      key="id12"
+      lastPictureUpdate={12}
+      userId="id12"
+      username="username12"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name13 Surname13"
+      email="test13@test.com"
+      key="id13"
+      lastPictureUpdate={13}
+      userId="id13"
+      username="username13"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name14 Surname14"
+      email="test14@test.com"
+      key="id14"
+      lastPictureUpdate={14}
+      userId="id14"
+      username="username14"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name15 Surname15"
+      email="test15@test.com"
+      key="id15"
+      lastPictureUpdate={15}
+      userId="id15"
+      username="username15"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name16 Surname16"
+      email="test16@test.com"
+      key="id16"
+      lastPictureUpdate={16}
+      userId="id16"
+      username="username16"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name17 Surname17"
+      email="test17@test.com"
+      key="id17"
+      lastPictureUpdate={17}
+      userId="id17"
+      username="username17"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name18 Surname18"
+      email="test18@test.com"
+      key="id18"
+      lastPictureUpdate={18}
+      userId="id18"
+      username="username18"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name19 Surname19"
+      email="test19@test.com"
+      key="id19"
+      lastPictureUpdate={19}
+      userId="id19"
+      username="username19"
+    />
+  </div>
+  <div
+    className="group-users--footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.group_settings.groups_list.paginatorCount"
+        values={
+          Object {
+            "endCount": 20,
+            "startCount": 1,
+            "total": 20,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-tertiary prev disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <Memo(PreviousIcon) />
+    </button>
+    <button
+      className="btn btn-tertiary next disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <Memo(NextIcon) />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, loaded without data 1`] = `
+<div
+  className="group-users"
+>
+  <div
+    className="group-users--header"
+  >
+    <FormattedMarkdownMessage
+      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
+      id="admin.group_settings.group_profile.group_users.ldapConnector"
+      values={
+        Object {
+          "siteURL": "http://localhost:8065",
+        }
+      }
+    />
+  </div>
+  <div
+    className="group-users--body"
+  >
+    <div
+      className="group-users-loading "
+    >
+      <i
+        className="fa fa-spinner fa-pulse fa-2x"
+      />
+    </div>
+    <div
+      className="group-users-empty"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="No users found"
+        id="admin.group_settings.group_details.group_users.no-users-found"
+      />
+    </div>
+  </div>
+  <div
+    className="group-users--footer empty"
+  />
+</div>
+`;
+
+exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, on loading with data 1`] = `
+<div
+  className="group-users"
+>
+  <div
+    className="group-users--header"
+  >
+    <FormattedMarkdownMessage
+      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
+      id="admin.group_settings.group_profile.group_users.ldapConnector"
+      values={
+        Object {
+          "siteURL": "http://localhost:8065",
+        }
+      }
+    />
+  </div>
+  <div
+    className="group-users--body"
+  >
+    <div
+      className="group-users-loading active"
+    >
+      <i
+        className="fa fa-spinner fa-pulse fa-2x"
+      />
+    </div>
+    <Memo(GroupUsersRow)
+      displayName="Name0 Surname0"
+      email="test0@test.com"
+      key="id0"
+      lastPictureUpdate={0}
+      userId="id0"
+      username="username0"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name1 Surname1"
+      email="test1@test.com"
+      key="id1"
+      lastPictureUpdate={1}
+      userId="id1"
+      username="username1"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name2 Surname2"
+      email="test2@test.com"
+      key="id2"
+      lastPictureUpdate={2}
+      userId="id2"
+      username="username2"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name3 Surname3"
+      email="test3@test.com"
+      key="id3"
+      lastPictureUpdate={3}
+      userId="id3"
+      username="username3"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name4 Surname4"
+      email="test4@test.com"
+      key="id4"
+      lastPictureUpdate={4}
+      userId="id4"
+      username="username4"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name5 Surname5"
+      email="test5@test.com"
+      key="id5"
+      lastPictureUpdate={5}
+      userId="id5"
+      username="username5"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name6 Surname6"
+      email="test6@test.com"
+      key="id6"
+      lastPictureUpdate={6}
+      userId="id6"
+      username="username6"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name7 Surname7"
+      email="test7@test.com"
+      key="id7"
+      lastPictureUpdate={7}
+      userId="id7"
+      username="username7"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name8 Surname8"
+      email="test8@test.com"
+      key="id8"
+      lastPictureUpdate={8}
+      userId="id8"
+      username="username8"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name9 Surname9"
+      email="test9@test.com"
+      key="id9"
+      lastPictureUpdate={9}
+      userId="id9"
+      username="username9"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name10 Surname10"
+      email="test10@test.com"
+      key="id10"
+      lastPictureUpdate={10}
+      userId="id10"
+      username="username10"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name11 Surname11"
+      email="test11@test.com"
+      key="id11"
+      lastPictureUpdate={11}
+      userId="id11"
+      username="username11"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name12 Surname12"
+      email="test12@test.com"
+      key="id12"
+      lastPictureUpdate={12}
+      userId="id12"
+      username="username12"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name13 Surname13"
+      email="test13@test.com"
+      key="id13"
+      lastPictureUpdate={13}
+      userId="id13"
+      username="username13"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name14 Surname14"
+      email="test14@test.com"
+      key="id14"
+      lastPictureUpdate={14}
+      userId="id14"
+      username="username14"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name15 Surname15"
+      email="test15@test.com"
+      key="id15"
+      lastPictureUpdate={15}
+      userId="id15"
+      username="username15"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name16 Surname16"
+      email="test16@test.com"
+      key="id16"
+      lastPictureUpdate={16}
+      userId="id16"
+      username="username16"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name17 Surname17"
+      email="test17@test.com"
+      key="id17"
+      lastPictureUpdate={17}
+      userId="id17"
+      username="username17"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name18 Surname18"
+      email="test18@test.com"
+      key="id18"
+      lastPictureUpdate={18}
+      userId="id18"
+      username="username18"
+    />
+    <Memo(GroupUsersRow)
+      displayName="Name19 Surname19"
+      email="test19@test.com"
+      key="id19"
+      lastPictureUpdate={19}
+      userId="id19"
+      username="username19"
+    />
+  </div>
+  <div
+    className="group-users--footer"
+  >
+    <div
+      className="counter"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
+        id="admin.group_settings.groups_list.paginatorCount"
+        values={
+          Object {
+            "endCount": 20,
+            "startCount": 1,
+            "total": 20,
+          }
+        }
+      />
+    </div>
+    <button
+      className="btn btn-tertiary prev disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <Memo(PreviousIcon) />
+    </button>
+    <button
+      className="btn btn-tertiary next disabled"
+      disabled={true}
+      onClick={[Function]}
+      type="button"
+    >
+      <Memo(NextIcon) />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, on loading without data 1`] = `
+<div
+  className="group-users"
+>
+  <div
+    className="group-users--header"
+  >
+    <FormattedMarkdownMessage
+      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. [Click here to view]({siteURL}/admin_console/authentication/ldap)"
+      id="admin.group_settings.group_profile.group_users.ldapConnector"
+      values={
+        Object {
+          "siteURL": "http://localhost:8065",
+        }
+      }
+    />
+  </div>
+  <div
+    className="group-users--body"
+  >
+    <div
+      className="group-users-loading active"
+    >
+      <i
+        className="fa fa-spinner fa-pulse fa-2x"
+      />
+    </div>
+    <div
+      className="group-users-empty"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="No users found"
+        id="admin.group_settings.group_details.group_users.no-users-found"
+      />
+    </div>
+  </div>
+  <div
+    className="group-users--footer empty"
+  />
+</div>
+`;

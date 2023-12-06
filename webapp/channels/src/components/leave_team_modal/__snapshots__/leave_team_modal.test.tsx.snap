@@ -1,0 +1,94 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/LeaveTeamModal should render the leave team model 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="leaveTeamModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  className="modal-confirm"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="leaveTeamModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={false}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="leaveTeamModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Leave the team?"
+        id="leave_team_modal.title"
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <FormattedMarkdownMessage
+      defaultMessage="**You will be removed from {num_of_private_channels} private {num_of_private_channels,one {channel} other {channels}} on this team.** If the team is private you won't be able to rejoin it without an invitation from another team member. Are you sure?"
+      id="leave_team_modal_private.desc"
+      values={
+        Object {
+          "num_of_private_channels": 0,
+          "num_of_public_channels": 0,
+        }
+      }
+    />
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-tertiary"
+      id="leaveTeamNo"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="No"
+        id="leave_team_modal.no"
+      />
+    </button>
+    <button
+      className="btn btn-danger"
+      id="leaveTeamYes"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Yes"
+        id="leave_team_modal.yes"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;

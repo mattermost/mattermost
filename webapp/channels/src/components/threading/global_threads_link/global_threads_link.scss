@@ -1,0 +1,57 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+#SidebarContainer .SidebarGlobalThreads {
+    .SidebarChannel {
+        height: 100%;
+    }
+
+    .SidebarLink {
+        width: 100%;
+
+        .icon {
+            padding: 3px;
+            margin-right: 8px;
+            margin-left: 1px;
+
+            svg {
+                fill: rgba(var(--sidebar-text-rgb), 0.6);
+                vertical-align: middle;
+            }
+        }
+
+        &:hover {
+            padding-right: 16px;
+
+            .badge {
+                position: initial;
+                visibility: visible;
+            }
+        }
+    }
+}
+
+// legacy
+.sidebar--left .SidebarGlobalThreads {
+    padding-bottom: 0;
+    margin-top: 13px;
+
+    .icon {
+        width: auto;
+        padding-left: 1px;
+        margin-top: 1px;
+
+        svg {
+            fill: rgba(var(--sidebar-text-rgb), 0.6);
+        }
+    }
+
+    .SidebarChannelLinkLabel_wrapper {
+        display: flex;
+        flex: 1;
+    }
+
+    .badge {
+        margin: 0 12px 0 0;
+    }
+}

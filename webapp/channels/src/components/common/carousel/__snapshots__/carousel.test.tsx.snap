@@ -1,0 +1,78 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`/components/common/Carousel should match snapshot 1`] = `
+<div
+  className="container-slider"
+  id="test-string"
+>
+  <div
+    className="slide active-anim"
+    key="0"
+  >
+    <p
+      className="slide"
+      key="1"
+    >
+      First Slide
+    </p>
+  </div>
+  <div
+    className="slide"
+    key="1"
+  >
+    <p
+      className="slide"
+      key="2"
+    >
+      Second Slide
+    </p>
+  </div>
+  <div
+    className="slide"
+    key="2"
+  >
+    <p
+      className="slide"
+      key="3"
+    >
+      Third Slide
+    </p>
+  </div>
+  <div
+    className="container-footer"
+  >
+    <div
+      className="container-dots"
+    >
+      <div
+        className="dot active"
+        key="0"
+        onClick={[Function]}
+      />
+      <div
+        className="dot"
+        key="1"
+        onClick={[Function]}
+      />
+      <div
+        className="dot"
+        key="2"
+        onClick={[Function]}
+      />
+    </div>
+    <div
+      className=" buttons container-buttons"
+    >
+      <CarouselButton
+        direction="prev"
+        disabled={false}
+        moveSlide={[Function]}
+      />
+      <CarouselButton
+        direction="next"
+        moveSlide={[Function]}
+      />
+    </div>
+  </div>
+</div>
+`;

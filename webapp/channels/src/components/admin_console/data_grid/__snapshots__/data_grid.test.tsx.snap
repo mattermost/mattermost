@@ -1,0 +1,270 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/data_grid/DataGrid should match snapshot while loading 1`] = `
+<div
+  className="DataGrid"
+>
+  <DataGridSearch
+    onSearch={[Function]}
+    placeholder=""
+    term=""
+  />
+  <DataGridHeader
+    columns={Array []}
+  />
+  <div
+    className="DataGrid_rows"
+    style={Object {}}
+  >
+    <div
+      className="DataGrid_loading"
+    >
+      <Memo(LoadingSpinner) />
+      <MemoizedFormattedMessage
+        defaultMessage="Loading"
+        id="admin.data_grid.loading"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/data_grid/DataGrid should match snapshot with content and custom styling on rows 1`] = `
+<div
+  className="DataGrid"
+>
+  <DataGridSearch
+    onSearch={[Function]}
+    placeholder=""
+    term=""
+  />
+  <DataGridHeader
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "name": "Name",
+          "overflow": "hidden",
+          "width": 3,
+        },
+        Object {
+          "field": "team",
+          "name": "Team",
+          "textAlign": "center",
+        },
+      ]
+    }
+  />
+  <div
+    className="DataGrid_rows"
+    style={Object {}}
+  >
+    <Memo(DataGridRow)
+      columns={
+        Array [
+          Object {
+            "field": "name",
+            "name": "Name",
+            "overflow": "hidden",
+            "width": 3,
+          },
+          Object {
+            "field": "team",
+            "name": "Team",
+            "textAlign": "center",
+          },
+        ]
+      }
+      key="0"
+      row={
+        Object {
+          "cells": Object {
+            "name": "Joe Schmoe",
+            "team": "Admin Team",
+          },
+        }
+      }
+    />
+    <Memo(DataGridRow)
+      columns={
+        Array [
+          Object {
+            "field": "name",
+            "name": "Name",
+            "overflow": "hidden",
+            "width": 3,
+          },
+          Object {
+            "field": "team",
+            "name": "Team",
+            "textAlign": "center",
+          },
+        ]
+      }
+      key="1"
+      row={
+        Object {
+          "cells": Object {
+            "name": "Foo Bar",
+            "team": "Admin Team",
+          },
+        }
+      }
+    />
+    <Memo(DataGridRow)
+      columns={
+        Array [
+          Object {
+            "field": "name",
+            "name": "Name",
+            "overflow": "hidden",
+            "width": 3,
+          },
+          Object {
+            "field": "team",
+            "name": "Team",
+            "textAlign": "center",
+          },
+        ]
+      }
+      key="2"
+      row={
+        Object {
+          "cells": Object {
+            "name": "Some Guy",
+            "team": "Admin Team",
+          },
+        }
+      }
+    />
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/data_grid/DataGrid should match snapshot with custom classes 1`] = `
+<div
+  className="DataGrid customTable"
+>
+  <DataGridSearch
+    onSearch={[Function]}
+    placeholder=""
+    term=""
+  />
+  <DataGridHeader
+    columns={
+      Array [
+        Object {
+          "field": "name",
+          "name": "Name",
+        },
+        Object {
+          "field": "team",
+          "name": "Team",
+        },
+      ]
+    }
+  />
+  <div
+    className="DataGrid_rows"
+    style={Object {}}
+  >
+    <Memo(DataGridRow)
+      columns={
+        Array [
+          Object {
+            "field": "name",
+            "name": "Name",
+          },
+          Object {
+            "field": "team",
+            "name": "Team",
+          },
+        ]
+      }
+      key="0"
+      row={
+        Object {
+          "cells": Object {
+            "name": "Joe Schmoe",
+            "team": "Admin Team",
+          },
+        }
+      }
+    />
+    <Memo(DataGridRow)
+      columns={
+        Array [
+          Object {
+            "field": "name",
+            "name": "Name",
+          },
+          Object {
+            "field": "team",
+            "name": "Team",
+          },
+        ]
+      }
+      key="1"
+      row={
+        Object {
+          "cells": Object {
+            "name": "Foo Bar",
+            "team": "Admin Team",
+          },
+        }
+      }
+    />
+    <Memo(DataGridRow)
+      columns={
+        Array [
+          Object {
+            "field": "name",
+            "name": "Name",
+          },
+          Object {
+            "field": "team",
+            "name": "Team",
+          },
+        ]
+      }
+      key="2"
+      row={
+        Object {
+          "cells": Object {
+            "name": "Some Guy",
+            "team": "Admin Team",
+          },
+        }
+      }
+    />
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/data_grid/DataGrid should match snapshot with no items found 1`] = `
+<div
+  className="DataGrid"
+>
+  <DataGridSearch
+    onSearch={[Function]}
+    placeholder=""
+    term=""
+  />
+  <DataGridHeader
+    columns={Array []}
+  />
+  <div
+    className="DataGrid_rows"
+    style={Object {}}
+  >
+    <div
+      className="DataGrid_empty"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="No items found"
+        id="admin.data_grid.empty"
+      />
+    </div>
+  </div>
+</div>
+`;

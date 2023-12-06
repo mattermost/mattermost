@@ -1,0 +1,249 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/post_view/embedded_bindings/embedded_binding should match snapshot 1`] = `
+<div
+  className="attachment"
+  onClick={[Function]}
+>
+  <div
+    className="attachment__content"
+  >
+    <div
+      className="clearfix attachment__container attachment__container--"
+    >
+      <h1
+        className="attachment__title"
+      >
+        <Connect(Markdown)
+          message="some text"
+          options={
+            Object {
+              "autolinkedUrlSchemes": Array [],
+              "mentionHighlight": false,
+              "renderer": LinkOnlyRenderer {
+                "options": Object {},
+              },
+            }
+          }
+          postId="post_id"
+        />
+      </h1>
+      <div>
+        <div
+          className="attachment__body attachment__body--no_thumb"
+        >
+          <Connect(ShowMore)
+            isAttachmentText={true}
+            maxHeight={200}
+            text="some title"
+          >
+            <Connect(Markdown)
+              imageProps={
+                Object {
+                  "onImageHeightChanged": [Function],
+                  "onImageLoaded": [Function],
+                }
+              }
+              message="some title"
+              postId="post_id"
+            />
+          </Connect(ShowMore)>
+        </div>
+        <div
+          style={
+            Object {
+              "clear": "both",
+            }
+          }
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/embedded_bindings/embedded_binding should match snapshot when the attachment has a link in the title 1`] = `
+<div
+  className="attachment"
+  onClick={[Function]}
+>
+  <div
+    className="attachment__content"
+  >
+    <div
+      className="clearfix attachment__container attachment__container--"
+    >
+      <h1
+        className="attachment__title"
+      >
+        <Connect(Markdown)
+          message="some text"
+          options={
+            Object {
+              "autolinkedUrlSchemes": Array [],
+              "mentionHighlight": false,
+              "renderer": LinkOnlyRenderer {
+                "options": Object {},
+              },
+            }
+          }
+          postId="post_id"
+        />
+      </h1>
+      <div>
+        <div
+          className="attachment__body attachment__body--no_thumb"
+        >
+          <Connect(ShowMore)
+            isAttachmentText={true}
+            maxHeight={200}
+            text="some title"
+          >
+            <Connect(Markdown)
+              imageProps={
+                Object {
+                  "onImageHeightChanged": [Function],
+                  "onImageLoaded": [Function],
+                }
+              }
+              message="some title"
+              postId="post_id"
+            />
+          </Connect(ShowMore)>
+        </div>
+        <div
+          style={
+            Object {
+              "clear": "both",
+            }
+          }
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/embedded_bindings/embedded_binding should match snapshot when the attachment has an emoji in the title 1`] = `
+<div
+  className="attachment"
+  onClick={[Function]}
+>
+  <div
+    className="attachment__content"
+  >
+    <div
+      className="clearfix attachment__container attachment__container--"
+    >
+      <h1
+        className="attachment__title"
+      >
+        <Connect(Markdown)
+          message="some text"
+          options={
+            Object {
+              "autolinkedUrlSchemes": Array [],
+              "mentionHighlight": false,
+              "renderer": LinkOnlyRenderer {
+                "options": Object {},
+              },
+            }
+          }
+          postId="post_id"
+        />
+      </h1>
+      <div>
+        <div
+          className="attachment__body attachment__body--no_thumb"
+        >
+          <Connect(ShowMore)
+            isAttachmentText={true}
+            maxHeight={200}
+            text="some title"
+          >
+            <Connect(Markdown)
+              imageProps={
+                Object {
+                  "onImageHeightChanged": [Function],
+                  "onImageLoaded": [Function],
+                }
+              }
+              message="some title"
+              postId="post_id"
+            />
+          </Connect(ShowMore)>
+        </div>
+        <div
+          style={
+            Object {
+              "clear": "both",
+            }
+          }
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/embedded_bindings/embedded_binding should match snapshot when the attachment hasn't any emojis in the title 1`] = `
+<div
+  className="attachment"
+  onClick={[Function]}
+>
+  <div
+    className="attachment__content"
+  >
+    <div
+      className="clearfix attachment__container attachment__container--"
+    >
+      <h1
+        className="attachment__title"
+      >
+        <Connect(Markdown)
+          message="some text"
+          options={
+            Object {
+              "autolinkedUrlSchemes": Array [],
+              "mentionHighlight": false,
+              "renderer": LinkOnlyRenderer {
+                "options": Object {},
+              },
+            }
+          }
+          postId="post_id"
+        />
+      </h1>
+      <div>
+        <div
+          className="attachment__body attachment__body--no_thumb"
+        >
+          <Connect(ShowMore)
+            isAttachmentText={true}
+            maxHeight={200}
+            text="some title"
+          >
+            <Connect(Markdown)
+              imageProps={
+                Object {
+                  "onImageHeightChanged": [Function],
+                  "onImageLoaded": [Function],
+                }
+              }
+              message="some title"
+              postId="post_id"
+            />
+          </Connect(ShowMore)>
+        </div>
+        <div
+          style={
+            Object {
+              "clear": "both",
+            }
+          }
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

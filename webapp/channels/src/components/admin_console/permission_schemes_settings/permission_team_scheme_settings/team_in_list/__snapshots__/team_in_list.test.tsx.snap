@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/permission_schemes_settings/permission_team_scheme_settings/team_in_list/team_in_list should match snapshot with team 1`] = `
+<div
+  className="team"
+  key="12345"
+>
+  <div
+    className="team-info-block"
+  >
+    <injectIntl(TeamIcon)
+      content="testTeam"
+      url={null}
+    />
+    <div
+      className="team-data"
+    >
+      <div
+        className="title"
+      >
+        testTeam
+      </div>
+    </div>
+  </div>
+  <a
+    className="remove"
+    onClick={[Function]}
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Remove"
+      id="admin.permissions.teamScheme.removeTeam"
+    />
+  </a>
+</div>
+`;

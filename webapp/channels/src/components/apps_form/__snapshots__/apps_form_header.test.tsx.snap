@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/apps_form/AppsFormHeader should not fail on empty value 1`] = `
+<Connect(Markdown)
+  message=""
+  options={
+    Object {
+      "mentionHighlight": false,
+      "singleline": false,
+    }
+  }
+/>
+`;
+
+exports[`components/apps_form/AppsFormHeader should render message with supported values 1`] = `
+<Connect(Markdown)
+  message="**bold** *italic* [link](https://mattermost.com/) <br/> [link target blank](!https://mattermost.com/)"
+  options={
+    Object {
+      "mentionHighlight": false,
+      "singleline": false,
+    }
+  }
+/>
+`;

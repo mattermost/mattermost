@@ -1,0 +1,103 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/file_preview_modal/popover_bar/PopoverBar should match snapshot with zoom controls enabled 1`] = `
+<div
+  className="modal-button-bar file-preview-modal__zoom-bar"
+  data-testid="fileCountFooter"
+>
+  <div
+    className="modal-column"
+  >
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={400}
+      key="zoomOut"
+      overlay={
+        <Tooltip
+          id="zoom-out-icon-tooltip"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Zoom Out"
+            id="view_image.zoom_out"
+          />
+        </Tooltip>
+      }
+      placement="top"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <span
+        className="btn-inactive"
+      >
+        <i
+          className="icon icon-minus"
+        />
+      </span>
+    </OverlayTrigger>
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={400}
+      key="zoomReset"
+      overlay={
+        <Tooltip
+          id="zoom-reset-icon-tooltip"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Reset Zoom"
+            id="view_image.zoom_reset"
+          />
+        </Tooltip>
+      }
+      placement="top"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <span
+        className="btn-inactive"
+      >
+        <i
+          className="icon icon-magnify-minus"
+        />
+      </span>
+    </OverlayTrigger>
+    <OverlayTrigger
+      defaultOverlayShown={false}
+      delayShow={400}
+      key="zoomIn"
+      overlay={
+        <Tooltip
+          id="zoom-in-icon-tooltip"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Zoom In"
+            id="view_image.zoom_in"
+          />
+        </Tooltip>
+      }
+      placement="top"
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <span
+        className="btn-inactive"
+      >
+        <i
+          className="icon icon-plus"
+        />
+      </span>
+    </OverlayTrigger>
+  </div>
+</div>
+`;

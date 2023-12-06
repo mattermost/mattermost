@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/timestamp/SemanticTime should support custom label 1`] = `
+<Memo(SemanticTime)
+  aria-label="A custom label"
+  value={2020-06-05T10:20:30.000Z}
+>
+  <time
+    aria-label="A custom label"
+    dateTime="2020-06-05T10:20:30.000"
+  />
+</Memo(SemanticTime)>
+`;

@@ -1,0 +1,479 @@
+  /api/v4/plugins:
+    post:
+      tags:
+        - plugins
+      summary: Upload plugin
+      description: >
+        Upload a plugin that is contained within a compressed .tar.gz file.
+        Plugins and plugin uploads must be enabled in the server's config
+        settings.
+
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+
+        __Minimum server version__: 4.4
+      operationId: UploadPlugin
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                plugin:
+                  description: The plugin image to be uploaded
+                  type: string
+                  format: binary
+                force:
+                  description: Set to 'true' to overwrite a previously installed plugin
+                    with the same ID, if any
+                  type: string
+              required:
+                - plugin
+      responses:
+        "201":
+          description: Plugin upload successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/TooLarge"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    get:
+      tags:
+        - plugins
+      summary: Get plugins
+      description: >
+        Get a list of inactive and a list of active plugin manifests. Plugins
+        must be enabled in the server's config settings.
+
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+
+        __Minimum server version__: 4.4
+      operationId: GetPlugins
+      responses:
+        "200":
+          description: Plugins retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  active:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PluginManifest"
+                  inactive:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PluginManifest"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/plugins/install_from_url:
+    post:
+      tags:
+        - plugins
+      summary: Install plugin from url
+      description: >
+        Supply a URL to a plugin compressed in a .tar.gz file. Plugins must be
+        enabled in the server's config settings.
+
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+
+        __Minimum server version__: 5.14
+      operationId: InstallPluginFromUrl
+      parameters:
+        - name: plugin_download_url
+          in: query
+          description: URL used to download the plugin
+          required: true
+          schema:
+            type: string
+        - name: force
+          in: query
+          description: Set to 'true' to overwrite a previously installed plugin with the
+            same ID, if any
+          required: false
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Plugin install successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/plugins/{plugin_id}":
+    delete:
+      tags:
+        - plugins
+      summary: Remove plugin
+      description: >
+        Remove the plugin with the provided ID from the server. All plugin files
+        are deleted. Plugins must be enabled in the server's config settings.
+
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+
+        __Minimum server version__: 4.4
+      operationId: RemovePlugin
+      parameters:
+        - name: plugin_id
+          description: Id of the plugin to be removed
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Plugin removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/plugins/{plugin_id}/enable":
+    post:
+      tags:
+        - plugins
+      summary: Enable plugin
+      description: >
+        Enable a previously uploaded plugin. Plugins must be enabled in the
+        server's config settings.
+
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+
+        __Minimum server version__: 4.4
+      operationId: EnablePlugin
+      parameters:
+        - name: plugin_id
+          description: Id of the plugin to be enabled
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Plugin enabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/plugins/{plugin_id}/disable":
+    post:
+      tags:
+        - plugins
+      summary: Disable plugin
+      description: >
+        Disable a previously enabled plugin. Plugins must be enabled in the
+        server's config settings.
+
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+
+        __Minimum server version__: 4.4
+      operationId: DisablePlugin
+      parameters:
+        - name: plugin_id
+          description: Id of the plugin to be disabled
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Plugin disabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/plugins/webapp:
+    get:
+      tags:
+        - plugins
+      summary: Get webapp plugins
+      description: |
+        Get a list of web app plugins installed and activated on the server.
+
+        ##### Permissions
+        No permissions required.
+
+        __Minimum server version__: 4.4
+      operationId: GetWebappPlugins
+      responses:
+        "200":
+          description: Plugin deactivated successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PluginManifestWebapp"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/plugins/statuses:
+    get:
+      tags:
+        - plugins
+      summary: Get plugins status
+      description: |
+        Returns the status for plugins installed anywhere in the cluster
+
+        ##### Permissions
+        No permissions required.
+
+        __Minimum server version__: 4.4
+      operationId: GetPluginStatuses
+      responses:
+        "200":
+          description: Plugin status retreived successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PluginStatus"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/plugins/marketplace:
+    post:
+      tags:
+        - plugins
+      summary: Installs a marketplace plugin
+      description: |
+        Installs a plugin listed in the marketplace server.
+
+        ##### Permissions
+        Must have `manage_system` permission.
+
+        __Minimum server version__: 5.16
+      operationId: InstallMarketplacePlugin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - version
+              properties:
+                id:
+                  type: string
+                  description: The ID of the plugin to install.
+                version:
+                  type: string
+                  description: The version of the plugin to install.
+        description: The metadata identifying the plugin to install.
+        required: true
+      responses:
+        "200":
+          description: Plugin installed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PluginManifest"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    get:
+      tags:
+        - plugins
+      summary: Gets all the marketplace plugins
+      description: >
+        Gets all plugins from the marketplace server, merging data from locally
+        installed plugins as well as prepackaged plugins shipped with the
+        server.
+
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+
+
+        __Minimum server version__: 5.16
+      operationId: GetMarketplacePlugins
+      parameters:
+        - name: page
+          in: query
+          description: Page number to be fetched. (not yet implemented)
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of item per page. (not yet implemented)
+          required: false
+          schema:
+            type: integer
+        - name: filter
+          in: query
+          description: Set to filter plugins by ID, name, or description.
+          required: false
+          schema:
+            type: string
+        - name: server_version
+          in: query
+          description: Set to filter minimum plugin server version. (not yet implemented)
+          required: false
+          schema:
+            type: string
+        - name: local_only
+          in: query
+          description: Set true to only retrieve local plugins.
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Plugins retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MarketplacePlugin"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/plugins/marketplace/first_admin_visit:
+    get:
+      tags:
+        - plugins
+      summary: Get if the Plugin Marketplace has been visited by at least an admin.
+      description: |
+        Retrieves the status that specifies that at least one System Admin has visited the in-product Plugin Marketplace.
+        __Minimum server version: 5.33__
+        ##### Permissions
+        Must have `manage_system` permissions.
+      operationId: GetMarketplaceVisitedByAdmin
+      responses:
+        "200":
+          description: Retrieves the system-level status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/System"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags:
+        - system
+      summary: Stores that the Plugin Marketplace has been visited by at least an admin.
+      description: |
+        Stores the system-level status that specifies that at least an admin has visited the in-product Plugin Marketplace.
+        __Minimum server version: 5.33__
+        ##### Permissions
+        Must have `manage_system` permissions.
+      operationId: UpdateMarketplaceVisitedByAdmin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/System"
+        required: true
+      responses:
+        "200":
+          description: setting has been successfully set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"

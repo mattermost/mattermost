@@ -1,0 +1,457 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
+<div
+  className="backstage-content row"
+>
+  <BackstageHeader>
+    <Link
+      to="/undefined/emoji"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Custom Emoji"
+        id="emoji_list.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Add"
+      id="add_emoji.header"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form"
+  >
+    <form
+      className="form-horizontal"
+      onSubmit={[Function]}
+    >
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="name"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Name"
+            id="add_emoji.name"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="name"
+            maxLength={64}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Name your emoji. The name can be up to 64 characters, and can contain lowercase letters, numbers, and the symbols '-' and '_'."
+              id="add_emoji.name.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="image"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Image"
+            id="add_emoji.image"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <div>
+            <div
+              className="add-emoji__upload"
+            >
+              <button
+                className="btn btn-primary"
+              >
+                <MemoizedFormattedMessage
+                  defaultMessage="Select"
+                  id="add_emoji.image.button"
+                />
+              </button>
+              <input
+                accept=".jpeg,.jpg,.png,.gif"
+                id="select-emoji"
+                multiple={false}
+                onChange={[Function]}
+                type="file"
+              />
+            </div>
+            <div
+              className="form__help"
+            >
+              <MemoizedFormattedMessage
+                defaultMessage="Specify a .gif, .png, or .jpg file of up to 64 KB for your emoji. The dimensions can be up to 128 pixels by 128 pixels."
+                id="add_emoji.image.help"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        className="backstage-form__footer"
+      >
+        <FormError
+          error={null}
+          errors={Array []}
+          type="backstage"
+        />
+        <Link
+          className="btn btn-tertiary"
+          to="/undefined/emoji"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="add_emoji.cancel"
+          />
+        </Link>
+        <Memo(SpinnerButton)
+          className="btn btn-primary"
+          data-testid="save-button"
+          onClick={[Function]}
+          spinning={false}
+          spinningText="Saving..."
+          type="submit"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Save"
+            id="add_emoji.save"
+          />
+        </Memo(SpinnerButton)>
+      </div>
+    </form>
+  </div>
+</div>
+`;
+
+exports[`components/emoji/components/AddEmoji should select a file and match snapshot 1`] = `
+<div
+  className="backstage-content row"
+>
+  <BackstageHeader>
+    <Link
+      to="/undefined/emoji"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Custom Emoji"
+        id="emoji_list.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Add"
+      id="add_emoji.header"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form"
+  >
+    <form
+      className="form-horizontal"
+      onSubmit={[Function]}
+    >
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="name"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Name"
+            id="add_emoji.name"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="name"
+            maxLength={64}
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Name your emoji. The name can be up to 64 characters, and can contain lowercase letters, numbers, and the symbols '-' and '_'."
+              id="add_emoji.name.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="image"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Image"
+            id="add_emoji.image"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <div>
+            <div
+              className="add-emoji__upload"
+            >
+              <button
+                className="btn btn-primary"
+              >
+                <MemoizedFormattedMessage
+                  defaultMessage="Select"
+                  id="add_emoji.image.button"
+                />
+              </button>
+              <input
+                accept=".jpeg,.jpg,.png,.gif"
+                id="select-emoji"
+                multiple={false}
+                onChange={[Function]}
+                type="file"
+              />
+            </div>
+            <span
+              className="add-emoji__filename"
+            />
+            <div
+              className="form__help"
+            >
+              <MemoizedFormattedMessage
+                defaultMessage="Specify a .gif, .png, or .jpg file of up to 64 KB for your emoji. The dimensions can be up to 128 pixels by 128 pixels."
+                id="add_emoji.image.help"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="preview"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Preview"
+            id="add_emoji.preview"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8 add-emoji__preview"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="This is a sentence with {image} in it."
+            id="add_emoji.preview.sentence"
+            values={
+              Object {
+                "image": <span
+                  className="emoticon"
+                  style={
+                    Object {
+                      "backgroundImage": "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAYAAABV7bNHAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAB3RJTUUH4AcXEyomBnhW6AAAAm9JREFUeNrtnL9vEmEcxj9cCDUSIVhNgGjaTUppOmjrX1BNajs61n+hC5MMrQNOLE7d27GjPxLs0JmSDk2VYNLBCw0yCA0mOBATHXghVu4wYeHCPc94711y30/e732f54Y3sLBbxEUxYAtYA5aB+0yXasAZcAQcAFdON1kuD+eBBvAG2JhCOJiaNkyNDVPzfwGlgBPgJRDCPwqZmk8MA0dAKeAjsIJ/tWIYpJwA7U9pK43Tevv/Asr7fOc47aR8H1AMyIrJkLJAzDKjPCQejh/uLcv4HMlZa5YxgZKzli1NrtETzRKD0RIgARIgARIgARIgAfKrgl54iUwiwrOlOHOzYQDsZof35w0+ffshQJlEhJ3NxWvX7t66waP5WV69/TxxSBNvsecP74215htA83fCrmv9lvM1oJsh9y4PzwQFqFJvj7XmG0AfzhtjrfkGUMlusXd8gd3sDK7ZzQ57xxeU7NbEAQUWdou/ZQflpAVIgPycxR7P3WbdZLHwTJBKvc3h6aUnspjlBTjZpw9IJ6MDY5hORtnZXCSTiAjQ+lJcWWyU0smostjYJi2gKTYyb3393hGgUXnr8PRSgEp2i0LxC5V6m5/dX4Nd5YW/iZ7xQSW75YlgKictQAKkLKYspiymLKYspiymLKYspiymLCYnraghQAIkCZAACZAACZDHAdWEwVU1i94RMZKzzix65+dIzjqy6B0u1BWLIXWBA4veyUsF8RhSAbjqT7EcUBaTgcqGybUx/0ITrTe5DIshH1QFnvh8J5UNg6qbUawCq8Brn324u6bm1b/hjHLSOSAObAPvprT1aqa2bVNrzummPw4OwJf+E7QCAAAAAElFTkSuQmCC)",
+                    }
+                  }
+                />,
+              }
+            }
+          />
+        </div>
+      </div>
+      <div
+        className="backstage-form__footer"
+      >
+        <FormError
+          error={null}
+          errors={Array []}
+          type="backstage"
+        />
+        <Link
+          className="btn btn-tertiary"
+          to="/undefined/emoji"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="add_emoji.cancel"
+          />
+        </Link>
+        <Memo(SpinnerButton)
+          className="btn btn-primary"
+          data-testid="save-button"
+          onClick={[Function]}
+          spinning={false}
+          spinningText="Saving..."
+          type="submit"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Save"
+            id="add_emoji.save"
+          />
+        </Memo(SpinnerButton)>
+      </div>
+    </form>
+  </div>
+</div>
+`;
+
+exports[`components/emoji/components/AddEmoji should update emoji name and match snapshot 1`] = `
+<div
+  className="backstage-content row"
+>
+  <BackstageHeader>
+    <Link
+      to="/undefined/emoji"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Custom Emoji"
+        id="emoji_list.header"
+      />
+    </Link>
+    <MemoizedFormattedMessage
+      defaultMessage="Add"
+      id="add_emoji.header"
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form"
+  >
+    <form
+      className="form-horizontal"
+      onSubmit={[Function]}
+    >
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="name"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Name"
+            id="add_emoji.name"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="name"
+            maxLength={64}
+            onChange={[Function]}
+            type="text"
+            value="emojiName"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Name your emoji. The name can be up to 64 characters, and can contain lowercase letters, numbers, and the symbols '-' and '_'."
+              id="add_emoji.name.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="image"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Image"
+            id="add_emoji.image"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <div>
+            <div
+              className="add-emoji__upload"
+            >
+              <button
+                className="btn btn-primary"
+              >
+                <MemoizedFormattedMessage
+                  defaultMessage="Select"
+                  id="add_emoji.image.button"
+                />
+              </button>
+              <input
+                accept=".jpeg,.jpg,.png,.gif"
+                id="select-emoji"
+                multiple={false}
+                onChange={[Function]}
+                type="file"
+              />
+            </div>
+            <div
+              className="form__help"
+            >
+              <MemoizedFormattedMessage
+                defaultMessage="Specify a .gif, .png, or .jpg file of up to 64 KB for your emoji. The dimensions can be up to 128 pixels by 128 pixels."
+                id="add_emoji.image.help"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        className="backstage-form__footer"
+      >
+        <FormError
+          error={null}
+          errors={Array []}
+          type="backstage"
+        />
+        <Link
+          className="btn btn-tertiary"
+          to="/undefined/emoji"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="add_emoji.cancel"
+          />
+        </Link>
+        <Memo(SpinnerButton)
+          className="btn btn-primary"
+          data-testid="save-button"
+          onClick={[Function]}
+          spinning={false}
+          spinningText="Saving..."
+          type="submit"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Save"
+            id="add_emoji.save"
+          />
+        </Memo(SpinnerButton)>
+      </div>
+    </form>
+  </div>
+</div>
+`;

@@ -1,0 +1,54 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/FilePreviewModalInfo should match snapshot 1`] = `
+<div
+  className="file-preview-modal__info"
+>
+  <Memo(Avatar)
+    className="file-preview-modal__avatar"
+    size="lg"
+    url="/api/v4/users/user_id/image?_=0"
+  />
+  <div
+    className="file-preview-modal__info-details"
+  >
+    <h5
+      className="file-preview-modal__user-name"
+    >
+      some-user
+    </h5>
+    <span
+      className="file-preview-modal__channel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Shared in ~{name}"
+        id="file_preview_modal_info.shared_in"
+        values={
+          Object {
+            "name": "name",
+          }
+        }
+      />
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/FilePreviewModalInfo should match snapshot where post is missing and avoid crash 1`] = `
+<div
+  className="file-preview-modal__info"
+>
+  <div
+    className="file-preview-modal__info-details"
+  >
+    <h5
+      className="file-preview-modal__user-name"
+    >
+      Someone
+    </h5>
+    <span
+      className="file-preview-modal__channel"
+    />
+  </div>
+</div>
+`;

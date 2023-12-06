@@ -1,0 +1,15 @@
+@charset 'UTF-8';
+
+.edit-category__helpText {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 12px;
+    line-height: 40px;
+}
+
+.GenericModal__button.delete {
+    background: var(--dnd-indicator) !important; // TODO: Figure out a way around important flag
+}
+
+.delete-category__helpText {
+    color: var(--center-channel-color);
+}

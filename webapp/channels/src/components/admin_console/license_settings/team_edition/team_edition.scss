@@ -1,0 +1,56 @@
+.TeamEditionRightPanel {
+    .svg-image {
+        text-align: center;
+
+        svg {
+            margin: 0 auto;
+        }
+    }
+
+    .upgrade-title {
+        margin: 10px 0;
+        color: #3f4350;
+        font-family: Metropolis;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 24px;
+    }
+
+    .advantages-list {
+        margin: 7px 0;
+        font-size: 12px;
+        line-height: 16px;
+
+        .item {
+            margin: 10px 0;
+
+            i {
+                margin-right: 5px;
+            }
+        }
+
+        :last-child {
+            color: rgba(63, 69, 80, 0.72);
+        }
+    }
+
+    button {
+        width: 100%;
+        margin: 5px auto;
+        border-radius: 4px;
+    }
+
+    .upgrade-error {
+        margin-top: 10px;
+    }
+}
+
+.TeamEditionLeftPanel {
+    .title {
+        color: #3f4350;
+        font-family: Metropolis;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 24px;
+    }
+}

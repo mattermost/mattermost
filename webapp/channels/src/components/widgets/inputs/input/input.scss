@@ -1,0 +1,210 @@
+.error {
+    color: var(--error-text);
+}
+
+.info {
+    color: var(--sidebar-text-active-border);
+}
+
+.warning {
+    color: var(--away-indicator-dark);
+}
+
+.success {
+    color: var(--online-indicator);
+}
+
+.Input_container {
+    width: 100%;
+
+    .Input {
+        position: relative;
+        z-index: 2;
+        left: 0;
+        width: 100%;
+        padding: 0;
+        border: 0;
+        border-radius: 4px;
+        box-shadow: none;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        line-height: 20px;
+        outline: 0;
+
+        &::placeholder {
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+        }
+
+        &.Input__focus {
+            box-shadow: none;
+        }
+
+        &.large {
+            height: 42px;
+            font-size: 16px;
+            line-height: 24px;
+        }
+    }
+
+    .Input_wrapper {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        padding: 0 16px;
+        margin: 2px 0;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 14px;
+        line-height: 20px;
+
+        > :not(:first-child) {
+            margin-left: 8px;
+        }
+    }
+
+    .Input_limit-exceeded {
+        align-self: center;
+        margin-left: 16px;
+        color: var(--error-text);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .Input-border-error {
+        border-color: var(--error-text);
+    }
+
+    .Input___error,
+    .Input___customMessage,
+    .Input___info {
+        margin-top: 5px;
+        font-size: 12px;
+        line-height: 16px;
+        text-align: left;
+
+        i {
+            height: 14px;
+            align-self: baseline;
+            margin-right: 7px;
+            font-size: 14px;
+
+            &::before {
+                margin: 0;
+            }
+        }
+    }
+
+    .Input___error {
+        @extend .error;
+
+        display: flex;
+    }
+
+    .Input___warning {
+        @extend .warning;
+
+        display: flex;
+    }
+
+    .Input___success {
+        @extend .success;
+
+        display: flex;
+    }
+
+    .Input___info {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+
+        > span.valid {
+            margin-left: 7px;
+        }
+    }
+
+    .Input_fieldset {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0 1px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        color: rgba(var(--secondary-blue-rgb), 0.4);
+
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.48);
+        }
+
+        &:focus-within {
+            border-color: var(--button-bg);
+            box-shadow: inset 0 0 0 1px var(--button-bg);
+            color: var(--button-bg);
+
+            .Input_legend {
+                color: var(--button-bg);
+            }
+        }
+    }
+
+    .Input_fieldset___error {
+        border-color: var(--error-text);
+        color: var(--error-text);
+
+        &:focus-within {
+            border-color: var(--error-text);
+            box-shadow: inset 0 0 0 1px var(--error-text);
+            color: var(--error-text);
+
+            .Input_legend {
+                color: var(--error-text);
+            }
+        }
+
+        &:hover {
+            border-color: var(--error-text);
+        }
+
+        .Input_legend {
+            color: var(--error-text);
+        }
+    }
+
+    .Input_legend {
+        position: absolute;
+        z-index: 4;
+        top: -8px;
+        display: flex;
+        width: auto;
+        padding: 0 4px;
+        border: none;
+        margin-left: 12px;
+        background-color: var(--center-channel-bg);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 10px;
+        line-height: 14px;
+        opacity: 0;
+        transform: translateY(8px);
+        transition-duration: 0.15s;
+        transition-property: opacity, transform;
+        transition-timing-function: ease-in-out;
+        white-space: nowrap;
+    }
+
+    .Input_legend___focus {
+        padding: 0 4px;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    &.disabled {
+        .Input_fieldset {
+            border-color: rgba(var(--center-channel-color-rgb), 0.16);
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+    }
+
+    .Input__clear {
+        display: flex;
+        color: rgba(var(--center-channel-color), 0.68);
+        cursor: pointer;
+    }
+}

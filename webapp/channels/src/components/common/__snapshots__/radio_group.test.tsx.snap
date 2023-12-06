@@ -1,0 +1,63 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`/components/common/RadioButtonGroup should match snapshot 1`] = `
+<div
+  className="radio-list"
+  data-testid=""
+>
+  <div
+    className="radio"
+    key="value1"
+  >
+    <label
+      className=""
+    >
+      <input
+        checked={false}
+        disabled={false}
+        name="test-string"
+        onChange={[Function]}
+        type="radio"
+        value="value1"
+      />
+      key1
+    </label>
+  </div>
+  <div
+    className="radio"
+    key="value2"
+  >
+    <label
+      className="selected"
+    >
+      <input
+        checked={true}
+        disabled={false}
+        name="test-string"
+        onChange={[Function]}
+        type="radio"
+        value="value2"
+      />
+      key2
+    </label>
+  </div>
+  <div
+    className="radio"
+    key="value3"
+  >
+    <label
+      className=""
+    >
+      <input
+        checked={false}
+        disabled={false}
+        name="test-string"
+        onChange={[Function]}
+        type="radio"
+        value="value3"
+      />
+      key3
+    </label>
+  </div>
+</div>
+`;

@@ -1,0 +1,69 @@
+@import 'utils/mixins';
+
+.UpsellCard {
+    &__illustration {
+        text-align: center;
+
+        svg {
+            margin: 0 auto;
+        }
+    }
+
+    &__title {
+        margin: 10px 0;
+        color: var(--center-channel-color);
+        font-family: Metropolis;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 24px;
+    }
+
+    &__advantages {
+        margin: 7px 0;
+        font-size: 12px;
+        line-height: 16px;
+
+        .advantage {
+            margin: 12px 0;
+
+            i {
+                margin-right: 7px;
+            }
+
+            &--more {
+                color: rgba(63, 69, 80, 0.72);
+            }
+        }
+    }
+
+    &__cta {
+        @include secondary-button;
+
+        width: fit-content;
+        padding: 13px 20px;
+        // override cloud start trial border used in other contexts
+        border: 1px solid var(--denim-button-bg) !important;
+        border: none;
+        background: var(--sys-center-channel-bg);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 14px;
+
+        &.btn-primary {
+            @include primary-button;
+
+            width: 100%;
+        }
+    }
+
+    .disclaimer {
+        margin: 5px 0;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 10px;
+        font-style: normal;
+        font-weight: 400;
+        letter-spacing: 0.02em;
+        line-height: 14px;
+        text-align: justify;
+    }
+}

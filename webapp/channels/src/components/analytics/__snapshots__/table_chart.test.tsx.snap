@@ -1,0 +1,114 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/analytics/table_chart.tsx should match snapshot, loaded with data 1`] = `
+<div
+  className="col-sm-6"
+>
+  <div
+    className="total-count recent-active-users"
+  >
+    <div
+      className="title"
+    >
+      Test
+    </div>
+    <div
+      className="content"
+    >
+      <table>
+        <tbody>
+          <tr
+            key="table-entry-test1"
+          >
+            <td>
+              <OverlayTrigger
+                defaultOverlayShown={false}
+                delayShow={400}
+                overlay={
+                  <Tooltip
+                    id="tip-table-entry-test1"
+                  >
+                    test-tip1
+                  </Tooltip>
+                }
+                placement="top"
+                trigger={
+                  Array [
+                    "hover",
+                    "focus",
+                  ]
+                }
+              >
+                <time>
+                  test1
+                </time>
+              </OverlayTrigger>
+            </td>
+            <td>
+              <p>
+                test-value1
+              </p>
+            </td>
+          </tr>
+          <tr
+            key="table-entry-test2"
+          >
+            <td>
+              <OverlayTrigger
+                defaultOverlayShown={false}
+                delayShow={400}
+                overlay={
+                  <Tooltip
+                    id="tip-table-entry-test2"
+                  >
+                    test-tip2
+                  </Tooltip>
+                }
+                placement="top"
+                trigger={
+                  Array [
+                    "hover",
+                    "focus",
+                  ]
+                }
+              >
+                <time>
+                  test2
+                </time>
+              </OverlayTrigger>
+            </td>
+            <td>
+              <p>
+                test-value2
+              </p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/analytics/table_chart.tsx should match snapshot, loaded without data 1`] = `
+<div
+  className="col-sm-6"
+>
+  <div
+    className="total-count recent-active-users"
+  >
+    <div
+      className="title"
+    >
+      Test
+    </div>
+    <div
+      className="content"
+    >
+      <table>
+        <tbody />
+      </table>
+    </div>
+  </div>
+</div>
+`;

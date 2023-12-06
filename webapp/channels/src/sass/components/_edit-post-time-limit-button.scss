@@ -1,0 +1,23 @@
+.edit-post-time-limit-button {
+    height: 26px;
+    padding: 0 8px;
+    border-color: #5b6672;
+    background: transparent;
+    border-radius: $border-rad*2;
+    color: #5b6672;
+    transition: all 0.15s ease;
+
+    i {
+        margin-right: 4px;
+    }
+
+    span {
+        display: inline !important;
+    }
+
+    &:hover {
+        border-color: $primary-color;
+        background: $primary-color;
+        color: $white;
+    }
+}

@@ -1,0 +1,761 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`comoponents/EditChannelPurposeModal clear error on next 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="editChannelPurposeModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onEntering={[Function]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="editChannelPurposeModalLabel"
+    >
+      <span>
+        <MemoizedFormattedMessage
+          defaultMessage="Edit Purpose for "
+          id="edit_channel_purpose_modal.title2"
+        />
+        <span
+          className="name"
+        >
+          name
+        </span>
+      </span>
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <p>
+      <MemoizedFormattedMessage
+        defaultMessage="Describe how this channel should be used. This text appears in the channel list in the \\"More...\\" menu and helps others decide whether to join."
+        id="edit_channel_purpose_modal.body"
+      />
+    </p>
+    <textarea
+      aria-label="edit purpose"
+      className="form-control no-resize"
+      maxLength={250}
+      onChange={[Function]}
+      onKeyDown={[Function]}
+      rows={6}
+      value="testPurpose"
+    />
+    <div
+      className="form-group has-error"
+    >
+      <br />
+      <label
+        className="control-label"
+      >
+        error
+      </label>
+    </div>
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-tertiary cancel-button"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="edit_channel_purpose_modal.cancel"
+      />
+    </button>
+    <button
+      className="btn btn-primary"
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Save"
+        id="edit_channel_purpose_modal.save"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`comoponents/EditChannelPurposeModal match with modal error 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="editChannelPurposeModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onEntering={[Function]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="editChannelPurposeModalLabel"
+    >
+      <span>
+        <MemoizedFormattedMessage
+          defaultMessage="Edit Purpose for "
+          id="edit_channel_purpose_modal.title2"
+        />
+        <span
+          className="name"
+        >
+          name
+        </span>
+      </span>
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <p>
+      <MemoizedFormattedMessage
+        defaultMessage="Describe how this channel should be used. This text appears in the channel list in the \\"More...\\" menu and helps others decide whether to join."
+        id="edit_channel_purpose_modal.body"
+      />
+    </p>
+    <textarea
+      aria-label="edit purpose"
+      className="form-control no-resize"
+      maxLength={250}
+      onChange={[Function]}
+      onKeyDown={[Function]}
+      rows={6}
+      value="testPurpose"
+    />
+    <div
+      className="form-group has-error"
+    >
+      <br />
+      <label
+        className="control-label"
+      >
+        error
+      </label>
+    </div>
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-tertiary cancel-button"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="edit_channel_purpose_modal.cancel"
+      />
+    </button>
+    <button
+      className="btn btn-primary"
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Save"
+        id="edit_channel_purpose_modal.save"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`comoponents/EditChannelPurposeModal match with modal error with fake id 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="editChannelPurposeModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onEntering={[Function]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="editChannelPurposeModalLabel"
+    >
+      <span>
+        <MemoizedFormattedMessage
+          defaultMessage="Edit Purpose for "
+          id="edit_channel_purpose_modal.title2"
+        />
+        <span
+          className="name"
+        >
+          name
+        </span>
+      </span>
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <p>
+      <MemoizedFormattedMessage
+        defaultMessage="Describe how this channel should be used. This text appears in the channel list in the \\"More...\\" menu and helps others decide whether to join."
+        id="edit_channel_purpose_modal.body"
+      />
+    </p>
+    <textarea
+      aria-label="edit purpose"
+      className="form-control no-resize"
+      maxLength={250}
+      onChange={[Function]}
+      onKeyDown={[Function]}
+      rows={6}
+      value="testPurpose"
+    />
+    <div
+      className="form-group has-error"
+    >
+      <br />
+      <label
+        className="control-label"
+      >
+        error
+      </label>
+    </div>
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-tertiary cancel-button"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="edit_channel_purpose_modal.cancel"
+      />
+    </button>
+    <button
+      className="btn btn-primary"
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Save"
+        id="edit_channel_purpose_modal.save"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`comoponents/EditChannelPurposeModal should match for private channel 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="editChannelPurposeModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onEntering={[Function]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="editChannelPurposeModalLabel"
+    >
+      <span>
+        <MemoizedFormattedMessage
+          defaultMessage="Edit Purpose for "
+          id="edit_channel_purpose_modal.title2"
+        />
+        <span
+          className="name"
+        >
+          name
+        </span>
+      </span>
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <p>
+      <MemoizedFormattedMessage
+        defaultMessage="This text appears in the \\\\\\"View Info\\\\\\" modal of the private channel."
+        id="edit_channel_private_purpose_modal.body"
+      />
+    </p>
+    <textarea
+      aria-label="edit purpose"
+      className="form-control no-resize"
+      maxLength={250}
+      onChange={[Function]}
+      onKeyDown={[Function]}
+      rows={6}
+      value="testPurpose"
+    />
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-tertiary cancel-button"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="edit_channel_purpose_modal.cancel"
+      />
+    </button>
+    <button
+      className="btn btn-primary"
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Save"
+        id="edit_channel_purpose_modal.save"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`comoponents/EditChannelPurposeModal should match on init 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="editChannelPurposeModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onEntering={[Function]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="editChannelPurposeModalLabel"
+    >
+      <span>
+        <MemoizedFormattedMessage
+          defaultMessage="Edit Purpose for "
+          id="edit_channel_purpose_modal.title2"
+        />
+        <span
+          className="name"
+        >
+          name
+        </span>
+      </span>
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <p>
+      <MemoizedFormattedMessage
+        defaultMessage="Describe how this channel should be used. This text appears in the channel list in the \\"More...\\" menu and helps others decide whether to join."
+        id="edit_channel_purpose_modal.body"
+      />
+    </p>
+    <textarea
+      aria-label="edit purpose"
+      className="form-control no-resize"
+      maxLength={250}
+      onChange={[Function]}
+      onKeyDown={[Function]}
+      rows={6}
+      value="testPurpose"
+    />
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-tertiary cancel-button"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="edit_channel_purpose_modal.cancel"
+      />
+    </button>
+    <button
+      className="btn btn-primary"
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Save"
+        id="edit_channel_purpose_modal.save"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;
+
+exports[`comoponents/EditChannelPurposeModal should match submitted 1`] = `
+<Modal
+  autoFocus={true}
+  backdrop={true}
+  backdropClassName="modal-backdrop"
+  backdropTransition={[Function]}
+  containerClassName="modal-open"
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onEntering={[Function]}
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  show={true}
+  transition={[Function]}
+>
+  <ModalDialog
+    aria-labelledby="editChannelPurposeModalLabel"
+    bsClass="modal"
+    className=""
+    dialogClassName="a11y__modal"
+    handleDialogMouseDown={[Function]}
+    onClick={[Function]}
+    role="dialog"
+    style={Object {}}
+  >
+    <ModalHeader
+      bsClass="modal-header"
+      closeButton={true}
+      closeLabel="Close"
+    >
+      <ModalTitle
+        bsClass="modal-title"
+        componentClass="h1"
+        id="editChannelPurposeModalLabel"
+      >
+        <span>
+          <MemoizedFormattedMessage
+            defaultMessage="Edit Purpose for "
+            id="edit_channel_purpose_modal.title2"
+          />
+          <span
+            className="name"
+          >
+            name
+          </span>
+        </span>
+      </ModalTitle>
+    </ModalHeader>
+    <ModalBody
+      bsClass="modal-body"
+      componentClass="div"
+    >
+      <p>
+        <MemoizedFormattedMessage
+          defaultMessage="Describe how this channel should be used. This text appears in the channel list in the \\"More...\\" menu and helps others decide whether to join."
+          id="edit_channel_purpose_modal.body"
+        />
+      </p>
+      <textarea
+        aria-label="edit purpose"
+        className="form-control no-resize"
+        maxLength={250}
+        onChange={[Function]}
+        onKeyDown={[Function]}
+        rows={6}
+        value="testPurpose"
+      />
+    </ModalBody>
+    <ModalFooter
+      bsClass="modal-footer"
+      componentClass="div"
+    >
+      <button
+        className="btn btn-tertiary cancel-button"
+        onClick={[Function]}
+        type="button"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Cancel"
+          id="edit_channel_purpose_modal.cancel"
+        />
+      </button>
+      <button
+        className="btn btn-primary"
+        disabled={false}
+        onClick={[Function]}
+        type="button"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Save"
+          id="edit_channel_purpose_modal.save"
+        />
+      </button>
+    </ModalFooter>
+  </ModalDialog>
+</Modal>
+`;
+
+exports[`comoponents/EditChannelPurposeModal should match with display name 1`] = `
+<Modal
+  animation={true}
+  aria-labelledby="editChannelPurposeModalLabel"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onEntering={[Function]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="editChannelPurposeModalLabel"
+    >
+      <span>
+        <MemoizedFormattedMessage
+          defaultMessage="Edit Purpose for "
+          id="edit_channel_purpose_modal.title2"
+        />
+        <span
+          className="name"
+        >
+          channel name
+        </span>
+      </span>
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <p>
+      <MemoizedFormattedMessage
+        defaultMessage="Describe how this channel should be used. This text appears in the channel list in the \\"More...\\" menu and helps others decide whether to join."
+        id="edit_channel_purpose_modal.body"
+      />
+    </p>
+    <textarea
+      aria-label="edit purpose"
+      className="form-control no-resize"
+      maxLength={250}
+      onChange={[Function]}
+      onKeyDown={[Function]}
+      rows={6}
+      value="testPurpose"
+    />
+  </ModalBody>
+  <ModalFooter
+    bsClass="modal-footer"
+    componentClass="div"
+  >
+    <button
+      className="btn btn-tertiary cancel-button"
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Cancel"
+        id="edit_channel_purpose_modal.cancel"
+      />
+    </button>
+    <button
+      className="btn btn-primary"
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Save"
+        id="edit_channel_purpose_modal.save"
+      />
+    </button>
+  </ModalFooter>
+</Modal>
+`;

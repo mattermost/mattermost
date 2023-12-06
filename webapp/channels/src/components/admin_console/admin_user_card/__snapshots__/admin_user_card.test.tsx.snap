@@ -1,0 +1,232 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/admin_user_card/admin_user_card should match default snapshot 1`] = `
+<div>
+  <div
+    class="AdminUserCard"
+  >
+    <div
+      class="AdminUserCard__header"
+    >
+      <span
+        class="status-wrapper  admin-user-card"
+      >
+        <button
+          class="RoundButton-dvlhqG gnYSKj style--none"
+        >
+          <span
+            class="profile-icon "
+          >
+            <img
+              alt="user profile image"
+              class="Avatar Avatar-xxl"
+              loading="lazy"
+              src="/api/v4/users/1234/image"
+              tabindex="-1"
+            />
+          </span>
+        </button>
+      </span>
+      <div
+        class="AdminUserCard__user-info"
+      >
+        <span>
+          Jim
+           
+          Halpert
+        </span>
+        <span>
+           • 
+        </span>
+        <span
+          class="AdminUserCard__user-nickname"
+        >
+          Big Tuna
+        </span>
+      </div>
+      <div
+        class="AdminUserCard__user-id"
+      >
+        User ID:
+         
+        1234
+      </div>
+    </div>
+    <div
+      class="AdminUserCard__body"
+    />
+    <div
+      class="AdminUserCard__footer"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/admin_user_card/admin_user_card should match snapshot if no first/last name is defined 1`] = `
+<div>
+  <div
+    class="AdminUserCard"
+  >
+    <div
+      class="AdminUserCard__header"
+    >
+      <span
+        class="status-wrapper  admin-user-card"
+      >
+        <button
+          class="RoundButton-dvlhqG gnYSKj style--none"
+        >
+          <span
+            class="profile-icon "
+          >
+            <img
+              alt="user profile image"
+              class="Avatar Avatar-xxl"
+              loading="lazy"
+              src="/api/v4/users/1234/image"
+              tabindex="-1"
+            />
+          </span>
+        </button>
+      </span>
+      <div
+        class="AdminUserCard__user-info"
+      >
+        <span>
+           
+        </span>
+        <span
+          class="AdminUserCard__user-nickname"
+        >
+          Big Tuna
+        </span>
+      </div>
+      <div
+        class="AdminUserCard__user-id"
+      >
+        User ID:
+         
+        1234
+      </div>
+    </div>
+    <div
+      class="AdminUserCard__body"
+    />
+    <div
+      class="AdminUserCard__footer"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/admin_user_card/admin_user_card should match snapshot if no first/last name or nickname is defined 1`] = `
+<div>
+  <div
+    class="AdminUserCard"
+  >
+    <div
+      class="AdminUserCard__header"
+    >
+      <span
+        class="status-wrapper  admin-user-card"
+      >
+        <button
+          class="RoundButton-dvlhqG gnYSKj style--none"
+        >
+          <span
+            class="profile-icon "
+          >
+            <img
+              alt="user profile image"
+              class="Avatar Avatar-xxl"
+              loading="lazy"
+              src="/api/v4/users/1234/image"
+              tabindex="-1"
+            />
+          </span>
+        </button>
+      </span>
+      <div
+        class="AdminUserCard__user-info"
+      >
+        <span>
+           
+        </span>
+        <span
+          class="AdminUserCard__user-nickname"
+        />
+      </div>
+      <div
+        class="AdminUserCard__user-id"
+      >
+        User ID:
+         
+        1234
+      </div>
+    </div>
+    <div
+      class="AdminUserCard__body"
+    />
+    <div
+      class="AdminUserCard__footer"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/admin_user_card/admin_user_card should match snapshot if no nickname is defined 1`] = `
+<div>
+  <div
+    class="AdminUserCard"
+  >
+    <div
+      class="AdminUserCard__header"
+    >
+      <span
+        class="status-wrapper  admin-user-card"
+      >
+        <button
+          class="RoundButton-dvlhqG gnYSKj style--none"
+        >
+          <span
+            class="profile-icon "
+          >
+            <img
+              alt="user profile image"
+              class="Avatar Avatar-xxl"
+              loading="lazy"
+              src="/api/v4/users/1234/image"
+              tabindex="-1"
+            />
+          </span>
+        </button>
+      </span>
+      <div
+        class="AdminUserCard__user-info"
+      >
+        <span>
+          Jim
+           
+          Halpert
+        </span>
+        <span
+          class="AdminUserCard__user-nickname"
+        />
+      </div>
+      <div
+        class="AdminUserCard__user-id"
+      >
+        User ID:
+         
+        1234
+      </div>
+    </div>
+    <div
+      class="AdminUserCard__body"
+    />
+    <div
+      class="AdminUserCard__footer"
+    />
+  </div>
+</div>
+`;

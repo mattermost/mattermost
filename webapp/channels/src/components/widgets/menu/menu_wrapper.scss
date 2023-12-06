@@ -1,0 +1,42 @@
+@import 'utils/module';
+
+.MenuWrapper {
+    position: relative;
+
+    *:first-child {
+        @include unselectable;
+    }
+}
+
+div[disabled] {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.MenuWrapperAnimation {
+    // Rule order here is important for precedence
+    &-enter {
+        opacity: 0;
+    }
+
+    &-enter-active,
+    &-enter-done,
+    &-exit {
+        opacity: 1;
+    }
+
+    &-exit-active,
+    &-exit-done {
+        opacity: 0;
+    }
+}
+
+body.enable-animations {
+    .MenuWrapperAnimation {
+        &-enter-active,
+        &-exit-active {
+            transition-duration: 80ms;
+            transition-property: opacity;
+        }
+    }
+}

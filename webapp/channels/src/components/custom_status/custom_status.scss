@@ -1,0 +1,375 @@
+.modal .StatusModal.GenericModal .StatusModal__clear-container.input-clear {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    opacity: 1;
+}
+
+.StatusModal {
+    width: 600px;
+
+    &.modal-dialog {
+        margin: auto;
+    }
+
+    .modal &.GenericModal {
+        .modal {
+            &-body {
+                overflow: visible;
+            }
+
+            &-content {
+                width: 100%;
+                padding: 28px 8px 24px 24px;
+            }
+
+            &-footer {
+                padding: 0;
+                padding-right: 16px;
+                margin-top: 22px;
+            }
+        }
+
+        .emoji-quick-input {
+            &.form-control {
+                height: 4.8rem;
+                padding: 0 5.2rem;
+                border-radius: 4px;
+                font-size: 14px;
+                font-weight: 600;
+
+                &:focus {
+                    border-color: var(--button-bg);
+                }
+            }
+        }
+
+        .dateTime__calendar-input {
+            width: 266px;
+            border: 2px solid var(--button-bg);
+            font-size: 14px;
+
+            &:hover {
+                border: 2px solid var(--button-bg);
+                cursor: pointer;
+            }
+
+            &:focus-within {
+                box-shadow: 0;
+            }
+
+            .Input_wrapper {
+                padding: 0 10px;
+            }
+
+            button.dateTime__calendar-icon {
+                margin: 0 8px 0 0;
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+            }
+
+            input#customStatus__calendar-input {
+                &.form-control {
+                    height: auto;
+                    padding: 0;
+                    border: 0;
+                    font-weight: 400;
+
+                    &[readonly] {
+                        background: transparent;
+                    }
+
+                    &:hover {
+                        cursor: pointer;
+                    }
+                }
+            }
+        }
+    }
+
+    .GenericModal {
+        &__header {
+            padding: 0 0 20px;
+        }
+
+        &__body {
+            padding: 0;
+        }
+
+        &__button {
+            &.btn:disabled,
+            &.btn:disabled:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.32);
+                opacity: 1;
+            }
+        }
+    }
+
+    & &__input {
+        position: relative;
+        width: calc(100% - 16px);
+    }
+
+    &__emoji-container {
+        position: absolute;
+        top: 6px;
+        left: 10px;
+        margin-right: 2px;
+    }
+
+    &__emoji-button {
+        display: flex;
+        width: 36px;
+        height: 36px;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: transparent;
+        border-radius: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        fill: rgba(var(--center-channel-color-rgb), 0.56);
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            fill: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+
+        &:active,
+        &--active,
+        &--active:hover {
+            background: rgba(var(--button-bg-rgb), 0.08);
+            color: var(--button-bg);
+            fill: var(--button-bg);
+        }
+
+        svg {
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+    &__footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 2rem 0;
+        text-align: right;
+
+        .btn {
+            height: 4rem;
+            padding: 0 2rem;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+    }
+}
+
+.status-dropdown-menu,
+.StatusModal__input {
+    .input-clear-x {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+
+        .icon {
+            font-size: 20px;
+        }
+    }
+
+    .MaxLengthInput__validation {
+        top: 17px !important;
+        right: 44px !important;
+    }
+
+    .MaxLengthInput.form-control.has-error {
+        padding-right: 76px !important;
+    }
+}
+
+.ic-clear-search,
+.ic-search {
+    position: absolute;
+    z-index: 1;
+    background-position: center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+
+.ic-clear-search {
+    top: 12px;
+    right: 12px;
+    width: 2rem;
+    height: 2rem;
+}
+
+.statusSuggestion {
+    overflow: auto;
+    min-height: 232px;
+    max-height: 264px;
+
+    &__content {
+        display: flex;
+        overflow: auto;
+        width: 100%;
+        height: 100%;
+        flex-direction: column;
+        border: none;
+        box-shadow: none;
+    }
+
+    &__row {
+        display: flex;
+        width: 97%;
+        min-height: 40px;
+        align-items: center;
+        padding-right: 10px;
+        padding-left: 18px;
+        border: none;
+        background: transparent;
+        color: var(--center-channel-color);
+        font-size: inherit;
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            border-radius: 4px;
+        }
+
+        &:active {
+            background-color: rgba(var(--button-bg-rgb), 0.08);
+            color: v(button-bg);
+        }
+    }
+
+    &__icon {
+        margin-right: 15px;
+        margin-bottom: 1px;
+    }
+
+    &__title {
+        display: flex;
+        height: 24px;
+        margin-top: 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.55);
+        font-weight: 600;
+    }
+
+    &__text {
+        overflow: hidden;
+        height: 20px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        &.with_duration {
+            max-width: 62%;
+        }
+    }
+
+    &__duration {
+        margin-left: 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 14px;
+    }
+}
+
+.suggestion-clear {
+    margin-top: 3px;
+    margin-left: auto;
+}
+
+#custom-status-tooltip {
+    p {
+        margin: 0;
+    }
+
+    .custom-status {
+        display: flex;
+        justify-content: center;
+
+        &-expiry {
+            font-weight: 400;
+            opacity: 0.7;
+        }
+    }
+}
+
+span.emoticon[style]:hover {
+    opacity: 1 !important;
+}
+
+.statusExpiry {
+    position: absolute;
+    top: 56px;
+    display: inline-block;
+    font-size: 14px;
+
+    &__menu {
+        cursor: pointer;
+
+        .expiry-value {
+            margin-right: 4px;
+            font-weight: 600;
+        }
+    }
+}
+
+.dateTime {
+    display: flex;
+    width: calc(100% - 24px);
+    margin-top: 45px;
+
+    & &__date {
+        position: relative;
+        margin-right: 20px;
+
+        &-icon {
+            position: absolute;
+            top: 11.3px;
+            left: 15px;
+        }
+    }
+
+    & &__time {
+        position: relative;
+
+        #expiryTimeMenu .dropdown-menu {
+            overflow: auto;
+            min-width: 266px;
+            max-height: 268px;
+        }
+
+        &-icon {
+            position: absolute;
+            top: 11.3px;
+            left: 15px;
+        }
+    }
+
+    & &__input {
+        width: 266px;
+        height: 40px;
+        padding: 10px 40px;
+        border: 2px solid var(--button-bg);
+        background: var(--center-channel-bg);
+        border-radius: 4px;
+        color: var(--center-channel-color);
+        cursor: pointer;
+        font-size: 14px;
+        text-align: left;
+
+        &-title {
+            position: absolute;
+            bottom: 32px;
+            left: 12px;
+            padding: 0 4px;
+            background: var(--center-channel-bg);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-size: 10px;
+            letter-spacing: 0.03em;
+            line-height: 16px;
+        }
+    }
+}

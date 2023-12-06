@@ -1,0 +1,69 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/emoji_picker/components/EmojiPickerHeader handleEmojiPickerClose, should have called props.handleEmojiPickerClose 1`] = `
+<div
+  className="emoji-picker__header modal-header"
+>
+  <button
+    className="close emoji-picker__header-close-button"
+    onClick={[MockFunction]}
+    type="button"
+  >
+    <span
+      aria-hidden="true"
+    >
+      ×
+    </span>
+    <span
+      className="sr-only"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Close"
+        id="emoji_picker.close"
+      />
+    </span>
+  </button>
+  <h4
+    className="modal-title emoji-picker__header-title"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Emoji Picker"
+      id="emoji_picker.header"
+    />
+  </h4>
+</div>
+`;
+
+exports[`components/emoji_picker/components/EmojiPickerHeader should match snapshot,  1`] = `
+<div
+  className="emoji-picker__header modal-header"
+>
+  <button
+    className="close emoji-picker__header-close-button"
+    onClick={[MockFunction]}
+    type="button"
+  >
+    <span
+      aria-hidden="true"
+    >
+      ×
+    </span>
+    <span
+      className="sr-only"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Close"
+        id="emoji_picker.close"
+      />
+    </span>
+  </button>
+  <h4
+    className="modal-title emoji-picker__header-title"
+  >
+    <MemoizedFormattedMessage
+      defaultMessage="Emoji Picker"
+      id="emoji_picker.header"
+    />
+  </h4>
+</div>
+`;

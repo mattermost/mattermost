@@ -1,0 +1,918 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/search_results/FilesFilterMenu should match snapshot, on all filter selected 1`] = `
+<div
+  className="FilesFilterMenu"
+>
+  <MenuWrapper
+    animationComponent={[Function]}
+    className=""
+  >
+    <OverlayTrigger
+      className="hidden-xs"
+      defaultOverlayShown={false}
+      delayShow={500}
+      overlay={
+        <Tooltip
+          className="hidden-xs"
+          id="files-filter-tooltip"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Filter"
+            id="channel_info_rhs.menu.files.filter"
+          />
+        </Tooltip>
+      }
+      placement="top"
+      rootClose={true}
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <IconContainer
+        className="action-icon dots-icon"
+        id="filesFilterButton"
+        type="button"
+      >
+        <FilterVariantIcon
+          color="currentColor"
+          size={18}
+        />
+      </IconContainer>
+    </OverlayTrigger>
+    <Menu
+      ariaLabel="file menu"
+      openLeft={true}
+    >
+      <MenuItemAction
+        ariaLabel="All file types"
+        icon={
+          <i
+            className="icon icon-check"
+          />
+        }
+        onClick={[Function]}
+        show={true}
+        text="All file types"
+      />
+      <MenuItemAction
+        ariaLabel="Documents"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Documents"
+      />
+      <MenuItemAction
+        ariaLabel="Spreadsheets"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Spreadsheets"
+      />
+      <MenuItemAction
+        ariaLabel="Presentations"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Presentations"
+      />
+      <MenuItemAction
+        ariaLabel="Code"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Code"
+      />
+      <MenuItemAction
+        ariaLabel="Images"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Images"
+      />
+      <MenuItemAction
+        ariaLabel="Audio"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Audio"
+      />
+      <MenuItemAction
+        ariaLabel="Videos"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Videos"
+      />
+    </Menu>
+  </MenuWrapper>
+</div>
+`;
+
+exports[`components/search_results/FilesFilterMenu should match snapshot, on audio filter selected 1`] = `
+<div
+  className="FilesFilterMenu"
+>
+  <MenuWrapper
+    animationComponent={[Function]}
+    className=""
+  >
+    <OverlayTrigger
+      className="hidden-xs"
+      defaultOverlayShown={false}
+      delayShow={500}
+      overlay={
+        <Tooltip
+          className="hidden-xs"
+          id="files-filter-tooltip"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Filter"
+            id="channel_info_rhs.menu.files.filter"
+          />
+        </Tooltip>
+      }
+      placement="top"
+      rootClose={true}
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <IconContainer
+        className="action-icon dots-icon"
+        id="filesFilterButton"
+        type="button"
+      >
+        <i
+          className="icon-dot"
+        />
+        <FilterVariantIcon
+          color="currentColor"
+          size={18}
+        />
+      </IconContainer>
+    </OverlayTrigger>
+    <Menu
+      ariaLabel="file menu"
+      openLeft={true}
+    >
+      <MenuItemAction
+        ariaLabel="All file types"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="All file types"
+      />
+      <MenuItemAction
+        ariaLabel="Documents"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Documents"
+      />
+      <MenuItemAction
+        ariaLabel="Spreadsheets"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Spreadsheets"
+      />
+      <MenuItemAction
+        ariaLabel="Presentations"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Presentations"
+      />
+      <MenuItemAction
+        ariaLabel="Code"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Code"
+      />
+      <MenuItemAction
+        ariaLabel="Images"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Images"
+      />
+      <MenuItemAction
+        ariaLabel="Audio"
+        icon={
+          <i
+            className="icon icon-check"
+          />
+        }
+        onClick={[Function]}
+        show={true}
+        text="Audio"
+      />
+      <MenuItemAction
+        ariaLabel="Videos"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Videos"
+      />
+    </Menu>
+  </MenuWrapper>
+</div>
+`;
+
+exports[`components/search_results/FilesFilterMenu should match snapshot, on code filter selected 1`] = `
+<div
+  className="FilesFilterMenu"
+>
+  <MenuWrapper
+    animationComponent={[Function]}
+    className=""
+  >
+    <OverlayTrigger
+      className="hidden-xs"
+      defaultOverlayShown={false}
+      delayShow={500}
+      overlay={
+        <Tooltip
+          className="hidden-xs"
+          id="files-filter-tooltip"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Filter"
+            id="channel_info_rhs.menu.files.filter"
+          />
+        </Tooltip>
+      }
+      placement="top"
+      rootClose={true}
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <IconContainer
+        className="action-icon dots-icon"
+        id="filesFilterButton"
+        type="button"
+      >
+        <i
+          className="icon-dot"
+        />
+        <FilterVariantIcon
+          color="currentColor"
+          size={18}
+        />
+      </IconContainer>
+    </OverlayTrigger>
+    <Menu
+      ariaLabel="file menu"
+      openLeft={true}
+    >
+      <MenuItemAction
+        ariaLabel="All file types"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="All file types"
+      />
+      <MenuItemAction
+        ariaLabel="Documents"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Documents"
+      />
+      <MenuItemAction
+        ariaLabel="Spreadsheets"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Spreadsheets"
+      />
+      <MenuItemAction
+        ariaLabel="Presentations"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Presentations"
+      />
+      <MenuItemAction
+        ariaLabel="Code"
+        icon={
+          <i
+            className="icon icon-check"
+          />
+        }
+        onClick={[Function]}
+        show={true}
+        text="Code"
+      />
+      <MenuItemAction
+        ariaLabel="Images"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Images"
+      />
+      <MenuItemAction
+        ariaLabel="Audio"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Audio"
+      />
+      <MenuItemAction
+        ariaLabel="Videos"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Videos"
+      />
+    </Menu>
+  </MenuWrapper>
+</div>
+`;
+
+exports[`components/search_results/FilesFilterMenu should match snapshot, on documents filter selected 1`] = `
+<div
+  className="FilesFilterMenu"
+>
+  <MenuWrapper
+    animationComponent={[Function]}
+    className=""
+  >
+    <OverlayTrigger
+      className="hidden-xs"
+      defaultOverlayShown={false}
+      delayShow={500}
+      overlay={
+        <Tooltip
+          className="hidden-xs"
+          id="files-filter-tooltip"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Filter"
+            id="channel_info_rhs.menu.files.filter"
+          />
+        </Tooltip>
+      }
+      placement="top"
+      rootClose={true}
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <IconContainer
+        className="action-icon dots-icon"
+        id="filesFilterButton"
+        type="button"
+      >
+        <i
+          className="icon-dot"
+        />
+        <FilterVariantIcon
+          color="currentColor"
+          size={18}
+        />
+      </IconContainer>
+    </OverlayTrigger>
+    <Menu
+      ariaLabel="file menu"
+      openLeft={true}
+    >
+      <MenuItemAction
+        ariaLabel="All file types"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="All file types"
+      />
+      <MenuItemAction
+        ariaLabel="Documents"
+        icon={
+          <i
+            className="icon icon-check"
+          />
+        }
+        onClick={[Function]}
+        show={true}
+        text="Documents"
+      />
+      <MenuItemAction
+        ariaLabel="Spreadsheets"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Spreadsheets"
+      />
+      <MenuItemAction
+        ariaLabel="Presentations"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Presentations"
+      />
+      <MenuItemAction
+        ariaLabel="Code"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Code"
+      />
+      <MenuItemAction
+        ariaLabel="Images"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Images"
+      />
+      <MenuItemAction
+        ariaLabel="Audio"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Audio"
+      />
+      <MenuItemAction
+        ariaLabel="Videos"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Videos"
+      />
+    </Menu>
+  </MenuWrapper>
+</div>
+`;
+
+exports[`components/search_results/FilesFilterMenu should match snapshot, on images filter selected 1`] = `
+<div
+  className="FilesFilterMenu"
+>
+  <MenuWrapper
+    animationComponent={[Function]}
+    className=""
+  >
+    <OverlayTrigger
+      className="hidden-xs"
+      defaultOverlayShown={false}
+      delayShow={500}
+      overlay={
+        <Tooltip
+          className="hidden-xs"
+          id="files-filter-tooltip"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Filter"
+            id="channel_info_rhs.menu.files.filter"
+          />
+        </Tooltip>
+      }
+      placement="top"
+      rootClose={true}
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <IconContainer
+        className="action-icon dots-icon"
+        id="filesFilterButton"
+        type="button"
+      >
+        <i
+          className="icon-dot"
+        />
+        <FilterVariantIcon
+          color="currentColor"
+          size={18}
+        />
+      </IconContainer>
+    </OverlayTrigger>
+    <Menu
+      ariaLabel="file menu"
+      openLeft={true}
+    >
+      <MenuItemAction
+        ariaLabel="All file types"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="All file types"
+      />
+      <MenuItemAction
+        ariaLabel="Documents"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Documents"
+      />
+      <MenuItemAction
+        ariaLabel="Spreadsheets"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Spreadsheets"
+      />
+      <MenuItemAction
+        ariaLabel="Presentations"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Presentations"
+      />
+      <MenuItemAction
+        ariaLabel="Code"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Code"
+      />
+      <MenuItemAction
+        ariaLabel="Images"
+        icon={
+          <i
+            className="icon icon-check"
+          />
+        }
+        onClick={[Function]}
+        show={true}
+        text="Images"
+      />
+      <MenuItemAction
+        ariaLabel="Audio"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Audio"
+      />
+      <MenuItemAction
+        ariaLabel="Videos"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Videos"
+      />
+    </Menu>
+  </MenuWrapper>
+</div>
+`;
+
+exports[`components/search_results/FilesFilterMenu should match snapshot, on presentations filter selected 1`] = `
+<div
+  className="FilesFilterMenu"
+>
+  <MenuWrapper
+    animationComponent={[Function]}
+    className=""
+  >
+    <OverlayTrigger
+      className="hidden-xs"
+      defaultOverlayShown={false}
+      delayShow={500}
+      overlay={
+        <Tooltip
+          className="hidden-xs"
+          id="files-filter-tooltip"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Filter"
+            id="channel_info_rhs.menu.files.filter"
+          />
+        </Tooltip>
+      }
+      placement="top"
+      rootClose={true}
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <IconContainer
+        className="action-icon dots-icon"
+        id="filesFilterButton"
+        type="button"
+      >
+        <i
+          className="icon-dot"
+        />
+        <FilterVariantIcon
+          color="currentColor"
+          size={18}
+        />
+      </IconContainer>
+    </OverlayTrigger>
+    <Menu
+      ariaLabel="file menu"
+      openLeft={true}
+    >
+      <MenuItemAction
+        ariaLabel="All file types"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="All file types"
+      />
+      <MenuItemAction
+        ariaLabel="Documents"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Documents"
+      />
+      <MenuItemAction
+        ariaLabel="Spreadsheets"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Spreadsheets"
+      />
+      <MenuItemAction
+        ariaLabel="Presentations"
+        icon={
+          <i
+            className="icon icon-check"
+          />
+        }
+        onClick={[Function]}
+        show={true}
+        text="Presentations"
+      />
+      <MenuItemAction
+        ariaLabel="Code"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Code"
+      />
+      <MenuItemAction
+        ariaLabel="Images"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Images"
+      />
+      <MenuItemAction
+        ariaLabel="Audio"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Audio"
+      />
+      <MenuItemAction
+        ariaLabel="Videos"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Videos"
+      />
+    </Menu>
+  </MenuWrapper>
+</div>
+`;
+
+exports[`components/search_results/FilesFilterMenu should match snapshot, on spreadsheets filter selected 1`] = `
+<div
+  className="FilesFilterMenu"
+>
+  <MenuWrapper
+    animationComponent={[Function]}
+    className=""
+  >
+    <OverlayTrigger
+      className="hidden-xs"
+      defaultOverlayShown={false}
+      delayShow={500}
+      overlay={
+        <Tooltip
+          className="hidden-xs"
+          id="files-filter-tooltip"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Filter"
+            id="channel_info_rhs.menu.files.filter"
+          />
+        </Tooltip>
+      }
+      placement="top"
+      rootClose={true}
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <IconContainer
+        className="action-icon dots-icon"
+        id="filesFilterButton"
+        type="button"
+      >
+        <i
+          className="icon-dot"
+        />
+        <FilterVariantIcon
+          color="currentColor"
+          size={18}
+        />
+      </IconContainer>
+    </OverlayTrigger>
+    <Menu
+      ariaLabel="file menu"
+      openLeft={true}
+    >
+      <MenuItemAction
+        ariaLabel="All file types"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="All file types"
+      />
+      <MenuItemAction
+        ariaLabel="Documents"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Documents"
+      />
+      <MenuItemAction
+        ariaLabel="Spreadsheets"
+        icon={
+          <i
+            className="icon icon-check"
+          />
+        }
+        onClick={[Function]}
+        show={true}
+        text="Spreadsheets"
+      />
+      <MenuItemAction
+        ariaLabel="Presentations"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Presentations"
+      />
+      <MenuItemAction
+        ariaLabel="Code"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Code"
+      />
+      <MenuItemAction
+        ariaLabel="Images"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Images"
+      />
+      <MenuItemAction
+        ariaLabel="Audio"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Audio"
+      />
+      <MenuItemAction
+        ariaLabel="Videos"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Videos"
+      />
+    </Menu>
+  </MenuWrapper>
+</div>
+`;
+
+exports[`components/search_results/FilesFilterMenu should match snapshot, on video filter selected 1`] = `
+<div
+  className="FilesFilterMenu"
+>
+  <MenuWrapper
+    animationComponent={[Function]}
+    className=""
+  >
+    <OverlayTrigger
+      className="hidden-xs"
+      defaultOverlayShown={false}
+      delayShow={500}
+      overlay={
+        <Tooltip
+          className="hidden-xs"
+          id="files-filter-tooltip"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Filter"
+            id="channel_info_rhs.menu.files.filter"
+          />
+        </Tooltip>
+      }
+      placement="top"
+      rootClose={true}
+      trigger={
+        Array [
+          "hover",
+          "focus",
+        ]
+      }
+    >
+      <IconContainer
+        className="action-icon dots-icon"
+        id="filesFilterButton"
+        type="button"
+      >
+        <i
+          className="icon-dot"
+        />
+        <FilterVariantIcon
+          color="currentColor"
+          size={18}
+        />
+      </IconContainer>
+    </OverlayTrigger>
+    <Menu
+      ariaLabel="file menu"
+      openLeft={true}
+    >
+      <MenuItemAction
+        ariaLabel="All file types"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="All file types"
+      />
+      <MenuItemAction
+        ariaLabel="Documents"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Documents"
+      />
+      <MenuItemAction
+        ariaLabel="Spreadsheets"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Spreadsheets"
+      />
+      <MenuItemAction
+        ariaLabel="Presentations"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Presentations"
+      />
+      <MenuItemAction
+        ariaLabel="Code"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Code"
+      />
+      <MenuItemAction
+        ariaLabel="Images"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Images"
+      />
+      <MenuItemAction
+        ariaLabel="Audio"
+        icon={null}
+        onClick={[Function]}
+        show={true}
+        text="Audio"
+      />
+      <MenuItemAction
+        ariaLabel="Videos"
+        icon={
+          <i
+            className="icon icon-check"
+          />
+        }
+        onClick={[Function]}
+        show={true}
+        text="Videos"
+      />
+    </Menu>
+  </MenuWrapper>
+</div>
+`;
