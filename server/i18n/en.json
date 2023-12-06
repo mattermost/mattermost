@@ -4763,6 +4763,14 @@
     "translation": "Failed to update thread membership for mentioned user"
   },
   {
+    "id": "app.channel.bookmark.add_bookmarks_to_channels_for_session.app_error",
+    "translation": "Failed to add bookmarks to channels."
+  },
+  {
+    "id": "app.channel.bookmark.add_bookmarks_to_channels_with_team_for_session.app_error",
+    "translation": "Failed to add bookmarks to channels."
+  },
+  {
     "id": "app.channel.bookmark.delete.app_error",
     "translation": "Could not delete bookmark."
   },
