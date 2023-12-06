@@ -21,12 +21,12 @@ describe('components/ChannelHeaderDropdown/MenuItem.ViewPinnedPosts', () => {
     };
 
     it('should match snapshot', () => {
-        const wrapper = shallow<ViewPinnedPosts>(<ViewPinnedPosts {...baseProps}/>);
+        const wrapper = shallow(<ViewPinnedPosts {...baseProps}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     it('should runs closeRightHandSide function if has any pinned posts', () => {
-        const wrapper = shallow<ViewPinnedPosts>(<ViewPinnedPosts {...baseProps}/>);
+        const wrapper = shallow(<ViewPinnedPosts {...baseProps}/>);
 
         wrapper.find(Menu.ItemAction).simulate('click', {
             preventDefault: jest.fn(),
@@ -40,7 +40,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.ViewPinnedPosts', () => {
             ...baseProps,
             hasPinnedPosts: false,
         };
-        const wrapper = shallow<ViewPinnedPosts>(<ViewPinnedPosts {...props}/>);
+        const wrapper = shallow(<ViewPinnedPosts {...props}/>);
 
         wrapper.find(Menu.ItemAction).simulate('click', {
             preventDefault: jest.fn(),

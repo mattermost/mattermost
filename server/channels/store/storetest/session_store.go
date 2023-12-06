@@ -18,59 +18,55 @@ const (
 	TenMinutes = 600000
 )
 
-func TestSessionStore(t *testing.T, ss store.Store) {
+func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Run serially to prevent interfering with other tests
-	testSessionCleanup(t, ss)
+	testSessionCleanup(t, rctx, ss)
 
-	t.Run("Save", func(t *testing.T) { testSessionStoreSave(t, ss) })
-	t.Run("SessionGet", func(t *testing.T) { testSessionGet(t, ss) })
-	t.Run("SessionGetWithDeviceId", func(t *testing.T) { testSessionGetWithDeviceId(t, ss) })
-	t.Run("SessionRemove", func(t *testing.T) { testSessionRemove(t, ss) })
-	t.Run("SessionRemoveAll", func(t *testing.T) { testSessionRemoveAll(t, ss) })
-	t.Run("SessionRemoveByUser", func(t *testing.T) { testSessionRemoveByUser(t, ss) })
-	t.Run("SessionRemoveToken", func(t *testing.T) { testSessionRemoveToken(t, ss) })
-	t.Run("SessionUpdateDeviceId", func(t *testing.T) { testSessionUpdateDeviceId(t, ss) })
-	t.Run("SessionUpdateDeviceId2", func(t *testing.T) { testSessionUpdateDeviceId2(t, ss) })
-	t.Run("UpdateExpiresAt", func(t *testing.T) { testSessionStoreUpdateExpiresAt(t, ss) })
-	t.Run("UpdateLastActivityAt", func(t *testing.T) { testSessionStoreUpdateLastActivityAt(t, ss) })
-	t.Run("SessionCount", func(t *testing.T) { testSessionCount(t, ss) })
-	t.Run("GetSessionsExpired", func(t *testing.T) { testGetSessionsExpired(t, ss) })
-	t.Run("UpdateExpiredNotify", func(t *testing.T) { testUpdateExpiredNotify(t, ss) })
+	t.Run("Save", func(t *testing.T) { testSessionStoreSave(t, rctx, ss) })
+	t.Run("SessionGet", func(t *testing.T) { testSessionGet(t, rctx, ss) })
+	t.Run("SessionGetWithDeviceId", func(t *testing.T) { testSessionGetWithDeviceId(t, rctx, ss) })
+	t.Run("SessionRemove", func(t *testing.T) { testSessionRemove(t, rctx, ss) })
+	t.Run("SessionRemoveAll", func(t *testing.T) { testSessionRemoveAll(t, rctx, ss) })
+	t.Run("SessionRemoveByUser", func(t *testing.T) { testSessionRemoveByUser(t, rctx, ss) })
+	t.Run("SessionRemoveToken", func(t *testing.T) { testSessionRemoveToken(t, rctx, ss) })
+	t.Run("SessionUpdateDeviceId", func(t *testing.T) { testSessionUpdateDeviceId(t, rctx, ss) })
+	t.Run("SessionUpdateDeviceId2", func(t *testing.T) { testSessionUpdateDeviceId2(t, rctx, ss) })
+	t.Run("UpdateExpiresAt", func(t *testing.T) { testSessionStoreUpdateExpiresAt(t, rctx, ss) })
+	t.Run("UpdateLastActivityAt", func(t *testing.T) { testSessionStoreUpdateLastActivityAt(t, rctx, ss) })
+	t.Run("SessionCount", func(t *testing.T) { testSessionCount(t, rctx, ss) })
+	t.Run("GetSessionsExpired", func(t *testing.T) { testGetSessionsExpired(t, rctx, ss) })
+	t.Run("UpdateExpiredNotify", func(t *testing.T) { testUpdateExpiredNotify(t, rctx, ss) })
 }
 
-func testSessionStoreSave(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testSessionStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 
-	_, err := ss.Session().Save(c, s1)
+	_, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 }
 
-func testSessionGet(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testSessionGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 
-	s1, err := ss.Session().Save(c, s1)
+	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
 	s2 := &model.Session{}
 	s2.UserId = s1.UserId
 
-	_, err = ss.Session().Save(c, s2)
+	_, err = ss.Session().Save(rctx, s2)
 	require.NoError(t, err)
 
 	s3 := &model.Session{}
 	s3.UserId = s1.UserId
 	s3.ExpiresAt = 1
 
-	_, err = ss.Session().Save(c, s3)
+	_, err = ss.Session().Save(rctx, s3)
 	require.NoError(t, err)
 
-	session, err := ss.Session().Get(c, s1.Id)
+	session, err := ss.Session().Get(rctx, s1.Id)
 	require.NoError(t, err)
 	require.Equal(t, session.Id, s1.Id, "should match")
 
@@ -79,23 +75,21 @@ func testSessionGet(t *testing.T, ss store.Store) {
 	err = ss.Session().UpdateProps(session)
 	require.NoError(t, err)
 
-	session2, err := ss.Session().Get(c, session.Id)
+	session2, err := ss.Session().Get(rctx, session.Id)
 	require.NoError(t, err)
 	require.Equal(t, session.Props, session2.Props, "should match")
 
-	data, err := ss.Session().GetSessions(c, s1.UserId)
+	data, err := ss.Session().GetSessions(rctx, s1.UserId)
 	require.NoError(t, err)
 	require.Len(t, data, 3, "should match len")
 }
 
-func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testSessionGetWithDeviceId(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 	s1.ExpiresAt = model.GetMillis() + 10000
 
-	s1, err := ss.Session().Save(c, s1)
+	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
 	s2 := &model.Session{}
@@ -103,7 +97,7 @@ func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
 	s2.DeviceId = model.NewId()
 	s2.ExpiresAt = model.GetMillis() + 10000
 
-	_, err = ss.Session().Save(c, s2)
+	_, err = ss.Session().Save(rctx, s2)
 	require.NoError(t, err)
 
 	s3 := &model.Session{}
@@ -111,7 +105,7 @@ func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
 	s3.ExpiresAt = 1
 	s3.DeviceId = model.NewId()
 
-	_, err = ss.Session().Save(c, s3)
+	_, err = ss.Session().Save(rctx, s3)
 	require.NoError(t, err)
 
 	data, err := ss.Session().GetSessionsWithActiveDeviceIds(s1.UserId)
@@ -119,97 +113,87 @@ func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
 	require.Len(t, data, 1, "should match len")
 }
 
-func testSessionRemove(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testSessionRemove(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 
-	s1, err := ss.Session().Save(c, s1)
+	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
-	session, err := ss.Session().Get(c, s1.Id)
+	session, err := ss.Session().Get(rctx, s1.Id)
 	require.NoError(t, err)
 	require.Equal(t, session.Id, s1.Id, "should match")
 
 	removeErr := ss.Session().Remove(s1.Id)
 	require.NoError(t, removeErr)
 
-	_, err = ss.Session().Get(c, s1.Id)
+	_, err = ss.Session().Get(rctx, s1.Id)
 	require.Error(t, err, "should have been removed")
 }
 
-func testSessionRemoveAll(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testSessionRemoveAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 
-	s1, err := ss.Session().Save(c, s1)
+	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
-	session, err := ss.Session().Get(c, s1.Id)
+	session, err := ss.Session().Get(rctx, s1.Id)
 	require.NoError(t, err)
 	require.Equal(t, session.Id, s1.Id, "should match")
 
 	removeErr := ss.Session().RemoveAllSessions()
 	require.NoError(t, removeErr)
 
-	_, err = ss.Session().Get(c, s1.Id)
+	_, err = ss.Session().Get(rctx, s1.Id)
 	require.Error(t, err, "should have been removed")
 }
 
-func testSessionRemoveByUser(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testSessionRemoveByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 
-	s1, err := ss.Session().Save(c, s1)
+	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
-	session, err := ss.Session().Get(c, s1.Id)
+	session, err := ss.Session().Get(rctx, s1.Id)
 	require.NoError(t, err)
 	require.Equal(t, session.Id, s1.Id, "should match")
 
 	deleteErr := ss.Session().PermanentDeleteSessionsByUser(s1.UserId)
 	require.NoError(t, deleteErr)
 
-	_, err = ss.Session().Get(c, s1.Id)
+	_, err = ss.Session().Get(rctx, s1.Id)
 	require.Error(t, err, "should have been removed")
 }
 
-func testSessionRemoveToken(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testSessionRemoveToken(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 
-	s1, err := ss.Session().Save(c, s1)
+	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
-	session, err := ss.Session().Get(c, s1.Id)
+	session, err := ss.Session().Get(rctx, s1.Id)
 	require.NoError(t, err)
 	require.Equal(t, session.Id, s1.Id, "should match")
 
 	removeErr := ss.Session().Remove(s1.Token)
 	require.NoError(t, removeErr)
 
-	_, err = ss.Session().Get(c, s1.Id)
+	_, err = ss.Session().Get(rctx, s1.Id)
 	require.Error(t, err, "should have been removed")
 
-	data, err := ss.Session().GetSessions(c, s1.UserId)
+	data, err := ss.Session().GetSessions(rctx, s1.UserId)
 	require.NoError(t, err)
 	require.Empty(t, data, "should match len")
 }
 
-func testSessionUpdateDeviceId(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testSessionUpdateDeviceId(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 
-	s1, err := ss.Session().Save(c, s1)
+	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
 	_, err = ss.Session().UpdateDeviceId(s1.Id, model.PushNotifyApple+":1234567890", s1.ExpiresAt)
@@ -218,20 +202,18 @@ func testSessionUpdateDeviceId(t *testing.T, ss store.Store) {
 	s2 := &model.Session{}
 	s2.UserId = model.NewId()
 
-	s2, err = ss.Session().Save(c, s2)
+	s2, err = ss.Session().Save(rctx, s2)
 	require.NoError(t, err)
 
 	_, err = ss.Session().UpdateDeviceId(s2.Id, model.PushNotifyApple+":1234567890", s1.ExpiresAt)
 	require.NoError(t, err)
 }
 
-func testSessionUpdateDeviceId2(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testSessionUpdateDeviceId2(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 
-	s1, err := ss.Session().Save(c, s1)
+	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
 	_, err = ss.Session().UpdateDeviceId(s1.Id, model.PushNotifyAppleReactNative+":1234567890", s1.ExpiresAt)
@@ -240,55 +222,49 @@ func testSessionUpdateDeviceId2(t *testing.T, ss store.Store) {
 	s2 := &model.Session{}
 	s2.UserId = model.NewId()
 
-	s2, err = ss.Session().Save(c, s2)
+	s2, err = ss.Session().Save(rctx, s2)
 	require.NoError(t, err)
 
 	_, err = ss.Session().UpdateDeviceId(s2.Id, model.PushNotifyAppleReactNative+":1234567890", s1.ExpiresAt)
 	require.NoError(t, err)
 }
 
-func testSessionStoreUpdateExpiresAt(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testSessionStoreUpdateExpiresAt(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 
-	s1, err := ss.Session().Save(c, s1)
+	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
 	err = ss.Session().UpdateExpiresAt(s1.Id, 1234567890)
 	require.NoError(t, err)
 
-	session, err := ss.Session().Get(c, s1.Id)
+	session, err := ss.Session().Get(rctx, s1.Id)
 	require.NoError(t, err)
 	require.EqualValues(t, session.ExpiresAt, 1234567890, "ExpiresAt not updated correctly")
 }
 
-func testSessionStoreUpdateLastActivityAt(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testSessionStoreUpdateLastActivityAt(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 
-	s1, err := ss.Session().Save(c, s1)
+	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
 	err = ss.Session().UpdateLastActivityAt(s1.Id, 1234567890)
 	require.NoError(t, err)
 
-	session, err := ss.Session().Get(c, s1.Id)
+	session, err := ss.Session().Get(rctx, s1.Id)
 	require.NoError(t, err)
 	require.EqualValues(t, session.LastActivityAt, 1234567890, "LastActivityAt not updated correctly")
 }
 
-func testSessionCount(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testSessionCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 	s1.ExpiresAt = model.GetMillis() + 100000
 
-	_, err := ss.Session().Save(c, s1)
+	_, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
 	count, err := ss.Session().AnalyticsSessionCount()
@@ -296,52 +272,50 @@ func testSessionCount(t *testing.T, ss store.Store) {
 	require.NotZero(t, count, "should have at least 1 session")
 }
 
-func testSessionCleanup(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testSessionCleanup(t *testing.T, rctx request.CTX, ss store.Store) {
 	now := model.GetMillis()
 
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 	s1.ExpiresAt = 0 // never expires
 
-	s1, err := ss.Session().Save(c, s1)
+	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
 	s2 := &model.Session{}
 	s2.UserId = s1.UserId
 	s2.ExpiresAt = now + 1000000 // expires in the future
 
-	s2, err = ss.Session().Save(c, s2)
+	s2, err = ss.Session().Save(rctx, s2)
 	require.NoError(t, err)
 
 	s3 := &model.Session{}
 	s3.UserId = model.NewId()
 	s3.ExpiresAt = 1 // expired
 
-	s3, err = ss.Session().Save(c, s3)
+	s3, err = ss.Session().Save(rctx, s3)
 	require.NoError(t, err)
 
 	s4 := &model.Session{}
 	s4.UserId = model.NewId()
 	s4.ExpiresAt = 2 // expired
 
-	s4, err = ss.Session().Save(c, s4)
+	s4, err = ss.Session().Save(rctx, s4)
 	require.NoError(t, err)
 
 	err = ss.Session().Cleanup(now, 1)
 	require.NoError(t, err)
 
-	_, err = ss.Session().Get(c, s1.Id)
+	_, err = ss.Session().Get(rctx, s1.Id)
 	assert.NoError(t, err)
 
-	_, err = ss.Session().Get(c, s2.Id)
+	_, err = ss.Session().Get(rctx, s2.Id)
 	assert.NoError(t, err)
 
-	_, err = ss.Session().Get(c, s3.Id)
+	_, err = ss.Session().Get(rctx, s3.Id)
 	assert.Error(t, err)
 
-	_, err = ss.Session().Get(c, s4.Id)
+	_, err = ss.Session().Get(rctx, s4.Id)
 	assert.Error(t, err)
 
 	removeErr := ss.Session().Remove(s1.Id)
@@ -351,9 +325,7 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 	require.NoError(t, removeErr)
 }
 
-func testGetSessionsExpired(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testGetSessionsExpired(t *testing.T, rctx request.CTX, ss store.Store) {
 	now := model.GetMillis()
 
 	// Clear existing sessions.
@@ -364,34 +336,34 @@ func testGetSessionsExpired(t *testing.T, ss store.Store) {
 	s1.UserId = model.NewId()
 	s1.DeviceId = model.NewId()
 	s1.ExpiresAt = 0 // never expires
-	_, err = ss.Session().Save(c, s1)
+	_, err = ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
 	s2 := &model.Session{}
 	s2.UserId = model.NewId()
 	s2.DeviceId = model.NewId()
 	s2.ExpiresAt = now - TenMinutes // expired within threshold
-	s2, err = ss.Session().Save(c, s2)
+	s2, err = ss.Session().Save(rctx, s2)
 	require.NoError(t, err)
 
 	s3 := &model.Session{}
 	s3.UserId = model.NewId()
 	s3.DeviceId = model.NewId()
 	s3.ExpiresAt = now - (TenMinutes * 100) // expired outside threshold
-	_, err = ss.Session().Save(c, s3)
+	_, err = ss.Session().Save(rctx, s3)
 	require.NoError(t, err)
 
 	s4 := &model.Session{}
 	s4.UserId = model.NewId()
 	s4.ExpiresAt = now - TenMinutes // expired within threshold, but not mobile
-	s4, err = ss.Session().Save(c, s4)
+	s4, err = ss.Session().Save(rctx, s4)
 	require.NoError(t, err)
 
 	s5 := &model.Session{}
 	s5.UserId = model.NewId()
 	s5.DeviceId = model.NewId()
 	s5.ExpiresAt = now + (TenMinutes * 100000) // not expired
-	_, err = ss.Session().Save(c, s5)
+	_, err = ss.Session().Save(rctx, s5)
 	require.NoError(t, err)
 
 	sessions, err := ss.Session().GetSessionsExpired(TenMinutes*2, true, true) // mobile only
@@ -408,29 +380,27 @@ func testGetSessionsExpired(t *testing.T, ss store.Store) {
 	}
 }
 
-func testUpdateExpiredNotify(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testUpdateExpiredNotify(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 	s1.DeviceId = model.NewId()
 	s1.ExpiresAt = model.GetMillis() + TenMinutes
-	s1, err := ss.Session().Save(c, s1)
+	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
-	session, err := ss.Session().Get(c, s1.Id)
+	session, err := ss.Session().Get(rctx, s1.Id)
 	require.NoError(t, err)
 	require.False(t, session.ExpiredNotify)
 
 	err = ss.Session().UpdateExpiredNotify(session.Id, true)
 	require.NoError(t, err)
-	session, err = ss.Session().Get(c, s1.Id)
+	session, err = ss.Session().Get(rctx, s1.Id)
 	require.NoError(t, err)
 	require.True(t, session.ExpiredNotify)
 
 	err = ss.Session().UpdateExpiredNotify(session.Id, false)
 	require.NoError(t, err)
-	session, err = ss.Session().Get(c, s1.Id)
+	session, err = ss.Session().Get(rctx, s1.Id)
 	require.NoError(t, err)
 	require.False(t, session.ExpiredNotify)
 }

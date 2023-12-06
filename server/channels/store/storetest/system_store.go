@@ -11,21 +11,22 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestSystemStore(t *testing.T, ss store.Store) {
-	t.Run("", func(t *testing.T) { testSystemStore(t, ss) })
-	t.Run("SaveOrUpdate", func(t *testing.T) { testSystemStoreSaveOrUpdate(t, ss) })
-	t.Run("PermanentDeleteByName", func(t *testing.T) { testSystemStorePermanentDeleteByName(t, ss) })
+func TestSystemStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("", func(t *testing.T) { testSystemStore(t, rctx, ss) })
+	t.Run("SaveOrUpdate", func(t *testing.T) { testSystemStoreSaveOrUpdate(t, rctx, ss) })
+	t.Run("PermanentDeleteByName", func(t *testing.T) { testSystemStorePermanentDeleteByName(t, rctx, ss) })
 	t.Run("InsertIfExists", func(t *testing.T) {
-		testInsertIfExists(t, ss)
+		testInsertIfExists(t, rctx, ss)
 	})
-	t.Run("SaveOrUpdateWithWarnMetricHandling", func(t *testing.T) { testSystemStoreSaveOrUpdateWithWarnMetricHandling(t, ss) })
-	t.Run("GetByNameNoEntries", func(t *testing.T) { testSystemStoreGetByNameNoEntries(t, ss) })
+	t.Run("SaveOrUpdateWithWarnMetricHandling", func(t *testing.T) { testSystemStoreSaveOrUpdateWithWarnMetricHandling(t, rctx, ss) })
+	t.Run("GetByNameNoEntries", func(t *testing.T) { testSystemStoreGetByNameNoEntries(t, rctx, ss) })
 }
 
-func testSystemStore(t *testing.T, ss store.Store) {
+func testSystemStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	system := &model.System{Name: model.NewId(), Value: "value"}
 	err := ss.System().Save(system)
 	require.NoError(t, err)
@@ -52,7 +53,7 @@ func testSystemStore(t *testing.T, ss store.Store) {
 	require.Equal(t, system.Value, rsystem.Value)
 }
 
-func testSystemStoreSaveOrUpdate(t *testing.T, ss store.Store) {
+func testSystemStoreSaveOrUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	system := &model.System{Name: model.NewId(), Value: "value"}
 
 	err := ss.System().SaveOrUpdate(system)
@@ -72,7 +73,7 @@ func testSystemStoreSaveOrUpdate(t *testing.T, ss store.Store) {
 	assert.Equal(t, system.Value, res.Value)
 }
 
-func testSystemStoreSaveOrUpdateWithWarnMetricHandling(t *testing.T, ss store.Store) {
+func testSystemStoreSaveOrUpdateWithWarnMetricHandling(t *testing.T, rctx request.CTX, ss store.Store) {
 	system := &model.System{Name: model.NewId(), Value: "value"}
 
 	err := ss.System().SaveOrUpdateWithWarnMetricHandling(system)
@@ -99,7 +100,7 @@ func testSystemStoreSaveOrUpdateWithWarnMetricHandling(t *testing.T, ss store.St
 	assert.Equal(t, val1, val2)
 }
 
-func testSystemStoreGetByNameNoEntries(t *testing.T, ss store.Store) {
+func testSystemStoreGetByNameNoEntries(t *testing.T, rctx request.CTX, ss store.Store) {
 	res, nErr := ss.System().GetByName(model.SystemFirstAdminVisitMarketplace)
 	_, ok := nErr.(*store.ErrNotFound)
 	require.Error(t, nErr)
@@ -107,7 +108,7 @@ func testSystemStoreGetByNameNoEntries(t *testing.T, ss store.Store) {
 	assert.Nil(t, res)
 }
 
-func testSystemStorePermanentDeleteByName(t *testing.T, ss store.Store) {
+func testSystemStorePermanentDeleteByName(t *testing.T, rctx request.CTX, ss store.Store) {
 	s1 := &model.System{Name: model.NewId(), Value: "value"}
 	s2 := &model.System{Name: model.NewId(), Value: "value"}
 
@@ -141,7 +142,7 @@ func testSystemStorePermanentDeleteByName(t *testing.T, ss store.Store) {
 	assert.Error(t, err)
 }
 
-func testInsertIfExists(t *testing.T, ss store.Store) {
+func testInsertIfExists(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Serial", func(t *testing.T) {
 		s1 := &model.System{Name: model.SystemClusterEncryptionKey, Value: "somekey"}
 

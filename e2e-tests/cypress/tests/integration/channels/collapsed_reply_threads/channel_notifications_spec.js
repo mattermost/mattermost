@@ -52,11 +52,46 @@ describe('CRT Desktop notifications', () => {
         // # Visit channel
         cy.visit(testChannelUrl);
 
+        cy.uiOpenChannelMenu('Notification Preferences');
+        cy.get('[data-testid="muteChannel"]').click().then(() => {
+            cy.get('.AlertBanner--app').should('be.visible');
+        });
+        cy.get('.channel-notifications-settings-modal__save-btn').should('be.visible').click();
+
         // Setup notification spy
         spyNotificationAs('notifySpy', 'granted');
 
         // # Set users notification settings
-        setCRTDesktopNotification('ALL');
+        cy.uiOpenChannelMenu('Notification Preferences');
+
+        // # click on Mute Channel to Unmute Channel
+        cy.get('[data-testid="muteChannel"]').click();
+
+        // # Click "Desktop Notifications"
+        cy.findByText('Desktop Notifications').should('be.visible');
+
+        cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('#desktopNotification-all').should('be.visible').click();
+        cy.get('.channel-notifications-settings-modal__body').get('#desktopNotification-all').should('be.checked');
+
+        cy.get('#desktopNotification-mention').should('be.visible').click().then(() => {
+            cy.get('[data-testid="desktopReplyThreads"]').should('be.checked');
+            cy.get('[data-testid="desktopReplyThreads"]').should('be.visible').click();
+            cy.get('[data-testid="desktopReplyThreads"]').should('not.be.checked');
+        });
+        cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('#desktopNotification-mention').should('be.checked');
+
+        cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('#desktopNotification-none').should('be.visible').click();
+        cy.get('.channel-notifications-settings-modal__body').get('#desktopNotification-none').should('be.checked');
+
+        // # click on Save button
+        cy.get('.channel-notifications-settings-modal__save-btn').should('be.visible').click();
+
+        // # Set users notification settings
+        cy.uiOpenChannelMenu('Notification Preferences');
+        cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('#desktopNotification-none').should('be.checked');
+        cy.get('.channel-notifications-settings-modal__body').get('#desktopNotification-all').scrollIntoView().should('be.visible').click();
+
+        cy.get('.channel-notifications-settings-modal__save-btn').should('be.visible').click();
 
         // # Post a root message as other user
         cy.postMessageAs({sender, message: 'This is a not followed root message', channelId: testChannelId, rootId: ''}).then(({id: postId}) => {
@@ -99,14 +134,41 @@ describe('CRT Desktop notifications', () => {
         });
     });
 
-    it('MM-T4417_2 Trigger notifications only on mention replies when channel setting is unchecked', () => {
+    it('MM-T4417_2 Click on sameMobileSettingsDesktop and check if additional settings still appears', () => {
+        cy.visit(testChannelUrl);
+        cy.uiOpenChannelMenu('Notification Preferences');
+        cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('#desktopNotification-mention').should('be.visible').click().then(() => {
+            cy.get('[data-testid="desktopReplyThreads"]').should('be.visible').click();
+        });
+        cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('[data-testid="desktopReplyThreads"]').should('be.visible').click();
+        cy.get('.channel-notifications-settings-modal__body').get('[data-testid="sameMobileSettingsDesktop"]').scrollIntoView().click().should('be.checked').then(() => {
+            cy.findByText('Notify me about…').should('not.be.visible');
+        });
+
+        // check the box to see if the additional settings appears
+        cy.get('.channel-notifications-settings-modal__body').get('[data-testid="sameMobileSettingsDesktop"]').scrollIntoView().click();
+        cy.get('.mm-modal-generic-section-item__title').should('be.visible').and('contain', 'Notify me about');
+
+        cy.get('#MobileNotification-all').should('be.visible').click();
+        cy.get('#MobileNotification-mention').should('be.visible').click().then(() => {
+            cy.get('[data-testid="mobileReplyThreads"]').should('be.visible').click();
+        });
+        cy.get('#MobileNotification-none').should('be.visible').click();
+
+        cy.get('[data-testid="autoFollowThreads"]').should('be.visible').click();
+
+        // # click on Save button
+        cy.get('.channel-notifications-settings-modal__save-btn').should('be.visible').click();
+    });
+
+    it('MM-T4417_3 Trigger notifications only on mention replies when channel setting is unchecked', () => {
         cy.visit(testChannelUrl);
 
         // Setup notification spy
         spyNotificationAs('notifySpy', 'granted');
-
-        // # Set users notification settings
-        setCRTDesktopNotification('MENTION');
+        cy.uiOpenChannelMenu('Notification Preferences');
+        cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('#desktopNotification-mention').should('be.visible').click();
+        cy.get('.channel-notifications-settings-modal__save-btn').should('be.visible').click();
 
         // # Post a root message as other user
         cy.postMessageAs({sender, message: 'This is a not followed root message', channelId: testChannelId, rootId: ''}).then(({id: postId}) => {
@@ -232,32 +294,3 @@ describe('CRT Desktop notifications', () => {
         });
     });
 });
-
-function setCRTDesktopNotification(type) {
-    if (['ALL', 'MENTION'].indexOf(type) === -1) {
-        throw new Error(`${type} is invalid`);
-    }
-
-    // # Open settings modal
-    cy.uiOpenChannelMenu('Notification Preferences');
-
-    // # Click "Desktop Notifications"
-    cy.get('#desktopTitle').
-        scrollIntoView().
-        should('be.visible').
-        and('contain', 'Desktop notifications').click();
-
-    // # Select mentions category for messages.
-    cy.get('#channelNotificationMentions').scrollIntoView().check();
-
-    if (type === 'ALL') {
-        // # Check notify for all replies.
-        cy.get('#desktopThreadsNotificationAllActivity').scrollIntoView().check().should('be.checked');
-    } else if (type === 'MENTION') {
-        // # Check notify only for mentions.
-        cy.get('#desktopThreadsNotificationAllActivity').scrollIntoView().uncheck().should('not.be.checked');
-    }
-
-    // # Click "Save" and close the modal
-    cy.uiSaveAndClose();
-}

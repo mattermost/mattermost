@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
-import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {getHistory} from 'utils/browser_history';
 

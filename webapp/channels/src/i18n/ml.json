@@ -177,7 +177,6 @@
   "channel_header.viewMembers": "അംഗങ്ങളെ കാണുക",
   "channel_loader.someone": "ആരോ",
   "channel_modal.cancel": "നിര്‍ത്തലാക്കുക",
-  "channel_notifications.muteChannel.settings": "ചാനൽ നിശബ്ദമാക്കുക",
   "combined_system_message.added_to_channel.many_expanded": "{users}, {lastUser} എന്നിവരെ **ചാനലിലേക്ക്** ചേർത്തത് {actor} ആണ്.",
   "combined_system_message.added_to_channel.one": "{firstUser} **ചാനലിൽ ചേർത്തത്** {actor}.",
   "combined_system_message.added_to_channel.one_you": "നിങ്ങളെ **ചാനലിലേക്ക് ചേർത്തത്** {actor} ആണ്.",
