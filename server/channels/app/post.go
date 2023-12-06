@@ -1515,7 +1515,7 @@ func (a *App) convertChannelNamesToChannelIds(c request.CTX, channels []string, 
 
 func (a *App) convertUserNameToUserIds(usernames []string) []string {
 	for idx, username := range usernames {
-		username = strings.TrimPrefix(username, `@`)
+		username = strings.TrimPrefix(username, "@")
 		user, err := a.GetUserByUsername(username)
 		if err != nil {
 			a.Log().Warn("error getting user by username", mlog.String("user_name", username), mlog.Err(err))
