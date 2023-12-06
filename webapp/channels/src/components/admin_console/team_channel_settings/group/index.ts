@@ -2,30 +2,43 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-
+import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
-
 import type {Dispatch} from 'redux';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Group} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
+
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {t} from 'utils/i18n';
 
 import type {GlobalState} from 'types/store';
 
 import GroupList from './group_list';
-import type {Props} from './group_list';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
+export type OwnProps = {
+    groups: Group[];
+    onGroupRemoved: (gid: string) => void;
+    setNewGroupRole: (gid: string) => void;
+    isModeSync: boolean;
+    totalGroups: number;
+    isDisabled?: boolean;
+    type: string;
+    onPageChangedCallback?: () => void;
+    team?: Team;
+    channel?: Partial<Channel>;
+}
 
-import type {Group} from '@mattermost/types/groups';
-
-function mapStateToProps(state: GlobalState, ownProps: Props) {
+function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     return {
-        data: ownProps.data,
-        removeGroup: ownProps.removeGroup,
-        setNewGroupRole : ownProps.setNewGroupRole,
-        emptyListTextId: ownProps.isDisabled ? t('admin.team_channel_settings.group_list.no-synced-groups') : t('admin.team_channel_settings.group_list.no-groups'),
-        emptyListTextDefaultMessage: ownProps.isDisabled ? 'At least one group must be specified' : 'No groups specified yet',
-        total: ownProps.total,
+        data: ownProps.groups,
+        removeGroup: ownProps.onGroupRemoved,
+        setNewGroupRole: ownProps.setNewGroupRole,
+        emptyListTextId: ownProps.isModeSync ? t('admin.team_channel_settings.group_list.no-synced-groups') : t('admin.team_channel_settings.group_list.no-groups'),
+        emptyListTextDefaultMessage: ownProps.isModeSync ? 'At least one group must be specified' : 'No groups specified yet',
+        total: ownProps.totalGroups,
     };
 }
 
@@ -33,9 +46,13 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
         actions: bindActionCreators({
             getData: () => Promise.resolve([] as Group[]),
-        }, dispatch)
+        }, dispatch),
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(GroupList);
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(GroupList);
 
