@@ -531,7 +531,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	})
 }
 
-func TestGetChannelsWithBookmarksForSession(t *testing.T) {
+func TestAddBookmarksToChannelsForSession(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -569,9 +569,9 @@ func TestGetChannelsWithBookmarksForSession(t *testing.T) {
 		Emoji:       ":smile:",
 	}
 
-	_, err := th.App.Srv().Store().FileInfo().Save(file)
+	_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
 	require.NoError(t, err)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(file.Id)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
 
 	bookmark2 := &model.ChannelBookmark{
 		ChannelId:   channelId,
@@ -606,7 +606,8 @@ func TestGetChannelsWithBookmarksForSession(t *testing.T) {
 		channelList, err := th.App.GetChannelsForTeamForUser(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.ChannelSearchOpts{})
 		assert.Nil(t, err)
 
-		channels := th.App.GetChannelsWithBookmarksForSession(th.Context, th.Context.Session(), channelList, 0)
+		channels, err := th.App.AddBookmarksToChannelsForSession(th.Context, th.Context.Session(), channelList, 0)
+		assert.Nil(t, err)
 		assert.Greater(t, len(channels), 0)
 
 		for _, c := range channels {
@@ -622,7 +623,7 @@ func TestGetChannelsWithBookmarksForSession(t *testing.T) {
 	})
 }
 
-func TestGetChannelsWithTeamAndBookmarksForSession(t *testing.T) {
+func TestAddBookmarksToChannelsWithTeamForSession(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -660,9 +661,9 @@ func TestGetChannelsWithTeamAndBookmarksForSession(t *testing.T) {
 		Emoji:       ":smile:",
 	}
 
-	_, err := th.App.Srv().Store().FileInfo().Save(file)
+	_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
 	require.NoError(t, err)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(file.Id)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
 
 	bookmark2 := &model.ChannelBookmark{
 		ChannelId:   channelId,
@@ -697,7 +698,8 @@ func TestGetChannelsWithTeamAndBookmarksForSession(t *testing.T) {
 		channelList, err := th.App.GetAllChannels(th.Context, 0, 60, model.ChannelSearchOpts{})
 		assert.Nil(t, err)
 
-		channels := th.App.GetChannelsWithTeamAndBookmarksForSession(th.Context, th.Context.Session(), channelList, 0)
+		channels, err := th.App.AddBookmarksToChannelsWithTeamForSession(th.Context, th.Context.Session(), channelList, 0)
+		assert.Nil(t, err)
 		assert.Greater(t, len(channels), 0)
 
 		for _, c := range channels {
