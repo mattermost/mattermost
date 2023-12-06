@@ -8880,3 +8880,24 @@ func (c *Client4) SubmitTrueUpReview(ctx context.Context, req map[string]any) (*
 
 	return BuildResponse(r), nil
 }
+
+// CreateChannelBookmark creates a channel bookmark based on the provided struct.
+func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *ChannelBookmark) (*ChannelBookmark, *Response, error) {
+	channelBookmarkJSON, err := json.Marshal(channelBookmark)
+	if err != nil {
+		return nil, nil, NewAppError("CreateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPost(ctx, c.channelRoute(channelBookmark.ChannelId)+"/bookmarks", string(channelBookmarkJSON))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var cb ChannelBookmark
+	if r.StatusCode == http.StatusNotModified {
+		return &cb, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&cb); err != nil {
+		return nil, nil, NewAppError("CreateChannelBookmark", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &cb, BuildResponse(r), nil
+}

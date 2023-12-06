@@ -32,6 +32,21 @@ type ChannelBookmark struct {
 	ParentId    string              `json:"parent_id,omitempty"`
 }
 
+func (o *ChannelBookmark) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":          o.Id,
+		"create_at":   o.CreateAt,
+		"update_at":   o.UpdateAt,
+		"delete_at":   o.DeleteAt,
+		"channel_id":  o.ChannelId,
+		"owner_id":    o.OwnerId,
+		"file_id":     o.FileId,
+		"type":        o.Type,
+		"original_id": o.OriginalId,
+		"parent_id":   o.ParentId,
+	}
+}
+
 type ChannelBookmarkWithFileInfo struct {
 	ChannelBookmark
 	FileInfo *FileInfo `json:"file,omitempty"`

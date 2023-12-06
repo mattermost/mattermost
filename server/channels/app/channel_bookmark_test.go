@@ -11,53 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// move to API test
-// func TestCreateBookmarkEvent(t *testing.T) {
-// 	th := Setup(t).InitBasic()
-// 	defer th.TearDown()
-
-// 	WebSocketClient, err := th.CreateWebSocketClient()
-// 	require.NoError(t, err)
-// 	WebSocketClient.Listen()
-// 	defer WebSocketClient.Close()
-
-// 	bookmark1 := &model.ChannelBookmark{
-// 		ChannelId:   th.BasicChannel.Id,
-// 		DisplayName: "Link bookmark test",
-// 		LinkUrl:     "https://mattermost.com",
-// 		Type:        model.ChannelBookmarkLink,
-// 		Emoji:       ":smile:",
-// 	}
-
-// 	th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
-// 	_, err = th.App.CreateChannelBookmark(th.Context, bookmark1, "")
-// 	require.NoError(t, err)
-
-// 	var received bool
-// 	var b model.ChannelBookmarkWithFileInfo
-
-// 	for {
-// 		var exit bool
-// 		select {
-// 		case event := <-WebSocketClient.EventChannel:
-// 			if event.EventType() == model.WebsocketEventChannelBookmarkCreated {
-// 				err := json.Unmarshal([]byte(event.GetData()["bookmakr"].(string)), &b)
-// 				require.NoError(t, err)
-// 				received = true
-// 			}
-// 		case <-time.After(2 * time.Second):
-// 			exit = true
-// 		}
-// 		if exit {
-// 			break
-// 		}
-// 	}
-
-// 	require.True(t, received)
-// 	assert.NotNil(t, b)
-// 	assert.NotEmpty(t, b.Id)
-// }
-
 func find_bookmark(slice []*model.ChannelBookmarkWithFileInfo, id string) *model.ChannelBookmarkWithFileInfo {
 	for _, element := range slice {
 		if element.Id == id {
