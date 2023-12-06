@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -16,7 +17,11 @@ type Props = {
     isDisabled: boolean;
 }
 
-const TeamInList = ({team, isDisabled, onRemoveTeam}: Props) => {
+const TeamInList = ({
+    team,
+    isDisabled,
+    onRemoveTeam,
+}: Props) => {
     const handleRemoveTeam = useCallback(() => {
         if (isDisabled) {
             return;
@@ -39,7 +44,7 @@ const TeamInList = ({team, isDisabled, onRemoveTeam}: Props) => {
                 </div>
             </div>
             <a
-                className={isDisabled ? 'remove disabled' : 'remove'}
+                className={classNames('remove', {disabled: isDisabled})}
                 onClick={handleRemoveTeam}
             >
                 <FormattedMessage
