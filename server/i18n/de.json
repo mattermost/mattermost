@@ -604,7 +604,7 @@
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
-    "translation": "Gruppennachrichten sind auf ein Maximum von {{.MinUsers}} Benutzern beschränkt."
+    "translation": "Gruppennachrichten sind auf ein Maximum von {{.MaxUsers}} Benutzern beschränkt."
   },
   {
     "id": "api.command_groupmsg.min_users.app_error",
@@ -2372,7 +2372,7 @@
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "Fehler beim Lesen der importierten Emoji-Bilddatei. Name des Emojis: \"{{.FilePath}}\""
+    "translation": "Fehler beim Lesen der importierten Emoji-Bilddatei. Name des Emojis: \"{{.EmojiName}}\""
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -2852,7 +2852,7 @@
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{ .SiteName }}] Neue Gruppennachricht in {{ .TeamName}} am {{.Day}}.{{.Month}}.{{.Year}}"
+    "translation": "[{{ .SiteName }}] Neue Gruppennachricht in {{ .ChannelName}} am {{.Day}}.{{.Month}}.{{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
@@ -8243,7 +8243,7 @@
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
-    "translation": "E-Mail Einladungsgrenze überschritten. Timer wird nach {{.ResetAfter}} Sekunden zurückgesetzt. Bitte nach {{.ResetAfter}} Sekunden nochmal probieren."
+    "translation": "E-Mail Einladungsgrenze überschritten. Timer wird nach {{.ResetAfter}} Sekunden zurückgesetzt. Bitte nach {{.RetryAfter}} Sekunden nochmal probieren."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
@@ -9639,7 +9639,7 @@
   },
   {
     "id": "app.group.username_conflict",
-    "translation": "Benutzer mit dem Benutzernamen \"{{.Benutzername}}\" existiert bereits."
+    "translation": "Benutzer mit dem Benutzernamen \"{{.Username}}\" existiert bereits."
   },
   {
     "id": "api.config.update_config.translations.app_error",
@@ -9983,7 +9983,7 @@
   },
   {
     "id": "model.config.is_valid.log.advanced_logging.parse",
-    "translation": "Ungültiges Format: {{.Fehler}}"
+    "translation": "Ungültiges Format: {{.Error}}"
   },
   {
     "id": "api.context.ip_filtering.get_ip_filters.app_error",
@@ -10088,5 +10088,9 @@
   {
     "id": "model.outgoing_oauth_connection.is_valid.id.error",
     "translation": "Ungültige ID."
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "Das Reaktionslimit wurde für diesen Beitrag erreicht."
   }
 ]
