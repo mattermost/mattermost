@@ -564,7 +564,7 @@ func TestPluginAPIGetFile(t *testing.T) {
 	info, err := th.App.DoUploadFile(th.Context, uploadTime, th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, filename, fileData)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
 		th.App.RemoveFile(info.Path)
 	}()
 
@@ -593,7 +593,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo1.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo1.Id)
 		th.App.RemoveFile(fileInfo1.Path)
 	}()
 
@@ -607,7 +607,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo2.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo2.Id)
 		th.App.RemoveFile(fileInfo2.Path)
 	}()
 
@@ -621,7 +621,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo3.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo3.Id)
 		th.App.RemoveFile(fileInfo3.Path)
 	}()
 
@@ -1354,7 +1354,7 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	fileInfo, err := api.UploadFile(data, channelID, filename)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo.Id)
 		th.App.RemoveFile(fileInfo.Path)
 	}()
 
