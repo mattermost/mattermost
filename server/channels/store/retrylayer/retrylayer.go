@@ -711,11 +711,11 @@ func (s *RetryLayerChannelStore) AnalyticsTypeCount(teamID string, channelType m
 
 }
 
-func (s *RetryLayerChannelStore) Autocomplete(userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
+func (s *RetryLayerChannelStore) Autocomplete(rctx request.CTX, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.Autocomplete(userID, term, includeDeleted, isGuest)
+		result, err := s.ChannelStore.Autocomplete(rctx, userID, term, includeDeleted, isGuest)
 		if err == nil {
 			return result, nil
 		}
@@ -732,11 +732,11 @@ func (s *RetryLayerChannelStore) Autocomplete(userID string, term string, includ
 
 }
 
-func (s *RetryLayerChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
+func (s *RetryLayerChannelStore) AutocompleteInTeam(rctx request.CTX, teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.AutocompleteInTeam(teamID, userID, term, includeDeleted, isGuest)
+		result, err := s.ChannelStore.AutocompleteInTeam(rctx, teamID, userID, term, includeDeleted, isGuest)
 		if err == nil {
 			return result, nil
 		}
@@ -870,11 +870,11 @@ func (s *RetryLayerChannelStore) CountUrgentPostsAfter(channelID string, timesta
 
 }
 
-func (s *RetryLayerChannelStore) CreateDirectChannel(userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+func (s *RetryLayerChannelStore) CreateDirectChannel(ctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.CreateDirectChannel(userID, otherUserID, channelOptions...)
+		result, err := s.ChannelStore.CreateDirectChannel(ctx, userID, otherUserID, channelOptions...)
 		if err == nil {
 			return result, nil
 		}
@@ -2289,11 +2289,11 @@ func (s *RetryLayerChannelStore) MigrateChannelMembers(fromChannelID string, fro
 
 }
 
-func (s *RetryLayerChannelStore) PermanentDelete(channelID string) error {
+func (s *RetryLayerChannelStore) PermanentDelete(ctx request.CTX, channelID string) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.PermanentDelete(channelID)
+		err := s.ChannelStore.PermanentDelete(ctx, channelID)
 		if err == nil {
 			return nil
 		}
@@ -2331,11 +2331,11 @@ func (s *RetryLayerChannelStore) PermanentDeleteByTeam(teamID string) error {
 
 }
 
-func (s *RetryLayerChannelStore) PermanentDeleteMembersByChannel(channelID string) error {
+func (s *RetryLayerChannelStore) PermanentDeleteMembersByChannel(ctx request.CTX, channelID string) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.PermanentDeleteMembersByChannel(channelID)
+		err := s.ChannelStore.PermanentDeleteMembersByChannel(ctx, channelID)
 		if err == nil {
 			return nil
 		}
@@ -2352,11 +2352,11 @@ func (s *RetryLayerChannelStore) PermanentDeleteMembersByChannel(channelID strin
 
 }
 
-func (s *RetryLayerChannelStore) PermanentDeleteMembersByUser(userID string) error {
+func (s *RetryLayerChannelStore) PermanentDeleteMembersByUser(ctx request.CTX, userID string) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.PermanentDeleteMembersByUser(userID)
+		err := s.ChannelStore.PermanentDeleteMembersByUser(ctx, userID)
 		if err == nil {
 			return nil
 		}
@@ -2373,11 +2373,11 @@ func (s *RetryLayerChannelStore) PermanentDeleteMembersByUser(userID string) err
 
 }
 
-func (s *RetryLayerChannelStore) RemoveAllDeactivatedMembers(channelID string) error {
+func (s *RetryLayerChannelStore) RemoveAllDeactivatedMembers(ctx request.CTX, channelID string) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.RemoveAllDeactivatedMembers(channelID)
+		err := s.ChannelStore.RemoveAllDeactivatedMembers(ctx, channelID)
 		if err == nil {
 			return nil
 		}
@@ -2394,11 +2394,11 @@ func (s *RetryLayerChannelStore) RemoveAllDeactivatedMembers(channelID string) e
 
 }
 
-func (s *RetryLayerChannelStore) RemoveMember(channelID string, userID string) error {
+func (s *RetryLayerChannelStore) RemoveMember(ctx request.CTX, channelID string, userID string) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.RemoveMember(channelID, userID)
+		err := s.ChannelStore.RemoveMember(ctx, channelID, userID)
 		if err == nil {
 			return nil
 		}
@@ -2415,11 +2415,11 @@ func (s *RetryLayerChannelStore) RemoveMember(channelID string, userID string) e
 
 }
 
-func (s *RetryLayerChannelStore) RemoveMembers(channelID string, userIds []string) error {
+func (s *RetryLayerChannelStore) RemoveMembers(ctx request.CTX, channelID string, userIds []string) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.RemoveMembers(channelID, userIds)
+		err := s.ChannelStore.RemoveMembers(ctx, channelID, userIds)
 		if err == nil {
 			return nil
 		}
@@ -2499,11 +2499,11 @@ func (s *RetryLayerChannelStore) Save(channel *model.Channel, maxChannelsPerTeam
 
 }
 
-func (s *RetryLayerChannelStore) SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
+func (s *RetryLayerChannelStore) SaveDirectChannel(ctx request.CTX, channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.SaveDirectChannel(channel, member1, member2)
+		result, err := s.ChannelStore.SaveDirectChannel(ctx, channel, member1, member2)
 		if err == nil {
 			return result, nil
 		}
@@ -2730,11 +2730,11 @@ func (s *RetryLayerChannelStore) SetShared(channelId string, shared bool) error 
 
 }
 
-func (s *RetryLayerChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
+func (s *RetryLayerChannelStore) Update(ctx request.CTX, channel *model.Channel) (*model.Channel, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.Update(channel)
+		result, err := s.ChannelStore.Update(ctx, channel)
 		if err == nil {
 			return result, nil
 		}
@@ -2793,11 +2793,11 @@ func (s *RetryLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, 
 
 }
 
-func (s *RetryLayerChannelStore) UpdateMember(member *model.ChannelMember) (*model.ChannelMember, error) {
+func (s *RetryLayerChannelStore) UpdateMember(ctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.UpdateMember(member)
+		result, err := s.ChannelStore.UpdateMember(ctx, member)
 		if err == nil {
 			return result, nil
 		}
@@ -4164,11 +4164,11 @@ func (s *RetryLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 
 }
 
-func (s *RetryLayerFileInfoStore) AttachToPost(fileID string, postID string, channelID string, creatorID string) error {
+func (s *RetryLayerFileInfoStore) AttachToPost(c request.CTX, fileID string, postID string, channelID string, creatorID string) error {
 
 	tries := 0
 	for {
-		err := s.FileInfoStore.AttachToPost(fileID, postID, channelID, creatorID)
+		err := s.FileInfoStore.AttachToPost(c, fileID, postID, channelID, creatorID)
 		if err == nil {
 			return nil
 		}
@@ -4212,11 +4212,11 @@ func (s *RetryLayerFileInfoStore) CountAll() (int64, error) {
 
 }
 
-func (s *RetryLayerFileInfoStore) DeleteForPost(postID string) (string, error) {
+func (s *RetryLayerFileInfoStore) DeleteForPost(c request.CTX, postID string) (string, error) {
 
 	tries := 0
 	for {
-		result, err := s.FileInfoStore.DeleteForPost(postID)
+		result, err := s.FileInfoStore.DeleteForPost(c, postID)
 		if err == nil {
 			return result, nil
 		}
@@ -4449,11 +4449,11 @@ func (s *RetryLayerFileInfoStore) InvalidateFileInfosForPostCache(postID string,
 
 }
 
-func (s *RetryLayerFileInfoStore) PermanentDelete(fileID string) error {
+func (s *RetryLayerFileInfoStore) PermanentDelete(c request.CTX, fileID string) error {
 
 	tries := 0
 	for {
-		err := s.FileInfoStore.PermanentDelete(fileID)
+		err := s.FileInfoStore.PermanentDelete(c, fileID)
 		if err == nil {
 			return nil
 		}
@@ -4470,11 +4470,11 @@ func (s *RetryLayerFileInfoStore) PermanentDelete(fileID string) error {
 
 }
 
-func (s *RetryLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
+func (s *RetryLayerFileInfoStore) PermanentDeleteBatch(ctx request.CTX, endTime int64, limit int64) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.FileInfoStore.PermanentDeleteBatch(endTime, limit)
+		result, err := s.FileInfoStore.PermanentDeleteBatch(ctx, endTime, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -4491,11 +4491,11 @@ func (s *RetryLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int6
 
 }
 
-func (s *RetryLayerFileInfoStore) PermanentDeleteByUser(userID string) (int64, error) {
+func (s *RetryLayerFileInfoStore) PermanentDeleteByUser(ctx request.CTX, userID string) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.FileInfoStore.PermanentDeleteByUser(userID)
+		result, err := s.FileInfoStore.PermanentDeleteByUser(ctx, userID)
 		if err == nil {
 			return result, nil
 		}
@@ -4512,11 +4512,11 @@ func (s *RetryLayerFileInfoStore) PermanentDeleteByUser(userID string) (int64, e
 
 }
 
-func (s *RetryLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
+func (s *RetryLayerFileInfoStore) Save(ctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
 
 	tries := 0
 	for {
-		result, err := s.FileInfoStore.Save(info)
+		result, err := s.FileInfoStore.Save(ctx, info)
 		if err == nil {
 			return result, nil
 		}
@@ -4533,11 +4533,11 @@ func (s *RetryLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, e
 
 }
 
-func (s *RetryLayerFileInfoStore) Search(paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.FileInfoList, error) {
+func (s *RetryLayerFileInfoStore) Search(ctx request.CTX, paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.FileInfoList, error) {
 
 	tries := 0
 	for {
-		result, err := s.FileInfoStore.Search(paramsList, userID, teamID, page, perPage)
+		result, err := s.FileInfoStore.Search(ctx, paramsList, userID, teamID, page, perPage)
 		if err == nil {
 			return result, nil
 		}
@@ -4554,11 +4554,11 @@ func (s *RetryLayerFileInfoStore) Search(paramsList []*model.SearchParams, userI
 
 }
 
-func (s *RetryLayerFileInfoStore) SetContent(fileID string, content string) error {
+func (s *RetryLayerFileInfoStore) SetContent(ctx request.CTX, fileID string, content string) error {
 
 	tries := 0
 	for {
-		err := s.FileInfoStore.SetContent(fileID, content)
+		err := s.FileInfoStore.SetContent(ctx, fileID, content)
 		if err == nil {
 			return nil
 		}
@@ -4575,11 +4575,11 @@ func (s *RetryLayerFileInfoStore) SetContent(fileID string, content string) erro
 
 }
 
-func (s *RetryLayerFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error) {
+func (s *RetryLayerFileInfoStore) Upsert(rctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
 
 	tries := 0
 	for {
-		result, err := s.FileInfoStore.Upsert(info)
+		result, err := s.FileInfoStore.Upsert(rctx, info)
 		if err == nil {
 			return result, nil
 		}
@@ -7080,11 +7080,11 @@ func (s *RetryLayerPostStore) ClearCaches() {
 
 }
 
-func (s *RetryLayerPostStore) Delete(postID string, timestamp int64, deleteByID string) error {
+func (s *RetryLayerPostStore) Delete(rctx request.CTX, postID string, timestamp int64, deleteByID string) error {
 
 	tries := 0
 	for {
-		err := s.PostStore.Delete(postID, timestamp, deleteByID)
+		err := s.PostStore.Delete(rctx, postID, timestamp, deleteByID)
 		if err == nil {
 			return nil
 		}
@@ -7686,11 +7686,11 @@ func (s *RetryLayerPostStore) InvalidateLastPostTimeCache(channelID string) {
 
 }
 
-func (s *RetryLayerPostStore) Overwrite(post *model.Post) (*model.Post, error) {
+func (s *RetryLayerPostStore) Overwrite(rctx request.CTX, post *model.Post) (*model.Post, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.Overwrite(post)
+		result, err := s.PostStore.Overwrite(rctx, post)
 		if err == nil {
 			return result, nil
 		}
@@ -7770,11 +7770,11 @@ func (s *RetryLayerPostStore) PermanentDeleteBatchForRetentionPolicies(now int64
 
 }
 
-func (s *RetryLayerPostStore) PermanentDeleteByChannel(channelID string) error {
+func (s *RetryLayerPostStore) PermanentDeleteByChannel(rctx request.CTX, channelID string) error {
 
 	tries := 0
 	for {
-		err := s.PostStore.PermanentDeleteByChannel(channelID)
+		err := s.PostStore.PermanentDeleteByChannel(rctx, channelID)
 		if err == nil {
 			return nil
 		}
@@ -7791,11 +7791,11 @@ func (s *RetryLayerPostStore) PermanentDeleteByChannel(channelID string) error {
 
 }
 
-func (s *RetryLayerPostStore) PermanentDeleteByUser(userID string) error {
+func (s *RetryLayerPostStore) PermanentDeleteByUser(rctx request.CTX, userID string) error {
 
 	tries := 0
 	for {
-		err := s.PostStore.PermanentDeleteByUser(userID)
+		err := s.PostStore.PermanentDeleteByUser(rctx, userID)
 		if err == nil {
 			return nil
 		}
@@ -7875,11 +7875,11 @@ func (s *RetryLayerPostStore) Search(teamID string, userID string, params *model
 
 }
 
-func (s *RetryLayerPostStore) SearchPostsForUser(paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
+func (s *RetryLayerPostStore) SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.SearchPostsForUser(paramsList, userID, teamID, page, perPage)
+		result, err := s.PostStore.SearchPostsForUser(rctx, paramsList, userID, teamID, page, perPage)
 		if err == nil {
 			return result, nil
 		}
@@ -7917,11 +7917,11 @@ func (s *RetryLayerPostStore) SetPostReminder(reminder *model.PostReminder) erro
 
 }
 
-func (s *RetryLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
+func (s *RetryLayerPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.Update(newPost, oldPost)
+		result, err := s.PostStore.Update(rctx, newPost, oldPost)
 		if err == nil {
 			return result, nil
 		}
@@ -11625,11 +11625,11 @@ func (s *RetryLayerTeamStore) RemoveAllMembersByTeam(teamID string) error {
 
 }
 
-func (s *RetryLayerTeamStore) RemoveAllMembersByUser(userID string) error {
+func (s *RetryLayerTeamStore) RemoveAllMembersByUser(ctx request.CTX, userID string) error {
 
 	tries := 0
 	for {
-		err := s.TeamStore.RemoveAllMembersByUser(userID)
+		err := s.TeamStore.RemoveAllMembersByUser(ctx, userID)
 		if err == nil {
 			return nil
 		}
@@ -11646,11 +11646,11 @@ func (s *RetryLayerTeamStore) RemoveAllMembersByUser(userID string) error {
 
 }
 
-func (s *RetryLayerTeamStore) RemoveMember(teamID string, userID string) error {
+func (s *RetryLayerTeamStore) RemoveMember(rctx request.CTX, teamID string, userID string) error {
 
 	tries := 0
 	for {
-		err := s.TeamStore.RemoveMember(teamID, userID)
+		err := s.TeamStore.RemoveMember(rctx, teamID, userID)
 		if err == nil {
 			return nil
 		}
@@ -11667,11 +11667,11 @@ func (s *RetryLayerTeamStore) RemoveMember(teamID string, userID string) error {
 
 }
 
-func (s *RetryLayerTeamStore) RemoveMembers(teamID string, userIds []string) error {
+func (s *RetryLayerTeamStore) RemoveMembers(rctx request.CTX, teamID string, userIds []string) error {
 
 	tries := 0
 	for {
-		err := s.TeamStore.RemoveMembers(teamID, userIds)
+		err := s.TeamStore.RemoveMembers(rctx, teamID, userIds)
 		if err == nil {
 			return nil
 		}
@@ -11898,11 +11898,11 @@ func (s *RetryLayerTeamStore) UpdateLastTeamIconUpdate(teamID string, curTime in
 
 }
 
-func (s *RetryLayerTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, error) {
+func (s *RetryLayerTeamStore) UpdateMember(rctx request.CTX, member *model.TeamMember) (*model.TeamMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.UpdateMember(member)
+		result, err := s.TeamStore.UpdateMember(rctx, member)
 		if err == nil {
 			return result, nil
 		}
@@ -12933,11 +12933,11 @@ func (s *RetryLayerUserStore) AnalyticsGetSystemAdminCount() (int64, error) {
 
 }
 
-func (s *RetryLayerUserStore) AutocompleteUsersInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
+func (s *RetryLayerUserStore) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.AutocompleteUsersInChannel(teamID, channelID, term, options)
+		result, err := s.UserStore.AutocompleteUsersInChannel(rctx, teamID, channelID, term, options)
 		if err == nil {
 			return result, nil
 		}
@@ -13983,11 +13983,11 @@ func (s *RetryLayerUserStore) Save(user *model.User) (*model.User, error) {
 
 }
 
-func (s *RetryLayerUserStore) Search(teamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+func (s *RetryLayerUserStore) Search(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.Search(teamID, term, options)
+		result, err := s.UserStore.Search(rctx, teamID, term, options)
 		if err == nil {
 			return result, nil
 		}
@@ -14130,11 +14130,11 @@ func (s *RetryLayerUserStore) SearchWithoutTeam(term string, options *model.User
 
 }
 
-func (s *RetryLayerUserStore) Update(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
+func (s *RetryLayerUserStore) Update(rctx request.CTX, user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.Update(user, allowRoleUpdate)
+		result, err := s.UserStore.Update(rctx, user, allowRoleUpdate)
 		if err == nil {
 			return result, nil
 		}
