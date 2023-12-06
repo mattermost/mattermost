@@ -2358,9 +2358,6 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		query = query.Where(sq.Eq{"u.DeleteAt": 0})
 	}
 
-	sql, _, _ := query.ToSql()
-	mlog.Debug(sql)
-
 	userResults := []*model.UserReportQuery{}
 	err := us.GetReplicaX().SelectBuilder(&userResults, query)
 	if err != nil {
