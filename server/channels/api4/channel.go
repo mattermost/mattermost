@@ -613,7 +613,7 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = boomarkErr
 			return
 		}
-		if channelsWithBookmarks != nil {
+		if channelsWithBookmarks != nil && len(channelsWithBookmarks) != 0 {
 			if err := json.NewEncoder(w).Encode(channelsWithBookmarks[0]); err != nil {
 				c.Logger.Warn("Error while writing response", mlog.Err(err))
 			}
