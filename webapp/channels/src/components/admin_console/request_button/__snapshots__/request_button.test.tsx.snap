@@ -115,7 +115,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           <div
             className="alert alert-warning"
           >
-            <injectIntl(WarningIcon)>
+            <Memo(injectIntl(WarningIcon))>
               <WarningIcon
                 intl={
                   Object {
@@ -162,7 +162,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
                   title="Warning Icon"
                 />
               </WarningIcon>
-            </injectIntl(WarningIcon)>
+            </Memo(injectIntl(WarningIcon))>
             <FormattedMessage
               defaultMessage="Error Message: {error}"
               id="error.message"
@@ -282,7 +282,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           <div
             className="alert alert-warning"
           >
-            <injectIntl(WarningIcon)>
+            <Memo(injectIntl(WarningIcon))>
               <WarningIcon
                 intl={
                   Object {
@@ -329,7 +329,7 @@ exports[`components/admin_console/request_button/request_button.jsx should match
                   title="Warning Icon"
                 />
               </WarningIcon>
-            </injectIntl(WarningIcon)>
+            </Memo(injectIntl(WarningIcon))>
             <FormattedMessage
               defaultMessage="Error Message: {error}"
               id="error.message"
