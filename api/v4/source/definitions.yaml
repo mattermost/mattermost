@@ -3524,6 +3524,17 @@ components:
         Description:
           description: A description for the CIDRBlock
           type: string
+    Installation:
+      type: object
+      properties:
+        id:
+          description: A unique identifier
+          type: string
+        allowed_ip_ranges:
+          $ref: "#/components/schemas/AllowedIPRange"
+        state:
+          description: The current state of the installation
+          type: string
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

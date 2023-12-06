@@ -2,15 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import * as reactRedux from 'react-redux';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 
 import CloudDelinquencyAnnouncementBar from './index';
 
 describe('components/announcement_bar/cloud_delinquency', () => {
+    const now = new Date();
+    const fiveDaysAgo = new Date(now.getTime() - (5 * 24 * 60 * 60 * 1000)).getTime() / 1000;
+    const fiveDaysFromNow = new Date(now.getTime() + (5 * 24 * 60 * 60 * 1000)).getTime() / 1000;
     const initialState = {
         views: {
             announcementBar: {
@@ -37,7 +38,8 @@ describe('components/announcement_bar/cloud_delinquency', () => {
                     product_id: 'test_prod_1',
                     trial_end_at: 1652807380,
                     is_free_trial: 'false',
-                    delinquent_since: 1652807380, // may 17 2022
+                    delinquent_since: fiveDaysAgo, // may 17 2022
+                    cancel_at: fiveDaysFromNow, // may 17 2022
                 },
                 products: {
                     test_prod_1: {
@@ -67,20 +69,30 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             delinquent_since: null,
         };
 
-        jest.useFakeTimers().setSystemTime(new Date('2022-06-20'));
-
-        const store = mockStore(state);
-
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <CloudDelinquencyAnnouncementBar/>
-            </reactRedux.Provider>,
+        const {queryByText} = renderWithContext(
+            <CloudDelinquencyAnnouncementBar/>,
+            state,
         );
 
-        expect(wrapper.find('AnnouncementBar').exists()).toEqual(false);
+        expect(queryByText('Your annual subscription has expired')).not.toBeInTheDocument();
     });
 
-    it('Should not show banner when user is not admin', () => {
+    it('Should not show banner when no cancel_at time is set', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.cloud.subscription = {
+            ...state.entities.cloud.subscription,
+            cancel_at: null,
+        };
+
+        const {queryByText} = renderWithContext(
+            <CloudDelinquencyAnnouncementBar/>,
+            state,
+        );
+
+        expect(queryByText('Your annual subscription has expired')).not.toBeInTheDocument();
+    });
+
+    it('Should show banner when user is not admin, but should not show CTA', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.users = {
             currentUserId: 'current_user_id',
@@ -89,44 +101,24 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             },
         };
 
-        jest.useFakeTimers().setSystemTime(new Date('2022-06-20'));
-
-        const store = mockStore(state);
-
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <CloudDelinquencyAnnouncementBar/>
-            </reactRedux.Provider>,
+        const {queryByText, getByText} = renderWithContext(
+            <CloudDelinquencyAnnouncementBar/>,
+            state,
         );
 
-        expect(wrapper.find('AnnouncementBar').exists()).toEqual(false);
+        expect(getByText('Your annual subscription has expired. Please contact your System Admin to keep this workspace')).toBeInTheDocument();
+        expect(queryByText('Update billing now')).not.toBeInTheDocument();
     });
 
-    it('Should match snapshot when delinquent < 90 days', () => {
+    it('Should show banner and CTA when user is admin', () => {
         const state = JSON.parse(JSON.stringify(initialState));
-        const store = mockStore(state);
-        jest.useFakeTimers().setSystemTime(new Date('2022-06-20'));
 
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <CloudDelinquencyAnnouncementBar/>
-            </reactRedux.Provider>,
+        const {getByText} = renderWithContext(
+            <CloudDelinquencyAnnouncementBar/>,
+            state,
         );
 
-        expect(wrapper.find('.announcement-bar-advisor').exists()).toEqual(true);
-    });
-
-    it('Should match snapshot when delinquent > 90 days', () => {
-        const state = JSON.parse(JSON.stringify(initialState));
-        const store = mockStore(state);
-        jest.useFakeTimers().setSystemTime(new Date('2022-12-20'));
-
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <CloudDelinquencyAnnouncementBar/>
-            </reactRedux.Provider>,
-        );
-
-        expect(wrapper.find('.announcement-bar-critical').exists()).toEqual(true);
+        expect(getByText('Your annual subscription has expired. Please renew now to keep this workspace')).toBeInTheDocument();
+        expect(getByText('Update billing now')).toBeInTheDocument();
     });
 });
