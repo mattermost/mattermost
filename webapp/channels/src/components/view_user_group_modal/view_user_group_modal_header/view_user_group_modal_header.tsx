@@ -11,7 +11,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AddUsersToGroupModal from 'components/add_users_to_group_modal';
 
-
 import {ModalIdentifiers} from 'utils/constants';
 
 import type {ModalData} from 'types/actions';
@@ -58,6 +57,7 @@ const ViewUserGroupModalHeader = ({
     actions,
 }: Props) => {
     const {formatMessage} = useIntl();
+
     const goToAddPeopleModal = useCallback(() => {
         actions.openModal({
             modalId: ModalIdentifiers.ADD_USERS_TO_GROUP,
