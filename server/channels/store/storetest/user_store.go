@@ -190,21 +190,21 @@ func testUserStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
-	_, err = ss.User().Update(u1, false)
+	_, err = ss.User().Update(rctx, u1, false)
 	require.NoError(t, err)
 
 	missing := &model.User{}
-	_, err = ss.User().Update(missing, false)
+	_, err = ss.User().Update(rctx, missing, false)
 	require.Error(t, err, "Update should have failed because of missing key")
 
 	newId := &model.User{
 		Id: model.NewId(),
 	}
-	_, err = ss.User().Update(newId, false)
+	_, err = ss.User().Update(rctx, newId, false)
 	require.Error(t, err, "Update should have failed because id change")
 
 	u2.Email = MakeEmail()
-	_, err = ss.User().Update(u2, false)
+	_, err = ss.User().Update(rctx, u2, false)
 	require.Error(t, err, "Update should have failed because you can't modify AD/LDAP fields")
 
 	u3 := &model.User{
@@ -219,12 +219,12 @@ func testUserStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, nErr)
 
 	u3.Email = MakeEmail()
-	userUpdate, err := ss.User().Update(u3, false)
+	userUpdate, err := ss.User().Update(rctx, u3, false)
 	require.NoError(t, err, "Update should not have failed")
 	assert.Equal(t, oldEmail, userUpdate.New.Email, "Email should not have been updated as the update is not trusted")
 
 	u3.Email = MakeEmail()
-	userUpdate, err = ss.User().Update(u3, true)
+	userUpdate, err = ss.User().Update(rctx, u3, true)
 	require.NoError(t, err, "Update should not have failed")
 	assert.NotEqual(t, oldEmail, userUpdate.New.Email, "Email should have been updated as the update is trusted")
 
@@ -254,7 +254,7 @@ func testUserStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 	maxPostSize := ss.Post().GetMaxPostSize()
 	u4.NotifyProps[model.AutoResponderMessageNotifyProp] = strings.Repeat("a", maxPostSize+1)
-	_, err = ss.User().Update(&u4, false)
+	_, err = ss.User().Update(rctx, &u4, false)
 	require.Error(t, err, "auto responder message size should not be greater than maxPostSize")
 	err = ss.User().UpdateNotifyProps(u4.Id, u4.NotifyProps)
 	require.Error(t, err, "auto responder message size should not be greater than maxPostSize")
@@ -936,7 +936,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, rctx request.CTX, ss store.
 	require.NoError(t, nErr)
 
 	u4.DeleteAt = 1
-	_, err = ss.User().Update(u4, true)
+	_, err = ss.User().Update(rctx, u4, true)
 	require.NoError(t, err)
 
 	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
@@ -1210,7 +1210,7 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, rctx request.CTX, s
 	require.NoError(t, nErr)
 
 	u4.DeleteAt = 1
-	_, err = ss.User().Update(u4, true)
+	_, err = ss.User().Update(rctx, u4, true)
 	require.NoError(t, err)
 
 	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
@@ -2376,7 +2376,7 @@ func testUserStoreResetAuthDataToEmailForUsers(t *testing.T, rctx request.CTX, s
 
 	// delete user
 	user.DeleteAt = model.GetMillisForTime(time.Now())
-	ss.User().Update(user, true)
+	ss.User().Update(rctx, user, true)
 	// without deleted user
 	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.UserAuthServiceSaml, nil, false, true)
 	require.NoError(t, err)
@@ -2456,7 +2456,7 @@ func testUserUnreadCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	m1.ChannelId = c2.Id
 	m2.ChannelId = c2.Id
 
-	_, nErr = ss.Channel().SaveDirectChannel(&c2, &m1, &m2)
+	_, nErr = ss.Channel().SaveDirectChannel(rctx, &c2, &m1, &m2)
 	require.NoError(t, nErr, "couldn't save direct channel")
 
 	p1 := model.Post{}
@@ -2864,6 +2864,7 @@ func testUserStoreSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
 			users, err := ss.User().Search(
+				rctx,
 				testCase.TeamId,
 				testCase.Term,
 				testCase.Options,
@@ -3696,7 +3697,7 @@ func testUserStoreSearchInGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 	require.NoError(t, err)
 
 	u3.DeleteAt = 1
-	_, err = ss.User().Update(u3, true)
+	_, err = ss.User().Update(rctx, u3, true)
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -3839,7 +3840,7 @@ func testUserStoreSearchNotInGroup(t *testing.T, rctx request.CTX, ss store.Stor
 	require.NoError(t, err)
 
 	u3.DeleteAt = 1
-	_, err = ss.User().Update(u3, true)
+	_, err = ss.User().Update(rctx, u3, true)
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -4662,9 +4663,9 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, rctx request.CTX, ss store.
 	// Ensure update at timestamp changes
 	time.Sleep(time.Millisecond)
 
-	e := ss.Team().RemoveMember(teamId, u1.Id)
+	e := ss.Team().RemoveMember(rctx, teamId, u1.Id)
 	require.NoError(t, e)
-	e = ss.Team().RemoveMember(teamId, u2.Id)
+	e = ss.Team().RemoveMember(rctx, teamId, u2.Id)
 	require.NoError(t, e)
 
 	u1.UpdateAt, err = ss.User().UpdateUpdateAt(u1.Id)
@@ -4971,7 +4972,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, rctx request.CTX, ss st
 		ChannelId:   cDM.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
-	cDM, nErr = ss.Channel().SaveDirectChannel(cDM, cm1, cm2)
+	cDM, nErr = ss.Channel().SaveDirectChannel(rctx, cDM, cm1, cm2)
 	require.NoError(t, nErr)
 
 	// Getting all users
@@ -5116,7 +5117,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, rctx request.CTX, ss store.Sto
 	requireNUsers(2)
 
 	// delete team membership of allowed user
-	err = ss.Team().RemoveMember(team.Id, userGroupA.Id)
+	err = ss.Team().RemoveMember(rctx, team.Id, userGroupA.Id)
 	require.NoError(t, err)
 
 	// ensure removed allowed member still returned by query
@@ -5208,7 +5209,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.
 
 	// update team to be group-constrained
 	channel.GroupConstrained = model.NewBool(true)
-	_, nErr = ss.Channel().Update(channel)
+	_, nErr = ss.Channel().Update(rctx, channel)
 	require.NoError(t, nErr)
 
 	// still returns user (being group-constrained has no effect)
@@ -5238,7 +5239,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.
 	requireNUsers(2)
 
 	// delete team membership of allowed user
-	err = ss.Channel().RemoveMember(channel.Id, userGroupA.Id)
+	err = ss.Channel().RemoveMember(rctx, channel.Id, userGroupA.Id)
 	require.NoError(t, err)
 
 	// ensure removed allowed member still returned by query

@@ -8,7 +8,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
@@ -77,7 +76,7 @@ func (*InvitePeopleProvider) DoCommand(a *app.App, c request.CTX, args *model.Co
 	}
 
 	if err := a.InviteNewUsersToTeam(emailList, args.TeamId, args.UserId); err != nil {
-		mlog.Error(err.Error())
+		c.Logger().Error(err.Error())
 		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command.invite_people.fail")}
 	}
 
