@@ -56,7 +56,7 @@ func createBookmarks(th *TestHelper, channelId string) []*model.ChannelBookmarkW
 		Emoji:       ":smile:",
 	}
 
-	th.App.Srv().Store().FileInfo().Save(file)
+	th.App.Srv().Store().FileInfo().Save(th.Context, file)
 
 	bookmark2 := &model.ChannelBookmark{
 		ChannelId:   channelId,
@@ -958,7 +958,7 @@ func TestGetChannelWithBookmarks(t *testing.T) {
 
 	th.Context.Session().UserId = th.BasicUser.Id
 	bookmarks := createBookmarks(th, th.BasicChannel.Id)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(bookmarks[1].FileId)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
 
 	channel, _, err := client.GetChannelWithBookmarks(context.Background(), th.BasicChannel.Id, "", 0)
 	require.NoError(t, err)
@@ -1026,7 +1026,7 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 
 	th.Context.Session().UserId = th.BasicUser.Id
 	bookmarks := createBookmarks(th, th.BasicChannel.Id)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(bookmarks[1].FileId)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
 
 	channelsWithBookmarks, _, err := client.GetDeletedChannelsForTeamWithBookmarks(context.Background(), team.Id, 0, 100, "", 0)
 
@@ -1080,7 +1080,7 @@ func TestGetPrivateChannelsForTeam(t *testing.T) {
 
 	th.Context.Session().UserId = th.BasicUser.Id
 	bookmarks := createBookmarks(th, th.BasicPrivateChannel.Id)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(bookmarks[1].FileId)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
 
 	// normal user
 	_, resp, err := th.Client.GetPrivateChannelsForTeam(context.Background(), team.Id, 0, 100, "")
@@ -1173,7 +1173,7 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 
 	th.Context.Session().UserId = th.BasicUser.Id
 	bookmarks := createBookmarks(th, th.BasicChannel.Id)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(bookmarks[1].FileId)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
 
 	channelsWithBookmarks, _, err := client.GetPublicChannelsForTeamWithBookmarks(context.Background(), team.Id, 0, 1, "", 0)
 	require.NoError(t, err)
@@ -1334,7 +1334,7 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 	t.Run("get channels for the team for user which includes bookmarks", func(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id
 		bookmarks := createBookmarks(th, th.BasicChannel.Id)
-		defer th.App.Srv().Store().FileInfo().PermanentDelete(bookmarks[1].FileId)
+		defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
 
 		channels, _, err := client.GetChannelsForTeamForUserWithBookmarks(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, false, "", 0)
 		require.NoError(t, err)
@@ -1447,7 +1447,7 @@ func TestGetChannelsForUser(t *testing.T) {
 
 	th.Context.Session().UserId = th.BasicUser.Id
 	bookmarks := createBookmarks(th, th.BasicChannel.Id)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(bookmarks[1].FileId)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
 
 	channelsWithBookmarks, _, err := client.GetChannelsForUserWithLastDeleteAtAndBookmarks(context.Background(), th.BasicUser.Id, 0, 0)
 	require.NoError(t, err)
@@ -1629,7 +1629,7 @@ func TestGetAllChannelswithBookmarks(t *testing.T) {
 
 	th.Context.Session().UserId = th.BasicUser.Id
 	bookmarks := createBookmarks(th, th.BasicChannel.Id)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(bookmarks[1].FileId)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
 
 	channels, _, err := th.SystemAdminClient.GetAllChannelsWithBookmarks(context.Background(), 0, 60, "", 0, model.ChannelSearchOpts{})
 	require.NoError(t, err)
@@ -2546,7 +2546,7 @@ func TestGetChannelByName(t *testing.T) {
 
 	th.Context.Session().UserId = th.BasicUser.Id
 	bookmarks := createBookmarks(th, th.BasicChannel.Id)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(bookmarks[1].FileId)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
 
 	channelWithBookmaks, _, err := client.GetChannelByNameWithBookmarks(context.Background(), th.BasicChannel.Name, th.BasicTeam.Id, "", 0)
 	require.NoError(t, err)
@@ -2615,7 +2615,7 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 
 	th.Context.Session().UserId = th.BasicUser.Id
 	bookmarks := createBookmarks(th, th.BasicChannel.Id)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(bookmarks[1].FileId)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
 
 	channelWithBookmaks, _, err := client.GetChannelByNameForTeamNameWithBookmarks(context.Background(), th.BasicChannel.Name, th.BasicTeam.Name, "", 0)
 	require.NoError(t, err)
