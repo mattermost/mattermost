@@ -203,22 +203,24 @@ func TestAttachFilesToPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		info1, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
-			CreatorId: th.BasicUser.Id,
-			Path:      "path.txt",
-		})
+		info1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
 		require.NoError(t, err)
 
-		info2, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
-			CreatorId: th.BasicUser.Id,
-			Path:      "path.txt",
-		})
+		info2, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
 		require.NoError(t, err)
 
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		appErr := th.App.attachFilesToPost(post)
+		appErr := th.App.attachFilesToPost(th.Context, post)
 		assert.Nil(t, appErr)
 
 		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
@@ -230,23 +232,25 @@ func TestAttachFilesToPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		info1, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
-			CreatorId: th.BasicUser.Id,
-			Path:      "path.txt",
-			PostId:    model.NewId(),
-		})
+		info1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+				PostId:    model.NewId(),
+			})
 		require.NoError(t, err)
 
-		info2, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
-			CreatorId: th.BasicUser.Id,
-			Path:      "path.txt",
-		})
+		info2, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
 		require.NoError(t, err)
 
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		appErr := th.App.attachFilesToPost(post)
+		appErr := th.App.attachFilesToPost(th.Context, post)
 		assert.Nil(t, appErr)
 
 		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
@@ -790,7 +794,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(info1.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
 		th.App.RemoveFile(info1.Path)
 	}()
 
@@ -2781,7 +2785,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			th.Server.Store().Post().PermanentDeleteByUser(user1.Id)
+			th.Server.Store().Post().PermanentDeleteByUser(th.Context, user1.Id)
 		}()
 
 		require.NotPanics(t, func() {
