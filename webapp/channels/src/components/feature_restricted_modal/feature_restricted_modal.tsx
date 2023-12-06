@@ -34,8 +34,8 @@ import './feature_restricted_modal.scss';
 type FeatureRestrictedModalProps = {
     titleAdminPreTrial: string;
     messageAdminPreTrial: string;
-    titleAdminPostTrial: string;
-    messageAdminPostTrial: string;
+    titleAdminPostTrial?: string;
+    messageAdminPostTrial?: string;
     titleEndUser?: string;
     messageEndUser?: string;
     customSecondaryButton?: {msg: string; action: () => void};

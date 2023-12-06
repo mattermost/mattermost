@@ -5,6 +5,7 @@ package commands
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -31,7 +32,7 @@ func websocketCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	c.Listen()
-	fmt.Println("Press CTRL+C to exit")
+	fmt.Fprintln(os.Stderr, "Press CTRL+C to exit")
 	for {
 		event := <-c.EventChannel
 		data, err := event.ToJSON()

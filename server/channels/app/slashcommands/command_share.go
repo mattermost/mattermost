@@ -17,6 +17,9 @@ import (
 type ShareProvider struct {
 }
 
+// ensure ShareProvide implements AutocompleteDynamicArgProvider
+var _ app.AutocompleteDynamicArgProvider = (*ShareProvider)(nil)
+
 const (
 	CommandTriggerShare   = "share-channel"
 	AvailableShareActions = "invite, uninvite, unshare, status"

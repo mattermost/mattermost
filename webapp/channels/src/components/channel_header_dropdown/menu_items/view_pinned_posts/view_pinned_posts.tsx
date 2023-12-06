@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, memo} from 'react';
+import type {MouseEvent} from 'react';
+import {useIntl} from 'react-intl';
 
 import Menu from 'components/widgets/menu/menu';
-
-import {localizeMessage} from 'utils/utils';
 
 type Props = {
     show?: boolean;
@@ -17,33 +17,33 @@ type Props = {
     };
 }
 
-export default class ViewPinnedPosts extends React.PureComponent<Props> {
-    private handleClick = (e: React.MouseEvent) => {
+const ViewPinnedPosts = ({
+    channel,
+    hasPinnedPosts,
+    actions: {
+        closeRightHandSide,
+        showPinnedPosts,
+    },
+    show,
+}: Props) => {
+    const intl = useIntl();
+    const handleClick = useCallback((e: MouseEvent) => {
         e.preventDefault();
-
-        const {
-            channel,
-            hasPinnedPosts,
-            actions: {
-                closeRightHandSide,
-                showPinnedPosts,
-            },
-        } = this.props;
 
         if (hasPinnedPosts) {
             closeRightHandSide();
         } else {
             showPinnedPosts(channel.id);
         }
-    };
+    }, [channel.id, closeRightHandSide, showPinnedPosts, hasPinnedPosts]);
 
-    render() {
-        return (
-            <Menu.ItemAction
-                show={this.props.show}
-                onClick={this.handleClick}
-                text={localizeMessage('navbar.viewPinnedPosts', 'View Pinned Posts')}
-            />
-        );
-    }
-}
+    return (
+        <Menu.ItemAction
+            show={show}
+            onClick={handleClick}
+            text={intl.formatMessage({id: 'navbar.viewPinnedPosts', defaultMessage: 'View Pinned Posts'})}
+        />
+    );
+};
+
+export default memo(ViewPinnedPosts);

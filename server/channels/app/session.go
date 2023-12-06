@@ -241,7 +241,7 @@ func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64)
 // ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
 // A new ExpiresAt is only written if enough time has elapsed since last update.
 // Returns true only if the session was extended.
-func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
+func (a *App) ExtendSessionExpiryIfNeeded(rctx request.CTX, session *model.Session) bool {
 	if !*a.Config().ServiceSettings.ExtendSessionLengthWithActivity {
 		return false
 	}
@@ -268,19 +268,23 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 		return false
 	}
 
-	auditRec := a.MakeAuditRecord("extendSessionExpiry", audit.Fail)
-	defer a.LogAuditRec(auditRec, nil)
+	auditRec := a.MakeAuditRecord(rctx, "extendSessionExpiry", audit.Fail)
+	defer a.LogAuditRec(rctx, auditRec, nil)
 	auditRec.AddEventPriorState(session)
 
 	newExpiry := now + sessionLength
 	if err := a.ch.srv.platform.ExtendSessionExpiry(session, newExpiry); err != nil {
-		mlog.Error("Failed to update ExpiresAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+		rctx.Logger().Error("Failed to update ExpiresAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 		auditRec.AddMeta("err", err.Error())
 		return false
 	}
 
-	mlog.Debug("Session extended", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id),
-		mlog.Int64("newExpiry", newExpiry), mlog.Int64("session_length", sessionLength))
+	rctx.Logger().Debug("Session extended",
+		mlog.String("user_id", session.UserId),
+		mlog.String("session_id", session.Id),
+		mlog.Int("newExpiry", newExpiry),
+		mlog.Int("session_length", sessionLength),
+	)
 
 	auditRec.Success()
 	auditRec.AddEventResultState(session)

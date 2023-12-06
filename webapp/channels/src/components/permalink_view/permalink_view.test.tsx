@@ -174,24 +174,46 @@ describe('components/PermalinkView', () => {
         };
 
         describe('focusPost', () => {
-            test('should redirect to error page for DM channel not a member of', async () => {
-                const testStore = await mockStore(initialState);
-                await testStore.dispatch(focusPost('dmpostid1', undefined, baseProps.currentUserId));
+            beforeEach(() => {
+                TestHelper.initBasic(Client4);
+            });
 
-                expect(getPostThread).toHaveBeenCalledWith('dmpostid1');
+            afterEach(() => {
+                TestHelper.tearDown();
+            });
+
+            function nockInfoForPost(postId: string) {
+                nock(Client4.getPostRoute(postId)).
+                    get('/info').
+                    reply(200, {
+                        has_joined_channel: true,
+                    });
+            }
+            test('should redirect to error page for DM channel not a member of', async () => {
+                const postId = 'dmpostid1';
+                TestHelper.initBasic(Client4);
+                nockInfoForPost(postId);
+
+                const testStore = await mockStore(initialState);
+                await testStore.dispatch(focusPost(postId, undefined, baseProps.currentUserId));
+
+                expect(getPostThread).toHaveBeenCalledWith(postId);
                 expect(testStore.getActions()).toEqual([
-                    {type: 'MOCK_GET_POST_THREAD', data: {posts: {dmpostid1: {id: 'dmpostid1', message: 'some message', channel_id: 'dmchannelid'}}, order: ['dmpostid1']}},
+                    {type: 'MOCK_GET_POST_THREAD', data: {posts: {dmpostid1: {id: postId, message: 'some message', channel_id: 'dmchannelid'}}, order: ['dmpostid1']}},
                 ]);
                 expect(getHistory().replace).toHaveBeenCalledWith(`/error?type=${ErrorPageTypes.PERMALINK_NOT_FOUND}&returnTo=`);
             });
 
             test('should redirect to error page for GM channel not a member of', async () => {
-                const testStore = await mockStore(initialState);
-                await testStore.dispatch(focusPost('gmpostid1', undefined, baseProps.currentUserId));
+                const postId = 'gmpostid1';
+                nockInfoForPost(postId);
 
-                expect(getPostThread).toHaveBeenCalledWith('gmpostid1');
+                const testStore = await mockStore(initialState);
+                await testStore.dispatch(focusPost(postId, undefined, baseProps.currentUserId));
+
+                expect(getPostThread).toHaveBeenCalledWith(postId);
                 expect(testStore.getActions()).toEqual([
-                    {type: 'MOCK_GET_POST_THREAD', data: {posts: {gmpostid1: {id: 'gmpostid1', message: 'some message', channel_id: 'gmchannelid'}}, order: ['gmpostid1']}},
+                    {type: 'MOCK_GET_POST_THREAD', data: {posts: {gmpostid1: {id: postId, message: 'some message', channel_id: 'gmchannelid'}}, order: ['gmpostid1']}},
                 ]);
                 expect(getHistory().replace).toHaveBeenCalledWith(`/error?type=${ErrorPageTypes.PERMALINK_NOT_FOUND}&returnTo=`);
             });
@@ -199,7 +221,9 @@ describe('components/PermalinkView', () => {
             test('should redirect to DM link with postId for permalink', async () => {
                 const dateNowOrig = Date.now;
                 Date.now = () => new Date(0).getMilliseconds();
-                const nextTick = () => new Promise((res) => process.nextTick(res));
+
+                const postId = 'dmpostid1';
+                nockInfoForPost(postId);
 
                 TestHelper.initBasic(Client4);
                 nock(Client4.getUsersRoute()).
@@ -220,13 +244,12 @@ describe('components/PermalinkView', () => {
                 };
 
                 const testStore = mockStore(modifiedState);
-                testStore.dispatch(focusPost('dmpostid1', undefined, baseProps.currentUserId));
+                await testStore.dispatch(focusPost(postId, undefined, baseProps.currentUserId));
 
-                await nextTick();
                 expect.assertions(3);
-                expect(getPostThread).toHaveBeenCalledWith('dmpostid1');
+                expect(getPostThread).toHaveBeenCalledWith(postId);
                 expect(testStore.getActions()).toEqual([
-                    {type: 'MOCK_GET_POST_THREAD', data: {posts: {dmpostid1: {id: 'dmpostid1', message: 'some message', channel_id: 'dmchannelid'}}, order: ['dmpostid1']}},
+                    {type: 'MOCK_GET_POST_THREAD', data: {posts: {dmpostid1: {id: postId, message: 'some message', channel_id: 'dmchannelid'}}, order: [postId]}},
                     {type: 'MOCK_GET_MISSING_PROFILES', userIds: ['dmchannel']},
                     {
                         type: 'RECEIVED_PREFERENCES',
@@ -236,17 +259,19 @@ describe('components/PermalinkView', () => {
                         ],
                     },
                     {type: 'MOCK_SELECT_CHANNEL', args: ['dmchannelid']},
-                    {type: 'RECEIVED_FOCUSED_POST', channelId: 'dmchannelid', data: 'dmpostid1'},
+                    {type: 'RECEIVED_FOCUSED_POST', channelId: 'dmchannelid', data: postId},
                     {type: 'MOCK_LOAD_CHANNELS_FOR_CURRENT_USER'},
                     {type: 'MOCK_GET_CHANNEL_STATS', args: ['dmchannelid']},
                 ]);
 
                 expect(getHistory().replace).toHaveBeenCalledWith('/currentteam/messages/@otherUser/dmpostid1');
                 Date.now = dateNowOrig;
-                TestHelper.tearDown();
             });
 
             test('should redirect to GM link with postId for permalink', async () => {
+                const postId = 'gmpostid1';
+                nockInfoForPost(postId);
+
                 const modifiedState = {
                     entities: {
                         ...initialState.entities,
@@ -261,14 +286,14 @@ describe('components/PermalinkView', () => {
                 };
 
                 const testStore = await mockStore(modifiedState);
-                await testStore.dispatch(focusPost('gmpostid1', undefined, baseProps.currentUserId));
+                await testStore.dispatch(focusPost(postId, undefined, baseProps.currentUserId));
 
-                expect(getPostThread).toHaveBeenCalledWith('gmpostid1');
+                expect(getPostThread).toHaveBeenCalledWith(postId);
                 expect(testStore.getActions()).toEqual([
-                    {type: 'MOCK_GET_POST_THREAD', data: {posts: {gmpostid1: {id: 'gmpostid1', message: 'some message', channel_id: 'gmchannelid'}}, order: ['gmpostid1']}},
+                    {type: 'MOCK_GET_POST_THREAD', data: {posts: {gmpostid1: {id: postId, message: 'some message', channel_id: 'gmchannelid'}}, order: [postId]}},
                     {type: 'RECEIVED_PREFERENCES', data: [{category: 'group_channel_show', name: 'gmchannelid', user_id: 'current_user_id', value: 'true'}]},
                     {type: 'MOCK_SELECT_CHANNEL', args: ['gmchannelid']},
-                    {type: 'RECEIVED_FOCUSED_POST', channelId: 'gmchannelid', data: 'gmpostid1'},
+                    {type: 'RECEIVED_FOCUSED_POST', channelId: 'gmchannelid', data: postId},
                     {type: 'MOCK_LOAD_CHANNELS_FOR_CURRENT_USER'},
                     {type: 'MOCK_GET_CHANNEL_STATS', args: ['gmchannelid']},
                 ]);
@@ -276,23 +301,26 @@ describe('components/PermalinkView', () => {
             });
 
             test('should redirect to channel link with postId for permalink', async () => {
-                const testStore = await mockStore(initialState);
-                await testStore.dispatch(focusPost('postid1', undefined, baseProps.currentUserId));
+                const postId = 'postid1';
+                nockInfoForPost(postId);
 
-                expect(getPostThread).toHaveBeenCalledWith('postid1');
+                const testStore = await mockStore(initialState);
+                await testStore.dispatch(focusPost(postId, undefined, baseProps.currentUserId));
+
+                expect(getPostThread).toHaveBeenCalledWith(postId);
                 expect(testStore.getActions()).toEqual([
                     {
                         type: 'MOCK_GET_POST_THREAD',
                         data: {
                             posts: {
-                                replypostid1: {id: 'replypostid1', message: 'some message', channel_id: 'channelid1', root_id: 'postid1'},
-                                postid1: {id: 'postid1', message: 'some message', channel_id: 'channelid1'},
+                                replypostid1: {id: 'replypostid1', message: 'some message', channel_id: 'channelid1', root_id: postId},
+                                postid1: {id: postId, message: 'some message', channel_id: 'channelid1'},
                             },
-                            order: ['postid1', 'replypostid1'],
+                            order: [postId, 'replypostid1'],
                         },
                     },
                     {type: 'MOCK_SELECT_CHANNEL', args: ['channelid1']},
-                    {type: 'RECEIVED_FOCUSED_POST', channelId: 'channelid1', data: 'postid1'},
+                    {type: 'RECEIVED_FOCUSED_POST', channelId: 'channelid1', data: postId},
                     {type: 'MOCK_LOAD_CHANNELS_FOR_CURRENT_USER'},
                     {type: 'MOCK_GET_CHANNEL_STATS', args: ['channelid1']},
                 ]);
@@ -300,6 +328,9 @@ describe('components/PermalinkView', () => {
             });
 
             test('should not redirect to channel link with postId for a reply permalink when collapsedThreads enabled and option is set true', async () => {
+                const postId = 'replypostid1';
+                nockInfoForPost(postId);
+
                 const newState = {
                     entities: {
                         ...initialState.entities,
@@ -314,34 +345,34 @@ describe('components/PermalinkView', () => {
                 jest.spyOn<typeof Channels, keyof typeof Channels>(Channels, 'getCurrentChannel').mockReturnValue({id: 'channelid1', name: 'channel1', type: 'O', team_id: 'current_team_id'});
 
                 const testStore = await mockStore(newState);
-                await testStore.dispatch(focusPost('replypostid1', '#', initialState.entities.users.currentUserId, {skipRedirectReplyPermalink: true}));
+                await testStore.dispatch(focusPost(postId, '#', initialState.entities.users.currentUserId, {skipRedirectReplyPermalink: true}));
 
-                expect(getPostThread).toHaveBeenCalledWith('replypostid1');
+                expect(getPostThread).toHaveBeenCalledWith(postId);
 
                 expect(testStore.getActions()).toEqual([
                     {
                         type: 'MOCK_GET_POST_THREAD',
                         data: {
                             posts: {
-                                replypostid1: {id: 'replypostid1', message: 'some message', channel_id: 'channelid1', root_id: 'postid1'},
+                                replypostid1: {id: postId, message: 'some message', channel_id: 'channelid1', root_id: 'postid1'},
                                 postid1: {id: 'postid1', message: 'some message', channel_id: 'channelid1'},
 
                             },
-                            order: ['postid1', 'replypostid1'],
+                            order: ['postid1', postId],
                         },
                     },
                     {
                         type: 'MOCK_GET_POST_THREAD',
                         data: {
                             posts: {
-                                replypostid1: {id: 'replypostid1', message: 'some message', channel_id: 'channelid1', root_id: 'postid1'},
+                                replypostid1: {id: postId, message: 'some message', channel_id: 'channelid1', root_id: 'postid1'},
                                 postid1: {id: 'postid1', message: 'some message', channel_id: 'channelid1'},
 
                             },
-                            order: ['postid1', 'replypostid1'],
+                            order: ['postid1', postId],
                         },
                     },
-                    {type: 'MOCK_SELECT_POST_AND_HIGHLIGHT', args: [{id: 'replypostid1', message: 'some message', channel_id: 'channelid1', root_id: 'postid1'}]},
+                    {type: 'MOCK_SELECT_POST_AND_HIGHLIGHT', args: [{id: postId, message: 'some message', channel_id: 'channelid1', root_id: 'postid1'}]},
                     {type: 'MOCK_LOAD_CHANNELS_FOR_CURRENT_USER'},
                     {type: 'MOCK_GET_CHANNEL_STATS', args: ['channelid1']},
                 ]);

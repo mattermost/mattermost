@@ -36,6 +36,7 @@ import {hasSomeLimits} from 'utils/limits';
 import {getRemainingDaysFromFutureTimestamp} from 'utils/utils';
 
 import {
+    CloudAnnualRenewalBanner,
     creditCardExpiredBanner,
     paymentFailedBanner,
 } from './billing_subscriptions';
@@ -137,6 +138,7 @@ const BillingSubscriptions = () => {
                             product={product}
                         />
                         {shouldShowPaymentFailedBanner() && paymentFailedBanner()}
+                        {<CloudAnnualRenewalBanner/>}
                         {<ToYearlyNudgeBanner/>}
                         {<ToPaidNudgeBanner/>}
                         {showCreditCardBanner &&

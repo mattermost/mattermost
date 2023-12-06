@@ -4,7 +4,6 @@
 import type {Post} from '@mattermost/types/posts';
 
 import {
-    removeReaction,
     addMessageIntoHistory,
     moveHistoryIndexBack,
     moveHistoryIndexForward,
@@ -106,17 +105,6 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft):
     };
 }
 
-export function submitReaction(postId: string, action: string, emojiName: string): ActionFunc {
-    return (dispatch) => {
-        if (action === '+') {
-            dispatch(PostActions.addReaction(postId, emojiName));
-        } else if (action === '-') {
-            dispatch(removeReaction(postId, emojiName));
-        }
-        return {data: true};
-    };
-}
-
 export function submitCommand(channelId: string, rootId: string, draft: PostDraft): ActionFunc {
     return async (dispatch, getState) => {
         const state = getState();
@@ -170,7 +158,7 @@ export function makeOnSubmit(channelId: string, rootId: string, latestPostId: st
         const emojiMap = new EmojiMap(emojis);
 
         if (isReaction && emojiMap.has(isReaction[2])) {
-            dispatch(submitReaction(latestPostId, isReaction[1], isReaction[2]));
+            dispatch(PostActions.submitReaction(latestPostId, isReaction[1], isReaction[2]));
         } else if (message.indexOf('/') === 0 && !options.ignoreSlash) {
             try {
                 await dispatch(submitCommand(channelId, rootId, draft));

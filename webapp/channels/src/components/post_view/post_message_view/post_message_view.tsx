@@ -158,7 +158,6 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                         options={options}
                         post={post}
                         channelId={post.channel_id}
-                        mentionKeys={[]}
                         showPostEditedIndicator={this.props.showPostEditedIndicator}
                     />
                 </div>

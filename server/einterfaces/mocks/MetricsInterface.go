@@ -210,7 +210,7 @@ func (_m *MetricsInterface) IncrementUserIndexCounter() {
 }
 
 // IncrementWebSocketBroadcast provides a mock function with given fields: eventType
-func (_m *MetricsInterface) IncrementWebSocketBroadcast(eventType string) {
+func (_m *MetricsInterface) IncrementWebSocketBroadcast(eventType model.WebsocketEventType) {
 	_m.Called(eventType)
 }
 
@@ -230,7 +230,7 @@ func (_m *MetricsInterface) IncrementWebhookPost() {
 }
 
 // IncrementWebsocketEvent provides a mock function with given fields: eventType
-func (_m *MetricsInterface) IncrementWebsocketEvent(eventType string) {
+func (_m *MetricsInterface) IncrementWebsocketEvent(eventType model.WebsocketEventType) {
 	_m.Called(eventType)
 }
 

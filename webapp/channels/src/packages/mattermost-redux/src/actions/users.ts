@@ -712,19 +712,21 @@ export function revokeAllSessionsForUser(userId: string): ActionFunc {
     };
 }
 
-export function revokeSessionsForAllUsers(): ActionFunc {
+export function revokeSessionsForAllUsers(): ActionFunc<boolean, ServerError> {
     return async (dispatch, getState) => {
         try {
             await Client4.revokeSessionsForAllUsers();
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return {error: error as ServerError};
         }
+
         dispatch({
             type: UserTypes.REVOKE_SESSIONS_FOR_ALL_USERS_SUCCESS,
             data: null,
         });
+
         return {data: true};
     };
 }

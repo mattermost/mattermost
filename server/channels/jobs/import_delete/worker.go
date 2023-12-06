@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
@@ -32,6 +33,8 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, s store.Store) *jobs.Si
 	}
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
 		defer jobServer.HandleJobPanic(logger, job)
+
+		rctx := request.EmptyContext(logger)
 
 		importPath := *app.Config().ImportSettings.Directory
 		retentionTime := time.Duration(*app.Config().ImportSettings.RetentionDays) * 24 * time.Hour
@@ -76,7 +79,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, s store.Store) *jobs.Si
 						multipleErrors.Append(storeErr)
 						continue
 					} else if storeErr == nil {
-						if storeErr = s.FileInfo().PermanentDelete(info.Id); storeErr != nil {
+						if storeErr = s.FileInfo().PermanentDelete(rctx, info.Id); storeErr != nil {
 							logger.Debug("Worker: Failed to delete FileInfo",
 								mlog.Err(storeErr), mlog.String("file_id", info.Id))
 							multipleErrors.Append(storeErr)

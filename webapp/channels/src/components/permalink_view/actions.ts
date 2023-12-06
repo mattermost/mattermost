@@ -7,7 +7,8 @@ import type {Post} from '@mattermost/types/posts';
 import {getChannel, getChannelMember, selectChannel, joinChannel, getChannelStats} from 'mattermost-redux/actions/channels';
 import {getPostThread} from 'mattermost-redux/actions/posts';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
-import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {Client4} from 'mattermost-redux/client';
+import {getCurrentChannel, getChannel as getChannelFromRedux} from 'mattermost-redux/selectors/entities/channels';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
@@ -88,25 +89,48 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
         if (privateChannelJoinPromptVisible) {
             return {data: false};
         }
-        const {data} = await dispatch(getPostThread(postId));
 
-        if (!data) {
+        let postInfo;
+        try {
+            postInfo = await Client4.getPostInfo(postId);
+        } catch (e) {
             getHistory().replace(`/error?type=${ErrorPageTypes.PERMALINK_NOT_FOUND}&returnTo=${returnTo}`);
             return {data: false};
         }
 
-        if (data.first_inaccessible_post_time) {
+        const state = getState();
+        const currentTeam = getCurrentTeam(state);
+
+        if (!postInfo.has_joined_channel) {
+            // Prompt system admin before joining the private channel
+            const user = getCurrentUser(state);
+            if (postInfo.channel_type === Constants.PRIVATE_CHANNEL && isSystemAdmin(user.roles)) {
+                privateChannelJoinPromptVisible = true;
+                const joinPromptResult = await dispatch(joinPrivateChannelPrompt(currentTeam, postInfo.channel_display_name));
+                privateChannelJoinPromptVisible = false;
+                if ('data' in joinPromptResult && !joinPromptResult.data.join) {
+                    return {data: false};
+                }
+            }
+            await dispatch(joinChannel(currentUserId, '', postInfo.channel_id));
+        }
+
+        const {data: threadData} = await dispatch(getPostThread(postId));
+
+        if (!threadData) {
+            getHistory().replace(`/error?type=${ErrorPageTypes.PERMALINK_NOT_FOUND}&returnTo=${returnTo}`);
+            return {data: false};
+        }
+
+        if (threadData.first_inaccessible_post_time) {
             getHistory().replace(`/error?type=${ErrorPageTypes.CLOUD_ARCHIVED}&returnTo=${returnTo}`);
             return {data: false};
         }
 
-        const state = getState();
         const isCollapsed = isCollapsedThreadsEnabled(state);
 
-        const channelId = data.posts[data.order[0]].channel_id;
-        let channel = state.entities.channels.channels[channelId];
-        const currentTeam = getCurrentTeam(state);
-        const teamId = currentTeam.id;
+        const channelId = threadData.posts[threadData.order[0]].channel_id;
+        let channel = getChannelFromRedux(state, channelId);
 
         if (!channel) {
             const {data: channelData} = await dispatch(getChannel(channelId));
@@ -119,6 +143,7 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
             channel = channelData;
         }
 
+        const teamId = channel.team_id || currentTeam.id;
         let myMember = state.entities.channels.myMembers[channelId];
 
         if (!myMember) {
@@ -134,17 +159,8 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
             }
 
             if (!myMember) {
-                // Prompt system admin before joining the private channel
-                const user = getCurrentUser(state);
-                if (channel.type === Constants.PRIVATE_CHANNEL && isSystemAdmin(user.roles)) {
-                    privateChannelJoinPromptVisible = true;
-                    const joinPromptResult = await dispatch(joinPrivateChannelPrompt(currentTeam, channel));
-                    privateChannelJoinPromptVisible = false;
-                    if ('data' in joinPromptResult && !joinPromptResult.data.join) {
-                        return {data: false};
-                    }
-                }
-                await dispatch(joinChannel(currentUserId, '', channelId, channel.name));
+                getHistory().replace(`/error?type=${ErrorPageTypes.PERMALINK_NOT_FOUND}&returnTo=${returnTo}`);
+                return {data: false};
             }
         }
 
@@ -161,7 +177,7 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
             dispatch(loadNewGMIfNeeded(channel.id));
         }
 
-        const post = data.posts[postId];
+        const post = threadData.posts[postId];
 
         if (isCollapsed && isComment(post)) {
             const {data} = await dispatch(focusReplyPost(post, channel, teamId, returnTo, option));
