@@ -15,19 +15,15 @@ jest.mock('react-redux', () => ({
     useDispatch: () => jest.fn(),
 }));
 
-class TestModal extends React.PureComponent {
-    render() {
-        return (
-            <Modal
-                show={true}
-                onHide={jest.fn()}
-            >
-                <Modal.Header closeButton={true}/>
-                <Modal.Body/>
-            </Modal>
-        );
-    }
-}
+const TestModal = () => (
+    <Modal
+        show={true}
+        onHide={jest.fn()}
+    >
+        <Modal.Header closeButton={true}/>
+        <Modal.Body/>
+    </Modal>
+);
 
 describe('components/ToggleModalButton', () => {
     test('component should match snapshot', () => {
