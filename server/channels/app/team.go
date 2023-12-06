@@ -484,7 +484,7 @@ func (a *App) UpdateTeamMemberRoles(c request.CTX, teamID string, userID string,
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
-	member, nErr = a.Srv().Store().Team().UpdateMember(member)
+	member, nErr = a.Srv().Store().Team().UpdateMember(c, member)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
@@ -523,7 +523,7 @@ func (a *App) UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID s
 		member.ExplicitRoles = RemoveRoles([]string{model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId}, member.ExplicitRoles)
 	}
 
-	member, nErr := a.Srv().Store().Team().UpdateMember(member)
+	member, nErr := a.Srv().Store().Team().UpdateMember(c, member)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
@@ -699,13 +699,13 @@ func (a *App) AddUserToTeamByToken(c request.CTX, userID string, tokenID string)
 		for _, channel := range channels {
 			_, err := a.AddUserToChannel(c, user, channel, false)
 			if err != nil {
-				mlog.Warn("Error adding user to channel", mlog.Err(err))
+				c.Logger().Warn("Error adding user to channel", mlog.Err(err))
 			}
 		}
 	}
 
 	if err := a.DeleteToken(token); err != nil {
-		mlog.Warn("Error while deleting token", mlog.Err(err))
+		c.Logger().Warn("Error while deleting token", mlog.Err(err))
 	}
 
 	return team, teamMember, nil
@@ -794,7 +794,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 		ExcludeTeam: false,
 	}
 	if _, err := a.createInitialSidebarCategories(c, user.Id, opts); err != nil {
-		mlog.Warn(
+		c.Logger().Warn(
 			"Encountered an issue creating default sidebar categories.",
 			mlog.String("user_id", user.Id),
 			mlog.String("team_id", team.Id),
@@ -807,7 +807,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 	if !user.IsGuest() {
 		// Soft error if there is an issue joining the default channels
 		if err := a.JoinDefaultChannels(c, team.Id, user, shouldBeAdmin, userRequestorId); err != nil {
-			mlog.Warn(
+			c.Logger().Warn(
 				"Encountered an issue joining default channels.",
 				mlog.String("user_id", user.Id),
 				mlog.String("team_id", team.Id),
@@ -1259,7 +1259,7 @@ func (a *App) LeaveTeam(c request.CTX, team *model.Team, user *model.User, reque
 	for _, channel := range channelList {
 		if !channel.IsGroupOrDirect() {
 			a.invalidateCacheForChannelMembers(channel.Id)
-			if nErr = a.Srv().Store().Channel().RemoveMember(channel.Id, user.Id); nErr != nil {
+			if nErr = a.Srv().Store().Channel().RemoveMember(c, channel.Id, user.Id); nErr != nil {
 				return model.NewAppError("LeaveTeam", "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
@@ -1288,7 +1288,7 @@ func (a *App) LeaveTeam(c request.CTX, team *model.Team, user *model.User, reque
 		}
 	}
 
-	if err := a.ch.srv.teamService.RemoveTeamMember(teamMember); err != nil {
+	if err := a.ch.srv.teamService.RemoveTeamMember(c, teamMember); err != nil {
 		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

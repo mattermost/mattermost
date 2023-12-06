@@ -5,6 +5,7 @@ package searchlayer
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	store "github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -14,33 +15,36 @@ type SearchTeamStore struct {
 }
 
 func (s SearchTeamStore) SaveMember(teamMember *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
+	// TODO: Use the actuall request context from the App layer
+	// https://mattermost.atlassian.net/browse/MM-55736
+	rctx := request.EmptyContext(s.rootStore.Logger())
 	member, err := s.TeamStore.SaveMember(teamMember, maxUsersPerTeam)
 	if err == nil {
-		s.rootStore.indexUserFromID(member.UserId)
+		s.rootStore.indexUserFromID(rctx, member.UserId)
 	}
 	return member, err
 }
 
-func (s SearchTeamStore) UpdateMember(teamMember *model.TeamMember) (*model.TeamMember, error) {
-	member, err := s.TeamStore.UpdateMember(teamMember)
+func (s SearchTeamStore) UpdateMember(rctx request.CTX, teamMember *model.TeamMember) (*model.TeamMember, error) {
+	member, err := s.TeamStore.UpdateMember(rctx, teamMember)
 	if err == nil {
-		s.rootStore.indexUserFromID(member.UserId)
+		s.rootStore.indexUserFromID(rctx, member.UserId)
 	}
 	return member, err
 }
 
-func (s SearchTeamStore) RemoveMember(teamId string, userId string) error {
-	err := s.TeamStore.RemoveMember(teamId, userId)
+func (s SearchTeamStore) RemoveMember(rctx request.CTX, teamId string, userId string) error {
+	err := s.TeamStore.RemoveMember(rctx, teamId, userId)
 	if err == nil {
-		s.rootStore.indexUserFromID(userId)
+		s.rootStore.indexUserFromID(rctx, userId)
 	}
 	return err
 }
 
-func (s SearchTeamStore) RemoveAllMembersByUser(userId string) error {
-	err := s.TeamStore.RemoveAllMembersByUser(userId)
+func (s SearchTeamStore) RemoveAllMembersByUser(rctx request.CTX, userId string) error {
+	err := s.TeamStore.RemoveAllMembersByUser(rctx, userId)
 	if err == nil {
-		s.rootStore.indexUserFromID(userId)
+		s.rootStore.indexUserFromID(rctx, userId)
 	}
 	return err
 }
