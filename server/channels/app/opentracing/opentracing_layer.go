@@ -1669,7 +1669,7 @@ func (a *OpenTracingAppLayer) CompareAndSetPluginKey(pluginID string, key string
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CompileReportChunks(format string, filenames []string) (string, error) {
+func (a *OpenTracingAppLayer) CompileReportChunks(format string, prefix string, numberOfChunks int) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CompileReportChunks")
 
@@ -1681,7 +1681,7 @@ func (a *OpenTracingAppLayer) CompileReportChunks(format string, filenames []str
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CompileReportChunks(format, filenames)
+	resultVar0, resultVar1 := a.app.CompileReportChunks(format, prefix, numberOfChunks)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -14826,7 +14826,7 @@ func (a *OpenTracingAppLayer) SaveReactionForPost(c request.CTX, reaction *model
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SaveReportChunk(format string, filename string, reportData []interface{}) error {
+func (a *OpenTracingAppLayer) SaveReportChunk(format string, prefix string, count int, reportData []interface{}) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveReportChunk")
 
@@ -14838,7 +14838,7 @@ func (a *OpenTracingAppLayer) SaveReportChunk(format string, filename string, re
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SaveReportChunk(format, filename, reportData)
+	resultVar0 := a.app.SaveReportChunk(format, prefix, count, reportData)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -15691,7 +15691,7 @@ func (a *OpenTracingAppLayer) SendPersistentNotifications() error {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendReportToUser(userID string, filename string) error {
+func (a *OpenTracingAppLayer) SendReportToUser(userID string, filename string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendReportToUser")
 

@@ -4,7 +4,6 @@
 package jobs
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -17,9 +16,9 @@ import (
 )
 
 type BatchReportWorkerAppIFace interface {
-	SaveReportChunk(format string, filename string, reportData []interface{}) error
-	CompileReportChunks(format string, filenames []string) (string, error)
-	SendReportToUser(userID string, filename string) error
+	SaveReportChunk(format string, prefix string, count int, reportData []interface{}) *model.AppError
+	CompileReportChunks(format string, prefix string, numberOfChunks int) (string, *model.AppError)
+	SendReportToUser(userID string, filename string) *model.AppError
 }
 
 type BatchReportWorker struct {
@@ -91,10 +90,6 @@ func (worker *BatchReportWorker) doBatch(rctx *request.Context, job *model.Job) 
 	return false
 }
 
-func makeFilename(jobId string, fileCounter int) string {
-	return fmt.Sprintf("%s__%d", jobId, fileCounter)
-}
-
 func getFileCount(jobData model.StringMap) (int, error) {
 	if jobData["file_count"] != "" {
 		parsedFileCount, parseErr := strconv.Atoi(jobData["file_count"])
@@ -114,7 +109,7 @@ func (worker *BatchReportWorker) saveData(job *model.Job, reportData []interface
 		return err
 	}
 
-	err = worker.app.SaveReportChunk(worker.reportFormat, makeFilename(job.Id, fileCount), reportData)
+	err = worker.app.SaveReportChunk(worker.reportFormat, job.Id, fileCount, reportData)
 	if err != nil {
 		return err
 	}
@@ -135,12 +130,7 @@ func (worker *BatchReportWorker) complete(job *model.Job) error {
 		return err
 	}
 
-	filenames := []string{}
-	for i := 0; i < fileCount; i++ {
-		filenames = append(filenames, makeFilename(job.Id, i))
-	}
-
-	compiledFilename, err := worker.app.CompileReportChunks(worker.reportFormat, filenames)
+	compiledFilename, err := worker.app.CompileReportChunks(worker.reportFormat, job.Id, fileCount)
 	if err != nil {
 		return err
 	}
