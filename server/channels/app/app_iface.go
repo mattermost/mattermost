@@ -451,7 +451,7 @@ type AppIface interface {
 	CheckIntegrity() <-chan model.IntegrityCheckResult
 	CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError
 	CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, password string, mfaToken string) *model.AppError
-	CheckPostReminders()
+	CheckPostReminders(rctx request.CTX)
 	CheckRolesExist(roleNames []string) *model.AppError
 	CheckUserAllAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError
 	CheckUserMfa(rctx request.CTX, user *model.User, token string) *model.AppError

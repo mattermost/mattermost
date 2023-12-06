@@ -2425,7 +2425,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	t.Run("should return false in the case user is a bot", func(t *testing.T) {
 		user := th.CreateUser()
 
-		th.App.ConvertUserToBot(user)
+		th.App.ConvertUserToBot(th.Context, user)
 
 		channelMemberNotifcationProps := model.StringMap{
 			model.EmailNotifyProp:      model.ChannelNotifyDefault,

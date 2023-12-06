@@ -2163,8 +2163,8 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 	return nil
 }
 
-func (a *App) CheckPostReminders() {
-	systemBot, appErr := a.GetSystemBot()
+func (a *App) CheckPostReminders(rctx request.CTX) {
+	systemBot, appErr := a.GetSystemBot(rctx)
 	if appErr != nil {
 		mlog.Error("Failed to get system bot", mlog.Err(appErr))
 		return

@@ -1279,7 +1279,7 @@ func (a *OpenTracingAppLayer) CheckPasswordAndAllCriteria(rctx request.CTX, user
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CheckPostReminders() {
+func (a *OpenTracingAppLayer) CheckPostReminders(rctx request.CTX) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckPostReminders")
 
@@ -1291,7 +1291,7 @@ func (a *OpenTracingAppLayer) CheckPostReminders() {
 	}()
 
 	defer span.Finish()
-	a.app.CheckPostReminders()
+	a.app.CheckPostReminders(rctx)
 }
 
 func (a *OpenTracingAppLayer) CheckProviderAttributes(c request.CTX, user *model.User, patch *model.UserPatch) string {

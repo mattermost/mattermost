@@ -481,9 +481,9 @@ func (th *TestHelper) InitBasic() *TestHelper {
 }
 
 func (th *TestHelper) DeleteBots() *TestHelper {
-	preexistingBots, _ := th.App.GetBots(&model.BotGetOptions{Page: 0, PerPage: 100})
+	preexistingBots, _ := th.App.GetBots(th.Context, &model.BotGetOptions{Page: 0, PerPage: 100})
 	for _, bot := range preexistingBots {
-		th.App.PermanentDeleteBot(bot.UserId)
+		th.App.PermanentDeleteBot(th.Context, bot.UserId)
 	}
 	return th
 }

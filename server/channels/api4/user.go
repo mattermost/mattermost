@@ -2963,7 +2963,7 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bot, appErr := c.App.ConvertUserToBot(user)
+	bot, appErr := c.App.ConvertUserToBot(c.AppContext, user)
 	if appErr != nil {
 		c.Err = appErr
 		return
