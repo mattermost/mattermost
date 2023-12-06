@@ -154,7 +154,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
 
     const loadCustomEmojisForRecentStatuses = () => {
         const emojisToLoad = new Set<string>();
-        recentCustomStatuses.forEach((customStatus: UserCustomStatus) => emojisToLoad.add(customStatus.emoji));
+        recentCustomStatuses.forEach((customStatus) => emojisToLoad.add(customStatus.emoji));
         dispatch(loadCustomEmojisIfNeeded(Array.from(emojisToLoad)));
     };
 
@@ -427,6 +427,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                             type='button'
                             onClick={toggleEmojiPicker}
                             ref={emojiButtonRef}
+                            aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                             className={classNames('emoji-picker__container', 'StatusModal__emoji-button', {
                                 'StatusModal__emoji-button--active': showEmojiPicker,
                             })}
