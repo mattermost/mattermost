@@ -28,11 +28,12 @@ type Migrator struct {
 	store  *SqlStore
 }
 
-func NewMigrator(settings model.SqlSettings, dryRun bool) (*Migrator, error) {
+func NewMigrator(settings model.SqlSettings, logger mlog.LoggerIFace, dryRun bool) (*Migrator, error) {
 	ss := &SqlStore{
 		rrCounter:   0,
 		srCounter:   0,
 		settings:    &settings,
+		logger:      logger,
 		quitMonitor: make(chan struct{}),
 		wgMonitor:   &sync.WaitGroup{},
 	}
@@ -127,7 +128,7 @@ func (ss *SqlStore) initMorph(dryRun bool) (*morph.Morph, error) {
 		if err != nil {
 			return nil, err
 		}
-		db, err2 := SetupConnection("master", dataSource, ss.settings, DBPingAttempts)
+		db, err2 := SetupConnection(ss.Logger(), "master", dataSource, ss.settings, DBPingAttempts)
 		if err2 != nil {
 			return nil, err2
 		}
