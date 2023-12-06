@@ -212,8 +212,8 @@ func TestGetAllChannelsBookmarks(t *testing.T) {
 		HasPreviewImage: true,
 	}
 
-	th.App.Srv().Store().FileInfo().Save(file)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(file.Id)
+	th.App.Srv().Store().FileInfo().Save(th.Context, file)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
 
 	bookmark2 := &model.ChannelBookmark{
 		ChannelId:   th.BasicChannel.Id,
@@ -313,8 +313,8 @@ func TestGetChannelBookmarks(t *testing.T) {
 		HasPreviewImage: true,
 	}
 
-	th.App.Srv().Store().FileInfo().Save(file)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(file.Id)
+	th.App.Srv().Store().FileInfo().Save(th.Context, file)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
 
 	bookmark2 := &model.ChannelBookmark{
 		ChannelId:   th.BasicChannel.Id,
@@ -393,9 +393,9 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 		Emoji:       ":smile:",
 	}
 
-	_, err := th.App.Srv().Store().FileInfo().Save(file)
+	_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
 	require.NoError(t, err)
-	defer th.App.Srv().Store().FileInfo().PermanentDelete(file.Id)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
 
 	bookmark2 := &model.ChannelBookmark{
 		ChannelId:   channelId,
