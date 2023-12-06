@@ -3,7 +3,7 @@
 
 import {removePost} from 'mattermost-redux/actions/posts';
 import type {ExtendedPost} from 'mattermost-redux/actions/posts';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {removeDraft} from 'actions/views/drafts';
 import {closeRightHandSide} from 'actions/views/rhs';
@@ -18,14 +18,16 @@ import type {GlobalState} from 'types/store';
  * This action is called when the deleted post which is shown as 'deleted' in the RHS is then removed from the channel manually.
  * @param post Deleted post
  */
-export function removePostCloseRHSDeleteDraft(post: ExtendedPost) {
-    return (dispatch: DispatchFunc, getState: () => GlobalState) => {
-        if (isThreadOpen(getState(), post.id)) {
+export function removePostCloseRHSDeleteDraft(post: ExtendedPost): ActionFunc {
+    return (dispatch, getState) => {
+        const state = getState() as GlobalState;
+
+        if (isThreadOpen(state, post.id)) {
             dispatch(closeRightHandSide());
         }
 
         const draftKey = `${StoragePrefixes.COMMENT_DRAFT}${post.id}`;
-        if (getGlobalItem(getState(), draftKey, null)) {
+        if (getGlobalItem(state, draftKey, null)) {
             dispatch(removeDraft(draftKey, post.channel_id, post.id));
         }
 
