@@ -70,9 +70,9 @@ func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 		Emoji:       ":smile:",
 	}
 
-	_, err := ss.FileInfo().Save(file)
+	_, err := ss.FileInfo().Save(rctx, file)
 	require.NoError(t, err)
-	defer ss.FileInfo().PermanentDelete(file.Id)
+	defer ss.FileInfo().PermanentDelete(rctx, file.Id)
 
 	t.Run("save bookmarks", func(t *testing.T) {
 		bookmarkResp, err := ss.ChannelBookmark().Save(bookmark1.Clone(), true)
@@ -181,9 +181,9 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store
 		Emoji:       ":smile:",
 	}
 
-	_, err := ss.FileInfo().Save(file)
+	_, err := ss.FileInfo().Save(rctx, file)
 	require.NoError(t, err)
-	defer ss.FileInfo().PermanentDelete(file.Id)
+	defer ss.FileInfo().PermanentDelete(rctx, file.Id)
 
 	bookmark2 := &model.ChannelBookmark{
 		ChannelId:   channelId,
@@ -363,9 +363,9 @@ func testDeleteChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 		Emoji:       ":smile:",
 	}
 
-	_, err := ss.FileInfo().Save(file)
+	_, err := ss.FileInfo().Save(rctx, file)
 	require.NoError(t, err)
-	defer ss.FileInfo().PermanentDelete(file.Id)
+	defer ss.FileInfo().PermanentDelete(rctx, file.Id)
 
 	t.Run("delete bookmark", func(t *testing.T) {
 		now := model.GetMillis()
@@ -470,9 +470,9 @@ func testGetBookmarksForAllChannelByIdSince(t *testing.T, rctx request.CTX, ss s
 		Emoji:       ":smile:",
 	}
 
-	_, err := ss.FileInfo().Save(file)
+	_, err := ss.FileInfo().Save(rctx, file)
 	require.NoError(t, err)
-	defer ss.FileInfo().PermanentDelete(file.Id)
+	defer ss.FileInfo().PermanentDelete(rctx, file.Id)
 
 	bookmark3 := &model.ChannelBookmark{
 		ChannelId:   channel2Id,
