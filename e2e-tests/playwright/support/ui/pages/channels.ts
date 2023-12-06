@@ -18,6 +18,7 @@ export default class ChannelsPage {
 
     readonly findChannelsModal;
     readonly deletePostModal;
+    readonly settingsModal;
 
     readonly postDotMenu;
     readonly postReminderMenu;
@@ -37,6 +38,7 @@ export default class ChannelsPage {
         // Modals
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
+        this.settingsModal = new components.SettingsModal(page.getByRole('dialog', {name: 'Settings'}));
 
         // Menus
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));

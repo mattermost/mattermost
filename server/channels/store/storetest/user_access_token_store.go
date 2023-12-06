@@ -13,15 +13,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestUserAccessTokenStore(t *testing.T, ss store.Store) {
-	t.Run("UserAccessTokenSaveGetDelete", func(t *testing.T) { testUserAccessTokenSaveGetDelete(t, ss) })
-	t.Run("UserAccessTokenDisableEnable", func(t *testing.T) { testUserAccessTokenDisableEnable(t, ss) })
-	t.Run("UserAccessTokenSearch", func(t *testing.T) { testUserAccessTokenSearch(t, ss) })
+func TestUserAccessTokenStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("UserAccessTokenSaveGetDelete", func(t *testing.T) { testUserAccessTokenSaveGetDelete(t, rctx, ss) })
+	t.Run("UserAccessTokenDisableEnable", func(t *testing.T) { testUserAccessTokenDisableEnable(t, rctx, ss) })
+	t.Run("UserAccessTokenSearch", func(t *testing.T) { testUserAccessTokenSearch(t, rctx, ss) })
 }
 
-func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testUserAccessTokenSaveGetDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	uat := &model.UserAccessToken{
 		Token:       model.NewId(),
 		UserId:      model.NewId(),
@@ -32,7 +30,7 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	s1.UserId = uat.UserId
 	s1.Token = uat.Token
 
-	s1, err := ss.Session().Save(c, s1)
+	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
 	_, nErr := ss.UserAccessToken().Save(uat)
@@ -60,7 +58,7 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	nErr = ss.UserAccessToken().Delete(uat.Id)
 	require.NoError(t, nErr)
 
-	_, err = ss.Session().Get(c, s1.Token)
+	_, err = ss.Session().Get(rctx, s1.Token)
 	require.Error(t, err, "should error - session should be deleted")
 
 	_, nErr = ss.UserAccessToken().GetByToken(s1.Token)
@@ -70,7 +68,7 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	s2.UserId = uat.UserId
 	s2.Token = uat.Token
 
-	s2, err = ss.Session().Save(c, s2)
+	s2, err = ss.Session().Save(rctx, s2)
 	require.NoError(t, err)
 
 	_, nErr = ss.UserAccessToken().Save(uat)
@@ -79,16 +77,14 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	nErr = ss.UserAccessToken().DeleteAllForUser(uat.UserId)
 	require.NoError(t, nErr)
 
-	_, err = ss.Session().Get(c, s2.Token)
+	_, err = ss.Session().Get(rctx, s2.Token)
 	require.Error(t, err, "should error - session should be deleted")
 
 	_, nErr = ss.UserAccessToken().GetByToken(s2.Token)
 	require.Error(t, nErr, "should error - access token should be deleted")
 }
 
-func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testUserAccessTokenDisableEnable(t *testing.T, rctx request.CTX, ss store.Store) {
 	uat := &model.UserAccessToken{
 		Token:       model.NewId(),
 		UserId:      model.NewId(),
@@ -99,7 +95,7 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 	s1.UserId = uat.UserId
 	s1.Token = uat.Token
 
-	s1, err := ss.Session().Save(c, s1)
+	s1, err := ss.Session().Save(rctx, s1)
 	require.NoError(t, err)
 
 	_, nErr := ss.UserAccessToken().Save(uat)
@@ -108,23 +104,21 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 	nErr = ss.UserAccessToken().UpdateTokenDisable(uat.Id)
 	require.NoError(t, nErr)
 
-	_, err = ss.Session().Get(c, s1.Token)
+	_, err = ss.Session().Get(rctx, s1.Token)
 	require.Error(t, err, "should error - session should be deleted")
 
 	s2 := &model.Session{}
 	s2.UserId = uat.UserId
 	s2.Token = uat.Token
 
-	_, err = ss.Session().Save(c, s2)
+	_, err = ss.Session().Save(rctx, s2)
 	require.NoError(t, err)
 
 	nErr = ss.UserAccessToken().UpdateTokenEnable(uat.Id)
 	require.NoError(t, nErr)
 }
 
-func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testUserAccessTokenSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := model.User{}
 	u1.Email = MakeEmail()
 	u1.Username = model.NewId()
@@ -142,7 +136,7 @@ func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 	s1.UserId = uat.UserId
 	s1.Token = uat.Token
 
-	_, nErr := ss.Session().Save(c, s1)
+	_, nErr := ss.Session().Save(rctx, s1)
 	require.NoError(t, nErr)
 
 	_, nErr = ss.UserAccessToken().Save(uat)

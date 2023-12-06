@@ -18,7 +18,6 @@ exports[`components/TextBox should match snapshot with additional, optional prop
           "hideUtilities": true,
         }
       }
-      mentionKeys={Array []}
       message="some test text"
     />
   </div>
@@ -171,7 +170,6 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
           "hideUtilities": true,
         }
       }
-      mentionKeys={Array []}
       message="some test text"
     />
   </div>
@@ -319,7 +317,6 @@ exports[`components/TextBox should throw error when new property is too long 1`]
           "hideUtilities": true,
         }
       }
-      mentionKeys={Array []}
       message="some test text that exceeds char limit"
     />
   </div>
@@ -467,7 +464,6 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
           "hideUtilities": true,
         }
       }
-      mentionKeys={Array []}
       message="some test text that exceeds char limit"
     />
   </div>

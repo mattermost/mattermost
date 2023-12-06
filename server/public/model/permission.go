@@ -267,6 +267,9 @@ var PermissionSysconsoleWriteSitePublicLinks *Permission
 var PermissionSysconsoleReadSiteNotices *Permission
 var PermissionSysconsoleWriteSiteNotices *Permission
 
+var PermissionSysconsoleReadIPFilters *Permission
+var PermissionSysconsoleWriteIPFilters *Permission
+
 var PermissionSysconsoleReadAuthentication *Permission
 var PermissionSysconsoleWriteAuthentication *Permission
 
@@ -1646,6 +1649,20 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PermissionSysconsoleReadIPFilters = &Permission{
+		"sysconsole_read_site_ip_filters",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PermissionSysconsoleWriteIPFilters = &Permission{
+		"sysconsole_write_site_ip_filters",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
 	// Deprecated
 	PermissionSysconsoleReadAuthentication = &Permission{
 		"sysconsole_read_authentication",
@@ -2160,6 +2177,7 @@ func initializePermissions() {
 		PermissionSysconsoleReadExperimentalFeatureFlags,
 		PermissionSysconsoleReadExperimentalBleve,
 		PermissionSysconsoleReadProductsBoards,
+		PermissionSysconsoleReadIPFilters,
 	}
 
 	SysconsoleWritePermissions = []*Permission{
@@ -2218,6 +2236,7 @@ func initializePermissions() {
 		PermissionSysconsoleWriteExperimentalFeatureFlags,
 		PermissionSysconsoleWriteExperimentalBleve,
 		PermissionSysconsoleWriteProductsBoards,
+		PermissionSysconsoleWriteIPFilters,
 	}
 
 	SystemScopedPermissionsMinusSysconsole := []*Permission{
