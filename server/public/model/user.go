@@ -1039,19 +1039,48 @@ type UserReport struct {
 	UserPostStats
 }
 
-type UserReportOptions struct {
+type UserReportOptionsWithoutDateRange struct {
 	SortColumn          string
 	SortDesc            bool
 	PageSize            int
 	LastSortColumnValue string
 	LastUserId          string
-	StartAt             int64
-	EndAt               int64
 	Role                string
 	Team                string
 	HasNoTeam           bool
 	HideActive          bool
 	HideInactive        bool
+}
+
+type UserReportOptions struct {
+	UserReportOptionsWithoutDateRange
+	StartAt int64
+	EndAt   int64
+}
+
+type UserReportOptionsAPI struct {
+	UserReportOptionsWithoutDateRange
+	DateRange string
+}
+
+func (u *UserReportOptionsAPI) ToBaseOptions(now time.Time) *UserReportOptions {
+	startAt := int64(0)
+	endAt := int64(0)
+	if u.DateRange == ReportDurationLast30Days {
+		startAt = now.AddDate(0, 0, -30).UnixMilli()
+	} else if u.DateRange == ReportDurationPreviousMonth {
+		startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.Local)
+		startAt = startOfMonth.AddDate(0, -1, 0).UnixMilli()
+		endAt = startOfMonth.UnixMilli()
+	} else if u.DateRange == ReportDurationLast6Months {
+		startAt = now.AddDate(0, -6, -0).UnixMilli()
+	}
+
+	return &UserReportOptions{
+		UserReportOptionsWithoutDateRange: u.UserReportOptionsWithoutDateRange,
+		StartAt:                           startAt,
+		EndAt:                             endAt,
+	}
 }
 
 func (u *UserReportQuery) ToReport() *UserReport {

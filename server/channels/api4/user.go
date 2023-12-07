@@ -3468,20 +3468,6 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	startAt := int64(0)
-	endAt := int64(0)
-	currentTime := time.Now()
-	dateRangeStr := r.URL.Query().Get("date_range")
-	if dateRangeStr == model.ReportDurationLast30Days {
-		startAt = currentTime.AddDate(0, 0, -30).UnixMilli()
-	} else if dateRangeStr == model.ReportDurationPreviousMonth {
-		startOfMonth := time.Date(currentTime.Year(), currentTime.Month(), 1, 0, 0, 0, 0, time.Local)
-		startAt = startOfMonth.AddDate(0, -1, 0).UnixMilli()
-		endAt = startOfMonth.UnixMilli()
-	} else if dateRangeStr == model.ReportDurationLast6Months {
-		startAt = currentTime.AddDate(0, -6, -0).UnixMilli()
-	}
-
 	hideActive := r.URL.Query().Get("hide_active") == "true"
 	hideInactive := r.URL.Query().Get("hide_inactive") == "true"
 	if hideActive && hideInactive {
@@ -3489,20 +3475,23 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userReports, err := c.App.GetUsersForReporting(&model.UserReportOptions{
-		SortColumn:          sortColumn,
-		SortDesc:            r.URL.Query().Get("sort_direction") == "desc",
-		PageSize:            pageSize,
-		Team:                teamFilter,
-		StartAt:             startAt,
-		EndAt:               endAt,
-		LastSortColumnValue: r.URL.Query().Get("last_column_value"),
-		LastUserId:          r.URL.Query().Get("last_id"),
-		Role:                r.URL.Query().Get("role_filter"),
-		HasNoTeam:           r.URL.Query().Get("has_no_team") == "true",
-		HideActive:          hideActive,
-		HideInactive:        hideInactive,
-	})
+	options := &model.UserReportOptionsAPI{
+		UserReportOptionsWithoutDateRange: model.UserReportOptionsWithoutDateRange{
+			SortColumn:          sortColumn,
+			SortDesc:            r.URL.Query().Get("sort_direction") == "desc",
+			PageSize:            pageSize,
+			Team:                teamFilter,
+			LastSortColumnValue: r.URL.Query().Get("last_column_value"),
+			LastUserId:          r.URL.Query().Get("last_id"),
+			Role:                r.URL.Query().Get("role_filter"),
+			HasNoTeam:           r.URL.Query().Get("has_no_team") == "true",
+			HideActive:          hideActive,
+			HideInactive:        hideInactive,
+		},
+		DateRange: r.URL.Query().Get("date_range"),
+	}
+
+	userReports, err := c.App.GetUsersForReporting(options.ToBaseOptions(time.Now()))
 	if err != nil {
 		c.Err = err
 		return

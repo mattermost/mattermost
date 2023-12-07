@@ -1494,6 +1494,295 @@ func (z *UserReportOptions) DecodeMsg(dc *msgp.Reader) (err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
+		case "UserReportOptionsWithoutDateRange":
+			err = z.UserReportOptionsWithoutDateRange.DecodeMsg(dc)
+			if err != nil {
+				err = msgp.WrapError(err, "UserReportOptionsWithoutDateRange")
+				return
+			}
+		case "StartAt":
+			z.StartAt, err = dc.ReadInt64()
+			if err != nil {
+				err = msgp.WrapError(err, "StartAt")
+				return
+			}
+		case "EndAt":
+			z.EndAt, err = dc.ReadInt64()
+			if err != nil {
+				err = msgp.WrapError(err, "EndAt")
+				return
+			}
+		default:
+			err = dc.Skip()
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z *UserReportOptions) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 3
+	// write "UserReportOptionsWithoutDateRange"
+	err = en.Append(0x83, 0xd9, 0x21, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x57, 0x69, 0x74, 0x68, 0x6f, 0x75, 0x74, 0x44, 0x61, 0x74, 0x65, 0x52, 0x61, 0x6e, 0x67, 0x65)
+	if err != nil {
+		return
+	}
+	err = z.UserReportOptionsWithoutDateRange.EncodeMsg(en)
+	if err != nil {
+		err = msgp.WrapError(err, "UserReportOptionsWithoutDateRange")
+		return
+	}
+	// write "StartAt"
+	err = en.Append(0xa7, 0x53, 0x74, 0x61, 0x72, 0x74, 0x41, 0x74)
+	if err != nil {
+		return
+	}
+	err = en.WriteInt64(z.StartAt)
+	if err != nil {
+		err = msgp.WrapError(err, "StartAt")
+		return
+	}
+	// write "EndAt"
+	err = en.Append(0xa5, 0x45, 0x6e, 0x64, 0x41, 0x74)
+	if err != nil {
+		return
+	}
+	err = en.WriteInt64(z.EndAt)
+	if err != nil {
+		err = msgp.WrapError(err, "EndAt")
+		return
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z *UserReportOptions) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	// map header, size 3
+	// string "UserReportOptionsWithoutDateRange"
+	o = append(o, 0x83, 0xd9, 0x21, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x57, 0x69, 0x74, 0x68, 0x6f, 0x75, 0x74, 0x44, 0x61, 0x74, 0x65, 0x52, 0x61, 0x6e, 0x67, 0x65)
+	o, err = z.UserReportOptionsWithoutDateRange.MarshalMsg(o)
+	if err != nil {
+		err = msgp.WrapError(err, "UserReportOptionsWithoutDateRange")
+		return
+	}
+	// string "StartAt"
+	o = append(o, 0xa7, 0x53, 0x74, 0x61, 0x72, 0x74, 0x41, 0x74)
+	o = msgp.AppendInt64(o, z.StartAt)
+	// string "EndAt"
+	o = append(o, 0xa5, 0x45, 0x6e, 0x64, 0x41, 0x74)
+	o = msgp.AppendInt64(o, z.EndAt)
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *UserReportOptions) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, bts, err = msgp.ReadMapKeyZC(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "UserReportOptionsWithoutDateRange":
+			bts, err = z.UserReportOptionsWithoutDateRange.UnmarshalMsg(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "UserReportOptionsWithoutDateRange")
+				return
+			}
+		case "StartAt":
+			z.StartAt, bts, err = msgp.ReadInt64Bytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "StartAt")
+				return
+			}
+		case "EndAt":
+			z.EndAt, bts, err = msgp.ReadInt64Bytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "EndAt")
+				return
+			}
+		default:
+			bts, err = msgp.Skip(bts)
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z *UserReportOptions) Msgsize() (s int) {
+	s = 1 + 35 + z.UserReportOptionsWithoutDateRange.Msgsize() + 8 + msgp.Int64Size + 6 + msgp.Int64Size
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
+func (z *UserReportOptionsAPI) DecodeMsg(dc *msgp.Reader) (err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, err = dc.ReadMapKeyPtr()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "UserReportOptionsWithoutDateRange":
+			err = z.UserReportOptionsWithoutDateRange.DecodeMsg(dc)
+			if err != nil {
+				err = msgp.WrapError(err, "UserReportOptionsWithoutDateRange")
+				return
+			}
+		case "DateRange":
+			z.DateRange, err = dc.ReadString()
+			if err != nil {
+				err = msgp.WrapError(err, "DateRange")
+				return
+			}
+		default:
+			err = dc.Skip()
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z *UserReportOptionsAPI) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 2
+	// write "UserReportOptionsWithoutDateRange"
+	err = en.Append(0x82, 0xd9, 0x21, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x57, 0x69, 0x74, 0x68, 0x6f, 0x75, 0x74, 0x44, 0x61, 0x74, 0x65, 0x52, 0x61, 0x6e, 0x67, 0x65)
+	if err != nil {
+		return
+	}
+	err = z.UserReportOptionsWithoutDateRange.EncodeMsg(en)
+	if err != nil {
+		err = msgp.WrapError(err, "UserReportOptionsWithoutDateRange")
+		return
+	}
+	// write "DateRange"
+	err = en.Append(0xa9, 0x44, 0x61, 0x74, 0x65, 0x52, 0x61, 0x6e, 0x67, 0x65)
+	if err != nil {
+		return
+	}
+	err = en.WriteString(z.DateRange)
+	if err != nil {
+		err = msgp.WrapError(err, "DateRange")
+		return
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z *UserReportOptionsAPI) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	// map header, size 2
+	// string "UserReportOptionsWithoutDateRange"
+	o = append(o, 0x82, 0xd9, 0x21, 0x55, 0x73, 0x65, 0x72, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x57, 0x69, 0x74, 0x68, 0x6f, 0x75, 0x74, 0x44, 0x61, 0x74, 0x65, 0x52, 0x61, 0x6e, 0x67, 0x65)
+	o, err = z.UserReportOptionsWithoutDateRange.MarshalMsg(o)
+	if err != nil {
+		err = msgp.WrapError(err, "UserReportOptionsWithoutDateRange")
+		return
+	}
+	// string "DateRange"
+	o = append(o, 0xa9, 0x44, 0x61, 0x74, 0x65, 0x52, 0x61, 0x6e, 0x67, 0x65)
+	o = msgp.AppendString(o, z.DateRange)
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *UserReportOptionsAPI) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, bts, err = msgp.ReadMapKeyZC(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "UserReportOptionsWithoutDateRange":
+			bts, err = z.UserReportOptionsWithoutDateRange.UnmarshalMsg(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "UserReportOptionsWithoutDateRange")
+				return
+			}
+		case "DateRange":
+			z.DateRange, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				err = msgp.WrapError(err, "DateRange")
+				return
+			}
+		default:
+			bts, err = msgp.Skip(bts)
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z *UserReportOptionsAPI) Msgsize() (s int) {
+	s = 1 + 35 + z.UserReportOptionsWithoutDateRange.Msgsize() + 10 + msgp.StringPrefixSize + len(z.DateRange)
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
+func (z *UserReportOptionsWithoutDateRange) DecodeMsg(dc *msgp.Reader) (err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, err = dc.ReadMapKeyPtr()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
 		case "SortColumn":
 			z.SortColumn, err = dc.ReadString()
 			if err != nil {
@@ -1522,18 +1811,6 @@ func (z *UserReportOptions) DecodeMsg(dc *msgp.Reader) (err error) {
 			z.LastUserId, err = dc.ReadString()
 			if err != nil {
 				err = msgp.WrapError(err, "LastUserId")
-				return
-			}
-		case "StartAt":
-			z.StartAt, err = dc.ReadInt64()
-			if err != nil {
-				err = msgp.WrapError(err, "StartAt")
-				return
-			}
-		case "EndAt":
-			z.EndAt, err = dc.ReadInt64()
-			if err != nil {
-				err = msgp.WrapError(err, "EndAt")
 				return
 			}
 		case "Role":
@@ -1578,10 +1855,10 @@ func (z *UserReportOptions) DecodeMsg(dc *msgp.Reader) (err error) {
 }
 
 // EncodeMsg implements msgp.Encodable
-func (z *UserReportOptions) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 12
+func (z *UserReportOptionsWithoutDateRange) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 10
 	// write "SortColumn"
-	err = en.Append(0x8c, 0xaa, 0x53, 0x6f, 0x72, 0x74, 0x43, 0x6f, 0x6c, 0x75, 0x6d, 0x6e)
+	err = en.Append(0x8a, 0xaa, 0x53, 0x6f, 0x72, 0x74, 0x43, 0x6f, 0x6c, 0x75, 0x6d, 0x6e)
 	if err != nil {
 		return
 	}
@@ -1628,26 +1905,6 @@ func (z *UserReportOptions) EncodeMsg(en *msgp.Writer) (err error) {
 	err = en.WriteString(z.LastUserId)
 	if err != nil {
 		err = msgp.WrapError(err, "LastUserId")
-		return
-	}
-	// write "StartAt"
-	err = en.Append(0xa7, 0x53, 0x74, 0x61, 0x72, 0x74, 0x41, 0x74)
-	if err != nil {
-		return
-	}
-	err = en.WriteInt64(z.StartAt)
-	if err != nil {
-		err = msgp.WrapError(err, "StartAt")
-		return
-	}
-	// write "EndAt"
-	err = en.Append(0xa5, 0x45, 0x6e, 0x64, 0x41, 0x74)
-	if err != nil {
-		return
-	}
-	err = en.WriteInt64(z.EndAt)
-	if err != nil {
-		err = msgp.WrapError(err, "EndAt")
 		return
 	}
 	// write "Role"
@@ -1704,11 +1961,11 @@ func (z *UserReportOptions) EncodeMsg(en *msgp.Writer) (err error) {
 }
 
 // MarshalMsg implements msgp.Marshaler
-func (z *UserReportOptions) MarshalMsg(b []byte) (o []byte, err error) {
+func (z *UserReportOptionsWithoutDateRange) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 12
+	// map header, size 10
 	// string "SortColumn"
-	o = append(o, 0x8c, 0xaa, 0x53, 0x6f, 0x72, 0x74, 0x43, 0x6f, 0x6c, 0x75, 0x6d, 0x6e)
+	o = append(o, 0x8a, 0xaa, 0x53, 0x6f, 0x72, 0x74, 0x43, 0x6f, 0x6c, 0x75, 0x6d, 0x6e)
 	o = msgp.AppendString(o, z.SortColumn)
 	// string "SortDesc"
 	o = append(o, 0xa8, 0x53, 0x6f, 0x72, 0x74, 0x44, 0x65, 0x73, 0x63)
@@ -1722,12 +1979,6 @@ func (z *UserReportOptions) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "LastUserId"
 	o = append(o, 0xaa, 0x4c, 0x61, 0x73, 0x74, 0x55, 0x73, 0x65, 0x72, 0x49, 0x64)
 	o = msgp.AppendString(o, z.LastUserId)
-	// string "StartAt"
-	o = append(o, 0xa7, 0x53, 0x74, 0x61, 0x72, 0x74, 0x41, 0x74)
-	o = msgp.AppendInt64(o, z.StartAt)
-	// string "EndAt"
-	o = append(o, 0xa5, 0x45, 0x6e, 0x64, 0x41, 0x74)
-	o = msgp.AppendInt64(o, z.EndAt)
 	// string "Role"
 	o = append(o, 0xa4, 0x52, 0x6f, 0x6c, 0x65)
 	o = msgp.AppendString(o, z.Role)
@@ -1747,7 +1998,7 @@ func (z *UserReportOptions) MarshalMsg(b []byte) (o []byte, err error) {
 }
 
 // UnmarshalMsg implements msgp.Unmarshaler
-func (z *UserReportOptions) UnmarshalMsg(bts []byte) (o []byte, err error) {
+func (z *UserReportOptionsWithoutDateRange) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
 	var zb0001 uint32
@@ -1794,18 +2045,6 @@ func (z *UserReportOptions) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "LastUserId")
 				return
 			}
-		case "StartAt":
-			z.StartAt, bts, err = msgp.ReadInt64Bytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "StartAt")
-				return
-			}
-		case "EndAt":
-			z.EndAt, bts, err = msgp.ReadInt64Bytes(bts)
-			if err != nil {
-				err = msgp.WrapError(err, "EndAt")
-				return
-			}
 		case "Role":
 			z.Role, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
@@ -1849,8 +2088,8 @@ func (z *UserReportOptions) UnmarshalMsg(bts []byte) (o []byte, err error) {
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z *UserReportOptions) Msgsize() (s int) {
-	s = 1 + 11 + msgp.StringPrefixSize + len(z.SortColumn) + 9 + msgp.BoolSize + 9 + msgp.IntSize + 20 + msgp.StringPrefixSize + len(z.LastSortColumnValue) + 11 + msgp.StringPrefixSize + len(z.LastUserId) + 8 + msgp.Int64Size + 6 + msgp.Int64Size + 5 + msgp.StringPrefixSize + len(z.Role) + 5 + msgp.StringPrefixSize + len(z.Team) + 10 + msgp.BoolSize + 11 + msgp.BoolSize + 13 + msgp.BoolSize
+func (z *UserReportOptionsWithoutDateRange) Msgsize() (s int) {
+	s = 1 + 11 + msgp.StringPrefixSize + len(z.SortColumn) + 9 + msgp.BoolSize + 9 + msgp.IntSize + 20 + msgp.StringPrefixSize + len(z.LastSortColumnValue) + 11 + msgp.StringPrefixSize + len(z.LastUserId) + 5 + msgp.StringPrefixSize + len(z.Role) + 5 + msgp.StringPrefixSize + len(z.Team) + 10 + msgp.BoolSize + 11 + msgp.BoolSize + 13 + msgp.BoolSize
 	return
 }
 
