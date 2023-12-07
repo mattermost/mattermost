@@ -3081,7 +3081,7 @@
   "channel_notifications.desktopNotificationNothingLabel": "Ничего",
   "channel_notifications.desktopNotificationsDesc": "Доступно в Chrome, Edge, Firefox и в приложении Mattermost для рабочего стола.",
   "channel_notifications.desktopNotificationsTitle": "Оповещения на рабочем столе",
-  "channel_notifications.ignoreMentionsDesc": "Когда включено, @channel, @here и @all не вызывают упоминания или уведомления об упоминаниях на этом канале.",
+  "channel_notifications.ignoreMentionsDesc": "Когда включено, @channel, @here и @all не вызывают упоминания или уведомления об упоминаниях на этом канале",
   "channel_notifications.ignoreMentionsTitle": "Игнорировать упоминания для @channel, @here и @all",
   "channel_notifications.levels.all": "Все",
   "channel_notifications.mobileNotificationsDesc": "Уведомления отправляются на ваше мобильное устройство, когда в Mattermost есть активность.",
