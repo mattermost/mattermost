@@ -277,7 +277,7 @@ func TestUpdatePreferencesOverload(t *testing.T) {
 		preferences1 := model.Preferences{}
 		category := model.NewId()
 		// should error if too many preferences
-		for i := 0; i <= 10; i++ {
+		for i := 0; i <= 100; i++ {
 			preferences1 = append(preferences1, model.Preference{
 				UserId:   user1.Id,
 				Category: category,
@@ -643,7 +643,7 @@ func TestDeletePreferencesOverload(t *testing.T) {
 		category := model.NewId()
 		preferences1 := model.Preferences{}
 		// should error if too many preferences
-		for i := 0; i <= 10; i++ {
+		for i := 0; i <= 100; i++ {
 			preferences1 = append(preferences1, model.Preference{
 				UserId:   user1.Id,
 				Category: category,
