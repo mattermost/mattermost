@@ -8,4 +8,5 @@ WHERE c.type IN ('O', 'P')
   AND u.id not in (SELECT userid FROM bots)
 GROUP BY c.id;
 
-CREATE INDEX IF NOT EXISTS IDX_cms_id ON channelmemberstats(id);
+create index if not exists cms_id on channelmemberstats(id);
+create index if not exists cms_user_count on channelmemberstats(usercount);
