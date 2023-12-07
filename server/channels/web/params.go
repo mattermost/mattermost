@@ -94,6 +94,10 @@ type Params struct {
 	FilterHasMember           string
 	IncludeChannelMemberCount string
 
+	//Bookmarks
+	IncludeBookmarks bool
+	BookmarksSince   int64
+
 	// Cloud
 	InvoiceId string
 }
@@ -239,6 +243,13 @@ func ParamsFromRequest(r *http.Request) *Params {
 	}
 
 	params.FilterHasMember = query.Get("filter_has_member")
+
+	params.IncludeBookmarks, _ = strconv.ParseBool(query.Get("include_bookmarks"))
+	if val, err := strconv.ParseInt(query.Get("bookmarks_since"), 10, 64); err != nil || val < 0 {
+		params.BookmarksSince = 0
+	} else {
+		params.BookmarksSince = val
+	}
 
 	return params
 }

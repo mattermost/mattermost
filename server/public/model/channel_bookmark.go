@@ -54,7 +54,12 @@ type ChannelBookmarkWithFileInfo struct {
 }
 
 type ChannelWithBookmarks struct {
-	Channel
+	*Channel
+	Bookmarks []*ChannelBookmarkWithFileInfo `json:"bookmarks,omitempty"`
+}
+
+type ChannelWithTeamDataAndBookmarks struct {
+	*ChannelWithTeamData
 	Bookmarks []*ChannelBookmarkWithFileInfo `json:"bookmarks,omitempty"`
 }
 
