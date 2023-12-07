@@ -109,6 +109,7 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else if len(preferences) == 0 || len(preferences) > maxUpdatePreferences {
 		c.SetInvalidParam("preferences")
+		return
 	}
 
 	var sanitizedPreferences model.Preferences
@@ -160,6 +161,7 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else if len(preferences) == 0 || len(preferences) > maxUpdatePreferences {
 		c.SetInvalidParam("preferences")
+		return
 	}
 
 	if err := c.App.DeletePreferences(c.Params.UserId, preferences); err != nil {

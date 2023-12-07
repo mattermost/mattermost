@@ -265,10 +265,8 @@ func TestUpdatePreferencesOverload(t *testing.T) {
 	th.LoginBasic()
 	user1 := th.BasicUser
 
-	category := model.NewId()
-	preferences1 := model.Preferences{}
-
 	t.Run("No preferences", func(t *testing.T) {
+		preferences1 := model.Preferences{}
 		// should error if no preferences
 		resp, err := client.UpdatePreferences(context.Background(), user1.Id, preferences1)
 		require.Error(t, err)
@@ -276,6 +274,8 @@ func TestUpdatePreferencesOverload(t *testing.T) {
 	})
 
 	t.Run("Too many preferences", func(t *testing.T) {
+		preferences1 := model.Preferences{}
+		category := model.NewId()
 		// should error if too many preferences
 		for i := 0; i <= 10; i++ {
 			preferences1 = append(preferences1, model.Preference{
@@ -631,10 +631,8 @@ func TestDeletePreferencesOverload(t *testing.T) {
 	th.LoginBasic()
 	user1 := th.BasicUser
 
-	category := model.NewId()
-	preferences1 := model.Preferences{}
-
 	t.Run("No preferences", func(t *testing.T) {
+		preferences1 := model.Preferences{}
 		// should error if no preferences
 		resp, err := client.DeletePreferences(context.Background(), user1.Id, preferences1)
 		require.Error(t, err)
@@ -642,6 +640,8 @@ func TestDeletePreferencesOverload(t *testing.T) {
 	})
 
 	t.Run("Too many preferences", func(t *testing.T) {
+		category := model.NewId()
+		preferences1 := model.Preferences{}
 		// should error if too many preferences
 		for i := 0; i <= 10; i++ {
 			preferences1 = append(preferences1, model.Preference{
