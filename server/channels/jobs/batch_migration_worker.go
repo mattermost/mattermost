@@ -15,7 +15,7 @@ import (
 )
 
 type BatchMigrationWorkerAppIFace interface {
-	GetClusterStatus() []*model.ClusterInfo
+	GetClusterStatus(rctx request.CTX) []*model.ClusterInfo
 }
 
 // BatchMigrationWorker processes database migration jobs in batches to help avoid table locks.
@@ -110,11 +110,11 @@ func (worker *BatchMigrationWorker) IsEnabled(_ *model.Config) bool {
 
 // checkIsClusterInSync returns true if all nodes in the cluster are running the same version,
 // logging a warning on the first mismatch found.
-func (worker *BatchMigrationWorker) checkIsClusterInSync() bool {
-	clusterStatus := worker.app.GetClusterStatus()
+func (worker *BatchMigrationWorker) checkIsClusterInSync(rctx request.CTX) bool {
+	clusterStatus := worker.app.GetClusterStatus(rctx)
 	for i := 1; i < len(clusterStatus); i++ {
 		if clusterStatus[i].SchemaVersion != clusterStatus[0].SchemaVersion {
-			worker.logger.Warn(
+			rctx.Logger().Warn(
 				"Worker: cluster not in sync",
 				mlog.String("schema_version_a", clusterStatus[0].SchemaVersion),
 				mlog.String("schema_version_b", clusterStatus[1].SchemaVersion),
@@ -172,7 +172,7 @@ func (worker *BatchMigrationWorker) DoJob(job *model.Job) {
 			// Ensure the cluster remains in sync, otherwise we restart the job to
 			// ensure a complete migration. Technically, the cluster could go out of
 			// sync briefly within a batch, but we accept that risk.
-			if !worker.checkIsClusterInSync() {
+			if !worker.checkIsClusterInSync(c) {
 				worker.logger.Warn("Worker: Resetting job")
 				worker.resetJob(logger, job)
 				return

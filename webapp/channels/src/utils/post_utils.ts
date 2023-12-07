@@ -670,7 +670,7 @@ export function getPostURL(state: GlobalState, post: Post): string {
 }
 
 export function matchUserMentionTriggersWithMessageMentions(userMentionKeys: UserMentionKey[],
-    messageMentionKeys: RegExpMatchArray): boolean {
+    messageMentionKeys: string[]): boolean {
     let isMentioned = false;
     for (const mentionKey of userMentionKeys) {
         const isPresentInMessage = messageMentionKeys.includes(mentionKey.key);
@@ -706,6 +706,31 @@ export function makeGetUniqueReactionsToPost(): (state: GlobalState, postId: Pos
             });
 
             return reactionsForPost;
+        },
+    );
+}
+
+export function makeGetUniqueEmojiNameReactionsForPost(): (state: GlobalState, postId: Post['id']) => string[] | undefined | null {
+    const getReactionsForPost = makeGetReactionsForPost();
+
+    return createSelector(
+        'makeGetUniqueEmojiReactionsForPost',
+        (state: GlobalState, postId: string) => getReactionsForPost(state, postId),
+        getEmojiMap,
+        (reactions, emojiMap) => {
+            if (!reactions) {
+                return null;
+            }
+
+            const emojiNames: string[] = [];
+
+            Object.values(reactions).forEach((reaction) => {
+                if (emojiMap.get(reaction.emoji_name) && !emojiNames.includes(reaction.emoji_name)) {
+                    emojiNames.push(reaction.emoji_name);
+                }
+            });
+
+            return emojiNames;
         },
     );
 }

@@ -118,7 +118,7 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, l
 	c.Logger().Info("Started new bulk import worker", mlog.String("bulk_import_worker_id", workerID))
 	defer func() {
 		wg.Done()
-		c.Logger().Info("Bulk import worker finished", mlog.String("bulk_import_worker_id", workerID), mlog.Uint64("processed_lines", processedLines))
+		c.Logger().Info("Bulk import worker finished", mlog.String("bulk_import_worker_id", workerID), mlog.Uint("processed_lines", processedLines))
 	}()
 
 	postLines := []imports.LineImportWorkerData{}
@@ -155,7 +155,7 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, l
 
 		processedLines++
 		if processedLines%statusUpdateAfterLines == 0 {
-			c.Logger().Info("Worker progress", mlog.String("bulk_import_worker_id", workerID), mlog.Uint64("processed_lines", processedLines))
+			c.Logger().Info("Worker progress", mlog.String("bulk_import_worker_id", workerID), mlog.Uint("processed_lines", processedLines))
 		}
 	}
 

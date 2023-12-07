@@ -861,13 +861,13 @@ func (_m *TeamStore) RemoveAllMembersByTeam(teamID string) error {
 	return r0
 }
 
-// RemoveAllMembersByUser provides a mock function with given fields: userID
-func (_m *TeamStore) RemoveAllMembersByUser(userID string) error {
-	ret := _m.Called(userID)
+// RemoveAllMembersByUser provides a mock function with given fields: ctx, userID
+func (_m *TeamStore) RemoveAllMembersByUser(ctx request.CTX, userID string) error {
+	ret := _m.Called(ctx, userID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
+		r0 = rf(ctx, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -875,13 +875,13 @@ func (_m *TeamStore) RemoveAllMembersByUser(userID string) error {
 	return r0
 }
 
-// RemoveMember provides a mock function with given fields: teamID, userID
-func (_m *TeamStore) RemoveMember(teamID string, userID string) error {
-	ret := _m.Called(teamID, userID)
+// RemoveMember provides a mock function with given fields: rctx, teamID, userID
+func (_m *TeamStore) RemoveMember(rctx request.CTX, teamID string, userID string) error {
+	ret := _m.Called(rctx, teamID, userID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(teamID, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) error); ok {
+		r0 = rf(rctx, teamID, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -889,13 +889,13 @@ func (_m *TeamStore) RemoveMember(teamID string, userID string) error {
 	return r0
 }
 
-// RemoveMembers provides a mock function with given fields: teamID, userIds
-func (_m *TeamStore) RemoveMembers(teamID string, userIds []string) error {
-	ret := _m.Called(teamID, userIds)
+// RemoveMembers provides a mock function with given fields: rctx, teamID, userIds
+func (_m *TeamStore) RemoveMembers(rctx request.CTX, teamID string, userIds []string) error {
+	ret := _m.Called(rctx, teamID, userIds)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
-		r0 = rf(teamID, userIds)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, []string) error); ok {
+		r0 = rf(rctx, teamID, userIds)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1146,25 +1146,25 @@ func (_m *TeamStore) UpdateLastTeamIconUpdate(teamID string, curTime int64) erro
 	return r0
 }
 
-// UpdateMember provides a mock function with given fields: member
-func (_m *TeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, error) {
-	ret := _m.Called(member)
+// UpdateMember provides a mock function with given fields: rctx, member
+func (_m *TeamStore) UpdateMember(rctx request.CTX, member *model.TeamMember) (*model.TeamMember, error) {
+	ret := _m.Called(rctx, member)
 
 	var r0 *model.TeamMember
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.TeamMember) (*model.TeamMember, error)); ok {
-		return rf(member)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.TeamMember) (*model.TeamMember, error)); ok {
+		return rf(rctx, member)
 	}
-	if rf, ok := ret.Get(0).(func(*model.TeamMember) *model.TeamMember); ok {
-		r0 = rf(member)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.TeamMember) *model.TeamMember); ok {
+		r0 = rf(rctx, member)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.TeamMember)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.TeamMember) error); ok {
-		r1 = rf(member)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.TeamMember) error); ok {
+		r1 = rf(rctx, member)
 	} else {
 		r1 = ret.Error(1)
 	}
