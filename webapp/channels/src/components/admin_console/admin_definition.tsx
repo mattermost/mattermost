@@ -540,7 +540,6 @@ const AdminDefinition: AdminDefinitionType = {
                 searchableStrings: [
                     ['admin.system_users.title', {siteName: ''}],
                 ],
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 schema: {
                     id: 'SystemUsers',
@@ -549,7 +548,6 @@ const AdminDefinition: AdminDefinitionType = {
             },
             system_user_detail: {
                 url: 'user_management/user/:user_id',
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 schema: {
                     id: 'SystemUserDetail',
