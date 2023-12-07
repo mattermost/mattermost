@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
-const maxUpdatePreferences = 10
+const maxUpdatePreferences = 100
 
 func (api *API) InitPreference() {
 	api.BaseRoutes.Preferences.Handle("", api.APISessionRequired(getPreferences)).Methods("GET")
