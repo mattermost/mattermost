@@ -11,7 +11,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
     onClick={[Function]}
     style={Object {}}
   >
-    <MenuGroup>
+    <Memo(MenuGroup)>
       <Connect(SystemPermissionGate)
         permissions={
           Array [
@@ -23,8 +23,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           id="menuCloudTrial"
         />
       </Connect(SystemPermissionGate)>
-    </MenuGroup>
-    <MenuGroup>
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
       <Connect(SystemPermissionGate)
         permissions={
           Array [
@@ -36,8 +36,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           id="startTrial"
         />
       </Connect(SystemPermissionGate)>
-    </MenuGroup>
-    <MenuGroup>
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
       <MenuItemAction
         icon={
           <i
@@ -62,8 +62,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         show={true}
         text="Saved messages"
       />
-    </MenuGroup>
-    <MenuGroup>
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
       <MenuItemToggleModalRedux
         dialogProps={
           Object {
@@ -112,8 +112,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         show={true}
         text="Settings"
       />
-    </MenuGroup>
-    <MenuGroup>
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
       <Connect(TeamPermissionGate)
         permissions={
           Array [
@@ -173,8 +173,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           text="Invite People"
         />
       </Connect(TeamPermissionGate)>
-    </MenuGroup>
-    <MenuGroup>
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
       <Connect(TeamPermissionGate)
         permissions={
           Array [
@@ -295,8 +295,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
           text="View Members"
         />
       </Connect(TeamPermissionGate)>
-    </MenuGroup>
-    <MenuGroup>
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
       <Connect(SystemPermissionGate)
         permissions={
           Array [
@@ -342,8 +342,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         show={false}
         text="Leave Team"
       />
-    </MenuGroup>
-    <MenuGroup>
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
       <MenuItemAction
         id="someplugin_pluginmenuitem"
         key="someplugin_pluginmenuitem"
@@ -351,16 +351,16 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         show={true}
         text="some plugin text"
       />
-    </MenuGroup>
-    <MenuGroup>
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
       <MenuItemLink
         id="integrations"
         show={false}
         text="Integrations"
         to="/somename/integrations"
       />
-    </MenuGroup>
-    <MenuGroup>
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
       <MenuItemExternalLink
         icon={
           <i
@@ -411,8 +411,8 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         show={true}
         text="About Mattermost"
       />
-    </MenuGroup>
-    <MenuGroup>
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
       <MenuItemAction
         icon={
           <i
@@ -424,7 +424,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         show={true}
         text="Log Out"
       />
-    </MenuGroup>
+    </Memo(MenuGroup)>
   </ul>
 </div>
 `;
@@ -440,7 +440,7 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
     onClick={[Function]}
     style={Object {}}
   >
-    <MenuGroup>
+    <Memo(MenuGroup)>
       <Connect(TeamPermissionGate)
         permissions={
           Array [
@@ -612,8 +612,8 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
         show={false}
         text="Leave Team"
       />
-    </MenuGroup>
-    <MenuGroup>
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
       <Connect(SystemPermissionGate)
         permissions={
           Array [
@@ -631,8 +631,15 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           to="/create_team"
         />
       </Connect(SystemPermissionGate)>
-    </MenuGroup>
-    <MenuGroup>
+      <Memo(MenuGroup)>
+        <div
+          className="MainMenu_dropdown-link"
+        >
+          <LearnAboutTeamsLink />
+        </div>
+      </Memo(MenuGroup)>
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
       <MenuItemAction
         icon={false}
         id="someplugin_pluginmenuitem"
@@ -641,7 +648,7 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
         show={true}
         text="some plugin text"
       />
-    </MenuGroup>
+    </Memo(MenuGroup)>
   </ul>
 </div>
 `;

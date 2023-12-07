@@ -49,11 +49,11 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Brak pliku w polu 'Certyfikat' w żądaniu."
+    "translation": "Brak pliku w polu 'certyfikat' w żądaniu."
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "Brak pliku w polu 'Certyfikat' w żądaniu."
+    "translation": "Brak pliku w polu 'certyfikat' w żądaniu."
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
@@ -65,7 +65,7 @@
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Błąd podczas odczytywania pliku dziennika."
+    "translation": "Błąd podczas odczytywania pliku logu."
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "Wystąpił błąd podczas budowania metadanych dostawcy usługi (Service Provider Metadata)."
+    "translation": "Wystąpił błąd podczas budowania Dostawcy Usługi Metadanych."
   },
   {
     "id": "api.admin.saml.not_available.app_error",
@@ -97,7 +97,7 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - Testowanie ustawień e-mail"
+    "translation": "Mattermost - Testowanie Ustawień E-mail"
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
@@ -117,11 +117,11 @@
   },
   {
     "id": "api.admin.upload_brand_image.storage.app_error",
-    "translation": "Nie udało się wgrać obrazu. Przechowywanie obrazów nie zostało skonfigurowane."
+    "translation": "Nie udało się załadować obrazu. Przechowywanie obrazów nie zostało skonfigurowane."
   },
   {
     "id": "api.admin.upload_brand_image.too_large.app_error",
-    "translation": "Nie udało się wgrać obrazu. Plik jest zbyt duży."
+    "translation": "Nie udało się załadować obrazu. Plik jest zbyt duży."
   },
   {
     "id": "api.channel.add_member.added",
@@ -141,11 +141,11 @@
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
-    "translation": "Ten kanał został przekonwertowany do kanału publicznego i może do niego dołączyć każdy członek zespołu."
+    "translation": "Ten kanał został przekonwertowany do Kanału Publicznego i może do niego dołączyć każdy członek zespołu."
   },
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
-    "translation": "Ten kanał został przekonwertowany do kanału prywatnego."
+    "translation": "Ten kanał został przekonwertowany do Kanału Prywatnego."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -949,7 +949,7 @@
   },
   {
     "id": "api.context.invalid_url_param.app_error",
-    "translation": "Nieprawidłowy lub brak {{.Nazwa}} parametr w adresie URL żądania."
+    "translation": "Nieprawidłowy lub brak parametru {{.Name}} w żądanym adresie URL."
   },
   {
     "id": "api.context.mfa_required.app_error",
@@ -1093,7 +1093,7 @@
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": "{{.Filename}} wymiary ({{.width}} według {{.Height}} pikseli) przekraczają limity."
+    "translation": "{{.Filename}} wymiary ({{.Width}} na {{.Height}} pikseli) przekraczają limity."
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
@@ -1745,7 +1745,7 @@
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "Wyłączyłeś swoje konto na {{.SiteURL}}."
+    "translation": "Wyłączyłeś swoje konto na {{ .SiteURL }}."
   },
   {
     "id": "api.templates.deactivate_body.title",
@@ -3937,7 +3937,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Nieprawidłowy URL zarządcy tożsamości. URL musi być prawidłowy i zaczynać się od http:// lub https://."
+    "translation": "Adres URL wystawcy dostawcy tożsamości nie może być pustym ciągiem znaków."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -4753,11 +4753,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 116+"
+    "translation": "Wersja 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 116+"
+    "translation": "Wersja 118+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5733,7 +5733,7 @@
   },
   {
     "id": "api.channel.remove_members.denied",
-    "translation": "Usunięcie członkostwa w kanale zostało odrzucone następującym użytkownikom z powodu ograniczeń grupowych: {{.UserIDs}}"
+    "translation": "Usunięcie członkostwa w kanale zostało odrzucone następującym użytkownikom z powodu ograniczeń grupowych: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.remove_member.group_constrained.app_error",
@@ -5753,23 +5753,23 @@
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
-    "translation": "twoja licencja nie obsługuje grup ldap"
+    "translation": "twoja licencja nie obsługuje grup"
   },
   {
     "id": "api.channel.add_members.user_denied",
-    "translation": "Odmowa członkostwa w kanale następującym użytkownikom z powodu ograniczeń grupowych: {{.UserIDs}}"
+    "translation": "Odmowa członkostwa w kanale następującym użytkownikom z powodu ograniczeń grupowych: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.add_members.error",
-    "translation": "Błąd podczas dodawania członka/ów kanału."
+    "translation": "Błąd w trakcie dodawania członka/ów kanału."
   },
   {
     "id": "api.channel.add_guest.added",
-    "translation": "%v został dodany do kanału przez %v."
+    "translation": "%v został dodany jako gość do kanału przez %v."
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Proszę, dodaj mnie do zespołów i kanałów, w których chcesz, żebym uczestniczył. Aby to zrobić, użyj przeglądarki lub aplikacji Mattermost."
+    "translation": "Proszę, dodaj mnie do zespołów i kanałów, w których chcesz, żebym uczestniczył. Aby to zrobić, użyj przeglądarki lub Aplikacji Mattermost."
   },
   {
     "id": "api.bot.create_disabled",
@@ -5777,27 +5777,27 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
-    "translation": "Missing content type."
+    "translation": "Brakujący typ zawartości."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
-    "translation": "Invalid content type."
+    "translation": "Nieprawidłowy typ zawartości."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-    "translation": "Invalid certificate text."
+    "translation": "Nieprawidłowy tekst certyfikatu."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "Missing Identity Provider SSO Services node in the XML."
+    "translation": "Brak węzła usług SSO dostawcy tożsamości w pliku XML."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "Missing Identity Provider Key Descriptors node in the XML."
+    "translation": "Brakujący węzeł deskryptorów klucza dostawcy tożsamości w pliku XML."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "Missing Identity Provider SSO Descriptors node in the XML."
+    "translation": "Brakujący w pliku XML węzeł deskryptorów SSO dostawcy tożsamości."
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -5805,11 +5805,11 @@
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Failure encountered while parsing the metadata information received from the Identity Provider to a certificate."
+    "translation": "Napotkano błąd podczas analizowania informacji metadanych otrzymanych od dostawcy tożsamości certyfikatu."
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Failed to obtain metadata from Identity Provider URL."
+    "translation": "Nie udało się uzyskać metadanych z adresu URL dostawcy tożsamości."
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
@@ -5829,7 +5829,7 @@
   },
   {
     "id": "api.channel.move_channel.type.invalid",
-    "translation": "Nie można przenosić czatów grupowych lub prywatnych kanałów wiadomości"
+    "translation": "Nie można przenieść bezpośrednich lub grupowych kanałów wiadomości"
   },
   {
     "id": "app.reaction.save.save.app_error",
@@ -6577,7 +6577,7 @@
   },
   {
     "id": "app.upload.upload_data.large_image.app_error",
-    "translation": "{{.Filename}} wymiary ({{.width}} według {{.Height}} pikseli) przekraczają limity."
+    "translation": "{{.Filename}} wymiary ({{.Width}} na {{.Height}} pikseli) przekraczają limity."
   },
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
@@ -6793,7 +6793,7 @@
   },
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
-    "translation": "Nie udało się zresetować pola AuthData do Email."
+    "translation": "Nie udało się zresetować pola AuthData dla Email."
   },
   {
     "id": "api.admin.add_certificate.parseform.app_error",
@@ -6917,7 +6917,7 @@
   },
   {
     "id": "api.command_share.unknown_action",
-    "translation": "Nieznana akcja `{{.Akcja}}`. Dostępne akcje: {{.Actions}}"
+    "translation": "Nieznana akcja {{.Action}}. Dostępne akcje: {{.Actions}}"
   },
   {
     "id": "api.command_share.uninvite_remote_id.help",
@@ -7049,7 +7049,7 @@
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "Bezpieczne połączenie kanału udostępnionego `{.RemoteId}}` nie istnieje dla tego kanału."
+    "translation": "Bezpieczne połączenie kanału udostępnionego `{{.RemoteId}}` nie istnieje dla tego kanału."
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
@@ -7265,7 +7265,7 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Kontakt: {{.Kontakt}}"
+    "translation": "Kontakt: {{.Contact}}"
   },
   {
     "id": "api.remote_cluster.invalid_topic.app_error",
@@ -9137,7 +9137,7 @@
   },
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
-    "translation": "Nieprawidłowa współbieżność dekodera {{.Wartość}}. Powinna być liczbą dodatnią lub -1."
+    "translation": "Nieprawidłowa współbieżność dekodera {{.Value}}. Powinna być liczbą dodatnią lub -1."
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
@@ -9165,7 +9165,7 @@
   },
   {
     "id": "app.post_reminder_dm",
-    "translation": "Cześć, oto Twoje przypomnienie o tej wiadomości od @{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+    "translation": "Cześć, oto Twoje przypomnienie o tej wiadomości od @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
     "id": "app.team.clear_cache.app_error",
@@ -9185,7 +9185,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost to platforma open source służąca do bezpiecznej komunikacji, współpracy i zgrania pracy między narzędziami i zespołami.\nMattermost zawiera trzy kluczowe narzędzia:\n\n**Kanały** - Pozostań w kontakcie ze swoim zespołem poprzez wiadomości 1:1 i wiadomości grupowe.\n**[Playbooki](/playbooki)** - tworzenie i konfigurowanie powtarzalnych procesów w celu osiągnięcia określonych i przewidywalnych wyników.\n**[Tablice](/boards)** - Zarządzaj projektami i zadaniami w strukturze tablicy Kanban, aby pomóc swojemu zespołowi w osiągnięciu kluczowych kamieni milowych.\n\n[Zobacz dokumentację i przewodniki]({{.HelpLink}})"
+    "translation": "Mattermost to platforma open source do bezpiecznej komunikacji, współpracy i orkiestracji pracy między narzędziami i zespołami.\nMattermost zawiera dwa kluczowe narzędzia:\n\n**Kanały** - Pozostań w kontakcie ze swoim zespołem poprzez wiadomości 1:1 i grupowe.\n**[Playbooki](/playbooki)** - Twórz i konfiguruj powtarzalne procesy, aby osiągnąć określone i przewidywalne wyniki.\n\n[Zobacz dokumentację i przewodniki]({{.HelpLink}})"
   },
   {
     "id": "api.templates.delinquency_30.bullet.message_history",
@@ -9945,7 +9945,7 @@
   },
   {
     "id": "api.channel.group_message.converted.to_private_channel",
-    "translation": "{{.ConvertedByUsername}} utworzył ten kanał poprzez wiadomość grupową z {{.GMMembers}}."
+    "translation": "{{.ConvertedByUsername}} utworzył ten kanał z wiadomości grupowej wraz z {{.GMMembers}}."
   },
   {
     "id": "app.thread.mark_all_as_read_by_channels.app_error",
@@ -9986,5 +9986,109 @@
   {
     "id": "model.config.is_valid.log.advanced_logging.parse",
     "translation": "Nieprawidłowy format: {{.Error}}"
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Wystąpił błąd podczas zastosowania filtrów IP"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Wystąpił błąd podczas pobierania adresu IP klienta"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} zmienił ustawienia filtrowania IP dla obszaru roboczego pod adresem URL: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Wyślij wiadomość e-mail do {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Przegląd zmian"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Wystąpił błąd podczas pobierania filtrów IP"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "Filtrowanie IP nie jest dostępne na tym serwerze"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Zmiany w filtrach IP obszaru roboczego"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "Zmiany w filtrowaniu adresów IP dla obszaru roboczego"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Skontaktuj się ze Wsparciem"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Zaloguj się do portalu klienta, aby zresetować filtrowanie adresów IP"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Masz problemy z dostępem do obszaru roboczego?"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Nie można zaktualizować znacznika czasu ostatniego logowania"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "Nieprawidłowy url tokenu oauth."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Nieprawidłowy identyfikator klienta."
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Nie udało się przeanalizować ścieżki SiteURL"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Lista odbiorców nie może być pusta."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "Niektóre adresy URL odbiorców są nieprawidłowe."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Nieprawidłowy tajny klucz klienta."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Czas utworzenia musi być prawidłowy."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "Nieprawidłowy identyfikator twórcy."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "Nieprawidłowy typ uprawnień."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "Nieprawidłowy identyfikator."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "Nieprawidłowa nazwa."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "Nieprawidłowe poświadczenia hasła."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Data aktualizacji musi być prawidłową godziną."
   }
 ]

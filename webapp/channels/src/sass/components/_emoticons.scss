@@ -544,6 +544,17 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
     &.selected,
     &:hover {
         background-color: rgba(var(--center-channel-color-rgb), 0.16);
+
+        img {
+            -moz-transform: scale(0.45);
+            zoom: 0.45;
+
+            &.emoji-category--custom {
+                -moz-transform: scale(1);
+                transform: scale(1.25);
+                zoom: 1;
+            }
+        }
     }
 
     &:active {
@@ -556,6 +567,7 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
 
     img {
         position: relative;
+        transition: transform 0.2s ease-in-out;
 
         &.emoji-category--custom {
             top: auto;
@@ -564,7 +576,6 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
             max-width: 22px;
             height: auto;
             max-height: 22px;
-            transform: scale(1);
         }
     }
 }
