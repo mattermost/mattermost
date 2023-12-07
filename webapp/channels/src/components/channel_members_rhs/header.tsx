@@ -85,7 +85,7 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
                     onClick={onClose}
                 >
                     <i
-                        className='icon icon-close icon icon'
+                        className='icon icon-close'
                         aria-label={formatMessage({
                             id: 'rhs_header.closeTooltip.icon', 
                             defaultMessage: 'Close Sidebar Icon'
