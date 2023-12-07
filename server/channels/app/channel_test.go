@@ -2537,13 +2537,13 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 		UpdateAt: time.Now().Unix(),
 		Type:     model.ChannelTypeGroup,
 	}, nil)
-	mockChannelStore.On("Update", mock.AnythingOfType("*model.Channel")).Return(&model.Channel{}, nil)
+	mockChannelStore.On("Update", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.Channel")).Return(&model.Channel{}, nil)
 	mockChannelStore.On("InvalidateChannel", "channelidchannelidchanneli")
 	mockChannelStore.On("InvalidateChannelByName", "team_id_1", "new_name").Times(1)
 	mockChannelStore.On("InvalidateChannelByName", "dm", "")
 	mockChannelStore.On("GetMember", sqlstore.WithMaster(context.Background()), "channelidchannelidchanneli", "user_id_1").Return(&model.ChannelMember{}, nil).Times(1)
 	mockChannelStore.On("GetMember", context.Background(), "channelidchannelidchanneli", "user_id_1").Return(&model.ChannelMember{}, nil).Times(2)
-	mockChannelStore.On("UpdateMember", mock.AnythingOfType("*model.ChannelMember")).Return(&model.ChannelMember{UserId: "user_id_1"}, nil)
+	mockChannelStore.On("UpdateMember", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.ChannelMember")).Return(&model.ChannelMember{UserId: "user_id_1"}, nil)
 	mockChannelStore.On("InvalidateAllChannelMembersForUser", "user_id_1").Return()
 	mockChannelStore.On("InvalidatePinnedPostCount", "channelidchannelidchanneli")
 	mockChannelStore.On("GetAllChannelMembersNotifyPropsForChannel", "channelidchannelidchanneli", true).Return(map[string]model.StringMap{}, nil)
