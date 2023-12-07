@@ -13,10 +13,10 @@ import InfoTab from './team_info_tab';
 type Props = {
     activeTab: string;
     hasChanges: boolean;
-    hasChangesError: boolean;
+    hasChangeTabError: boolean;
     closeModal: () => void;
     setHasChanges: (hasChanges: boolean) => void;
-    setHasChangesError: (hasChangesError: boolean) => void;
+    setHasChangeTabError: (hasChangesError: boolean) => void;
     team?: Team;
 };
 
@@ -25,9 +25,9 @@ const TeamSettings = ({
     closeModal,
     team,
     hasChanges,
-    hasChangesError,
+    hasChangeTabError,
     setHasChanges,
-    setHasChangesError,
+    setHasChangeTabError,
 }: Props): JSX.Element | null => {
     if (!team) {
         return null;
@@ -42,8 +42,8 @@ const TeamSettings = ({
                 team={team}
                 hasChanges={hasChanges}
                 setHasChanges={setHasChanges}
-                hasChangesError={hasChangesError}
-                setHasChangesError={setHasChangesError}
+                hasChangeTabError={hasChangeTabError}
+                setHasChangeTabError={setHasChangeTabError}
             />
         );
         break;

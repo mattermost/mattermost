@@ -12,13 +12,14 @@ import './save_changes_panel.scss';
 type Props = {
     handleSubmit: () => void;
     handleCancel: () => void;
-    errorState?: boolean;
+    tabChangeError?: boolean;
+    serverError?: boolean;
 }
-function SaveChangesPanel({handleSubmit, handleCancel, errorState = false}: Props) {
-    const panelClassName = classNames('mm-save-changes-panel', {error: errorState});
-    const messageClassName = classNames('mm-save-changes-panel__message', {error: errorState});
-    const cancelButtonClassName = classNames('mm-save-changes-panel__cancel-btn', {error: errorState});
-    const saveButtonClassName = classNames('mm-save-changes-panel__save-btn', {error: errorState});
+function SaveChangesPanel({handleSubmit, handleCancel, tabChangeError = false, serverError = false}: Props) {
+    const panelClassName = classNames('mm-save-changes-panel', {error: tabChangeError || serverError});
+    const messageClassName = classNames('mm-save-changes-panel__message', {error: tabChangeError || serverError});
+    const cancelButtonClassName = classNames('mm-save-changes-panel__cancel-btn', {error: tabChangeError || serverError});
+    const saveButtonClassName = classNames('mm-save-changes-panel__save-btn', {error: tabChangeError || serverError});
 
     return (
         <div className={panelClassName}>
@@ -27,10 +28,16 @@ function SaveChangesPanel({handleSubmit, handleCancel, errorState = false}: Prop
                     size={18}
                     color={'currentcolor'}
                 />
-                <FormattedMessage
-                    id='saveChangesPanel.message'
-                    defaultMessage='You have unsaved changes'
-                />
+                {serverError ?
+                    <FormattedMessage
+                        id='saveChangesPanel.error'
+                        defaultMessage='There was an error saving your settings'
+                    /> :
+                    <FormattedMessage
+                        id='saveChangesPanel.message'
+                        defaultMessage='You have unsaved changes'
+                    />
+                }
             </p>
             <div className='mm-save-changes-panel__btn-ctr'>
                 <button
@@ -46,10 +53,16 @@ function SaveChangesPanel({handleSubmit, handleCancel, errorState = false}: Prop
                     className={saveButtonClassName}
                     onClick={handleSubmit}
                 >
-                    <FormattedMessage
-                        id='saveChangesPanel.save'
-                        defaultMessage='Save'
-                    />
+                    {serverError ?
+                        <FormattedMessage
+                            id='saveChangesPanel.tryAgain'
+                            defaultMessage='Try again'
+                        /> :
+                        <FormattedMessage
+                            id='saveChangesPanel.save'
+                            defaultMessage='Save'
+                        />
+                    }
                 </button>
             </div>
         </div>

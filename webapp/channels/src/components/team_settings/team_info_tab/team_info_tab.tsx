@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {ChangeEvent} from 'react';
 
 import type {Team} from '@mattermost/types/teams';
@@ -24,19 +24,23 @@ const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
 type Props = PropsFromRedux & OwnProps;
 
 // todo sinan: LearnAboutTeamsLink check https://github.com/mattermost/mattermost/blob/af7bc8a4a90d8c4c17a82dc86bc898d378dec2ff/webapp/channels/src/components/team_general_tab/team_general_tab.tsx#L10
-// todo sinan: think about to put name, description and image section into different files
-// todo sinan: how to manage server errors
-// todo sinan: fix tab changes when there is haveChanges
 // todo sinan: check all css color var no -8 etc.
 const InfoTab = (props: Props) => {
     const [name, setName] = useState<Team['display_name']>(props.team?.display_name ?? '');
     const [description, setDescription] = useState<Team['description']>(props.team?.description ?? '');
-    const [serverError, setServerError] = useState<string>('');
+    const [serverError, setServerError] = useState<boolean>(false);
     const [teamIconFile, setTeamIconFile] = useState<File | undefined>();
     const [loadingIcon, setLoadingIcon] = useState<boolean>(false);
     const [submitActive, setSubmitActive] = useState<boolean>(false);
     const [imageClientError, setImageClientError] = useState<BaseSettingItemProps['error'] | undefined>();
     const [nameClientError, setNameClientError] = useState<BaseSettingItemProps['error'] | undefined>();
+
+    useEffect(() => {
+        if (!serverError) {
+            props.setHasChanges(false);
+            props.setHasChangeTabError(false);
+        }
+    }, [serverError]);
 
     const handleNameSubmit = async () => {
         // todo sinan handle case when there is no display name
@@ -57,7 +61,7 @@ const InfoTab = (props: Props) => {
         }
         const {error} = await props.actions.patchTeam({id: props.team?.id, display_name: name});
         if (error) {
-            setServerError(error.message);
+            setServerError(true);
         }
     };
 
@@ -69,7 +73,7 @@ const InfoTab = (props: Props) => {
         const data = {id: props.team?.id, description};
         const {error} = await props.actions.patchTeam(data);
         if (error) {
-            setServerError(error.message);
+            setServerError(true);
         }
     };
 
@@ -79,11 +83,10 @@ const InfoTab = (props: Props) => {
         }
         setLoadingIcon(true);
         setImageClientError(undefined);
-        setServerError('');
         const {error} = await props.actions.setTeamIcon(props.team?.id || '', teamIconFile);
         setLoadingIcon(false);
         if (error) {
-            setServerError(error.message);
+            setServerError(true);
         } else {
             setSubmitActive(false);
         }
@@ -93,31 +96,30 @@ const InfoTab = (props: Props) => {
         await handleNameSubmit();
         await handleDescriptionSubmit();
         await handleTeamIconSubmit();
-        props.setHasChanges(false);
-        props.setHasChangesError(false);
     };
 
     const handleCancel = () => {
         setName(props.team?.display_name ?? props.team?.name ?? '');
         setDescription(props.team?.description ?? '');
         setTeamIconFile(undefined);
-        props.setHasChanges(false);
         setImageClientError(undefined);
-        props.setHasChangesError(false);
+        setServerError(false);
+        props.setHasChanges(false);
+        props.setHasChangeTabError(false);
     };
 
     const handleTeamIconRemove = async () => {
         setLoadingIcon(true);
         setImageClientError(undefined);
-        setServerError('');
+        setServerError(false);
         setTeamIconFile(undefined);
         props.setHasChanges(false);
-        props.setHasChangesError(false);
+        props.setHasChangeTabError(false);
 
         const {error} = await props.actions.removeTeamIcon(props.team?.id || '');
         setLoadingIcon(false);
         if (error) {
-            setServerError(error.message);
+            setServerError(true);
         } else {
             setSubmitActive(false);
         }
@@ -176,12 +178,12 @@ const InfoTab = (props: Props) => {
                 teamName={props.team?.display_name ?? props.team?.name}
                 clientError={imageClientError}
             />
-            {/* {name !== props.team?.display_name || description !== props.team?.description || haveImageChanges ? */}
             {props.hasChanges ?
                 <SaveChangesPanel
                     handleCancel={handleCancel}
                     handleSubmit={handleSaveChanges}
-                    errorState={props.hasChangesError}
+                    tabChangeError={props.hasChangeTabError}
+                    serverError={serverError}
                 /> : undefined}
         </div>
     );

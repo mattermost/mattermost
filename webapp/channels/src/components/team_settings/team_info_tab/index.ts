@@ -23,9 +23,9 @@ import TeamInfoTab from './team_info_tab';
 export type OwnProps = {
     team?: Team & { last_team_icon_update?: number };
     hasChanges: boolean;
-    hasChangesError: boolean;
+    hasChangeTabError: boolean;
     setHasChanges: (hasChanges: boolean) => void;
-    setHasChangesError: (hasChangesError: boolean) => void;
+    setHasChangeTabError: (hasChangesError: boolean) => void;
 };
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {

@@ -737,15 +737,13 @@ export function joinTeam(inviteId: string, teamId: string): ActionFunc {
 }
 
 export function setTeamIcon(teamId: string, imageData: File): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
-        await Client4.setTeamIcon(teamId, imageData);
-        const team = await Client4.getTeam(teamId);
-        dispatch({
-            type: TeamTypes.PATCHED_TEAM,
-            data: team,
-        });
-        return {data: {status: 'OK'}};
-    };
+    return bindClientFunc({
+        clientFunc: async () => {
+            await Client4.setTeamIcon(teamId, imageData);
+            return {data: {status: 'OK'}};
+        },
+        onSuccess: TeamTypes.PATCHED_TEAM,
+    });
 }
 
 export function removeTeamIcon(teamId: string): ActionFunc {
