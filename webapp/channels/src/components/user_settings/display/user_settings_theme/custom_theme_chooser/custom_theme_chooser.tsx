@@ -44,7 +44,7 @@ const messages: Record<string, MessageDescriptor> = defineMessages({
         id: 'user.settings.custom_theme.sidebarUnreadText',
         defaultMessage: 'Sidebar Unread Text',
     },
-    sidebarTextHoverBg: {
+    sidebarTextHoverBg: { 
         id: 'user.settings.custom_theme.sidebarTextHoverBg',
         defaultMessage: 'Sidebar Text Hover BG',
     },
@@ -121,7 +121,6 @@ const messages: Record<string, MessageDescriptor> = defineMessages({
 type Props = {
     theme: Theme;
     updateTheme: (theme: Theme) => void;
-    formatMessage: any;
 };
 
 type State = {
@@ -288,7 +287,7 @@ class CustomThemeChooser extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {formatMessage, theme} = this.props;
+        const {intl, theme} = this.props;
         const sidebarElements: JSX.Element[] = [];
         const centerChannelElements: JSX.Element[] = [];
         const linkAndButtonElements: JSX.Element[] = [];
@@ -469,11 +468,11 @@ class CustomThemeChooser extends React.PureComponent<Props, State> {
                         <div className='header__icon'>
                             <i
                                 className='fa fa-plus'
-                                title={formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
+                                title={intl.formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
                             />
                             <i
                                 className='fa fa-minus'
-                                title={formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
+                                title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
                             />
                         </div>
                     </div>
@@ -498,11 +497,11 @@ class CustomThemeChooser extends React.PureComponent<Props, State> {
                         <div className='header__icon'>
                             <i
                                 className='fa fa-plus'
-                                title={formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
+                                title={intl.formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
                             />
                             <i
                                 className='fa fa-minus'
-                                title={formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
+                                title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
                             />
                         </div>
                     </div>
@@ -528,11 +527,11 @@ class CustomThemeChooser extends React.PureComponent<Props, State> {
                         <div className='header__icon'>
                             <i
                                 className='fa fa-plus'
-                                title={formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
+                                title={intl.formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
                             />
                             <i
                                 className='fa fa-minus'
-                                title={formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
+                                title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
                             />
                         </div>
                     </div>
