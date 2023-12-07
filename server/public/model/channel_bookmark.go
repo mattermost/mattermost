@@ -12,6 +12,7 @@ type ChannelBookmarkType string
 const (
 	ChannelBookmarkLink ChannelBookmarkType = "link"
 	ChannelBookmarkFile ChannelBookmarkType = "file"
+	BookmarkFileOwner                       = "bookmark"
 )
 
 type ChannelBookmark struct {

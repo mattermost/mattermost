@@ -152,7 +152,7 @@ func TestGetAllChannelsBookmarks(t *testing.T) {
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
-		CreatorId:       th.BasicUser.Id,
+		CreatorId:       model.BookmarkFileOwner,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
 		PreviewPath:     "prevPath",
@@ -253,7 +253,7 @@ func TestGetChannelBookmarks(t *testing.T) {
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
-		CreatorId:       th.BasicUser.Id,
+		CreatorId:       model.BookmarkFileOwner,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
 		PreviewPath:     "prevPath",
@@ -325,7 +325,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
-		CreatorId:       th.BasicUser.Id,
+		CreatorId:       model.BookmarkFileOwner,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
 		PreviewPath:     "prevPath",
