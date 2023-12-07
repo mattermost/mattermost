@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
@@ -94,6 +95,18 @@ func (a *App) UpdatePreferences(c request.CTX, userID string, preferences model.
 	}
 	message.Add("preferences", string(prefsJSON))
 	a.Publish(message)
+
+	pluginContext := pluginContext(c)
+	a.Srv().Go(func() {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			prefPointers := make([]*model.Preference, len(preferences))
+			for i := range preferences {
+				prefPointers[i] = &preferences[i]
+			}
+			hooks.PreferencesHaveChanged(pluginContext, prefPointers)
+			return true
+		}, plugin.PreferencesHaveChangedID)
+	})
 
 	return nil
 }

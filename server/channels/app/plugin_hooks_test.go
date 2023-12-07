@@ -1294,6 +1294,10 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 	err := th.App.DeleteReactionForPost(th.Context, reaction)
 
 	require.Nil(t, err)
+
+	time.Sleep(1 * time.Second)
+
+	mockAPI.AssertCalled(t, "LogDebug", "star")
 }
 
 func TestHookRunDataRetention(t *testing.T) {
@@ -1630,5 +1634,76 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 		post, err := th.App.GetSinglePost(newPost.Id, true)
 		require.Nil(t, err)
 		assert.Equal(t, "mwbc_plugin:message", post.Message)
+	})
+}
+
+func TestHookPreferencesHaveChanged(t *testing.T) {
+	t.Run("should be called when preferences are changed by non-plugin code", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Setup plugin
+		var mockAPI plugintest.API
+
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) PreferencesHaveChanged(c *plugin.Context, preferences []*model.Preference) {
+				for _, preference := range preferences {
+					p.API.LogDebug(fmt.Sprintf("category=%s name=%s value=%s", preference.Category, preference.Name, preference.Value))
+				}
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		defer tearDown()
+
+		// Confirm plugin is actually running
+		require.Len(t, pluginIDs, 1)
+		pluginID := pluginIDs[0]
+
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+		// Setup test
+		preferences := model.Preferences{
+			{
+				UserId:   th.BasicUser.Id,
+				Category: "test_category",
+				Name:     "test_name_1",
+				Value:    "test_value_1",
+			},
+			{
+				UserId:   th.BasicUser.Id,
+				Category: "test_category",
+				Name:     "test_name_2",
+				Value:    "test_value_2",
+			},
+		}
+
+		mockAPI.On("LogDebug", "category=test_category name=test_name_1 value=test_value_1")
+		mockAPI.On("LogDebug", "category=test_category name=test_name_2 value=test_value_2")
+		defer mockAPI.AssertExpectations(t)
+
+		// Run test
+		err := th.App.UpdatePreferences(th.Context, th.BasicUser.Id, preferences)
+
+		require.Nil(t, err)
+
+		// Hooks are run in a goroutine, so wait for those to complete
+		time.Sleep(1 * time.Second)
+
+		mockAPI.AssertCalled(t, "LogDebug", "category=test_category name=test_name_1 value=test_value_1")
+		mockAPI.AssertCalled(t, "LogDebug", "category=test_category name=test_name_2 value=test_value_2")
 	})
 }
