@@ -274,7 +274,7 @@ NextPart:
 		}
 
 		isBookmark := false
-		if val, err := strconv.ParseBool(r.URL.Query().Get(model.BookmarkFileOwner)); err == nil {
+		if val, queryErr := strconv.ParseBool(r.URL.Query().Get(model.BookmarkFileOwner)); queryErr == nil {
 			isBookmark = val
 		}
 
