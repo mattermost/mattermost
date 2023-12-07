@@ -146,7 +146,7 @@ const languages = {
     },
     'zh-CN': {
         value: 'zh-CN',
-        name: '中文 (简体) (Alpha)',
+        name: '中文 (简体) (Beta)',
         order: 19,
         url: zhCN,
     },
