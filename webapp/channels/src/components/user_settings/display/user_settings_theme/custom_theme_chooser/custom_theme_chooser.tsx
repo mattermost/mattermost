@@ -121,6 +121,7 @@ const messages: Record<string, MessageDescriptor> = defineMessages({
 type Props = {
     theme: Theme;
     updateTheme: (theme: Theme) => void;
+    formatMessage: any;
 };
 
 type State = {
@@ -287,9 +288,7 @@ class CustomThemeChooser extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {formatMessage} = this.props;
-
-        const theme = this.props.theme;
+        const {formatMessage, theme} = this.props;
         const sidebarElements: JSX.Element[] = [];
         const centerChannelElements: JSX.Element[] = [];
         const linkAndButtonElements: JSX.Element[] = [];
