@@ -35,12 +35,21 @@ describe('CustomStatusModal', () => {
         },
     };
 
+    // The emoji picker renders emoji categories without passing a defaultMessage, and we don't pass translation strings
+    // into the provider by default, so we need to pass something for this string to silence errors from FormatJS.
+    const renderOptions = {
+        intlMessages: {
+            'emoji_picker.smileys-emotion': 'Smileys & Emotions',
+        },
+    };
+
     test('should render suggested statuses until the user starts typing', () => {
         renderWithContext(
             <CustomStatusModal
                 {...baseProps}
             />,
             initialState,
+            renderOptions,
         );
 
         expect(screen.getByText('SUGGESTIONS')).toBeInTheDocument();
@@ -60,6 +69,7 @@ describe('CustomStatusModal', () => {
                 {...baseProps}
             />,
             initialState,
+            renderOptions,
         );
 
         expect(screen.getByText('SUGGESTIONS')).toBeInTheDocument();
@@ -96,6 +106,7 @@ describe('CustomStatusModal', () => {
                 {...baseProps}
             />,
             testState,
+            renderOptions,
         );
 
         expect(screen.getByText('SUGGESTIONS')).toBeInTheDocument();
@@ -133,6 +144,7 @@ describe('CustomStatusModal', () => {
                 {...baseProps}
             />,
             testState,
+            renderOptions,
         );
 
         expect(screen.getByText('SUGGESTIONS')).toBeInTheDocument();
