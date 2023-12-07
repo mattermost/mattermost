@@ -24,7 +24,7 @@ type BatchMigrationWorkerAppIFace interface {
 // resets the migration if the cluster version diverges after starting.
 //
 // In principle, the job infrastructure is overkill for this kind of work, as there's a worker
-// created per migration. There's alsaswfvsdo complication with edge cases, like having to restart the
+// created per migration. There's also complication with edge cases, like having to restart the
 // server in order to retry a failed migration job. Refactoring the job infrastructure is left as
 // a future exercise.
 type BatchMigrationWorker struct {
