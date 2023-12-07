@@ -102,7 +102,7 @@ func (a *App) OverrideIconURLIfEmoji(c request.CTX, post *model.Post) {
 	if emojiURL, err := a.GetEmojiStaticURL(c, emojiName); err == nil {
 		post.AddProp(model.PostPropsOverrideIconURL, emojiURL)
 	} else {
-		mlog.Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
+		c.Logger().Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
 	}
 }
 
@@ -181,7 +181,7 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 		isNotFound := ok && appErr.StatusCode == http.StatusNotFound
 		// Ignore NotFound errors.
 		if !isNotFound {
-			mlog.Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+			c.Logger().Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 		}
 	} else if embed != nil {
 		post.Metadata.Embeds = append(post.Metadata.Embeds, embed)
@@ -359,8 +359,10 @@ func (a *App) getImagesForPost(c request.CTX, post *model.Post, imageURLs []stri
 		case model.PostEmbedOpengraph:
 			openGraph, ok := embed.Data.(*opengraph.OpenGraph)
 			if !ok {
-				mlog.Warn("Could not read the image data: the data could not be casted to OpenGraph",
-					mlog.String("post_id", post.Id), mlog.String("data type", fmt.Sprintf("%t", embed.Data)))
+				c.Logger().Warn("Could not read the image data: the data could not be casted to OpenGraph",
+					mlog.String("post_id", post.Id),
+					mlog.String("data type", fmt.Sprintf("%t", embed.Data)),
+				)
 				continue
 			}
 			for _, image := range openGraph.Images {
@@ -397,8 +399,11 @@ func (a *App) getImagesForPost(c request.CTX, post *model.Post, imageURLs []stri
 			isNotFound := ok && appErr.StatusCode == http.StatusNotFound
 			// Ignore NotFound errors.
 			if !isNotFound {
-				mlog.Debug("Failed to get dimensions of an image in a post",
-					mlog.String("post_id", post.Id), mlog.String("image_url", imageURL), mlog.Err(err))
+				c.Logger().Debug("Failed to get dimensions of an image in a post",
+					mlog.String("post_id", post.Id),
+					mlog.String("image_url", imageURL),
+					mlog.Err(err),
+				)
 			}
 		} else if image != nil {
 			images[imageURL] = image
@@ -684,7 +689,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 			var res *http.Response
 			res, err = client.Do(request)
 			if err != nil {
-				mlog.Warn("error fetching OG image data", mlog.Err(err))
+				c.Logger().Warn("error fetching OG image data", mlog.Err(err))
 			}
 
 			if res != nil {
