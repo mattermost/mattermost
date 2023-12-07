@@ -1,0 +1,245 @@
+@mixin textElipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@mixin beforeBorderForPinnedColumn {
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+}
+
+@mixin afterBorderForPinnedColumn {
+    &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+}
+
+table.adminConsoleListTable {
+    // This is rgba(var(--sys-center-channel-color-rgb), 0.08) but since we cannot use opacity
+    // due to sticky row which shows the background thus a defined color is used
+    $sysCenterChannelColorWith8Alpha: #f0f0f0;
+
+    overflow: auto;
+
+    thead {
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+        tr {
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 16px;
+            color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+
+            th {
+                max-width: 40rem;
+                padding-block-start: 12px;
+                padding-block-end: 12px;
+
+                &:first-child {
+                    padding-inline-start: 24px;
+                    padding-inline-end: 8px;
+                }
+
+                &:not(:first-child):not(:last-child) {
+                    padding-inline-start: 8px;
+                    padding-inline-end: 8px;
+                }
+
+                &:last-child {
+                    padding-inline-start: 8px;
+                    padding-inline-end: 24px;
+                }
+
+                &.pinned {
+                    position: sticky;
+                    z-index: 1;
+                    left: 0;
+                    right: 0;
+                    background-color: var(--sys-center-channel-bg);
+                    min-width: 20rem;
+
+                    &:first-child {
+                        left: 0;
+
+                        &::after {
+                            content: "";
+                            position: absolute;
+                            top: 0;
+                            bottom: 0;
+                            right: 0;
+                            width: 1px;
+                            background-color: rgba(
+                                var(--center-channel-color-rgb),
+                                0.08
+                            );
+                        }
+                    }
+
+                    &:last-child {
+                        right: 0;
+
+                        &::before {
+                            content: "";
+                            position: absolute;
+                            top: 0;
+                            bottom: 0;
+                            left: 0;
+                            width: 1px;
+                            background-color: rgba(
+                                var(--center-channel-color-rgb),
+                                0.08
+                            );
+                        }
+                    }
+                }
+
+                &:hover.sortable {
+                    background-color: $sysCenterChannelColorWith8Alpha;
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+
+    tbody {
+        tr {
+            font-size: 14px;
+            line-height: 20px;
+            font-weight: 400;
+            color: var(--sys-center-channel-color);
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            background-color: var(--sys-center-channel-bg);
+
+            &:hover {
+                background-color: $sysCenterChannelColorWith8Alpha;
+                cursor: pointer;
+
+                // Since the sticky element creates a new stacking context and doesnt automatically inherit the background color
+                // set the background color of the sticky element to the same as the on hover
+                td.pinned {
+                    background-color: $sysCenterChannelColorWith8Alpha;
+                }
+            }
+
+            td {
+                padding-block-start: 16px;
+                padding-block-end: 16px;
+                @include textElipsis;
+
+                &:first-child {
+                    padding-inline-start: 24px;
+                    padding-inline-end: 8px;
+                }
+
+                &:not(:first-child):not(:last-child)  {
+                    padding-inline-start: 8px;
+                    padding-inline-end: 8px;
+                }
+
+                &:last-child {
+                    padding-inline-start: 8px;
+                    padding-inline-end: 24px;
+                }
+
+                // Pinning of columns can only be done on the first and/or last column
+                &.pinned {
+                    position: sticky;
+                    z-index: 1;
+                    background-color: var(--sys-center-channel-bg);
+                    overflow: visible;
+
+                    &:first-child {
+                        left: 0;
+
+                        &::after {
+                            content: "";
+                            position: absolute;
+                            top: 0;
+                            bottom: 0;
+                            right: 0;
+                            width: 1px;
+                            background-color: rgba(
+                                var(--center-channel-color-rgb),
+                                0.08
+                            );
+                        }
+                    }
+
+                    &:last-child {
+                        right: 0;
+
+                        &::before {
+                            content: "";
+                            position: absolute;
+                            top: 0;
+                            bottom: 0;
+                            left: 0;
+                            width: 1px;
+                            background-color: rgba(
+                                var(--center-channel-color-rgb),
+                                0.08
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// System users page
+table.systemUsersTable {
+    .displayNameColumn > div {
+        $profilePictureSize: 40px;
+
+        display: grid;
+        grid-template-columns: calc($profilePictureSize + 16px) 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 0px 0px;
+        grid-auto-flow: row;
+        grid-template-areas:
+            "profilePictureContainer displayName"
+            "profilePictureContainer userName";
+
+        .profilePictureContainer {
+            grid-area: profilePictureContainer;
+            justify-self: center;
+            align-self: center;
+            width: $profilePictureSize;
+            height: $profilePictureSize;
+            > img {
+                width: 100%;
+                height: 100%;
+                border-radius: 40px;
+                object-fit: cover;
+            }
+        }
+
+        .displayName {
+            grid-area: displayName;
+            align-self: start;
+            font-weight: 600;
+            color: var(--sys-denim-button-bg);
+            @include textElipsis;
+        }
+
+        .userName {
+            grid-area: userName;
+            align-self: start;
+            @include textElipsis;
+        }
+    }
+}

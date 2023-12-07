@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import {createColumnHelper} from '@tanstack/react-table';
 
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -22,6 +23,7 @@ import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import SystemUsersDropdown from '../system_users_dropdown';
+import AdminConsoleListTable from '../admin_console_list_table';
 
 type Props = {
     users: UserProfile[];
@@ -329,7 +331,7 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
 
         return (
             <div>
-                <SearchableUserList
+                {/* <SearchableUserList
                     {...this.props}
                     renderCount={this.renderCount}
                     extraInfo={extraInfo}
@@ -349,6 +351,9 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
                     page={this.state.page}
                     rowComponentType={UserListRowWithError}
                     noBuiltInFilters={true}
+                /> */}
+                <AdminConsoleListTable
+                    tableContainerClass='systemUsersTable'
                 />
                 <ManageTeamsModal
                     user={this.state.user}
