@@ -9,6 +9,7 @@ import (
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"io"
 	"net"
 	"net/http"
@@ -523,6 +524,14 @@ func StringInterfaceFromJSON(data io.Reader) map[string]any {
 	}
 
 	return objmap
+}
+
+func StructFromJson[T any](v T, data io.Reader, maxBytes int64) {
+	reader := io.LimitedReader{R: data, N: maxBytes}
+	err := json.NewDecoder(&reader).Decode(&v)
+	if err != nil {
+		mlog.Debug("StructFromJson", mlog.Err(err))
+	}
 }
 
 // ToJSON serializes an arbitrary data type to JSON, discarding the error.
