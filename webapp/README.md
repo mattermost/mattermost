@@ -1,4 +1,4 @@
-# Mattermost Web App
+## Mattermost Web App
 
 This folder contains the client code for the Mattermost web app. It's broken up into multiple packages each of which either contains an area of the app (such as `playbooks`) or shared logic used across other packages (such as the packages located in the `platform` directory). For anyone who's used to working in [the mattermost/mattermost-webapp repo](https://github.com/mattermost/mattermost-webapp), most of that is now located in `channels`.
 
