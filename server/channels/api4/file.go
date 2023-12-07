@@ -151,8 +151,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	audit.AddEventParameter(auditRec, "client_id", clientId)
 
 	creatorId := c.AppContext.Session().UserId
-	isBookmark := r.URL.Query().Get(model.BookmarkFileOwner) != ""
-	if isBookmark {
+	if isBookmark, err := strconv.ParseBool(r.URL.Query().Get(model.BookmarkFileOwner)); err == nil && isBookmark {
 		creatorId = model.BookmarkFileOwner
 		audit.AddEventParameter(auditRec, model.BookmarkFileOwner, true)
 	}
