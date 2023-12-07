@@ -50,7 +50,7 @@ func makeJobMetadata(lastColumnValue string, userID string) model.StringMap {
 	return data
 }
 
-func getData(jobData model.StringMap, app jobs.BatchReportWorkerAppIFace) ([]interface{}, model.StringMap, bool, error) {
+func getData(jobData model.StringMap, app jobs.BatchReportWorkerAppIFace) ([]model.ReportableObject, model.StringMap, bool, error) {
 	filter, err := parseJobMetadata(jobData)
 	if err != nil {
 		return nil, nil, false, errors.Wrap(err, "failed to parse job metadata")
@@ -60,5 +60,5 @@ func getData(jobData model.StringMap, app jobs.BatchReportWorkerAppIFace) ([]int
 
 	// Actually get the data
 
-	return []interface{}{users}, makeJobMetadata("todo", "me"), false, nil
+	return []model.ReportableObject{users}, makeJobMetadata("todo", "me"), false, nil
 }

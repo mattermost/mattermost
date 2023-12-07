@@ -16,7 +16,7 @@ import (
 )
 
 type BatchReportWorkerAppIFace interface {
-	SaveReportChunk(format string, prefix string, count int, reportData []interface{}) *model.AppError
+	SaveReportChunk(format string, prefix string, count int, reportData []model.ReportableObject) *model.AppError
 	CompileReportChunks(format string, prefix string, numberOfChunks int) (string, *model.AppError)
 	SendReportToUser(userID string, filename string) *model.AppError
 }
@@ -24,7 +24,7 @@ type BatchReportWorkerAppIFace interface {
 type BatchReportWorker struct {
 	BatchWorker[BatchReportWorkerAppIFace]
 	reportFormat string
-	getData      func(jobData model.StringMap, app BatchReportWorkerAppIFace) ([]interface{}, model.StringMap, bool, error)
+	getData      func(jobData model.StringMap, app BatchReportWorkerAppIFace) ([]model.ReportableObject, model.StringMap, bool, error)
 }
 
 func MakeBatchReportWorker(
@@ -33,7 +33,7 @@ func MakeBatchReportWorker(
 	app BatchReportWorkerAppIFace,
 	timeBetweenBatches time.Duration,
 	reportFormat string,
-	getData func(jobData model.StringMap, app BatchReportWorkerAppIFace) ([]interface{}, model.StringMap, bool, error),
+	getData func(jobData model.StringMap, app BatchReportWorkerAppIFace) ([]model.ReportableObject, model.StringMap, bool, error),
 ) model.Worker {
 	worker := &BatchReportWorker{
 		reportFormat: reportFormat,
@@ -103,14 +103,14 @@ func getFileCount(jobData model.StringMap) (int, error) {
 	return 0, nil
 }
 
-func (worker *BatchReportWorker) saveData(job *model.Job, reportData []interface{}) error {
+func (worker *BatchReportWorker) saveData(job *model.Job, reportData []model.ReportableObject) error {
 	fileCount, err := getFileCount(job.Data)
 	if err != nil {
 		return err
 	}
 
-	err = worker.app.SaveReportChunk(worker.reportFormat, job.Id, fileCount, reportData)
-	if err != nil {
+	appErr := worker.app.SaveReportChunk(worker.reportFormat, job.Id, fileCount, reportData)
+	if appErr != nil {
 		return err
 	}
 
@@ -130,8 +130,8 @@ func (worker *BatchReportWorker) complete(job *model.Job) error {
 		return err
 	}
 
-	compiledFilename, err := worker.app.CompileReportChunks(worker.reportFormat, job.Id, fileCount)
-	if err != nil {
+	compiledFilename, appErr := worker.app.CompileReportChunks(worker.reportFormat, job.Id, fileCount)
+	if appErr != nil {
 		return err
 	}
 

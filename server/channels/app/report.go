@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func (a *App) SaveReportChunk(format string, prefix string, count int, reportData []interface{}) *model.AppError {
+func (a *App) SaveReportChunk(format string, prefix string, count int, reportData []model.ReportableObject) *model.AppError {
 	switch format {
 	case "csv":
 		return a.saveCSVChunk(prefix, count, reportData)
@@ -20,17 +20,22 @@ func (a *App) SaveReportChunk(format string, prefix string, count int, reportDat
 	return model.NewAppError("SaveReportChunk", "", nil, "unsupported report format", http.StatusInternalServerError)
 }
 
-func (a *App) saveCSVChunk(prefix string, count int, reportData []interface{}) *model.AppError {
+func (a *App) saveCSVChunk(prefix string, count int, reportData []model.ReportableObject) *model.AppError {
 	var buf bytes.Buffer
 	w := csv.NewWriter(&buf)
 
-	// TODO: Fill this array with report data
-	records := [][]string{}
-
-	err := w.WriteAll(records)
+	err := w.Write(reportData[0].GetHeaders())
 	if err != nil {
 		return model.NewAppError("saveCSVChunk", "", nil, "failed to write report data to CSV", http.StatusInternalServerError)
 	}
+
+	for _, report := range reportData {
+		err := w.Write(report.ToReport())
+		if err != nil {
+			return model.NewAppError("saveCSVChunk", "", nil, "failed to write report data to CSV", http.StatusInternalServerError)
+		}
+	}
+
 	_, appErr := a.WriteFile(&buf, makeFilename(prefix, count))
 	if appErr != nil {
 		return appErr
