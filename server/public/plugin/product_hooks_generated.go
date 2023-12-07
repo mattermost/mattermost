@@ -139,6 +139,10 @@ type ServeMetricsIFace interface {
 	ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
+type PreferencesHaveChangedIFace interface {
+	PreferencesHaveChanged(c *Context, preferences []*model.Preference)
+}
+
 type HooksAdapter struct {
 	implemented  map[int]struct{}
 	productHooks any
@@ -431,6 +435,15 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		return nil, errors.New("hook has ServeMetrics method but does not implement plugin.ServeMetrics interface")
 	}
 
+	// Assessing the type of the productHooks if it individually implements PreferencesHaveChanged interface.
+	tt = reflect.TypeOf((*PreferencesHaveChangedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[PreferencesHaveChangedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("PreferencesHaveChanged"); ok {
+		return nil, errors.New("hook has PreferencesHaveChanged method but does not implement plugin.PreferencesHaveChanged interface")
+	}
+
 	return a, nil
 }
 
@@ -710,5 +723,14 @@ func (a *HooksAdapter) ServeMetrics(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	a.productHooks.(ServeMetricsIFace).ServeMetrics(c, w, r)
+
+}
+
+func (a *HooksAdapter) PreferencesHaveChanged(c *Context, preferences []*model.Preference) {
+	if _, ok := a.implemented[PreferencesHaveChangedID]; !ok {
+		panic("product hooks must implement PreferencesHaveChanged")
+	}
+
+	a.productHooks.(PreferencesHaveChangedIFace).PreferencesHaveChanged(c, preferences)
 
 }
