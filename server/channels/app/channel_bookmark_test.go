@@ -152,7 +152,7 @@ func TestGetAllChannelsBookmarks(t *testing.T) {
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
-		CreatorId:       th.BasicUser.Id,
+		CreatorId:       model.BookmarkFileOwner,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
 		PreviewPath:     "prevPath",
@@ -253,7 +253,7 @@ func TestGetChannelBookmarks(t *testing.T) {
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
-		CreatorId:       th.BasicUser.Id,
+		CreatorId:       model.BookmarkFileOwner,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
 		PreviewPath:     "prevPath",
@@ -325,7 +325,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
-		CreatorId:       th.BasicUser.Id,
+		CreatorId:       model.BookmarkFileOwner,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
 		PreviewPath:     "prevPath",
@@ -481,5 +481,189 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	t.Run("change order of bookmarks error when bookmark not found", func(t *testing.T) {
 		_, appErr = th.App.UpdateChannelBookmarkSortOrder(model.NewId(), channelId, int64(0), "")
 		assert.Error(t, appErr)
+	})
+}
+
+func TestAddBookmarksToChannelsForSession(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channelId := th.BasicChannel.Id
+	th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
+
+	bookmark0 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		DisplayName: "Bookmark 0",
+		LinkUrl:     "https://mattermost.com",
+		Type:        model.ChannelBookmarkLink,
+		Emoji:       ":smile:",
+	}
+
+	file := &model.FileInfo{
+		Id:              model.NewId(),
+		CreatorId:       model.BookmarkFileOwner,
+		Path:            "somepath",
+		ThumbnailPath:   "thumbpath",
+		PreviewPath:     "prevPath",
+		Name:            "test file",
+		Extension:       "png",
+		MimeType:        "images/png",
+		Size:            873182,
+		Width:           3076,
+		Height:          2200,
+		HasPreviewImage: true,
+	}
+
+	bookmark1 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		DisplayName: "Bookmark 1",
+		FileId:      file.Id,
+		Type:        model.ChannelBookmarkFile,
+		Emoji:       ":smile:",
+	}
+
+	_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+	require.NoError(t, err)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+
+	bookmark2 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		DisplayName: "Bookmark 2",
+		LinkUrl:     "https://mattermost.com",
+		Type:        model.ChannelBookmarkLink,
+	}
+
+	bookmark3 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		DisplayName: "Bookmark 3",
+		LinkUrl:     "https://mattermost.com",
+		Type:        model.ChannelBookmarkLink,
+	}
+
+	bookmark4 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		DisplayName: "Bookmark 4",
+		LinkUrl:     "https://mattermost.com",
+		Type:        model.ChannelBookmarkLink,
+	}
+
+	bookmarkResp0, _ := th.App.CreateChannelBookmark(th.Context, bookmark0, "")
+	bookmarkResp1, _ := th.App.CreateChannelBookmark(th.Context, bookmark1, "")
+	bookmarkResp2, _ := th.App.CreateChannelBookmark(th.Context, bookmark2, "")
+	bookmarkResp3, _ := th.App.CreateChannelBookmark(th.Context, bookmark3, "")
+	bookmarkResp4, _ := th.App.CreateChannelBookmark(th.Context, bookmark4, "")
+
+	bookmarArray := []*model.ChannelBookmarkWithFileInfo{bookmarkResp0, bookmarkResp1, bookmarkResp2, bookmarkResp3, bookmarkResp4}
+
+	t.Run("get channels with bookmarks for session", func(t *testing.T) {
+		channelList, err := th.App.GetChannelsForTeamForUser(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.ChannelSearchOpts{})
+		assert.Nil(t, err)
+
+		channels, err := th.App.AddBookmarksToChannelsForSession(th.Context, th.Context.Session(), channelList, 0)
+		assert.Nil(t, err)
+		assert.Greater(t, len(channels), 0)
+
+		for _, c := range channels {
+			if c.Id == th.BasicChannel.Id {
+				assert.Equal(t, len(c.Bookmarks), 5)
+				for i, b := range c.Bookmarks {
+					assert.Equal(t, bookmarArray[i], b)
+				}
+			} else {
+				assert.Nil(t, c.Bookmarks)
+			}
+		}
+	})
+}
+
+func TestAddBookmarksToChannelsWithTeamForSession(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channelId := th.BasicChannel.Id
+	th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
+
+	bookmark0 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		DisplayName: "Bookmark 0",
+		LinkUrl:     "https://mattermost.com",
+		Type:        model.ChannelBookmarkLink,
+		Emoji:       ":smile:",
+	}
+
+	file := &model.FileInfo{
+		Id:              model.NewId(),
+		CreatorId:       model.BookmarkFileOwner,
+		Path:            "somepath",
+		ThumbnailPath:   "thumbpath",
+		PreviewPath:     "prevPath",
+		Name:            "test file",
+		Extension:       "png",
+		MimeType:        "images/png",
+		Size:            873182,
+		Width:           3076,
+		Height:          2200,
+		HasPreviewImage: true,
+	}
+
+	bookmark1 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		DisplayName: "Bookmark 1",
+		FileId:      file.Id,
+		Type:        model.ChannelBookmarkFile,
+		Emoji:       ":smile:",
+	}
+
+	_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+	require.NoError(t, err)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+
+	bookmark2 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		DisplayName: "Bookmark 2",
+		LinkUrl:     "https://mattermost.com",
+		Type:        model.ChannelBookmarkLink,
+	}
+
+	bookmark3 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		DisplayName: "Bookmark 3",
+		LinkUrl:     "https://mattermost.com",
+		Type:        model.ChannelBookmarkLink,
+	}
+
+	bookmark4 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		DisplayName: "Bookmark 4",
+		LinkUrl:     "https://mattermost.com",
+		Type:        model.ChannelBookmarkLink,
+	}
+
+	bookmarkResp0, _ := th.App.CreateChannelBookmark(th.Context, bookmark0, "")
+	bookmarkResp1, _ := th.App.CreateChannelBookmark(th.Context, bookmark1, "")
+	bookmarkResp2, _ := th.App.CreateChannelBookmark(th.Context, bookmark2, "")
+	bookmarkResp3, _ := th.App.CreateChannelBookmark(th.Context, bookmark3, "")
+	bookmarkResp4, _ := th.App.CreateChannelBookmark(th.Context, bookmark4, "")
+
+	bookmarArray := []*model.ChannelBookmarkWithFileInfo{bookmarkResp0, bookmarkResp1, bookmarkResp2, bookmarkResp3, bookmarkResp4}
+
+	t.Run("get channels with bookmarks for session", func(t *testing.T) {
+		channelList, err := th.App.GetAllChannels(th.Context, 0, 60, model.ChannelSearchOpts{})
+		assert.Nil(t, err)
+
+		channels, err := th.App.AddBookmarksToChannelsWithTeamForSession(th.Context, th.Context.Session(), channelList, 0)
+		assert.Nil(t, err)
+		assert.Greater(t, len(channels), 0)
+
+		for _, c := range channels {
+			if c.Id == th.BasicChannel.Id {
+				assert.Equal(t, len(c.Bookmarks), 5)
+				for i, b := range c.Bookmarks {
+					assert.Equal(t, bookmarArray[i], b)
+				}
+			} else {
+				assert.Nil(t, c.Bookmarks)
+			}
+		}
 	})
 }

@@ -48,7 +48,7 @@ func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
-		CreatorId:       userId,
+		CreatorId:       model.BookmarkFileOwner,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
 		PreviewPath:     "prevPath",
@@ -159,7 +159,7 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
-		CreatorId:       userId,
+		CreatorId:       model.BookmarkFileOwner,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
 		PreviewPath:     "prevPath",
@@ -341,7 +341,7 @@ func testDeleteChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
-		CreatorId:       userId,
+		CreatorId:       model.BookmarkFileOwner,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
 		PreviewPath:     "prevPath",
@@ -448,7 +448,7 @@ func testGetBookmarksForAllChannelByIdSince(t *testing.T, rctx request.CTX, ss s
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
-		CreatorId:       userId,
+		CreatorId:       model.BookmarkFileOwner,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
 		PreviewPath:     "prevPath",
