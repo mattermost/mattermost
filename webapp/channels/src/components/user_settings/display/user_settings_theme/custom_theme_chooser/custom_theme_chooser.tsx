@@ -44,7 +44,7 @@ const messages: Record<string, MessageDescriptor> = defineMessages({
         id: 'user.settings.custom_theme.sidebarUnreadText',
         defaultMessage: 'Sidebar Unread Text',
     },
-    sidebarTextHoverBg: { 
+    sidebarTextHoverBg: {
         id: 'user.settings.custom_theme.sidebarTextHoverBg',
         defaultMessage: 'Sidebar Text Hover BG',
     },
@@ -121,13 +121,13 @@ const messages: Record<string, MessageDescriptor> = defineMessages({
 type Props = {
     theme: Theme;
     updateTheme: (theme: Theme) => void;
+    intl: IntlShape;
 };
 
 type State = {
     copyTheme: string;
 };
 
-class CustomThemeChooser extends React.PureComponent<Props, State> {
     textareaRef: RefObject<HTMLTextAreaElement>;
     sidebarStylesHeaderRef: RefObject<HTMLDivElement>;
     centerChannelStylesHeaderRef: RefObject<HTMLDivElement>;
