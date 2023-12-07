@@ -613,12 +613,10 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = boomarkErr
 			return
 		}
-		if channelsWithBookmarks != nil && len(channelsWithBookmarks) != 0 {
-			if err := json.NewEncoder(w).Encode(channelsWithBookmarks[0]); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
-			return
+		if err := json.NewEncoder(w).Encode(channelsWithBookmarks[0]); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
+		return
 	}
 
 	if err := json.NewEncoder(w).Encode(channel); err != nil {
@@ -816,12 +814,10 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = bookmarkErr
 			return
 		}
-		if channelsWithBookmarks != nil {
-			if err := json.NewEncoder(w).Encode(channelsWithBookmarks); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
-			return
+		if err := json.NewEncoder(w).Encode(channelsWithBookmarks); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
+		return
 	}
 
 	if err := json.NewEncoder(w).Encode(channels); err != nil {
@@ -858,12 +854,10 @@ func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request
 			c.Err = bookmarkErr
 			return
 		}
-		if channelsWithBookmarks != nil {
-			if err := json.NewEncoder(w).Encode(channelsWithBookmarks); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
-			return
+		if err := json.NewEncoder(w).Encode(channelsWithBookmarks); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
+		return
 	}
 
 	if err := json.NewEncoder(w).Encode(channels); err != nil {
@@ -900,12 +894,10 @@ func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Reques
 			c.Err = bookmarkErr
 			return
 		}
-		if channelsWithBookmarks != nil {
-			if err := json.NewEncoder(w).Encode(channelsWithBookmarks); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
-			return
+		if err := json.NewEncoder(w).Encode(channelsWithBookmarks); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
+		return
 	}
 
 	if err := json.NewEncoder(w).Encode(channels); err != nil {
@@ -942,12 +934,10 @@ func getPrivateChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Reques
 			c.Err = bookmarkErr
 			return
 		}
-		if channelsWithBookmarks != nil {
-			if err := json.NewEncoder(w).Encode(channelsWithBookmarks); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
-			return
+		if err := json.NewEncoder(w).Encode(channelsWithBookmarks); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
+		return
 	}
 
 	if err := json.NewEncoder(w).Encode(channels); err != nil {
@@ -997,12 +987,10 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 			c.Err = bookmarkErr
 			return
 		}
-		if channelsWithBookmarks != nil {
-			if err := json.NewEncoder(w).Encode(channelsWithBookmarks); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
-			return
+		if err := json.NewEncoder(w).Encode(channelsWithBookmarks); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
+		return
 	}
 
 	if err := json.NewEncoder(w).Encode(channels); err != nil {
@@ -1061,11 +1049,8 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 			c.Err = bookmarkErr
 			return
 		}
-		if channelsWithBookmarks != nil {
-			if err := json.NewEncoder(w).Encode(channelsWithBookmarks); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
-			return
+		if err := json.NewEncoder(w).Encode(channelsWithBookmarks); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 	}
 
@@ -1141,7 +1126,7 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(`,`))
 		}
 
-		if channelsWithBookmarks != nil {
+		if len(channelsWithBookmarks) > 0 {
 			for i, ch := range channelsWithBookmarks {
 				if err := enc.Encode(ch); err != nil {
 					c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -1252,12 +1237,10 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = bookmarkErr
 			return
 		}
-		if channelsWithBookmarks != nil {
-			if err := json.NewEncoder(w).Encode(channelsWithBookmarks); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
-			return
+		if err := json.NewEncoder(w).Encode(channelsWithBookmarks); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
+		return
 	}
 
 	// Don't fill in channels props, since unused by client and potentially expensive.
@@ -1480,12 +1463,10 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = bookmarkErr
 			return
 		}
-		if channelsWithBookmarks != nil {
-			if err := json.NewEncoder(w).Encode(channelsWithBookmarks[0]); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
-			return
+		if err := json.NewEncoder(w).Encode(channelsWithBookmarks[0]); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
+		return
 	}
 
 	if err := json.NewEncoder(w).Encode(channel); err != nil {
@@ -1531,12 +1512,10 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 			c.Err = bookmarkErr
 			return
 		}
-		if channelsWithBookmarks != nil {
-			if err := json.NewEncoder(w).Encode(channelsWithBookmarks[0]); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
-			return
+		if err := json.NewEncoder(w).Encode(channelsWithBookmarks[0]); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
+		return
 	}
 
 	if err := json.NewEncoder(w).Encode(channel); err != nil {
