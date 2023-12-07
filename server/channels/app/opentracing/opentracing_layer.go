@@ -3372,7 +3372,7 @@ func (a *OpenTracingAppLayer) DeletePost(c request.CTX, postID string, deleteByI
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DeletePreferences(userID string, preferences model.Preferences) *model.AppError {
+func (a *OpenTracingAppLayer) DeletePreferences(c request.CTX, userID string, preferences model.Preferences) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeletePreferences")
 
@@ -3384,7 +3384,7 @@ func (a *OpenTracingAppLayer) DeletePreferences(userID string, preferences model
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DeletePreferences(userID, preferences)
+	resultVar0 := a.app.DeletePreferences(c, userID, preferences)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -8417,7 +8417,7 @@ func (a *OpenTracingAppLayer) GetPostsUsage() (int64, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPreferenceByCategoryAndNameForUser(userID string, category string, preferenceName string) (*model.Preference, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPreferenceByCategoryAndNameForUser(c request.CTX, userID string, category string, preferenceName string) (*model.Preference, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPreferenceByCategoryAndNameForUser")
 
@@ -8429,7 +8429,7 @@ func (a *OpenTracingAppLayer) GetPreferenceByCategoryAndNameForUser(userID strin
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPreferenceByCategoryAndNameForUser(userID, category, preferenceName)
+	resultVar0, resultVar1 := a.app.GetPreferenceByCategoryAndNameForUser(c, userID, category, preferenceName)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8439,7 +8439,7 @@ func (a *OpenTracingAppLayer) GetPreferenceByCategoryAndNameForUser(userID strin
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPreferenceByCategoryForUser(userID string, category string) (model.Preferences, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPreferenceByCategoryForUser(c request.CTX, userID string, category string) (model.Preferences, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPreferenceByCategoryForUser")
 
@@ -8451,7 +8451,7 @@ func (a *OpenTracingAppLayer) GetPreferenceByCategoryForUser(userID string, cate
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPreferenceByCategoryForUser(userID, category)
+	resultVar0, resultVar1 := a.app.GetPreferenceByCategoryForUser(c, userID, category)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8461,7 +8461,7 @@ func (a *OpenTracingAppLayer) GetPreferenceByCategoryForUser(userID string, cate
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPreferencesForUser(userID string) (model.Preferences, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPreferencesForUser(c request.CTX, userID string) (model.Preferences, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPreferencesForUser")
 
@@ -8473,7 +8473,7 @@ func (a *OpenTracingAppLayer) GetPreferencesForUser(userID string) (model.Prefer
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPreferencesForUser(userID)
+	resultVar0, resultVar1 := a.app.GetPreferencesForUser(c, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13909,7 +13909,7 @@ func (a *OpenTracingAppLayer) RemoveNotifications(c request.CTX, post *model.Pos
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) RemoveRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {
+func (a *OpenTracingAppLayer) RemoveRecentCustomStatus(c request.CTX, userID string, status *model.CustomStatus) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveRecentCustomStatus")
 
@@ -13921,7 +13921,7 @@ func (a *OpenTracingAppLayer) RemoveRecentCustomStatus(userID string, status *mo
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.RemoveRecentCustomStatus(userID, status)
+	resultVar0 := a.app.RemoveRecentCustomStatus(c, userID, status)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -17668,7 +17668,7 @@ func (a *OpenTracingAppLayer) UpdatePost(c request.CTX, receivedUpdatedPost *mod
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdatePreferences(userID string, preferences model.Preferences) *model.AppError {
+func (a *OpenTracingAppLayer) UpdatePreferences(c request.CTX, userID string, preferences model.Preferences) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdatePreferences")
 
@@ -17680,7 +17680,7 @@ func (a *OpenTracingAppLayer) UpdatePreferences(userID string, preferences model
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdatePreferences(userID, preferences)
+	resultVar0 := a.app.UpdatePreferences(c, userID, preferences)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

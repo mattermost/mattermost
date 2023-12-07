@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
@@ -20,19 +21,19 @@ type preferencesServiceWrapper struct {
 	app AppIface
 }
 
-func (w *preferencesServiceWrapper) GetPreferencesForUser(userID string) (model.Preferences, *model.AppError) {
-	return w.app.GetPreferencesForUser(userID)
+func (w *preferencesServiceWrapper) GetPreferencesForUser(c request.CTX, userID string) (model.Preferences, *model.AppError) {
+	return w.app.GetPreferencesForUser(c, userID)
 }
 
-func (w *preferencesServiceWrapper) UpdatePreferencesForUser(userID string, preferences model.Preferences) *model.AppError {
-	return w.app.UpdatePreferences(userID, preferences)
+func (w *preferencesServiceWrapper) UpdatePreferencesForUser(c request.CTX, userID string, preferences model.Preferences) *model.AppError {
+	return w.app.UpdatePreferences(c, userID, preferences)
 }
 
-func (w *preferencesServiceWrapper) DeletePreferencesForUser(userID string, preferences model.Preferences) *model.AppError {
-	return w.app.DeletePreferences(userID, preferences)
+func (w *preferencesServiceWrapper) DeletePreferencesForUser(c request.CTX, userID string, preferences model.Preferences) *model.AppError {
+	return w.app.DeletePreferences(c, userID, preferences)
 }
 
-func (a *App) GetPreferencesForUser(userID string) (model.Preferences, *model.AppError) {
+func (a *App) GetPreferencesForUser(c request.CTX, userID string) (model.Preferences, *model.AppError) {
 	preferences, err := a.Srv().Store().Preference().GetAll(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetPreferencesForUser", "app.preference.get_all.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -40,7 +41,7 @@ func (a *App) GetPreferencesForUser(userID string) (model.Preferences, *model.Ap
 	return preferences, nil
 }
 
-func (a *App) GetPreferenceByCategoryForUser(userID string, category string) (model.Preferences, *model.AppError) {
+func (a *App) GetPreferenceByCategoryForUser(c request.CTX, userID string, category string) (model.Preferences, *model.AppError) {
 	preferences, err := a.Srv().Store().Preference().GetCategory(userID, category)
 	if err != nil {
 		return nil, model.NewAppError("GetPreferenceByCategoryForUser", "app.preference.get_category.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -52,7 +53,7 @@ func (a *App) GetPreferenceByCategoryForUser(userID string, category string) (mo
 	return preferences, nil
 }
 
-func (a *App) GetPreferenceByCategoryAndNameForUser(userID string, category string, preferenceName string) (*model.Preference, *model.AppError) {
+func (a *App) GetPreferenceByCategoryAndNameForUser(c request.CTX, userID string, category string, preferenceName string) (*model.Preference, *model.AppError) {
 	res, err := a.Srv().Store().Preference().Get(userID, category, preferenceName)
 	if err != nil {
 		return nil, model.NewAppError("GetPreferenceByCategoryAndNameForUser", "app.preference.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -60,7 +61,7 @@ func (a *App) GetPreferenceByCategoryAndNameForUser(userID string, category stri
 	return res, nil
 }
 
-func (a *App) UpdatePreferences(userID string, preferences model.Preferences) *model.AppError {
+func (a *App) UpdatePreferences(c request.CTX, userID string, preferences model.Preferences) *model.AppError {
 	for _, preference := range preferences {
 		if userID != preference.UserId {
 			return model.NewAppError("savePreferences", "api.preference.update_preferences.set.app_error", nil,
@@ -97,7 +98,7 @@ func (a *App) UpdatePreferences(userID string, preferences model.Preferences) *m
 	return nil
 }
 
-func (a *App) DeletePreferences(userID string, preferences model.Preferences) *model.AppError {
+func (a *App) DeletePreferences(c request.CTX, userID string, preferences model.Preferences) *model.AppError {
 	for _, preference := range preferences {
 		if userID != preference.UserId {
 			err := model.NewAppError("DeletePreferences", "api.preference.delete_preferences.delete.app_error", nil,
