@@ -72,7 +72,7 @@ const (
 )
 
 var (
-	UserReportSortColumns = []string{"CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email"}
+	UserReportSortColumns = []string{"CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email", "Roles"}
 )
 
 //msgp:tuple User
@@ -1035,6 +1035,7 @@ type UserReport struct {
 	Email       string `json:"email"`
 	CreateAt    int64  `json:"create_at,omitempty"`
 	DisplayName string `json:"display_name"`
+	Roles       string `json:"roles"`
 	UserPostStats
 }
 
@@ -1060,6 +1061,7 @@ func (u *UserReportQuery) ToReport() *UserReport {
 		Email:         u.Email,
 		CreateAt:      u.CreateAt,
 		DisplayName:   u.GetDisplayName(ShowNicknameFullName),
+		Roles:         u.Roles,
 		UserPostStats: u.UserPostStats,
 	}
 }

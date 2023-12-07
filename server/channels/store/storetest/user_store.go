@@ -6408,6 +6408,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NotNil(t, userReport)
 		require.Equal(t, 1, len(userReport))
 		require.Equal(t, u2.Id, userReport[0].Id)
+		require.Equal(t, u2.Roles, "system")
 	})
 
 	t.Run("should filter on teams", func(t *testing.T) {
