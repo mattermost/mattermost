@@ -6342,7 +6342,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		})
 		require.NoError(t, err)
-		require.NotNil(t, userReport)
+		require.Len(t, userReport, 3)
 
 		require.Equal(t, 5, *userReport[0].TotalPosts)
 		require.Equal(t, 5, *userReport[0].DaysActive)
@@ -6362,7 +6362,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			StartAt: now.AddDate(0, 0, -2).UnixMilli(),
 		})
 		require.NoError(t, err)
-		require.NotNil(t, userReport)
+		require.Len(t, userReport, 3)
 
 		require.Equal(t, 3, *userReport[0].TotalPosts)
 		require.Equal(t, 3, *userReport[0].DaysActive)
@@ -6382,7 +6382,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			EndAt: now.AddDate(0, 0, -2).UnixMilli(),
 		})
 		require.NoError(t, err)
-		require.NotNil(t, userReport)
+		require.Len(t, userReport, 3)
 
 		require.Equal(t, 2, *userReport[0].TotalPosts)
 		require.Equal(t, 2, *userReport[0].DaysActive)
@@ -6403,7 +6403,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			EndAt:   now.AddDate(0, 0, -2).UnixMilli(),
 		})
 		require.NoError(t, err)
-		require.NotNil(t, userReport)
+		require.Len(t, userReport, 3)
 
 		require.Equal(t, 1, *userReport[0].TotalPosts)
 		require.Equal(t, 1, *userReport[0].DaysActive)
@@ -6425,8 +6425,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		})
 		require.NoError(t, err)
-		require.NotNil(t, userReport)
-		require.Equal(t, 1, len(userReport))
+		require.Len(t, userReport, 1)
 		require.Equal(t, u2.Id, userReport[0].Id)
 		require.Equal(t, u2.Roles, "system")
 	})
@@ -6440,8 +6439,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		})
 		require.NoError(t, err)
-		require.NotNil(t, userReport)
-		require.Equal(t, 2, len(userReport))
+		require.Len(t, userReport, 2)
 		require.Equal(t, u1.Id, userReport[0].Id)
 		require.Equal(t, u2.Id, userReport[1].Id)
 
@@ -6453,8 +6451,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		})
 		require.NoError(t, err)
-		require.NotNil(t, userReport)
-		require.Equal(t, 1, len(userReport))
+		require.Len(t, userReport, 1)
 		require.Equal(t, u3.Id, userReport[0].Id)
 	})
 
@@ -6467,8 +6464,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		})
 		require.NoError(t, err)
-		require.NotNil(t, userReport)
-		require.Equal(t, 2, len(userReport))
+		require.Len(t, userReport, 2)
 		require.Equal(t, u1.Id, userReport[0].Id)
 		require.Equal(t, u2.Id, userReport[1].Id)
 
@@ -6480,8 +6476,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		})
 		require.NoError(t, err)
-		require.NotNil(t, userReport)
-		require.Equal(t, 1, len(userReport))
+		require.Len(t, userReport, 1)
 		require.Equal(t, u3.Id, userReport[0].Id)
 	})
 }
