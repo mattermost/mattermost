@@ -16,8 +16,13 @@ const (
 	timeBetweenBatches = 1 * time.Second
 )
 
+type ExportUsersToCSVAppIFace interface {
+	jobs.BatchReportWorkerAppIFace
+	GetUsersForReporting(filter *model.UserReportOptions) ([]*model.UserReport, *model.AppError)
+}
+
 // MakeWorker creates a batch migration worker to delete empty drafts.
-func MakeWorker(jobServer *jobs.JobServer, store store.Store, app jobs.BatchReportWorkerAppIFace) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, store store.Store, app ExportUsersToCSVAppIFace) model.Worker {
 	return jobs.MakeBatchReportWorker(
 		jobServer,
 		store,
@@ -30,14 +35,18 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, app jobs.BatchRepo
 
 // parseJobMetadata parses the opaque job metadata to return the information needed to decide which
 // batch to process next.
-func parseJobMetadata(data model.StringMap) (interface{}, error) {
-	return struct {
-		LastSortColumnValue string
-		LastUserId          string
-	}{
-		LastSortColumnValue: data["last_column_value"],
-		LastUserId:          data["last_user_id"],
-	}, nil
+func parseJobMetadata(data model.StringMap) (*model.UserReportOptions, error) {
+	options := model.UserReportOptionsAPI{
+		UserReportOptionsWithoutDateRange: model.UserReportOptionsWithoutDateRange{
+			SortColumn:          "Username",
+			PageSize:            100,
+			LastSortColumnValue: data["last_column_value"],
+			LastUserId:          data["last_user_id"],
+		},
+		DateRange: data["date_range"],
+	}
+
+	return options.ToBaseOptions(time.Now()), nil
 }
 
 // makeJobMetadata encodes the information needed to decide which batch to process next back into
@@ -50,15 +59,25 @@ func makeJobMetadata(lastColumnValue string, userID string) model.StringMap {
 	return data
 }
 
-func getData(jobData model.StringMap, app jobs.BatchReportWorkerAppIFace) ([]model.ReportableObject, model.StringMap, bool, error) {
+func getData(jobData model.StringMap, app ExportUsersToCSVAppIFace) ([]model.ReportableObject, model.StringMap, bool, error) {
 	filter, err := parseJobMetadata(jobData)
 	if err != nil {
 		return nil, nil, false, errors.Wrap(err, "failed to parse job metadata")
 	}
 
-	users := []model.User{model.User{Id: "test"}}
+	users, appErr := app.GetUsersForReporting(filter)
+	if appErr != nil {
+		return nil, nil, false, errors.Wrapf(err, "failed to get the next batch (column_value=%v, user_id=%v)", filter.LastSortColumnValue, filter.LastUserId)
+	}
 
-	// Actually get the data
+	if len(users) == 0 {
+		return nil, nil, true, nil
+	}
 
-	return []model.ReportableObject{users}, makeJobMetadata("todo", "me"), false, nil
+	reportableObjects := []model.ReportableObject{}
+	for i := 0; i < len(users); i++ {
+		reportableObjects = append(reportableObjects, users[i])
+	}
+
+	return reportableObjects, makeJobMetadata(users[len(users)-1].Username, users[len(users)-1].Id), false, nil
 }

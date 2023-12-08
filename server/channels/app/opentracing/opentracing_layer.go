@@ -14848,7 +14848,7 @@ func (a *OpenTracingAppLayer) SaveReactionForPost(c request.CTX, reaction *model
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SaveReportChunk(format string, prefix string, count int, reportData []interface{}) *model.AppError {
+func (a *OpenTracingAppLayer) SaveReportChunk(format string, prefix string, count int, reportData []model.ReportableObject) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveReportChunk")
 

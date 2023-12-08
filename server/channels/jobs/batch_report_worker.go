@@ -21,25 +21,25 @@ type BatchReportWorkerAppIFace interface {
 	SendReportToUser(userID string, filename string) *model.AppError
 }
 
-type BatchReportWorker struct {
-	BatchWorker[BatchReportWorkerAppIFace]
+type BatchReportWorker[T BatchReportWorkerAppIFace] struct {
+	BatchWorker[T]
 	reportFormat string
-	getData      func(jobData model.StringMap, app BatchReportWorkerAppIFace) ([]model.ReportableObject, model.StringMap, bool, error)
+	getData      func(jobData model.StringMap, app T) ([]model.ReportableObject, model.StringMap, bool, error)
 }
 
-func MakeBatchReportWorker(
+func MakeBatchReportWorker[T BatchReportWorkerAppIFace](
 	jobServer *JobServer,
 	store store.Store,
-	app BatchReportWorkerAppIFace,
+	app T,
 	timeBetweenBatches time.Duration,
 	reportFormat string,
-	getData func(jobData model.StringMap, app BatchReportWorkerAppIFace) ([]model.ReportableObject, model.StringMap, bool, error),
+	getData func(jobData model.StringMap, app T) ([]model.ReportableObject, model.StringMap, bool, error),
 ) model.Worker {
-	worker := &BatchReportWorker{
+	worker := &BatchReportWorker[T]{
 		reportFormat: reportFormat,
 		getData:      getData,
 	}
-	worker.BatchWorker = BatchWorker[BatchReportWorkerAppIFace]{
+	worker.BatchWorker = BatchWorker[T]{
 		jobServer:          jobServer,
 		logger:             jobServer.Logger(),
 		store:              store,
@@ -53,18 +53,18 @@ func MakeBatchReportWorker(
 	return worker
 }
 
-func (worker *BatchReportWorker) doBatch(rctx *request.Context, job *model.Job) bool {
+func (worker *BatchReportWorker[T]) doBatch(rctx *request.Context, job *model.Job) bool {
 	reportData, nextData, done, err := worker.getData(job.Data, worker.app)
 	if err != nil {
 		// TODO getData error
-		worker.logger.Error("Worker: Failed to do migration batch. Exiting", mlog.Err(err))
-		worker.setJobError(worker.logger, job, model.NewAppError("doMigrationBatch", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
+		worker.logger.Error("Worker: Failed to do report batch. Exiting", mlog.Err(err))
+		worker.setJobError(worker.logger, job, model.NewAppError("doBatch", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
 		return true
 	} else if done {
 		if err = worker.complete(job); err != nil {
 			// TODO complete error
-			worker.logger.Error("Worker: Failed to do migration batch. Exiting", mlog.Err(err))
-			worker.setJobError(worker.logger, job, model.NewAppError("doMigrationBatch", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
+			worker.logger.Error("Worker: Failed to do report batch. Exiting", mlog.Err(err))
+			worker.setJobError(worker.logger, job, model.NewAppError("doBatch", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
 		} else {
 			worker.logger.Info("Worker: Job is complete")
 			worker.setJobSuccess(worker.logger, job)
@@ -76,8 +76,8 @@ func (worker *BatchReportWorker) doBatch(rctx *request.Context, job *model.Job) 
 	err = worker.saveData(job, reportData)
 	if err != nil {
 		// TODO saveData error
-		worker.logger.Error("Worker: Failed to do migration batch. Exiting", mlog.Err(err))
-		worker.setJobError(worker.logger, job, model.NewAppError("doMigrationBatch", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
+		worker.logger.Error("Worker: Failed to do report batch. Exiting", mlog.Err(err))
+		worker.setJobError(worker.logger, job, model.NewAppError("doBatch", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
 		return true
 	}
 
@@ -103,7 +103,7 @@ func getFileCount(jobData model.StringMap) (int, error) {
 	return 0, nil
 }
 
-func (worker *BatchReportWorker) saveData(job *model.Job, reportData []model.ReportableObject) error {
+func (worker *BatchReportWorker[T]) saveData(job *model.Job, reportData []model.ReportableObject) error {
 	fileCount, err := getFileCount(job.Data)
 	if err != nil {
 		return err
@@ -120,7 +120,7 @@ func (worker *BatchReportWorker) saveData(job *model.Job, reportData []model.Rep
 	return nil
 }
 
-func (worker *BatchReportWorker) complete(job *model.Job) error {
+func (worker *BatchReportWorker[T]) complete(job *model.Job) error {
 	requestingUserId := job.Data["requesting_user_id"]
 	if requestingUserId == "" {
 		return errors.New("No user to send the report to")
