@@ -1040,7 +1040,7 @@ type UserReport struct {
 	UserPostStats
 }
 
-func (u *UserReport) GetHeaders() []string {
+func (u UserReport) GetHeaders() []string {
 	return []string{
 		"Id",
 		"Username",
@@ -1073,6 +1073,10 @@ func (u *UserReport) ToReport() []string {
 	if u.TotalPosts != nil {
 		totalPosts = strconv.Itoa(*u.TotalPosts)
 	}
+	lastLogin := ""
+	if u.LastLogin > 0 {
+		lastLogin = time.UnixMilli(u.LastLogin).String()
+	}
 
 	return []string{
 		u.Id,
@@ -1081,7 +1085,7 @@ func (u *UserReport) ToReport() []string {
 		time.UnixMilli(u.CreateAt).String(),
 		u.DisplayName,
 		u.Roles,
-		time.UnixMilli(u.LastLogin).String(),
+		lastLogin,
 		lastStatusAt,
 		lastPostDate,
 		daysActive,

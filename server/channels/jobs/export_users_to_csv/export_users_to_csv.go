@@ -29,6 +29,7 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, app ExportUsersToC
 		app,
 		timeBetweenBatches,
 		"csv",
+		model.UserReport.GetHeaders(model.UserReport{}), // TODO no?
 		getData,
 	)
 }

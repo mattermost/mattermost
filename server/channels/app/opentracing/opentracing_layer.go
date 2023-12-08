@@ -1669,7 +1669,7 @@ func (a *OpenTracingAppLayer) CompareAndSetPluginKey(pluginID string, key string
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CompileReportChunks(format string, prefix string, numberOfChunks int) (string, *model.AppError) {
+func (a *OpenTracingAppLayer) CompileReportChunks(format string, prefix string, numberOfChunks int, headers []string) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CompileReportChunks")
 
@@ -1681,7 +1681,7 @@ func (a *OpenTracingAppLayer) CompileReportChunks(format string, prefix string, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CompileReportChunks(format, prefix, numberOfChunks)
+	resultVar0, resultVar1 := a.app.CompileReportChunks(format, prefix, numberOfChunks, headers)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

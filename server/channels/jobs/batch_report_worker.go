@@ -17,13 +17,14 @@ import (
 
 type BatchReportWorkerAppIFace interface {
 	SaveReportChunk(format string, prefix string, count int, reportData []model.ReportableObject) *model.AppError
-	CompileReportChunks(format string, prefix string, numberOfChunks int) (string, *model.AppError)
+	CompileReportChunks(format string, prefix string, numberOfChunks int, headers []string) (string, *model.AppError)
 	SendReportToUser(userID string, filename string) *model.AppError
 }
 
 type BatchReportWorker[T BatchReportWorkerAppIFace] struct {
 	BatchWorker[T]
 	reportFormat string
+	headers      []string
 	getData      func(jobData model.StringMap, app T) ([]model.ReportableObject, model.StringMap, bool, error)
 }
 
@@ -33,10 +34,12 @@ func MakeBatchReportWorker[T BatchReportWorkerAppIFace](
 	app T,
 	timeBetweenBatches time.Duration,
 	reportFormat string,
+	headers []string,
 	getData func(jobData model.StringMap, app T) ([]model.ReportableObject, model.StringMap, bool, error),
 ) model.Worker {
 	worker := &BatchReportWorker[T]{
 		reportFormat: reportFormat,
+		headers:      headers,
 		getData:      getData,
 	}
 	worker.BatchWorker = BatchWorker[T]{
@@ -130,10 +133,14 @@ func (worker *BatchReportWorker[T]) complete(job *model.Job) error {
 		return err
 	}
 
-	compiledFilename, appErr := worker.app.CompileReportChunks(worker.reportFormat, job.Id, fileCount)
+	compiledFilename, appErr := worker.app.CompileReportChunks(worker.reportFormat, job.Id, fileCount, worker.headers)
 	if appErr != nil {
-		return err
+		return appErr
 	}
 
-	return worker.app.SendReportToUser(requestingUserId, compiledFilename)
+	if appErr = worker.app.SendReportToUser(requestingUserId, compiledFilename); appErr != nil {
+		return appErr
+	}
+
+	return nil
 }

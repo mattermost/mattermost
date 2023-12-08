@@ -24,11 +24,6 @@ func (a *App) saveCSVChunk(prefix string, count int, reportData []model.Reportab
 	var buf bytes.Buffer
 	w := csv.NewWriter(&buf)
 
-	err := w.Write(reportData[0].GetHeaders())
-	if err != nil {
-		return model.NewAppError("saveCSVChunk", "", nil, "failed to write report data to CSV", http.StatusInternalServerError)
-	}
-
 	for _, report := range reportData {
 		err := w.Write(report.ToReport())
 		if err != nil {
@@ -36,7 +31,8 @@ func (a *App) saveCSVChunk(prefix string, count int, reportData []model.Reportab
 		}
 	}
 
-	_, appErr := a.WriteFile(&buf, makeFilename(prefix, count))
+	w.Flush()
+	_, appErr := a.WriteFile(&buf, makeFilename(prefix, count, "csv"))
 	if appErr != nil {
 		return appErr
 	}
@@ -44,36 +40,50 @@ func (a *App) saveCSVChunk(prefix string, count int, reportData []model.Reportab
 	return nil
 }
 
-func (a *App) CompileReportChunks(format string, prefix string, numberOfChunks int) (string, *model.AppError) {
+func (a *App) CompileReportChunks(format string, prefix string, numberOfChunks int, headers []string) (string, *model.AppError) {
 	switch format {
 	case "csv":
-		return a.compileCSVChunks(prefix, numberOfChunks)
+		return a.compileCSVChunks(prefix, numberOfChunks, headers)
 	}
 	return "", model.NewAppError("CompileReportChunks", "", nil, "unsupported report format", http.StatusInternalServerError)
 }
 
-func (a *App) compileCSVChunks(prefix string, numberOfChunks int) (string, *model.AppError) {
+func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []string) (string, *model.AppError) {
+	filename := fmt.Sprintf("batch_report_%s.csv", prefix)
+
+	var headerBuf bytes.Buffer
+	w := csv.NewWriter(&headerBuf)
+	err := w.Write(headers)
+	if err != nil {
+		return "", model.NewAppError("compileCSVChunks", "", nil, "failed to write headers", http.StatusInternalServerError)
+	}
+	w.Flush()
+	_, appErr := a.WriteFile(&headerBuf, filename)
+	if appErr != nil {
+		return "", appErr
+	}
+
 	for i := 0; i < numberOfChunks; i++ {
-		var buf bytes.Buffer
-		chunk, err := a.ReadFile(makeFilename(prefix, i))
+		chunkFilename := makeFilename(prefix, i, "csv")
+		chunk, err := a.ReadFile(chunkFilename)
 		if err != nil {
 			return "", err
 		}
-		if _, bufErr := buf.Read(chunk); bufErr != nil {
-			return "", model.NewAppError("compileCSVChunks", "", nil, bufErr.Error(), http.StatusInternalServerError)
+		if _, err = a.AppendFile(bytes.NewReader(chunk), filename); err != nil {
+			return "", err
 		}
-		if _, err = a.AppendFile(&buf, prefix); err != nil {
+		if err = a.RemoveFile(chunkFilename); err != nil {
 			return "", err
 		}
 	}
 
-	return prefix, nil
+	return filename, nil
 }
 
 func (a *App) SendReportToUser(userID string, filename string) *model.AppError {
 	return nil
 }
 
-func makeFilename(prefix string, count int) string {
-	return fmt.Sprintf("%s__%d", prefix, count)
+func makeFilename(prefix string, count int, extension string) string {
+	return fmt.Sprintf("batch_report_%s__%d.%s", prefix, count, extension)
 }
