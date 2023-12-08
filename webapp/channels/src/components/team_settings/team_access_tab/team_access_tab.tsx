@@ -7,6 +7,7 @@ import {useIntl} from 'react-intl';
 import {RefreshIcon} from '@mattermost/compass-icons/components';
 import type {Team} from '@mattermost/types/teams';
 
+import SelectTextInput, {type SelectTextInputOption} from 'components/common/select_text_input/select_text_input';
 import Input from 'components/widgets/inputs/input/input';
 import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
 import CheckboxSettingItem from 'components/widgets/modals/components/checkbox_setting_item';
@@ -17,7 +18,6 @@ import OpenInvite from './open_invite';
 import type {PropsFromRedux, OwnProps} from '.';
 
 import './team_access_tab.scss';
-import SelectTextInput, { type SelectTextInputOption } from 'components/common/select_text_input/select_text_input';
 
 type Props = PropsFromRedux & OwnProps;
 

@@ -24,11 +24,11 @@ const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
 type Props = PropsFromRedux & OwnProps;
 
 // todo sinan: LearnAboutTeamsLink check https://github.com/mattermost/mattermost/blob/af7bc8a4a90d8c4c17a82dc86bc898d378dec2ff/webapp/channels/src/components/team_general_tab/team_general_tab.tsx#L10
-// todo sinan: check all css color var no -8 etc.
 const InfoTab = (props: Props) => {
     const [name, setName] = useState<Team['display_name']>(props.team?.display_name ?? '');
     const [description, setDescription] = useState<Team['description']>(props.team?.description ?? '');
     const [teamIconFile, setTeamIconFile] = useState<File | undefined>();
+
     // todo sinan: combine them
     const [loadingIcon, setLoadingIcon] = useState<boolean>(false);
     const [submitActive, setSubmitActive] = useState<boolean>(false);
@@ -36,6 +36,7 @@ const InfoTab = (props: Props) => {
     const [nameClientError, setNameClientError] = useState<BaseSettingItemProps['error'] | undefined>();
     const [serverError, setServerError] = useState<boolean>(false);
 
+    // todo sinan: fix check-style issue
     const handleNameDescriptionSubmit = async () => {
         // todo sinan handle case when there is no display name
         if (name?.trim() === props.team?.display_name) {
@@ -47,9 +48,9 @@ const InfoTab = (props: Props) => {
             return;
         } else if (name.length < Constants.MIN_TEAMNAME_LENGTH) {
             setNameClientError({
-                    id: 'general_tab.teamNameRestrictions',
-                    defaultMessage: 'Team Name must be {min} or more characters up to a maximum of {max}. You can add a longer team description.',
-                    values: {min: Constants.MIN_TEAMNAME_LENGTH, max: Constants.MAX_TEAMNAME_LENGTH},
+                id: 'general_tab.teamNameRestrictions',
+                defaultMessage: 'Team Name must be {min} or more characters up to a maximum of {max}. You can add a longer team description.',
+                values: {min: Constants.MIN_TEAMNAME_LENGTH, max: Constants.MAX_TEAMNAME_LENGTH},
             });
             return;
         }
@@ -60,6 +61,7 @@ const InfoTab = (props: Props) => {
         }
     };
 
+    // todo sinan: fix check-style issue
     const handleTeamIconSubmit = async () => {
         if (!teamIconFile || !submitActive) {
             return;
@@ -70,9 +72,8 @@ const InfoTab = (props: Props) => {
         setLoadingIcon(false);
         if (error) {
             return error;
-        } else {
-            setSubmitActive(false);
         }
+        setSubmitActive(false);
     };
 
     const handleSaveChanges = async () => {
@@ -123,12 +124,12 @@ const InfoTab = (props: Props) => {
             if (!ACCEPTED_TEAM_IMAGE_TYPES.includes(file.type)) {
                 setImageClientError({
                     id: 'general_tab.teamIconInvalidFileType',
-                    defaultMessage: 'Only BMP, JPG or PNG images may be used for team icons'
+                    defaultMessage: 'Only BMP, JPG or PNG images may be used for team icons',
                 });
             } else if (file.size > props.maxFileSize) {
                 setImageClientError({
                     id: 'general_tab.teamIconTooLarge',
-                    defaultMessage: 'Unable to upload team icon. File is too large.'
+                    defaultMessage: 'Unable to upload team icon. File is too large.',
                 });
             } else {
                 setTeamIconFile(e.target.files[0]);
@@ -140,7 +141,7 @@ const InfoTab = (props: Props) => {
             setTeamIconFile(undefined);
             setImageClientError({
                 id: 'general_tab.teamIconError',
-                defaultMessage: 'An error occurred while selecting the image.'
+                defaultMessage: 'An error occurred while selecting the image.',
             });
         }
     };
