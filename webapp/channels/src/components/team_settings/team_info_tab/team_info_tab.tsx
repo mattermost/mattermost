@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import type {ChangeEvent} from 'react';
 
 import type {Team} from '@mattermost/types/teams';
@@ -23,11 +23,6 @@ import './team_info_tab.scss';
 const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
 type Props = PropsFromRedux & OwnProps;
 
-type ClientError = {
-    name: BaseSettingItemProps['error'] | undefined;
-    image: BaseSettingItemProps['error'] | undefined;
-};
-
 // todo sinan: LearnAboutTeamsLink check https://github.com/mattermost/mattermost/blob/af7bc8a4a90d8c4c17a82dc86bc898d378dec2ff/webapp/channels/src/components/team_general_tab/team_general_tab.tsx#L10
 // todo sinan: check all css color var no -8 etc.
 const InfoTab = (props: Props) => {
@@ -37,16 +32,9 @@ const InfoTab = (props: Props) => {
     // todo sinan: combine them
     const [loadingIcon, setLoadingIcon] = useState<boolean>(false);
     const [submitActive, setSubmitActive] = useState<boolean>(false);
-    const [clientError, setClientError] = useState<ClientError>({name: undefined, image: undefined});
+    const [imageClientError, setImageClientError] = useState<BaseSettingItemProps['error'] | undefined>();
+    const [nameClientError, setNameClientError] = useState<BaseSettingItemProps['error'] | undefined>();
     const [serverError, setServerError] = useState<boolean>(false);
-
-    useEffect(() => {
-        // todo sinan: clicking save doesnt hide the save changes panel
-        if (!serverError) {
-            props.setHasChanges(false);
-            props.setHasChangeTabError(false);
-        }
-    }, [serverError]);
 
     const handleNameDescriptionSubmit = async () => {
         // todo sinan handle case when there is no display name
@@ -55,23 +43,20 @@ const InfoTab = (props: Props) => {
         }
 
         if (!name) {
-            setClientError({...clientError, name: {id: 'general_tab.required', defaultMessage: 'This field is required'}});
+            setNameClientError({id: 'general_tab.required', defaultMessage: 'This field is required'});
             return;
         } else if (name.length < Constants.MIN_TEAMNAME_LENGTH) {
-            setClientError({
-                ...clientError,
-                name: {
+            setNameClientError({
                     id: 'general_tab.teamNameRestrictions',
                     defaultMessage: 'Team Name must be {min} or more characters up to a maximum of {max}. You can add a longer team description.',
                     values: {min: Constants.MIN_TEAMNAME_LENGTH, max: Constants.MAX_TEAMNAME_LENGTH},
-                },
             });
             return;
         }
-        setClientError({...clientError, name: undefined});
+        setNameClientError(undefined);
         const {error} = await props.actions.patchTeam({id: props.team?.id, display_name: name, description});
         if (error) {
-            setServerError(true);
+            return error;
         }
     };
 
@@ -80,26 +65,33 @@ const InfoTab = (props: Props) => {
             return;
         }
         setLoadingIcon(true);
-        setClientError({...clientError, image: undefined});
+        setImageClientError(undefined);
         const {error} = await props.actions.setTeamIcon(props.team?.id || '', teamIconFile);
         setLoadingIcon(false);
         if (error) {
-            setServerError(true);
+            return error;
         } else {
             setSubmitActive(false);
         }
     };
 
     const handleSaveChanges = async () => {
-        await handleNameDescriptionSubmit();
-        await handleTeamIconSubmit();
+        const nameDescriptionError = await handleNameDescriptionSubmit();
+        const teamIconError = await handleTeamIconSubmit();
+        if (teamIconError || nameDescriptionError) {
+            setServerError(true);
+            return;
+        }
+        props.setHasChanges(false);
+        props.setHasChangeTabError(false);
     };
 
     const handleCancel = () => {
         setName(props.team?.display_name ?? props.team?.name ?? '');
         setDescription(props.team?.description ?? '');
         setTeamIconFile(undefined);
-        setClientError({name: undefined, image: undefined});
+        setImageClientError(undefined);
+        setNameClientError(undefined);
         setServerError(false);
         props.setHasChanges(false);
         props.setHasChangeTabError(false);
@@ -107,7 +99,7 @@ const InfoTab = (props: Props) => {
 
     const handleTeamIconRemove = async () => {
         setLoadingIcon(true);
-        setClientError({...clientError, image: undefined});
+        setImageClientError(undefined);
         setServerError(false);
         setTeamIconFile(undefined);
         props.setHasChanges(false);
@@ -117,6 +109,8 @@ const InfoTab = (props: Props) => {
         setLoadingIcon(false);
         if (error) {
             setServerError(true);
+            props.setHasChanges(true);
+            props.setHasChangeTabError(true);
         } else {
             setSubmitActive(false);
         }
@@ -127,26 +121,26 @@ const InfoTab = (props: Props) => {
             const file = e.target.files[0];
 
             if (!ACCEPTED_TEAM_IMAGE_TYPES.includes(file.type)) {
-                setClientError({
-                    ...clientError,
-                    image: {id: 'general_tab.teamIconInvalidFileType', defaultMessage: 'Only BMP, JPG or PNG images may be used for team icons'},
+                setImageClientError({
+                    id: 'general_tab.teamIconInvalidFileType',
+                    defaultMessage: 'Only BMP, JPG or PNG images may be used for team icons'
                 });
             } else if (file.size > props.maxFileSize) {
-                setClientError({
-                    ...clientError,
-                    image: {id: 'general_tab.teamIconTooLarge', defaultMessage: 'Unable to upload team icon. File is too large.'},
+                setImageClientError({
+                    id: 'general_tab.teamIconTooLarge',
+                    defaultMessage: 'Unable to upload team icon. File is too large.'
                 });
             } else {
                 setTeamIconFile(e.target.files[0]);
-                setClientError({...clientError, image: undefined});
+                setImageClientError(undefined);
                 setSubmitActive(true);
                 props.setHasChanges(true);
             }
         } else {
             setTeamIconFile(undefined);
-            setClientError({
-                ...clientError,
-                image: {id: 'general_tab.teamIconError', defaultMessage: 'An error occurred while selecting the image.'},
+            setImageClientError({
+                id: 'general_tab.teamIconError',
+                defaultMessage: 'An error occurred while selecting the image.'
             });
         }
     };
@@ -167,7 +161,7 @@ const InfoTab = (props: Props) => {
             <div className='name-description-container' >
                 <TeamNameSection
                     name={name}
-                    clientError={clientError.name}
+                    clientError={nameClientError}
                     handleNameChanges={handleNameChanges}
                 />
                 <TeamDescriptionSection
@@ -182,7 +176,7 @@ const InfoTab = (props: Props) => {
                 onFileChange={updateTeamIcon}
                 onRemove={handleTeamIconRemove}
                 teamName={props.team?.display_name ?? props.team?.name}
-                clientError={clientError.image}
+                clientError={imageClientError}
             />
             {props.hasChanges ?
                 <SaveChangesPanel
