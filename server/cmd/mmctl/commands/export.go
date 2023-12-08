@@ -99,9 +99,9 @@ func init() {
 	_ = ExportCreateCmd.Flags().MarkHidden("attachments")
 	_ = ExportCreateCmd.Flags().MarkDeprecated("attachments", "the tool now includes attachments by default. The flag will be removed in a future version.")
 
-	ExportCreateCmd.Flags().Bool("no-attachments", false, "Set to true to exclude file attachments in the export file.")
-	ExportCreateCmd.Flags().Bool("include-archived-channels", false, "Set to true to include archived channels in the export file.")
-	ExportCreateCmd.Flags().Bool("include-profile-pictures", false, "Set to true to include profile pictures in the export file.")
+	ExportCreateCmd.Flags().Bool("no-attachments", false, "Exclude file attachments from the export file.")
+	ExportCreateCmd.Flags().Bool("include-archived-channels", false, "Include archived channels in the export file.")
+	ExportCreateCmd.Flags().Bool("include-profile-pictures", false, "Include profile pictures in the export file.")
 
 	ExportDownloadCmd.Flags().Bool("resume", false, "Set to true to resume an export download.")
 	_ = ExportDownloadCmd.Flags().MarkHidden("resume")

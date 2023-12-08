@@ -7,7 +7,7 @@ import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {updateUserActive, revokeAllSessionsForUser} from 'mattermost-redux/actions/users';
-import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get, getUnreadScrollPositionPreference, makeGetCategory, syncedDraftsAreAllowed} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc} from 'mattermost-redux/types/actions';
@@ -27,7 +27,6 @@ function makeMapStateToProps() {
 
         const enablePreviewFeatures = config.EnablePreviewFeatures === 'true';
         const enableUserDeactivation = config.EnableUserDeactivation === 'true';
-        const disableWebappPrefetchAllowed = isPerformanceDebuggingEnabled(state);
         const enableJoinLeaveMessage = config.EnableJoinLeaveMessageByDefault === 'true';
 
         return {
@@ -42,8 +41,6 @@ function makeMapStateToProps() {
             enablePreviewFeatures,
             enableUserDeactivation,
             syncedDraftsAreAllowed: syncedDraftsAreAllowed(state),
-            disableWebappPrefetchAllowed,
-            dataPrefetchEnabled: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'data_prefetch', 'true'),
         };
     };
 }

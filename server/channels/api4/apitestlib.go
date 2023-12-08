@@ -97,6 +97,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	memoryConfig.ServiceSettings.EnableLocalMode = model.NewBool(true)
 	*memoryConfig.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
+	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
+	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
@@ -1147,7 +1149,7 @@ func (th *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
 	if cm, err := th.App.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
-		if _, err = th.App.Srv().Store().Channel().UpdateMember(cm); err != nil {
+		if _, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, cm); err != nil {
 			panic(err)
 		}
 	} else {
@@ -1158,7 +1160,7 @@ func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 	if tm, err := th.App.Srv().Store().Team().GetMember(th.Context, team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = true
-		if _, err = th.App.Srv().Store().Team().UpdateMember(tm); err != nil {
+		if _, err = th.App.Srv().Store().Team().UpdateMember(th.Context, tm); err != nil {
 			panic(err)
 		}
 	} else {
@@ -1169,7 +1171,7 @@ func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 func (th *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
 	if tm, err := th.App.Srv().Store().Team().GetMember(th.Context, team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = false
-		if _, err = th.App.Srv().Store().Team().UpdateMember(tm); err != nil {
+		if _, err = th.App.Srv().Store().Team().UpdateMember(th.Context, tm); err != nil {
 			panic(err)
 		}
 	} else {

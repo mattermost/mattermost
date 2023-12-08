@@ -22,8 +22,6 @@ type Props = {
 
     unreadChannels: Channel[];
 
-    disableWebappPrefetchAllowed: boolean;
-    dataPrefetchEnabled: boolean;
     actions: {
         prefetchChannelPosts: (channelId: string, delay?: number) => Promise<any>;
         trackPreloadedChannels: (prefetchQueueObj: Record<string, string[]>) => void;
@@ -55,20 +53,15 @@ export default class DataPrefetch extends React.PureComponent<Props> {
     private prefetchTimeout?: number;
 
     async componentDidUpdate(prevProps: Props) {
-        const {currentChannelId, prefetchQueueObj, sidebarLoaded, disableWebappPrefetchAllowed, dataPrefetchEnabled} = this.props;
-        const enablePrefetch = (!disableWebappPrefetchAllowed) || (disableWebappPrefetchAllowed && dataPrefetchEnabled);
+        const {currentChannelId, prefetchQueueObj, sidebarLoaded} = this.props;
         if (currentChannelId && sidebarLoaded && (!prevProps.currentChannelId || !prevProps.sidebarLoaded)) {
             queue.add(async () => this.prefetchPosts(currentChannelId));
             await loadProfilesForSidebar();
-            if (enablePrefetch) {
-                this.prefetchData();
-            }
+            this.prefetchData();
         } else if (prevProps.prefetchQueueObj !== prefetchQueueObj) {
             clearTimeout(this.prefetchTimeout);
             await queue.clear();
-            if (enablePrefetch) {
-                this.prefetchData();
-            }
+            this.prefetchData();
         }
 
         if (currentChannelId && sidebarLoaded && (!prevProps.currentChannelId || !prevProps.sidebarLoaded)) {

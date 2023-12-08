@@ -541,6 +541,22 @@ func (mr *MockClientMockRecorder) GeneratePresignedURL(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GeneratePresignedURL", reflect.TypeOf((*MockClient)(nil).GeneratePresignedURL), arg0, arg1)
 }
 
+// GenerateSupportPacket mocks base method.
+func (m *MockClient) GenerateSupportPacket(arg0 context.Context) ([]byte, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GenerateSupportPacket", arg0)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GenerateSupportPacket indicates an expected call of GenerateSupportPacket.
+func (mr *MockClientMockRecorder) GenerateSupportPacket(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateSupportPacket", reflect.TypeOf((*MockClient)(nil).GenerateSupportPacket), arg0)
+}
+
 // GetAllTeams mocks base method.
 func (m *MockClient) GetAllTeams(arg0 context.Context, arg1 string, arg2, arg3 int) ([]*model.Team, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -909,6 +925,22 @@ func (m *MockClient) GetMarketplacePlugins(arg0 context.Context, arg1 *model.Mar
 func (mr *MockClientMockRecorder) GetMarketplacePlugins(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMarketplacePlugins", reflect.TypeOf((*MockClient)(nil).GetMarketplacePlugins), arg0, arg1)
+}
+
+// GetOAuthApps mocks base method.
+func (m *MockClient) GetOAuthApps(arg0 context.Context, arg1, arg2 int) ([]*model.OAuthApp, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOAuthApps", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*model.OAuthApp)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetOAuthApps indicates an expected call of GetOAuthApps.
+func (mr *MockClientMockRecorder) GetOAuthApps(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOAuthApps", reflect.TypeOf((*MockClient)(nil).GetOAuthApps), arg0, arg1, arg2)
 }
 
 // GetOutgoingWebhook mocks base method.

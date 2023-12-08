@@ -9,7 +9,7 @@ done
 priv_stmt='GRANT REPLICATION SLAVE ON *.* TO "mmuser"@"%" IDENTIFIED BY "mostest"; FLUSH PRIVILEGES;'
 docker exec mattermost-mysql sh -c "mysql -u root -pmostest -e '$priv_stmt'"
 
-until docker-compose -f docker-compose.makefile.yml exec mysql-read-replica sh -c 'mysql -u root -pmostest -e ";"'
+until docker compose -f docker-compose.makefile.yml exec mysql-read-replica sh -c 'mysql -u root -pmostest -e ";"'
 do
     echo "Waiting for mysql-read-replica database connection..."
     sleep 4

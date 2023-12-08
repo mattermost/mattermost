@@ -853,7 +853,7 @@ func (a *App) DeleteGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 	return members, nil
 }
 
-func (a *App) publishGroupMemberEvent(eventName string, groupMember *model.GroupMember) *model.AppError {
+func (a *App) publishGroupMemberEvent(eventName model.WebsocketEventType, groupMember *model.GroupMember) *model.AppError {
 	messageWs := model.NewWebSocketEvent(eventName, "", "", groupMember.UserId, nil, "")
 	groupMemberJSON, jsonErr := json.Marshal(groupMember)
 	if jsonErr != nil {

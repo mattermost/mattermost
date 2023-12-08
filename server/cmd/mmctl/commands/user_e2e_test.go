@@ -1019,7 +1019,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		err := migrateAuthCmdF(c, cmd, []string{"ldap", "saml"})
 		s.Require().NoError(err)
 		defer func() {
-			_, appErr := s.th.App.UpdateUserAuth(ldapUser.Id, &model.UserAuth{
+			_, appErr := s.th.App.UpdateUserAuth(s.th.Context, ldapUser.Id, &model.UserAuth{
 				AuthData:    model.NewString("test.user.1"),
 				AuthService: model.UserAuthServiceLdap,
 			})
@@ -1048,7 +1048,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		err := migrateAuthCmdF(c, cmd, []string{"saml", "ldap", "email"})
 		s.Require().NoError(err)
 		defer func() {
-			_, appErr := s.th.App.UpdateUserAuth(samlUser.Id, &model.UserAuth{
+			_, appErr := s.th.App.UpdateUserAuth(s.th.Context, samlUser.Id, &model.UserAuth{
 				AuthData:    model.NewString("dev.one"),
 				AuthService: model.UserAuthServiceSaml,
 			})

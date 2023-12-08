@@ -154,7 +154,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 		ClientId:     rapp.Id,
 		RedirectURI:  rapp.CallbackUrls[0],
 		Scope:        "",
-		State:        "123",
+		State:        "/oauthcallback?sesskey=abcd&other=123",
 	}
 	uriResponse, _, err := apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.NoError(t, err)
@@ -164,7 +164,11 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	// require no query parameter to have "?"
 	require.False(t, strings.Contains(ru.RawQuery, "?"), "should not malform query parameters")
 	require.NotEmpty(t, ru.Query().Get("code"), "authorization code not returned")
+
+	// test state is not encoded multiple times
 	require.Equal(t, ru.Query().Get("state"), authRequest.State, "returned state doesn't match")
+	// test state is URL encoded at least once
+	require.Empty(t, ru.Query().Get("other"), "state's query parameters should not leak")
 }
 
 func TestDeauthorizeOAuthApp(t *testing.T) {
