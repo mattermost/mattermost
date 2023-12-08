@@ -1918,6 +1918,54 @@ func (c *Client4) EnableUserAccessToken(ctx context.Context, tokenId string) (*R
 	return BuildResponse(r), nil
 }
 
+func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportOptionsAPI) ([]*UserReport, *Response, error) {
+	values := url.Values{}
+	if options.SortColumn != "" {
+		values.Set("sort_column", options.SortColumn)
+	}
+	if options.PageSize > 0 {
+		values.Set("page_size", strconv.Itoa(options.PageSize))
+	}
+	if options.Team != "" {
+		values.Set("team_filter", options.Team)
+	}
+	if options.HideActive {
+		values.Set("hide_active", "true")
+	}
+	if options.HideInactive {
+		values.Set("hide_inactive", "true")
+	}
+	if options.SortDesc {
+		values.Set("sort_direction", "desc")
+	}
+	if options.LastSortColumnValue != "" {
+		values.Set("last_column_value", options.LastSortColumnValue)
+	}
+	if options.LastUserId != "" {
+		values.Set("last_id", options.LastUserId)
+	}
+	if options.Role != "" {
+		values.Set("role_filter", options.Role)
+	}
+	if options.HasNoTeam {
+		values.Set("has_no_team", "true")
+	}
+	if options.DateRange != "" {
+		values.Set("date_range", options.DateRange)
+	}
+
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/report?"+values.Encode(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*UserReport
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetUsersForReporting", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
 // Bots section
 
 // CreateBot creates a bot in the system based on the provided bot struct.
