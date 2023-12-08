@@ -42,9 +42,10 @@ table.adminConsoleListTable {
             font-weight: 600;
             line-height: 16px;
             color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+            text-wrap: nowrap;
 
             th {
-                max-width: 40rem;
+                max-width: 50rem;
                 padding-block-start: 12px;
                 padding-block-end: 12px;
 
