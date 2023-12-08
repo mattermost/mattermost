@@ -7,7 +7,7 @@
         align-items: center;
         text-align: left;
         margin-top: 18px;
-        color: var(--denim-status-do-not-disturb, var(--dnd-indicator, #D24B4E));
+        color: var(--dnd-indicator);
 
         svg {
             margin-right: 6px;
@@ -46,9 +46,9 @@
             right: -6px;
             padding: 4px;
             border-radius: 20px;
-            border: 1px solid var(--denim-16-center-channel-text, rgba(63, 67, 80, 0.16));
-            background: var(--denim-center-channel-bg, #FFF);
-            box-shadow: 0px 2px 3px 0px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            background: var(--center-channel-bg, #FFF);
+            box-shadow: 0px 2px 3px 0px var(--elevation-1);
         }
 
         .team-img-preview {

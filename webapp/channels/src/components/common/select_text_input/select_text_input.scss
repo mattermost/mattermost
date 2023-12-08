@@ -1,5 +1,5 @@
 .select-text-description {
-    color: var(--denim-64-center-channel-text, var(--center-channel-color-64, rgba(63, 67, 80, 0.64)));
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     font-family: Open Sans;
     font-size: 12px;
     font-style: normal;
