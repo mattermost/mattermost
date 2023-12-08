@@ -1233,10 +1233,10 @@ func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
 		}
 		intVer := majorVer*1000 + minorVer*100 + patchVer
 		if intVer < minimumRecommendedMySQLVersion {
-			mlog.Warn("The currently installed MySQL version is at EOL. Please upgrade to a higher version.", mlog.Int("current_version", intVer), mlog.Int("minimum_recommended_version", minimumRecommendedMySQLVersion))
+			mlog.Warn("The MySQL version being used is EOL. Please upgrade to a later version.", mlog.Int("current_version", intVer), mlog.Int("minimum_recommended_version", minimumRecommendedMySQLVersion))
 		}
 		if intVer < minimumRequiredMySQLVersion {
-			return false, fmt.Errorf("minimum MySQL version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *ss.settings.DriverName), versionString(minimumRequiredMySQLVersion, *ss.settings.DriverName))
+			return false, fmt.Errorf("Minimum MySQL version requirements not met. Found: %s, Wanted: %s", versionString(intVer, *ss.settings.DriverName), versionString(minimumRequiredMySQLVersion, *ss.settings.DriverName))
 		}
 	}
 	return true, nil
