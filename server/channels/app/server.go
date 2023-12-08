@@ -1825,7 +1825,7 @@ func runDNDStatusExpireJob(a *App) {
 func runPostReminderJob(a *App) {
 	if a.IsLeader() {
 		withMut(&a.ch.postReminderMut, func() {
-			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", a.CheckPostReminders(request.EmptyContext(a.Log())), 5*time.Minute)
+			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", a.CheckPostReminders(request.EmptyContext(a.Log()), 5*time.Minute)
 		})
 	}
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
