@@ -6253,7 +6253,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
-		require.Equal(t, 3, len(userReport))
+		require.Len(t, userReport, 3)
 
 		require.NotNil(t, userReport[0])
 		require.Equal(t, u1.Username, userReport[0].Username)
