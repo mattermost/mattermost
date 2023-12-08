@@ -8,7 +8,7 @@ import type {ChangeEvent, ComponentProps} from 'react';
 import {type MockIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
-import {InfoTab} from './team_info_tab';
+import InfoTab from './team_info_tab';
 
 describe('components/TeamSettings', () => {
     const getTeam = jest.fn().mockResolvedValue({data: true});
@@ -24,17 +24,20 @@ describe('components/TeamSettings', () => {
     const defaultProps: ComponentProps<typeof InfoTab> = {
         team: TestHelper.getTeamMock({id: 'team_id'}),
         maxFileSize: 50,
-        intl: {
-            formatMessage: jest.fn(),
-        } as MockIntl,
         actions: baseActions,
         canInviteTeamMembers: true,
         isMobileView: false,
+        hasChanges: false,
+        hasChangeTabError: false,
+        setHasChanges: jest.fn(),
+        setHasChangeTabError: jest.fn(),
     };
 
     test('should handle bad updateTeamIcon function call', () => {
-        const wrapper = shallow<InfoTab>(<InfoTab {...defaultProps}/>);
-
+        const wrapper = shallow<typeof InfoTab>(<InfoTab {...defaultProps}/>);
+        // todo sinan: fix the type issue
+        wrapper.prop('updateTeamIcon')
+    
         wrapper.instance().updateTeamIcon(null as unknown as ChangeEvent<HTMLInputElement>);
 
         expect(wrapper.state('clientError')).toEqual('An error occurred while selecting the image.');

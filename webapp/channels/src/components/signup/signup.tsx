@@ -680,7 +680,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         );
     };
 
-    const handleOnBlur = (e: FocusEvent<HTMLInputElement>, inputId: string) => {
+    const handleOnBlur = (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>, inputId: string) => {
         const text = e.target.value;
         if (!text) {
             return;

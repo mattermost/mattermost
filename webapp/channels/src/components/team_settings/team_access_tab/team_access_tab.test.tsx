@@ -8,7 +8,7 @@ import type {ComponentProps} from 'react';
 import {type MockIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
-import {AccessTab} from './team_access_tab';
+import AccessTab from './team_access_tab';
 
 describe('components/TeamSettings', () => {
     const getTeam = jest.fn().mockResolvedValue({data: true});
@@ -26,9 +26,6 @@ describe('components/TeamSettings', () => {
     const defaultProps: ComponentProps<typeof AccessTab> = {
         team: TestHelper.getTeamMock({id: 'team_id'}),
         maxFileSize: 50,
-        intl: {
-            formatMessage: jest.fn(),
-        } as MockIntl,
         closeModal: jest.fn(),
         actions: baseActions,
         canInviteTeamMembers: true,
