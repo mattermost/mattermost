@@ -86,10 +86,7 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
                 >
                     <i
                         className='icon icon-close'
-                        aria-label={formatMessage({
-                            id: 'rhs_header.closeTooltip.icon', 
-                            defaultMessage: 'Close Sidebar Icon'
-                        })}
+                        aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                     />
                 </button>
             </OverlayTrigger>
