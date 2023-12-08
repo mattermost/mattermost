@@ -21,39 +21,37 @@ import './team_access_tab.scss';
 
 type Props = PropsFromRedux & OwnProps;
 
-// todo sinan: complete handle changes
 const AccessTab = (props: Props) => {
-    // todo sinan: cleanup this setAllowedDomains could be string or string of array
     const generateAllowedDomainOptions = (allowedDomains?: string) => {
-        if (!allowedDomains || allowedDomains.length < 1) {
+        if (!allowedDomains || allowedDomains.length === 0) {
             return [];
         }
-
-        return allowedDomains?.split(', ').map((domain) => ({
-            label: domain,
-            value: domain,
-        }));
+        const domainList = allowedDomains.includes(',') ? allowedDomains.split(',') : [allowedDomains];
+        return domainList.map(domain => domain.trim());
     };
+    
 
     const [inviteId, setInviteId] = useState<Team['invite_id']>(props.team?.invite_id ?? '');
-    const [allowedDomains, setAllowedDomains] = useState<SelectTextInputOption[]>(generateAllowedDomainOptions(props.team?.allowed_domains));
+    const [allowedDomains, setAllowedDomains] = useState<string[]>(generateAllowedDomainOptions(props.team?.allowed_domains));
     const [showAllowedDomains, setShowAllowedDomains] = useState<boolean>(allowedDomains?.length > 0);
     const [serverError, setServerError] = useState<string>('');
     const {formatMessage} = useIntl();
 
     const handleAllowedDomainsSubmit = async () => {
+        if (allowedDomains.length === 0) {
+            return;
+        }
         const {error} = await props.actions.patchTeam({
             id: props.team?.id,
-            allowed_domains: allowedDomains,
+            allowed_domains: allowedDomains.length === 1 ? allowedDomains[0] : allowedDomains.join(', '),
         });
         if (error) {
             setServerError(error.message);
         }
     };
 
-    const updateAllowedDomains = (domain: string) => {
-        setAllowedDomains((prev) => [...prev, {label: domain, value: domain}]);
-    };
+    const updateAllowedDomains = (domain: string) => setAllowedDomains((prev) => [...prev, domain]);
+    const handleOnChangeDomains = (allowedDomainsOptions?: SelectTextInputOption[] | null) => setAllowedDomains(allowedDomainsOptions?.map((domain) => (domain.value)) || []);
     const handleRegenerateInviteId = async () => {
         const {data, error} = await props.actions.regenerateTeamInviteId(props.team?.id || '');
 
@@ -123,7 +121,7 @@ const AccessTab = (props: Props) => {
                     placeholder={formatMessage({id: 'general_tab.AllowedDomainsExample', defaultMessage: 'corp.mattermost.com, mattermost.com'})}
                     aria-label={formatMessage({id: 'general_tab.allowedDomains.ariaLabel', defaultMessage: 'Allowed Domains'})}
                     value={allowedDomains}
-                    onChange={(allowedDomainsOptions) => setAllowedDomains(allowedDomainsOptions || [])}
+                    onChange={handleOnChangeDomains}
                     handleNewSelection={updateAllowedDomains}
                     isClearable={false}
                     description={formatMessage({id: 'general_tab.AllowedDomainsTip', defaultMessage: 'Seperate multiple domains with a space or comma.'})}

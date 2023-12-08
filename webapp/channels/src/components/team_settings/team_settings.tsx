@@ -8,8 +8,6 @@ import type {Team} from '@mattermost/types/teams';
 import AccessTab from './team_access_tab';
 import InfoTab from './team_info_tab';
 
-// todo sinan: check the behavior for saving
-// https://mattermost.atlassian.net/wiki/spaces/GLOAB/pages/2281046017/Settings+Revamp#Behavior-for-Saving-Settings
 type Props = {
     activeTab: string;
     hasChanges: boolean;
@@ -33,7 +31,6 @@ const TeamSettings = ({
         return null;
     }
 
-    // todo sinan check inactive section background color
     let result;
     switch (activeTab) {
     case 'info':

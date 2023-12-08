@@ -18,7 +18,7 @@ export interface SelectTextInputOption {
 
 type Props = {
     placeholder: string;
-    value: SelectTextInputOption[];
+    value: string[];
     handleNewSelection: (selection: string) => void;
     onChange: (option?: SelectTextInputOption[] | null) => void;
     id?: string;
@@ -73,7 +73,10 @@ const SelectTextInput = (props: Props) => {
         switch (event.key) {
         case ' ':
         case ',':
-            // todo sinan: how to handle a case if text already exist in the list
+            // do not add the value if already exists
+            if (props.value?.includes(inputValue.trim())) {
+                return;
+            }
             props.handleNewSelection(inputValue);
             setInputValue('');
             event.preventDefault();
@@ -95,7 +98,7 @@ const SelectTextInput = (props: Props) => {
                 onInputChange={(newValue) => setInputValue(newValue)}
                 onKeyDown={handleKeyDown}
                 placeholder={props.placeholder}
-                value={props.value}
+                value={props.value.map((singleValue) => ({label: singleValue, value: singleValue}))}
             />
             {props.description ? <p className='select-text-description'>{props.description}</p> : undefined}
         </>
