@@ -336,6 +336,6 @@ type Hooks interface {
 	// Note that this method will be called for preferences changed by plugins, including the plugin that changed
 	// the preferences.
 	//
-	// Minimum server version: 9.4
+	// Minimum server version: 9.5
 	PreferencesHaveChanged(c *Context, preferences []*model.Preference)
 }
