@@ -35,6 +35,10 @@ const (
 
 	ChannelSortByUsername = "username"
 	ChannelSortByStatus   = "status"
+
+	ChannelReportingSortByDisplayName = "displayName"
+	ChannelReportingSortByPostCount   = "postCount"
+	ChannelReportingSortByMemberCount = "memberCount"
 )
 
 type Channel struct {
@@ -400,4 +404,31 @@ type GroupMessageConversionRequestBody struct {
 	TeamID      string `json:"team_id"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
+}
+
+// LOL extract basic options as a separate base struct here and for user reportng options
+type ChannelReportOptions struct {
+	SortColumn          string
+	SortDesc            bool
+	PageSize            int
+	LastSortColumnValue string
+	LastUserId          string
+	StartAt             int64
+	EndAt               int64
+
+	Role         string
+	Team         string
+	HasNoTeam    bool
+	HideActive   bool
+	HideInactive bool
+}
+
+type ChannelReportStats struct {
+	MemberCount int
+	PostCount   int
+}
+
+type ChannelReportQuery struct {
+	Channel
+	ChannelReportStats
 }
