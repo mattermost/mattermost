@@ -346,21 +346,6 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                                 experimentalEnableAuthenticationTransfer={this.props.experimentalEnableAuthenticationTransfer}
                             />
                         </div>
-                        <SystemUsersList
-                            loading={this.state.loading}
-                            search={this.doSearch}
-                            nextPage={this.nextPage}
-                            usersPerPage={USERS_PER_PAGE}
-                            total={this.props.totalUsers}
-                            teams={this.props.teams}
-                            teamId={this.props.teamId}
-                            filter={this.props.filter}
-                            term={this.props.searchTerm}
-                            onTermChange={this.handleTermChange}
-                            mfaEnabled={this.props.mfaEnabled}
-                            enableUserAccessTokens={this.props.enableUserAccessTokens}
-                            experimentalEnableAuthenticationTransfer={this.props.experimentalEnableAuthenticationTransfer}
-                        />
                     </div>
                 </div>
             </div>
