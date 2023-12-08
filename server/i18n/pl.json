@@ -233,7 +233,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
-    "translation": "%s aktualizuje nagłówek kanału z: %s na: %s"
+    "translation": "%s zaktualizował wyświetlaną nazwę kanału z: %s na: %s"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
