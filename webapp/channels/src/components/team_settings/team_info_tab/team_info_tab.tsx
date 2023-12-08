@@ -36,35 +36,34 @@ const InfoTab = (props: Props) => {
     const [nameClientError, setNameClientError] = useState<BaseSettingItemProps['error'] | undefined>();
     const [serverError, setServerError] = useState<boolean>(false);
 
-    // todo sinan: fix check-style issue
-    const handleNameDescriptionSubmit = async () => {
+    const handleNameDescriptionSubmit = async (): Promise<Error | null> => {
         // todo sinan handle case when there is no display name
         if (name?.trim() === props.team?.display_name) {
-            return;
+            return null;
         }
 
         if (!name) {
             setNameClientError({id: 'general_tab.required', defaultMessage: 'This field is required'});
-            return;
+            return null;
         } else if (name.length < Constants.MIN_TEAMNAME_LENGTH) {
             setNameClientError({
                 id: 'general_tab.teamNameRestrictions',
                 defaultMessage: 'Team Name must be {min} or more characters up to a maximum of {max}. You can add a longer team description.',
                 values: {min: Constants.MIN_TEAMNAME_LENGTH, max: Constants.MAX_TEAMNAME_LENGTH},
             });
-            return;
+            return null;
         }
         setNameClientError(undefined);
         const {error} = await props.actions.patchTeam({id: props.team?.id, display_name: name, description});
         if (error) {
             return error;
         }
+        return null;
     };
 
-    // todo sinan: fix check-style issue
-    const handleTeamIconSubmit = async () => {
+    const handleTeamIconSubmit = async (): Promise<Error | null> => {
         if (!teamIconFile || !submitActive) {
-            return;
+            return null;
         }
         setLoadingIcon(true);
         setImageClientError(undefined);
@@ -74,6 +73,7 @@ const InfoTab = (props: Props) => {
             return error;
         }
         setSubmitActive(false);
+        return null;
     };
 
     const handleSaveChanges = async () => {
