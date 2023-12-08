@@ -12,6 +12,7 @@ type ChannelBookmarkType string
 const (
 	ChannelBookmarkLink ChannelBookmarkType = "link"
 	ChannelBookmarkFile ChannelBookmarkType = "file"
+	BookmarkFileOwner                       = "bookmark"
 )
 
 type ChannelBookmark struct {
@@ -110,7 +111,12 @@ func (o *ChannelBookmarkWithFileInfo) Clone() *ChannelBookmarkWithFileInfo {
 }
 
 type ChannelWithBookmarks struct {
-	Channel
+	*Channel
+	Bookmarks []*ChannelBookmarkWithFileInfo `json:"bookmarks,omitempty"`
+}
+
+type ChannelWithTeamDataAndBookmarks struct {
+	*ChannelWithTeamData
 	Bookmarks []*ChannelBookmarkWithFileInfo `json:"bookmarks,omitempty"`
 }
 

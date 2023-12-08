@@ -2897,6 +2897,24 @@ func (c *Client4) GetAllChannelsWithCount(ctx context.Context, page int, perPage
 	return cwc.Channels, cwc.TotalCount, BuildResponse(r), nil
 }
 
+// GetAllChannelsWithBookmarks get all the channels including their bookmarks. Must be a system administrator.
+func (c *Client4) GetAllChannelsWithBookmarks(ctx context.Context, page int, perPage int, etag string, bookmarksSince int64, opts ChannelSearchOpts) ([]ChannelWithTeamDataAndBookmarks, *Response, error) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted=%v&exclude_policy_constrained=%v&include_bookmarks=true&bookmarks_since=%v",
+		page, perPage, opts.IncludeDeleted, opts.ExcludePolicyConstrained, bookmarksSince)
+	r, err := c.DoAPIGet(ctx, c.channelsRoute()+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var cwc []ChannelWithTeamDataAndBookmarks
+	err = json.NewDecoder(r.Body).Decode(&cwc)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GetAllChannelsWithBookmarks", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return cwc, BuildResponse(r), nil
+}
+
 // CreateChannel creates a channel based on the provided channel struct.
 func (c *Client4) CreateChannel(ctx context.Context, channel *Channel) (*Channel, *Response, error) {
 	channelJSON, err := json.Marshal(channel)
@@ -3040,6 +3058,23 @@ func (c *Client4) GetChannel(ctx context.Context, channelId, etag string) (*Chan
 	return ch, BuildResponse(r), nil
 }
 
+// GetChannel with bookmarks returns a channel and its bookmarks based on the provided channel id string if the user has permissions to read it's contents.
+func (c *Client4) GetChannelWithBookmarks(ctx context.Context, channelId, etag string, bookmarksSince int64) (*ChannelWithBookmarks, *Response, error) {
+	route := c.channelRoute(channelId) + fmt.Sprintf("?include_bookmarks=true&bookmarks_since=%v", bookmarksSince)
+	r, err := c.DoAPIGet(ctx, route, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch *ChannelWithBookmarks
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GetChannelWithBookmarks", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
 // GetChannelStats returns statistics for a channel.
 func (c *Client4) GetChannelStats(ctx context.Context, channelId string, etag string, excludeFilesCount bool) (*ChannelStats, *Response, error) {
 	route := c.channelRoute(channelId) + fmt.Sprintf("/stats?exclude_files_count=%v", excludeFilesCount)
@@ -3116,6 +3151,23 @@ func (c *Client4) GetPrivateChannelsForTeam(ctx context.Context, teamId string, 
 	return ch, BuildResponse(r), nil
 }
 
+// GetPrivateChannelsForTeamWithBookmarks returns a list of private channels based on the provided team id string and its bookmarks.
+func (c *Client4) GetPrivateChannelsForTeamWithBookmarks(ctx context.Context, teamId string, page int, perPage int, etag string, bookmarksSince int64) ([]*ChannelWithBookmarks, *Response, error) {
+	query := fmt.Sprintf("/private?page=%v&per_page=%v&include_bookmarks=true&bookmarks_since=%v", page, perPage, bookmarksSince)
+	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch []*ChannelWithBookmarks
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GetPrivateChannelsForTeamWithBookmarks", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
 // GetPublicChannelsForTeam returns a list of public channels based on the provided team id string.
 func (c *Client4) GetPublicChannelsForTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*Channel, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
@@ -3133,6 +3185,23 @@ func (c *Client4) GetPublicChannelsForTeam(ctx context.Context, teamId string, p
 	return ch, BuildResponse(r), nil
 }
 
+// GetPublicChannelsForTeamWithBookmarks returns a list of public channels based on the provided team id string and its bookmarks.
+func (c *Client4) GetPublicChannelsForTeamWithBookmarks(ctx context.Context, teamId string, page int, perPage int, etag string, bookmarksSince int64) ([]*ChannelWithBookmarks, *Response, error) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_bookmarks=true&bookmarks_since=%v", page, perPage, bookmarksSince)
+	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch []*ChannelWithBookmarks
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GetPublicChannelsForTeamWithBookmarks", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
 // GetDeletedChannelsForTeam returns a list of public channels based on the provided team id string.
 func (c *Client4) GetDeletedChannelsForTeam(ctx context.Context, teamId string, page int, perPage int, etag string) ([]*Channel, *Response, error) {
 	query := fmt.Sprintf("/deleted?page=%v&per_page=%v", page, perPage)
@@ -3146,6 +3215,23 @@ func (c *Client4) GetDeletedChannelsForTeam(ctx context.Context, teamId string, 
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetDeletedChannelsForTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
+// GetDeletedChannelsForTeamWithBookmarks returns a list of public channels based on the provided team id string including its bookmarks.
+func (c *Client4) GetDeletedChannelsForTeamWithBookmarks(ctx context.Context, teamId string, page int, perPage int, etag string, bookmarksSince int64) ([]*ChannelWithBookmarks, *Response, error) {
+	query := fmt.Sprintf("/deleted?page=%v&per_page=%v&include_bookmarks=true&bookmarks_since=%v", page, perPage, bookmarksSince)
+	r, err := c.DoAPIGet(ctx, c.channelsForTeamRoute(teamId)+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch []*ChannelWithBookmarks
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GetDeletedChannelsForTeamWithBookmarks", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return ch, BuildResponse(r), nil
 }
@@ -3182,6 +3268,25 @@ func (c *Client4) GetChannelsForTeamForUser(ctx context.Context, teamId, userId 
 	return ch, BuildResponse(r), nil
 }
 
+// GetChannelsForTeamForUserWithBookmarks returns a list channels of on a team for a user.
+func (c *Client4) GetChannelsForTeamForUserWithBookmarks(ctx context.Context, teamId, userId string, includeDeleted bool, etag string, bookrmaksSince int64) ([]*ChannelWithBookmarks, *Response, error) {
+	route := fmt.Sprintf(c.userRoute(userId) + c.teamRoute(teamId) + "/channels")
+	query := fmt.Sprintf("?include_deleted=%v&include_bookmarks=true&bookmarks_since=%v", includeDeleted, bookrmaksSince)
+	route = route + query
+	r, err := c.DoAPIGet(ctx, route, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch []*ChannelWithBookmarks
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GetChannelsForTeamForUserWithBookmarks", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
 // GetChannelsForTeamAndUserWithLastDeleteAt returns a list channels of a team for a user, additionally filtered with lastDeleteAt. This does not have any effect if includeDeleted is set to false.
 func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(ctx context.Context, teamId, userId string, includeDeleted bool, lastDeleteAt int, etag string) ([]*Channel, *Response, error) {
 	route := fmt.Sprintf(c.userRoute(userId) + c.teamRoute(teamId) + "/channels")
@@ -3214,6 +3319,24 @@ func (c *Client4) GetChannelsForUserWithLastDeleteAt(ctx context.Context, userID
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelsForUserWithLastDeleteAt", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
+// GetChannelsForUserWithLastDeleteAtAndBookmarks returns a list channels for a user, additionally filtered with lastDeleteAt.
+func (c *Client4) GetChannelsForUserWithLastDeleteAtAndBookmarks(ctx context.Context, userID string, lastDeleteAt int, bookmarksSince int64) ([]*ChannelWithBookmarks, *Response, error) {
+	route := fmt.Sprintf(c.userRoute(userID) + "/channels")
+	route += fmt.Sprintf("?last_delete_at=%d&include_bookmarks=true&bookmarks_since=%v", lastDeleteAt, bookmarksSince)
+	r, err := c.DoAPIGet(ctx, route, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch []*ChannelWithBookmarks
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GetChannelsForUserWithLastDeleteAtAndBookmarks", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return ch, BuildResponse(r), nil
 }
@@ -3397,6 +3520,22 @@ func (c *Client4) GetChannelByName(ctx context.Context, channelName, teamId stri
 	return ch, BuildResponse(r), nil
 }
 
+// GetChannelByNameWithBookmarks returns a channel based on the provided channel name and team id strings including its bookmarks.
+func (c *Client4) GetChannelByNameWithBookmarks(ctx context.Context, channelName, teamId string, etag string, bookmarksSince int64) (*ChannelWithBookmarks, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelByNameRoute(channelName, teamId)+fmt.Sprintf("?include_bookmarks=true&bookmarks_since=%v", bookmarksSince), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch *ChannelWithBookmarks
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GetChannelByNameWithBookmarks", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
 // GetChannelByNameIncludeDeleted returns a channel based on the provided channel name and team id strings. Other then GetChannelByName it will also return deleted channels.
 func (c *Client4) GetChannelByNameIncludeDeleted(ctx context.Context, channelName, teamId string, etag string) (*Channel, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.channelByNameRoute(channelName, teamId)+"?include_deleted="+c.boolString(true), etag)
@@ -3425,6 +3564,22 @@ func (c *Client4) GetChannelByNameForTeamName(ctx context.Context, channelName, 
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetChannelByNameForTeamName", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
+// GetChannelByNameForTeamNameWithBookmarks returns a channel based on the provided channel name and team name strings and its bookmarks.
+func (c *Client4) GetChannelByNameForTeamNameWithBookmarks(ctx context.Context, channelName, teamName string, etag string, bookmarksSince int64) (*ChannelWithBookmarks, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelByNameForTeamNameRoute(channelName, teamName)+fmt.Sprintf("?include_bookmarks=true&bookmarks_since=%v", bookmarksSince), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch *ChannelWithBookmarks
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("GetChannelByNameForTeamNameWithBookmarks", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return ch, BuildResponse(r), nil
 }

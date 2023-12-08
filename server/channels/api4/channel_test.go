@@ -24,6 +24,71 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
+func createBookmarks(th *TestHelper, channelId string) []*model.ChannelBookmarkWithFileInfo {
+	bookmark0 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		DisplayName: "Bookmark 0",
+		LinkUrl:     "https://mattermost.com",
+		Type:        model.ChannelBookmarkLink,
+		Emoji:       ":smile:",
+	}
+
+	file := &model.FileInfo{
+		Id:              model.NewId(),
+		CreatorId:       th.BasicUser.Id,
+		Path:            "somepath",
+		ThumbnailPath:   "thumbpath",
+		PreviewPath:     "prevPath",
+		Name:            "test file",
+		Extension:       "png",
+		MimeType:        "images/png",
+		Size:            873182,
+		Width:           3076,
+		Height:          2200,
+		HasPreviewImage: true,
+	}
+
+	bookmark1 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		DisplayName: "Bookmark 1",
+		FileId:      file.Id,
+		Type:        model.ChannelBookmarkFile,
+		Emoji:       ":smile:",
+	}
+
+	th.App.Srv().Store().FileInfo().Save(th.Context, file)
+
+	bookmark2 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		DisplayName: "Bookmark 2",
+		LinkUrl:     "https://mattermost.com",
+		Type:        model.ChannelBookmarkLink,
+	}
+
+	bookmark3 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		DisplayName: "Bookmark 3",
+		LinkUrl:     "https://mattermost.com",
+		Type:        model.ChannelBookmarkLink,
+	}
+
+	bookmark4 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		DisplayName: "Bookmark 4",
+		LinkUrl:     "https://mattermost.com",
+		Type:        model.ChannelBookmarkLink,
+	}
+
+	// When ready switch this to use the API layer instead of the App layer
+	bookmarkResp0, _ := th.App.CreateChannelBookmark(th.Context, bookmark0, "")
+	bookmarkResp1, _ := th.App.CreateChannelBookmark(th.Context, bookmark1, "")
+	bookmarkResp2, _ := th.App.CreateChannelBookmark(th.Context, bookmark2, "")
+	bookmarkResp3, _ := th.App.CreateChannelBookmark(th.Context, bookmark3, "")
+	bookmarkResp4, _ := th.App.CreateChannelBookmark(th.Context, bookmark4, "")
+
+	return []*model.ChannelBookmarkWithFileInfo{bookmarkResp0, bookmarkResp1, bookmarkResp2, bookmarkResp3, bookmarkResp4}
+}
+
 func TestCreateChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -886,6 +951,38 @@ func TestGetChannel(t *testing.T) {
 	})
 }
 
+func TestGetChannelWithBookmarks(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	th.Context.Session().UserId = th.BasicUser.Id
+	bookmarks := createBookmarks(th, th.BasicChannel.Id)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
+
+	channel, _, err := client.GetChannelWithBookmarks(context.Background(), th.BasicChannel.Id, "", 0)
+	require.NoError(t, err)
+	require.Equal(t, th.BasicChannel.Id, channel.Id, "ids did not match")
+	require.Equal(t, len(channel.Bookmarks), 5)
+	require.Equal(t, channel.Bookmarks, bookmarks)
+
+	client.RemoveUserFromChannel(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+	_, _, err = client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+	require.NoError(t, err)
+
+	channel, _, err = client.GetChannelWithBookmarks(context.Background(), th.BasicChannel.Id, "", 0)
+	require.NoError(t, err)
+	require.Equal(t, th.BasicChannel.Id, channel.Id, "ids did not match")
+	require.Equal(t, len(channel.Bookmarks), 0)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		channel, _, err = client.GetChannelWithBookmarks(context.Background(), th.BasicChannel.Id, "", 0)
+		require.NoError(t, err)
+		require.Equal(t, len(channel.Bookmarks), 5)
+		require.Equal(t, channel.Bookmarks, bookmarks)
+	})
+}
+
 func TestGetDeletedChannelsForTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -927,6 +1024,22 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, channels, numInitialChannelsForTeam+3)
 
+	th.Context.Session().UserId = th.BasicUser.Id
+	bookmarks := createBookmarks(th, th.BasicChannel.Id)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
+
+	channelsWithBookmarks, _, err := client.GetDeletedChannelsForTeamWithBookmarks(context.Background(), team.Id, 0, 100, "", 0)
+
+	for _, c := range channelsWithBookmarks {
+		require.NotEqual(t, c.TeamId, "")
+		if c.Id == th.BasicChannel.Id {
+			require.Equal(t, len(c.Bookmarks), 5)
+			require.Equal(t, c.Bookmarks, bookmarks)
+		} else {
+			require.Equal(t, len(c.Bookmarks), 0)
+		}
+	}
+
 	// Login as different user and create private channel
 	th.LoginBasic2()
 	privateChannel2 := th.CreatePrivateChannel()
@@ -965,8 +1078,16 @@ func TestGetPrivateChannelsForTeam(t *testing.T) {
 	defer th.TearDown()
 	team := th.BasicTeam
 
+	th.Context.Session().UserId = th.BasicUser.Id
+	bookmarks := createBookmarks(th, th.BasicPrivateChannel.Id)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
+
 	// normal user
 	_, resp, err := th.Client.GetPrivateChannelsForTeam(context.Background(), team.Id, 0, 100, "")
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp, err = th.Client.GetPrivateChannelsForTeamWithBookmarks(context.Background(), team.Id, 0, 100, "", 0)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -978,6 +1099,19 @@ func TestGetPrivateChannelsForTeam(t *testing.T) {
 		for _, c := range channels {
 			// check all channels included are private
 			require.Equal(t, model.ChannelTypePrivate, c.Type, "should include private channels only")
+		}
+
+		channelsWithBookmarks, _, err := c.GetPrivateChannelsForTeamWithBookmarks(context.Background(), team.Id, 0, 100, "", 0)
+		require.NoError(t, err)
+
+		for _, c := range channelsWithBookmarks {
+			require.NotEqual(t, c.TeamId, "")
+			if c.Id == th.BasicPrivateChannel.Id {
+				require.Equal(t, len(c.Bookmarks), 5)
+				require.Equal(t, c.Bookmarks, bookmarks)
+			} else {
+				require.Equal(t, len(c.Bookmarks), 0)
+			}
 		}
 
 		channels, _, err = c.GetPrivateChannelsForTeam(context.Background(), team.Id, 0, 1, "")
@@ -1035,6 +1169,23 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	for _, c := range channels {
 		require.Equal(t, model.ChannelTypeOpen, c.Type, "should not include private channel")
 		require.NotEqual(t, privateChannel.DisplayName, c.DisplayName, "should not match private channel display name")
+	}
+
+	th.Context.Session().UserId = th.BasicUser.Id
+	bookmarks := createBookmarks(th, th.BasicChannel.Id)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
+
+	channelsWithBookmarks, _, err := client.GetPublicChannelsForTeamWithBookmarks(context.Background(), team.Id, 0, 1, "", 0)
+	require.NoError(t, err)
+
+	for _, c := range channelsWithBookmarks {
+		require.NotEqual(t, c.TeamId, "")
+		if c.Id == th.BasicChannel.Id {
+			require.Equal(t, len(c.Bookmarks), 5)
+			require.Equal(t, c.Bookmarks, bookmarks)
+		} else {
+			require.Equal(t, len(c.Bookmarks), 0)
+		}
 	}
 
 	channels, _, err = client.GetPublicChannelsForTeam(context.Background(), team.Id, 0, 1, "")
@@ -1180,6 +1331,38 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("get channels for the team for user which includes bookmarks", func(t *testing.T) {
+		th.Context.Session().UserId = th.BasicUser.Id
+		bookmarks := createBookmarks(th, th.BasicChannel.Id)
+		defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
+
+		channels, _, err := client.GetChannelsForTeamForUserWithBookmarks(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, false, "", 0)
+		require.NoError(t, err)
+
+		found := make([]bool, 3)
+		for _, c := range channels {
+			if c.Id == th.BasicChannel.Id {
+				found[0] = true
+				if c.Id == th.BasicChannel.Id {
+					require.Equal(t, len(c.Bookmarks), 5)
+					require.Equal(t, c.Bookmarks, bookmarks)
+				} else {
+					require.Equal(t, len(c.Bookmarks), 0)
+				}
+			} else if c.Id == th.BasicChannel2.Id {
+				found[1] = true
+			} else if c.Id == th.BasicPrivateChannel.Id {
+				found[2] = true
+			}
+
+			require.True(t, c.TeamId == "" || c.TeamId == th.BasicTeam.Id)
+		}
+
+		for _, f := range found {
+			require.True(t, f, "missing a channel")
+		}
+	})
+
 	t.Run("deleted channel could be retrieved using the proper flag", func(t *testing.T) {
 		testChannel := &model.Channel{
 			DisplayName: "dn_" + model.NewId(),
@@ -1261,6 +1444,23 @@ func TestGetChannelsForUser(t *testing.T) {
 	channels, _, err = client.GetChannelsForUserWithLastDeleteAt(context.Background(), th.BasicUser.Id, 0)
 	require.NoError(t, err)
 	assert.Len(t, channels, 100)
+
+	th.Context.Session().UserId = th.BasicUser.Id
+	bookmarks := createBookmarks(th, th.BasicChannel.Id)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
+
+	channelsWithBookmarks, _, err := client.GetChannelsForUserWithLastDeleteAtAndBookmarks(context.Background(), th.BasicUser.Id, 0, 0)
+	require.NoError(t, err)
+	assert.Len(t, channels, 100)
+
+	for _, c := range channelsWithBookmarks {
+		if c.Id == th.BasicChannel.Id {
+			require.Equal(t, len(c.Bookmarks), 5)
+			require.Equal(t, c.Bookmarks, bookmarks)
+		} else {
+			require.Equal(t, len(c.Bookmarks), 0)
+		}
+	}
 }
 
 func TestGetAllChannels(t *testing.T) {
@@ -1418,6 +1618,33 @@ func TestGetAllChannelsWithCount(t *testing.T) {
 	require.Empty(t, channels)
 
 	_, _, resp, err := client.GetAllChannelsWithCount(context.Background(), 0, 20, "")
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+}
+
+func TestGetAllChannelswithBookmarks(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	th.Context.Session().UserId = th.BasicUser.Id
+	bookmarks := createBookmarks(th, th.BasicChannel.Id)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
+
+	channels, _, err := th.SystemAdminClient.GetAllChannelsWithBookmarks(context.Background(), 0, 60, "", 0, model.ChannelSearchOpts{})
+	require.NoError(t, err)
+	require.True(t, len(channels) >= 3)
+	for _, c := range channels {
+		require.NotEqual(t, c.TeamId, "")
+		if c.Id == th.BasicChannel.Id {
+			require.Equal(t, len(c.Bookmarks), 5)
+			require.Equal(t, c.Bookmarks, bookmarks)
+		} else {
+			require.Equal(t, len(c.Bookmarks), 0)
+		}
+	}
+
+	_, resp, err := client.GetAllChannelsWithBookmarks(context.Background(), 0, 60, "", 0, model.ChannelSearchOpts{})
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
@@ -2317,6 +2544,16 @@ func TestGetChannelByName(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, th.BasicDeletedChannel.Name, channel.Name, "names did not match")
 
+	th.Context.Session().UserId = th.BasicUser.Id
+	bookmarks := createBookmarks(th, th.BasicChannel.Id)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
+
+	channelWithBookmaks, _, err := client.GetChannelByNameWithBookmarks(context.Background(), th.BasicChannel.Name, th.BasicTeam.Id, "", 0)
+	require.NoError(t, err)
+	require.Equal(t, th.BasicChannel.Name, channelWithBookmaks.Name, "names did not match")
+	require.Equal(t, len(channelWithBookmaks.Bookmarks), 5)
+	require.Equal(t, channelWithBookmaks.Bookmarks, bookmarks)
+
 	client.RemoveUserFromChannel(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 	_, _, err = client.GetChannelByName(context.Background(), th.BasicChannel.Name, th.BasicTeam.Id, "")
 	require.NoError(t, err)
@@ -2375,6 +2612,16 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 	channel, _, err = client.GetChannelByNameForTeamNameIncludeDeleted(context.Background(), th.BasicDeletedChannel.Name, th.BasicTeam.Name, "")
 	require.NoError(t, err)
 	require.Equal(t, th.BasicDeletedChannel.Name, channel.Name, "names did not match")
+
+	th.Context.Session().UserId = th.BasicUser.Id
+	bookmarks := createBookmarks(th, th.BasicChannel.Id)
+	defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, bookmarks[1].FileId)
+
+	channelWithBookmaks, _, err := client.GetChannelByNameForTeamNameWithBookmarks(context.Background(), th.BasicChannel.Name, th.BasicTeam.Name, "", 0)
+	require.NoError(t, err)
+	require.Equal(t, th.BasicChannel.Name, channelWithBookmaks.Name, "names did not match")
+	require.Equal(t, len(channelWithBookmaks.Bookmarks), 5)
+	require.Equal(t, channelWithBookmaks.Bookmarks, bookmarks)
 
 	client.RemoveUserFromChannel(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 	_, _, err = client.GetChannelByNameForTeamName(context.Background(), th.BasicChannel.Name, th.BasicTeam.Name, "")
