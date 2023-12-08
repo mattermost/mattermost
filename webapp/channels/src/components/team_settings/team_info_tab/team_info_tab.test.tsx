@@ -5,7 +5,6 @@ import {shallow} from 'enzyme';
 import React from 'react';
 import type {ChangeEvent, ComponentProps} from 'react';
 
-import {type MockIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
 import InfoTab from './team_info_tab';
@@ -27,7 +26,7 @@ describe('components/TeamSettings', () => {
         actions: baseActions,
         canInviteTeamMembers: true,
         isMobileView: false,
-        hasChanges: false,
+        hasChanges: true,
         hasChangeTabError: false,
         setHasChanges: jest.fn(),
         setHasChangeTabError: jest.fn(),
@@ -35,16 +34,16 @@ describe('components/TeamSettings', () => {
 
     test('should handle bad updateTeamIcon function call', () => {
         const wrapper = shallow<typeof InfoTab>(<InfoTab {...defaultProps}/>);
+
         // todo sinan: fix the type issue
-        wrapper.prop('updateTeamIcon')
-    
-        wrapper.instance().updateTeamIcon(null as unknown as ChangeEvent<HTMLInputElement>);
+        // instead of calling the updateTeamIcon function, you should call save changes to trigger updateTeamIcon
+        // wrapper.instance().updateTeamIcon(null as unknown as ChangeEvent<HTMLInputElement>);
 
         expect(wrapper.state('clientError')).toEqual('An error occurred while selecting the image.');
     });
 
     test('should handle invalid file selection', () => {
-        const wrapper = shallow<InfoTab>(<InfoTab {...defaultProps}/>);
+        const wrapper = shallow<typeof InfoTab>(<InfoTab {...defaultProps}/>);
 
         wrapper.instance().updateTeamIcon({
             target: {
@@ -122,7 +121,7 @@ describe('components/TeamSettings', () => {
             props.team.display_name = 'TestTeam';
         }
 
-        const wrapper = shallow<InfoTab>(<InfoTab {...props}/>);
+        const wrapper = shallow<typeof InfoTab>(<InfoTab {...props}/>);
 
         wrapper.instance().handleNameSubmit();
 

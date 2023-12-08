@@ -12,6 +12,7 @@ import Input from 'components/widgets/inputs/input/input';
 import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
 import CheckboxSettingItem from 'components/widgets/modals/components/checkbox_setting_item';
 import ModalSection from 'components/widgets/modals/components/modal_section';
+import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
 
 import OpenInvite from './open_invite';
 
@@ -27,31 +28,55 @@ const AccessTab = (props: Props) => {
             return [];
         }
         const domainList = allowedDomains.includes(',') ? allowedDomains.split(',') : [allowedDomains];
-        return domainList.map(domain => domain.trim());
+        return domainList.map((domain) => domain.trim());
     };
-    
 
     const [inviteId, setInviteId] = useState<Team['invite_id']>(props.team?.invite_id ?? '');
     const [allowedDomains, setAllowedDomains] = useState<string[]>(generateAllowedDomainOptions(props.team?.allowed_domains));
     const [showAllowedDomains, setShowAllowedDomains] = useState<boolean>(allowedDomains?.length > 0);
-    const [serverError, setServerError] = useState<string>('');
+    const [allowOpenInvite, setAllowOpenInvite] = useState<boolean>(props.team?.allow_open_invite ?? false);
+    const [serverError, setServerError] = useState<boolean>(false);
     const {formatMessage} = useIntl();
 
-    const handleAllowedDomainsSubmit = async () => {
+    const handleAllowedDomainsSubmit = async (): Promise<Error | null> => {
         if (allowedDomains.length === 0) {
-            return;
+            return null;
         }
         const {error} = await props.actions.patchTeam({
             id: props.team?.id,
             allowed_domains: allowedDomains.length === 1 ? allowedDomains[0] : allowedDomains.join(', '),
         });
         if (error) {
-            setServerError(error.message);
+            return error;
         }
+        return null;
     };
 
-    const updateAllowedDomains = (domain: string) => setAllowedDomains((prev) => [...prev, domain]);
-    const handleOnChangeDomains = (allowedDomainsOptions?: SelectTextInputOption[] | null) => setAllowedDomains(allowedDomainsOptions?.map((domain) => (domain.value)) || []);
+    const handleOpenInviteSubmit = async (): Promise<Error | null> => {
+        const data = {
+            id: props.team?.id,
+            allow_open_invite: allowOpenInvite,
+        };
+
+        const {error} = await props.actions.patchTeam(data);
+        if (error) {
+            return error;
+        }
+        return null;
+    };
+
+    const updateAllowedDomains = (domain: string) => {
+        props.setHasChanges(true);
+        setAllowedDomains((prev) => [...prev, domain]);
+    };
+    const updateOpenInvite = (value: boolean) => {
+        props.setHasChanges(true);
+        setAllowOpenInvite(value);
+    };
+    const handleOnChangeDomains = (allowedDomainsOptions?: SelectTextInputOption[] | null) => {
+        props.setHasChanges(true);
+        setAllowedDomains(allowedDomainsOptions?.map((domain) => domain.value) || []);
+    };
     const handleRegenerateInviteId = async () => {
         const {data, error} = await props.actions.regenerateTeamInviteId(props.team?.id || '');
 
@@ -70,6 +95,23 @@ const AccessTab = (props: Props) => {
         if (!enabled) {
             setAllowedDomains([]);
         }
+    };
+
+    const handleCancel = () => {
+        setServerError(false);
+        props.setHasChanges(false);
+        props.setHasChangeTabError(false);
+    };
+
+    const handleSaveChanges = async () => {
+        const alloedDomainError = await handleAllowedDomainsSubmit();
+        const openInviteError = await handleOpenInviteSubmit();
+        if (alloedDomainError || openInviteError) {
+            setServerError(true);
+            return;
+        }
+        props.setHasChanges(false);
+        props.setHasChangeTabError(false);
     };
 
     let inviteSection;
@@ -148,15 +190,20 @@ const AccessTab = (props: Props) => {
                 <div className='user-settings'>
                     {props.team?.group_constrained ? undefined : allowedDomainsSection}
                     <div className='divider-light'/>
-                    {/* todo sinan: finish open invite section */}
                     <OpenInvite
-                        teamId={props.team?.id}
                         isGroupConstrained={props.team?.group_constrained}
-                        allowOpenInvite={props.team?.allow_open_invite}
-                        patchTeam={props.actions.patchTeam}
+                        allowOpenInvite={allowOpenInvite}
+                        setAllowOpenInvite={updateOpenInvite}
                     />
                     <div className='divider-light'/>
                     {props.team?.group_constrained ? undefined : inviteSection}
+                    {props.hasChanges ?
+                        <SaveChangesPanel
+                            handleCancel={handleCancel}
+                            handleSubmit={handleSaveChanges}
+                            tabChangeError={props.hasChangeTabError}
+                            serverError={serverError}
+                        /> : undefined}
                 </div>
             }
         />

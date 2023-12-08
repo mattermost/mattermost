@@ -49,6 +49,10 @@ const TeamSettings = ({
             <AccessTab
                 team={team}
                 closeModal={closeModal}
+                hasChanges={hasChanges}
+                setHasChanges={setHasChanges}
+                hasChangeTabError={hasChangeTabError}
+                setHasChangeTabError={setHasChangeTabError}
             />
         );
         break;

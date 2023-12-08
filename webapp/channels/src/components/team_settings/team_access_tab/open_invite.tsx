@@ -1,42 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
-import {useIntl} from 'react-intl';
-
-import type {Team} from '@mattermost/types/teams';
-
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import React from 'react';
 
 import CheckboxSettingItem from 'components/widgets/modals/components/checkbox_setting_item';
 
 type Props = {
-    teamId?: string;
+    allowOpenInvite: boolean;
     isGroupConstrained?: boolean;
-    allowOpenInvite?: boolean;
-    patchTeam: (patch: Partial<Team>) => Promise<ActionResult>;
+    setAllowOpenInvite: (value: boolean) => void;
 };
 
-const OpenInvite = (props: Props) => {
-    const {teamId, isGroupConstrained, patchTeam} = props;
-    const intl = useIntl();
-    const [serverError, setServerError] = useState('');
-    const [allowOpenInvite, setAllowOpenInvite] = useState<boolean>(props.allowOpenInvite ?? false);
-
-    const submit = useCallback(() => {
-        setServerError('');
-        const data = {
-            id: teamId,
-            allow_open_invite: allowOpenInvite,
-        };
-
-        patchTeam(data).then(({error}) => {
-            if (error) {
-                setServerError(error.message);
-            }
-        });
-    }, [patchTeam, teamId, allowOpenInvite]);
-
+const OpenInvite = ({isGroupConstrained, allowOpenInvite, setAllowOpenInvite}: Props) => {
     if (isGroupConstrained) {
         // todo sinan: waiting info from Matt. handle with early return
         // openInviteSection = (

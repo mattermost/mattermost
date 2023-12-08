@@ -9,6 +9,7 @@ import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 
 import './save_changes_panel.scss';
 
+// todo sinan: add status of saving changes (saving, saved, error)
 type Props = {
     handleSubmit: () => void;
     handleCancel: () => void;

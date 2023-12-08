@@ -11,6 +11,7 @@
     box-shadow: var(--elevation-3);
     font-family: 'Open Sans', sans-serif;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    background: var(--center-channel-bg);
 
     &.error {
         background: var(--dnd-indicator);

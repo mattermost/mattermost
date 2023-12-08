@@ -23,6 +23,10 @@ import TeamAccessTab from './team_access_tab';
 export type OwnProps = {
     team?: Team & { last_team_icon_update?: number };
     closeModal: () => void;
+    hasChanges: boolean;
+    hasChangeTabError: boolean;
+    setHasChanges: (hasChanges: boolean) => void;
+    setHasChangeTabError: (hasChangesError: boolean) => void;
 };
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
