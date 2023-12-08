@@ -349,6 +349,7 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
                     previousPage={this.previousPage}
                     page={this.state.page}
                     rowComponentType={UserListRowWithError}
+                    noBuiltInFilters={true}
                 />
                 <ManageTeamsModal
                     user={this.state.user}
