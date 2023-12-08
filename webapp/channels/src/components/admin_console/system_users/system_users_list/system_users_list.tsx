@@ -15,13 +15,11 @@ import ManageTokensModal from 'components/admin_console/manage_tokens_modal';
 import ResetEmailModal from 'components/admin_console/reset_email_modal';
 import ResetPasswordModal from 'components/admin_console/reset_password_modal';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import SearchableUserList from 'components/searchable_user_list/searchable_user_list';
-import UserListRowWithError from 'components/user_list_row_with_error';
 
 import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
-import SystemUsersDropdown from '../system_users_dropdown';
+import AdminConsoleListTable from '../admin_console_list_table';
 
 type Props = {
     users: UserProfile[];
@@ -329,26 +327,9 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
 
         return (
             <div>
-                <SearchableUserList
-                    {...this.props}
-                    renderCount={this.renderCount}
-                    extraInfo={extraInfo}
-                    actions={[SystemUsersDropdown]}
-                    actionProps={{
-                        mfaEnabled: this.props.mfaEnabled,
-                        enableUserAccessTokens: this.props.enableUserAccessTokens,
-                        experimentalEnableAuthenticationTransfer: this.props.experimentalEnableAuthenticationTransfer,
-                        doPasswordReset: this.doPasswordReset,
-                        doEmailReset: this.doEmailReset,
-                        doManageTeams: this.doManageTeams,
-                        doManageRoles: this.doManageRoles,
-                        doManageTokens: this.doManageTokens,
-                    }}
-                    nextPage={this.nextPage}
-                    previousPage={this.previousPage}
-                    page={this.state.page}
-                    rowComponentType={UserListRowWithError}
-                    noBuiltInFilters={true}
+                <AdminConsoleListTable
+                    tableId='systemUsers'
+                    tableContainerClass='systemUsersTable'
                 />
                 <ManageTeamsModal
                     user={this.state.user}
