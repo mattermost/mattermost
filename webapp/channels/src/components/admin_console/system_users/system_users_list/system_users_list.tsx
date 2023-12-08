@@ -22,7 +22,6 @@ import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import SystemUsersDropdown from '../system_users_dropdown';
-import AdminConsoleListTable from '../admin_console_list_table';
 
 type Props = {
     users: UserProfile[];
