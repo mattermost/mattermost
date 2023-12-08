@@ -1973,7 +1973,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "A Személyazonosság szolgáltató (IdP) kibocsátó URL-jének érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http:// vagy https://."
+    "translation": "A személyazonosság szolgáltató kibocsátójának URL -je nem lehet üres szöveg."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -2949,11 +2949,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Verzió 116+"
+    "translation": "Verzió 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verzió 116+"
+    "translation": "Verzió 118+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9361,5 +9361,73 @@
   {
     "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
     "translation": "A tartós értesítés érvényesítése nem sikerült."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Csak a rendszergazdai bejegyzéseknek lehetnek prioritásai."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Érvénytelen üzleti e-mail a próbaidőszakhoz"
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Nem sikerült elküldeni a CWS-nek a true up profilt."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "A felhasználó nem hozhat létre prioritást élvező bejegyzést vagy állandó értesítést."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Nem menthető a tervezet egy törölt csatornán"
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Hiba történt az IP-szűrők alkalmazása során"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Hiba történt az IP szűrők lekérdezése közben"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Hiba történt az ügyfél IP-címének lekérdezése során"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "Az IP-szűrés nem érhető el ezen a kiszolgálón"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Nem sikerült létrehozni a true up állapotrekordot"
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Hiba nincs megadva a szervezet neve a saját üzemeltetésű induló beállításokhoz."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Ezt a csatornát csoportok kezelik.  Ez a felhasználó nem része annak a csoportnak, amelyet ezzel a csatornával szinkronizáltak."
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} és {{.Others}}} hozzá lett adva a {{.Channel}} csatornához."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} és {{.Others}}} már a csatornában vannak."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Ehhez a csatornához akkor adhatja hozzá {{.FirstUser}} and {{.Others}} felhasználókat, miután a **{{.Team}}** csapat tagjai lesznek."
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Nem sikerült frissíteni a kiszolgálói nyelvi fordításokat."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Tervezetek szolgáltatás le van tiltva."
   }
 ]

@@ -550,7 +550,7 @@ func (a *App) HandleCommandResponse(c request.CTX, command *model.Command, args 
 	_, err := a.HandleCommandResponsePost(c, command, args, response, builtIn)
 
 	if err != nil {
-		mlog.Debug("Error occurred in handling command response post", mlog.Err(err))
+		c.Logger().Debug("Error occurred in handling command response post", mlog.Err(err))
 		lastError = err
 	}
 
@@ -559,7 +559,7 @@ func (a *App) HandleCommandResponse(c request.CTX, command *model.Command, args 
 			_, err := a.HandleCommandResponsePost(c, command, args, resp, builtIn)
 
 			if err != nil {
-				mlog.Debug("Error occurred in handling command response post", mlog.Err(err))
+				c.Logger().Debug("Error occurred in handling command response post", mlog.Err(err))
 				lastError = err
 			}
 		}

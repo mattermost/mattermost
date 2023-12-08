@@ -9,87 +9,89 @@ import (
 	"strconv"
 )
 
+type WebsocketEventType string
+
 const (
-	WebsocketEventTyping                              = "typing"
-	WebsocketEventPosted                              = "posted"
-	WebsocketEventPostEdited                          = "post_edited"
-	WebsocketEventPostDeleted                         = "post_deleted"
-	WebsocketEventPostUnread                          = "post_unread"
-	WebsocketEventChannelConverted                    = "channel_converted"
-	WebsocketEventChannelCreated                      = "channel_created"
-	WebsocketEventChannelDeleted                      = "channel_deleted"
-	WebsocketEventChannelRestored                     = "channel_restored"
-	WebsocketEventChannelUpdated                      = "channel_updated"
-	WebsocketEventChannelMemberUpdated                = "channel_member_updated"
-	WebsocketEventChannelSchemeUpdated                = "channel_scheme_updated"
-	WebsocketEventDirectAdded                         = "direct_added"
-	WebsocketEventGroupAdded                          = "group_added"
-	WebsocketEventNewUser                             = "new_user"
-	WebsocketEventAddedToTeam                         = "added_to_team"
-	WebsocketEventLeaveTeam                           = "leave_team"
-	WebsocketEventUpdateTeam                          = "update_team"
-	WebsocketEventDeleteTeam                          = "delete_team"
-	WebsocketEventRestoreTeam                         = "restore_team"
-	WebsocketEventUpdateTeamScheme                    = "update_team_scheme"
-	WebsocketEventUserAdded                           = "user_added"
-	WebsocketEventUserUpdated                         = "user_updated"
-	WebsocketEventUserRoleUpdated                     = "user_role_updated"
-	WebsocketEventMemberroleUpdated                   = "memberrole_updated"
-	WebsocketEventUserRemoved                         = "user_removed"
-	WebsocketEventPreferenceChanged                   = "preference_changed"
-	WebsocketEventPreferencesChanged                  = "preferences_changed"
-	WebsocketEventPreferencesDeleted                  = "preferences_deleted"
-	WebsocketEventEphemeralMessage                    = "ephemeral_message"
-	WebsocketEventStatusChange                        = "status_change"
-	WebsocketEventHello                               = "hello"
-	WebsocketAuthenticationChallenge                  = "authentication_challenge"
-	WebsocketEventReactionAdded                       = "reaction_added"
-	WebsocketEventReactionRemoved                     = "reaction_removed"
-	WebsocketEventResponse                            = "response"
-	WebsocketEventEmojiAdded                          = "emoji_added"
-	WebsocketEventChannelViewed                       = "channel_viewed"
-	WebsocketEventMultipleChannelsViewed              = "multiple_channels_viewed"
-	WebsocketEventPluginStatusesChanged               = "plugin_statuses_changed"
-	WebsocketEventPluginEnabled                       = "plugin_enabled"
-	WebsocketEventPluginDisabled                      = "plugin_disabled"
-	WebsocketEventRoleUpdated                         = "role_updated"
-	WebsocketEventLicenseChanged                      = "license_changed"
-	WebsocketEventConfigChanged                       = "config_changed"
-	WebsocketEventOpenDialog                          = "open_dialog"
-	WebsocketEventGuestsDeactivated                   = "guests_deactivated"
-	WebsocketEventUserActivationStatusChange          = "user_activation_status_change"
-	WebsocketEventReceivedGroup                       = "received_group"
-	WebsocketEventReceivedGroupAssociatedToTeam       = "received_group_associated_to_team"
-	WebsocketEventReceivedGroupNotAssociatedToTeam    = "received_group_not_associated_to_team"
-	WebsocketEventReceivedGroupAssociatedToChannel    = "received_group_associated_to_channel"
-	WebsocketEventReceivedGroupNotAssociatedToChannel = "received_group_not_associated_to_channel"
-	WebsocketEventGroupMemberDelete                   = "group_member_deleted"
-	WebsocketEventGroupMemberAdd                      = "group_member_add"
-	WebsocketEventSidebarCategoryCreated              = "sidebar_category_created"
-	WebsocketEventSidebarCategoryUpdated              = "sidebar_category_updated"
-	WebsocketEventSidebarCategoryDeleted              = "sidebar_category_deleted"
-	WebsocketEventSidebarCategoryOrderUpdated         = "sidebar_category_order_updated"
-	WebsocketWarnMetricStatusReceived                 = "warn_metric_status_received"
-	WebsocketWarnMetricStatusRemoved                  = "warn_metric_status_removed"
-	WebsocketEventCloudPaymentStatusUpdated           = "cloud_payment_status_updated"
-	WebsocketEventCloudSubscriptionChanged            = "cloud_subscription_changed"
-	WebsocketEventThreadUpdated                       = "thread_updated"
-	WebsocketEventThreadFollowChanged                 = "thread_follow_changed"
-	WebsocketEventThreadReadChanged                   = "thread_read_changed"
-	WebsocketFirstAdminVisitMarketplaceStatusReceived = "first_admin_visit_marketplace_status_received"
-	WebsocketEventDraftCreated                        = "draft_created"
-	WebsocketEventDraftUpdated                        = "draft_updated"
-	WebsocketEventDraftDeleted                        = "draft_deleted"
-	WebsocketEventAcknowledgementAdded                = "post_acknowledgement_added"
-	WebsocketEventAcknowledgementRemoved              = "post_acknowledgement_removed"
-	WebsocketEventPersistentNotificationTriggered     = "persistent_notification_triggered"
-	WebsocketEventHostedCustomerSignupProgressUpdated = "hosted_customer_signup_progress_updated"
+	WebsocketEventTyping                              WebsocketEventType = "typing"
+	WebsocketEventPosted                              WebsocketEventType = "posted"
+	WebsocketEventPostEdited                          WebsocketEventType = "post_edited"
+	WebsocketEventPostDeleted                         WebsocketEventType = "post_deleted"
+	WebsocketEventPostUnread                          WebsocketEventType = "post_unread"
+	WebsocketEventChannelConverted                    WebsocketEventType = "channel_converted"
+	WebsocketEventChannelCreated                      WebsocketEventType = "channel_created"
+	WebsocketEventChannelDeleted                      WebsocketEventType = "channel_deleted"
+	WebsocketEventChannelRestored                     WebsocketEventType = "channel_restored"
+	WebsocketEventChannelUpdated                      WebsocketEventType = "channel_updated"
+	WebsocketEventChannelMemberUpdated                WebsocketEventType = "channel_member_updated"
+	WebsocketEventChannelSchemeUpdated                WebsocketEventType = "channel_scheme_updated"
+	WebsocketEventDirectAdded                         WebsocketEventType = "direct_added"
+	WebsocketEventGroupAdded                          WebsocketEventType = "group_added"
+	WebsocketEventNewUser                             WebsocketEventType = "new_user"
+	WebsocketEventAddedToTeam                         WebsocketEventType = "added_to_team"
+	WebsocketEventLeaveTeam                           WebsocketEventType = "leave_team"
+	WebsocketEventUpdateTeam                          WebsocketEventType = "update_team"
+	WebsocketEventDeleteTeam                          WebsocketEventType = "delete_team"
+	WebsocketEventRestoreTeam                         WebsocketEventType = "restore_team"
+	WebsocketEventUpdateTeamScheme                    WebsocketEventType = "update_team_scheme"
+	WebsocketEventUserAdded                           WebsocketEventType = "user_added"
+	WebsocketEventUserUpdated                         WebsocketEventType = "user_updated"
+	WebsocketEventUserRoleUpdated                     WebsocketEventType = "user_role_updated"
+	WebsocketEventMemberroleUpdated                   WebsocketEventType = "memberrole_updated"
+	WebsocketEventUserRemoved                         WebsocketEventType = "user_removed"
+	WebsocketEventPreferenceChanged                   WebsocketEventType = "preference_changed"
+	WebsocketEventPreferencesChanged                  WebsocketEventType = "preferences_changed"
+	WebsocketEventPreferencesDeleted                  WebsocketEventType = "preferences_deleted"
+	WebsocketEventEphemeralMessage                    WebsocketEventType = "ephemeral_message"
+	WebsocketEventStatusChange                        WebsocketEventType = "status_change"
+	WebsocketEventHello                               WebsocketEventType = "hello"
+	WebsocketAuthenticationChallenge                  WebsocketEventType = "authentication_challenge"
+	WebsocketEventReactionAdded                       WebsocketEventType = "reaction_added"
+	WebsocketEventReactionRemoved                     WebsocketEventType = "reaction_removed"
+	WebsocketEventResponse                            WebsocketEventType = "response"
+	WebsocketEventEmojiAdded                          WebsocketEventType = "emoji_added"
+	WebsocketEventChannelViewed                       WebsocketEventType = "channel_viewed"
+	WebsocketEventMultipleChannelsViewed              WebsocketEventType = "multiple_channels_viewed"
+	WebsocketEventPluginStatusesChanged               WebsocketEventType = "plugin_statuses_changed"
+	WebsocketEventPluginEnabled                       WebsocketEventType = "plugin_enabled"
+	WebsocketEventPluginDisabled                      WebsocketEventType = "plugin_disabled"
+	WebsocketEventRoleUpdated                         WebsocketEventType = "role_updated"
+	WebsocketEventLicenseChanged                      WebsocketEventType = "license_changed"
+	WebsocketEventConfigChanged                       WebsocketEventType = "config_changed"
+	WebsocketEventOpenDialog                          WebsocketEventType = "open_dialog"
+	WebsocketEventGuestsDeactivated                   WebsocketEventType = "guests_deactivated"
+	WebsocketEventUserActivationStatusChange          WebsocketEventType = "user_activation_status_change"
+	WebsocketEventReceivedGroup                       WebsocketEventType = "received_group"
+	WebsocketEventReceivedGroupAssociatedToTeam       WebsocketEventType = "received_group_associated_to_team"
+	WebsocketEventReceivedGroupNotAssociatedToTeam    WebsocketEventType = "received_group_not_associated_to_team"
+	WebsocketEventReceivedGroupAssociatedToChannel    WebsocketEventType = "received_group_associated_to_channel"
+	WebsocketEventReceivedGroupNotAssociatedToChannel WebsocketEventType = "received_group_not_associated_to_channel"
+	WebsocketEventGroupMemberDelete                   WebsocketEventType = "group_member_deleted"
+	WebsocketEventGroupMemberAdd                      WebsocketEventType = "group_member_add"
+	WebsocketEventSidebarCategoryCreated              WebsocketEventType = "sidebar_category_created"
+	WebsocketEventSidebarCategoryUpdated              WebsocketEventType = "sidebar_category_updated"
+	WebsocketEventSidebarCategoryDeleted              WebsocketEventType = "sidebar_category_deleted"
+	WebsocketEventSidebarCategoryOrderUpdated         WebsocketEventType = "sidebar_category_order_updated"
+	WebsocketWarnMetricStatusReceived                 WebsocketEventType = "warn_metric_status_received"
+	WebsocketWarnMetricStatusRemoved                  WebsocketEventType = "warn_metric_status_removed"
+	WebsocketEventCloudPaymentStatusUpdated           WebsocketEventType = "cloud_payment_status_updated"
+	WebsocketEventCloudSubscriptionChanged            WebsocketEventType = "cloud_subscription_changed"
+	WebsocketEventThreadUpdated                       WebsocketEventType = "thread_updated"
+	WebsocketEventThreadFollowChanged                 WebsocketEventType = "thread_follow_changed"
+	WebsocketEventThreadReadChanged                   WebsocketEventType = "thread_read_changed"
+	WebsocketFirstAdminVisitMarketplaceStatusReceived WebsocketEventType = "first_admin_visit_marketplace_status_received"
+	WebsocketEventDraftCreated                        WebsocketEventType = "draft_created"
+	WebsocketEventDraftUpdated                        WebsocketEventType = "draft_updated"
+	WebsocketEventDraftDeleted                        WebsocketEventType = "draft_deleted"
+	WebsocketEventAcknowledgementAdded                WebsocketEventType = "post_acknowledgement_added"
+	WebsocketEventAcknowledgementRemoved              WebsocketEventType = "post_acknowledgement_removed"
+	WebsocketEventPersistentNotificationTriggered     WebsocketEventType = "persistent_notification_triggered"
+	WebsocketEventHostedCustomerSignupProgressUpdated WebsocketEventType = "hosted_customer_signup_progress_updated"
 )
 
 type WebSocketMessage interface {
 	ToJSON() ([]byte, error)
 	IsValid() bool
-	EventType() string
+	EventType() WebsocketEventType
 }
 
 type WebsocketBroadcast struct {
@@ -179,14 +181,14 @@ func (p *precomputedWebSocketEventJSON) copy() *precomputedWebSocketEventJSON {
 
 // webSocketEventJSON mirrors WebSocketEvent to make some of its unexported fields serializable
 type webSocketEventJSON struct {
-	Event     string              `json:"event"`
+	Event     WebsocketEventType  `json:"event"`
 	Data      map[string]any      `json:"data"`
 	Broadcast *WebsocketBroadcast `json:"broadcast"`
 	Sequence  int64               `json:"seq"`
 }
 
 type WebSocketEvent struct {
-	event           string
+	event           WebsocketEventType
 	data            map[string]any
 	broadcast       *WebsocketBroadcast
 	sequence        int64
@@ -238,7 +240,7 @@ func (ev *WebSocketEvent) Add(key string, value any) {
 	ev.data[key] = value
 }
 
-func NewWebSocketEvent(event, teamId, channelId, userId string, omitUsers map[string]bool, omitConnectionId string) *WebSocketEvent {
+func NewWebSocketEvent(event WebsocketEventType, teamId, channelId, userId string, omitUsers map[string]bool, omitConnectionId string) *WebSocketEvent {
 	return &WebSocketEvent{
 		event: event,
 		data:  make(map[string]any),
@@ -293,7 +295,7 @@ func (ev *WebSocketEvent) GetSequence() int64 {
 	return ev.sequence
 }
 
-func (ev *WebSocketEvent) SetEvent(event string) *WebSocketEvent {
+func (ev *WebSocketEvent) SetEvent(event WebsocketEventType) *WebSocketEvent {
 	evCopy := ev.Copy()
 	evCopy.event = event
 	return evCopy
@@ -321,7 +323,7 @@ func (ev *WebSocketEvent) IsValid() bool {
 	return ev.event != ""
 }
 
-func (ev *WebSocketEvent) EventType() string {
+func (ev *WebSocketEvent) EventType() WebsocketEventType {
 	return ev.event
 }
 
@@ -419,7 +421,7 @@ func (m *WebSocketResponse) IsValid() bool {
 	return m.Status != ""
 }
 
-func (m *WebSocketResponse) EventType() string {
+func (m *WebSocketResponse) EventType() WebsocketEventType {
 	return WebsocketEventResponse
 }
 
