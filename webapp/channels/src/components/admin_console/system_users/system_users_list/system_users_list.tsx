@@ -330,7 +330,7 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
 
         return (
             <div>
-                {/* <SearchableUserList
+                <SearchableUserList
                     {...this.props}
                     renderCount={this.renderCount}
                     extraInfo={extraInfo}
@@ -349,10 +349,6 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
                     previousPage={this.previousPage}
                     page={this.state.page}
                     rowComponentType={UserListRowWithError}
-                    noBuiltInFilters={true}
-                /> */}
-                <AdminConsoleListTable
-                    tableContainerClass='systemUsersTable'
                 />
                 <ManageTeamsModal
                     user={this.state.user}
