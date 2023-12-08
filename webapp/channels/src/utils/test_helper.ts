@@ -4,7 +4,7 @@
 import {Channel, ChannelMembership, ChannelNotifyProps, ChannelWithTeamData} from '@mattermost/types/channels';
 import {Bot} from '@mattermost/types/bots';
 import {Role} from '@mattermost/types/roles';
-import {UserProfile, UserAccessToken} from '@mattermost/types/users';
+import {UserProfile, UserAccessToken, UserCustomStatus, CustomStatusDuration} from '@mattermost/types/users';
 import {Team, TeamMembership} from '@mattermost/types/teams';
 import {Group} from '@mattermost/types/groups';
 import {FileInfo} from '@mattermost/types/files';
@@ -62,6 +62,16 @@ export class TestHelper {
             bot_description: '',
         };
         return Object.assign({}, defaultUser, override);
+    }
+
+    public static getCustomStatusMock(override?: Partial<UserCustomStatus>): UserCustomStatus {
+        const defaultCustomStatus: UserCustomStatus = {
+            emoji: 'neutral_face',
+            text: 'text',
+            duration: CustomStatusDuration.DONT_CLEAR,
+        };
+
+        return Object.assign({}, defaultCustomStatus, override);
     }
 
     public static getUserAccessTokenMock(override?: Partial<UserAccessToken>): UserAccessToken {
