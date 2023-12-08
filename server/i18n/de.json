@@ -2856,7 +2856,7 @@
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Neue Gruppennachricht am {{.Day}}. {{.Month}} {{.Year}}"
+    "translation": "[{{ .SiteName }}] Neue Gruppennachricht am {{.Day}}. {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
