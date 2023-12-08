@@ -100,17 +100,19 @@ const (
 
 	SitenameMaxLength = 30
 
-	ServiceSettingsDefaultSiteURL          = "http://localhost:8065"
-	ServiceSettingsDefaultTLSCertFile      = ""
-	ServiceSettingsDefaultTLSKeyFile       = ""
-	ServiceSettingsDefaultReadTimeout      = 300
-	ServiceSettingsDefaultWriteTimeout     = 300
-	ServiceSettingsDefaultIdleTimeout      = 60
-	ServiceSettingsDefaultMaxLoginAttempts = 10
-	ServiceSettingsDefaultAllowCorsFrom    = ""
-	ServiceSettingsDefaultListenAndAddress = ":8065"
-	ServiceSettingsDefaultGiphySdkKeyTest  = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
-	ServiceSettingsDefaultDeveloperFlags   = ""
+	ServiceSettingsDefaultSiteURL                = "http://localhost:8065"
+	ServiceSettingsDefaultTLSCertFile            = ""
+	ServiceSettingsDefaultTLSKeyFile             = ""
+	ServiceSettingsDefaultReadTimeout            = 300
+	ServiceSettingsDefaultWriteTimeout           = 300
+	ServiceSettingsDefaultIdleTimeout            = 60
+	ServiceSettingsDefaultMaxLoginAttempts       = 10
+	ServiceSettingsDefaultAllowCorsFrom          = ""
+	ServiceSettingsDefaultListenAndAddress       = ":8065"
+	ServiceSettingsDefaultGiphySdkKeyTest        = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
+	ServiceSettingsDefaultDeveloperFlags         = ""
+	ServiceSettingsDefaultUniqueReactionsPerPost = 50
+	ServiceSettingsMaxUniqueReactionsPerPost     = 500
 
 	TeamSettingsDefaultSiteName              = "Mattermost"
 	TeamSettingsDefaultMaxUsersPerTeam       = 50
@@ -224,6 +226,7 @@ const (
 	ComplianceExportTypeGlobalrelayZip = "globalrelay-zip"
 	GlobalrelayCustomerTypeA9          = "A9"
 	GlobalrelayCustomerTypeA10         = "A10"
+	GlobalrelayCustomerTypeCustom      = "CUSTOM"
 
 	ClientSideCertCheckPrimaryAuth   = "primary"
 	ClientSideCertCheckSecondaryAuth = "secondary"
@@ -394,6 +397,7 @@ type ServiceSettings struct {
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
+	UniqueEmojiReactionLimitPerPost                   *int    `access:"site_posts"`
 	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
 }
 
@@ -884,6 +888,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.SelfHostedPurchase == nil {
 		s.SelfHostedPurchase = NewBool(true)
+	}
+
+	if s.UniqueEmojiReactionLimitPerPost == nil {
+		s.UniqueEmojiReactionLimitPerPost = NewInt(ServiceSettingsDefaultUniqueReactionsPerPost)
+	}
+
+	if *s.UniqueEmojiReactionLimitPerPost > ServiceSettingsMaxUniqueReactionsPerPost {
+		s.UniqueEmojiReactionLimitPerPost = NewInt(ServiceSettingsMaxUniqueReactionsPerPost)
 	}
 
 	if s.RefreshPostStatsRunTime == nil {
@@ -3097,11 +3109,13 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 }
 
 type GlobalRelayMessageExportSettings struct {
-	CustomerType      *string `access:"compliance_compliance_export"` // must be either A9 or A10, dictates SMTP server url
-	SMTPUsername      *string `access:"compliance_compliance_export"`
-	SMTPPassword      *string `access:"compliance_compliance_export"`
-	EmailAddress      *string `access:"compliance_compliance_export"` // the address to send messages to
-	SMTPServerTimeout *int    `access:"compliance_compliance_export"`
+	CustomerType         *string `access:"compliance_compliance_export"` // must be either A9, A10 or CUSTOM, dictates SMTP server url
+	SMTPUsername         *string `access:"compliance_compliance_export"`
+	SMTPPassword         *string `access:"compliance_compliance_export"`
+	EmailAddress         *string `access:"compliance_compliance_export"` // the address to send messages to
+	SMTPServerTimeout    *int    `access:"compliance_compliance_export"`
+	CustomSMTPServerName *string `access:"compliance_compliance_export"`
+	CustomSMTPPort       *string `access:"compliance_compliance_export"`
 }
 
 func (s *GlobalRelayMessageExportSettings) SetDefaults() {
@@ -3119,6 +3133,12 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 	}
 	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
 		s.SMTPServerTimeout = NewInt(1800)
+	}
+	if s.CustomSMTPServerName == nil {
+		s.CustomSMTPServerName = NewString("")
+	}
+	if s.CustomSMTPPort == nil {
+		s.CustomSMTPPort = NewString("25")
 	}
 }
 
@@ -4094,8 +4114,10 @@ func (s *MessageExportSettings) isValid() *AppError {
 		if *s.ExportFormat == ComplianceExportTypeGlobalrelay {
 			if s.GlobalRelaySettings == nil {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.config_missing.app_error", nil, "", http.StatusBadRequest)
-			} else if s.GlobalRelaySettings.CustomerType == nil || (*s.GlobalRelaySettings.CustomerType != GlobalrelayCustomerTypeA9 && *s.GlobalRelaySettings.CustomerType != GlobalrelayCustomerTypeA10) {
+			} else if s.GlobalRelaySettings.CustomerType == nil || (*s.GlobalRelaySettings.CustomerType != GlobalrelayCustomerTypeA9 && *s.GlobalRelaySettings.CustomerType != GlobalrelayCustomerTypeA10 && *s.GlobalRelaySettings.CustomerType != GlobalrelayCustomerTypeCustom) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.customer_type.app_error", nil, "", http.StatusBadRequest)
+			} else if *s.GlobalRelaySettings.CustomerType == GlobalrelayCustomerTypeCustom && ((s.GlobalRelaySettings.CustomSMTPServerName == nil || *s.GlobalRelaySettings.CustomSMTPServerName == "") || (s.GlobalRelaySettings.CustomSMTPPort == nil || *s.GlobalRelaySettings.CustomSMTPPort == "")) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error", nil, "", http.StatusBadRequest)
 			} else if s.GlobalRelaySettings.EmailAddress == nil || !strings.Contains(*s.GlobalRelaySettings.EmailAddress, "@") {
 				// validating email addresses is hard - just make sure it contains an '@' sign
 				// see https://stackoverflow.com/questions/201323/using-a-regular-expression-to-validate-an-email-address

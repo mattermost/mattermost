@@ -27,6 +27,7 @@ import {
     Feedback,
     WorkspaceDeletionRequest,
     NewsletterRequestBody,
+    Installation,
 } from '@mattermost/types/cloud';
 import {
     SelfHostedSignupForm,
@@ -51,7 +52,7 @@ import {
     ChannelSearchOpts,
     ServerChannel,
 } from '@mattermost/types/channels';
-import {Options, StatusOK, ClientResponse, LogLevel, FetchPaginatedThreadOptions} from '@mattermost/types/client4';
+import {Options, StatusOK, ClientResponse, LogLevel, FetchPaginatedThreadOptions, UserReportOptions} from '@mattermost/types/client4';
 import {Compliance} from '@mattermost/types/compliance';
 import {
     ClientConfig,
@@ -105,7 +106,7 @@ import type {
     MarketplaceApp,
     MarketplacePlugin,
 } from '@mattermost/types/marketplace';
-import {Post, PostList, PostSearchResults, OpenGraphMetadata, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics} from '@mattermost/types/posts';
+import {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import {Draft} from '@mattermost/types/drafts';
 import {Reaction} from '@mattermost/types/reactions';
 import {Role} from '@mattermost/types/roles';
@@ -132,6 +133,7 @@ import {
     UserStatus,
     GetFilteredUsersStatsOpts,
     UserCustomStatus,
+    UserReport,
 } from '@mattermost/types/users';
 import {DeepPartial, RelationOneToOne} from '@mattermost/types/utilities';
 import {ProductNotices} from '@mattermost/types/product_notices';
@@ -980,6 +982,14 @@ export default class Client4 {
             {method: 'get'},
         );
     };
+
+    getUsersForReporting = (filter: UserReportOptions) => {
+        const queryString = buildQueryString(filter);
+        return this.doFetch<UserReport[]>(
+            `${this.getUsersRoute()}/report${queryString}`,
+            {method: 'get'},
+        );
+    }
 
     /**
      * @deprecated
@@ -2158,6 +2168,13 @@ export default class Client4 {
             {method: 'post'},
         );
     };
+
+    getPostInfo = (postId: string) => {
+        return this.doFetch<PostInfo>(
+            `${this.getPostRoute(postId)}/info`,
+            {method: 'get'},
+        )
+    }
 
     getPostsByIds = (postIds: string[]) => {
         return this.doFetch<Post[]>(
@@ -3912,6 +3929,13 @@ export default class Client4 {
     getSubscription = () => {
         return this.doFetch<Subscription>(
             `${this.getCloudRoute()}/subscription`,
+            {method: 'get'},
+        );
+    }
+
+    getInstallation = () => {
+        return this.doFetch<Installation>(
+            `${this.getCloudRoute()}/installation`,
             {method: 'get'},
         );
     }
