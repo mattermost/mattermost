@@ -116,6 +116,19 @@ func (o *ChannelMember) IsValid() *AppError {
 		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if appErr := o.IsNotifyPropsValid(); appErr != nil {
+		return appErr
+	}
+
+	if len(o.Roles) > UserRolesMaxLength {
+		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.roles_limit.app_error",
+			map[string]any{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (o *ChannelMember) IsNotifyPropsValid() *AppError {
 	notifyLevel := o.NotifyProps[DesktopNotifyProp]
 	if len(notifyLevel) > 20 || !IsChannelNotifyLevelValid(notifyLevel) {
 		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.notify_level.app_error", nil, "notify_level="+notifyLevel, http.StatusBadRequest)
@@ -148,11 +161,6 @@ func (o *ChannelMember) IsValid() *AppError {
 		if len(channelAutoFollowThreads) > 3 || !IsChannelAutoFollowThreadsValid(channelAutoFollowThreads) {
 			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error", nil, "channel_auto_follow_threads="+channelAutoFollowThreads, http.StatusBadRequest)
 		}
-	}
-
-	if len(o.Roles) > UserRolesMaxLength {
-		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.roles_limit.app_error",
-			map[string]any{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
 	}
 
 	jsonStringNotifyProps := string(ToJSON(o.NotifyProps))

@@ -2536,6 +2536,32 @@ func (_m *ChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) ([
 	return r0, r1
 }
 
+// UpdateMultipleMembersNotifyProps provides a mock function with given fields: members
+func (_m *ChannelStore) UpdateMultipleMembersNotifyProps(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
+	ret := _m.Called(members)
+
+	var r0 []*model.ChannelMember
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]*model.ChannelMember) ([]*model.ChannelMember, error)); ok {
+		return rf(members)
+	}
+	if rf, ok := ret.Get(0).(func([]*model.ChannelMember) []*model.ChannelMember); ok {
+		r0 = rf(members)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]*model.ChannelMember) error); ok {
+		r1 = rf(members)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateSidebarCategories provides a mock function with given fields: userID, teamID, categories
 func (_m *ChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
 	ret := _m.Called(userID, teamID, categories)

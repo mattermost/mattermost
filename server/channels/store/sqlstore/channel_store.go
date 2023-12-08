@@ -1922,6 +1922,75 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 	return dbMember.ToModel(), err
 }
 
+func (s SqlChannelStore) UpdateMultipleMembersNotifyProps(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
+	for _, member := range members {
+		// member.PreUpdate() // TODO this doesn't do anything since we're not saving the lastupdateat
+
+		if err := member.IsNotifyPropsValid(); err != nil {
+			return nil, err
+		}
+	}
+
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	for _, member := range members {
+		var sql string
+		var args []any
+
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			jsonNotifyProps := string(model.ToJSON(member.NotifyProps))
+			sql, args, err = s.getQueryBuilder().
+				Update("channelmembers").
+				Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps)).
+				Where(sq.Eq{
+					"userid":    member.UserId,
+					"channelid": member.ChannelId,
+				}).ToSql()
+			if err != nil {
+				return nil, errors.Wrap(err, "UpdateMultipleMembersNotifyProps_Postgres")
+			}
+		} else {
+			if len(member.NotifyProps) == 0 {
+				// We can't construct a MySQL query for an empty map, so just skip this one
+				continue
+			}
+
+			// Unpack the keys and values to pass to MySQL
+			jsonArgs, jsonSQL := constructMySQLJSONArgs(member.NotifyProps)
+			jsonExpr := sq.Expr(fmt.Sprintf("JSON_SET(NotifyProps, %s)", jsonSQL), jsonArgs...)
+
+			// Example: UPDATE ChannelMembers
+			// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
+			// WHERE ...
+			sql, args, err = s.getQueryBuilder().
+				Update("ChannelMembers").
+				Set("NotifyProps", jsonExpr).
+				Where(sq.Eq{
+					"userid":    member.UserId,
+					"channelid": member.ChannelId,
+				}).ToSql()
+			if err != nil {
+				return nil, errors.Wrap(err, "UpdateMultipleMembersNotifyProps_MySQL")
+			}
+		}
+
+		_, err = transaction.Exec(sql, args...)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to update ChannelMember")
+		}
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return members, nil // HARRISON TODO return the updated members?
+}
+
 func (s SqlChannelStore) GetMembers(channelID string, offset, limit int) (model.ChannelMembers, error) {
 	sql, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
 		Where(sq.Eq{
