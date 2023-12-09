@@ -20,7 +20,7 @@ type Props = {
     team?: Team;
     file?: File | null;
     teamName?: string;
-    loadingPicture?: boolean;
+    disabled?: boolean;
     onFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
     onRemove?: () => void;
     clientError?: BaseSettingItemProps['error'];
@@ -55,14 +55,14 @@ const TeamPictureSection = (props: Props) => {
                     ref={selectInput}
                     className='hidden'
                     accept={Constants.ACCEPT_STATIC_IMAGE}
-                    disabled={props.loadingPicture}
+                    disabled={props.disabled}
                     type='file'
                     onChange={props.onFileChange}
                     aria-hidden={true}
                     tabIndex={-1}
                 />
                 <span
-                    disabled={props.loadingPicture}
+                    disabled={props.disabled}
                     onClick={handleInputFile}
                 >
                     <EditIcon/>

@@ -28,10 +28,7 @@ const InfoTab = (props: Props) => {
     const [name, setName] = useState<Team['display_name']>(props.team?.display_name ?? '');
     const [description, setDescription] = useState<Team['description']>(props.team?.description ?? '');
     const [teamIconFile, setTeamIconFile] = useState<File | undefined>();
-
-    // todo sinan: combine them
-    const [loadingIcon, setLoadingIcon] = useState<boolean>(false);
-    const [submitActive, setSubmitActive] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
     const [imageClientError, setImageClientError] = useState<BaseSettingItemProps['error'] | undefined>();
     const [nameClientError, setNameClientError] = useState<BaseSettingItemProps['error'] | undefined>();
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>('saving');
@@ -62,17 +59,16 @@ const InfoTab = (props: Props) => {
     };
 
     const handleTeamIconSubmit = async (): Promise<Error | null> => {
-        if (!teamIconFile || !submitActive) {
+        if (!teamIconFile) {
             return null;
         }
-        setLoadingIcon(true);
+        setLoading(true);
         setImageClientError(undefined);
         const {error} = await props.actions.setTeamIcon(props.team?.id || '', teamIconFile);
-        setLoadingIcon(false);
+        setLoading(false);
         if (error) {
             return error;
         }
-        setSubmitActive(false);
         return null;
     };
 
@@ -103,19 +99,17 @@ const InfoTab = (props: Props) => {
     };
 
     const handleTeamIconRemove = async () => {
-        setLoadingIcon(true);
+        setLoading(true);
         setImageClientError(undefined);
         setTeamIconFile(undefined);
         handleClose();
 
         const {error} = await props.actions.removeTeamIcon(props.team?.id || '');
-        setLoadingIcon(false);
+        setLoading(false);
         if (error) {
             setSaveChangesPanelState('error');
             props.setHasChanges(true);
             props.setHasChangeTabError(true);
-        } else {
-            setSubmitActive(false);
         }
     };
 
@@ -136,7 +130,6 @@ const InfoTab = (props: Props) => {
             } else {
                 setTeamIconFile(e.target.files[0]);
                 setImageClientError(undefined);
-                setSubmitActive(true);
                 props.setHasChanges(true);
             }
         } else {
@@ -175,7 +168,7 @@ const InfoTab = (props: Props) => {
             <TeamPictureSection
                 team={props.team}
                 file={teamIconFile}
-                loadingPicture={loadingIcon}
+                disabled={loading}
                 onFileChange={updateTeamIcon}
                 onRemove={handleTeamIconRemove}
                 teamName={props.team?.display_name ?? props.team?.name}
