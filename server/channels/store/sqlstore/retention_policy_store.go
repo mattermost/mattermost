@@ -1152,9 +1152,16 @@ func getDeleteQueriesForMySQL(r RetentionPolicyBatchDeletionInfo, query string) 
 	return fmt.Sprintf("DELETE %s FROM %s INNER JOIN (%s) AS A ON %s", r.Table, r.Table, query, joinClause)
 }
 
-func deleteFromRetentionIdsTx(txn *sqlxTxWrapper, id string) (err error) {
-	if _, err := txn.Exec("DELETE FROM RetentionIdsForDeletion WHERE Id = ?", id); err != nil {
-		return errors.Wrap(err, "Failed to delete from RetentionIdsForDeletion")
+func deleteFromRetentionIdsTx(txn *sqlxTxWrapper, id string) (int64, error) {
+	sqlResult, err := txn.Exec("DELETE FROM RetentionIdsForDeletion WHERE Id = ?", id)
+	if err != nil {
+		return 0, errors.Wrap(err, "Failed to delete from RetentionIdsForDeletion")
 	}
-	return nil
+
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrapf(err, "unable to retrieve rows affected")
+	}
+
+	return rowsAffected, nil
 }

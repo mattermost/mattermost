@@ -93,21 +93,31 @@ func (_m *ReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 }
 
 // DeleteOrphanedRowsByIds provides a mock function with given fields: r
-func (_m *ReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) error {
+func (_m *ReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
 	ret := _m.Called(r)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteOrphanedRowsByIds")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.RetentionIdsForDeletion) error); ok {
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.RetentionIdsForDeletion) (int64, error)); ok {
+		return rf(r)
+	}
+	if rf, ok := ret.Get(0).(func(*model.RetentionIdsForDeletion) int64); ok {
 		r0 = rf(r)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int64)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(*model.RetentionIdsForDeletion) error); ok {
+		r1 = rf(r)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // ExistsOnPost provides a mock function with given fields: postId, emojiName
