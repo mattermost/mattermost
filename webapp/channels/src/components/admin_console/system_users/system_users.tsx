@@ -20,7 +20,7 @@ import {getUserOptionsFromFilter, searchUserOptionsFromFilter} from 'utils/filte
 import RevokeSessionsButton from './revoke_sessions_button';
 import SystemUsersFilterRole from './system_users_filter_role';
 import SystemUsersFilterTeam from './system_users_filter_team';
-import SystemUsersList from './system_users_list';
+import SystemUsersList from './system_users_list/system_users_list_new';
 import SystemUsersSearch from './system_users_search';
 
 const USER_ID_LENGTH = 26;
@@ -330,21 +330,7 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                                     onFilter={this.onFilter}
                                 />
                             </div>
-                            <SystemUsersList
-                                loading={this.state.loading}
-                                search={this.doSearch}
-                                nextPage={this.nextPage}
-                                usersPerPage={USERS_PER_PAGE}
-                                total={this.props.totalUsers}
-                                teams={this.props.teams}
-                                teamId={this.props.teamId}
-                                filter={this.props.filter}
-                                term={this.props.searchTerm}
-                                onTermChange={this.handleTermChange}
-                                mfaEnabled={this.props.mfaEnabled}
-                                enableUserAccessTokens={this.props.enableUserAccessTokens}
-                                experimentalEnableAuthenticationTransfer={this.props.experimentalEnableAuthenticationTransfer}
-                            />
+                            <SystemUsersList/>
                         </div>
                     </div>
                 </div>

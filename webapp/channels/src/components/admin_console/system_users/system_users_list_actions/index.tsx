@@ -44,7 +44,7 @@ function AdminConsoleListActions(props: Props) {
     const menuId = `actionMenu-${props.tableId}-${props.rowIndex}`;
     const menuItemIdPrefix = `actionMenuItem-${props.tableId}-${props.rowIndex}`;
 
-    // Check to see current user is not a system admin and is going to edit a system admin
+    // Disable if SystemAdmin being edited by non SystemAdmin eg. userManager with EditOtherUsers permissions
     const isDisabled =
         !isSystemAdmin(props.currentUserRoles) &&
         isSystemAdmin(props.userRoles);

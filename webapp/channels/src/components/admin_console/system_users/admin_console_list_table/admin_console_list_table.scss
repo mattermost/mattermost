@@ -1,31 +1,3 @@
-@mixin textElipsis {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-@mixin beforeBorderForPinnedColumn {
-    &::before {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 1px;
-        background-color: rgba(var(--center-channel-color-rgb), 0.08);
-        content: "";
-    }
-}
-
-@mixin afterBorderForPinnedColumn {
-    &::after {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 1px;
-        background-color: rgba(var(--center-channel-color-rgb), 0.08);
-        content: "";
-    }
-}
-
 table.adminConsoleListTable {
     // This is rgba(var(--sys-center-channel-color-rgb), 0.08) but since we cannot use opacity
     // due to sticky row which shows the background thus a defined color is used
@@ -140,8 +112,9 @@ table.adminConsoleListTable {
             td {
                 padding-block-end: 16px;
                 padding-block-start: 16px;
-
-                @include textElipsis;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
 
                 &:first-child {
                     padding-inline-end: 8px;
@@ -202,53 +175,6 @@ table.adminConsoleListTable {
                     }
                 }
             }
-        }
-    }
-}
-
-// System users page
-table.systemUsersTable {
-    .displayNameColumn > div {
-        $profilePictureSize: 40px;
-
-        display: grid;
-        gap: 0 0;
-        grid-auto-flow: row;
-        grid-template-areas:
-            "profilePictureContainer displayName"
-            "profilePictureContainer userName";
-        grid-template-columns: calc($profilePictureSize + 16px) 1fr;
-        grid-template-rows: 1fr 1fr;
-
-        .profilePictureContainer {
-            width: $profilePictureSize;
-            height: $profilePictureSize;
-            align-self: center;
-            grid-area: profilePictureContainer;
-            justify-self: center;
-
-            > img {
-                width: 100%;
-                height: 100%;
-                border-radius: 40px;
-                object-fit: cover;
-            }
-        }
-
-        .displayName {
-            align-self: start;
-            color: var(--sys-denim-button-bg);
-            font-weight: 600;
-            grid-area: displayName;
-
-            @include textElipsis;
-        }
-
-        .userName {
-            align-self: start;
-            grid-area: userName;
-
-            @include textElipsis;
         }
     }
 }

@@ -1,0 +1,49 @@
+@mixin textElipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+table.systemUsersTable {
+    .displayNameColumn > div {
+        $profilePictureSize: 40px;
+
+        display: grid;
+        gap: 0 0;
+        grid-auto-flow: row;
+        grid-template-areas:
+            "profilePictureContainer displayName"
+            "profilePictureContainer userName";
+        grid-template-columns: calc($profilePictureSize + 16px) 1fr;
+        grid-template-rows: 1fr 1fr;
+
+        .profilePictureContainer {
+            width: $profilePictureSize;
+            height: $profilePictureSize;
+            align-self: center;
+            grid-area: profilePictureContainer;
+            justify-self: center;
+
+            > img {
+                width: 100%;
+                height: 100%;
+                border-radius: 40px;
+                object-fit: cover;
+            }
+        }
+
+        .displayName {
+            align-self: start;
+            color: var(--sys-denim-button-bg);
+            font-weight: 600;
+            grid-area: displayName;
+            @include textElipsis;
+        }
+
+        .userName {
+            align-self: start;
+            grid-area: userName;
+            @include textElipsis;
+        }
+    }
+}
