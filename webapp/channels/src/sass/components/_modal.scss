@@ -17,7 +17,7 @@
 .modal-body {
     overflow: auto;
     max-height: calc(90vh - 80px);
-    padding: 0 32px;
+    padding: 2px 32px;
 
     &.overflow--visible {
         overflow: visible;
@@ -253,7 +253,7 @@
 
         .close {
             position: absolute;
-            top: 18px;
+            top: 22px;
             right: 18px;
             width: 40px;
             height: 40px;
