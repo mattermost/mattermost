@@ -12,19 +12,17 @@ import {
     flexRender,
 } from '@tanstack/react-table';
 import classNames from 'classnames';
+import moment from 'moment';
 import React, {useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import Contants from 'mattermost-redux/constants/general';
-import {isSystemAdmin, isGuest} from 'mattermost-redux/utils/user_utils';
-
-import * as Menu from 'components/menu';
-
 import {imageURLForUser} from 'utils/utils';
 
 import {userReports} from './sample';
+
+import SystemUsersActions from '../system_users_list_actions';
 
 import './index.scss';
 
@@ -33,7 +31,7 @@ type Props = {
     tableContainerClass?: string;
 };
 
-type AdminConsoleUserRow = {
+export type AdminConsoleUserRow = {
     id: UserProfile['id'];
     username: UserProfile['username'];
     email: UserProfile['email'];
@@ -63,6 +61,8 @@ const columnHelper = createColumnHelper<AdminConsoleUserRow>();
 
 function AdminConsoleListTable(props: Props) {
     const {formatMessage} = useIntl();
+
+    const todayMoment = moment();
 
     const columns = useMemo(
         () => [
@@ -119,7 +119,52 @@ function AdminConsoleListTable(props: Props) {
                     id: 'admin.system_users.list.memberSince',
                     defaultMessage: 'Member since',
                 }),
-                cell: (info) => info.getValue() || '',
+                cell: (info) => {
+                    const createAtMoment = info.getValue() ? moment(info.getValue()) : null;
+                    if (!createAtMoment) {
+                        return '';
+                    }
+
+                    const differenceInDays = todayMoment.diff(
+                        createAtMoment,
+                        'days',
+                    );
+                    const createAtDate = createAtMoment.format(
+                        'MMM DD, YYYY h:mm A',
+                    );
+
+                    if (differenceInDays < 1) {
+                        return (
+                            <span title={createAtDate}>
+                                <FormattedMessage
+                                    id='admin.system_users.list.memberSince.today'
+                                    defaultMessage='Today'
+                                />
+                            </span>
+                        );
+                    }
+                    if (differenceInDays === 1) {
+                        return (
+                            <span title={createAtDate}>
+                                <FormattedMessage
+                                    id='admin.system_users.list.memberSince.yesterday'
+                                    defaultMessage='Yesterday'
+                                />
+                            </span>
+                        );
+                    }
+                    return (
+                        <span title={createAtDate}>
+                            {formatMessage(
+                                {
+                                    id: 'admin.system_users.list.memberSince.days',
+                                    defaultMessage: '{days} days',
+                                },
+                                {days: differenceInDays},
+                            )}
+                        </span>
+                    );
+                },
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: true,
@@ -186,157 +231,14 @@ function AdminConsoleListTable(props: Props) {
                     id: 'admin.system_users.list.actions',
                     defaultMessage: 'Actions',
                 }),
-                cell: (info: CellContext<AdminConsoleUserRow, null>) => {
-                    const {userRole, canNotEdit} =
-                        getUsersRoleAndEditPermission(info.row.original.roles);
-
-                    let role = formatMessage({
-                        id: 'admin.system_users.list.actions.userMember',
-                        defaultMessage: 'Member',
-                    });
-                    if (userRole === Contants.SYSTEM_GUEST_ROLE) {
-                        role = formatMessage({
-                            id: 'admin.system_users.list.actions.userGuest',
-                            defaultMessage: 'Guest',
-                        });
-                    } else if (userRole === Contants.SYSTEM_ADMIN_ROLE) {
-                        role = formatMessage({
-                            id: 'admin.system_users.list.actions.userAdmin',
-                            defaultMessage: 'System Admin',
-                        });
-                    }
-
-                    let icon = null;
-                    if (!canNotEdit) {
-                        icon = <i className='icon icon-chevron-down'/>;
-                    }
-
-                    const buttonText = (
-                        <>
-                            {role}
-                            {icon}
-                        </>
-                    );
-
-                    return (
-                        <Menu.Container
-                            menuButton={{
-                                id: `actionMenuButton-${props.tableId}-${info.cell.row.index}`,
-                                class: classNames('btn btn-quaternary btn-sm', {disabled: canNotEdit}),
-                                disabled: canNotEdit,
-                                children: buttonText,
-                            }}
-                            menu={{
-                                id: `actionMenu-${props.tableId}-${info.cell.row.index}`,
-                                'aria-label': formatMessage({
-                                    id: 'admin.system_users.list.actions.menu.dropdownAriaLabel',
-                                    defaultMessage: 'User actions menu',
-                                }),
-                            }}
-                        >
-                            <Menu.Item
-                                id={`actionMenuEdit-${props.tableId}-${info.cell.row.index}`}
-                                labels={
-                                    <FormattedMessage
-                                        id='admin.system_users.list.actions.menu.activate'
-                                        defaultMessage='Activate'
-                                    />
-                                }
-                            />
-                            <Menu.Item
-                                id={`actionMenuEdit-${props.tableId}-${info.cell.row.index}`}
-                                labels={
-                                    <FormattedMessage
-                                        id='admin.system_users.list.actions.menu.manageRoles'
-                                        defaultMessage='Mange roles'
-                                    />
-                                }
-                            />
-                            <Menu.Item
-                                id={`actionMenuEdit-${props.tableId}-${info.cell.row.index}`}
-                                labels={
-                                    <FormattedMessage
-                                        id='admin.system_users.list.actions.menu.manageTeams'
-                                        defaultMessage='Manage teams'
-                                    />
-                                }
-                            />
-                            <Menu.Item
-                                id={`actionMenuEdit-${props.tableId}-${info.cell.row.index}`}
-                                labels={
-                                    <FormattedMessage
-                                        id='admin.system_users.list.actions.menu.removeMFA'
-                                        defaultMessage='Remove MFA'
-                                    />
-                                }
-                            />
-                            <Menu.Item
-                                id={`actionMenuEdit-${props.tableId}-${info.cell.row.index}`}
-                                labels={
-                                    <FormattedMessage
-                                        id='admin.system_users.list.actions.menu.switchToEmailPassword'
-                                        defaultMessage='Switch to Email/Password'
-                                    />
-                                }
-                            />
-                            <Menu.Item
-                                id={`actionMenuEdit-${props.tableId}-${info.cell.row.index}`}
-                                labels={
-                                    <FormattedMessage
-                                        id='admin.system_users.list.actions.menu.updateEmail'
-                                        defaultMessage='Update email'
-                                    />
-                                }
-                            />
-                            <Menu.Item
-                                id={`actionMenuEdit-${props.tableId}-${info.cell.row.index}`}
-                                labels={
-                                    <FormattedMessage
-                                        id='admin.system_users.list.actions.menu.promoteToMember'
-                                        defaultMessage='Promote to member'
-                                    />
-                                }
-                            />
-                            <Menu.Item
-                                id={`actionMenuEdit-${props.tableId}-${info.cell.row.index}`}
-                                labels={
-                                    <FormattedMessage
-                                        id='admin.system_users.list.actions.menu.demoteToGuest'
-                                        defaultMessage='Demote to guest'
-                                    />
-                                }
-                            />
-                            <Menu.Item
-                                id={`actionMenuEdit-${props.tableId}-${info.cell.row.index}`}
-                                labels={
-                                    <FormattedMessage
-                                        id='admin.system_users.list.actions.menu.removeSessions'
-                                        defaultMessage='Remove sessions'
-                                    />
-                                }
-                            />
-                            <Menu.Item
-                                id={`actionMenuEdit-${props.tableId}-${info.cell.row.index}`}
-                                labels={
-                                    <FormattedMessage
-                                        id='admin.system_users.list.actions.menu.resyncUserViaLdapGroups'
-                                        defaultMessage='Re-sync user via LDAP groups'
-                                    />
-                                }
-                            />
-                            <Menu.Item
-                                id={`actionMenuEdit-${props.tableId}-${info.cell.row.index}`}
-                                isDestructive={true}
-                                labels={
-                                    <FormattedMessage
-                                        id='admin.system_users.list.actions.menu.deactivate'
-                                        defaultMessage='Deactivate'
-                                    />
-                                }
-                            />
-                        </Menu.Container>
-                    );
-                },
+                cell: (info: CellContext<AdminConsoleUserRow, null>) => (
+                    <SystemUsersActions
+                        rowIndex={info.cell.row.index}
+                        tableId={props.tableId}
+                        userRoles={info.row.original.roles}
+                        currentUserRoles=''
+                    />
+                ),
                 enableHiding: false,
                 enablePinning: true,
                 enableSorting: false,
@@ -401,29 +303,6 @@ function AdminConsoleListTable(props: Props) {
             </tbody>
         </table>
     );
-}
-
-function getUsersRoleAndEditPermission(
-    userRoles: UserProfile['roles'],
-    currentUserRoles?: UserProfile['roles'],
-) {
-    let canNotEdit = false;
-    if (currentUserRoles && currentUserRoles.length > 0) {
-        // Check to see current user is not a system admin and is going to edit a system admin
-        canNotEdit =
-            isSystemAdmin(userRoles) && !isSystemAdmin(currentUserRoles);
-    }
-
-    let userRole = '';
-    if (userRoles.length > 0 && isSystemAdmin(userRoles)) {
-        userRole = Contants.SYSTEM_ADMIN_ROLE;
-    } else if (isGuest(userRoles)) {
-        userRole = Contants.SYSTEM_GUEST_ROLE;
-    } else {
-        userRole = Contants.SYSTEM_USER_ROLE;
-    }
-
-    return {canNotEdit, userRole};
 }
 
 export default AdminConsoleListTable;
