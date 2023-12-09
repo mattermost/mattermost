@@ -4,12 +4,12 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
+import {injectIntl, FormattedMessage} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {getOptionValue} from 'react-select/src/builtins';
 import type {InputActionMeta} from 'react-select/src/types';
 
-import LocalizedIcon from 'components/localized_icon';
 import SaveButton from 'components/save_button';
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import Avatar from 'components/widgets/users/avatar';
@@ -28,7 +28,7 @@ export type Value = {
     value: string;
 };
 
-export type Props<T extends Value> = {
+export type Props<T extends Value> = WrappedComponentProps & {
     ariaLabelRenderer: getOptionValue<T>;
     backButtonClick?: () => void;
     backButtonClass?: string;
@@ -76,7 +76,7 @@ export type State = {
 
 const KeyCodes = Constants.KeyCodes;
 
-export default class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, State> {
+export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, State> {
     private listRef = React.createRef<MultiSelectList<T>>();
     private reactSelectRef = React.createRef<ReactSelect>();
     private selected: T | null = null;
@@ -332,9 +332,9 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
             noteTextContainer = (
                 <div className='multi-select__note'>
                     <div className='note__icon'>
-                        <LocalizedIcon
+                        <i
                             className='fa fa-info'
-                            title={{id: 'generic_icons.info', defaultMessage: 'Info Icon'}}
+                            title={this.props.intl.formatMessage({id: 'generic_icons.info', defaultMessage: 'Info Icon'})}
                         />
                     </div>
                     <div>{this.props.noteText}</div>
@@ -359,6 +359,8 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
             optionsToDisplay = options.slice(pageStart, pageEnd);
             if (!this.props.loading) {
                 if (options.length > pageEnd) {
+                    // eslint-disable-next-line no-console
+                    console.log('page options length greater than pageEnd');
                     nextButton = (
                         <button
                             className='btn btn-tertiary filter-control filter-control__next'
@@ -571,3 +573,5 @@ const styles = {
         };
     },
 };
+
+export default injectIntl(MultiSelect as React.ComponentType<Props<Value> & WrappedComponentProps>);
