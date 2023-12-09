@@ -154,12 +154,13 @@ const AccessTab = (props: Props) => {
         );
     }
 
-    const allowedDomainsSectionInput = (
-        <div
-            id='allowedDomainsSetting'
-            className='form-group'
-        >
+    const allowedDomainsSection = (
+        <>
             <CheckboxSettingItem
+                className='access-allowed-domains-section'
+                title={{id: 'general_tab.allowedDomainsTitle', defaultMessage: 'Users with a specific email domain'}}
+                description={{id: 'general_tab.allowedDomainsInfo', defaultMessage: 'When enabled, users can only join the team if their email matches a specific domain (e.g. "mattermost.org")'}}
+                descriptionAboveContent={true}
                 inputFieldData={{title: {id: 'general_tab.allowedDomains', defaultMessage: 'Allow only users with a specific email domain to join this team'}, name: 'name'}}
                 inputFieldValue={showAllowedDomains}
                 handleChange={handleEnableAllowedDomains}
@@ -176,25 +177,14 @@ const AccessTab = (props: Props) => {
                     description={formatMessage({id: 'general_tab.AllowedDomainsTip', defaultMessage: 'Seperate multiple domains with a space or comma.'})}
                 />
             }
-        </div>
-    );
-
-    // todo sinan: convert it to <CheckboxSettingItem like in open invite
-    const allowedDomainsSection = (
-        <BaseSettingItem
-            className='access-allowed-domains-section'
-            title={{id: 'general_tab.allowedDomainsTitle', defaultMessage: 'Users with a specific email domain'}}
-            description={{id: 'general_tab.allowedDomainsInfo', defaultMessage: 'When enabled, users can only join the team if their email matches a specific domain (e.g. "mattermost.org")'}}
-            content={allowedDomainsSectionInput}
-            descriptionAboveContent={true}
-        />
+        </>
     );
 
     // todo sinan: check title font size is same as figma
     return (
         <ModalSection
             content={
-                <div className='user-settings'>
+                <div className='modal-access-tab-content'>
                     {props.team?.group_constrained ? undefined : allowedDomainsSection}
                     <div className='divider-light'/>
                     <OpenInvite
