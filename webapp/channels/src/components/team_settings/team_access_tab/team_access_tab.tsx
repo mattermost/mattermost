@@ -180,7 +180,6 @@ const AccessTab = (props: Props) => {
         </>
     );
 
-    // todo sinan: check title font size is same as figma
     return (
         <ModalSection
             content={
