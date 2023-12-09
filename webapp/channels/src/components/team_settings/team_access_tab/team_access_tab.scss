@@ -10,26 +10,30 @@
     #allowedDomains {
         margin-top: 16px;
     }
-    
+
     .access-invite-section {
         gap: 0;
-    
+
         #teamInviteContainer {
             display: flex;
             align-items: center;
             margin-top: 24px;
-    
+
             #regenerateButton {
                 height: 34px;
             }
-            
+
             .Input_container {
                 margin-right: 8px;
-    
+
                 #teamInviteId {
                     background-color: unset;
                 }
             }
         }
-    }   
+    }
+}
+
+.modal-header {
+    background-color: var(--center-channel-bg);
 }

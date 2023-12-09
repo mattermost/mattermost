@@ -26,6 +26,8 @@ export type OwnProps = {
     hasChangeTabError: boolean;
     setHasChanges: (hasChanges: boolean) => void;
     setHasChangeTabError: (hasChangesError: boolean) => void;
+    closeModal: () => void;
+    collapseModal: () => void;
 };
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {

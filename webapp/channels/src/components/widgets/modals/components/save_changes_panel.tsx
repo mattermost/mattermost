@@ -18,7 +18,6 @@ type Props = {
     tabChangeError?: boolean;
     state: SaveChangesPanelState;
 }
-// todo sinan: mobile view width is not correct
 function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeError = false, state = 'saving'}: Props) {
     const panelClassName = classNames('mm-save-changes-panel', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
     const messageClassName = classNames('mm-save-changes-panel__message', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});

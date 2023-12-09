@@ -3,6 +3,7 @@
 
 import React, {useState, useRef} from 'react';
 import {Modal, type ModalBody} from 'react-bootstrap';
+import ReactDOM from 'react-dom';
 import {useIntl} from 'react-intl';
 
 import TeamSettings from 'components/team_settings';
@@ -33,11 +34,17 @@ const TeamSettingsModal = (props: Props) => {
 
     const handleHide = () => setShow(false);
 
-    const handleHidden = () => {
+    const handleClose = () => {
         setActiveTab('info');
         setHasChanges(false);
         setHasChangeTabError(false);
         props.onExited();
+    };
+
+    const handleCollapse = () => {
+        const el = ReactDOM.findDOMNode(modalBodyRef.current) as HTMLDivElement;
+        el?.closest('.modal-dialog')!.classList.remove('display--content');
+        setActiveTab('');
     };
 
     const tabs = [
@@ -47,10 +54,10 @@ const TeamSettingsModal = (props: Props) => {
 
     return (
         <Modal
-            dialogClassName='a11y__modal settings-modal settings-modal--action'
+            dialogClassName='a11y__modal settings-modal'
             show={show}
             onHide={handleHide}
-            onExited={handleHidden}
+            onExited={handleClose}
             role='dialog'
             aria-labelledby='teamSettingsModalLabel'
             id='teamSettingsModal'
@@ -74,14 +81,15 @@ const TeamSettingsModal = (props: Props) => {
                             />
                         </React.Suspense>
                     </div>
-                    <div className='settings-content'>
+                    <div className='settings-content minimize-settings'>
                         <TeamSettings
                             activeTab={activeTab}
-                            closeModal={handleHide}
                             hasChanges={hasChanges}
                             setHasChanges={setHasChanges}
                             hasChangeTabError={hasChangeTabError}
                             setHasChangeTabError={setHasChangeTabError}
+                            closeModal={handleHide}
+                            collapseModal={handleCollapse}
                         />
                     </div>
                 </div>

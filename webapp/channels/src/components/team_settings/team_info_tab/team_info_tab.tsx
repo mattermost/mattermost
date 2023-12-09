@@ -3,6 +3,7 @@
 
 import React, {useState} from 'react';
 import type {ChangeEvent} from 'react';
+import {useIntl} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
@@ -32,6 +33,7 @@ const InfoTab = (props: Props) => {
     const [imageClientError, setImageClientError] = useState<BaseSettingItemProps['error'] | undefined>();
     const [nameClientError, setNameClientError] = useState<BaseSettingItemProps['error'] | undefined>();
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>('saving');
+    const {formatMessage} = useIntl();
 
     const handleNameDescriptionSubmit = async (): Promise<Error | null> => {
         if (name?.trim() === props.team?.display_name) {
@@ -150,38 +152,71 @@ const InfoTab = (props: Props) => {
         setDescription(description);
     };
 
-    // todo sinan: check mobile view in Figma
+    const collapseModal = () => {
+        if (props.hasChanges) {
+            props.setHasChangeTabError(true);
+            return;
+        }
+        props.collapseModal();
+    };
+
     const modalSectionContent = (
-        <div className='modal-info-tab-content' >
-            <div className='name-description-container' >
-                <TeamNameSection
-                    name={name}
-                    clientError={nameClientError}
-                    handleNameChanges={handleNameChanges}
-                />
-                <TeamDescriptionSection
-                    description={description}
-                    handleDescriptionChanges={handleDescriptionChanges}
-                />
+        <>
+            <div className='modal-header'>
+                <button
+                    id='closeButton'
+                    type='button'
+                    className='close'
+                    data-dismiss='modal'
+                    onClick={props.closeModal}
+                >
+                    <span aria-hidden='true'>{'×'}</span>
+                </button>
+                <h4 className='modal-title'>
+                    <div className='modal-back'>
+                        <i
+                            className='fa fa-angle-left'
+                            aria-label={formatMessage({
+                                id: 'generic_icons.collapse',
+                                defaultMessage: 'Collapes Icon',
+                            })}
+                            onClick={collapseModal}
+                        />
+                    </div>
+                    <span>{formatMessage({id: 'team_settings_modal.title', defaultMessage: 'Team Settings'})}</span>
+                </h4>
             </div>
-            <TeamPictureSection
-                team={props.team}
-                file={teamIconFile}
-                disabled={loading}
-                onFileChange={updateTeamIcon}
-                onRemove={handleTeamIconRemove}
-                teamName={props.team?.display_name ?? props.team?.name}
-                clientError={imageClientError}
-            />
-            {props.hasChanges ?
-                <SaveChangesPanel
-                    handleCancel={handleCancel}
-                    handleSubmit={handleSaveChanges}
-                    handleClose={handleClose}
-                    tabChangeError={props.hasChangeTabError}
-                    state={saveChangesPanelState}
-                /> : undefined}
-        </div>
+            <div className='modal-info-tab-content user-settings' >
+                <div className='name-description-container' >
+                    <TeamNameSection
+                        name={name}
+                        clientError={nameClientError}
+                        handleNameChanges={handleNameChanges}
+                    />
+                    <TeamDescriptionSection
+                        description={description}
+                        handleDescriptionChanges={handleDescriptionChanges}
+                    />
+                </div>
+                <TeamPictureSection
+                    team={props.team}
+                    file={teamIconFile}
+                    disabled={loading}
+                    onFileChange={updateTeamIcon}
+                    onRemove={handleTeamIconRemove}
+                    teamName={props.team?.display_name ?? props.team?.name}
+                    clientError={imageClientError}
+                />
+                {props.hasChanges ?
+                    <SaveChangesPanel
+                        handleCancel={handleCancel}
+                        handleSubmit={handleSaveChanges}
+                        handleClose={handleClose}
+                        tabChangeError={props.hasChangeTabError}
+                        state={saveChangesPanelState}
+                    /> : undefined}
+            </div>
+        </>
     );
 
     return <ModalSection content={modalSectionContent}/>;

@@ -12,15 +12,17 @@ type Props = {
     activeTab: string;
     hasChanges: boolean;
     hasChangeTabError: boolean;
-    closeModal: () => void;
     setHasChanges: (hasChanges: boolean) => void;
     setHasChangeTabError: (hasChangesError: boolean) => void;
+    closeModal: () => void;
+    collapseModal: () => void;
     team?: Team;
 };
 
 const TeamSettings = ({
     activeTab = '',
     closeModal,
+    collapseModal,
     team,
     hasChanges,
     hasChangeTabError,
@@ -41,6 +43,8 @@ const TeamSettings = ({
                 setHasChanges={setHasChanges}
                 hasChangeTabError={hasChangeTabError}
                 setHasChangeTabError={setHasChangeTabError}
+                closeModal={closeModal}
+                collapseModal={collapseModal}
             />
         );
         break;
@@ -52,6 +56,8 @@ const TeamSettings = ({
                 setHasChanges={setHasChanges}
                 hasChangeTabError={hasChangeTabError}
                 setHasChangeTabError={setHasChangeTabError}
+                closeModal={closeModal}
+                collapseModal={collapseModal}
             />
         );
         break;

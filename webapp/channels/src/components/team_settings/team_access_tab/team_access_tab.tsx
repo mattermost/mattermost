@@ -110,6 +110,14 @@ const AccessTab = (props: Props) => {
         props.setHasChangeTabError(false);
     };
 
+    const collapseModal = () => {
+        if (props.hasChanges) {
+            props.setHasChangeTabError(true);
+            return;
+        }
+        props.collapseModal();
+    };
+
     const handleSaveChanges = async () => {
         const allowedDomainError = await handleAllowedDomainsSubmit();
         const openInviteError = await handleOpenInviteSubmit();
@@ -183,25 +191,51 @@ const AccessTab = (props: Props) => {
     return (
         <ModalSection
             content={
-                <div className='modal-access-tab-content'>
-                    {props.team?.group_constrained ? undefined : allowedDomainsSection}
-                    <div className='divider-light'/>
-                    <OpenInvite
-                        isGroupConstrained={props.team?.group_constrained}
-                        allowOpenInvite={allowOpenInvite}
-                        setAllowOpenInvite={updateOpenInvite}
-                    />
-                    <div className='divider-light'/>
-                    {props.team?.group_constrained ? undefined : inviteSection}
-                    {props.hasChanges ?
-                        <SaveChangesPanel
-                            handleCancel={handleCancel}
-                            handleSubmit={handleSaveChanges}
-                            handleClose={handleClose}
-                            tabChangeError={props.hasChangeTabError}
-                            state={saveChangesPanelState}
-                        /> : undefined}
-                </div>
+                <>
+                    <div className='modal-header'>
+                        <button
+                            id='closeButton'
+                            type='button'
+                            className='close'
+                            data-dismiss='modal'
+                            onClick={props.closeModal}
+                        >
+                            <span aria-hidden='true'>{'×'}</span>
+                        </button>
+                        <h4 className='modal-title'>
+                            <div className='modal-back'>
+                                <i
+                                    className='fa fa-angle-left'
+                                    aria-label={formatMessage({
+                                        id: 'generic_icons.collapse',
+                                        defaultMessage: 'Collapes Icon',
+                                    })}
+                                    onClick={collapseModal}
+                                />
+                            </div>
+                            <span>{formatMessage({id: 'team_settings_modal.title', defaultMessage: 'Team Settings'})}</span>
+                        </h4>
+                    </div>
+                    <div className='modal-access-tab-content user-settings'>
+                        {props.team?.group_constrained ? undefined : allowedDomainsSection}
+                        <div className='divider-light'/>
+                        <OpenInvite
+                            isGroupConstrained={props.team?.group_constrained}
+                            allowOpenInvite={allowOpenInvite}
+                            setAllowOpenInvite={updateOpenInvite}
+                        />
+                        <div className='divider-light'/>
+                        {props.team?.group_constrained ? undefined : inviteSection}
+                        {props.hasChanges ?
+                            <SaveChangesPanel
+                                handleCancel={handleCancel}
+                                handleSubmit={handleSaveChanges}
+                                handleClose={handleClose}
+                                tabChangeError={props.hasChangeTabError}
+                                state={saveChangesPanelState}
+                            /> : undefined}
+                    </div>
+                </>
             }
         />
     );

@@ -11,11 +11,16 @@
         }
     }
 
-    #teamName, #teamDescription {
+    #teamName,
+    #teamDescription {
         background-color: unset;
     }
 
     .description-setting-item {
         margin-top: 24px;
     }
+}
+
+.modal-header {
+    background-color: var(--center-channel-bg);
 }
