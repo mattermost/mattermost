@@ -34,7 +34,6 @@ const InfoTab = (props: Props) => {
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>('saving');
 
     const handleNameDescriptionSubmit = async (): Promise<Error | null> => {
-        // todo sinan handle case when there is no display name
         if (name?.trim() === props.team?.display_name) {
             return null;
         }
