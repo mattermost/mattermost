@@ -20,7 +20,7 @@ import {getUserOptionsFromFilter, searchUserOptionsFromFilter} from 'utils/filte
 import RevokeSessionsButton from './revoke_sessions_button';
 import SystemUsersFilterRole from './system_users_filter_role';
 import SystemUsersFilterTeam from './system_users_filter_team';
-import SystemUsersList from './system_users_list/system_users_list_new';
+import SystemUsersList from './system_users_list/system_users_list';
 import SystemUsersSearch from './system_users_search';
 
 const USER_ID_LENGTH = 26;
