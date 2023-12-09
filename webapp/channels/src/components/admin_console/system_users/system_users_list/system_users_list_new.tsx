@@ -4,8 +4,11 @@
 import {createColumnHelper, type CellContext, getCoreRowModel} from '@tanstack/react-table';
 import React, {useMemo} from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
+
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {imageURLForUser} from 'utils/utils';
 
@@ -46,6 +49,8 @@ const columnHelper = createColumnHelper<SystemUsersRow>();
 
 function SystemUsersList() {
     const {formatMessage} = useIntl();
+
+    const currentUser = useSelector(getCurrentUser);
 
     const tableId = 'systemUsersTable';
 
@@ -176,7 +181,7 @@ function SystemUsersList() {
                         rowIndex={info.cell.row.index}
                         tableId={tableId}
                         userRoles={info.row.original.roles}
-                        currentUserRoles=''
+                        currentUserRoles={currentUser.roles}
                     />
                 ),
                 enableHiding: false,
@@ -184,7 +189,7 @@ function SystemUsersList() {
                 enableSorting: false,
             },
         ],
-        [],
+        [currentUser.roles],
     );
 
     return (
