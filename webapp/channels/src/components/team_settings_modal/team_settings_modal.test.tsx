@@ -28,7 +28,7 @@ describe('components/team_settings_modal', () => {
             />,
         );
 
-        (wrapper.instance() as TeamSettingsModal).handleHidden();
+        (wrapper.instance() as unknown as typeof TeamSettingsModal).handleHidden();
         expect(baseProps.onExited).toHaveBeenCalledTimes(1);
     });
 });

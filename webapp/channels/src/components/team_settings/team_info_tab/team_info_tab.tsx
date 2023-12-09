@@ -8,7 +8,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import type {BaseSettingItemProps} from 'components/widgets/modals/components/base_setting_item';
 import ModalSection from 'components/widgets/modals/components/modal_section';
-import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
+import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
 import Constants from 'utils/constants';
 
@@ -34,7 +34,7 @@ const InfoTab = (props: Props) => {
     const [submitActive, setSubmitActive] = useState<boolean>(false);
     const [imageClientError, setImageClientError] = useState<BaseSettingItemProps['error'] | undefined>();
     const [nameClientError, setNameClientError] = useState<BaseSettingItemProps['error'] | undefined>();
-    const [serverError, setServerError] = useState<boolean>(false);
+    const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>('saving');
 
     const handleNameDescriptionSubmit = async (): Promise<Error | null> => {
         // todo sinan handle case when there is no display name
@@ -80,10 +80,10 @@ const InfoTab = (props: Props) => {
         const nameDescriptionError = await handleNameDescriptionSubmit();
         const teamIconError = await handleTeamIconSubmit();
         if (teamIconError || nameDescriptionError) {
-            setServerError(true);
+            setSaveChangesPanelState('error');
             return;
         }
-        props.setHasChanges(false);
+        setSaveChangesPanelState('saved');
         props.setHasChangeTabError(false);
     };
 
@@ -93,7 +93,11 @@ const InfoTab = (props: Props) => {
         setTeamIconFile(undefined);
         setImageClientError(undefined);
         setNameClientError(undefined);
-        setServerError(false);
+        handleClose();
+    };
+
+    const handleClose = () => {
+        setSaveChangesPanelState('saving');
         props.setHasChanges(false);
         props.setHasChangeTabError(false);
     };
@@ -101,15 +105,13 @@ const InfoTab = (props: Props) => {
     const handleTeamIconRemove = async () => {
         setLoadingIcon(true);
         setImageClientError(undefined);
-        setServerError(false);
         setTeamIconFile(undefined);
-        props.setHasChanges(false);
-        props.setHasChangeTabError(false);
+        handleClose();
 
         const {error} = await props.actions.removeTeamIcon(props.team?.id || '');
         setLoadingIcon(false);
         if (error) {
-            setServerError(true);
+            setSaveChangesPanelState('error');
             props.setHasChanges(true);
             props.setHasChangeTabError(true);
         } else {
@@ -183,8 +185,9 @@ const InfoTab = (props: Props) => {
                 <SaveChangesPanel
                     handleCancel={handleCancel}
                     handleSubmit={handleSaveChanges}
+                    handleClose={handleClose}
                     tabChangeError={props.hasChangeTabError}
-                    serverError={serverError}
+                    state={saveChangesPanelState}
                 /> : undefined}
         </div>
     );

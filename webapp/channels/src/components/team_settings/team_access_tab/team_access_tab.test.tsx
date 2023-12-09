@@ -5,7 +5,6 @@ import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
-import {type MockIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
 import AccessTab from './team_access_tab';

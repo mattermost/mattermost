@@ -9,37 +9,67 @@ import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 
 import './save_changes_panel.scss';
 
-// todo sinan: add status of saving changes (saving, saved, error)
+export type SaveChangesPanelState = 'saving' | 'saved' | 'error';
+
 type Props = {
     handleSubmit: () => void;
     handleCancel: () => void;
+    handleClose: () => void;
     tabChangeError?: boolean;
-    serverError?: boolean;
+    state: SaveChangesPanelState;
 }
-function SaveChangesPanel({handleSubmit, handleCancel, tabChangeError = false, serverError = false}: Props) {
-    const panelClassName = classNames('mm-save-changes-panel', {error: tabChangeError || serverError});
-    const messageClassName = classNames('mm-save-changes-panel__message', {error: tabChangeError || serverError});
-    const cancelButtonClassName = classNames('mm-save-changes-panel__cancel-btn', {error: tabChangeError || serverError});
-    const saveButtonClassName = classNames('mm-save-changes-panel__save-btn', {error: tabChangeError || serverError});
+function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeError = false, state = 'saving'}: Props) {
+    const panelClassName = classNames('mm-save-changes-panel', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
+    const messageClassName = classNames('mm-save-changes-panel__message', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
+    const cancelButtonClassName = classNames('mm-save-changes-panel__cancel-btn', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
+    const saveButtonClassName = classNames('mm-save-changes-panel__save-btn', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
 
-    return (
-        <div className={panelClassName}>
-            <p className={messageClassName}>
-                <AlertCircleOutlineIcon
-                    size={18}
-                    color={'currentcolor'}
+    const generateMessage = () => {
+        if (tabChangeError || state === 'saving') {
+            return (
+                <FormattedMessage
+                    id='saveChangesPanel.message'
+                    defaultMessage='You have unsaved changes'
                 />
-                {serverError ?
-                    <FormattedMessage
-                        id='saveChangesPanel.error'
-                        defaultMessage='There was an error saving your settings'
-                    /> :
-                    <FormattedMessage
-                        id='saveChangesPanel.message'
-                        defaultMessage='You have unsaved changes'
-                    />
-                }
-            </p>
+            );
+        }
+
+        if (state === 'error') {
+            return (
+                <FormattedMessage
+                    id='saveChangesPanel.error'
+                    defaultMessage='There was an error saving your settings'
+                />
+            );
+        }
+
+        return (
+            <FormattedMessage
+                id='saveChangesPanel.saved'
+                defaultMessage='Settings saved'
+            />
+        );
+    };
+
+    const generateControlButtons = () => {
+        if (state === 'saved') {
+            return (
+                <div className='mm-save-changes-panel__btn-ctr'>
+                    <button
+                        id='panelCloseButton'
+                        type='button'
+                        className='btn btn-icon btn-sm'
+                        onClick={handleClose}
+                    >
+                        <i
+                            className='icon icon-close'
+                        />
+                    </button>
+                </div>
+            );
+        }
+
+        return (
             <div className='mm-save-changes-panel__btn-ctr'>
                 <button
                     className={cancelButtonClassName}
@@ -54,7 +84,7 @@ function SaveChangesPanel({handleSubmit, handleCancel, tabChangeError = false, s
                     className={saveButtonClassName}
                     onClick={handleSubmit}
                 >
-                    {serverError ?
+                    {state === 'error' ?
                         <FormattedMessage
                             id='saveChangesPanel.tryAgain'
                             defaultMessage='Try again'
@@ -66,6 +96,19 @@ function SaveChangesPanel({handleSubmit, handleCancel, tabChangeError = false, s
                     }
                 </button>
             </div>
+        );
+    };
+
+    return (
+        <div className={panelClassName}>
+            <p className={messageClassName}>
+                <AlertCircleOutlineIcon
+                    size={18}
+                    color={'currentcolor'}
+                />
+                {generateMessage()}
+            </p>
+            {generateControlButtons()}
         </div>
     );
 }

@@ -12,7 +12,7 @@ import Input from 'components/widgets/inputs/input/input';
 import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
 import CheckboxSettingItem from 'components/widgets/modals/components/checkbox_setting_item';
 import ModalSection from 'components/widgets/modals/components/modal_section';
-import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
+import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
 import OpenInvite from './open_invite';
 
@@ -35,7 +35,7 @@ const AccessTab = (props: Props) => {
     const [allowedDomains, setAllowedDomains] = useState<string[]>(generateAllowedDomainOptions(props.team?.allowed_domains));
     const [showAllowedDomains, setShowAllowedDomains] = useState<boolean>(allowedDomains?.length > 0);
     const [allowOpenInvite, setAllowOpenInvite] = useState<boolean>(props.team?.allow_open_invite ?? false);
-    const [serverError, setServerError] = useState<boolean>(false);
+    const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>('saving');
     const {formatMessage} = useIntl();
 
     const handleAllowedDomainsSubmit = async (): Promise<Error | null> => {
@@ -86,7 +86,8 @@ const AccessTab = (props: Props) => {
         }
 
         if (error) {
-            setServerError(error.message);
+            // todo sinan: handle with client error
+            // setServerError(error.message);
         }
     };
 
@@ -98,19 +99,25 @@ const AccessTab = (props: Props) => {
     };
 
     const handleCancel = () => {
-        setServerError(false);
+        setAllowedDomains(generateAllowedDomainOptions(props.team?.allowed_domains));
+        setAllowOpenInvite(props.team?.allow_open_invite ?? false);
+        handleClose();
+    };
+
+    const handleClose = () => {
+        setSaveChangesPanelState('saving');
         props.setHasChanges(false);
         props.setHasChangeTabError(false);
     };
 
     const handleSaveChanges = async () => {
-        const alloedDomainError = await handleAllowedDomainsSubmit();
+        const allowedDomainError = await handleAllowedDomainsSubmit();
         const openInviteError = await handleOpenInviteSubmit();
-        if (alloedDomainError || openInviteError) {
-            setServerError(true);
+        if (allowedDomainError || openInviteError) {
+            setSaveChangesPanelState('error');
             return;
         }
-        props.setHasChanges(false);
+        setSaveChangesPanelState('saved');
         props.setHasChangeTabError(false);
     };
 
@@ -201,8 +208,9 @@ const AccessTab = (props: Props) => {
                         <SaveChangesPanel
                             handleCancel={handleCancel}
                             handleSubmit={handleSaveChanges}
+                            handleClose={handleClose}
                             tabChangeError={props.hasChangeTabError}
-                            serverError={serverError}
+                            state={saveChangesPanelState}
                         /> : undefined}
                 </div>
             }

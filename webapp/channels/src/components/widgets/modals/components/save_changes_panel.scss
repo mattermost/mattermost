@@ -15,7 +15,12 @@
 
     &.error {
         background: var(--dnd-indicator);
-        border: none;
+        border-color: var(--dnd-indicator);
+    }
+
+    &.saved {
+        background: var(--online-indicator);
+        border-color: var(--online-indicator);
     }
 
     &__message {
@@ -37,7 +42,7 @@
             color: rgba(var(--center-channel-color-rgb), 0.56)
         }
 
-        &.error {
+        &.error, &.saved {
             color: var(--button-color);
             svg {
                 color: var(--button-color);
@@ -50,6 +55,11 @@
         flex: 1 1 auto;
         justify-content: flex-end;
         gap: 8px;
+
+        #panelCloseButton {
+            color: rgba(var(--button-color-rgb), 0.64);
+            font-size: 16px;
+        }
     }
 
     &__cancel-btn {
