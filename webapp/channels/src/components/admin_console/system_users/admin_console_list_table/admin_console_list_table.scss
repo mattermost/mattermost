@@ -110,9 +110,9 @@ table.adminConsoleListTable {
             }
 
             td {
+                overflow: hidden;
                 padding-block-end: 16px;
                 padding-block-start: 16px;
-                overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
 

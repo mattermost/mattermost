@@ -37,12 +37,14 @@ table.systemUsersTable {
             color: var(--sys-denim-button-bg);
             font-weight: 600;
             grid-area: displayName;
+
             @include textElipsis;
         }
 
         .userName {
             align-self: start;
             grid-area: userName;
+
             @include textElipsis;
         }
     }
