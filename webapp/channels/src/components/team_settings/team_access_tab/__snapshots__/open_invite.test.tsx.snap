@@ -1,0 +1,155 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/TeamSettings/OpenInvite should match snapshot on active with groupConstrained 1`] = `
+<BaseSettingItem
+  className="access-invite-domains-section"
+  content={
+    <p
+      id="groupConstrainedContent"
+    >
+      members of this team are added and removed by linked groups. 
+      <ExternalLink
+        href="https://mattermost.com/pl/default-ldap-group-constrained-team-channel.html"
+        location="open_invite"
+      >
+        Learn More
+      </ExternalLink>
+    </p>
+  }
+  description={
+    Object {
+      "defaultMessage": "When enabled, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing this setting will create a new invitation link and invalidate the previous link.",
+      "id": "general_tab.openInviteDesc",
+    }
+  }
+  descriptionAboveContent={true}
+  title={
+    Object {
+      "defaultMessage": "Users on this server",
+      "id": "general_tab.openInviteTitle",
+    }
+  }
+/>
+`;
+
+exports[`components/TeamSettings/OpenInvite should match snapshot on active without groupConstrained 1`] = `
+<CheckboxSettingItem
+  className="access-invite-domains-section"
+  description={
+    Object {
+      "defaultMessage": "When enabled, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing this setting will create a new invitation link and invalidate the previous link.",
+      "id": "general_tab.openInviteDesc",
+    }
+  }
+  descriptionAboveContent={true}
+  handleChange={[Function]}
+  inputFieldData={
+    Object {
+      "name": "name",
+      "title": Object {
+        "defaultMessage": "Allow only users with a specific email domain to join this team",
+        "id": "general_tab.allowedDomains",
+      },
+    }
+  }
+  inputFieldValue={false}
+  title={
+    Object {
+      "defaultMessage": "Users on this server",
+      "id": "general_tab.openInviteTitle",
+    }
+  }
+/>
+`;
+
+exports[`components/TeamSettings/OpenInvite should match snapshot on non active allowing open invite 1`] = `
+<CheckboxSettingItem
+  className="access-invite-domains-section"
+  description={
+    Object {
+      "defaultMessage": "When enabled, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing this setting will create a new invitation link and invalidate the previous link.",
+      "id": "general_tab.openInviteDesc",
+    }
+  }
+  descriptionAboveContent={true}
+  handleChange={[Function]}
+  inputFieldData={
+    Object {
+      "name": "name",
+      "title": Object {
+        "defaultMessage": "Allow only users with a specific email domain to join this team",
+        "id": "general_tab.allowedDomains",
+      },
+    }
+  }
+  inputFieldValue={true}
+  title={
+    Object {
+      "defaultMessage": "Users on this server",
+      "id": "general_tab.openInviteTitle",
+    }
+  }
+/>
+`;
+
+exports[`components/TeamSettings/OpenInvite should match snapshot on non active with groupConstrained 1`] = `
+<BaseSettingItem
+  className="access-invite-domains-section"
+  content={
+    <p
+      id="groupConstrainedContent"
+    >
+      members of this team are added and removed by linked groups. 
+      <ExternalLink
+        href="https://mattermost.com/pl/default-ldap-group-constrained-team-channel.html"
+        location="open_invite"
+      >
+        Learn More
+      </ExternalLink>
+    </p>
+  }
+  description={
+    Object {
+      "defaultMessage": "When enabled, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing this setting will create a new invitation link and invalidate the previous link.",
+      "id": "general_tab.openInviteDesc",
+    }
+  }
+  descriptionAboveContent={true}
+  title={
+    Object {
+      "defaultMessage": "Users on this server",
+      "id": "general_tab.openInviteTitle",
+    }
+  }
+/>
+`;
+
+exports[`components/TeamSettings/OpenInvite should match snapshot on non active without groupConstrained 1`] = `
+<CheckboxSettingItem
+  className="access-invite-domains-section"
+  description={
+    Object {
+      "defaultMessage": "When enabled, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing this setting will create a new invitation link and invalidate the previous link.",
+      "id": "general_tab.openInviteDesc",
+    }
+  }
+  descriptionAboveContent={true}
+  handleChange={[Function]}
+  inputFieldData={
+    Object {
+      "name": "name",
+      "title": Object {
+        "defaultMessage": "Allow only users with a specific email domain to join this team",
+        "id": "general_tab.allowedDomains",
+      },
+    }
+  }
+  inputFieldValue={false}
+  title={
+    Object {
+      "defaultMessage": "Users on this server",
+      "id": "general_tab.openInviteTitle",
+    }
+  }
+/>
+`;
