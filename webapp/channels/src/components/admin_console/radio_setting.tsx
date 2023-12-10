@@ -15,7 +15,7 @@ interface Props {
     helpText?: React.ReactNode;
     onChange(id: string, value: any): void;
 }
-const RadioSetting: React.FC<Props> = ({
+const RadioSetting = ({
     id,
     label,
     values,
@@ -24,7 +24,7 @@ const RadioSetting: React.FC<Props> = ({
     disabled = false,
     helpText,
     onChange,
-}) => {
+}: Props) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onChange(id, e.target.value);
     };
