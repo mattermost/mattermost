@@ -65,7 +65,7 @@
   "activity_log.moreInfo": "更多信息",
   "activity_log.os": "系统：{os}",
   "activity_log.sessionId": "会话 ID：{id}",
-  "activity_log.sessionsDescription": "会话将在您使用设备上的新浏览器中登录时创建。您在 Mattermost 的会话在系统管理员限定的时间段内无需重新登录。如果您希望早些退出，点击下方的‘注销’按钮结束会话。",
+  "activity_log.sessionsDescription": "会话将在您通过设备上的新浏览器登录时创建。会话让您可以在系统管理员指定的时间段内使用 Mattermost 而无需重新登录。如果希望更早结束会话，请点击“注销”按钮。",
   "activity_log_modal.android": "安卓",
   "activity_log_modal.androidNativeApp": "安卓原生应用",
   "activity_log_modal.androidNativeClassicApp": "旧版安卓原生应用",
