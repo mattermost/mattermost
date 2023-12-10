@@ -9,7 +9,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import SelectTextInput, {type SelectTextInputOption} from 'components/common/select_text_input/select_text_input';
 import Input from 'components/widgets/inputs/input/input';
-import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
+import BaseSettingItem, {type BaseSettingItemProps} from 'components/widgets/modals/components/base_setting_item';
 import CheckboxSettingItem from 'components/widgets/modals/components/checkbox_setting_item';
 import ModalSection from 'components/widgets/modals/components/modal_section';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
@@ -36,6 +36,7 @@ const AccessTab = (props: Props) => {
     const [showAllowedDomains, setShowAllowedDomains] = useState<boolean>(allowedDomains?.length > 0);
     const [allowOpenInvite, setAllowOpenInvite] = useState<boolean>(props.team?.allow_open_invite ?? false);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>('saving');
+    const [inviteIdError, setInviteIdError] = useState<BaseSettingItemProps['error'] | undefined>();
     const {formatMessage} = useIntl();
 
     const handleAllowedDomainsSubmit = async (): Promise<Error | null> => {
@@ -86,8 +87,7 @@ const AccessTab = (props: Props) => {
         }
 
         if (error) {
-            // todo sinan: handle with client error
-            // setServerError(error.message);
+            setInviteIdError({id: 'team_settings.openInviteDescription.error', defaultMessage: 'There was an error generating the invite code, please try again'});
         }
     };
 
@@ -157,6 +157,7 @@ const AccessTab = (props: Props) => {
                 title={{id: 'general_tab.codeTitle', defaultMessage: 'Invite Code'}}
                 description={{id: 'general_tab.codeLongDesc', defaultMessage: 'The Invite Code is part of the unique team invitation link which is sent to members you’re inviting to this team. Regenerating the code creates a new invitation link and invalidates the previous link.'}}
                 content={inviteSectionInput}
+                error={inviteIdError}
                 descriptionAboveContent={true}
             />
         );

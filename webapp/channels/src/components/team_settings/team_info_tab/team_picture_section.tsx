@@ -30,7 +30,7 @@ const TeamPictureSection = (props: Props) => {
     const selectInput = useRef<HTMLInputElement>(null);
     const [image, setImage] = useState<string>('');
     const [orientationStyles, setOrientationStyles] = useState<{transform: string; transformOrigin: string}>();
-    const int = useIntl();
+    const {formatMessage} = useIntl();
 
     const teamImageSource = imageURLForTeam(props.team || {} as Team);
 
@@ -132,7 +132,7 @@ const TeamPictureSection = (props: Props) => {
                     className='style--none picture-setting-item__remove-button'
                 >
                     <TrashCanOutlineIcon/>
-                    {int.formatMessage({id: 'setting_picture.remove_image', defaultMessage: 'Remove image'})}
+                    {formatMessage({id: 'setting_picture.remove_image', defaultMessage: 'Remove image'})}
                 </button>
             );
         }
@@ -140,7 +140,6 @@ const TeamPictureSection = (props: Props) => {
         return null;
     };
 
-    // todo sinan: fix spacing above 50MB
     const teamPictureSection = (
         <>
             <div className='team-picture-section' >
@@ -154,7 +153,11 @@ const TeamPictureSection = (props: Props) => {
     return (
         <BaseSettingItem
             title={{id: 'setting_picture.title', description: 'Team icon'}}
-            description={teamImageSource ? undefined : {id: 'setting_picture.help.team', defaultMessage: 'Upload a picture in BMP, JPG, JPEG, or PNG format. \nMaximum file size: 50MB'}}
+            description={teamImageSource ? undefined : {
+                id: 'setting_picture.help.profile',
+                defaultMessage: 'Upload a picture in BMP, JPG, JPEG, or PNG format. Maximum file size: {max}',
+                values: {max: '50MB'},
+            }}
             content={teamPictureSection}
             className='picture-setting-item'
             error={props.clientError}
