@@ -18,8 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
@@ -155,7 +154,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 		ClientId:     rapp.Id,
 		RedirectURI:  rapp.CallbackUrls[0],
 		Scope:        "",
-		State:        "123",
+		State:        "/oauthcallback?sesskey=abcd&other=123",
 	}
 	uriResponse, _, err := apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
 	require.NoError(t, err)
@@ -165,7 +164,11 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	// require no query parameter to have "?"
 	require.False(t, strings.Contains(ru.RawQuery, "?"), "should not malform query parameters")
 	require.NotEmpty(t, ru.Query().Get("code"), "authorization code not returned")
+
+	// test state is not encoded multiple times
 	require.Equal(t, ru.Query().Get("state"), authRequest.State, "returned state doesn't match")
+	// test state is URL encoded at least once
+	require.Empty(t, ru.Query().Get("other"), "state's query parameters should not leak")
 }
 
 func TestDeauthorizeOAuthApp(t *testing.T) {
@@ -396,20 +399,18 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 	c := &Context{
 		App:        th.App,
 		AppContext: th.Context,
+		Logger:     th.TestLogger,
 		Params: &Params{
 			Service: "gitlab",
 		},
 	}
 
-	var siteURL = "http://localhost:8065"
+	siteURL := "http://localhost:8065"
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.SiteURL = siteURL
 		*cfg.GitLabSettings.Enable = true
 	})
 
-	translationFunc := i18n.GetUserTranslations("en")
-	c.AppContext.SetT(translationFunc)
-	c.Logger = th.TestLogger
 	provider := &MattermostTestProvider{}
 	einterfaces.RegisterOAuthProvider(model.ServiceGitlab, provider)
 
@@ -616,14 +617,12 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	c := &Context{
 		App:        th.App,
 		AppContext: th.Context,
+		Logger:     th.TestLogger,
 		Params: &Params{
 			Service: "gitlab",
 		},
 	}
 
-	translationFunc := i18n.GetUserTranslations("en")
-	c.AppContext.SetT(translationFunc)
-	c.Logger = mlog.CreateConsoleTestLogger(t)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	provider := &MattermostTestProvider{}
@@ -686,7 +685,7 @@ func closeBody(r *http.Response) {
 type MattermostTestProvider struct {
 }
 
-func (m *MattermostTestProvider) GetUserFromJSON(data io.Reader, tokenUser *model.User) (*model.User, error) {
+func (m *MattermostTestProvider) GetUserFromJSON(_ request.CTX, data io.Reader, tokenUser *model.User) (*model.User, error) {
 	var user model.User
 	if err := json.NewDecoder(data).Decode(&user); err != nil {
 		return nil, err
@@ -695,15 +694,15 @@ func (m *MattermostTestProvider) GetUserFromJSON(data io.Reader, tokenUser *mode
 	return &user, nil
 }
 
-func (m *MattermostTestProvider) GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error) {
+func (m *MattermostTestProvider) GetSSOSettings(_ request.CTX, config *model.Config, service string) (*model.SSOSettings, error) {
 	return &config.GitLabSettings, nil
 }
 
-func (m *MattermostTestProvider) GetUserFromIdToken(token string) (*model.User, error) {
+func (m *MattermostTestProvider) GetUserFromIdToken(_ request.CTX, token string) (*model.User, error) {
 	return nil, nil
 }
 
-func (m *MattermostTestProvider) IsSameUser(dbUser, oauthUser *model.User) bool {
+func (m *MattermostTestProvider) IsSameUser(_ request.CTX, dbUser, oauthUser *model.User) bool {
 	return dbUser.AuthData == oauthUser.AuthData
 }
 
@@ -745,7 +744,7 @@ func (th *TestHelper) Login(client *model.Client4, user *model.User) {
 		Roles:   user.GetRawRoles(),
 		IsOAuth: false,
 	}
-	session, _ = th.App.CreateSession(session)
+	session, _ = th.App.CreateSession(th.Context, session)
 	client.AuthToken = session.Token
 	client.AuthType = model.HeaderBearer
 }

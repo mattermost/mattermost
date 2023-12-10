@@ -28,7 +28,7 @@ import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions';
 import {getDisplayedChannels} from 'selectors/views/channel_sidebar';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import {Constants, Preferences, UserStatuses} from 'utils/constants';
 import * as Utils from 'utils/utils';

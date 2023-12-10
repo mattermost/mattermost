@@ -12,40 +12,41 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestSharedChannelStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("SaveSharedChannel", func(t *testing.T) { testSaveSharedChannel(t, ss) })
-	t.Run("GetSharedChannel", func(t *testing.T) { testGetSharedChannel(t, ss) })
-	t.Run("HasSharedChannel", func(t *testing.T) { testHasSharedChannel(t, ss) })
-	t.Run("GetSharedChannels", func(t *testing.T) { testGetSharedChannels(t, ss) })
-	t.Run("UpdateSharedChannel", func(t *testing.T) { testUpdateSharedChannel(t, ss) })
-	t.Run("DeleteSharedChannel", func(t *testing.T) { testDeleteSharedChannel(t, ss) })
+func TestSharedChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("SaveSharedChannel", func(t *testing.T) { testSaveSharedChannel(t, rctx, ss) })
+	t.Run("GetSharedChannel", func(t *testing.T) { testGetSharedChannel(t, rctx, ss) })
+	t.Run("HasSharedChannel", func(t *testing.T) { testHasSharedChannel(t, rctx, ss) })
+	t.Run("GetSharedChannels", func(t *testing.T) { testGetSharedChannels(t, rctx, ss) })
+	t.Run("UpdateSharedChannel", func(t *testing.T) { testUpdateSharedChannel(t, rctx, ss) })
+	t.Run("DeleteSharedChannel", func(t *testing.T) { testDeleteSharedChannel(t, rctx, ss) })
 
-	t.Run("SaveSharedChannelRemote", func(t *testing.T) { testSaveSharedChannelRemote(t, ss) })
-	t.Run("UpdateSharedChannelRemote", func(t *testing.T) { testUpdateSharedChannelRemote(t, ss) })
-	t.Run("GetSharedChannelRemote", func(t *testing.T) { testGetSharedChannelRemote(t, ss) })
-	t.Run("GetSharedChannelRemoteByIds", func(t *testing.T) { testGetSharedChannelRemoteByIds(t, ss) })
-	t.Run("GetSharedChannelRemotes", func(t *testing.T) { testGetSharedChannelRemotes(t, ss) })
-	t.Run("HasRemote", func(t *testing.T) { testHasRemote(t, ss) })
-	t.Run("GetRemoteForUser", func(t *testing.T) { testGetRemoteForUser(t, ss) })
-	t.Run("UpdateSharedChannelRemoteNextSyncAt", func(t *testing.T) { testUpdateSharedChannelRemoteCursor(t, ss) })
-	t.Run("DeleteSharedChannelRemote", func(t *testing.T) { testDeleteSharedChannelRemote(t, ss) })
+	t.Run("SaveSharedChannelRemote", func(t *testing.T) { testSaveSharedChannelRemote(t, rctx, ss) })
+	t.Run("UpdateSharedChannelRemote", func(t *testing.T) { testUpdateSharedChannelRemote(t, rctx, ss) })
+	t.Run("GetSharedChannelRemote", func(t *testing.T) { testGetSharedChannelRemote(t, rctx, ss) })
+	t.Run("GetSharedChannelRemoteByIds", func(t *testing.T) { testGetSharedChannelRemoteByIds(t, rctx, ss) })
+	t.Run("GetSharedChannelRemotes", func(t *testing.T) { testGetSharedChannelRemotes(t, rctx, ss) })
+	t.Run("HasRemote", func(t *testing.T) { testHasRemote(t, rctx, ss) })
+	t.Run("GetRemoteForUser", func(t *testing.T) { testGetRemoteForUser(t, rctx, ss) })
+	t.Run("UpdateSharedChannelRemoteNextSyncAt", func(t *testing.T) { testUpdateSharedChannelRemoteCursor(t, rctx, ss) })
+	t.Run("DeleteSharedChannelRemote", func(t *testing.T) { testDeleteSharedChannelRemote(t, rctx, ss) })
 
-	t.Run("SaveSharedChannelUser", func(t *testing.T) { testSaveSharedChannelUser(t, ss) })
-	t.Run("GetSharedChannelSingleUser", func(t *testing.T) { testGetSingleSharedChannelUser(t, ss) })
-	t.Run("GetSharedChannelUser", func(t *testing.T) { testGetSharedChannelUser(t, ss) })
-	t.Run("GetSharedChannelUsersForSync", func(t *testing.T) { testGetSharedChannelUsersForSync(t, ss) })
-	t.Run("UpdateSharedChannelUserLastSyncAt", func(t *testing.T) { testUpdateSharedChannelUserLastSyncAt(t, ss) })
+	t.Run("SaveSharedChannelUser", func(t *testing.T) { testSaveSharedChannelUser(t, rctx, ss) })
+	t.Run("GetSharedChannelSingleUser", func(t *testing.T) { testGetSingleSharedChannelUser(t, rctx, ss) })
+	t.Run("GetSharedChannelUser", func(t *testing.T) { testGetSharedChannelUser(t, rctx, ss) })
+	t.Run("GetSharedChannelUsersForSync", func(t *testing.T) { testGetSharedChannelUsersForSync(t, rctx, ss) })
+	t.Run("UpdateSharedChannelUserLastSyncAt", func(t *testing.T) { testUpdateSharedChannelUserLastSyncAt(t, rctx, ss) })
 
-	t.Run("SaveSharedChannelAttachment", func(t *testing.T) { testSaveSharedChannelAttachment(t, ss) })
-	t.Run("UpsertSharedChannelAttachment", func(t *testing.T) { testUpsertSharedChannelAttachment(t, ss) })
-	t.Run("GetSharedChannelAttachment", func(t *testing.T) { testGetSharedChannelAttachment(t, ss) })
-	t.Run("UpdateSharedChannelAttachmentLastSyncAt", func(t *testing.T) { testUpdateSharedChannelAttachmentLastSyncAt(t, ss) })
+	t.Run("SaveSharedChannelAttachment", func(t *testing.T) { testSaveSharedChannelAttachment(t, rctx, ss) })
+	t.Run("UpsertSharedChannelAttachment", func(t *testing.T) { testUpsertSharedChannelAttachment(t, rctx, ss) })
+	t.Run("GetSharedChannelAttachment", func(t *testing.T) { testGetSharedChannelAttachment(t, rctx, ss) })
+	t.Run("UpdateSharedChannelAttachmentLastSyncAt", func(t *testing.T) { testUpdateSharedChannelAttachmentLastSyncAt(t, rctx, ss) })
 }
 
-func testSaveSharedChannel(t *testing.T, ss store.Store) {
+func testSaveSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Save shared channel (home)", func(t *testing.T) {
 		channel, err := createTestChannel(ss, "test_save")
 		require.NoError(t, err)
@@ -123,7 +124,7 @@ func testSaveSharedChannel(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetSharedChannel(t *testing.T, ss store.Store) {
+func testGetSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel, err := createTestChannel(ss, "test_get")
 	require.NoError(t, err)
 
@@ -154,7 +155,7 @@ func testGetSharedChannel(t *testing.T, ss store.Store) {
 	})
 }
 
-func testHasSharedChannel(t *testing.T, ss store.Store) {
+func testHasSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel, err := createTestChannel(ss, "test_get")
 	require.NoError(t, err)
 
@@ -182,7 +183,7 @@ func testHasSharedChannel(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetSharedChannels(t *testing.T, ss store.Store) {
+func testGetSharedChannels(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, clearSharedChannels(ss))
 	user, err := createTestUser(ss, "gary.goodspeed")
 	require.NoError(t, err)
@@ -326,7 +327,7 @@ func testGetSharedChannels(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUpdateSharedChannel(t *testing.T, ss store.Store) {
+func testUpdateSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel, err := createTestChannel(ss, "test_update")
 	require.NoError(t, err)
 
@@ -370,7 +371,7 @@ func testUpdateSharedChannel(t *testing.T, ss store.Store) {
 	})
 }
 
-func testDeleteSharedChannel(t *testing.T, ss store.Store) {
+func testDeleteSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel, err := createTestChannel(ss, "test_delete")
 	require.NoError(t, err)
 
@@ -423,7 +424,7 @@ func testDeleteSharedChannel(t *testing.T, ss store.Store) {
 	})
 }
 
-func testSaveSharedChannelRemote(t *testing.T, ss store.Store) {
+func testSaveSharedChannelRemote(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Save shared channel remote", func(t *testing.T) {
 		channel, err := createTestChannel(ss, "test_save_remote")
 		require.NoError(t, err)
@@ -464,7 +465,7 @@ func testSaveSharedChannelRemote(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUpdateSharedChannelRemote(t *testing.T, ss store.Store) {
+func testUpdateSharedChannelRemote(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Update shared channel remote", func(t *testing.T) {
 		channel, err := createTestChannel(ss, "test_update_remote")
 		require.NoError(t, err)
@@ -511,7 +512,7 @@ func testUpdateSharedChannelRemote(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetSharedChannelRemote(t *testing.T, ss store.Store) {
+func testGetSharedChannelRemote(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel, err := createTestChannel(ss, "test_remote_get")
 	require.NoError(t, err)
 
@@ -541,7 +542,7 @@ func testGetSharedChannelRemote(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetSharedChannelRemoteByIds(t *testing.T, ss store.Store) {
+func testGetSharedChannelRemoteByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel, err := createTestChannel(ss, "test_remote_get_by_ids")
 	require.NoError(t, err)
 
@@ -571,7 +572,7 @@ func testGetSharedChannelRemoteByIds(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetSharedChannelRemotes(t *testing.T, ss store.Store) {
+func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel, err := createTestChannel(ss, "test_remotes_get2")
 	require.NoError(t, err)
 
@@ -654,7 +655,7 @@ func testGetSharedChannelRemotes(t *testing.T, ss store.Store) {
 	})
 }
 
-func testHasRemote(t *testing.T, ss store.Store) {
+func testHasRemote(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel, err := createTestChannel(ss, "test_remotes_get2")
 	require.NoError(t, err)
 
@@ -695,7 +696,7 @@ func testHasRemote(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetRemoteForUser(t *testing.T, ss store.Store) {
+func testGetRemoteForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	// add remotes, and users to simulated shared channels.
 	teamId := model.NewId()
 	channel, err := createSharedTestChannel(ss, "share_test_channel", true, nil)
@@ -751,7 +752,7 @@ func testGetRemoteForUser(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUpdateSharedChannelRemoteCursor(t *testing.T, ss store.Store) {
+func testUpdateSharedChannelRemoteCursor(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel, err := createTestChannel(ss, "test_remote_update_next_sync_at")
 	require.NoError(t, err)
 
@@ -764,31 +765,55 @@ func testUpdateSharedChannelRemoteCursor(t *testing.T, ss store.Store) {
 	remoteSaved, err := ss.SharedChannel().SaveRemote(remote)
 	require.NoError(t, err, "couldn't save remote", err)
 
-	future := model.GetMillis() + 3600000 // 1 hour in the future
-	postID := model.NewId()
+	futureCreateAt := model.GetMillis() + 3600000 // 1 hour in the future
+	postCreateID := model.NewId()
 
-	cursor := model.GetPostsSinceForSyncCursor{
-		LastPostUpdateAt: future,
-		LastPostId:       postID,
+	futureUpdateAt := model.GetMillis() + (3600000 * 2) // 2 hours in the future
+	postUpdateID := model.NewId()
+
+	cursorCreate := model.GetPostsSinceForSyncCursor{
+		LastPostCreateAt: futureCreateAt,
+		LastPostCreateID: postCreateID,
 	}
 
-	t.Run("Update NextSyncAt for remote", func(t *testing.T) {
-		err := ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, cursor)
-		require.NoError(t, err, "update NextSyncAt should not error", err)
+	cursorUpdate := model.GetPostsSinceForSyncCursor{
+		LastPostUpdateAt: futureUpdateAt,
+		LastPostUpdateID: postUpdateID,
+	}
+
+	t.Run("Update cursor CreateAt for remote", func(t *testing.T) {
+		err := ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, cursorCreate)
+		require.NoError(t, err, "update cursor should not error", err)
 
 		r, err := ss.SharedChannel().GetRemote(remoteSaved.Id)
 		require.NoError(t, err)
-		require.Equal(t, future, r.LastPostUpdateAt)
-		require.Equal(t, postID, r.LastPostId)
+		require.Equal(t, futureCreateAt, r.LastPostCreateAt)
+		require.Equal(t, postCreateID, r.LastPostCreateID)
 	})
 
-	t.Run("Update NextSyncAt for non-existent shared channel remote", func(t *testing.T) {
-		err := ss.SharedChannel().UpdateRemoteCursor(model.NewId(), cursor)
+	t.Run("Update cursor UpdateAt for remote", func(t *testing.T) {
+		err := ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, cursorUpdate)
+		require.NoError(t, err, "update cursor should not error", err)
+
+		r, err := ss.SharedChannel().GetRemote(remoteSaved.Id)
+		require.NoError(t, err)
+		require.Equal(t, futureUpdateAt, r.LastPostUpdateAt)
+		require.Equal(t, postUpdateID, r.LastPostUpdateID)
+	})
+
+	t.Run("Update cursor for non-existent shared channel remote", func(t *testing.T) {
+		err := ss.SharedChannel().UpdateRemoteCursor(model.NewId(), cursorUpdate)
 		require.Error(t, err, "update non-existent remote should error", err)
+	})
+
+	t.Run("Update with empty cursor", func(t *testing.T) {
+		emptyCursor := model.GetPostsSinceForSyncCursor{}
+		err := ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, emptyCursor)
+		require.Error(t, err, "update with empty cursor should error", err)
 	})
 }
 
-func testDeleteSharedChannelRemote(t *testing.T, ss store.Store) {
+func testDeleteSharedChannelRemote(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel, err := createTestChannel(ss, "test_remote_delete")
 	require.NoError(t, err)
 
@@ -898,7 +923,7 @@ func clearSharedChannels(ss store.Store) error {
 	return nil
 }
 
-func testSaveSharedChannelUser(t *testing.T, ss store.Store) {
+func testSaveSharedChannelUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Save shared channel user", func(t *testing.T) {
 		scUser := &model.SharedChannelUser{
 			UserId:    model.NewId(),
@@ -934,7 +959,7 @@ func testSaveSharedChannelUser(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetSingleSharedChannelUser(t *testing.T, ss store.Store) {
+func testGetSingleSharedChannelUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	scUser := &model.SharedChannelUser{
 		UserId:    model.NewId(),
 		RemoteId:  model.NewId(),
@@ -961,7 +986,7 @@ func testGetSingleSharedChannelUser(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetSharedChannelUser(t *testing.T, ss store.Store) {
+func testGetSharedChannelUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 	for i := 0; i < 10; i++ {
 		scUser := &model.SharedChannelUser{
@@ -988,7 +1013,7 @@ func testGetSharedChannelUser(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetSharedChannelUsersForSync(t *testing.T, ss store.Store) {
+func testGetSharedChannelUsersForSync(t *testing.T, rctx request.CTX, ss store.Store) {
 	channelID := model.NewId()
 	remoteID := model.NewId()
 	earlier := model.GetMillis() - 300000
@@ -1067,7 +1092,7 @@ func testGetSharedChannelUsersForSync(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUpdateSharedChannelUserLastSyncAt(t *testing.T, ss store.Store) {
+func testUpdateSharedChannelUserLastSyncAt(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
 		Username:          model.NewId(),
 		Email:             model.NewId() + "@example.com",
@@ -1127,7 +1152,7 @@ func testUpdateSharedChannelUserLastSyncAt(t *testing.T, ss store.Store) {
 	})
 }
 
-func testSaveSharedChannelAttachment(t *testing.T, ss store.Store) {
+func testSaveSharedChannelAttachment(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Save shared channel attachment", func(t *testing.T) {
 		attachment := &model.SharedChannelAttachment{
 			FileId:   model.NewId(),
@@ -1162,7 +1187,7 @@ func testSaveSharedChannelAttachment(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUpsertSharedChannelAttachment(t *testing.T, ss store.Store) {
+func testUpsertSharedChannelAttachment(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Upsert new shared channel attachment", func(t *testing.T) {
 		attachment := &model.SharedChannelAttachment{
 			FileId:   model.NewId(),
@@ -1224,7 +1249,7 @@ func testUpsertSharedChannelAttachment(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetSharedChannelAttachment(t *testing.T, ss store.Store) {
+func testGetSharedChannelAttachment(t *testing.T, rctx request.CTX, ss store.Store) {
 	attachment := &model.SharedChannelAttachment{
 		FileId:   model.NewId(),
 		RemoteId: model.NewId(),
@@ -1250,7 +1275,7 @@ func testGetSharedChannelAttachment(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUpdateSharedChannelAttachmentLastSyncAt(t *testing.T, ss store.Store) {
+func testUpdateSharedChannelAttachmentLastSyncAt(t *testing.T, rctx request.CTX, ss store.Store) {
 	attachment := &model.SharedChannelAttachment{
 		FileId:   model.NewId(),
 		RemoteId: model.NewId(),

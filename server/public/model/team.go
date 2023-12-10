@@ -60,6 +60,10 @@ func (o *Team) Auditable() map[string]interface{} {
 	}
 }
 
+func (o *Team) LogClone() any {
+	return o.Auditable()
+}
+
 type TeamPatch struct {
 	DisplayName         *string `json:"display_name"`
 	Description         *string `json:"description"`
@@ -286,25 +290,4 @@ func (o *Team) IsGroupConstrained() bool {
 func (o *Team) ShallowCopy() *Team {
 	c := *o
 	return &c
-}
-
-// The following are some GraphQL methods necessary to return the
-// data in float64 type. The spec doesn't support 64 bit integers,
-// so we have to pass the data in float64. The _ at the end is
-// a hack to keep the attribute name same in GraphQL schema.
-
-func (o *Team) CreateAt_() float64 {
-	return float64(o.UpdateAt)
-}
-
-func (o *Team) UpdateAt_() float64 {
-	return float64(o.UpdateAt)
-}
-
-func (o *Team) DeleteAt_() float64 {
-	return float64(o.DeleteAt)
-}
-
-func (o *Team) LastTeamIconUpdate_() float64 {
-	return float64(o.LastTeamIconUpdate)
 }

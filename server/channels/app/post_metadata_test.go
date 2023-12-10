@@ -350,7 +350,6 @@ func TestPreparePostForClient(t *testing.T) {
 			assert.True(t, ok)
 			assert.EqualValues(t, colonEmoji, s)
 		})
-
 	})
 
 	t.Run("markdown image dimensions", func(t *testing.T) {
@@ -1971,7 +1970,6 @@ func TestGetLinkMetadata(t *testing.T) {
 		params := r.URL.Query()
 
 		writeImage := func(height, width int) {
-
 			img := image.NewGray(image.Rect(0, 0, height, width))
 
 			var encoder png.Encoder
@@ -2822,7 +2820,7 @@ func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
 		require.Nil(t, appErr)
 
 		actual = th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, directChannel, guest.Id)
-		assert.Nil(t, actual.Metadata.Embeds[0].Data)
+		assert.Len(t, actual.Metadata.Embeds, 0)
 	})
 
 	t.Run("should not preview for archived channels", func(t *testing.T) {
@@ -2884,7 +2882,7 @@ func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
 		})
 
 		actual = th.App.sanitizePostMetadataForUserAndChannel(th.Context, post, previewedPost, publicChannel, th.BasicUser.Id)
-		assert.Nil(t, actual.Metadata.Embeds[0].Data)
+		assert.Len(t, actual.Metadata.Embeds, 0)
 	})
 }
 

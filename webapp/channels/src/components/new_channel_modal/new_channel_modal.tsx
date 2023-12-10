@@ -83,6 +83,11 @@ const NewChannelModal = () => {
     const [canCreateFromPluggable, setCanCreateFromPluggable] = useState(true);
     const [actionFromPluggable, setActionFromPluggable] = useState<((currentTeamId: string, channelId: string) => Promise<Board>) | undefined>(undefined);
 
+    const handleURLChange = useCallback((newURL: string) => {
+        setURL(newURL);
+        setURLError('');
+    }, []);
+
     const handleOnModalConfirm = async () => {
         if (!canCreate) {
             return;
@@ -265,8 +270,9 @@ const NewChannelModal = () => {
                     name='new-channel-modal-name'
                     placeholder={formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
                     onDisplayNameChange={setDisplayName}
-                    onURLChange={setURL}
+                    onURLChange={handleURLChange}
                     onErrorStateChange={setChannelInputError}
+                    urlError={urlError}
                 />
                 <PublicPrivateSelector
                     className='new-channel-modal-type-selector'

@@ -1,0 +1,18 @@
+.SelectTeam__sub-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+    margin-bottom: 24px;
+
+    >h4 {
+        margin: 0;
+
+        span {
+            display: inline-flex;
+            font-size: 20px;
+            font-weight: 600;
+            line-height: 28px;
+        }
+    }
+}

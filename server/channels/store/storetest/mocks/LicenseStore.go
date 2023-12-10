@@ -5,9 +5,8 @@
 package mocks
 
 import (
-	context "context"
-
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -16,25 +15,25 @@ type LicenseStore struct {
 	mock.Mock
 }
 
-// Get provides a mock function with given fields: ctx, id
-func (_m *LicenseStore) Get(ctx context.Context, id string) (*model.LicenseRecord, error) {
-	ret := _m.Called(ctx, id)
+// Get provides a mock function with given fields: c, id
+func (_m *LicenseStore) Get(c request.CTX, id string) (*model.LicenseRecord, error) {
+	ret := _m.Called(c, id)
 
 	var r0 *model.LicenseRecord
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.LicenseRecord, error)); ok {
-		return rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.LicenseRecord, error)); ok {
+		return rf(c, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *model.LicenseRecord); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.LicenseRecord); ok {
+		r0 = rf(c, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.LicenseRecord)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(c, id)
 	} else {
 		r1 = ret.Error(1)
 	}

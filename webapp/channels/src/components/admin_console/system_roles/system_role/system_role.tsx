@@ -156,7 +156,7 @@ export default class SystemRole extends React.PureComponent<Props, State> {
         }
 
         const userIdsToAdd = Object.keys(usersToAdd);
-        if (userIdsToAdd.length > 0 && serverError == null) {
+        if (userIdsToAdd.length > 0 && !serverError) {
             const addUserPromises: Array<Promise<ActionResult>> = [];
             userIdsToAdd.forEach((userId) => {
                 const user = usersToAdd[userId];
@@ -174,16 +174,16 @@ export default class SystemRole extends React.PureComponent<Props, State> {
         }
 
         let {saveKey} = this.state;
-        if (serverError === null) {
+        if (!serverError) {
             saveKey += 1;
         }
 
-        if (serverError === null) {
+        if (!serverError) {
             getHistory().push('/admin_console/user_management/system_roles');
         }
-        setNavigationBlocked(serverError !== null);
+        setNavigationBlocked(Boolean(serverError));
         this.setState({
-            saveNeeded: (serverError !== null),
+            saveNeeded: Boolean(serverError),
             saving: false,
             serverError,
             usersToAdd: {},

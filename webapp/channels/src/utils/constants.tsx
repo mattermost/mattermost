@@ -148,6 +148,7 @@ export const Preferences = {
     OVERAGE_USERS_BANNER: 'overage_users_banner',
     TO_CLOUD_YEARLY_PLAN_NUDGE: 'to_cloud_yearly_plan_nudge',
     TO_PAID_PLAN_NUDGE: 'to_paid_plan_nudge',
+    CLOUD_ANNUAL_RENEWAL_BANNER: 'cloud_annual_renewal_banner',
 };
 
 // For one off things that have a special, attention-grabbing UI until you interact with them
@@ -446,6 +447,10 @@ export const ModalIdentifiers = {
     START_TRIAL_FORM_MODAL: 'start_trial_form_modal',
     START_TRIAL_FORM_MODAL_RESULT: 'start_trial_form_modal_result',
     CONVERT_GM_TO_CHANNEL: 'convert_gm_to_channel',
+    IP_FILTERING_ADD_EDIT_MODAL: 'ip_filtering_add_edit_modal',
+    IP_FILTERING_DELETE_CONFIRMATION_MODAL: 'ip_filtering_delete_confirmation_modal',
+    IP_FILTERING_SAVE_CONFIRMATION_MODAL: 'ip_filtering_save_confirmation_modal',
+    REACTION_LIMIT_REACHED: 'reaction_limit_reached',
 };
 
 export const UserStatuses = {
@@ -507,6 +512,7 @@ export const MattermostFeatures = {
     ALL_ENTERPRISE_FEATURES: 'mattermost.feature.all_enterprise',
     UPGRADE_DOWNGRADED_WORKSPACE: 'mattermost.feature.upgrade_downgraded_workspace',
     PLUGIN_FEATURE: 'mattermost.feature.plugin',
+    HIGHLIGHT_WITHOUT_NOTIFICATION: 'mattermost.feature.highlight_without_notification',
 };
 
 export enum LicenseSkus {
@@ -714,6 +720,8 @@ export const CloudBanners = {
     THREE_DAYS_LEFT_TRIAL_MODAL_DISMISSED: 'dismiss_3_days_left_trial_modal',
     NUDGE_TO_CLOUD_YEARLY_PLAN_SNOOZED: 'nudge_to_cloud_yearly_plan_snoozed',
     NUDGE_TO_PAID_PLAN_SNOOZED: 'nudge_to_paid_plan_snoozed',
+    ANNUAL_RENEWAL_60_DAY: 'annual_renewal_60_day',
+    ANNUAL_RENEWAL_30_DAY: 'annual_renewal_30_day',
 };
 
 export const ConfigurationBanners = {
@@ -1014,7 +1022,6 @@ export const AdvancedSections = {
     PREVIEW_FEATURES: 'advancedPreviewFeatures',
     PERFORMANCE_DEBUGGING: 'performanceDebugging',
     SYNC_DRAFTS: 'syncDrafts',
-    DATA_PREFETCH: 'dataPrefetch',
 };
 
 export const RHSStates = {
@@ -1088,6 +1095,7 @@ export const HostedCustomerLinks = {
 
 export const DocLinks = {
     ABOUT_TEAMS: 'https://docs.mattermost.com/welcome/about-teams.html#team-url',
+    ADVANCED_LOGGING: 'https://mattermost.com/pl/advanced-logging',
     CONFIGURE_DOCUMENT_CONTENT_SEARCH: 'https://mattermost.com/pl/configure-document-content-search',
     CONFIGURE_AD_LDAP_QUERY_TIMEOUT: 'https://mattermost.com/pl/configure-ad-ldap-query-timeout',
     CONFIGURE_OVERRIDE_SAML_BIND_DATA_WITH_LDAP: 'https://mattermost.com/pl/configure-override-saml-bind-data-with-ldap',
@@ -1100,6 +1108,7 @@ export const DocLinks = {
     ENABLE_CLIENT_SIDE_CERTIFICATION: 'https://mattermost.com/pl/enable-client-side-certification',
     ENABLE_HARDENED_MODE: 'https://mattermost.com/pl/enable-hardened-mode',
     FORMAT_MESSAGES: 'https://mattermost.com/pl/format-messages',
+    FILE_STORAGE: 'https://mattermost.com/pl/configure-file-storage',
     GUEST_ACCOUNTS: 'https://docs.mattermost.com/onboard/guest-accounts.html',
     HIGH_AVAILABILITY_CLUSTER: 'https://mattermost.com/pl/high-availability-cluster',
     IN_PRODUCT_NOTICES: 'https://mattermost.com/pl/in-product-notices',
@@ -1442,7 +1451,7 @@ export const Constants = {
     MENTIONS_REGEX: /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi,
     DEFAULT_CHARACTER_LIMIT: 4000,
     IMAGE_TYPE_GIF: 'gif',
-    TEXT_TYPES: ['txt', 'rtf'],
+    TEXT_TYPES: ['txt', 'rtf', 'vtt'],
     IMAGE_TYPES: ['jpg', 'gif', 'bmp', 'png', 'jpeg', 'tiff', 'tif', 'psd'],
     AUDIO_TYPES: ['mp3', 'wav', 'wma', 'm4a', 'flac', 'aac', 'ogg', 'm4r'],
     VIDEO_TYPES: ['mp4', 'avi', 'webm', 'mkv', 'wmv', 'mpg', 'mov', 'flv'],
@@ -1900,6 +1909,7 @@ export const Constants = {
         vbscript: {name: 'VBScript', extensions: ['vbs'], aliases: ['vbs']},
         verilog: {name: 'Verilog', extensions: ['v', 'veo', 'sv', 'svh']},
         vhdl: {name: 'VHDL', extensions: ['vhd', 'vhdl'], aliases: ['vhd']},
+        vtt: {name: 'WebVTT', extensions: ['vtt'], aliases: ['vtt', 'webvtt']},
         xml: {name: 'HTML, XML', extensions: ['xml', 'html', 'xhtml', 'rss', 'atom', 'xsl', 'plist']},
         yaml: {name: 'YAML', extensions: ['yaml'], aliases: ['yml']},
     },
@@ -2011,7 +2021,7 @@ export const Constants = {
     SEARCH_POST: 'searchpost',
     CHANNEL_ID_LENGTH: 26,
     TRANSPARENT_PIXEL: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
-    TRIPLE_BACK_TICKS: /```/g,
+    REGEX_CODE_BLOCK_OPTIONAL_LANGUAGE_TAG: /^```.*$/gm,
     MAX_ATTACHMENT_FOOTER_LENGTH: 300,
     ACCEPT_STATIC_IMAGE: '.jpeg,.jpg,.png,.bmp',
     ACCEPT_EMOJI_IMAGE: '.jpeg,.jpg,.png,.gif',
@@ -2044,6 +2054,7 @@ export const ConsolePages = {
     GUEST_ACCOUNTS: '/admin_console/authentication/guest_access',
     LICENSE: '/admin_console/about/license',
     SAML: '/admin_console/authentication/saml',
+    FILE_STORAGE: '/admin_console/environment/file_storage',
     SESSION_LENGTHS: '/admin_console/environment/session_lengths',
     WEB_SERVER: '/admin_console/environment/web_server',
     PUSH_NOTIFICATION_CENTER: '/admin_console/environment/push_notification_server',
@@ -2160,6 +2171,11 @@ export const DataSearchTypes = {
 export const OverActiveUserLimits = {
     MIN: 0.05,
     MAX: 0.1,
+} as const;
+
+export const PageLoadContext = {
+    PAGE_LOAD: 'page_load',
+    RECONNECT: 'reconnect',
 } as const;
 
 export default Constants;

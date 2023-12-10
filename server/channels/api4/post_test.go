@@ -425,7 +425,7 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 	})
 	require.Nil(t, appErr, "should create an OAuthApp")
 
-	session, appErr := th.App.CreateSession(&model.Session{
+	session, appErr := th.App.CreateSession(th.Context, &model.Session{
 		UserId:  th.BasicUser.Id,
 		Token:   "token",
 		IsOAuth: true,
@@ -763,7 +763,7 @@ func TestCreatePostPublic(t *testing.T) {
 
 	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
-	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllPublicRoleId)
+	th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllPublicRoleId)
 	th.App.Srv().InvalidateAllCaches()
 
 	client.Login(context.Background(), user.Email, user.Password)
@@ -816,7 +816,7 @@ func TestCreatePostAll(t *testing.T) {
 
 	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
-	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllRoleId)
+	th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllRoleId)
 	th.App.Srv().InvalidateAllCaches()
 
 	client.Login(context.Background(), user.Email, user.Password)
@@ -1358,7 +1358,6 @@ func TestPatchPost(t *testing.T) {
 	})
 
 	t.Run("err with integrations-reserved props", func(t *testing.T) {
-
 		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = true
@@ -2254,7 +2253,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err := th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = 0
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -2275,7 +2274,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post1.CreateAt - 1
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -2299,7 +2298,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post6.CreateAt - 1
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -2326,7 +2325,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post10.CreateAt - 1
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -2351,7 +2350,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post10.CreateAt
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -2390,7 +2389,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post12.CreateAt - 1
-	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
@@ -3796,7 +3795,7 @@ func TestPostGetInfo(t *testing.T) {
 	dmPost, _, err := client.CreatePost(context.Background(), &model.Post{ChannelId: dmChannel.Id})
 	require.NoError(t, err)
 
-	openTeam, _, err := sysadminClient.CreateTeam(context.Background(), &model.Team{Type: model.TeamOpen, Name: "open-team", DisplayName: "Open Team"})
+	openTeam, _, err := sysadminClient.CreateTeam(context.Background(), &model.Team{Type: model.TeamOpen, Name: "open-team", DisplayName: "Open Team", AllowOpenInvite: true})
 	require.NoError(t, err)
 	openTeamOpenChannel, _, err := sysadminClient.CreateChannel(context.Background(), &model.Channel{TeamId: openTeam.Id, Type: model.ChannelTypeOpen, Name: "open-team-open-channel", DisplayName: "Open Team - Open Channel"})
 	require.NoError(t, err)
@@ -3804,7 +3803,7 @@ func TestPostGetInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	// Alt team is a team without the sysadmin in it.
-	altOpenTeam, _, err := client.CreateTeam(context.Background(), &model.Team{Type: model.TeamOpen, Name: "alt-open-team", DisplayName: "Alt Open Team"})
+	altOpenTeam, _, err := client.CreateTeam(context.Background(), &model.Team{Type: model.TeamOpen, Name: "alt-open-team", DisplayName: "Alt Open Team", AllowOpenInvite: true})
 	require.NoError(t, err)
 	altOpenTeamOpenChannel, _, err := client.CreateChannel(context.Background(), &model.Channel{TeamId: altOpenTeam.Id, Type: model.ChannelTypeOpen, Name: "alt-open-team-open-channel", DisplayName: "Open Team - Open Channel"})
 	require.NoError(t, err)
@@ -4009,8 +4008,12 @@ func TestPostGetInfo(t *testing.T) {
 			require.Equal(t, tc.channel.DisplayName, info.ChannelDisplayName)
 			require.Equal(t, tc.hasJoinedChannel, info.HasJoinedChannel)
 			if tc.team != nil {
+				teamType := "I"
+				if tc.team.AllowOpenInvite {
+					teamType = "O"
+				}
 				require.Equal(t, tc.team.Id, info.TeamId)
-				require.Equal(t, tc.team.Type, info.TeamType)
+				require.Equal(t, teamType, info.TeamType)
 				require.Equal(t, tc.team.DisplayName, info.TeamDisplayName)
 				require.Equal(t, tc.hasJoinedTeam, info.HasJoinedTeam)
 			}

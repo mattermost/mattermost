@@ -8,32 +8,30 @@ import './menu_group.scss';
 type Props = {
     divider?: React.ReactNode;
     children?: React.ReactNode;
-}
+};
 
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
  */
-export default class MenuGroup extends React.PureComponent<Props> {
-    handleDividerClick = (e: React.MouseEvent): void => {
+const MenuGroup = (props: Props) => {
+    const handleDividerClick = (e: React.MouseEvent): void => {
         e.preventDefault();
         e.stopPropagation();
     };
 
-    public render() {
-        const {children} = this.props;
+    const divider = props.divider ?? (
+        <li
+            className='MenuGroup menu-divider'
+            onClick={handleDividerClick}
+        />
+    );
 
-        const divider = this.props.divider || (
-            <li
-                className='MenuGroup menu-divider'
-                onClick={this.handleDividerClick}
-            />
-        );
+    return (
+        <>
+            {divider}
+            {props.children}
+        </>
+    );
+};
 
-        return (
-            <React.Fragment>
-                {divider}
-                {children}
-            </React.Fragment>
-        );
-    }
-}
+export default React.memo(MenuGroup);

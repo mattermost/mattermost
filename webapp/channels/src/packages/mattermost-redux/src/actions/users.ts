@@ -4,29 +4,16 @@
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
-import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {ServerError} from '@mattermost/types/errors';
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {Role} from '@mattermost/types/roles';
-import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus} from '@mattermost/types/users';
 
-import {UserTypes, AdminTypes, GeneralTypes, PreferenceTypes, TeamTypes, RoleTypes} from 'mattermost-redux/action_types';
+import {UserTypes, AdminTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
 import {setServerVersion, getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
 import {bindClientFunc, forceLogoutIfNecessary, debounce} from 'mattermost-redux/actions/helpers';
 import {getMyPreferences} from 'mattermost-redux/actions/preferences';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {getMyTeams, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/actions/teams';
-import {
-    currentUserInfoQuery,
-    transformToRecievedMeReducerPayload,
-    transformToRecievedTeamsListReducerPayload,
-    transformToReceivedUserAndTeamRolesReducerPayload,
-    transformToRecievedMyTeamMembersReducerPayload,
-} from 'mattermost-redux/actions/users_queries';
-import type {
-    CurrentUserInfoQueryResponseType} from 'mattermost-redux/actions/users_queries';
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
 import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
@@ -67,7 +54,7 @@ export function createUser(user: UserProfile, token: string, inviteId: string, r
     };
 }
 
-export function loadMeREST(): ActionFunc {
+export function loadMe(): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         // Sometimes the server version is set in one or the other
         const serverVersion = getState().entities.general.serverVersion || Client4.getServerVersion();
@@ -89,76 +76,6 @@ export function loadMeREST(): ActionFunc {
             dispatch(logError(error as ServerError));
             return {error: error as ServerError};
         }
-
-        return {data: true};
-    };
-}
-
-export function loadMe(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        // Sometimes the server version is set in one or the other
-        const serverVersion = getState().entities.general.serverVersion || Client4.getServerVersion();
-        dispatch(setServerVersion(serverVersion));
-
-        let clientLicense: ClientLicense;
-        let clientConfig: ClientConfig;
-        let userProfile: UserProfile;
-        let roles: Role[];
-        let preferences: PreferenceType[];
-        let teams: Team[];
-        let teamMemberships: TeamMembership[];
-
-        try {
-            const {data, errors} = await Client4.fetchWithGraphQL<CurrentUserInfoQueryResponseType>(currentUserInfoQuery);
-
-            if (errors || !data) {
-                throw new Error('Error returned in fetching current user info with graphQL');
-            }
-
-            clientLicense = Object.assign({}, data.license);
-            clientConfig = Object.assign({}, data.config);
-            userProfile = transformToRecievedMeReducerPayload(data.user);
-            roles = transformToReceivedUserAndTeamRolesReducerPayload(data.user.roles, data.teamMembers);
-            preferences = [...data.user.preferences];
-            teams = transformToRecievedTeamsListReducerPayload(data.teamMembers);
-            teamMemberships = transformToRecievedMyTeamMembersReducerPayload(data.teamMembers, data.user.id);
-        } catch (error) {
-            dispatch(logError(error as ServerError));
-            return {error: error as ServerError};
-        }
-
-        dispatch(
-            batchActions([
-                {
-                    type: GeneralTypes.CLIENT_LICENSE_RECEIVED,
-                    data: clientLicense,
-                },
-                {
-                    type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
-                    data: clientConfig,
-                },
-                {
-                    type: UserTypes.RECEIVED_ME,
-                    data: userProfile,
-                },
-                {
-                    type: RoleTypes.RECEIVED_ROLES,
-                    data: roles,
-                },
-                {
-                    type: PreferenceTypes.RECEIVED_ALL_PREFERENCES,
-                    data: preferences,
-                },
-                {
-                    type: TeamTypes.RECEIVED_TEAMS_LIST,
-                    data: teams,
-                },
-                {
-                    type: TeamTypes.RECEIVED_MY_TEAM_MEMBERS,
-                    data: teamMemberships,
-                },
-            ]),
-        );
 
         return {data: true};
     };
@@ -794,19 +711,21 @@ export function revokeAllSessionsForUser(userId: string): ActionFunc {
     };
 }
 
-export function revokeSessionsForAllUsers(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function revokeSessionsForAllUsers(): ActionFunc<boolean, ServerError> {
+    return async (dispatch, getState) => {
         try {
             await Client4.revokeSessionsForAllUsers();
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
-            return {error};
+            return {error: error as ServerError};
         }
+
         dispatch({
             type: UserTypes.REVOKE_SESSIONS_FOR_ALL_USERS_SUCCESS,
             data: null,
         });
+
         return {data: true};
     };
 }

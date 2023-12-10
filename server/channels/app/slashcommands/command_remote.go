@@ -22,6 +22,9 @@ const (
 type RemoteProvider struct {
 }
 
+// ensure RemoteProvider implements AutocompleteDynamicArgProvider
+var _ app.AutocompleteDynamicArgProvider = (*RemoteProvider)(nil)
+
 const (
 	CommandTriggerRemote = "secure-connection"
 )
@@ -35,7 +38,6 @@ func (rp *RemoteProvider) GetTrigger() string {
 }
 
 func (rp *RemoteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
-
 	remote := model.NewAutocompleteData(rp.GetTrigger(), "[action]", T("api.command_remote.remote_add_remove.help", map[string]any{"Actions": AvailableRemoteActions}))
 
 	create := model.NewAutocompleteData("create", "", T("api.command_remote.invite.help"))
@@ -94,7 +96,7 @@ func (rp *RemoteProvider) DoCommand(a *app.App, c request.CTX, args *model.Comma
 	return responsef(args.T("api.command_remote.unknown_action", map[string]any{"Action": action}))
 }
 
-func (rp *RemoteProvider) GetAutoCompleteListItems(a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
+func (rp *RemoteProvider) GetAutoCompleteListItems(c request.CTX, a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
 	if !a.HasPermissionTo(commandArgs.UserId, model.PermissionManageSecureConnections) {
 		return nil, errors.New("You require `manage_secure_connections` permission to manage secure connections.")
 	}

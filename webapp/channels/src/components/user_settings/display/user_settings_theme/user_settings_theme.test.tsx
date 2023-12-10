@@ -4,13 +4,10 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
-import {IntlProvider} from 'react-intl';
-import {Provider} from 'react-redux';
 
 import {Preferences} from 'mattermost-redux/constants';
 
-import {render, fireEvent, screen} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import UserSettingsTheme from './user_settings_theme';
 
@@ -34,7 +31,6 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
             },
         },
     };
-    const store = mockStore(initialState);
 
     const requiredProps: ComponentProps<typeof UserSettingsTheme> = {
         theme: Preferences.THEMES.denim,
@@ -105,12 +101,9 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
             selected: true,
         };
 
-        render(
-            <IntlProvider locale={'en'}>
-                <Provider store={store}>
-                    <UserSettingsTheme {...props}/>
-                </Provider>
-            </IntlProvider>,
+        renderWithContext(
+            <UserSettingsTheme {...props}/>,
+            initialState,
         );
 
         // Click the Slack Import button

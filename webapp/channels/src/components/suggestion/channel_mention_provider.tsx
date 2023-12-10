@@ -9,7 +9,7 @@ import {getMyChannels, getMyChannelMemberships} from 'mattermost-redux/selectors
 import type {ActionResult} from 'mattermost-redux/types/actions.js';
 import {sortChannelsByTypeAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import {Constants} from 'utils/constants';
 

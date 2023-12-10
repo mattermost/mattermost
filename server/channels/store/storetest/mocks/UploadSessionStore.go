@@ -5,9 +5,8 @@
 package mocks
 
 import (
-	context "context"
-
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -30,25 +29,25 @@ func (_m *UploadSessionStore) Delete(id string) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: ctx, id
-func (_m *UploadSessionStore) Get(ctx context.Context, id string) (*model.UploadSession, error) {
-	ret := _m.Called(ctx, id)
+// Get provides a mock function with given fields: c, id
+func (_m *UploadSessionStore) Get(c request.CTX, id string) (*model.UploadSession, error) {
+	ret := _m.Called(c, id)
 
 	var r0 *model.UploadSession
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.UploadSession, error)); ok {
-		return rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.UploadSession, error)); ok {
+		return rf(c, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *model.UploadSession); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.UploadSession); ok {
+		r0 = rf(c, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.UploadSession)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(c, id)
 	} else {
 		r1 = ret.Error(1)
 	}

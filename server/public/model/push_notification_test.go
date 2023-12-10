@@ -10,7 +10,6 @@ import (
 )
 
 func TestPushNotificationDeviceId(t *testing.T) {
-
 	msg := PushNotification{Platform: "test"}
 
 	msg.SetDeviceIdAndPlatform("android:12345")

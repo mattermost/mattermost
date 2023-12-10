@@ -14,7 +14,7 @@ import PostImage from 'components/post_view/post_image';
 import PostMessagePreview from 'components/post_view/post_message_preview';
 import YoutubeVideo from 'components/youtube_video';
 
-import webSocketClient from 'client/web_websocket_client.jsx';
+import webSocketClient from 'client/web_websocket_client';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 
 import type {PostWillRenderEmbedPluginComponent} from 'types/store/plugins';

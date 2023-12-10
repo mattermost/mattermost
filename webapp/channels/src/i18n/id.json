@@ -11,7 +11,6 @@
   "about.enterpriseEditione1": "Edisi Perusahaan",
   "about.hash": "Membangun Hash:",
   "about.hashee": "EE Membangun Hash:",
-  "about.hashwebapp": "Webapp Build Hash:",
   "about.licensed": "Lisensi untuk:",
   "about.notice": "Mattermost dimungkinkan oleh perangkat lunak open source yang digunakan di [server](!https://about.mattermost.com/platform-notice-txt/), [desktop](!https://about.mattermost.com/desktop-notice-txt/) dan [mobile](!https://about.mattermost.com/mobile-notice-txt/) apps.",
   "about.privacy": "Kebijakan Privasi",
@@ -137,7 +136,6 @@
   "app.channel.post_update_channel_purpose_message.removed": "{username} menghapus tujuan kanal (sebelumnya: {old})",
   "app.channel.post_update_channel_purpose_message.updated_from": "{username} memperbarui tujuan kanal dari: {old} ke: {new}",
   "app.channel.post_update_channel_purpose_message.updated_to": "{username} memperbarui tujuan kanal ke: {new}",
-  "app.plugin.marketplace_plugins.app_error": "Gagal menghubungkan ke server marketplace. Mohon periksa kembali pangaturan Anda di [Sistem Konsol]({siteURL}/admin_console/plugins/plugin_management).",
   "apps.error": "Kesalahan: {error}",
   "apps.error.command.field_missing": "Bidang isian yang diperlukan hilang: `{fieldName}`.",
   "apps.error.command.same_channel": "kanal diulang untuk bidang `{fieldName}`: `{option}`.",
@@ -204,8 +202,6 @@
   "channel_header.viewMembers": "Lihat Anggota",
   "channel_loader.someone": "Seseorang",
   "channel_modal.cancel": "Batalkan",
-  "channel_notifications.muteChannel.settings": "Bisukan saluran",
   "general_tab.teamIconTooLarge": "Tidak dapat menunggah berkas gambar. Ukuran terlalu besar.",
-  "members_popover.button.message": "pesan",
   "user.settings.general.imageTooLarge": "Tidak dapat mengunggah gambar profil. Berkas terlalu besar."
 }

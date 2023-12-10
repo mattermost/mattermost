@@ -81,7 +81,7 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
       <div
         className="post-create-footer"
       >
-        <Connect(TextboxLinks)
+        <TextboxLinks
           hasExceededCharacterLimit={false}
           hasText={true}
           isMarkdownPreviewEnabled={false}
@@ -208,7 +208,7 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
       <div
         className="post-create-footer"
       >
-        <Connect(TextboxLinks)
+        <TextboxLinks
           hasExceededCharacterLimit={false}
           hasText={true}
           isMarkdownPreviewEnabled={false}
@@ -353,7 +353,7 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
       <div
         className="post-create-footer"
       >
-        <Connect(TextboxLinks)
+        <TextboxLinks
           hasExceededCharacterLimit={false}
           hasText={true}
           isMarkdownPreviewEnabled={false}
@@ -490,7 +490,7 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
       <div
         className="post-create-footer"
       >
-        <Connect(TextboxLinks)
+        <TextboxLinks
           hasExceededCharacterLimit={false}
           hasText={true}
           isMarkdownPreviewEnabled={false}
@@ -617,7 +617,7 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
       <div
         className="post-create-footer"
       >
-        <Connect(TextboxLinks)
+        <TextboxLinks
           hasExceededCharacterLimit={false}
           hasText={true}
           isMarkdownPreviewEnabled={false}

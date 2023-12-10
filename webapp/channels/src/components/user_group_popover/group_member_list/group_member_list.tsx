@@ -10,7 +10,6 @@ import type {ListChildComponentProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 import styled, {css} from 'styled-components';
 
-import {SendIcon} from '@mattermost/compass-icons/components';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
@@ -190,13 +189,15 @@ const GroupMemberList = (props: Props) => {
                             content={formatMessage({id: 'group_member_list.sendMessageTooltip', defaultMessage: 'Send message'})}
                         >
                             <DMButton
-                                className='btn-icon'
+                                className='btn btn-icon btn-xs'
                                 aria-label={formatMessage(
                                     {id: 'group_member_list.sendMessageButton', defaultMessage: 'Send message to {user}'},
                                     {user: name})}
                                 onClick={() => showDirectChannel(user)}
                             >
-                                <SendIcon/>
+                                <i
+                                    className='icon icon-send'
+                                />
                             </DMButton>
                         </SimpleTooltip>
                     </DMContainer>

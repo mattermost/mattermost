@@ -264,7 +264,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 
 func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError) {
 	// parse links into Markdown format
-	linkWithTextRegex := regexp.MustCompile(`<([^\n<\|>]+)\|([^\n>]+)>`)
+	linkWithTextRegex := regexp.MustCompile(`<([^\n<\|>]+)\|([^\|\n>]+)>`)
 	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 
 	post := &model.Post{UserId: userID, ChannelId: channel.Id, Message: text, Type: postType, RootId: postRootId}
@@ -657,7 +657,7 @@ func (a *App) RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.Out
 	return webhook, nil
 }
 
-func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *model.IncomingWebhookRequest) *model.AppError {
+func (a *App) HandleIncomingWebhook(c request.CTX, hookID string, req *model.IncomingWebhookRequest) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -813,12 +813,11 @@ func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*
 		default:
 			return nil, model.NewAppError("CreateCommandWebhook", "app.command_webhook.create_command_webhook.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-
 	}
 	return savedHook, nil
 }
 
-func (a *App) HandleCommandWebhook(c *request.Context, hookID string, response *model.CommandResponse) *model.AppError {
+func (a *App) HandleCommandWebhook(c request.CTX, hookID string, response *model.CommandResponse) *model.AppError {
 	if response == nil {
 		return model.NewAppError("HandleCommandWebhook", "app.command_webhook.handle_command_webhook.parse", nil, "", http.StatusBadRequest)
 	}

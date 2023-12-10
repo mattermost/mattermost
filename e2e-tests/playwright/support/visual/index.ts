@@ -7,11 +7,12 @@ import chalk from 'chalk';
 import {expect, TestInfo} from '@playwright/test';
 
 import {illegalRe} from '@e2e-support/util';
-import testConfig, {TestArgs} from '@e2e-test.config';
+import testConfig from '@e2e-test.config';
+import {ScreenshotOptions, TestArgs} from '@e2e-types';
 
 import snapshotWithPercy from './percy';
 
-export async function matchSnapshot(testInfo: TestInfo, testArgs: TestArgs) {
+export async function matchSnapshot(testInfo: TestInfo, testArgs: TestArgs, options: ScreenshotOptions = {}) {
     if (os.platform() !== 'linux') {
         // eslint-disable-next-line no-console
         console.log(
@@ -25,7 +26,7 @@ export async function matchSnapshot(testInfo: TestInfo, testArgs: TestArgs) {
     if (testConfig.snapshotEnabled) {
         // Visual test with built-in snapshot
         const filename = testInfo.title.replace(illegalRe, '').replace(/\s/g, '-').trim().toLowerCase();
-        expect(await testArgs.page.screenshot({fullPage: true})).toMatchSnapshot(`${filename}.png`);
+        await expect(testArgs.page).toHaveScreenshot(`${filename}.png`, {fullPage: true, ...options});
     }
 
     if (testConfig.percyEnabled) {

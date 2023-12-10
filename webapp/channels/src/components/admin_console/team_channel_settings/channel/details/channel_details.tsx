@@ -641,7 +641,8 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
 
     private addUsersToAdd = (users: UserProfile[]) => {
         let {usersToRemoveCount} = this.state;
-        const {usersToAdd, usersToRemove} = this.state;
+        const usersToRemove = {...this.state.usersToRemove};
+        const usersToAdd = {...this.state.usersToAdd};
         users.forEach((user) => {
             if (usersToRemove[user.id]?.id === user.id) {
                 delete usersToRemove[user.id];

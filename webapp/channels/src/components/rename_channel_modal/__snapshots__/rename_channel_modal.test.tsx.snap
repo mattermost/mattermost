@@ -65,18 +65,13 @@ exports[`components/RenameChannelModal should match snapshot 1`] = `
             id="rename_channel.displayName"
           />
         </label>
-        <LocalizedInput
+        <input
           aria-label="display name"
           className="form-control"
           id="display_name"
           maxLength={64}
           onChange={[Function]}
-          placeholder={
-            Object {
-              "defaultMessage": "Enter display name",
-              "id": "rename_channel.displayNameHolder",
-            }
-          }
+          placeholder="Enter display name"
           type="text"
           value="Fake Channel"
         />

@@ -22,17 +22,5 @@
   {
     "id": "api.admin.add_certificate.array.app_error",
     "translation": "'प्रमाणपत्र' अन्तर्गत अनुरोधमा कुनै फाइल छैन।"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "प्लेबुकहरू"
-  },
-  {
-    "id": "Channels",
-    "translation": "च्यानलहरू"
-  },
-  {
-    "id": "Boards",
-    "translation": "बोर्डहरू"
   }
 ]

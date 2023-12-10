@@ -9,7 +9,7 @@ import type {Emoji} from '@mattermost/types/emojis';
 
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
-import {addReaction} from 'actions/post_actions';
+import {toggleReaction} from 'actions/post_actions';
 import {getEmojiMap} from 'selectors/emojis';
 import {getCurrentLocale} from 'selectors/i18n';
 
@@ -20,7 +20,7 @@ import PostReaction from './post_recent_reactions';
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
         actions: bindActionCreators({
-            addReaction,
+            toggleReaction,
         }, dispatch),
     };
 }

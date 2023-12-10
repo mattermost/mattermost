@@ -1,8 +1,12 @@
 {
+  "name": "cypress",
   "devDependencies": {
+    "@aws-sdk/client-s3": "3.441.0",
+    "@aws-sdk/lib-storage": "3.441.0",
     "@babel/eslint-parser": "7.22.15",
     "@babel/eslint-plugin": "7.22.10",
     "@cypress/request": "3.0.1",
+    "@mattermost/client": "9.0.0",
     "@mattermost/types": "9.0.0",
     "@testing-library/cypress": "10.0.1",
     "@types/async": "3.2.21",
@@ -23,7 +27,6 @@
     "@typescript-eslint/parser": "6.7.4",
     "async": "3.2.4",
     "authenticator": "1.1.5",
-    "aws-sdk": "2.1468.0",
     "axios": "1.5.1",
     "axios-retry": "3.8.0",
     "chai": "4.3.10",
@@ -54,7 +57,6 @@
     "lodash.mapkeys": "4.6.0",
     "lodash.without": "4.4.0",
     "lodash.xor": "4.5.0",
-    "mattermost-redux": "5.33.1",
     "mime": "3.0.0",
     "mime-types": "2.1.35",
     "mocha": "10.2.0",
@@ -76,6 +78,9 @@
     "yargs": "17.7.2"
   },
   "overrides": {
+    "@mattermost/client": {
+      "typescript": "^5.0.4"
+    },
     "@mattermost/types": {
       "typescript": "^5.0.4"
     }

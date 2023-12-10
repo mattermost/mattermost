@@ -12,7 +12,7 @@ exports[`component/create_team should match snapshot default 1`] = `
     <div
       className="signup-team__container"
     >
-      <SiteNameAndDescription
+      <Memo(SiteNameAndDescription)
         customDescriptionText=""
         siteName=""
       />

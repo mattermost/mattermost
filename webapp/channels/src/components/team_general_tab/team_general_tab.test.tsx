@@ -5,8 +5,9 @@ import {shallow} from 'enzyme';
 import React from 'react';
 import type {ChangeEvent, ComponentProps} from 'react';
 
-import GeneralTab from 'components/team_general_tab/team_general_tab';
+import {GeneralTab} from 'components/team_general_tab/team_general_tab';
 
+import {type MockIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/TeamSettings', () => {
@@ -26,6 +27,9 @@ describe('components/TeamSettings', () => {
         team: TestHelper.getTeamMock({id: 'team_id'}),
         maxFileSize: 50,
         activeSection: 'team_icon',
+        intl: {
+            formatMessage: jest.fn(),
+        } as MockIntl,
         updateSection: jest.fn(),
         closeModal: jest.fn(),
         collapseModal: jest.fn(),
@@ -122,7 +126,10 @@ describe('components/TeamSettings', () => {
         wrapper.instance().handleAllowedDomainsSubmit();
 
         expect(actions.patchTeam).toHaveBeenCalledTimes(1);
-        expect(actions.patchTeam).toHaveBeenCalledWith(props.team);
+        expect(actions.patchTeam).toHaveBeenCalledWith({
+            allowed_domains: '',
+            id: props.team?.id,
+        });
     });
 
     test('should call actions.patchTeam on handleNameSubmit', () => {
@@ -137,7 +144,10 @@ describe('components/TeamSettings', () => {
         wrapper.instance().handleNameSubmit();
 
         expect(actions.patchTeam).toHaveBeenCalledTimes(1);
-        expect(actions.patchTeam).toHaveBeenCalledWith(props.team);
+        expect(actions.patchTeam).toHaveBeenCalledWith({
+            display_name: props.team?.display_name,
+            id: props.team?.id,
+        });
     });
 
     test('should call actions.patchTeam on handleInviteIdSubmit', () => {
@@ -169,7 +179,10 @@ describe('components/TeamSettings', () => {
         }
 
         expect(actions.patchTeam).toHaveBeenCalledTimes(1);
-        expect(actions.patchTeam).toHaveBeenCalledWith(props.team);
+        expect(actions.patchTeam).toHaveBeenCalledWith({
+            description: newDescription,
+            id: props.team?.id,
+        });
     });
 
     test('should match snapshot when team is group constrained', () => {

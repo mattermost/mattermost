@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"errors"
 	"regexp"
 )
 
@@ -89,42 +88,10 @@ func IsValidCategoryId(s string) bool {
 	return categoryIdPattern.MatchString(s)
 }
 
-func (SidebarCategoryType) ImplementsGraphQLType(name string) bool {
-	return name == "SidebarCategoryType"
-}
-
 func (t SidebarCategoryType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(t))
 }
 
-func (t *SidebarCategoryType) UnmarshalGraphQL(input any) error {
-	chType, ok := input.(string)
-	if !ok {
-		return errors.New("wrong type")
-	}
-
-	*t = SidebarCategoryType(chType)
-	return nil
-}
-
-func (SidebarCategorySorting) ImplementsGraphQLType(name string) bool {
-	return name == "SidebarCategorySorting"
-}
-
 func (t SidebarCategorySorting) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(t))
-}
-
-func (t *SidebarCategorySorting) UnmarshalGraphQL(input any) error {
-	chType, ok := input.(string)
-	if !ok {
-		return errors.New("wrong type")
-	}
-
-	*t = SidebarCategorySorting(chType)
-	return nil
-}
-
-func (t *SidebarCategory) SortOrder_() float64 {
-	return float64(t.SortOrder)
 }

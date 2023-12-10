@@ -21,7 +21,6 @@ exports[`components/integrations/AddOAuthApp should match snapshot 1`] = `
       "id": "installed_oauth_apps.saving",
     }
   }
-  renderExtra=""
   serverError=""
   team={
     Object {

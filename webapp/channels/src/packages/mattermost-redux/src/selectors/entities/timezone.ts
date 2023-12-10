@@ -3,7 +3,6 @@
 
 import timezones from 'timezones.json';
 
-import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -24,11 +23,6 @@ function getTimezoneForUserProfile(profile: UserProfile) {
         automaticTimezone: '',
         manualTimezone: '',
     };
-}
-
-export function isTimezoneEnabled(state: GlobalState) {
-    const {config} = state.entities.general;
-    return config.ExperimentalTimezone === 'true';
 }
 
 export const getCurrentTimezoneFull = createSelector(

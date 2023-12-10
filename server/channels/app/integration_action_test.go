@@ -405,7 +405,6 @@ func TestPostAction(t *testing.T) {
 
 			_, err = th.App.DoPostAction(th.Context, postSubpath.Id, attachmentsSubpath[0].Actions[0].Id, th.BasicUser.Id, "")
 			require.Nil(t, err)
-
 		})
 	}
 }
@@ -744,7 +743,6 @@ func TestPostActionRelativeURL(t *testing.T) {
 
 		_, err = th.App.DoPostAction(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 		require.NotNil(t, err)
-
 	})
 
 	t.Run("valid (but dirty) relative URL with SiteURL set", func(t *testing.T) {

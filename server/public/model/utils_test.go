@@ -183,7 +183,6 @@ func TestCopyStringMap(t *testing.T) {
 }
 
 func TestMapJson(t *testing.T) {
-
 	m := make(map[string]string)
 	m["id"] = "test_id"
 	json := MapToJSON(m)

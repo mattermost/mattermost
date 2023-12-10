@@ -189,7 +189,6 @@ function renderHeaderChangeMessage(post: Post): ReactNode {
     }
 
     const headerOptions = {
-        singleline: true,
         channelNamesMap: post.props && post.props.channel_mentions,
         mentionHighlight: true,
     };

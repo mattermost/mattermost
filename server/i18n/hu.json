@@ -1973,7 +1973,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "A Személyazonosság szolgáltató (IdP) kibocsátó URL-jének érvényes URL-nek kell lennie, és a következővel kell kezdődnie: http:// vagy https://."
+    "translation": "A személyazonosság szolgáltató kibocsátójának URL -je nem lehet üres szöveg."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -2945,15 +2945,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Verzió 91+"
+    "translation": "Verzió 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Verzió 44+"
+    "translation": "Verzió 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verzió 100+"
+    "translation": "Verzió 118+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7687,10 +7687,6 @@
     "translation": "Nem lehet bejegyzést frissíteni egy törölt csatornában."
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "A rendszer adminisztrátor letiltotta a hivatkozások előnézetét."
-  },
-  {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
       "one": "{{.Count}} kép elküldve: {{.Filenames}}",
@@ -8262,11 +8258,14 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} nem tagja a csapatnak."
+    "translation": "Ehhez a csatornához akkor adhatja hozzá {{.Users}} felhasználókat, miután a **{{.Team}}** csapat tagjai lesznek."
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} már a csatornában van."
+    "translation": {
+      "one": "{{.User}} már a csatornában van.",
+      "other": "{{.User}} már a csatornában vannak."
+    }
   },
   {
     "id": "api.command_invite.success",
@@ -8294,11 +8293,7 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[felhasználó] ~[csatorna]"
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Ezt a csatornát csoportok kezelik. Ez a felhasználó nem része annak a csoportnak, amelyet ezzel a csatornával szinkronizáltak."
+    "translation": "@[felhasználó]... ~[csatorna]..."
   },
   {
     "id": "api.command_invite.fail.app_error",
@@ -8461,11 +8456,11 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
-    "translation": "Hiányzó tartalomtípus."
+    "translation": "Tartalom típusa hiányzik."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
-    "translation": "Nem megfelelő tartalomtípus."
+    "translation": "Tartalom típusa nem megfelelő."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
@@ -9173,7 +9168,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "A Mattermost egy nyílt forráskódú platform a biztonságos kommunikációhoz, együttműködéshez és az eszközök és csapatok közötti munka összehangolásához.\nA Mattermost három kulcsfontosságú eszközt tartalmaz:\n\n**Csatornák** - Maradjon kapcsolatban csapatával 1:1 és csoportos üzenetküldéssel.\n**[Forgatókönyvek](/playbooks)** - Építsen és konfiguráljon megismételhető folyamatokat meghatározott és kiszámítható eredmények elérése érdekében.\n**[Táblák](/boards)** - Kezelje a projekteket és feladatokat Kanban tábla struktúrában, hogy segítse csapatát a kulcsfontosságú mérföldkövek elérésében.\n\n[Dokumentáció és útmutatók megtekintése]({{.HelpLink}})"
+    "translation": "A Mattermost egy nyílt forráskódú platform a biztonságos kommunikációhoz, együttműködéshez és az eszközök és csapatok közötti munka összehangolásához.\nA Mattermost két kulcsfontosságú eszközt tartalmaz:\n\n**Csatornák** - Maradjon kapcsolatban csapatával 1:1 és csoportos üzenetküldéssel.\n**[Forgatókönyvek](/playbooks)** - Építsen és konfiguráljon megismételhető folyamatokat meghatározott és kiszámítható eredmények elérése érdekében.\n\n[Dokumentáció és útmutatók megtekintése]({{.HelpLink}})"
   },
   {
     "id": "api.command_marketplace.desc",
@@ -9205,7 +9200,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Nem tudtuk feldolgozni a legutóbbi fizetési műveletét"
+    "translation": "Nem tudtuk feldolgozni a legutóbbi fizetési műveletét."
   },
   {
     "id": "api.templates.delinquency_7.button",
@@ -9282,5 +9277,157 @@
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "Nem lehet eltávolítani egy archivált csatornában lévő jóváhagyást."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Nem frissítheti a közvetlen vagy csoportos üzenetek nevét (name), megjelenítési nevét (display_name) és célját (purpose)."
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Link létrehozása az export letöltéséhez."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Nem frissítheti a közvetlen vagy csoportos üzenetek nevét (name), megjelenítési nevét (display_name) és célját (purpose)."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "A fájlt itt töltheti le: {{.Link}}.\nA link lejárati ideje {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "A fájltároló illesztőprogramja nem támogatja a linkek létrehozását."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Nem találtunk exportfájlt."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[munka-id|zip fájlnév|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "5 perc elteltével már nem törölhet visszaigazolást."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Egy archivált csatornán nem lehet visszaigazolni."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "nem sikerült a felhasználót hozzáadni a csoport-csapatokhoz és a csoport-csatornákhoz"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "A felhasználó nem konvertálhat csoportos üzenetet magán csatornává"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} létrehozta ezt a csatornát egy csoportos üzenetből a {{.GMMembers}} tagokkal."
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Nem sikerült megtalálni a kért fájlt."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Nem sikerült lekérni az export listát."
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "Nincs elég jogosultsága a parancs futtatásához."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "Nem sikerült lekérni az összes bejövő webhook számát"
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "Nem sikerült lekérni az összes aktív felhasználó számát"
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "A tartós értesítést tartalmazó üzenetnek legfeljebb {{.MaxRecipients}} címzettje lehet."
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "Nem sikerült lekérni az összes kimenő webhook számát"
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "A tartós értesítéseknek legalább 1 címzettje kell, hogy legyen."
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "A tartós értesítés érvényesítése nem sikerült."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Csak a rendszergazdai bejegyzéseknek lehetnek prioritásai."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Érvénytelen üzleti e-mail a próbaidőszakhoz"
+  },
+  {
+    "id": "api.license.true_up_review.failed_to_submit",
+    "translation": "Nem sikerült elküldeni a CWS-nek a true up profilt."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "A felhasználó nem hozhat létre prioritást élvező bejegyzést vagy állandó értesítést."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Nem menthető a tervezet egy törölt csatornán"
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Hiba történt az IP-szűrők alkalmazása során"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Hiba történt az IP szűrők lekérdezése közben"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Hiba történt az ügyfél IP-címének lekérdezése során"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "Az IP-szűrés nem érhető el ezen a kiszolgálón"
+  },
+  {
+    "id": "api.license.true_up_review.create_error",
+    "translation": "Nem sikerült létrehozni a true up állapotrekordot"
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Hiba nincs megadva a szervezet neve a saját üzemeltetésű induló beállításokhoz."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Ezt a csatornát csoportok kezelik.  Ez a felhasználó nem része annak a csoportnak, amelyet ezzel a csatornával szinkronizáltak."
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} és {{.Others}}} hozzá lett adva a {{.Channel}} csatornához."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} és {{.Others}}} már a csatornában vannak."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Ehhez a csatornához akkor adhatja hozzá {{.FirstUser}} and {{.Others}} felhasználókat, miután a **{{.Team}}** csapat tagjai lesznek."
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Nem sikerült frissíteni a kiszolgálói nyelvi fordításokat."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Tervezetek szolgáltatás le van tiltva."
   }
 ]

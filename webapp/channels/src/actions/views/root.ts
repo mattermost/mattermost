@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
-import {loadMe, loadMeREST} from 'mattermost-redux/actions/users';
+import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
@@ -20,22 +20,15 @@ export type TranslationPluginFunction = (locale: string) => Translations
 
 export function loadConfigAndMe() {
     return async (dispatch: DispatchFunc) => {
-        const [{data: clientConfig}] = await Promise.all([
+        await Promise.all([
             dispatch(getClientConfig()),
             dispatch(getLicenseConfig()),
         ]);
 
-        const isGraphQLEnabled = clientConfig && clientConfig.FeatureFlagGraphQL === 'true';
-
         let isMeLoaded = false;
         if (document.cookie.includes('MMUSERID=')) {
-            if (isGraphQLEnabled) {
-                const dataFromLoadMe = await dispatch(loadMe());
-                isMeLoaded = dataFromLoadMe?.data ?? false;
-            } else {
-                const dataFromLoadMeREST = await dispatch(loadMeREST());
-                isMeLoaded = dataFromLoadMeREST?.data ?? false;
-            }
+            const dataFromLoadMe = await dispatch(loadMe());
+            isMeLoaded = dataFromLoadMe?.data ?? false;
         }
 
         return {data: isMeLoaded};

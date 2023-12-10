@@ -41,10 +41,10 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
           <FormattedList
             value={
               Array [
-                <Memo(Connect(AtMention))
+                <Memo(Connect(Component))
                   mentionName="user-0"
                 />,
-                <Memo(Connect(AtMention))
+                <Memo(Connect(Component))
                   mentionName="user-1"
                 />,
               ]
@@ -123,49 +123,43 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               key=".0"
               value={
                 Array [
-                  <Memo(Connect(AtMention))
+                  <Memo(Connect(Component))
                     mentionName="user-0"
                   />,
-                  <Memo(Connect(AtMention))
+                  <Memo(Connect(Component))
                     mentionName="user-1"
                   />,
                 ]
               }
             >
               <span>
-                <Connect(AtMention)
+                <Connect(Component)
                   key="user-0"
                   mentionName="user-0"
                 >
-                  <AtMention
+                  <Memo(AtMention)
                     currentUserId="admin1"
-                    disableGroupHighlight={false}
-                    disableHighlight={false}
                     dispatch={[Function]}
                     groupsByName={Object {}}
-                    hasMention={false}
                     mentionName="user-0"
                     teammateNameDisplay="username"
                     usersByUsername={Object {}}
                   />
-                </Connect(AtMention)>
+                </Connect(Component)>
                  and 
-                <Connect(AtMention)
+                <Connect(Component)
                   key="user-1"
                   mentionName="user-1"
                 >
-                  <AtMention
+                  <Memo(AtMention)
                     currentUserId="admin1"
-                    disableGroupHighlight={false}
-                    disableHighlight={false}
                     dispatch={[Function]}
                     groupsByName={Object {}}
-                    hasMention={false}
                     mentionName="user-1"
                     teammateNameDisplay="username"
                     usersByUsername={Object {}}
                   />
-                </Connect(AtMention)>
+                </Connect(Component)>
               </span>
             </FormattedList>
              are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel.
@@ -221,10 +215,10 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
           <FormattedList
             value={
               Array [
-                <Memo(Connect(AtMention))
+                <Memo(Connect(Component))
                   mentionName="user-0"
                 />,
-                <Memo(Connect(AtMention))
+                <Memo(Connect(Component))
                   mentionName="user-1"
                 />,
               ]
@@ -306,49 +300,43 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               key=".1"
               value={
                 Array [
-                  <Memo(Connect(AtMention))
+                  <Memo(Connect(Component))
                     mentionName="user-0"
                   />,
-                  <Memo(Connect(AtMention))
+                  <Memo(Connect(Component))
                     mentionName="user-1"
                   />,
                 ]
               }
             >
               <span>
-                <Connect(AtMention)
+                <Connect(Component)
                   key="user-0"
                   mentionName="user-0"
                 >
-                  <AtMention
+                  <Memo(AtMention)
                     currentUserId="admin1"
-                    disableGroupHighlight={false}
-                    disableHighlight={false}
                     dispatch={[Function]}
                     groupsByName={Object {}}
-                    hasMention={false}
                     mentionName="user-0"
                     teammateNameDisplay="username"
                     usersByUsername={Object {}}
                   />
-                </Connect(AtMention)>
+                </Connect(Component)>
                  and 
-                <Connect(AtMention)
+                <Connect(Component)
                   key="user-1"
                   mentionName="user-1"
                 >
-                  <AtMention
+                  <Memo(AtMention)
                     currentUserId="admin1"
-                    disableGroupHighlight={false}
-                    disableHighlight={false}
                     dispatch={[Function]}
                     groupsByName={Object {}}
-                    hasMention={false}
                     mentionName="user-1"
                     teammateNameDisplay="username"
                     usersByUsername={Object {}}
                   />
-                </Connect(AtMention)>
+                </Connect(Component)>
               </span>
             </FormattedList>
              to this channel once they are members of the 
@@ -467,7 +455,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
     <AlertBanner
       footerMessage={
         Array [
-          <Memo(Connect(AtMention))
+          <Memo(Connect(Component))
             mentionName="user-0"
           />,
           " and ",
@@ -558,22 +546,19 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
           <div
             className="AlertBanner__footerMessage"
           >
-            <Connect(AtMention)
+            <Connect(Component)
               key=".$user-0"
               mentionName="user-0"
             >
-              <AtMention
+              <Memo(AtMention)
                 currentUserId="admin1"
-                disableGroupHighlight={false}
-                disableHighlight={false}
                 dispatch={[Function]}
                 groupsByName={Object {}}
-                hasMention={false}
                 mentionName="user-0"
                 teammateNameDisplay="username"
                 usersByUsername={Object {}}
               />
-            </Connect(AtMention)>
+            </Connect(Component)>
              and 
             <SimpleTooltip
               content="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
@@ -797,7 +782,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
       message={
         Array [
           "You can add ",
-          <Memo(Connect(AtMention))
+          <Memo(Connect(Component))
             mentionName="user-0"
           />,
           " and ",
@@ -891,22 +876,19 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
             className="AlertBanner__message"
           >
             You can add 
-            <Connect(AtMention)
+            <Connect(Component)
               key=".$user-0"
               mentionName="user-0"
             >
-              <AtMention
+              <Memo(AtMention)
                 currentUserId="admin1"
-                disableGroupHighlight={false}
-                disableHighlight={false}
                 dispatch={[Function]}
                 groupsByName={Object {}}
-                hasMention={false}
                 mentionName="user-0"
                 teammateNameDisplay="username"
                 usersByUsername={Object {}}
               />
-            </Connect(AtMention)>
+            </Connect(Component)>
              and 
             <SimpleTooltip
               content="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"

@@ -6,7 +6,7 @@ import {hot} from 'react-hot-loader/root';
 import {Provider} from 'react-redux';
 import {Router, Route} from 'react-router-dom';
 
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import {makeAsyncComponent} from 'components/async_load';
 import CRTPostsChannelResetWatcher from 'components/threading/channel_threads/posts_channel_reset_watcher';
@@ -16,20 +16,18 @@ const LazyRoot = React.lazy(() => import('components/root'));
 
 const Root = makeAsyncComponent('Root', LazyRoot);
 
-class App extends React.PureComponent {
-    render() {
-        return (
-            <Provider store={store}>
-                <CRTPostsChannelResetWatcher/>
-                <Router history={getHistory()}>
-                    <Route
-                        path='/'
-                        component={Root}
-                    />
-                </Router>
-            </Provider>
-        );
-    }
-}
+const App = () => {
+    return (
+        <Provider store={store}>
+            <CRTPostsChannelResetWatcher/>
+            <Router history={getHistory()}>
+                <Route
+                    path='/'
+                    component={Root}
+                />
+            </Router>
+        </Provider>
+    );
+};
 
-export default hot(App);
+export default hot(React.memo(App));

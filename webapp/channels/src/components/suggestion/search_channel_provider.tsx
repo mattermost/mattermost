@@ -7,7 +7,7 @@ import type {ActionFunc} from 'mattermost-redux/types/actions.js';
 import {isDirectChannel, isGroupChannel, sortChannelsByTypeListAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 
 import {getCurrentLocale} from 'selectors/i18n';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import Constants from 'utils/constants';
 
