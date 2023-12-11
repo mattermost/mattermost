@@ -312,7 +312,9 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                           type="text"
                           value=""
                         >
-                          <div>
+                          <div
+                            className="input-wrapper"
+                          >
                             <input
                               className="user-group-popover_search-bar"
                               defaultValue=""

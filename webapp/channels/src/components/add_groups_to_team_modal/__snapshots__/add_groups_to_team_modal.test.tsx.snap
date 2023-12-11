@@ -146,7 +146,9 @@ exports[`components/AddGroupsToTeamModal should match when renderOption is calle
     <div
       className="more-modal__actions--round"
     >
-      <i className='icon icon-plus'/>
+      <i
+        className="icon icon-plus"
+      />
     </div>
   </div>
 </div>
@@ -195,7 +197,9 @@ exports[`components/AddGroupsToTeamModal should match when renderOption is calle
     <div
       className="more-modal__actions--round"
     >
-      <i className='icon icon-plus'/>
+      <i
+        className="icon icon-plus"
+      />
     </div>
   </div>
 </div>
