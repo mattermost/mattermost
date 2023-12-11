@@ -39,7 +39,7 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import * as I18n from 'i18n/i18n.jsx';
 import Constants from 'utils/constants';
-import {rolesFromMapping, mappingValueFromRoles} from 'utils/policy_roles_adapter';
+import {mappingValueFromRoles} from 'utils/policy_roles_adapter';
 import * as Utils from 'utils/utils';
 
 import './schema_admin_settings.scss';
@@ -132,34 +132,38 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
             serverError: null,
         });
 
-        if (this.state.saveNeeded === 'both' || this.state.saveNeeded === 'permissions') {
-            const settings = (this.props.schema && this.props.schema.settings) || [];
-            const rolesBinding = settings.reduce((acc, val) => {
-                if (val.type === Constants.SettingsTypes.TYPE_PERMISSION) {
-                    acc[val.permissions_mapping_name] = this.state[val.key].toString();
-                }
-                return acc;
-            }, {});
-            const updatedRoles = rolesFromMapping(rolesBinding, this.props.roles);
+        // QUESTION: it looks like rolesBinding will always {} since val.type can never be equal to 'permission'
+        // This makes this entire block have no impact
 
-            let success = true;
+        // if (this.state.saveNeeded === 'both' || this.state.saveNeeded === 'permissions') {
+        //     const settings = (this.props.schema && this.props.schema.settings) || [];
 
-            await Promise.all(Object.values(updatedRoles).map(async (item) => {
-                try {
-                    await this.props.editRole(item);
-                } catch (err) {
-                    success = false;
-                    this.setState({
-                        saving: false,
-                        serverError: err.message,
-                    });
-                }
-            }));
+        //     const rolesBinding = settings.reduce((acc, val) => {
+        //         if (val.type === Constants.SettingsTypes.TYPE_PERMISSION) {
+        //             acc[val.permissions_mapping_name] = this.state[val.key].toString();
+        //         }
+        //         return acc;
+        //     }, {});
+        //     const updatedRoles = rolesFromMapping(rolesBinding, this.props.roles);
 
-            if (!success) {
-                return;
-            }
-        }
+        //     let success = true;
+
+        //     await Promise.all(Object.values(updatedRoles).map(async (item) => {
+        //         try {
+        //             await this.props.editRole(item);
+        //         } catch (err) {
+        //             success = false;
+        //             this.setState({
+        //                 saving: false,
+        //                 serverError: err.message,
+        //             });
+        //         }
+        //     }));
+
+        //     if (!success) {
+        //         return;
+        //     }
+        // }
 
         if (this.state.saveNeeded === 'both' || this.state.saveNeeded === 'config') {
             this.doSubmit(SchemaAdminSettings.getStateFromConfig);
