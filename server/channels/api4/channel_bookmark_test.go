@@ -507,13 +507,10 @@ func TestEditChannelBookmark(t *testing.T) {
 			LinkUrl:     model.NewString("http://edited.url"),
 		}
 
-		ucb, resp, err := th.Client.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		require.Nil(t, ucb.Deleted)
-		require.NotNil(t, ucb.Updated)
-		require.Equal(t, "Edited bookmark test", ucb.Updated.DisplayName)
-		require.Equal(t, "http://edited.url", ucb.Updated.LinkUrl)
+		ucb, resp, err := guestClient.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.Nil(t, ucb)
 
 		// GM
 		gm, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.SystemAdminUser.Id, guest.Id}, th.BasicUser.Id)
@@ -525,13 +522,10 @@ func TestEditChannelBookmark(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.NotNil(t, cb)
 
-		gucb, resp, err := th.Client.UpdateChannelBookmark(context.Background(), gcb.ChannelId, gcb.Id, patch)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		require.Nil(t, gucb.Deleted)
-		require.NotNil(t, gucb.Updated)
-		require.Equal(t, "Edited bookmark test", gucb.Updated.DisplayName)
-		require.Equal(t, "http://edited.url", gucb.Updated.LinkUrl)
+		gucb, resp, err := guestClient.UpdateChannelBookmark(context.Background(), gcb.ChannelId, gcb.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.Nil(t, gucb)
 	})
 
 	t.Run("a user should be able to edit another usrer's bookmark", func(t *testing.T) {
