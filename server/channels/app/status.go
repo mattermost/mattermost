@@ -77,6 +77,13 @@ func (a *App) SetCustomStatus(c request.CTX, userID string, cs *model.CustomStat
 		return model.NewAppError("SetCustomStatus", "api.custom_status.set_custom_statuses.update.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// Ensure the emoji exists before saving the custom status even if it's deleted afterwards
+	if cs.Emoji != "" {
+		if err := a.confirmEmojiExists(c, cs.Emoji); err != nil {
+			return model.NewAppError("SetCustomStatus", "api.custom_status.set_custom_statuses.emoji_not_found", nil, err.Error(), http.StatusBadRequest)
+		}
+	}
+
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
