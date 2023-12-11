@@ -23,6 +23,7 @@ const TeamSettingsModal = (props: Props) => {
     const {formatMessage} = useIntl();
 
     const updateTab = (tab: string) => {
+        console.log('updateTab called');
         if (hasChanges) {
             setHasChangeTabError(true);
             return;
@@ -32,9 +33,13 @@ const TeamSettingsModal = (props: Props) => {
         setHasChangeTabError(false);
     };
 
-    const handleHide = () => setShow(false);
+    const handleHide = () => {
+        console.log('handleHide called');
+        setShow(false);
+    };
 
     const handleClose = () => {
+        console.log('handleClose called');
         setActiveTab('info');
         setHasChanges(false);
         setHasChangeTabError(false);
@@ -42,6 +47,7 @@ const TeamSettingsModal = (props: Props) => {
     };
 
     const handleCollapse = () => {
+        console.log('handleCollapse called');
         const el = ReactDOM.findDOMNode(modalBodyRef.current) as HTMLDivElement;
         el?.closest('.modal-dialog')!.classList.remove('display--content');
         setActiveTab('');
