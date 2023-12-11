@@ -6396,12 +6396,12 @@
     "translation": "Unable to save reaction."
   },
   {
-    "id": "app.recent_searches.app_error",
-    "translation": "Error fetching recent searches"
-  },
-  {
     "id": "app.reaction.save.save.too_many_reactions",
     "translation": "Reaction limit has been reached for this post."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Error fetching recent searches"
   },
   {
     "id": "app.recover.delete.app_error",
