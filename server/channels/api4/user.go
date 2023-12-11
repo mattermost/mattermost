@@ -623,7 +623,7 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	channelIds, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	channelIds, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
 	if err != nil || len(channelIds) == 0 {
 		c.SetInvalidParam("channel_ids")
 		return
@@ -952,7 +952,7 @@ func requireGroupAccess(c *web.Context, groupID string) *model.AppError {
 }
 
 func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIDs, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	userIDs, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
 	if err != nil || len(userIDs) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
@@ -996,7 +996,7 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
-	usernames, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	usernames, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
 	if err != nil || len(usernames) == 0 {
 		c.SetInvalidParam("usernames")
 		return

@@ -240,7 +240,7 @@ func getEmojiByName(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getEmojisByNames(c *Context, w http.ResponseWriter, r *http.Request) {
-	names, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	names, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
 	if err != nil || len(names) == 0 {
 		c.SetInvalidParam("names")
 		return

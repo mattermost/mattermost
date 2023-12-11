@@ -118,7 +118,7 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 	auditRec := c.MakeAuditRecord("updateCategoryOrderForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	categoryOrder, err := model.ArrayFromJSONNonSort(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	categoryOrder, err := model.ArrayFromJSONNonSort(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
 	if err != nil {
 		c.SetInvalidParam("category")
 		return

@@ -398,7 +398,7 @@ type ServiceSettings struct {
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 	UniqueEmojiReactionLimitPerPost                   *int    `access:"site_posts"`
 	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
-	MaximumPayloadSize                                *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	MaximumPayloadSizeBytes                           *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 }
 
 var MattermostGiphySdkKey string
@@ -902,8 +902,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.RefreshPostStatsRunTime = NewString("00:00")
 	}
 
-	if s.MaximumPayloadSize == nil {
-		s.MaximumPayloadSize = NewInt64(100000)
+	if s.MaximumPayloadSizeBytes == nil {
+		s.MaximumPayloadSizeBytes = NewInt64(100000)
 	}
 }
 
@@ -3915,7 +3915,7 @@ func (s *ServiceSettings) isValid() *AppError {
 		}
 	}
 
-	if *s.MaximumPayloadSize <= 0 {
+	if *s.MaximumPayloadSizeBytes <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_payload_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
