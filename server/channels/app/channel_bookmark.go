@@ -98,6 +98,7 @@ func (a *App) UpdateChannelBookmark(c request.CTX, updateBookmark *model.Channel
 	}
 	message.Add("bookmarks", string(bookmarkJSON))
 	a.Publish(message)
+
 	return response, nil
 }
 
@@ -118,6 +119,7 @@ func (a *App) DeleteChannelBookmark(bookmarkId, connectionId string) (*model.Cha
 	}
 	message.Add("bookmark", string(bookmarkJSON))
 	a.Publish(message)
+
 	return bookmark, nil
 }
 

@@ -1031,3 +1031,327 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 		require.Equal(t, int64(0), bl[0].SortOrder)
 	})
 }
+
+func TestDeleteChannelBookmark(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
+
+	t.Run("should not work without a license", func(t *testing.T) {
+		_, _, err := th.Client.DeleteChannelBookmark(context.Background(), th.BasicChannel.Id, model.NewId())
+		CheckErrorID(t, err, "api.channel.bookmark.channel_bookmark.license.error")
+	})
+
+	// enable guest accounts and add the license
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	// create a guest user and add it to the basic team and public/private channels
+	guest, cgErr := th.App.CreateGuest(th.Context, &model.User{
+		Email:         "test_guest@sample.com",
+		Username:      "test_guest",
+		Nickname:      "test_guest",
+		Password:      "Password1",
+		EmailVerified: true,
+	})
+	require.Nil(t, cgErr)
+
+	_, _, tErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, th.SystemAdminUser.Id)
+	require.Nil(t, tErr)
+	th.AddUserToChannel(guest, th.BasicChannel)
+	th.AddUserToChannel(guest, th.BasicPrivateChannel)
+
+	// create a client to use in tests
+	guestClient := th.CreateClient()
+	_, _, lErr := guestClient.Login(context.Background(), guest.Username, "Password1")
+	require.NoError(t, lErr)
+
+	t.Run("a user deleting bookmarks in public and private channels", func(t *testing.T) {
+		testCases := []struct {
+			name             string
+			channelId        string
+			userClient       *model.Client4
+			removePermission string
+			expectedError    bool
+			expectedStatus   int
+		}{
+			{
+				name:           "public channel with permissions, should succeed",
+				channelId:      th.BasicChannel.Id,
+				userClient:     th.Client,
+				expectedStatus: http.StatusOK,
+			},
+			{
+				name:           "private channel with permissions, should succeed",
+				channelId:      th.BasicPrivateChannel.Id,
+				userClient:     th.Client,
+				expectedStatus: http.StatusOK,
+			},
+			{
+				name:             "public channel without permissions, should fail",
+				channelId:        th.BasicChannel.Id,
+				userClient:       th.Client,
+				removePermission: model.PermissionDeleteBookmarkPublicChannel.Id,
+				expectedError:    true,
+				expectedStatus:   http.StatusForbidden,
+			},
+			{
+				name:             "private channel without permissions, should fail",
+				channelId:        th.BasicPrivateChannel.Id,
+				userClient:       th.Client,
+				removePermission: model.PermissionDeleteBookmarkPrivateChannel.Id,
+				expectedError:    true,
+				expectedStatus:   http.StatusForbidden,
+			},
+			{
+				name:           "guest user in a public channel, should fail",
+				channelId:      th.BasicChannel.Id,
+				userClient:     guestClient,
+				expectedError:  true,
+				expectedStatus: http.StatusForbidden,
+			},
+			{
+				name:           "guest user in a private channel, should fail",
+				channelId:      th.BasicPrivateChannel.Id,
+				userClient:     guestClient,
+				expectedError:  true,
+				expectedStatus: http.StatusForbidden,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				if tc.removePermission != "" {
+					th.RemovePermissionFromRole(tc.removePermission, model.ChannelUserRoleId)
+					defer th.AddPermissionToRole(tc.removePermission, model.ChannelUserRoleId)
+				}
+
+				// first we create a bookmark for the test case channel
+				bookmark := &model.ChannelBookmark{
+					ChannelId:   tc.channelId,
+					DisplayName: "Bookmark",
+					Type:        model.ChannelBookmarkLink,
+					LinkUrl:     "https://sample.com",
+				}
+
+				cb, appErr := th.App.CreateChannelBookmark(th.Context, bookmark, "")
+				require.Nil(t, appErr)
+				require.NotNil(t, cb)
+
+				// then we try to delete with the parameters of the test
+				b, resp, err := tc.userClient.DeleteChannelBookmark(context.Background(), tc.channelId, cb.Id)
+				if tc.expectedError {
+					require.Error(t, err)
+					require.Nil(t, b)
+				} else {
+					require.NoError(t, err)
+					require.Equal(t, cb.Id, b.Id)
+				}
+				checkHTTPStatus(t, resp, tc.expectedStatus)
+			})
+		}
+	})
+
+	t.Run("trying to delete a nonexistent bookmark should fail", func(t *testing.T) {
+		bookmarks, resp, err := th.Client.DeleteChannelBookmark(context.Background(), th.BasicChannel.Id, model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		require.Nil(t, bookmarks)
+	})
+
+	t.Run("trying to delete an already deleted bookmark should fail", func(t *testing.T) {
+		channelBookmark := &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "Link bookmark test",
+			LinkUrl:     "https://mattermost.com",
+			Type:        model.ChannelBookmarkLink,
+			Emoji:       ":smile:",
+		}
+
+		cb, resp, err := th.Client.CreateChannelBookmark(context.Background(), channelBookmark)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, cb)
+
+		_, appErr := th.App.DeleteChannelBookmark(cb.Id, "")
+		require.Nil(t, appErr)
+
+		bookmarks, resp, err := th.Client.DeleteChannelBookmark(context.Background(), th.BasicChannel.Id, cb.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		require.Nil(t, bookmarks)
+	})
+
+	t.Run("a user should always be able to delete the channel bookmarks on DMs and GMs", func(t *testing.T) {
+		// this should work independently of the permissions applied
+		th.RemovePermissionFromRole(model.PermissionDeleteBookmarkPublicChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionDeleteBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+		defer func() {
+			th.AddPermissionToRole(model.PermissionDeleteBookmarkPublicChannel.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(model.PermissionDeleteBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+		}()
+
+		// DM
+		dm, dmErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, guest.Id)
+		require.Nil(t, dmErr)
+
+		dmBookmark := &model.ChannelBookmark{
+			ChannelId:   dm.Id,
+			DisplayName: "Link bookmark test",
+			LinkUrl:     "https://mattermost.com",
+			Type:        model.ChannelBookmarkLink,
+			Emoji:       ":smile:",
+		}
+
+		dmb, appErr := th.App.CreateChannelBookmark(th.Context, dmBookmark, "")
+		require.Nil(t, appErr)
+
+		ddmb, resp, err := th.Client.DeleteChannelBookmark(context.Background(), dm.Id, dmb.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, dmb.Id, ddmb.Id)
+		require.NotZero(t, ddmb.DeleteAt)
+
+		// GM
+		gm, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.SystemAdminUser.Id, guest.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		gmBookmark := &model.ChannelBookmark{
+			ChannelId:   gm.Id,
+			DisplayName: "Link bookmark test",
+			LinkUrl:     "https://mattermost.com",
+			Type:        model.ChannelBookmarkLink,
+			Emoji:       ":smile:",
+		}
+
+		gmb, appErr := th.App.CreateChannelBookmark(th.Context, gmBookmark, "")
+		require.Nil(t, appErr)
+
+		dgmb, resp, err := th.Client.DeleteChannelBookmark(context.Background(), gm.Id, gmb.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, gmb.Id, dgmb.Id)
+		require.NotZero(t, dgmb.DeleteAt)
+	})
+
+	t.Run("a guest should not be able to delete channel bookmarks on DMs and GMs", func(t *testing.T) {
+		// DM
+		dm, dmErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, guest.Id)
+		require.Nil(t, dmErr)
+
+		dmBookmark := &model.ChannelBookmark{
+			ChannelId:   dm.Id,
+			DisplayName: "Link bookmark test",
+			LinkUrl:     "https://mattermost.com",
+			Type:        model.ChannelBookmarkLink,
+			Emoji:       ":smile:",
+		}
+
+		dmb, appErr := th.App.CreateChannelBookmark(th.Context, dmBookmark, "")
+		require.Nil(t, appErr)
+
+		ddmb, resp, err := guestClient.DeleteChannelBookmark(context.Background(), dm.Id, dmb.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.Nil(t, ddmb)
+
+		// GM
+		gm, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.SystemAdminUser.Id, guest.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		gmBookmark := &model.ChannelBookmark{
+			ChannelId:   gm.Id,
+			DisplayName: "Link bookmark test",
+			LinkUrl:     "https://mattermost.com",
+			Type:        model.ChannelBookmarkLink,
+			Emoji:       ":smile:",
+		}
+
+		gmb, appErr := th.App.CreateChannelBookmark(th.Context, gmBookmark, "")
+		require.Nil(t, appErr)
+
+		dgmb, resp, err := guestClient.DeleteChannelBookmark(context.Background(), gm.Id, gmb.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.Nil(t, dgmb)
+	})
+
+	t.Run("a user should be able to delete another user's bookmark", func(t *testing.T) {
+		channelBookmark := &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "Link bookmark test",
+			LinkUrl:     "https://mattermost.com",
+			Type:        model.ChannelBookmarkLink,
+			Emoji:       ":smile:",
+		}
+
+		cb, resp, err := th.Client.CreateChannelBookmark(context.Background(), channelBookmark)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, cb)
+
+		// create a client for basic user 2
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		dbm, resp, err := client2.DeleteChannelBookmark(context.Background(), th.BasicChannel.Id, cb.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, dbm)
+		require.Equal(t, cb.Id, dbm.Id)
+		require.NotZero(t, dbm.DeleteAt)
+	})
+
+	t.Run("a websockets event should be fired as part of deleting a bookmark", func(t *testing.T) {
+		webSocketClient, err := th.CreateWebSocketClient()
+		require.NoError(t, err)
+		webSocketClient.Listen()
+		defer webSocketClient.Close()
+
+		bookmark := &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "Link bookmark test",
+			LinkUrl:     "https://mattermost.com",
+			Type:        model.ChannelBookmarkLink,
+			Emoji:       ":smile:",
+		}
+
+		// set the user for the session
+		originalSessionUserId := th.Context.Session().UserId
+		th.Context.Session().UserId = th.BasicUser.Id
+		defer func() { th.Context.Session().UserId = originalSessionUserId }()
+
+		cb, appErr := th.App.CreateChannelBookmark(th.Context, bookmark, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, cb)
+
+		dbm, resp, err := th.Client.DeleteChannelBookmark(context.Background(), th.BasicChannel.Id, cb.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, dbm)
+
+		var received bool
+		var b *model.ChannelBookmarkWithFileInfo
+	loop:
+		for {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventChannelBookmarkDeleted {
+					err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
+					require.NoError(t, err)
+					received = true
+					break loop
+				}
+			case <-time.After(2 * time.Second):
+				break loop
+			}
+		}
+
+		require.True(t, received)
+		require.NotEmpty(t, b)
+		require.Equal(t, cb.Id, b.Id)
+		require.NotEmpty(t, b.DeleteAt)
+	})
+}
