@@ -1924,7 +1924,7 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 
 func (s SqlChannelStore) UpdateMultipleMembersNotifyProps(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
 	for _, member := range members {
-		// member.PreUpdate() // TODO this doesn't do anything since we're not saving the lastupdateat
+		// Note that, like UpdateMemberNotifyProps, this doesn't modify the LastUpdateAt
 
 		if err := member.IsNotifyPropsValid(); err != nil {
 			return nil, err
@@ -1937,13 +1937,15 @@ func (s SqlChannelStore) UpdateMultipleMembersNotifyProps(members []*model.Chann
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	for _, member := range members {
-		var sql string
+	updated := make([]*model.ChannelMember, len(members))
+
+	for i, member := range members {
+		var sqlUpdate string
 		var args []any
 
 		if s.DriverName() == model.DatabaseDriverPostgres {
 			jsonNotifyProps := string(model.ToJSON(member.NotifyProps))
-			sql, args, err = s.getQueryBuilder().
+			sqlUpdate, args, err = s.getQueryBuilder().
 				Update("channelmembers").
 				Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps)).
 				Where(sq.Eq{
@@ -1966,7 +1968,7 @@ func (s SqlChannelStore) UpdateMultipleMembersNotifyProps(members []*model.Chann
 			// Example: UPDATE ChannelMembers
 			// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
 			// WHERE ...
-			sql, args, err = s.getQueryBuilder().
+			sqlUpdate, args, err = s.getQueryBuilder().
 				Update("ChannelMembers").
 				Set("NotifyProps", jsonExpr).
 				Where(sq.Eq{
@@ -1978,17 +1980,33 @@ func (s SqlChannelStore) UpdateMultipleMembersNotifyProps(members []*model.Chann
 			}
 		}
 
-		_, err = transaction.Exec(sql, args...)
+		_, err = transaction.Exec(sqlUpdate, args...)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to update ChannelMember")
 		}
+
+		sqlSelect, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
+			Where(sq.Eq{
+				"ChannelMembers.ChannelId": member.ChannelId,
+				"ChannelMembers.UserId":    member.UserId,
+			}).ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "UpdateMultipleMembersNotifyProps_Select_ToSql")
+		}
+
+		var dbMember channelMemberWithSchemeRoles
+		if err := transaction.Get(&dbMember, sqlSelect, args...); err != nil {
+			return nil, errors.Wrapf(err, "failed to get ChannelMember with channelId=%s and userId=%s", member.ChannelId, member.UserId)
+		}
+
+		updated[i] = dbMember.ToModel()
 	}
 
 	if err := transaction.Commit(); err != nil {
 		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
-	return members, nil // HARRISON TODO return the updated members?
+	return updated, nil
 }
 
 func (s SqlChannelStore) GetMembers(channelID string, offset, limit int) (model.ChannelMembers, error) {

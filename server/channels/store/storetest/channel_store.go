@@ -3311,7 +3311,7 @@ func testChannelUpdateMultipleMembersNotifyProps(t *testing.T, rctx request.CTX,
 		notifyProps[model.PushNotifyProp] = model.ChannelNotifyMention
 		require.NotEqual(t, notifyProps[model.PushNotifyProp], original.NotifyProps[model.PushNotifyProp])
 
-		_, err = ss.Channel().UpdateMultipleMembersNotifyProps([]*model.ChannelMember{
+		updated, err := ss.Channel().UpdateMultipleMembersNotifyProps([]*model.ChannelMember{
 			{
 				ChannelId:   original.ChannelId,
 				UserId:      original.UserId,
@@ -3320,6 +3320,8 @@ func testChannelUpdateMultipleMembersNotifyProps(t *testing.T, rctx request.CTX,
 		})
 
 		require.NoError(t, err)
+
+		assert.Equal(t, notifyProps, updated[0].NotifyProps)
 
 		// Ensure the other fields in the database haven't changed
 		member, err := ss.Channel().GetMember(rctx.Context(), channel.Id, user.Id)
@@ -3365,7 +3367,7 @@ func testChannelUpdateMultipleMembersNotifyProps(t *testing.T, rctx request.CTX,
 		notifyProps3[model.EmailNotifyProp] = "true"
 		require.NotEqual(t, notifyProps3[model.EmailNotifyProp], original3.NotifyProps[model.EmailNotifyProp])
 
-		_, err = ss.Channel().UpdateMultipleMembersNotifyProps([]*model.ChannelMember{
+		updated, err := ss.Channel().UpdateMultipleMembersNotifyProps([]*model.ChannelMember{
 			{
 				ChannelId:   original1.ChannelId,
 				UserId:      original1.UserId,
@@ -3384,6 +3386,10 @@ func testChannelUpdateMultipleMembersNotifyProps(t *testing.T, rctx request.CTX,
 		})
 
 		require.NoError(t, err)
+
+		assert.Equal(t, notifyProps1, updated[0].NotifyProps)
+		assert.Equal(t, notifyProps2, updated[1].NotifyProps)
+		assert.Equal(t, notifyProps3, updated[2].NotifyProps)
 
 		// Ensure the other fields in the database haven't changed
 		member1, err := ss.Channel().GetMember(rctx.Context(), channel.Id, user1.Id)
@@ -3414,7 +3420,7 @@ func testChannelUpdateMultipleMembersNotifyProps(t *testing.T, rctx request.CTX,
 		notifyProps[model.PushNotifyProp] = model.ChannelNotifyMention
 		require.NotEqual(t, notifyProps[model.PushNotifyProp], original.NotifyProps[model.PushNotifyProp])
 
-		_, err = ss.Channel().UpdateMultipleMembersNotifyProps([]*model.ChannelMember{
+		updated, err := ss.Channel().UpdateMultipleMembersNotifyProps([]*model.ChannelMember{
 			{
 				ChannelId:    channel.Id,
 				UserId:       user.Id,
@@ -3424,6 +3430,8 @@ func testChannelUpdateMultipleMembersNotifyProps(t *testing.T, rctx request.CTX,
 		})
 
 		require.NoError(t, err)
+
+		assert.Equal(t, notifyProps, updated[0].NotifyProps)
 
 		// Ensure the other fields in the database haven't changed
 		member, err := ss.Channel().GetMember(rctx.Context(), channel.Id, user.Id)
@@ -3450,7 +3458,7 @@ func testChannelUpdateMultipleMembersNotifyProps(t *testing.T, rctx request.CTX,
 			"another_key":              "another_value",
 		}
 
-		_, err = ss.Channel().UpdateMultipleMembersNotifyProps([]*model.ChannelMember{
+		updated, err := ss.Channel().UpdateMultipleMembersNotifyProps([]*model.ChannelMember{
 			{
 				ChannelId:   channel.Id,
 				UserId:      user.Id,
@@ -3459,6 +3467,10 @@ func testChannelUpdateMultipleMembersNotifyProps(t *testing.T, rctx request.CTX,
 		})
 
 		require.NoError(t, err)
+
+		updatedNotifyProps := updated[0].NotifyProps
+		assert.Equal(t, original.NotifyProps[model.ChannelNotifyDefault], updatedNotifyProps[model.ChannelNotifyDefault])
+		assert.Equal(t, notifyProps["another_key"], updatedNotifyProps["another_key"])
 
 		// Ensure the value in the database didn't change
 		member, err := ss.Channel().GetMember(rctx.Context(), channel.Id, user.Id)
