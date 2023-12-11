@@ -634,7 +634,7 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionManageTeam) {
-			return c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageTeam})
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageTeam})
 		}
 	case model.GroupSyncableTypeChannel:
 		channel, err := c.App.GetChannel(c.AppContext, syncableID)
@@ -650,7 +650,7 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 		}
 
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), syncableID, permission) {
-			return c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
 		}
 	}
 
@@ -876,7 +876,7 @@ func getGroupsByChannelCommon(c *Context, r *http.Request) ([]byte, *model.AppEr
 		permission = model.PermissionReadPublicChannelGroups
 	}
 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, permission) {
-		return nil, c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
+		return nil, model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
 	}
 
 	opts := model.GroupSearchOpts{
