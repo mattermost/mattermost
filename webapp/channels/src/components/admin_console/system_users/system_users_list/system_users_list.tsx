@@ -31,13 +31,11 @@ type Props = {
     nextPage: (page: number) => void;
     search: (term: string) => void;
     focusOnMount?: boolean;
-    renderFilterRow: (doSearch: ((event: React.FormEvent<HTMLInputElement>) => void) | undefined) => JSX.Element;
 
     teamId: string;
     filter: string;
     term: string;
     onTermChange: (term: string) => void;
-    isDisabled?: boolean;
 
     /**
      * Whether MFA is licensed and enabled.
@@ -345,15 +343,12 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
                         doManageTeams: this.doManageTeams,
                         doManageRoles: this.doManageRoles,
                         doManageTokens: this.doManageTokens,
-                        isDisabled: this.props.isDisabled,
                     }}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
-                    search={this.search}
                     page={this.state.page}
-                    term={this.props.term}
-                    onTermChange={this.props.onTermChange}
                     rowComponentType={UserListRowWithError}
+                    noBuiltInFilters={true}
                 />
                 <ManageTeamsModal
                     user={this.state.user}
