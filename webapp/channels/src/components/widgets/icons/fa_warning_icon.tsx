@@ -3,20 +3,20 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {injectIntl, type IntlShape} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 type Props = {
     additionalClassName?: string;
-    intl: IntlShape;
 }
 
-const WarningIcon = ({additionalClassName, intl}: Props) => {
+const WarningIcon = ({additionalClassName}: Props) => {
+    const {formatMessage} = useIntl();
     return (
         <i
             className={classNames('fa fa-warning', additionalClassName)}
-            title={intl.formatMessage({id: 'generic_icons.warning', defaultMessage: 'Warning Icon'})}
+            title={formatMessage({id: 'generic_icons.warning', defaultMessage: 'Warning Icon'})}
         />
     );
 };
 
-export default React.memo(injectIntl(WarningIcon));
+export default React.memo(WarningIcon);
