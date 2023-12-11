@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	internalKeyPrefix = "mmi_"
-	botUserKey        = internalKeyPrefix + "botid"
-	botEnsureMutexKey = internalKeyPrefix + "bot_ensure"
+	InternalKeyPrefix = "mmi_"
+	botUserKey        = InternalKeyPrefix + "botid"
+	botEnsureMutexKey = InternalKeyPrefix + "bot_ensure"
 )
 
 // BotService exposes methods to manipulate bots.
