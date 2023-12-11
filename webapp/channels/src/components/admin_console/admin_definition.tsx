@@ -3202,12 +3202,12 @@ const AdminDefinition: AdminDefinitionType = {
             wrangler: {
                 url: 'site_config/wrangler',
                 title: t('admin.sidebar.move_thread'),
-                title_default: 'Move Thread',
+                title_default: 'Move Thread (Beta)',
                 isHidden: it.any(it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.POSTS)), it.configIsFalse('FeatureFlags', 'MoveThreadsEnabled')),
                 schema: {
                     id: 'WranglerSettings',
                     name: t('admin.site.move_thread'),
-                    name_default: 'Move Thread',
+                    name_default: 'Move Thread (Beta)',
                     settings: [
                         {
                             type: 'roles',

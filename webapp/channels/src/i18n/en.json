@@ -2349,7 +2349,7 @@
   "admin.sidebar.logs": "Server Logs",
   "admin.sidebar.metrics": "Performance Monitoring",
   "admin.sidebar.mfa": "MFA",
-  "admin.sidebar.move_thread": "Move thread",
+  "admin.sidebar.move_thread": "Move thread (Beta)",
   "admin.sidebar.notices": "Notices",
   "admin.sidebar.notifications": "Notifications",
   "admin.sidebar.oauth": "OAuth 2.0",
