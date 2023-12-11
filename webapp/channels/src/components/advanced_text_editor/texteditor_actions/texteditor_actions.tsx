@@ -5,7 +5,7 @@ import {memo} from 'react';
 import styled, {css} from 'styled-components';
 
 type TexteditorActionsProps = {
-    placement: 'top' | 'bottom';
+    placement: 'top' | 'bottom' | 'middle';
     show?: boolean;
     isScrollbarRendered?: boolean;
 }
@@ -21,9 +21,14 @@ const TexteditorActions = styled.span<TexteditorActionsProps>`
     ${({placement, isScrollbarRendered}) => (placement === 'top' ? css`
         top: 7px;
         right: ${isScrollbarRendered ? 15 : 7}px;
-    ` : css`
+    ` : 
+    (placement === 'bottom') ?
+    css`
         right: 7px;
         bottom: 7px;
+    ` :
+    css`
+        right: 7px;
     `)}
 
     opacity: ${({show = true}) => (show ? 1 : 0)};

@@ -5,14 +5,22 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import {EmoticonPlusOutlineIcon} from '@mattermost/compass-icons/components';
+import {EmoticonPlusOutlineIcon, EyeOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+//imported
+import ShowFormat from 'components/advanced_text_editor/show_formatting';
+import OverlayTrigger from 'components/overlay_trigger';
+import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import Tooltip from 'components/tooltip';
+import TexteditorActions from 'components/advanced_text_editor/texteditor_actions';
+
 import DeletePostModal from 'components/delete_post_modal';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
+
 import Textbox from 'components/textbox';
 import type {TextboxClass, TextboxElement} from 'components/textbox';
 
@@ -60,6 +68,7 @@ export type Props = {
     ctrlSend: boolean;
     draft: PostDraft;
     config: {
+        EnablePreviewButton?: string;
         EnableEmojiPicker?: string;
         EnableGifPicker?: string;
     };
@@ -82,6 +91,7 @@ export type State = {
     selectionRange: {start: number; end: number};
     postError: React.ReactNode;
     errorClass: string | null;
+    showPreviewButton: boolean;
     showEmojiPicker: boolean;
     renderScrollbar: boolean;
     scrollbarWidth: number;
@@ -100,10 +110,12 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const [selectionRange, setSelectionRange] = useState<State['selectionRange']>({start: editText.length, end: editText.length});
     const [postError, setPostError] = useState<React.ReactNode | null>(null);
     const [errorClass, setErrorClass] = useState<string>('');
+    const [showPreviewButton, setShowPreviewButton] = useState<boolean>(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
     const [renderScrollbar, setRenderScrollbar] = useState<boolean>(false);
-
+    
     const textboxRef = useRef<TextboxClass>(null);
+    const previewButtonRef = useRef<HTMLButtonElement>(null);
     const emojiButtonRef = useRef<HTMLButtonElement>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -442,11 +454,19 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         }
     };
 
+    const togglePreviewClick = (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
+        e?.stopPropagation();
+        setShowPreviewButton(!showPreviewButton)
+        if(showPreviewButton) {
+            textboxRef.current?.focus();
+        }
+    };
+
     const getEmojiContainerRef = useCallback(() => textboxRef.current, [textboxRef]);
     const getEmojiTargetRef = useCallback(() => emojiButtonRef.current, [emojiButtonRef]);
 
     let emojiPicker = null;
-
+    
     if (config.EnableEmojiPicker === 'true') {
         emojiPicker = (
             <>
@@ -477,6 +497,16 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         );
     }
 
+    const tooltip = (
+        <Tooltip id='PreviewInputTextButtonTooltip'>
+            <KeyboardShortcutSequence
+                shortcut={KEYBOARD_SHORTCUTS.msgMarkdownPreview}
+                hoistDescription={true}
+                isInsideTooltip={true}
+            />
+        </Tooltip>
+    );
+
     let rootId = '';
     if (editingPost.post) {
         rootId = editingPost.post.root_id || editingPost.post.id;
@@ -501,6 +531,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 value={editText}
                 channelId={channelId}
                 emojiEnabled={config.EnableEmojiPicker === 'true'}
+                preview={showPreviewButton}
                 createMessage={formatMessage({id: 'edit_post.editPost', defaultMessage: 'Edit the post...'})}
                 supportsCommands={false}
                 suggestionListPosition='bottom'
@@ -510,8 +541,34 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 useChannelMentions={rest.useChannelMentions}
             />
             <div className='post-body__actions'>
-                {emojiPicker}
-            </div>
+                <TexteditorActions
+                    placement='middle'
+                    isScrollbarRendered={renderScrollbar}
+                >
+                        <OverlayTrigger
+                                placement='top'
+                                delayShow={Constants.OVERLAY_TIME_DELAY}
+                                trigger={Constants.OVERLAY_DEFAULT_TRIGGER}
+                                overlay={tooltip}
+                                >
+                            <button
+                                aria-label={formatMessage({id: 'editPreview', defaultMessage: 'Preview message'})}
+                                id='EditPreviewInputTextButton'
+                                ref={previewButtonRef}
+                                onClick={togglePreviewClick}
+                                className='style--none post-action'
+                                style={{right: '24px' }}
+                                aria-describedBy="PreviewInputTextButtonTooltip"
+                                >
+                                <EyeOutlineIcon
+                                    size={18}
+                                    color='currentColor'
+                                    />
+                            </button>
+                        </OverlayTrigger>
+                        {emojiPicker}
+                </TexteditorActions>
+            </div> 
             <EditPostFooter
                 onSave={handleEdit}
                 onCancel={handleAutomatedRefocusAndExit}
