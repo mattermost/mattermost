@@ -48,12 +48,12 @@ import type {AdminDefinitionConfigSchemaSettings, Check} from './types';
 type Props = {
     config: DeepPartial<AdminConfig>;
     environmentConfig: Partial<EnvironmentConfig>;
-    setNavigationBlocked: () => void;
+    setNavigationBlocked: (blocked: boolean) => void;
     schema: AdminDefinitionConfigSchemaSettings;
     roles: Record<string, Role>;
     license: Record<string, unknown>;
-    editRole?: (role: Role) => void;
-    updateConfig?: (config: AdminConfig) => ActionFunc;
+    editRole: (role: Role) => void;
+    updateConfig: (config: AdminConfig) => ActionFunc;
     isDisabled: Check;
     consoleAccess: ReturnType<typeof getConsoleAccess>;
     cloud: CloudState;
