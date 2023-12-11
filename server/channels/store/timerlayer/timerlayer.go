@@ -10709,6 +10709,22 @@ func (s *TimerLayerUserStore) GetUnreadCountForChannel(userID string, channelID 
 	return result, err
 }
 
+func (s *TimerLayerUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.GetUserReport(filter)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetUserReport", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) GetUsersBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.UserForIndexing, error) {
 	start := time.Now()
 

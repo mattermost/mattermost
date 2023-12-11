@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	sq "github.com/mattermost/squirrel"
@@ -2265,4 +2266,103 @@ func (us SqlUserStore) RefreshPostStatsForUsers() error {
 	}
 
 	return nil
+}
+
+func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
+	isPostgres := us.DriverName() == model.DatabaseDriverPostgres
+	selectColumns := []string{"u.Id", "u.LastLogin", "MAX(s.LastActivityAt) AS LastStatusAt"}
+	for _, column := range model.UserReportSortColumns {
+		selectColumns = append(selectColumns, "u."+column)
+	}
+	if isPostgres {
+		selectColumns = append(selectColumns,
+			"MAX(ps.LastPostDate) AS LastPostDate",
+			"COUNT(ps.Day) AS DaysActive",
+			"SUM(ps.NumPosts) AS TotalPosts",
+		)
+	} else {
+		selectColumns = append(selectColumns,
+			"MAX(p.CreateAt) AS LastPostDate",
+			"COUNT(DATE(FROM_UNIXTIME(p.CreateAt / 1000))) AS DaysActive",
+			"COUNT(p.Id) AS TotalPosts",
+		)
+	}
+
+	sortColumnValue := filter.SortColumn
+	if filter.SortDesc {
+		sortColumnValue += " DESC"
+	}
+
+	query := us.getQueryBuilder().
+		Select(selectColumns...).
+		From("Users u").
+		LeftJoin("Status s ON s.UserId = u.Id").
+		Where(sq.Or{
+			sq.Gt{filter.SortColumn: filter.LastSortColumnValue},
+			sq.And{
+				sq.Eq{filter.SortColumn: filter.LastSortColumnValue},
+				sq.Gt{"u.Id": filter.LastUserId},
+			},
+		}).
+		Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM Bots)")).
+		GroupBy("u.Id").
+		OrderBy(sortColumnValue, "u.Id")
+
+	if filter.PageSize > 0 {
+		query = query.Limit(uint64(filter.PageSize))
+	}
+
+	if isPostgres {
+		query = query.LeftJoin("PostStats ps ON ps.UserId = u.Id")
+		if filter.StartAt > 0 {
+			startDate := time.UnixMilli(filter.StartAt)
+			query = query.Where(sq.Or{
+				sq.Expr("ps.UserId IS NULL"),
+				sq.GtOrEq{"ps.Day": startDate.Format("2006-01-02")},
+			})
+		}
+		if filter.EndAt > 0 {
+			endDate := time.UnixMilli(filter.EndAt)
+			query = query.Where(sq.Or{
+				sq.Expr("ps.UserId IS NULL"),
+				sq.Lt{"ps.Day": endDate.Format("2006-01-02")},
+			})
+		}
+	} else {
+		query = query.LeftJoin("Posts p on p.UserId = u.Id")
+		if filter.StartAt > 0 {
+			query = query.Where(sq.Or{
+				sq.Expr("p.UserId IS NULL"),
+				sq.GtOrEq{"p.CreateAt": filter.StartAt},
+			})
+		}
+		if filter.EndAt > 0 {
+			query = query.Where(sq.Or{
+				sq.Expr("p.UserId IS NULL"),
+				sq.Lt{"p.CreateAt": filter.EndAt},
+			})
+		}
+	}
+
+	query = applyRoleFilter(query, filter.Role, isPostgres)
+	if filter.HasNoTeam {
+		query = query.Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM TeamMembers WHERE DeleteAt = 0)"))
+	} else if filter.Team != "" {
+		query = query.Join("TeamMembers tm ON (tm.UserId = u.Id AND tm.DeleteAt = 0)").
+			Where(sq.Eq{"tm.TeamId": filter.Team})
+	}
+	if filter.HideActive {
+		query = query.Where(sq.Gt{"u.DeleteAt": 0})
+	}
+	if filter.HideInactive {
+		query = query.Where(sq.Eq{"u.DeleteAt": 0})
+	}
+
+	userResults := []*model.UserReportQuery{}
+	err := us.GetReplicaX().SelectBuilder(&userResults, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get users for reporting")
+	}
+
+	return userResults, nil
 }

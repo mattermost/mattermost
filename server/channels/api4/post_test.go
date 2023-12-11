@@ -1270,7 +1270,7 @@ func TestPatchPost(t *testing.T) {
 
 	t.Run("invalid requests", func(t *testing.T) {
 		r, err := client.DoAPIPut(context.Background(), "/posts/"+post.Id+"/patch", "garbage")
-		require.EqualError(t, err, ": Invalid or missing post in request body., invalid character 'g' looking for beginning of value")
+		require.EqualError(t, err, "Invalid or missing post in request body., invalid character 'g' looking for beginning of value")
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")
 
 		patch := &model.PostPatch{}
