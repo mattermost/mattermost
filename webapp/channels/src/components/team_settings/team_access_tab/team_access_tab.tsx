@@ -135,7 +135,6 @@ const AccessTab = (props: Props) => {
             <div id='teamInviteContainer' >
                 <Input
                     id='teamInviteId'
-                    className='form-control'
                     type='text'
                     value={inviteId}
                     maxLength={32}
