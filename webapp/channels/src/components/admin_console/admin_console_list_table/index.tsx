@@ -4,42 +4,68 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Table, RowData} from '@tanstack/react-table';
+import type {Table} from '@tanstack/react-table';
 import {flexRender} from '@tanstack/react-table';
 import classNames from 'classnames';
-import type {ReactNode} from 'react';
-import React from 'react';
+import React, {useMemo} from 'react';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
+import ReactSelect, {components} from 'react-select';
+import type {IndicatorContainerProps, ValueType} from 'react-select';
 
 import './admin_console_list_table.scss';
 
-declare module '@tanstack/table-core' {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    interface ColumnMeta<TData extends RowData, TValue> {
-        isNumeric?: boolean;
-    }
+const SORTABLE_CLASS = 'sortable';
+const PINNED_CLASS = 'pinned';
+const PAGE_SIZES = [10, 20, 50, 100];
+const PageSizes = defineMessages<number>({
+    10: {
+        id: 'admin.console.list.table.rowsCount.10',
+        defaultMessage: '10',
+    },
+    20: {
+        id: 'admin.console.list.table.rowsCount.20',
+        defaultMessage: '20',
+    },
+    50: {
+        id: 'admin.console.list.table.rowsCount.50',
+        defaultMessage: '50',
+    },
+    100: {
+        id: 'admin.console.list.table.rowsCount.100',
+        defaultMessage: '100',
+    },
+});
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    interface TableMeta<TData extends RowData> {
-        paginationDescription?: ReactNode;
-        isFirstPage: boolean;
-        isLastPage: boolean;
-        onPreviousPageClick: () => void;
-        onNextPageClick: () => void;
-    }
-}
+type PageSizeOption = {
+    label: string;
+    value: number;
+};
 
 type Props<TableType> = {
     tableId: string;
     tableAriaDescribedBy?: string;
     table: Table<TableType>;
     tableContainerClass?: string;
-    countSelector?: ReactNode;
 };
 
 function AdminConsoleListTable<TableType>(props: Props<TableType>) {
-    const SORTABLE_CLASS = 'sortable';
-    const PINNED_CLASS = 'pinned';
-    const IS_NUMERIC_CLASS = 'isNumeric';
+    const {formatMessage} = useIntl();
+
+    const pageSizeOptions = useMemo(() => {
+        return PAGE_SIZES.map((size) => {
+            return {
+                label: formatMessage(PageSizes[size]),
+                value: size,
+            };
+        });
+    }, []);
+
+    const selectedPageSize = pageSizeOptions.find((option) => option.value === props.table.getState().pagination.pageSize) || pageSizeOptions[0];
+
+    function handlePageSizeChange(selectedOption: ValueType<PageSizeOption>) {
+        const {value} = selectedOption as PageSizeOption;
+        props.table.setPageSize(Number(value));
+    }
 
     return (
         <>
@@ -65,9 +91,6 @@ function AdminConsoleListTable<TableType>(props: Props<TableType>) {
                                             header.column.getCanSort(),
                                         [PINNED_CLASS]:
                                             header.column.getCanPin(),
-                                        [IS_NUMERIC_CLASS]:
-                                            header.column.columnDef?.meta?.
-                                                isNumeric || false,
                                     })}
                                     onClick={header.column.getToggleSortingHandler()}
                                 >
@@ -100,9 +123,6 @@ function AdminConsoleListTable<TableType>(props: Props<TableType>) {
                                     id={`cell-${props.tableId}-${cell.row.index}-${cell.column.id}`}
                                     className={classNames(`${cell.column.id}`, {
                                         [PINNED_CLASS]: cell.column.getCanPin(),
-                                        [IS_NUMERIC_CLASS]:
-                                            cell.column.columnDef?.meta?.
-                                                isNumeric || false,
                                     })}
                                 >
                                     {cell.getIsPlaceholder() ? null : flexRender(
@@ -137,13 +157,33 @@ function AdminConsoleListTable<TableType>(props: Props<TableType>) {
                 </tfoot>
             </table>
             <div className='tfoot'>
-                <div>{props.countSelector}</div>
+                <div className='adminConsoleListTablePageSize'>
+                    <FormattedMessage
+                        id='admin.console.list.table.rowsCount.(show)rowsPerPage'
+                        defaultMessage='Show'
+                    />
+                    <ReactSelect
+                        className='react-select'
+                        classNamePrefix='react-select'
+                        autoFocus={false}
+                        isClearable={false}
+                        isMulti={false}
+                        isSearchable={false}
+                        menuPlacement='top'
+                        options={pageSizeOptions}
+                        value={selectedPageSize}
+                        onChange={handlePageSizeChange}
+                        components={{
+                            IndicatorSeparator: null,
+                            IndicatorsContainer: SelectIndicator,
+                        }}
+                    />
+                    <FormattedMessage
+                        id='admin.console.list.table.rowsCount.show(rowsPerPage)'
+                        defaultMessage='rows per page'
+                    />
+                </div>
                 <div className='adminConsoleListTablePagination'>
-                    {props.table.options.meta?.paginationDescription && (
-                        <div>
-                            {props.table.options.meta?.paginationDescription}
-                        </div>
-                    )}
                     <button
                         className='btn btn-quaternary'
                         disabled={!props.table.getCanPreviousPage()}
@@ -161,6 +201,14 @@ function AdminConsoleListTable<TableType>(props: Props<TableType>) {
                 </div>
             </div>
         </>
+    );
+}
+
+function SelectIndicator(props: IndicatorContainerProps<PageSizeOption>) {
+    return (
+        <components.IndicatorsContainer {...props}>
+            <i className='icon icon-chevron-down'/>
+        </components.IndicatorsContainer>
     );
 }
 

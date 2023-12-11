@@ -80,10 +80,6 @@ table.adminConsoleListTable {
                     }
                 }
 
-                &.isNumeric {
-                    text-align: end;
-                }
-
                 &.sortable {
                     vertical-align: middle;
 
@@ -197,10 +193,6 @@ table.adminConsoleListTable {
                         }
                     }
                 }
-
-                &.isNumeric {
-                    text-align: end;
-                }
             }
         }
     }
@@ -222,6 +214,18 @@ table.adminConsoleListTable {
         font-weight: 400;
         line-height: normal;
         color: rgba(var(--sys-center-channel-color-rgb), 0.6);
+
+        .adminConsoleListTablePageSize{
+            display: flex;
+            align-items: center;
+            flex-direction: row;
+            justify-content: center;
+
+            & > .react-select {
+                margin: 0 6px 0 6px;
+                min-width: 64px;
+            }
+        }
 
         .adminConsoleListTablePagination {
             display: flex;

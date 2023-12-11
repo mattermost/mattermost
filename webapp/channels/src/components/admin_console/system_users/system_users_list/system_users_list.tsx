@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {useReactTable, createColumnHelper, getCoreRowModel, getSortedRowModel} from '@tanstack/react-table';
-import type {CellContext, SortingState} from '@tanstack/react-table';
-import React, {useEffect, useMemo} from 'react';
+import type {CellContext, PaginationState, SortingState} from '@tanstack/react-table';
+import React, {useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -203,8 +203,14 @@ function SystemUsersList(props: Props) {
         [currentUser.roles],
     );
 
-    const [sortState, setSortState] = React.useState<SortingState>([]);
+    // Move the following states to redux
+    const [paginationState, setPaginationState] = useState<PaginationState>({
+        pageIndex: 0,
+        pageSize: 20,
+    });
+    const [sortState, setSortState] = useState<SortingState>([]);
 
+    // Change the following useEffects to single useEffect
     useEffect(() => {
         if (sortState.length === 0) {
             // eslint-disable-next-line no-console
@@ -216,26 +222,25 @@ function SystemUsersList(props: Props) {
         }
     }, [sortState]);
 
-    function handlePreviousPageClick() {
+    useEffect(() => {
         // eslint-disable-next-line no-console
-        console.log('handlePreviousPageClick');
-    }
+        console.log('page change', paginationState.pageIndex);
+    }, [paginationState.pageIndex]);
 
-    function handleNextPageClick() {
+    useEffect(() => {
         // eslint-disable-next-line no-console
-        console.log('handleNextPageClick');
-    }
-
-    const isFirstPage = true;
-    const isLastPage = false;
+        console.log('page size change', paginationState.pageSize);
+    }, [paginationState.pageSize]);
 
     const table = useReactTable({
         data: userReports,
         columns,
         state: {
             sorting: sortState,
+            pagination: paginationState,
         },
         getCoreRowModel: getCoreRowModel<SystemUsersRow>(),
+        onPaginationChange: setPaginationState,
         onSortingChange: setSortState,
         getSortedRowModel: getSortedRowModel<SystemUsersRow>(),
         manualSorting: true,
@@ -245,13 +250,6 @@ function SystemUsersList(props: Props) {
         manualPagination: true,
         renderFallbackValue: '',
         debugAll: true,
-        meta: {
-            isFirstPage,
-            isLastPage,
-            onPreviousPageClick: handlePreviousPageClick,
-            onNextPageClick: handleNextPageClick,
-            paginationDescription: '1-20 of 100',
-        },
     });
 
     return (
