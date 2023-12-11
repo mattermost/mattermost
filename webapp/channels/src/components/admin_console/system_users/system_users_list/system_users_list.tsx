@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createColumnHelper, type CellContext, getCoreRowModel} from '@tanstack/react-table';
-import React, {useMemo} from 'react';
+import {useReactTable, createColumnHelper, getCoreRowModel, getSortedRowModel} from '@tanstack/react-table';
+import type {CellContext, SortingState} from '@tanstack/react-table';
+import React, {useEffect, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -19,7 +20,7 @@ import SystemUsersActions from '../system_users_list_actions';
 
 import './system_users_list.scss';
 
-export type SystemUsersRow = {
+type SystemUsersRow = {
     id: UserProfile['id'];
     username: UserProfile['username'];
     email: UserProfile['email'];
@@ -47,7 +48,11 @@ enum ColumnNames {
 
 const columnHelper = createColumnHelper<SystemUsersRow>();
 
-function SystemUsersList() {
+interface Props {
+    tableAriaDescribedBy: string;
+}
+
+function SystemUsersList(props: Props) {
     const {formatMessage} = useIntl();
 
     const currentUser = useSelector(getCurrentUser);
@@ -109,7 +114,7 @@ function SystemUsersList() {
                     id: 'admin.system_users.list.memberSince',
                     defaultMessage: 'Member since',
                 }),
-                cell: (info) => <SystemUsersCellElapsedDays date={info.getValue() || 0}/>,
+                cell: (info) => <SystemUsersCellElapsedDays date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: true,
@@ -120,7 +125,7 @@ function SystemUsersList() {
                     id: 'admin.system_users.list.lastLoginAt',
                     defaultMessage: 'Last login',
                 }),
-                cell: (info) => <SystemUsersCellElapsedDays date={info.getValue() || 0}/>,
+                cell: (info) => <SystemUsersCellElapsedDays date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: true,
@@ -131,7 +136,7 @@ function SystemUsersList() {
                     id: 'admin.system_users.list.lastActivity',
                     defaultMessage: 'Last activity',
                 }),
-                cell: (info) => <SystemUsersCellElapsedDays date={info.getValue() || 0}/>,
+                cell: (info) => <SystemUsersCellElapsedDays date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: true,
@@ -142,7 +147,7 @@ function SystemUsersList() {
                     id: 'admin.system_users.list.lastPost',
                     defaultMessage: 'Last post',
                 }),
-                cell: (info) => <SystemUsersCellElapsedDays date={info.getValue() || 0}/>,
+                cell: (info) => <SystemUsersCellElapsedDays date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: true,
@@ -153,7 +158,10 @@ function SystemUsersList() {
                     id: 'admin.system_users.list.daysActive',
                     defaultMessage: 'Days active',
                 }),
-                cell: (info) => info.getValue() || '',
+                cell: (info) => info.getValue(),
+                meta: {
+                    isNumeric: true,
+                },
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: true,
@@ -164,7 +172,10 @@ function SystemUsersList() {
                     id: 'admin.system_users.list.totalPosts',
                     defaultMessage: 'Messages posts',
                 }),
-                cell: (info) => info.getValue() || '',
+                cell: (info) => info.getValue(),
+                meta: {
+                    isNumeric: true,
+                },
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: true,
@@ -192,16 +203,62 @@ function SystemUsersList() {
         [currentUser.roles],
     );
 
+    const [sortState, setSortState] = React.useState<SortingState>([]);
+
+    useEffect(() => {
+        if (sortState.length === 0) {
+            // eslint-disable-next-line no-console
+            console.log('sortState is empty');
+        } else {
+            const [{id, desc}] = sortState;
+            // eslint-disable-next-line no-console
+            console.log('sort on', id, desc);
+        }
+    }, [sortState]);
+
+    function handlePreviousPageClick() {
+        // eslint-disable-next-line no-console
+        console.log('handlePreviousPageClick');
+    }
+
+    function handleNextPageClick() {
+        // eslint-disable-next-line no-console
+        console.log('handleNextPageClick');
+    }
+
+    const isFirstPage = true;
+    const isLastPage = false;
+
+    const table = useReactTable({
+        data: userReports,
+        columns,
+        state: {
+            sorting: sortState,
+        },
+        onSortingChange: setSortState,
+        getCoreRowModel: getCoreRowModel<SystemUsersRow>(),
+        getSortedRowModel: getSortedRowModel<SystemUsersRow>(),
+        debugAll: true,
+        renderFallbackValue: '',
+        manualSorting: true,
+        enableSortingRemoval: true,
+        enableMultiSort: false,
+        meta: {
+            isFirstPage,
+            isLastPage,
+            onPreviousPageClick: handlePreviousPageClick,
+            onNextPageClick: handleNextPageClick,
+            paginationDescription: '1-20 of 100',
+        },
+    });
+
     return (
-        <div>
-            <AdminConsoleListTable<SystemUsersRow>
-                tableId={tableId}
-                tableContainerClass='systemUsersTable'
-                columns={columns}
-                data={userReports}
-                getCoreRowModel={getCoreRowModel}
-            />
-        </div>
+        <AdminConsoleListTable<SystemUsersRow>
+            tableId={tableId}
+            tableAriaDescribedBy={props.tableAriaDescribedBy}
+            table={table}
+            tableContainerClass='systemUsersTable'
+        />
     );
 }
 

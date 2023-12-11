@@ -11,7 +11,7 @@ import Tooltip from 'components/tooltip';
 import Constants from 'utils/constants';
 
 interface Props {
-    date: number;
+    date?: number;
 }
 
 function SystemUsersCellElapsedDays(props: Props) {

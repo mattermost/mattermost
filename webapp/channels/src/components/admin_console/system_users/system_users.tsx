@@ -299,6 +299,8 @@ export class SystemUsers extends React.PureComponent<Props, State> {
     };
 
     render() {
+        const tableAriaDescribedBy = 'searchableSystemUsersTableHeaderId';
+
         return (
             <div className='wrapper--fixed'>
                 <AdminHeader>
@@ -306,32 +308,36 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                         id='admin.system_users.title'
                         defaultMessage='{siteName} Users'
                         values={{siteName: this.props.siteName}}
-                    />
+                    >
+                        {(formatMessageChunk) => (
+                            <span id={tableAriaDescribedBy}>{formatMessageChunk}</span>
+                        )}
+                    </FormattedMessage>
                     <RevokeSessionsButton/>
                 </AdminHeader>
                 <div className='admin-console__wrapper'>
-                    <div className='admin-console__content'>
-                        <div className='more-modal__list member-list-holder'>
-                            <div className='system-users__filter-row'>
-                                <SystemUsersSearch
-                                    value={this.props.searchTerm}
-                                    onChange={this.handleSearchFiltersChange}
-                                    onSearch={this.onSearch}
-                                />
-                                <SystemUsersFilterTeam
-                                    options={this.props.teams}
-                                    value={this.props.teamId}
-                                    onChange={this.handleSearchFiltersChange}
-                                    onFilter={this.onFilter}
-                                />
-                                <SystemUsersFilterRole
-                                    value={this.props.filter}
-                                    onChange={this.handleSearchFiltersChange}
-                                    onFilter={this.onFilter}
-                                />
-                            </div>
-                            <SystemUsersList/>
+                    <div className='admin-console__container'>
+                        <div className='system-users__filter-row'>
+                            <SystemUsersSearch
+                                value={this.props.searchTerm}
+                                onChange={this.handleSearchFiltersChange}
+                                onSearch={this.onSearch}
+                            />
+                            <SystemUsersFilterTeam
+                                options={this.props.teams}
+                                value={this.props.teamId}
+                                onChange={this.handleSearchFiltersChange}
+                                onFilter={this.onFilter}
+                            />
+                            <SystemUsersFilterRole
+                                value={this.props.filter}
+                                onChange={this.handleSearchFiltersChange}
+                                onFilter={this.onFilter}
+                            />
                         </div>
+                        <SystemUsersList
+                            tableAriaDescribedBy={tableAriaDescribedBy}
+                        />
                     </div>
                 </div>
             </div>

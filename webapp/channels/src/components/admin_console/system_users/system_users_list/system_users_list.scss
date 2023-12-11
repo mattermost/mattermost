@@ -7,6 +7,7 @@
 table.systemUsersTable {
     .displayNameColumn > div {
         $profilePictureSize: 40px;
+        width: max-content;
 
         display: grid;
         gap: 0 0;

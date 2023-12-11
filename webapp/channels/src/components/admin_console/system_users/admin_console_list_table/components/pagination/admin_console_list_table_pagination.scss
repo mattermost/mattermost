@@ -1,0 +1,12 @@
+.tfoot {
+    .adminConsoleListTablePagination {
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        justify-content: center;
+
+        & > div {
+            padding-inline-end: 12px;
+        }
+    }
+}

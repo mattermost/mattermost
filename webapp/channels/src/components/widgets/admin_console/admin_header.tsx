@@ -6,6 +6,7 @@ import React from 'react';
 import type {ReactNode} from 'react';
 
 type Props = {
+    id?: string;
     withBackButton?: boolean;
     children: ReactNode;
 };
@@ -13,11 +14,11 @@ type Props = {
 const AdminHeader = (props: Props) => {
     return (
         <div
-            className={
-                classNames(
-                    'admin-console__header',
-                    {'with-back': props.withBackButton},
-                )
+            id={props.id}
+            className={classNames('admin-console__header',
+                {
+                    'with-back': props.withBackButton,
+                })
             }
         >
             {props.children}

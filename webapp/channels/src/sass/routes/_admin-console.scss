@@ -30,10 +30,8 @@
     .admin-console__wrapper {
         position: relative;
         height: 100%;
-        -webkit-flex: 1 1 auto;
         flex: 1 1 auto;
-        padding: 20px;
-        margin-right: 5px;
+        padding: 20px 0 20px 20px;
         scrollbar-color: var(--center-channel-color-32) #fff0;
         scrollbar-width: thin;
 
@@ -42,6 +40,11 @@
             overflow: auto;
             height: 100%;
             flex-direction: column;
+        }
+
+        & > .admin-console__container {
+            margin-right: 10px;
+            background-color: var(--sys-center-channel-bg);
         }
     }
 
@@ -875,8 +878,10 @@
 
 .system-users__filter-row {
     display: flex;
-    margin-right: 15px;
-    margin-left: 15px;
+    padding-inline-start: 24px;
+    padding-inline-end: 24px;
+    padding-block-start: 24px;
+    padding-block-end: 12px;
 
     .system-users__filter {
         flex: 1 1 140px;

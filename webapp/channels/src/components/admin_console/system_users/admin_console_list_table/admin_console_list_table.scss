@@ -4,10 +4,10 @@ table.adminConsoleListTable {
     $sysCenterChannelColorWith8Alpha: #f0f0f0;
 
     overflow: auto;
+    width: 100%;
 
     thead {
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
         tr {
             color: rgba(var(--sys-center-channel-color-rgb), 0.64);
@@ -20,6 +20,7 @@ table.adminConsoleListTable {
                 max-width: 50rem;
                 padding-block-end: 12px;
                 padding-block-start: 12px;
+                background-color: var(--sys-center-channel-bg);
 
                 &:first-child {
                     padding-inline-end: 8px;
@@ -53,11 +54,10 @@ table.adminConsoleListTable {
                             right: 0;
                             bottom: 0;
                             width: 1px;
-                            background-color:
-                                rgba(
-                                    var(--center-channel-color-rgb),
-                                    0.08
-                                );
+                            background-color: rgba(
+                                var(--center-channel-color-rgb),
+                                0.08
+                            );
                             content: "";
                         }
                     }
@@ -71,19 +71,44 @@ table.adminConsoleListTable {
                             bottom: 0;
                             left: 0;
                             width: 1px;
-                            background-color:
-                                rgba(
-                                    var(--center-channel-color-rgb),
-                                    0.08
-                                );
+                            background-color: rgba(
+                                var(--center-channel-color-rgb),
+                                0.08
+                            );
                             content: "";
                         }
                     }
                 }
 
-                &:hover.sortable {
-                    background-color: $sysCenterChannelColorWith8Alpha;
-                    cursor: pointer;
+                &.isNumeric {
+                    text-align: end;
+                }
+
+                &.sortable {
+                    vertical-align: middle;
+
+                    &:hover {
+                        background-color: $sysCenterChannelColorWith8Alpha;
+                        cursor: pointer;
+
+                        & > span.hoverDownIcon {
+                            visibility: visible;
+                        }
+                    }
+
+                    & > span {
+                        font-size: 14px;
+                        font-weight: 400;
+                        line-height: 14px;
+
+                        &.hoverDownIcon {
+                            color: rgba(
+                                var(--sys-center-channel-color-rgb),
+                                0.32
+                            );
+                            visibility: hidden;
+                        }
+                    }
                 }
             }
         }
@@ -147,11 +172,10 @@ table.adminConsoleListTable {
                             right: 0;
                             bottom: 0;
                             width: 1px;
-                            background-color:
-                                rgba(
-                                    var(--center-channel-color-rgb),
-                                    0.08
-                                );
+                            background-color: rgba(
+                                var(--center-channel-color-rgb),
+                                0.08
+                            );
                             content: "";
                         }
                     }
@@ -165,16 +189,38 @@ table.adminConsoleListTable {
                             bottom: 0;
                             left: 0;
                             width: 1px;
-                            background-color:
-                                rgba(
-                                    var(--center-channel-color-rgb),
-                                    0.08
-                                );
+                            background-color: rgba(
+                                var(--center-channel-color-rgb),
+                                0.08
+                            );
                             content: "";
                         }
                     }
                 }
+
+                &.isNumeric {
+                    text-align: end;
+                }
             }
         }
+    }
+
+    tfoot {
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    & + .tfoot {
+        padding-block-end: 12px;
+        padding-block-start: 12px;
+        padding-inline-start: 24px;
+        padding-inline-end: 24px;
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: normal;
+        color: rgba(var(--sys-center-channel-color-rgb), 0.6);
     }
 }
