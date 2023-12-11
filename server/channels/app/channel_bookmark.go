@@ -70,7 +70,12 @@ func (a *App) UpdateChannelBookmark(c request.CTX, updateBookmark *model.Channel
 
 		response.Updated = updateBookmark.ToBookmarkWithFileInfo(updateBookmark.FileInfo)
 	} else {
-		updateBookmark.DeleteAt = model.GetMillis()
+		existingBookmark, ebErr := a.Srv().Store().ChannelBookmark().Get(updateBookmark.Id, false)
+		if ebErr != nil {
+			return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.get_existing.app_err", nil, "", http.StatusNotFound).Wrap(ebErr)
+		}
+
+		existingBookmark.DeleteAt = model.GetMillis()
 		if err := a.Srv().Store().ChannelBookmark().Delete(updateBookmark.Id); err != nil {
 			return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -81,7 +86,7 @@ func (a *App) UpdateChannelBookmark(c request.CTX, updateBookmark *model.Channel
 			return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		response.Updated = bookmark
-		response.Deleted = updateBookmark.ToBookmarkWithFileInfo(nil)
+		response.Deleted = existingBookmark.ToBookmarkWithFileInfo(nil)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkUpdated, "", updateBookmark.ChannelId, "", nil, connectionId)

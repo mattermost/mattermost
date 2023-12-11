@@ -4807,6 +4807,10 @@
     "translation": "Could not get bookmark."
   },
   {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "Could not get existing bookmark to update."
+  },
+  {
     "id": "app.channel.bookmark.save.app_error",
     "translation": "Could not save bookmark."
   },

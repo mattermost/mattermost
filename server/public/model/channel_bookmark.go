@@ -142,6 +142,9 @@ func (o *ChannelBookmark) Clone() *ChannelBookmark {
 	return &bCopy
 }
 
+// SetOriginal generates a new bookmark copying the data of the
+// receiver bookmark, resets its timestamps and main ID, updates its
+// OriginalId and sets the owner to the ID passed as a parameter
 func (o *ChannelBookmark) SetOriginal(newOwnerId string) *ChannelBookmark {
 	bCopy := *o
 	bCopy.Id = ""
