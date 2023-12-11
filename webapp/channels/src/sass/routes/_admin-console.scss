@@ -878,10 +878,10 @@
 
 .system-users__filter-row {
     display: flex;
-    padding-inline-start: 24px;
-    padding-inline-end: 24px;
-    padding-block-start: 24px;
     padding-block-end: 12px;
+    padding-block-start: 24px;
+    padding-inline-end: 24px;
+    padding-inline-start: 24px;
 
     .system-users__filter {
         flex: 1 1 140px;

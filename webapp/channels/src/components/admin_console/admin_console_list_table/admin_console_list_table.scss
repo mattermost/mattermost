@@ -18,9 +18,9 @@ table.adminConsoleListTable {
 
             th {
                 max-width: 50rem;
+                background-color: var(--sys-center-channel-bg);
                 padding-block-end: 12px;
                 padding-block-start: 12px;
-                background-color: var(--sys-center-channel-bg);
 
                 &:first-child {
                     padding-inline-end: 8px;
@@ -54,10 +54,11 @@ table.adminConsoleListTable {
                             right: 0;
                             bottom: 0;
                             width: 1px;
-                            background-color: rgba(
-                                var(--center-channel-color-rgb),
-                                0.08
-                            );
+                            background-color:
+                                rgba(
+                                    var(--center-channel-color-rgb),
+                                    0.08
+                                );
                             content: "";
                         }
                     }
@@ -71,10 +72,11 @@ table.adminConsoleListTable {
                             bottom: 0;
                             left: 0;
                             width: 1px;
-                            background-color: rgba(
-                                var(--center-channel-color-rgb),
-                                0.08
-                            );
+                            background-color:
+                                rgba(
+                                    var(--center-channel-color-rgb),
+                                    0.08
+                                );
                             content: "";
                         }
                     }
@@ -98,10 +100,11 @@ table.adminConsoleListTable {
                         line-height: 14px;
 
                         &.hoverDownIcon {
-                            color: rgba(
-                                var(--sys-center-channel-color-rgb),
-                                0.32
-                            );
+                            color:
+                                rgba(
+                                    var(--sys-center-channel-color-rgb),
+                                    0.32
+                                );
                             visibility: hidden;
                         }
                     }
@@ -168,10 +171,11 @@ table.adminConsoleListTable {
                             right: 0;
                             bottom: 0;
                             width: 1px;
-                            background-color: rgba(
-                                var(--center-channel-color-rgb),
-                                0.08
-                            );
+                            background-color:
+                                rgba(
+                                    var(--center-channel-color-rgb),
+                                    0.08
+                                );
                             content: "";
                         }
                     }
@@ -185,10 +189,11 @@ table.adminConsoleListTable {
                             bottom: 0;
                             left: 0;
                             width: 1px;
-                            background-color: rgba(
-                                var(--center-channel-color-rgb),
-                                0.08
-                            );
+                            background-color:
+                                rgba(
+                                    var(--center-channel-color-rgb),
+                                    0.08
+                                );
                             content: "";
                         }
                     }
@@ -202,37 +207,37 @@ table.adminConsoleListTable {
     }
 
     & + .tfoot {
-        padding-block-end: 12px;
-        padding-block-start: 12px;
-        padding-inline-start: 24px;
-        padding-inline-end: 24px;
         display: flex;
-        align-items: center;
         flex-direction: row;
+        align-items: center;
         justify-content: space-between;
+        color: rgba(var(--sys-center-channel-color-rgb), 0.6);
         font-size: 14px;
         font-weight: 400;
         line-height: normal;
-        color: rgba(var(--sys-center-channel-color-rgb), 0.6);
+        padding-block-end: 12px;
+        padding-block-start: 12px;
+        padding-inline-end: 24px;
+        padding-inline-start: 24px;
 
-        .adminConsoleListTablePageSize{
+        .adminConsoleListTablePageSize {
             display: flex;
-            align-items: center;
             flex-direction: row;
+            align-items: center;
             justify-content: center;
 
             & > .react-select {
-                margin: 0 6px 0 6px;
                 min-width: 64px;
+                margin: 0 6px 0 6px;
             }
         }
 
         .adminConsoleListTablePagination {
             display: flex;
-            align-items: center;
             flex-direction: row;
+            align-items: center;
             justify-content: center;
-    
+
             & > div {
                 padding-inline-end: 12px;
             }
