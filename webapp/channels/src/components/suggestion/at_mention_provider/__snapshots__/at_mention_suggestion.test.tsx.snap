@@ -76,7 +76,9 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
         >
           @user2
         </span>
-        a b (c)
+        <span>
+          a b (c)
+        </span>
         <Component
           emojiSize={15}
           emojiStyle={
@@ -173,7 +175,9 @@ exports[`at mention suggestion Should not display nick name of the signed in use
         >
           @user
         </span>
-        a b
+        <span>
+          a b
+        </span>
         <FormattedMessage
           defaultMessage="(you)"
           id="suggestion.user.isCurrent"

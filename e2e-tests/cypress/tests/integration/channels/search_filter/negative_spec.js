@@ -86,7 +86,7 @@ function searchAndVerify(query, expectedMessage) {
     search(`-${query}`);
 
     // * If we expect no results, verify results message
-    cy.get('.no-results__title').should('be.visible').and('have.text', `No results for "-${query}"`);
+    cy.get('.no-results__title').should('be.visible').and('have.text', `No results for “-${query}”`);
 
     cy.uiCloseRHS();
     cy.uiGetRHSSearchContainer({visible: false});

@@ -92,7 +92,7 @@ function GMDetails(props: {option: GroupChannel}) {
 
     return (
         <>
-            <div className='more-modal__gm-icon bg-text-200'>
+            <div className='more-modal__gm-icon'>
                 {option.profiles.length}
             </div>
             <div className='more-modal__details'>

@@ -148,4 +148,6 @@ type Client interface {
 	DownloadExport(ctx context.Context, name string, wr io.Writer, offset int64) (int64, *model.Response, error)
 	GeneratePresignedURL(ctx context.Context, name string) (*model.PresignURLResponse, *model.Response, error)
 	ResetSamlAuthDataToEmail(ctx context.Context, includeDeleted bool, dryRun bool, userIDs []string) (int64, *model.Response, error)
+	GenerateSupportPacket(ctx context.Context) ([]byte, *model.Response, error)
+	GetOAuthApps(ctx context.Context, page, perPage int) ([]*model.OAuthApp, *model.Response, error)
 }

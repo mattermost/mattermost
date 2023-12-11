@@ -2,21 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
 
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import LocalizedIcon from 'components/localized_icon';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
 import Constants, {RHSStates} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import type {RhsState} from 'types/store/rhs';
 
 type Props = {
+    intl: IntlShape;
     previousRhsState?: RhsState;
     isExpanded: boolean;
     actions: {
@@ -29,7 +28,7 @@ type Props = {
     };
 };
 
-export default class RhsCardHeader extends React.PureComponent<Props> {
+class RhsCardHeader extends React.PureComponent<Props> {
     handleBack = (e: React.MouseEvent<HTMLAnchorElement>): void => {
         e.preventDefault();
 
@@ -75,7 +74,7 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
                 <Tooltip id='backToResultsTooltip'>
                     <FormattedMessage
                         id='rhs_header.backToFlaggedTooltip'
-                        defaultMessage='Back to saved posts'
+                        defaultMessage='Back to saved messages'
                     />
                 </Tooltip>
             );
@@ -85,7 +84,7 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
                 <Tooltip id='backToResultsTooltip'>
                     <FormattedMessage
                         id='rhs_header.backToPinnedTooltip'
-                        defaultMessage='Back to pinned posts'
+                        defaultMessage='Back to pinned messages'
                     />
                 </Tooltip>
             );
@@ -141,9 +140,9 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
                         onClick={this.handleBack}
                         className='sidebar--right__back'
                     >
-                        <LocalizedIcon
+                        <i
                             className='icon icon-arrow-back-ios'
-                            ariaLabel={{id: t('generic_icons.back'), defaultMessage: 'Back Icon'}}
+                            aria-label={this.props.intl.formatMessage({id: 'generic_icons.back', defaultMessage: 'Back Icon'})}
                         />
                     </a>
                 </OverlayTrigger>
@@ -171,13 +170,13 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
                             aria-label='Expand'
                             onClick={this.props.actions.toggleRhsExpanded}
                         >
-                            <LocalizedIcon
+                            <i
                                 className='icon icon-arrow-expand'
-                                ariaLabel={{id: t('rhs_header.expandSidebarTooltip.icon'), defaultMessage: 'Expand Sidebar Icon'}}
+                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'})}
                             />
-                            <LocalizedIcon
+                            <i
                                 className='icon icon-arrow-collapse'
-                                ariaLabel={{id: t('rhs_header.collapseSidebarTooltip.icon'), defaultMessage: 'Collapse Sidebar Icon'}}
+                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
                             />
                         </button>
                     </OverlayTrigger>
@@ -192,9 +191,9 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
                             aria-label='Close'
                             onClick={this.props.actions.closeRightHandSide}
                         >
-                            <LocalizedIcon
+                            <i
                                 className='icon icon-close'
-                                ariaLabel={{id: t('rhs_header.closeTooltip.icon'), defaultMessage: 'Close Sidebar Icon'}}
+                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                             />
                         </button>
                     </OverlayTrigger>
@@ -203,3 +202,5 @@ export default class RhsCardHeader extends React.PureComponent<Props> {
         );
     }
 }
+
+export default injectIntl(RhsCardHeader);

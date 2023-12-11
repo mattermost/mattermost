@@ -22,6 +22,7 @@ import {searchAssociatedGroupsForReference} from 'actions/views/group';
 
 import Textbox from './textbox';
 import type {Props as TextboxProps} from './textbox';
+import TextboxLinks from './textbox_links';
 
 type Props = {
     channelId: string;
@@ -63,3 +64,4 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 export {Textbox as TextboxClass};
 
 export default connect(makeMapStateToProps, mapDispatchToProps, null, {forwardRef: true})(Textbox);
+export {TextboxLinks};

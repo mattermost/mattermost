@@ -39,7 +39,7 @@ func (scheduler *PeriodicScheduler) NextScheduleTime(_ *model.Config, _ time.Tim
 	return &nextTime
 }
 
-func (scheduler *PeriodicScheduler) ScheduleJob(c *request.Context, _ *model.Config /* pendingJobs */, _ bool /* lastSuccessfulJob */, _ *model.Job) (*model.Job, *model.AppError) {
+func (scheduler *PeriodicScheduler) ScheduleJob(c request.CTX, _ *model.Config /* pendingJobs */, _ bool /* lastSuccessfulJob */, _ *model.Job) (*model.Job, *model.AppError) {
 	return scheduler.jobs.CreateJob(c, scheduler.jobType, nil)
 }
 
@@ -74,7 +74,7 @@ func (scheduler *DailyScheduler) NextScheduleTime(cfg *model.Config, now time.Ti
 	return GenerateNextStartDateTime(now, *scheduledTime)
 }
 
-func (scheduler *DailyScheduler) ScheduleJob(c *request.Context, _ *model.Config /* pendingJobs */, _ bool /* lastSuccessfulJob */, _ *model.Job) (*model.Job, *model.AppError) {
+func (scheduler *DailyScheduler) ScheduleJob(c request.CTX, _ *model.Config /* pendingJobs */, _ bool /* lastSuccessfulJob */, _ *model.Job) (*model.Job, *model.AppError) {
 	return scheduler.jobs.CreateJob(c, scheduler.jobType, nil)
 }
 

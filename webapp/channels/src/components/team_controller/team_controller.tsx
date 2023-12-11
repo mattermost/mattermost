@@ -19,6 +19,7 @@ import useTelemetryIdentitySync from 'components/common/hooks/useTelemetryIdenti
 
 import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
+import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {isIosSafari} from 'utils/user_agent';
 
 import type {OwnProps, PropsFromRedux} from './index';
@@ -149,26 +150,26 @@ function TeamController(props: Props) {
     }, []);
 
     async function initTeamOrRedirect(team: Team) {
-        try {
-            await props.initializeTeam(team);
-            setTeam(team);
-        } catch (error) {
+        const {data: joinedTeam, error} = await props.initializeTeam(team) as ActionResult<Team, ServerError>; // Fix in MM-46907;
+        if (error) {
             history.push('/error?type=team_not_found');
+            return;
+        }
+        if (joinedTeam) {
+            setTeam(joinedTeam);
         }
     }
 
     async function joinTeamOrRedirect(teamNameParam: string, joinedOnFirstLoad: boolean) {
         setTeam(null);
 
-        try {
-            const {data: joinedTeam} = await props.joinTeam(teamNameParam, joinedOnFirstLoad) as ActionResult<Team, ServerError>; // Fix in MM-46907;
-            if (joinedTeam) {
-                setTeam(joinedTeam);
-            } else {
-                throw new Error('Unable to join team');
-            }
-        } catch (error) {
+        const {data: joinedTeam, error} = await props.joinTeam(teamNameParam, joinedOnFirstLoad) as ActionResult<Team, ServerError>; // Fix in MM-46907;
+        if (error) {
             history.push('/error?type=team_not_found');
+            return;
+        }
+        if (joinedTeam) {
+            setTeam(joinedTeam);
         }
     }
 
@@ -205,20 +206,22 @@ function TeamController(props: Props) {
         return null;
     }
 
+    const teamLoaded = team?.name.toLowerCase() === teamNameParam?.toLowerCase();
+
     return (
         <Switch>
             <Route
-                path={'/:team/integrations'}
+                path={`/:team(${TEAM_NAME_PATH_PATTERN})/integrations`}
                 component={BackstageController}
             />
             <Route
-                path={'/:team/emoji'}
+                path={`/:team(${TEAM_NAME_PATH_PATTERN})/emoji`}
                 component={BackstageController}
             />
             {props.plugins?.map((plugin) => (
                 <Route
                     key={plugin.id}
-                    path={'/:team/' + (plugin as any).route}
+                    path={`/:team(${TEAM_NAME_PATH_PATTERN})/` + (plugin as any).route}
                     render={() => (
                         <Pluggable
                             pluggableName={'NeedsTeamComponent'}
@@ -228,7 +231,7 @@ function TeamController(props: Props) {
                     )}
                 />
             ))}
-            <ChannelController shouldRenderCenterChannel={initialChannelsLoaded}/>
+            <ChannelController shouldRenderCenterChannel={initialChannelsLoaded && teamLoaded}/>
         </Switch>
     );
 }

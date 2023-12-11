@@ -55,7 +55,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		cfg, err = c.App.Srv().Platform().PopulateWebConnConfig(c.AppContext.Session(), cfg, r.URL.Query().Get(sequenceNumberParam))
 		if err != nil {
-			mlog.Warn("Error while populating webconn config", mlog.String("id", r.URL.Query().Get(connectionIDParam)), mlog.Err(err))
+			c.Logger.Warn("Error while populating webconn config", mlog.String("id", r.URL.Query().Get(connectionIDParam)), mlog.Err(err))
 			ws.Close()
 			return
 		}

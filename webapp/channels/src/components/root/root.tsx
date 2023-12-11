@@ -55,6 +55,7 @@ import Pluggable from 'plugins/pluggable';
 import A11yController from 'utils/a11y_controller';
 import {PageLoadContext, StoragePrefixes} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
+import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
@@ -109,22 +110,23 @@ const TeamController = makeAsyncComponent('TeamController', LazyTeamController);
 const DelinquencyModalController = makeAsyncComponent('DelinquencyModalController', LazyDelinquencyModalController);
 const OnBoardingTaskList = makeAsyncComponent('OnboardingTaskList', LazyOnBoardingTaskList);
 
-type LoggedInRouteProps<T> = {
-    component: React.ComponentType<T>;
-    path: string;
+type LoggedInRouteProps = {
+    component: React.ComponentType<RouteComponentProps<any>>;
+    path: string | string[];
     theme?: Theme; // the routes that send the theme are the ones that will actually need to show the onboarding tasklist
 };
-function LoggedInRoute<T>(props: LoggedInRouteProps<T>) {
+
+function LoggedInRoute(props: LoggedInRouteProps) {
     const {component: Component, theme, ...rest} = props;
     return (
         <Route
             {...rest}
-            render={(routeProps: RouteComponentProps) => (
+            render={(routeProps) => (
                 <LoggedIn {...routeProps}>
                     {theme && <CompassThemeProvider theme={theme}>
                         <OnBoardingTaskList/>
                     </CompassThemeProvider>}
-                    <Component {...(routeProps as unknown as T)}/>
+                    <Component {...(routeProps)}/>
                 </LoggedIn>
             )}
         />
@@ -644,7 +646,7 @@ export default class Root extends React.PureComponent<Props, State> {
                             ))}
                             <LoggedInRoute
                                 theme={this.props.theme}
-                                path={'/:team'}
+                                path={`/:team(${TEAM_NAME_PATH_PATTERN})`}
                                 component={TeamController}
                             />
                             <RootRedirect/>

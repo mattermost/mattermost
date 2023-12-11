@@ -61,7 +61,6 @@ const state: GlobalState = {
             channelsMemberCount: {},
         },
         posts: {
-            expandedURLs: {},
             posts: {},
             postsReplies: {},
             postsInChannel: {},

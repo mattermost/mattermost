@@ -2095,7 +2095,7 @@ describe('Actions.Channels', () => {
                 },
             ]);
 
-        await store.dispatch(Actions.getChannelMemberCountsByGroup(channelID, true));
+        await store.dispatch(Actions.getChannelMemberCountsByGroup(channelID));
 
         const channelMemberCounts = store.getState().entities.channels.channelMemberCountsByGroup[channelID];
         expect(channelMemberCounts['group-1'].group_id).toEqual('group-1');
