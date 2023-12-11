@@ -2365,3 +2365,32 @@ func TestPluginServeMetrics(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "METRICS SUBPATH", string(body))
 }
+
+func TestPluginUpdateChannelMembersNotifications(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	api := th.SetupPluginAPI()
+
+	channel := th.CreateChannel(th.Context, th.BasicTeam)
+	th.AddUserToChannel(th.BasicUser, channel)
+	th.AddUserToChannel(th.BasicUser2, channel)
+
+	member1, err := api.GetChannelMember(channel.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+	member2, err := api.GetChannelMember(channel.Id, th.BasicUser2.Id)
+	require.Nil(t, err)
+
+	member1.NotifyProps["test_field"] = "test_value"
+	member2.NotifyProps[model.ChannelMentionsNotifyProp] = "false"
+
+	updated, err := api.UpdateChannelMembersNotifications([]*model.ChannelMember{
+		member1,
+		member2,
+	})
+
+	require.Nil(t, err)
+
+	assert.Equal(t, member1.NotifyProps, updated[0].NotifyProps)
+	assert.Equal(t, member2.NotifyProps, updated[1].NotifyProps)
+}

@@ -3857,6 +3857,34 @@ func (_m *API) UpdateChannelMemberRoles(channelId string, userID string, newRole
 	return r0, r1
 }
 
+// UpdateChannelMembersNotifications provides a mock function with given fields: members
+func (_m *API) UpdateChannelMembersNotifications(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError) {
+	ret := _m.Called(members)
+
+	var r0 []*model.ChannelMember
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func([]*model.ChannelMember) ([]*model.ChannelMember, *model.AppError)); ok {
+		return rf(members)
+	}
+	if rf, ok := ret.Get(0).(func([]*model.ChannelMember) []*model.ChannelMember); ok {
+		r0 = rf(members)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]*model.ChannelMember) *model.AppError); ok {
+		r1 = rf(members)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // UpdateChannelSidebarCategories provides a mock function with given fields: userID, teamID, categories
 func (_m *API) UpdateChannelSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
 	ret := _m.Called(userID, teamID, categories)
