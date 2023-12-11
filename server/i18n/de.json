@@ -3884,7 +3884,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Nachrichtenexport GlobalRelaySettings.CustomerType muss auf 'A9' oder 'A10' gesetzt werden."
+    "translation": "Nachrichtenexport GlobalRelaySettings.CustomerType muss auf 'A9', 'A10' oder 'CUSTOM' gesetzt werden."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -10092,5 +10092,37 @@
   {
     "id": "app.reaction.save.save.too_many_reactions",
     "translation": "Das Reaktionslimit wurde für diesen Beitrag erreicht."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Es können nicht sowohl aktive als auch inaktive Benutzer ausgeblendet werden."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Ungültige Team-ID angegeben."
+  },
+  {
+    "id": "app.user.get_users_for_reporting.bad_date_range",
+    "translation": "Der angegebene Datumsbereich ist ungültig."
+  },
+  {
+    "id": "app.user.get_users_for_reporting.invalid_page_size",
+    "translation": "Die Seitengröße ist ungültig oder zu groß."
+  },
+  {
+    "id": "app.user.get_user_report.store_error",
+    "translation": "Bei der Abfrage des Benutzerberichts ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Die Aktualisierung des benutzerdefinierten Status ist fehlgeschlagen. Ein Emoji mit dem angegebenen Namen existiert nicht."
+  },
+  {
+    "id": "app.user.get_user_report.invalid_sort_column",
+    "translation": "Die angegebene Sortierspalte ist nicht gültig."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Wenn GlobalRelaySettings.CustomerType 'CUSTOM' ist, müssen GlobalRelaySettings.CustomSMTPServerName und GlobalRelaySettings.CustomSMTPPort gesetzt werden."
   }
 ]
