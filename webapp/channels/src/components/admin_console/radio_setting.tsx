@@ -60,4 +60,4 @@ const RadioSetting = ({
     );
 };
 
-export default RadioSetting;
+export default React.memo(RadioSetting);
