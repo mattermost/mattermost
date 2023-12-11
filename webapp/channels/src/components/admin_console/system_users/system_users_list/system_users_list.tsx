@@ -13,7 +13,7 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {imageURLForUser} from 'utils/utils';
 
-import AdminConsoleListTable from '../admin_console_list_table';
+import AdminConsoleListTable from '../../admin_console_list_table';
 import {userReports} from '../sample';
 import SystemUsersCellElapsedDays from '../system_users_cell_elapsed_days';
 import SystemUsersActions from '../system_users_list_actions';
@@ -235,14 +235,16 @@ function SystemUsersList(props: Props) {
         state: {
             sorting: sortState,
         },
-        onSortingChange: setSortState,
         getCoreRowModel: getCoreRowModel<SystemUsersRow>(),
+        onSortingChange: setSortState,
         getSortedRowModel: getSortedRowModel<SystemUsersRow>(),
-        debugAll: true,
-        renderFallbackValue: '',
         manualSorting: true,
         enableSortingRemoval: true,
         enableMultiSort: false,
+        manualFiltering: true,
+        manualPagination: true,
+        renderFallbackValue: '',
+        debugAll: true,
         meta: {
             isFirstPage,
             isLastPage,

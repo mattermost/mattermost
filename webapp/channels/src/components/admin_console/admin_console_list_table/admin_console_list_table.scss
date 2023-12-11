@@ -222,5 +222,16 @@ table.adminConsoleListTable {
         font-weight: 400;
         line-height: normal;
         color: rgba(var(--sys-center-channel-color-rgb), 0.6);
+
+        .adminConsoleListTablePagination {
+            display: flex;
+            align-items: center;
+            flex-direction: row;
+            justify-content: center;
+    
+            & > div {
+                padding-inline-end: 12px;
+            }
+        }
     }
 }

@@ -10,7 +10,6 @@ import classNames from 'classnames';
 import type {ReactNode} from 'react';
 import React from 'react';
 
-import AdminConsoleListTablePagination from './components/pagination';
 import './admin_console_list_table.scss';
 
 declare module '@tanstack/table-core' {
@@ -139,17 +138,27 @@ function AdminConsoleListTable<TableType>(props: Props<TableType>) {
             </table>
             <div className='tfoot'>
                 <div>{props.countSelector}</div>
-                <AdminConsoleListTablePagination
-                    paginationDescription={
-                        props.table.options?.meta?.paginationDescription
-                    }
-                    isFirstPage={props.table.options?.meta?.isFirstPage}
-                    isLastPage={props.table.options?.meta?.isLastPage}
-                    onPreviousPageClick={
-                        props.table.options?.meta?.onPreviousPageClick
-                    }
-                    onNextPageClick={props.table.options?.meta?.onNextPageClick}
-                />
+                <div className='adminConsoleListTablePagination'>
+                    {props.table.options.meta?.paginationDescription && (
+                        <div>
+                            {props.table.options.meta?.paginationDescription}
+                        </div>
+                    )}
+                    <button
+                        className='btn btn-quaternary'
+                        disabled={!props.table.getCanPreviousPage()}
+                        onClick={() => props.table.previousPage()}
+                    >
+                        <i className='icon icon-chevron-left'/>
+                    </button>
+                    <button
+                        className='btn btn-quaternary'
+                        disabled={!props.table.getCanNextPage()}
+                        onClick={() => props.table.nextPage()}
+                    >
+                        <i className='icon icon-chevron-right'/>
+                    </button>
+                </div>
             </div>
         </>
     );
