@@ -150,13 +150,7 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
     componentDidUpdate(prevProps: Props) {
         // TODO: debounce
         if (prevProps.currentTeamId !== this.props.currentTeamId) {
-            const cb = (msg: any) => {
-                // retrying only once for now.
-                if (msg.status !== 'OK') {
-                    WebSocketClient.updateActiveTeam(this.props.currentTeamId);
-                }
-            };
-            WebSocketClient.updateActiveTeam(this.props.currentTeamId, cb);
+            WebSocketClient.updateActiveTeam(this.props.currentTeamId);
         }
     }
 
