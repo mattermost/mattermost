@@ -26,6 +26,7 @@ type AdminDefinitionSettingCustom = {
     key: string;
     isDisabled?: Check;
     isHidden?: Check;
+    onConfigSave?: (displayVal: any, previousVal?: any) => any;
 }
 
 type AdminDefinitionSettingBase = {
@@ -163,7 +164,7 @@ export type AdminDefinitionConfigSchemaSettings = {
     name_default: string;
     isHidden?: Check;
     onConfigLoad?: (configVal: any, config: any) => any;
-    onConfigSave?: (displayVal: any) => any;
+    onConfigSave?: (displayVal: any, previousVal?: any) => any;
     settings?: AdminDefinitionSetting[];
     sections?: AdminDefinitionConfigSchemaSection[];
 }

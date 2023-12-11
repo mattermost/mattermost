@@ -43,7 +43,7 @@ import {mappingValueFromRoles} from 'utils/policy_roles_adapter';
 import * as Utils from 'utils/utils';
 
 import './schema_admin_settings.scss';
-import type {AdminDefinitionConfigSchemaSettings, Check} from './types';
+import type {AdminDefinitionConfigSchemaSettings, AdminDefinitionSetting, Check} from './types';
 
 type Props = {
     config: DeepPartial<AdminConfig>;
@@ -177,11 +177,11 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         }
     };
 
-    public getConfigFromState(config) {
+    public getConfigFromState(config: Props['config']) {
         const schema = this.props.schema;
 
         if (schema) {
-            let settings = [];
+            let settings: AdminDefinitionSetting[] = [];
 
             if (schema.settings) {
                 settings = schema.settings;
@@ -1025,7 +1025,7 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
 
     public doSubmit = async (getStateFromConfig) => {
         // clone config so that we aren't modifying data in the stores
-        let config = JSON.parse(JSON.stringify(this.props.config));
+        let config: DeepPartial<AdminConfig> = JSON.parse(JSON.stringify(this.props.config));
         config = this.getConfigFromState(config);
 
         const {error} = await this.props.updateConfig(config);
