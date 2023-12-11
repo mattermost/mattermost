@@ -128,7 +128,7 @@ type State = {
     copyTheme: string;
 };
 
-class CustomThemeChooser extends React.PureComponent<Props, State> {
+export class CustomThemeChooser extends React.PureComponent<Props, State> {
     textareaRef: RefObject<HTMLTextAreaElement>;
     sidebarStylesHeaderRef: RefObject<HTMLDivElement>;
     centerChannelStylesHeaderRef: RefObject<HTMLDivElement>;
