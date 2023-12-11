@@ -117,8 +117,8 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         return null;
     }
 
-    public handleSubmit = async (e) => {
-        e.preventDefault();
+    public handleSubmit = async (event: React.MouseEvent) => {
+        event.preventDefault();
 
         if (this.state.confirmNeededId) {
             this.setState({
