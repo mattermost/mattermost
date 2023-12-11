@@ -45,7 +45,7 @@ type State = {
     saving: boolean;
 }
 
-class CreateUserGroupsModal extends React.PureComponent<Props, State> {
+export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -181,18 +181,12 @@ class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                                 <button
                                     type='button'
                                     className='modal-header-back-button btn btn-icon'
-                                    aria-label='Back'
+                                    aria-label={this.props.intl.formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
                                     onClick={() => {
                                         this.goBack();
                                     }}
                                 >
-                                    <i
-                                        className='icon icon-arrow-left'
-                                        aria-label={this.props.intl.formatMessage({
-                                            id: 'user_groups_modal.goBackLabel',
-                                            defaultMessage: 'Back',
-                                        })}
-                                    />
+                                    <i className='icon icon-arrow-left'/>
                                 </button>
                                 <Modal.Title
                                     componentClass='h1'
@@ -283,3 +277,5 @@ class CreateUserGroupsModal extends React.PureComponent<Props, State> {
 }
 
 export default injectIntl(CreateUserGroupsModal);
+
+
