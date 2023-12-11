@@ -157,7 +157,7 @@ AdminDefinitionSettingBanner | AdminDefinitionSettingDropdown |
 AdminDefinitionSettingButton | AdminDefinitionSettingFileUpload |
 AdminDefinitionSettingJobsTable | AdminDefinitionSettingLanguage;
 
-type AdminDefinitionConfigSchemaSettings = {
+export type AdminDefinitionConfigSchemaSettings = {
     id: string;
     name: string;
     name_default: string;

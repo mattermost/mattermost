@@ -43,13 +43,13 @@ import {rolesFromMapping, mappingValueFromRoles} from 'utils/policy_roles_adapte
 import * as Utils from 'utils/utils';
 
 import './schema_admin_settings.scss';
-import type {AdminDefinitionSubSection, Check} from './types';
+import type {AdminDefinitionConfigSchemaSettings, Check} from './types';
 
 type Props = {
     config: DeepPartial<AdminConfig>;
     environmentConfig: Partial<EnvironmentConfig>;
     setNavigationBlocked: () => void;
-    schema: AdminDefinitionSubSection['schema'];
+    schema: AdminDefinitionConfigSchemaSettings;
     roles: Record<string, Role>;
     license: Record<string, unknown>;
     editRole?: (role: Role) => void;
