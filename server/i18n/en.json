@@ -232,20 +232,32 @@
     "translation": "Can not add user to this channel type."
   },
   {
-    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
-    "translation": "Failed to create the channel bookmark."
-  },
-  {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
     "translation": "Your license does not support channel bookmarks."
   },
   {
-    "id": "api.channel.bookmark.create_channel_bookmark.update_direct_or_group_channels.forbidden.app_error",
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
     "translation": "User is not allowed to create a channel bookmark."
   },
   {
-    "id": "api.channel.bookmark.create_channel_bookmark.update_direct_or_group_channels_by_guests.forbidden.app_error",
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
     "translation": "Failed to create the channel bookmark."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Failed to create the channel bookmark."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Failed to update the channel bookmark."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Failed to update the channel bookmark."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Failed to update the channel bookmark."
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
@@ -4801,10 +4813,6 @@
   {
     "id": "app.channel.bookmark.update.app_error",
     "translation": "Could not update bookmark."
-  },
-  {
-    "id": "app.channel.bookmark.update_deleted.app_error",
-    "translation": "Cannot update an already deleted bookmark."
   },
   {
     "id": "app.channel.bookmark.update_sort.app_error",

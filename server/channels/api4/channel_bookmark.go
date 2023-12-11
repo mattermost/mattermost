@@ -52,7 +52,7 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
 		// Any member of DM/GMs but guests can manage channel bookmarks
 		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
-			c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.create_channel_bookmark.update_direct_or_group_channels.forbidden.app_error", nil, "", http.StatusForbidden)
+			c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 
@@ -63,7 +63,7 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if user.IsGuest() {
-			c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.create_channel_bookmark.update_direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
+			c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 
@@ -130,7 +130,7 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "channelBookmark", patch)
 
-	// The channel bookmark belong to the same channel specified in the URL
+	// The channel bookmark should belong to the same channel specified in the URL
 	if patchedBookmark.ChannelId != c.Params.ChannelId {
 		c.SetInvalidParam("channel_id")
 		return
@@ -160,7 +160,7 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
 		// Any member of DM/GMs but guests can manage channel bookmarks
 		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
-			c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, "", http.StatusForbidden)
+			c.Err = model.NewAppError("updateChannelBookmark", "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 
@@ -171,12 +171,12 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if user.IsGuest() {
-			c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.update_channel_bookmark.update_direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
+			c.Err = model.NewAppError("updateChannelBookmark", "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 
 	default:
-		c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.update_channel_bookmark.forbidden.app_error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("updateChannelBookmark", "api.channel.bookmark.update_channel_bookmark.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 

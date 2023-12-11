@@ -286,7 +286,8 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForAllChannelByIdSince(channelsId 
 	retrievedRecords := make(map[string][]*model.ChannelBookmarkWithFileInfo)
 	defer rows.Close()
 	for rows.Next() {
-		var b model.ChannelBookmarkWithFileInfo
+		var bwf model.ChannelBookmarkWithFileInfo
+		var b model.ChannelBookmark
 		f := model.FileInfo{}
 
 		if err = rows.Scan(&b.Id, &b.OwnerId, &b.ChannelId, &b.FileId, &b.CreateAt, &b.UpdateAt, &b.DeleteAt, &b.DisplayName, &b.SortOrder, &b.LinkUrl, &b.ImageUrl, &b.Emoji, &b.Type, &b.OriginalId,
@@ -294,15 +295,16 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForAllChannelByIdSince(channelsId 
 			return nil, errors.Wrap(err, "channel bookmarks unable to scan from rows")
 		}
 
+		bwf.ChannelBookmark = &b
 		if b.FileId != "" && f.Id != "" {
-			b.FileInfo = &f
+			bwf.FileInfo = &f
 			if len(*f.MiniPreview) == 0 {
-				b.FileInfo.MiniPreview = nil
+				bwf.FileInfo.MiniPreview = nil
 			}
 		}
 
 		bookmarks := retrievedRecords[b.ChannelId]
-		retrievedRecords[b.ChannelId] = append(bookmarks, &b)
+		retrievedRecords[b.ChannelId] = append(bookmarks, &bwf)
 	}
 	if err = rows.Err(); err != nil {
 		return nil, errors.Wrap(err, "channel bookmarks failed while iterating over rows")
