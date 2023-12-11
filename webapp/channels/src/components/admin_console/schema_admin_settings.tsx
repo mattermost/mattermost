@@ -73,19 +73,15 @@ type State = {
 };
 
 export default class SchemaAdminSettings extends React.PureComponent<Props, State> {
-    isPlugin: boolean;
-    saveActions: unknown[];
-    errorMessageRef: React.RefObject<unknown>;
+    isPlugin = false;
+    saveActions: unknown[] = [];
+    errorMessageRef: React.RefObject<unknown> = React.createRef();
     buildSettingFunctions: {
         [x: string]: (setting: unknown) => JSX.Element | null;
     };
 
     public constructor(props: Props) {
         super(props);
-
-        this.isPlugin = false;
-        this.saveActions = [];
-        this.errorMessageRef = React.createRef();
 
         this.buildSettingFunctions = {
             [Constants.SettingsTypes.TYPE_TEXT]: this.buildTextSetting,
