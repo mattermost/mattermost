@@ -31,6 +31,7 @@ const HeaderTitle = styled.span`
 
 const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
     const {formatMessage} = useIntl();
+
     const closeSidebarTooltip = (
         <Tooltip id='closeSidebarTooltip'>
             <FormattedMessage
