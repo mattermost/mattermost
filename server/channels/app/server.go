@@ -233,8 +233,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
-	app := New(ServerConnector(s.Channels()))
-
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 4: Start platform
@@ -250,8 +248,10 @@ func NewServer(options ...Option) (*Server, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize channels")
 	}
+	s.ch = channels
+
 	// After channel is initialized set it to the App object
-	app.ch = channels
+	app := New(ServerConnector(channels))
 
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
