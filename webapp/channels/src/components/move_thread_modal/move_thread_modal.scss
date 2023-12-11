@@ -1,4 +1,8 @@
-.forward-post {
+.move-thread {
+    .modal-body {
+        overflow: visible;
+    }
+
     &.modal-dialog {
         margin-top: 64px;
     }
@@ -11,12 +15,12 @@
         gap: 24px;
 
         .custom-textarea,
-        #forward_post_textbox {
+        #move_thread_textbox {
             min-height: 40px;
             padding: 10px 16px;
         }
 
-        #forward_post_textbox {
+        #move_thread_textbox {
             overflow: auto;
             border: none;
             box-shadow: inset 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.16);
@@ -126,8 +130,8 @@
     }
 }
 
-.console__body .modal .GenericModal.forward-post,
-.app__body .modal .GenericModal.forward-post {
+.console__body .modal .GenericModal.move-thread,
+.app__body .modal .GenericModal.move-thread {
     margin-top: 64px;
 
     .modal-body {
@@ -137,7 +141,7 @@
             border: none;
             box-shadow: none;
 
-            &#forward_post_textbox_placeholder {
+            &#move_thread_textbox_placeholder {
                 opacity: 0.64 !important;
             }
         }
