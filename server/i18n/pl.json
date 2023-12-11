@@ -5721,11 +5721,11 @@
   },
   {
     "id": "api.channel.restore_channel.unarchived",
-    "translation": "{{.Username}} unarchived the channel."
+    "translation": "{{.Username}} zdearchiwizował kanał."
   },
   {
     "id": "api.channel.restore_channel.restored.app_error",
-    "translation": "Unable to unarchive channel. The channel is not archived."
+    "translation": "Nie można zdearchiwizować kanału. Kanał nie został zarchiwizowany."
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
