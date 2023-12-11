@@ -10,8 +10,6 @@ import type {Value} from 'components/multiselect/multiselect';
 
 import CreateUserGroupsModal from './create_user_groups_modal';
 import type {CreateUserGroupsModal as CreateUserGroupsModalClass} from './create_user_groups_modal';
-// import ChannelFilterIntl from 'components/sidebar/channel_filter/channel_filter';
-// import type {ChannelFilter as ChannelFilterClass} from 'components/sidebar/channel_filter/channel_filter';
 
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
