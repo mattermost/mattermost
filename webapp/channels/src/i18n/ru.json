@@ -5159,7 +5159,7 @@
   "threading.threadHeader.menu": "Другие действия",
   "threading.threadItem.menu": "Действия",
   "threading.threadList.markRead": "Пометить всё как прочитанное",
-  "threading.threadMenu.copy": "Скопировать ссылку",
+  "threading.threadMenu.copy": "Ссылка",
   "threading.threadMenu.follow": "Отслеживать обсуждение",
   "threading.threadMenu.followExtra": "Вы будете уведомлены об ответах",
   "threading.threadMenu.followMessage": "Подписаться на сообщение",
