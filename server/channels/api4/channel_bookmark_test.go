@@ -528,48 +528,7 @@ func TestEditChannelBookmark(t *testing.T) {
 		require.Nil(t, gucb)
 	})
 
-	t.Run("a user should be able to edit another usrer's bookmark", func(t *testing.T) {
-		channelBookmark := &model.ChannelBookmark{
-			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
-			LinkUrl:     "https://mattermost.com",
-			Type:        model.ChannelBookmarkLink,
-			Emoji:       ":smile:",
-		}
-
-		cb, resp, err := th.Client.CreateChannelBookmark(context.Background(), channelBookmark)
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
-		require.NotNil(t, cb)
-
-		patch := &model.ChannelBookmarkPatch{
-			DisplayName: model.NewString("Edited bookmark test"),
-			LinkUrl:     model.NewString("http://edited.url"),
-		}
-
-		// create a client for basic user 2
-		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
-		require.NoError(t, lErr)
-
-		ucb, resp, err := client2.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
-		// Deleted should contain old channel bookmark
-		require.NotNil(t, ucb.Deleted)
-		require.Equal(t, cb.DisplayName, ucb.Deleted.DisplayName)
-		require.Equal(t, cb.LinkUrl, ucb.Deleted.LinkUrl)
-		require.Equal(t, th.BasicUser.Id, ucb.Deleted.OwnerId)
-
-		// Updated should contain the new channel bookmark
-		require.NotNil(t, ucb.Updated)
-		require.Equal(t, *patch.DisplayName, ucb.Updated.DisplayName)
-		require.Equal(t, *patch.LinkUrl, ucb.Updated.LinkUrl)
-		require.Equal(t, th.BasicUser2.Id, ucb.Updated.OwnerId)
-	})
-
-	t.Run("a user should be able to edit another usrer's bookmark", func(t *testing.T) {
+	t.Run("a user should be able to edit another user's bookmark", func(t *testing.T) {
 		channelBookmark := &model.ChannelBookmark{
 			ChannelId:   th.BasicChannel.Id,
 			DisplayName: "Link bookmark test",
