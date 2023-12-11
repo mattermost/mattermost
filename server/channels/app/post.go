@@ -20,7 +20,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
@@ -33,38 +32,6 @@ const (
 )
 
 var atMentionPattern = regexp.MustCompile(`\B@`)
-
-// Ensure post service wrapper implements `product.PostService`
-var _ product.PostService = (*postServiceWrapper)(nil)
-
-// postServiceWrapper provides an implementation of `product.PostService` for use by products.
-type postServiceWrapper struct {
-	app AppIface
-}
-
-func (s *postServiceWrapper) CreatePost(ctx request.CTX, post *model.Post) (*model.Post, *model.AppError) {
-	return s.app.CreatePostMissingChannel(ctx, post, true, true)
-}
-
-func (s *postServiceWrapper) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError) {
-	return s.app.GetPostsByIds(postIDs)
-}
-
-func (s *postServiceWrapper) SendEphemeralPost(ctx request.CTX, userID string, post *model.Post) *model.Post {
-	return s.app.SendEphemeralPost(ctx, userID, post)
-}
-
-func (s *postServiceWrapper) GetPost(postID string) (*model.Post, *model.AppError) {
-	return s.app.GetSinglePost(postID, false)
-}
-
-func (s *postServiceWrapper) DeletePost(ctx request.CTX, postID, productID string) (*model.Post, *model.AppError) {
-	return s.app.DeletePost(ctx, postID, productID)
-}
-
-func (s *postServiceWrapper) UpdatePost(ctx request.CTX, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
-	return s.app.UpdatePost(ctx, post, false)
-}
 
 func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted

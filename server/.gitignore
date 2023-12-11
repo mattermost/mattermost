@@ -21,7 +21,7 @@ config/active.dat
 config/logging.json
 /plugins
 
-# Enterprise & products imports files
+# Enterprise imports files
 channels/imports/imports.go
 
 # go.work file

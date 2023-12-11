@@ -12,7 +12,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
@@ -153,16 +152,4 @@ func (a *App) SetServer(srv *Server) {
 
 func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	return a.Srv().Store().Status().UpdateExpiredDNDStatuses()
-}
-
-// Ensure system service adapter implements `product.SystemService`
-var _ product.SystemService = (*systemServiceAdapter)(nil)
-
-// systemServiceAdapter provides a collection of system APIs for use by products.
-type systemServiceAdapter struct {
-	server *Server
-}
-
-func (ssa *systemServiceAdapter) GetDiagnosticId() string {
-	return ssa.server.TelemetryId()
 }

@@ -77,7 +77,6 @@ const (
 	TrackConfigBleve             = "config_bleve"
 	TrackConfigExport            = "config_export"
 	TrackFeatureFlags            = "config_feature_flags"
-	TrackConfigProducts          = "products"
 	TrackPermissionsGeneral      = "permissions_general"
 	TrackPermissionsSystemScheme = "permissions_system_scheme"
 	TrackPermissionsTeamSchemes  = "permissions_team_schemes"

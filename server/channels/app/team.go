@@ -26,39 +26,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
-
-// teamServiceWrapper provides an implementation of `product.TeamService` to be used by products.
-type teamServiceWrapper struct {
-	app AppIface
-}
-
-func (w *teamServiceWrapper) GetMember(c request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
-	return w.app.GetTeamMember(c, teamID, userID)
-}
-
-func (w *teamServiceWrapper) CreateMember(ctx request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
-	return w.app.AddTeamMember(ctx, teamID, userID)
-}
-
-func (w *teamServiceWrapper) GetGroup(groupID string) (*model.Group, *model.AppError) {
-	return w.app.GetGroup(groupID, nil, nil)
-}
-
-func (w *teamServiceWrapper) GetTeam(teamID string) (*model.Team, *model.AppError) {
-	return w.app.GetTeam(teamID)
-}
-
-func (w *teamServiceWrapper) GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError) {
-	users, _, err := w.app.GetGroupMemberUsersPage(groupID, page, perPage, nil)
-	return users, err
-}
-
-// Ensure the wrapper implements the product service.
-var _ product.TeamService = (*teamServiceWrapper)(nil)
 
 func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError {
 	maxActiveTeams := *teamLimits.Active
