@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect, useState} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import GetLinkModal from 'components/get_link_modal';
@@ -17,17 +17,16 @@ const GetPublicLinkModal = ({
     actions,
     fileId,
     onExited,
-    link,
+    link = '',
 }: Props) => {
     const intl = useIntl();
     const [show, setShow] = useState<boolean>(true);
 
     useEffect(() => {
         actions.getFilePublicLink(fileId);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const onHide = () => setShow(false);
+    const onHide = useCallback(() => setShow(false), []);
 
     return (
         <GetLinkModal
@@ -39,10 +38,6 @@ const GetPublicLinkModal = ({
             link={link}
         />
     );
-};
-
-GetPublicLinkModal.defaultProps = {
-    link: '',
 };
 
 export default memo(GetPublicLinkModal);

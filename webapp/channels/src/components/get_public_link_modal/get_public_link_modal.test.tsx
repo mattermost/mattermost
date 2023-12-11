@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
+import {shallow} from 'enzyme';
 import React from 'react';
 import {act} from 'react-dom/test-utils';
-import {IntlProvider} from 'react-intl';
 
 import GetLinkModal from 'components/get_link_modal';
 import GetPublicLinkModal from 'components/get_public_link_modal/get_public_link_modal';
+
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 describe('components/GetPublicLinkModal', () => {
     const baseProps = {
@@ -41,11 +42,7 @@ describe('components/GetPublicLinkModal', () => {
     });
 
     test('should call getFilePublicLink on GetPublicLinkModal\'s show', () => {
-        mount(
-            <IntlProvider locale='en'>
-                <GetPublicLinkModal {...baseProps}/>
-            </IntlProvider>,
-        );
+        mountWithIntl(<GetPublicLinkModal {...baseProps}/>);
 
         expect(baseProps.actions.getFilePublicLink).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.getFilePublicLink).toHaveBeenCalledWith(baseProps.fileId);
@@ -62,11 +59,7 @@ describe('components/GetPublicLinkModal', () => {
     });
 
     test('should call handleToggle on GetLinkModal\'s onHide', () => {
-        const wrapper = mount(
-            <IntlProvider locale='en'>
-                <GetPublicLinkModal {...baseProps}/>
-            </IntlProvider>,
-        );
+        const wrapper = mountWithIntl(<GetPublicLinkModal {...baseProps}/>);
 
         act(() => {
             wrapper.find(GetLinkModal).first().props().onHide();
