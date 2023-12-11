@@ -765,27 +765,51 @@ func testUpdateSharedChannelRemoteCursor(t *testing.T, rctx request.CTX, ss stor
 	remoteSaved, err := ss.SharedChannel().SaveRemote(remote)
 	require.NoError(t, err, "couldn't save remote", err)
 
-	future := model.GetMillis() + 3600000 // 1 hour in the future
-	postID := model.NewId()
+	futureCreateAt := model.GetMillis() + 3600000 // 1 hour in the future
+	postCreateID := model.NewId()
 
-	cursor := model.GetPostsSinceForSyncCursor{
-		LastPostUpdateAt: future,
-		LastPostId:       postID,
+	futureUpdateAt := model.GetMillis() + (3600000 * 2) // 2 hours in the future
+	postUpdateID := model.NewId()
+
+	cursorCreate := model.GetPostsSinceForSyncCursor{
+		LastPostCreateAt: futureCreateAt,
+		LastPostCreateID: postCreateID,
 	}
 
-	t.Run("Update NextSyncAt for remote", func(t *testing.T) {
-		err := ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, cursor)
-		require.NoError(t, err, "update NextSyncAt should not error", err)
+	cursorUpdate := model.GetPostsSinceForSyncCursor{
+		LastPostUpdateAt: futureUpdateAt,
+		LastPostUpdateID: postUpdateID,
+	}
+
+	t.Run("Update cursor CreateAt for remote", func(t *testing.T) {
+		err := ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, cursorCreate)
+		require.NoError(t, err, "update cursor should not error", err)
 
 		r, err := ss.SharedChannel().GetRemote(remoteSaved.Id)
 		require.NoError(t, err)
-		require.Equal(t, future, r.LastPostUpdateAt)
-		require.Equal(t, postID, r.LastPostId)
+		require.Equal(t, futureCreateAt, r.LastPostCreateAt)
+		require.Equal(t, postCreateID, r.LastPostCreateID)
 	})
 
-	t.Run("Update NextSyncAt for non-existent shared channel remote", func(t *testing.T) {
-		err := ss.SharedChannel().UpdateRemoteCursor(model.NewId(), cursor)
+	t.Run("Update cursor UpdateAt for remote", func(t *testing.T) {
+		err := ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, cursorUpdate)
+		require.NoError(t, err, "update cursor should not error", err)
+
+		r, err := ss.SharedChannel().GetRemote(remoteSaved.Id)
+		require.NoError(t, err)
+		require.Equal(t, futureUpdateAt, r.LastPostUpdateAt)
+		require.Equal(t, postUpdateID, r.LastPostUpdateID)
+	})
+
+	t.Run("Update cursor for non-existent shared channel remote", func(t *testing.T) {
+		err := ss.SharedChannel().UpdateRemoteCursor(model.NewId(), cursorUpdate)
 		require.Error(t, err, "update non-existent remote should error", err)
+	})
+
+	t.Run("Update with empty cursor", func(t *testing.T) {
+		emptyCursor := model.GetPostsSinceForSyncCursor{}
+		err := ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, emptyCursor)
+		require.Error(t, err, "update with empty cursor should error", err)
 	})
 }
 

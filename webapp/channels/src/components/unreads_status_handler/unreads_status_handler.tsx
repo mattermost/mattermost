@@ -27,6 +27,7 @@ import faviconUnread32x32 from 'images/favicon/favicon-unread-32x32.png';
 import faviconUnread64x64 from 'images/favicon/favicon-unread-64x64.png';
 import faviconUnread96x96 from 'images/favicon/favicon-unread-96x96.png';
 import {Constants} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import * as UserAgent from 'utils/user_agent';
 
 enum BadgeStatus {
@@ -46,7 +47,7 @@ type Props = {
     inDrafts: boolean;
 };
 
-export class FaviconTitleHandlerClass extends React.PureComponent<Props> {
+export class UnreadsStatusHandlerClass extends React.PureComponent<Props> {
     componentDidUpdate(prevProps: Props) {
         this.updateTitle();
         const oldBadgeStatus = this.getBadgeStatus(prevProps.unreadStatus);
@@ -55,6 +56,8 @@ export class FaviconTitleHandlerClass extends React.PureComponent<Props> {
         if (oldBadgeStatus !== newBadgeStatus) {
             this.updateFavicon(newBadgeStatus);
         }
+
+        this.updateDesktopApp();
     }
 
     get isDynamicFaviconSupported() {
@@ -69,6 +72,13 @@ export class FaviconTitleHandlerClass extends React.PureComponent<Props> {
         }
         return BadgeStatus.None;
     }
+
+    updateDesktopApp = () => {
+        const {unreadStatus} = this.props;
+        const {isUnread, unreadMentionCount} = basicUnreadMeta(unreadStatus);
+
+        DesktopApp.updateUnreadsAndMentions(isUnread, unreadMentionCount);
+    };
 
     updateTitle = () => {
         const {
@@ -170,4 +180,4 @@ export class FaviconTitleHandlerClass extends React.PureComponent<Props> {
     }
 }
 
-export default injectIntl(FaviconTitleHandlerClass);
+export default injectIntl(UnreadsStatusHandlerClass);
