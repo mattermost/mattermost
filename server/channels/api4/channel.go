@@ -706,7 +706,7 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	channelIds, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err != nil || len(channelIds) == 0 {
+	if err != nil {
 		c.SetInvalidParam("user_ids")
 		return
 	}
