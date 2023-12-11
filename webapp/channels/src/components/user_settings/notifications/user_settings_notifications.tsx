@@ -1396,17 +1396,26 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 }
 
 const customKeywordsWithNotificationStyles: ReactSelectStyles = {
-    indicatorSeparator: ((indicatorSeperatorStyles) => ({
+    control: (baseStyles) => ({
+        ...baseStyles,
+        backgroundColor: "var(--center-channel-bg)",
+        color: "#3f4350",
+    }),
+    input: (baseStyles) => ({
+        ...baseStyles,
+        color: "var(--center-channel-color)",
+    }),
+    indicatorSeparator: (indicatorSeperatorStyles) => ({
         ...indicatorSeperatorStyles,
-        display: 'none',
-    })),
-    multiValueRemove: ((multiValueRemoveStyles) => ({
+        display: "none",
+    }),
+    multiValueRemove: (multiValueRemoveStyles) => ({
         ...multiValueRemoveStyles,
-        cursor: 'pointer',
-        ':hover': {
-            backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.16)',
+        cursor: "pointer",
+        ":hover": {
+            backgroundColor: "rgba(var(--center-channel-color-rgb), 0.16)",
         },
-    })),
+    }),
 };
 
 export default injectIntl(NotificationsTab);
