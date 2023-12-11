@@ -428,11 +428,11 @@ func TestEditChannelBookmark(t *testing.T) {
 
 	t.Run("a user should always be able to edit channel bookmarks on DMs and GMs", func(t *testing.T) {
 		// this should work independently of the permissions applied
-		th.RemovePermissionFromRole(model.PermissionAddBookmarkPublicChannel.Id, model.ChannelUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionAddBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionEditBookmarkPublicChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionEditBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
 		defer func() {
-			th.AddPermissionToRole(model.PermissionAddBookmarkPublicChannel.Id, model.ChannelUserRoleId)
-			th.AddPermissionToRole(model.PermissionAddBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(model.PermissionEditBookmarkPublicChannel.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(model.PermissionEditBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
 		}()
 
 		// DM
@@ -820,11 +820,11 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	t.Run("a user should always be able to update the channel bookmarks sort order on DMs and GMs", func(t *testing.T) {
 		// this should work independently of the permissions applied
-		th.RemovePermissionFromRole(model.PermissionAddBookmarkPublicChannel.Id, model.ChannelUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionAddBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionOrderBookmarkPublicChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionOrderBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
 		defer func() {
-			th.AddPermissionToRole(model.PermissionAddBookmarkPublicChannel.Id, model.ChannelUserRoleId)
-			th.AddPermissionToRole(model.PermissionAddBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(model.PermissionOrderBookmarkPublicChannel.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(model.PermissionOrderBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
 		}()
 
 		// DM
