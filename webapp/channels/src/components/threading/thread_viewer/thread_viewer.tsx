@@ -50,6 +50,7 @@ export type Props = Attrs & {
     isThreadView?: boolean;
     inputPlaceholder?: string;
     rootPostId: string;
+    fromSuppressed?: boolean;
 };
 
 type State = {
@@ -224,6 +225,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                                     highlightedPostId={this.props.highlightedPostId}
                                     selectedPostFocusedAt={this.props.selectedPostFocusedAt}
                                     isThreadView={Boolean(this.props.isCollapsedThreadsEnabled && this.props.isThreadView)}
+                                    fromSuppressed={this.props.fromSuppressed}
                                 />
                             )}
                         </>

@@ -2283,7 +2283,7 @@ func TestDeleteBotUser(t *testing.T) {
 
 	_, err := th.Client.DeleteUser(context.Background(), bot.UserId)
 	require.Error(t, err)
-	require.Equal(t, err.Error(), ": You do not have the appropriate permissions.")
+	require.Equal(t, err.Error(), "You do not have the appropriate permissions.")
 }
 
 func TestPermanentDeleteUser(t *testing.T) {
@@ -2630,16 +2630,16 @@ func TestGetUsers(t *testing.T) {
 		// Check role params validity
 		_, _, err = client.GetUsersWithCustomQueryParameters(context.Background(), 0, 5, "in_channel=random_channel_id&channel_roles=random_role_doesnt_exist", "")
 		require.Error(t, err)
-		require.Equal(t, err.Error(), ": Invalid or missing channelRoles in request body.")
+		require.Equal(t, err.Error(), "Invalid or missing channelRoles in request body.")
 		_, _, err = client.GetUsersWithCustomQueryParameters(context.Background(), 0, 5, "in_team=random_channel_id&team_roles=random_role_doesnt_exist", "")
 		require.Error(t, err)
-		require.Equal(t, err.Error(), ": Invalid or missing teamRoles in request body.")
+		require.Equal(t, err.Error(), "Invalid or missing teamRoles in request body.")
 		_, _, err = client.GetUsersWithCustomQueryParameters(context.Background(), 0, 5, "roles=random_role_doesnt_exist%2Csystem_user", "")
 		require.Error(t, err)
-		require.Equal(t, err.Error(), ": Invalid or missing roles in request body.")
+		require.Equal(t, err.Error(), "Invalid or missing roles in request body.")
 		_, _, err = client.GetUsersWithCustomQueryParameters(context.Background(), 0, 5, "role=random_role_doesnt_exist", "")
 		require.Error(t, err)
-		require.Equal(t, err.Error(), ": Invalid or missing role in request body.")
+		require.Equal(t, err.Error(), "Invalid or missing role in request body.")
 	})
 
 	th.Client.Logout(context.Background())
