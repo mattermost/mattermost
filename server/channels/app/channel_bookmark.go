@@ -131,6 +131,7 @@ func (a *App) UpdateChannelBookmarkSortOrder(bookmarkId, channelId string, newIn
 		return nil, model.NewAppError("UpdateSortOrder", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("bookmarks", string(bookmarkJSON))
+	a.Publish(message)
 
 	return bookmarks, nil
 }

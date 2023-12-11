@@ -260,6 +260,18 @@
     "translation": "Failed to update the channel bookmark."
   },
   {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Failed to update the channel bookmark's sort order."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Failed to update the channel bookmark's sort order."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Failed to update the channel bookmark's sort order."
+  },
+  {
     "id": "api.channel.change_channel_privacy.private_to_public",
     "translation": "This channel has been converted to a Public Channel and can be joined by any team member."
   },

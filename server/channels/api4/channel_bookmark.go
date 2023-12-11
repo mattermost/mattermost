@@ -15,6 +15,7 @@ import (
 func (api *API) InitChannelBookmarks() {
 	api.BaseRoutes.ChannelBookmarks.Handle("", api.APISessionRequired(createChannelBookmark)).Methods("POST")
 	api.BaseRoutes.ChannelBookmark.Handle("", api.APISessionRequired(updateChannelBookmark)).Methods("PATCH")
+	api.BaseRoutes.ChannelBookmark.Handle("/sort_order", api.APISessionRequired(updateChannelBookmarkSortOrder)).Methods("POST")
 }
 
 func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -92,7 +93,7 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddEventResultState(newChannelBookmark)
-	auditRec.AddEventObjectType("channelBookmark")
+	auditRec.AddEventObjectType("channelBookmarkWithFileInfo")
 	c.LogAudit("display_name=" + newChannelBookmark.DisplayName)
 
 	w.WriteHeader(http.StatusCreated)
@@ -193,6 +194,98 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	if err := json.NewEncoder(w).Encode(updateChannelBookmarkResponse); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil {
+		c.Err = model.NewAppError("updateChannelBookmarkSortOrder", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	var newSortOrder int64
+	if err := json.NewDecoder(r.Body).Decode(&newSortOrder); err != nil {
+		c.SetInvalidParamWithErr("channelBookmarkSortOrder", err)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("updateChannelBookmarkSortOrder", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	switch channel.Type {
+	case model.ChannelTypeOpen:
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionOrderBookmarkPublicChannel) {
+			c.SetPermissionError(model.PermissionOrderBookmarkPublicChannel)
+			return
+		}
+
+	case model.ChannelTypePrivate:
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionOrderBookmarkPrivateChannel) {
+			c.SetPermissionError(model.PermissionOrderBookmarkPrivateChannel)
+			return
+		}
+
+	case model.ChannelTypeGroup, model.ChannelTypeDirect:
+		// Any member of DM/GMs but guests can manage channel bookmarks
+		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
+			c.Err = model.NewAppError("updateChannelBookmarkSortOrder", "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+
+		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId)
+		if gAppErr != nil {
+			c.Err = gAppErr
+			return
+		}
+
+		if user.IsGuest() {
+			c.Err = model.NewAppError("updateChannelBookmarkSortOrder", "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+
+	default:
+		c.Err = model.NewAppError("updateChannelBookmarkSortOrder", "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	oldBookmark, obErr := c.App.GetBookmark(c.Params.ChannelBookmarkId, false)
+	if obErr != nil {
+		c.Err = obErr
+		return
+	}
+	auditRec.AddEventPriorState(oldBookmark)
+
+	bookmarks, appErr := c.App.UpdateChannelBookmarkSortOrder(c.Params.ChannelBookmarkId, c.Params.ChannelId, newSortOrder, connectionID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	for _, b := range bookmarks {
+		if b.Id == c.Params.ChannelBookmarkId {
+			auditRec.AddEventResultState(b)
+			auditRec.AddEventObjectType("channelBookmarkWithFileInfo")
+			break
+		}
+	}
+	auditRec.Success()
+	c.LogAudit("")
+
+	if err := json.NewEncoder(w).Encode(bookmarks); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

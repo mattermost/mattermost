@@ -8930,3 +8930,24 @@ func (c *Client4) UpdateChannelBookmark(ctx context.Context, channelId, bookmark
 	}
 	return &ucb, BuildResponse(r), nil
 }
+
+// UpdateChannelBookmarkSortOrder updates a channel bookmark's sort order based on the provided new index.
+func (c *Client4) UpdateChannelBookmarkSortOrder(ctx context.Context, channelId, bookmarkId string, sortOrder int64) ([]*ChannelBookmarkWithFileInfo, *Response, error) {
+	buf, err := json.Marshal(sortOrder)
+	if err != nil {
+		return nil, nil, NewAppError("UpdateChannelBookmarkSortOrder", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(ctx, c.bookmarkRoute(channelId, bookmarkId)+"/sort_order", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var b []*ChannelBookmarkWithFileInfo
+	if r.StatusCode == http.StatusNotModified {
+		return b, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
+		return nil, nil, NewAppError("UpdateChannelBookmarkSortOrder", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return b, BuildResponse(r), nil
+}
