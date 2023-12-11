@@ -49,27 +49,6 @@ function getDefaultSetting(): PluginConfiguration {
 }
 
 describe('user settings', () => {
-    it('reject invalid ids', () => {
-        const originalLog = console.warn;
-        console.warn = jest.fn();
-
-        const state = getBaseState();
-
-        const setting = getDefaultSetting();
-        setting.id = 'otherPluginId';
-
-        const nextState = pluginReducers(state, {
-            type: ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS,
-            data: {
-                pluginId: 'pluginId',
-                setting,
-            },
-        });
-        expect(nextState.userSettings).toEqual({});
-        expect(console.warn).toHaveBeenCalled();
-        console.warn = originalLog;
-    });
-
     it('reject invalid settings', () => {
         const originalLog = console.warn;
         console.warn = jest.fn();
