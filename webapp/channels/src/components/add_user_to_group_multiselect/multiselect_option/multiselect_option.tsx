@@ -12,7 +12,6 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import type {Value} from 'components/multiselect/multiselect';
 import ProfilePicture from 'components/profile_picture';
-import AddIcon from 'components/widgets/icons/fa_add_icon';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 

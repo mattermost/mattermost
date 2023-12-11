@@ -5,7 +5,6 @@ import classNames from 'classnames';
 import React, {useCallback} from 'react';
 
 import Timestamp from 'components/timestamp';
-import AddIcon from 'components/widgets/icons/fa_add_icon';
 
 import UserDetails from './user_details';
 

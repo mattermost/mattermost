@@ -13,7 +13,6 @@ import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
-import AddIcon from 'components/widgets/icons/fa_add_icon';
 
 import groupsAvatar from 'images/groups-avatar.png';
 import Constants from 'utils/constants';
