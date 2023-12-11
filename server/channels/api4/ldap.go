@@ -285,7 +285,11 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJSON(r.Body)
+	props, err := model.StringInterfaceFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil {
+		c.SetInvalidParam("props")
+		return
+	}
 	toAttribute, ok := props["toAttribute"].(string)
 	if !ok || toAttribute == "" {
 		c.SetInvalidParam("toAttribute")

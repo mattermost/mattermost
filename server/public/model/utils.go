@@ -542,15 +542,16 @@ func StringInterfaceToJSON(objmap map[string]any) string {
 	return string(b)
 }
 
-func StringInterfaceFromJSON(data io.Reader) map[string]any {
+func StringInterfaceFromJSON(data io.Reader, maxBytes int64) (map[string]any, error) {
 	var objmap map[string]any
 
-	json.NewDecoder(data).Decode(&objmap)
-	if objmap == nil {
-		return make(map[string]any)
+	lr := io.LimitedReader{N: maxBytes, R: data}
+	err := json.NewDecoder(&lr).Decode(&objmap)
+	if err != nil || objmap == nil {
+		return nil, err
 	}
 
-	return objmap
+	return objmap, nil
 }
 
 // ToJSON serializes an arbitrary data type to JSON, discarding the error.

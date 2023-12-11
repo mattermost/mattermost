@@ -248,7 +248,11 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
 	defer c.LogAuditRec(auditRec)
 
-	props := model.StringInterfaceFromJSON(r.Body)
+	props, err := model.StringInterfaceFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil {
+		c.SetInvalidParam("props")
+		return
+	}
 	privacy, ok := props["privacy"].(string)
 	if !ok || (model.ChannelType(privacy) != model.ChannelTypeOpen && model.ChannelType(privacy) != model.ChannelTypePrivate) {
 		c.SetInvalidParam("privacy")
@@ -257,9 +261,9 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	audit.AddEventParameter(auditRec, "privacy", privacy)
 
-	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
-	if err != nil {
-		c.Err = err
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -280,17 +284,17 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
+	user, appErr := c.App.GetUser(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
 	channel.Type = model.ChannelType(privacy)
 
-	updatedChannel, err := c.App.UpdateChannelPrivacy(c.AppContext, channel, user)
-	if err != nil {
-		c.Err = err
+	updatedChannel, appErr := c.App.UpdateChannelPrivacy(c.AppContext, channel, user)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1713,7 +1717,11 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJSON(r.Body)
+	props, err := model.StringInterfaceFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil {
+		c.SetInvalidParam("props")
+		return
+	}
 	userId, ok := props["user_id"].(string)
 	if !ok || !model.IsValidId(userId) {
 		c.SetInvalidParam("user_id")
@@ -1750,9 +1758,9 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	channel, err := c.App.GetChannel(c.AppContext, member.ChannelId)
-	if err != nil {
-		c.Err = err
+	channel, appErr := c.App.GetChannel(c.AppContext, member.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1762,11 +1770,11 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	isNewMembership := false
-	if _, err = c.App.GetChannelMember(c.AppContext, member.ChannelId, member.UserId); err != nil {
-		if err.Id == app.MissingChannelMemberError {
+	if _, appErr = c.App.GetChannelMember(c.AppContext, member.ChannelId, member.UserId); err != nil {
+		if appErr.Id == app.MissingChannelMemberError {
 			isNewMembership = true
 		} else {
-			c.Err = err
+			c.Err = appErr
 			return
 		}
 	}
@@ -1821,12 +1829,12 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	cm, err := c.App.AddChannelMember(c.AppContext, member.UserId, channel, app.ChannelMemberOpts{
+	cm, appErr := c.App.AddChannelMember(c.AppContext, member.UserId, channel, app.ChannelMemberOpts{
 		UserRequestorID: c.AppContext.Session().UserId,
 		PostRootID:      postRootId,
 	})
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -2152,7 +2160,11 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJSON(r.Body)
+	props, err2 := model.StringInterfaceFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err2 != nil {
+		c.SetInvalidParam("props")
+		return
+	}
 	teamId, ok := props["team_id"].(string)
 	if !ok {
 		c.SetInvalidParam("team_id")

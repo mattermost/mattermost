@@ -339,7 +339,11 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJSON(r.Body)
+	props, err := model.StringInterfaceFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil {
+		c.SetInvalidParam("props")
+		return
+	}
 	privacy, ok := props["privacy"].(string)
 	if !ok {
 		c.SetInvalidParam("privacy")
@@ -373,9 +377,9 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return the updated team to be consistent with UpdateChannelPrivacy
-	team, err := c.App.GetTeam(c.Params.TeamId)
-	if err != nil {
-		c.Err = err
+	team, appErr := c.App.GetTeam(c.Params.TeamId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 

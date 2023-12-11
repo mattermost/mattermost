@@ -72,16 +72,20 @@ func localUpdateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	props := model.StringInterfaceFromJSON(r.Body)
+	props, err := model.StringInterfaceFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil {
+		c.SetInvalidParam("props")
+		return
+	}
 	privacy, ok := props["privacy"].(string)
 	if !ok || (model.ChannelType(privacy) != model.ChannelTypeOpen && model.ChannelType(privacy) != model.ChannelTypePrivate) {
 		c.SetInvalidParam("privacy")
 		return
 	}
 
-	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
-	if err != nil {
-		c.Err = err
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -95,9 +99,9 @@ func localUpdateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 	channel.Type = model.ChannelType(privacy)
 
-	updatedChannel, err := c.App.UpdateChannelPrivacy(c.AppContext, channel, nil)
-	if err != nil {
-		c.Err = err
+	updatedChannel, appErr := c.App.UpdateChannelPrivacy(c.AppContext, channel, nil)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -153,7 +157,11 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
 	defer c.LogAuditRec(auditRec)
 
-	props := model.StringInterfaceFromJSON(r.Body)
+	props, err := model.StringInterfaceFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil {
+		c.SetInvalidParam("props")
+		return
+	}
 	userId, ok := props["user_id"].(string)
 	if !ok || !model.IsValidId(userId) {
 		c.SetInvalidParam("user_id")
@@ -187,9 +195,9 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	channel, err := c.App.GetChannel(c.AppContext, member.ChannelId)
-	if err != nil {
-		c.Err = err
+	channel, appErr := c.App.GetChannel(c.AppContext, member.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -216,11 +224,11 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	cm, err := c.App.AddChannelMember(c.AppContext, member.UserId, channel, app.ChannelMemberOpts{
+	cm, appErr := c.App.AddChannelMember(c.AppContext, member.UserId, channel, app.ChannelMemberOpts{
 		PostRootID: postRootId,
 	})
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -339,7 +347,11 @@ func localMoveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJSON(r.Body)
+	props, pErr := model.StringInterfaceFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if pErr != nil {
+		c.SetInvalidParam("props")
+		return
+	}
 	teamId, ok := props["team_id"].(string)
 	if !ok {
 		c.SetInvalidParam("team_id")

@@ -1515,7 +1515,11 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.StringInterfaceFromJSON(r.Body)
+	props, err := model.StringInterfaceFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil {
+		c.SetInvalidParam("props")
+		return
+	}
 
 	active, ok := props["active"].(bool)
 	if !ok {
@@ -1541,9 +1545,9 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
-	if err != nil {
-		c.Err = err
+	user, appErr := c.App.GetUser(c.Params.UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	auditRec.AddEventPriorState(user)
@@ -1559,8 +1563,8 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = c.App.UpdateActive(c.AppContext, user, active); err != nil {
-		c.Err = err
+	if _, appErr = c.App.UpdateActive(c.AppContext, user, active); err != nil {
+		c.Err = appErr
 	}
 
 	auditRec.Success()
@@ -1651,7 +1655,11 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
 
-	props := model.StringInterfaceFromJSON(r.Body)
+	props, err := model.StringInterfaceFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil {
+		c.SetInvalidParam("props")
+		return
+	}
 	activate, ok := props["activate"].(bool)
 	if !ok {
 		c.SetInvalidParam("activate")
@@ -1669,8 +1677,8 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	if err := c.App.UpdateMfa(c.AppContext, activate, c.Params.UserId, code); err != nil {
-		c.Err = err
+	if appErr := c.App.UpdateMfa(c.AppContext, activate, c.Params.UserId, code); err != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -2732,7 +2740,11 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJSON(r.Body)
+	props, err := model.StringInterfaceFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil {
+		c.SetInvalidParam("props")
+		return
+	}
 
 	auditRec := c.MakeAuditRecord("saveUserTermsOfService", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -2751,17 +2763,17 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 	audit.AddEventParameter(auditRec, "accepted", accepted)
 
-	if user, err := c.App.GetUser(userId); err == nil {
+	if user, appErr := c.App.GetUser(userId); appErr == nil {
 		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
 
-	if _, err := c.App.GetTermsOfService(termsOfServiceId); err != nil {
-		c.Err = err
+	if _, appErr := c.App.GetTermsOfService(termsOfServiceId); err != nil {
+		c.Err = appErr
 		return
 	}
 
-	if err := c.App.SaveUserTermsOfService(userId, termsOfServiceId, accepted); err != nil {
-		c.Err = err
+	if appErr := c.App.SaveUserTermsOfService(userId, termsOfServiceId, accepted); appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -3034,7 +3046,11 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJSON(r.Body)
+	props, err := model.StringInterfaceFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil {
+		c.SetInvalidParam("props")
+		return
+	}
 	from, ok := props["from"].(string)
 	if !ok {
 		c.SetInvalidParam("from")
@@ -3079,8 +3095,8 @@ func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if migrate := c.App.AccountMigration(); migrate != nil {
-		if err := migrate.MigrateToLdap(c.AppContext, from, matchField, force, false); err != nil {
-			c.Err = model.NewAppError("api.migrateAuthToLdap", "api.migrate_to_saml.error", nil, err.Error(), http.StatusInternalServerError)
+		if appErr := migrate.MigrateToLdap(c.AppContext, from, matchField, force, false); err != nil {
+			c.Err = model.NewAppError("api.migrateAuthToLdap", "api.migrate_to_saml.error", nil, appErr.Error(), http.StatusInternalServerError)
 			return
 		}
 	} else {
@@ -3093,7 +3109,11 @@ func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJSON(r.Body)
+	props, err := model.StringInterfaceFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil {
+		c.SetInvalidParam("props")
+		return
+	}
 	from, ok := props["from"].(string)
 	if !ok {
 		c.SetInvalidParam("from")
@@ -3138,8 +3158,8 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if migrate := c.App.AccountMigration(); migrate != nil {
-		if err := migrate.MigrateToSaml(c.AppContext, from, usersMap, auto, false); err != nil {
-			c.Err = model.NewAppError("api.migrateAuthToSaml", "api.migrate_to_saml.error", nil, err.Error(), http.StatusInternalServerError)
+		if appErr := migrate.MigrateToSaml(c.AppContext, from, usersMap, auto, false); err != nil {
+			c.Err = model.NewAppError("api.migrateAuthToSaml", "api.migrate_to_saml.error", nil, appErr.Error(), http.StatusInternalServerError)
 			return
 		}
 	} else {

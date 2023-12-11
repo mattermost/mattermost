@@ -112,6 +112,17 @@ func (c *Client4) ArrayFromJSON(data io.Reader) []string {
 	return objmap
 }
 
+func (c *Client4) StringInterfaceFromJSON(data io.Reader) map[string]any {
+	var objmap map[string]any
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
+		return make(map[string]any)
+	}
+
+	return objmap
+}
+
 func closeBody(r *http.Response) {
 	if r.Body != nil {
 		_, _ = io.Copy(io.Discard, r.Body)
@@ -4733,7 +4744,7 @@ func (c *Client4) GetEnvironmentConfig(ctx context.Context) (map[string]any, *Re
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return StringInterfaceFromJSON(r.Body), BuildResponse(r), nil
+	return c.StringInterfaceFromJSON(r.Body), BuildResponse(r), nil
 }
 
 // GetOldClientLicense will retrieve the parts of the server license needed by the
