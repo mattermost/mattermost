@@ -347,6 +347,13 @@ components:
           properties:
             file:
               $ref: "#/components/schemas/FileInfo"
+    UpdateChannelBookmarkResponse:
+      type: object
+      properties:
+        updated:
+          $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
+        deleted:
+          $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
     Post:
       type: object
       properties:

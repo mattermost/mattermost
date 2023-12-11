@@ -5,6 +5,7 @@ package app
 
 import (
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
@@ -58,7 +59,7 @@ func TestUpdateBookmark(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	var updateBookmark *model.ChannelBookmark
+	var updateBookmark *model.ChannelBookmarkWithFileInfo
 
 	t.Run("same user update a channel bookmark", func(t *testing.T) {
 		bookmark1 := &model.ChannelBookmark{
@@ -75,17 +76,21 @@ func TestUpdateBookmark(t *testing.T) {
 
 		updateBookmark = bookmarkResp.Clone()
 		updateBookmark.DisplayName = "New name"
+		time.Sleep(1 * time.Millisecond) // to avoid collisions
 		response, _ := th.App.UpdateChannelBookmark(th.Context, updateBookmark, "")
 		assert.Greater(t, response.Updated.UpdateAt, response.Updated.CreateAt)
 	})
 
 	t.Run("another user update a channel bookmark", func(t *testing.T) {
 		updateBookmark2 := updateBookmark.Clone()
+		updateBookmark2.DisplayName = "Another new name"
 		th.Context.Session().UserId = th.BasicUser2.Id
 		response, _ := th.App.UpdateChannelBookmark(th.Context, updateBookmark2, "")
 		assert.Equal(t, response.Updated.OriginalId, response.Deleted.Id)
 		assert.Equal(t, response.Updated.DeleteAt, int64(0))
 		assert.Greater(t, response.Deleted.DeleteAt, int64(0))
+		assert.Equal(t, "Another new name", response.Updated.DisplayName)
+		assert.Equal(t, "New name", response.Deleted.DisplayName)
 	})
 
 	t.Run("update an already deleted channel bookmark", func(t *testing.T) {
@@ -108,6 +113,20 @@ func TestUpdateBookmark(t *testing.T) {
 		updateBookmark.DisplayName = "New name"
 		_, err = th.App.UpdateChannelBookmark(th.Context, updateBookmark, "")
 		assert.NotNil(t, err)
+	})
+
+	t.Run("update a nonexisting channel bookmark", func(t *testing.T) {
+		updateBookmark := &model.ChannelBookmark{
+			Id:          model.NewId(),
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "Link bookmark test",
+			LinkUrl:     "https://mattermost.com",
+			Type:        model.ChannelBookmarkLink,
+			Emoji:       ":smile:",
+		}
+		_, err := th.App.UpdateChannelBookmark(th.Context, updateBookmark.ToBookmarkWithFileInfo(nil), "")
+		assert.NotNil(t, err)
+		assert.Equal(t, "app.channel.bookmark.get_existing.app_err", err.Id)
 	})
 }
 

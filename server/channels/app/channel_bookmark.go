@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -46,6 +47,7 @@ func (a *App) CreateChannelBookmark(c request.CTX, newBookmark *model.ChannelBoo
 	newBookmark.OwnerId = c.Session().UserId
 	bookmark, err := a.Srv().Store().ChannelBookmark().Save(newBookmark, true)
 	if err != nil {
+		a.Log().Error("Error creating channel bookmark", mlog.Err(err))
 		return nil, model.NewAppError("CreateChannelBookmark", "app.channel.bookmark.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -59,35 +61,32 @@ func (a *App) CreateChannelBookmark(c request.CTX, newBookmark *model.ChannelBoo
 	return bookmark, nil
 }
 
-func (a *App) UpdateChannelBookmark(c request.CTX, updateBookmark *model.ChannelBookmark, connectionId string) (*model.UpdateChannelBookmarkResponse, *model.AppError) {
-	bookmark, err := a.Srv().Store().ChannelBookmark().Get(updateBookmark.Id, true)
-	if err != nil {
-		return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-	}
-
-	if bookmark.DeleteAt > 0 {
-		return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.update_deleted.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
+func (a *App) UpdateChannelBookmark(c request.CTX, updateBookmark *model.ChannelBookmarkWithFileInfo, connectionId string) (*model.UpdateChannelBookmarkResponse, *model.AppError) {
 	response := &model.UpdateChannelBookmarkResponse{}
-	if bookmark.OwnerId == c.Session().UserId {
-		if err = a.Srv().Store().ChannelBookmark().Update(updateBookmark); err != nil {
+	if updateBookmark.OwnerId == c.Session().UserId {
+		if err := a.Srv().Store().ChannelBookmark().Update(updateBookmark.ChannelBookmark); err != nil {
 			return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		response.Updated = updateBookmark.ToBookmarkWithFileInfo(bookmark.FileInfo)
+
+		response.Updated = updateBookmark.ToBookmarkWithFileInfo(updateBookmark.FileInfo)
 	} else {
-		updateBookmark.DeleteAt = model.GetMillis()
-		if err = a.Srv().Store().ChannelBookmark().Delete(updateBookmark.Id); err != nil {
+		existingBookmark, ebErr := a.Srv().Store().ChannelBookmark().Get(updateBookmark.Id, false)
+		if ebErr != nil {
+			return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.get_existing.app_err", nil, "", http.StatusNotFound).Wrap(ebErr)
+		}
+
+		existingBookmark.DeleteAt = model.GetMillis()
+		if err := a.Srv().Store().ChannelBookmark().Delete(updateBookmark.Id); err != nil {
 			return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		newBookmark := updateBookmark.SetOriginal(c.Session().UserId)
-		bookmark, err = a.Srv().Store().ChannelBookmark().Save(newBookmark, false)
+		bookmark, err := a.Srv().Store().ChannelBookmark().Save(newBookmark, false)
 		if err != nil {
 			return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		response.Updated = bookmark
-		response.Deleted = updateBookmark.ToBookmarkWithFileInfo(nil)
+		response.Deleted = existingBookmark.ToBookmarkWithFileInfo(nil)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkUpdated, "", updateBookmark.ChannelId, "", nil, connectionId)
@@ -96,6 +95,7 @@ func (a *App) UpdateChannelBookmark(c request.CTX, updateBookmark *model.Channel
 		return nil, model.NewAppError("UpdateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("bookmarks", string(bookmarkJSON))
+	a.Publish(message)
 	return response, nil
 }
 

@@ -563,6 +563,14 @@ func (c *Client4) permissionsRoute() string {
 	return "/permissions"
 }
 
+func (c *Client4) bookmarksRoute(channelId string) string {
+	return c.channelRoute(channelId) + "/bookmarks"
+}
+
+func (c *Client4) bookmarkRoute(channelId, bookmarkId string) string {
+	return fmt.Sprintf(c.bookmarksRoute(channelId)+"/%v", bookmarkId)
+}
+
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
 	return c.DoAPIRequest(ctx, http.MethodGet, c.APIURL+url, "", etag)
 }
@@ -8887,7 +8895,7 @@ func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *Ch
 	if err != nil {
 		return nil, nil, NewAppError("CreateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(ctx, c.channelRoute(channelBookmark.ChannelId)+"/bookmarks", string(channelBookmarkJSON))
+	r, err := c.DoAPIPostBytes(ctx, c.bookmarksRoute(channelBookmark.ChannelId), channelBookmarkJSON)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8900,4 +8908,25 @@ func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *Ch
 		return nil, nil, NewAppError("CreateChannelBookmark", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &cb, BuildResponse(r), nil
+}
+
+// UpdateChannelBookmark updates a channel bookmark based on the provided struct.
+func (c *Client4) UpdateChannelBookmark(ctx context.Context, channelId, bookmarkId string, patch *ChannelBookmarkPatch) (*UpdateChannelBookmarkResponse, *Response, error) {
+	buf, err := json.Marshal(patch)
+	if err != nil {
+		return nil, nil, NewAppError("UpdateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPatchBytes(ctx, c.bookmarkRoute(channelId, bookmarkId), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var ucb UpdateChannelBookmarkResponse
+	if r.StatusCode == http.StatusNotModified {
+		return &ucb, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&ucb); err != nil {
+		return nil, nil, NewAppError("UpdateChannelBookmark", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &ucb, BuildResponse(r), nil
 }

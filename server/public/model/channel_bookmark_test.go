@@ -482,3 +482,25 @@ func TestChannelBookmarkPreUpdate(t *testing.T) {
 	bookmark.PreUpdate()
 	assert.Greater(t, bookmark.UpdateAt, originalBookmark.UpdateAt)
 }
+
+func TestChannelBookmarkPatch(t *testing.T) {
+	p := &ChannelBookmarkPatch{
+		DisplayName: NewString(NewId()),
+		SortOrder:   NewInt64(1),
+		LinkUrl:     NewString(NewId()),
+	}
+
+	b := ChannelBookmark{
+		Id:          NewId(),
+		DisplayName: NewId(),
+		Type:        ChannelBookmarkLink,
+		LinkUrl:     NewId(),
+	}
+	b.Patch(p)
+
+	require.Empty(t, b.FileId)
+	require.Equal(t, *p.DisplayName, b.DisplayName)
+	require.Equal(t, *p.SortOrder, b.SortOrder)
+	require.Equal(t, *p.LinkUrl, b.LinkUrl)
+	require.Equal(t, ChannelBookmarkLink, b.Type)
+}
