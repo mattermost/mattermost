@@ -61,14 +61,15 @@ type Props = {
 };
 
 type State = {
-    saveNeeded: false;
-    saving: false;
-    serverError: null;
-    errorTooltip: false;
-    customComponentWrapperClass: string;
-    confirmNeededId: string;
-    showConfirmId: string;
-    clientWarning: string;
+    saveNeeded?: string | boolean;
+    saving?: boolean;
+    serverError?: null;
+    errorTooltip?: boolean;
+    customComponentWrapperClass?: string;
+    confirmNeededId?: string;
+    showConfirmId?: string;
+    clientWarning?: string | boolean;
+    prevSchemaId?: string;
 };
 
 export default class SchemaAdminSettings extends React.PureComponent<Props, State> {
@@ -81,16 +82,6 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
 
     public constructor(props: Props) {
         super(props);
-        this.state = {
-            saveNeeded: false,
-            saving: false,
-            serverError: null,
-            errorTooltip: false,
-            customComponentWrapperClass: '',
-            confirmNeededId: '',
-            showConfirmId: '',
-            clientWarning: '',
-        };
 
         this.isPlugin = false;
         this.saveActions = [];
