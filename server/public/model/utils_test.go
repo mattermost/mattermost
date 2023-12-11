@@ -200,41 +200,38 @@ func TestArrayFromJson(t *testing.T) {
 	t.Run("Successful parse", func(t *testing.T) {
 		ids := []string{NewId(), NewId(), NewId()}
 		b, _ := json.Marshal(ids)
-		a := ArrayFromJSON(bytes.NewReader(b), 1000)
+		a, err := ArrayFromJSON(bytes.NewReader(b), 1000)
+		require.NoError(t, err)
 		require.Equal(t, len(ids), len(a))
 	})
 
 	t.Run("Empty Array", func(t *testing.T) {
 		ids := []string{}
 		b, _ := json.Marshal(ids)
-		a := ArrayFromJSON(bytes.NewReader(b), 1000)
+		a, err := ArrayFromJSON(bytes.NewReader(b), 1000)
+		require.NoError(t, err)
 		require.Equal(t, 0, len(a))
 	})
 
 	t.Run("Error too large", func(t *testing.T) {
 		var ids []string
-		for {
+		for i := 0; i <= 100; i++ {
 			ids = append(ids, NewId())
-			if len(ids) > 100 {
-				break
-			}
 		}
 		b, _ := json.Marshal(ids)
-		a := ArrayFromJSON(bytes.NewReader(b), 1000)
-		require.Equal(t, len(a), 0)
+		_, err := ArrayFromJSON(bytes.NewReader(b), 1000)
+		require.Error(t, err)
 	})
 
 	t.Run("Duplicate keys, returns one", func(t *testing.T) {
 		var ids []string
 		id := NewId()
-		for {
+		for i := 0; i < 10; i++ {
 			ids = append(ids, id)
-			if len(ids) > 10 {
-				break
-			}
 		}
 		b, _ := json.Marshal(ids)
-		a := ArrayFromJSON(bytes.NewReader(b), 26000)
+		a, err := ArrayFromJSON(bytes.NewReader(b), 26000)
+		require.NoError(t, err)
 		require.Equal(t, len(a), 1)
 	})
 }
@@ -243,7 +240,8 @@ func TestArrayFromJsonNonSort(t *testing.T) {
 	t.Run("Successful parse", func(t *testing.T) {
 		ids := []string{NewId(), NewId(), NewId()}
 		b, _ := json.Marshal(ids)
-		a := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
+		a, err := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
+		require.NoError(t, err)
 		require.Equal(t, len(ids), len(a))
 		require.Equal(t, ids[0], a[0])
 		require.Equal(t, ids[1], a[1])
@@ -253,34 +251,30 @@ func TestArrayFromJsonNonSort(t *testing.T) {
 	t.Run("Empty Array", func(t *testing.T) {
 		ids := []string{}
 		b, _ := json.Marshal(ids)
-		a := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
+		a, err := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
+		require.NoError(t, err)
 		require.Equal(t, 0, len(a))
 	})
 
 	t.Run("Error too large", func(t *testing.T) {
 		var ids []string
-		for {
+		for i := 0; i <= 100; i++ {
 			ids = append(ids, NewId())
-			if len(ids) > 100 {
-				break
-			}
 		}
 		b, _ := json.Marshal(ids)
-		a := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
-		require.Equal(t, len(a), 0)
+		_, err := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
+		require.Error(t, err)
 	})
 
 	t.Run("Duplicate keys, returns one", func(t *testing.T) {
 		var ids []string
 		id := NewId()
-		for {
+		for i := 0; i <= 10; i++ {
 			ids = append(ids, id)
-			if len(ids) > 10 {
-				break
-			}
 		}
 		b, _ := json.Marshal(ids)
-		a := ArrayFromJSONNonSort(bytes.NewReader(b), 26000)
+		a, err := ArrayFromJSONNonSort(bytes.NewReader(b), 26000)
+		require.NoError(t, err)
 		require.Equal(t, len(a), 1)
 	})
 }

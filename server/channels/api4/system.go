@@ -967,7 +967,11 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	ids := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	ids, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if err != nil {
+		c.SetInvalidParam("ids")
+		return
+	}
 	appErr := c.App.UpdateViewedProductNotices(c.AppContext.Session().UserId, ids)
 	if appErr != nil {
 		c.Err = appErr

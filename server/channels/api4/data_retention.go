@@ -264,8 +264,8 @@ func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	teamIDs := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
-	if len(teamIDs) == 0 {
+	teamIDs, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if err != nil || len(teamIDs) == 0 {
 		c.SetInvalidParam("team_ids")
 		return
 	}
@@ -278,9 +278,9 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.AddTeamsToRetentionPolicy(policyId, teamIDs)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.AddTeamsToRetentionPolicy(policyId, teamIDs)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -291,8 +291,8 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	teamIDs := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
-	if len(teamIDs) == 0 {
+	teamIDs, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if err != nil || len(teamIDs) == 0 {
 		c.SetInvalidParam("team_ids")
 		return
 	}
@@ -306,9 +306,9 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.RemoveTeamsFromRetentionPolicy(policyId, teamIDs)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.RemoveTeamsFromRetentionPolicy(policyId, teamIDs)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -383,8 +383,8 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	channelIDs := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
-	if len(channelIDs) == 0 {
+	channelIDs, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if err != nil || len(channelIDs) == 0 {
 		c.SetInvalidParam("channel_ids")
 		return
 	}
@@ -398,9 +398,9 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.AddChannelsToRetentionPolicy(policyId, channelIDs)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.AddChannelsToRetentionPolicy(policyId, channelIDs)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -411,8 +411,8 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	channelIDs := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
-	if len(channelIDs) == 0 {
+	channelIDs, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if err != nil || len(channelIDs) == 0 {
 		c.SetInvalidParam("channel_ids")
 		return
 	}
@@ -426,9 +426,9 @@ func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err := c.App.RemoveChannelsFromRetentionPolicy(policyId, channelIDs)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.RemoveChannelsFromRetentionPolicy(policyId, channelIDs)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 

@@ -425,7 +425,11 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJSONNonSort(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	userIds, err := model.ArrayFromJSONNonSort(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if err != nil {
+		c.SetInvalidParam("user_ids")
+		return
+	}
 	allowed := false
 
 	// single userId allowed if creating a self-channel
@@ -469,9 +473,9 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	audit.AddEventParameter(auditRec, "user_id", otherUserId)
 
-	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, otherUserId)
-	if err != nil {
-		c.Err = err
+	canSee, appErr := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, otherUserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -480,9 +484,9 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sc, err := c.App.GetOrCreateDirectChannel(c.AppContext, userIds[0], userIds[1])
-	if err != nil {
-		c.Err = err
+	sc, appErr := c.App.GetOrCreateDirectChannel(c.AppContext, userIds[0], userIds[1])
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -516,9 +520,8 @@ func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
-
-	if len(userIds) == 0 {
+	userIds, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if err != nil || len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}
@@ -566,9 +569,9 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groupChannel, err := c.App.CreateGroupChannel(c.AppContext, userIds, c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
+	groupChannel, appErr := c.App.CreateGroupChannel(c.AppContext, userIds, c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -702,16 +705,19 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	channelIDs := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
-	if !c.App.SessionHasPermissionToChannels(c.AppContext, *c.AppContext.Session(), channelIDs, model.PermissionReadChannel) {
+	channelIds, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if err != nil || len(channelIds) == 0 {
+		c.SetInvalidParam("user_ids")
+		return
+	}
+	if !c.App.SessionHasPermissionToChannels(c.AppContext, *c.AppContext.Session(), channelIds, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
-	channelsMemberCount, err := c.App.GetChannelsMemberCount(c.AppContext, channelIDs)
-
-	if err != nil {
-		c.Err = err
+	channelsMemberCount, appErr := c.App.GetChannelsMemberCount(c.AppContext, channelIds)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -896,9 +902,9 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	channelIds := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
-	if len(channelIds) == 0 {
-		c.SetInvalidParam("channel_ids")
+	channelIds, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if err != nil || len(channelIds) == 0 {
+		c.SetInvalidParam("user_ids")
 		return
 	}
 
@@ -914,15 +920,15 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	channels, err := c.App.GetPublicChannelsByIdsForTeam(c.AppContext, c.Params.TeamId, channelIds)
-	if err != nil {
-		c.Err = err
+	channels, appErr := c.App.GetPublicChannelsByIdsForTeam(c.AppContext, c.Params.TeamId, channelIds)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	err = c.App.FillInChannelsProps(c.AppContext, channels)
-	if err != nil {
-		c.Err = err
+	appErr = c.App.FillInChannelsProps(c.AppContext, channels)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1436,8 +1442,8 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userIds := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
-	if len(userIds) == 0 {
+	userIds, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if err != nil || len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}
@@ -1447,9 +1453,9 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	members, err := c.App.GetChannelMembersByIds(c.AppContext, c.Params.ChannelId, userIds)
-	if err != nil {
-		c.Err = err
+	members, appErr := c.App.GetChannelMembersByIds(c.AppContext, c.Params.ChannelId, userIds)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1559,8 +1565,8 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func readMultipleChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 
-	channelIDs := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
-	if len(channelIDs) == 0 {
+	channelIDs, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSize)
+	if err != nil || len(channelIDs) == 0 {
 		c.SetInvalidParam("channel_ids")
 		return
 	}
