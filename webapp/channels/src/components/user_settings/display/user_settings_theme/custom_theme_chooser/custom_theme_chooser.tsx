@@ -4,7 +4,7 @@
 import React, {createRef} from 'react';
 import type {ChangeEvent, ClipboardEvent, MouseEvent, RefObject} from 'react';
 import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
