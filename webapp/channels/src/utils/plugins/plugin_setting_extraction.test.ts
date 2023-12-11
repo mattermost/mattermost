@@ -7,7 +7,7 @@ import {extractPluginConfiguration} from './plugin_setting_extraction';
 
 function getFullExample(): PluginConfiguration {
     return {
-        id: 'some id',
+        id: '',
         sections: [
             {
                 settings: [
@@ -77,7 +77,7 @@ function getFullExample(): PluginConfiguration {
 describe('plugin setting extraction', () => {
     it('happy path', () => {
         const config = getFullExample();
-        const res = extractPluginConfiguration(config);
+        const res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections).toHaveLength(2);
         expect(res?.sections[0].settings).toHaveLength(2);
@@ -85,37 +85,40 @@ describe('plugin setting extraction', () => {
         expect(res?.sections[0].settings[0].options).toHaveLength(2);
     });
 
-    it('reject configs without ids', () => {
+    it('id gets overridden', () => {
         const config: any = getFullExample();
-        config.id = '';
-        let res = extractPluginConfiguration(config);
-        expect(res).toBeFalsy();
+        const pluginId = 'PluginId';
+        config.id = 'otherId';
+        let res = extractPluginConfiguration(config, pluginId);
+        expect(res).toBeTruthy();
+        expect(res!.id).toBe(pluginId);
 
         delete config.id;
-        res = extractPluginConfiguration(config);
-        expect(res).toBeFalsy();
+        res = extractPluginConfiguration(config, pluginId);
+        expect(res).toBeTruthy();
+        expect(res!.id).toBe(pluginId);
     });
 
     it('reject configs without name', () => {
         const config: any = getFullExample();
         config.uiName = '';
-        let res = extractPluginConfiguration(config);
+        let res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeFalsy();
 
         delete config.uiName;
-        res = extractPluginConfiguration(config);
+        res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeFalsy();
     });
 
     it('filter out sections without a title', () => {
         const config: any = getFullExample();
         config.sections[0].title = '';
-        let res = extractPluginConfiguration(config);
+        let res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections).toHaveLength(1);
 
         delete config.sections[0].title;
-        res = extractPluginConfiguration(config);
+        res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections).toHaveLength(1);
     });
@@ -123,12 +126,12 @@ describe('plugin setting extraction', () => {
     it('filter out settings without a type', () => {
         const config: any = getFullExample();
         config.sections[0].settings[0].type = '';
-        let res = extractPluginConfiguration(config);
+        let res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections[0].settings).toHaveLength(1);
 
         delete config.sections[0].settings[0].type;
-        res = extractPluginConfiguration(config);
+        res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections[0].settings).toHaveLength(1);
     });
@@ -136,12 +139,12 @@ describe('plugin setting extraction', () => {
     it('filter out settings without a name', () => {
         const config: any = getFullExample();
         config.sections[0].settings[0].name = '';
-        let res = extractPluginConfiguration(config);
+        let res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections[0].settings).toHaveLength(1);
 
         delete config.sections[0].settings[0].name;
-        res = extractPluginConfiguration(config);
+        res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections[0].settings).toHaveLength(1);
     });
@@ -149,12 +152,12 @@ describe('plugin setting extraction', () => {
     it('filter out settings without a default value', () => {
         const config: any = getFullExample();
         config.sections[0].settings[0].default = '';
-        let res = extractPluginConfiguration(config);
+        let res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections[0].settings).toHaveLength(1);
 
         delete config.sections[0].settings[0].default;
-        res = extractPluginConfiguration(config);
+        res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections[0].settings).toHaveLength(1);
     });
@@ -162,12 +165,12 @@ describe('plugin setting extraction', () => {
     it('filter out radio options without a text', () => {
         const config: any = getFullExample();
         config.sections[0].settings[0].options[0].text = '';
-        let res = extractPluginConfiguration(config);
+        let res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections[0].settings[0].options).toHaveLength(1);
 
         delete config.sections[0].settings[0].options[0].text;
-        res = extractPluginConfiguration(config);
+        res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections[0].settings[0].options).toHaveLength(1);
     });
@@ -175,12 +178,12 @@ describe('plugin setting extraction', () => {
     it('filter out radio options without a value', () => {
         const config: any = getFullExample();
         config.sections[0].settings[0].options[0].value = '';
-        let res = extractPluginConfiguration(config);
+        let res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections[0].settings[0].options).toHaveLength(1);
 
         delete config.sections[0].settings[0].options[0].value;
-        res = extractPluginConfiguration(config);
+        res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections[0].settings[0].options).toHaveLength(1);
     });
@@ -192,14 +195,14 @@ describe('plugin setting extraction', () => {
             title: 'foo',
         }];
 
-        const res: any = extractPluginConfiguration(config);
+        const res: any = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeFalsy();
     });
 
     it('filter out invalid sections', () => {
         const config = getFullExample();
         config.sections.push({settings: [], title: 'foo'});
-        const res = extractPluginConfiguration(config);
+        const res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections).toHaveLength(2);
     });
@@ -208,7 +211,7 @@ describe('plugin setting extraction', () => {
         const config = getFullExample();
         config.sections[0].settings[0].options = [];
         config.sections[0].settings[1].options = [];
-        const res = extractPluginConfiguration(config);
+        const res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections).toHaveLength(1);
     });
@@ -216,7 +219,7 @@ describe('plugin setting extraction', () => {
     it('filter out invalid settings', () => {
         const config = getFullExample();
         config.sections[0].settings[0].options = [];
-        const res = extractPluginConfiguration(config);
+        const res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections[0].settings).toHaveLength(1);
     });
@@ -225,7 +228,7 @@ describe('plugin setting extraction', () => {
         const config = getFullExample();
         config.sections[0].settings[0].options[0].value = '';
         config.sections[0].settings[0].options[1].value = '';
-        const res = extractPluginConfiguration(config);
+        const res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections[0].settings).toHaveLength(1);
     });
@@ -233,7 +236,7 @@ describe('plugin setting extraction', () => {
     it('(future proof) filter out extra config arguments', () => {
         const config: any = getFullExample();
         config.futureProperty = 'hello';
-        const res: any = extractPluginConfiguration(config);
+        const res: any = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res.futureProperty).toBeFalsy();
     });
@@ -241,7 +244,7 @@ describe('plugin setting extraction', () => {
     it('(future proof) filter out extra section arguments', () => {
         const config: any = getFullExample();
         config.sections[0].futureProperty = 'hello';
-        const res: any = extractPluginConfiguration(config);
+        const res: any = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res.sections).toHaveLength(2);
         expect(res.sections[0].futureProperty).toBeFalsy();
@@ -250,7 +253,7 @@ describe('plugin setting extraction', () => {
     it('(future proof) filter out extra setting arguments', () => {
         const config: any = getFullExample();
         config.sections[0].settings[0].futureProperty = 'hello';
-        const res: any = extractPluginConfiguration(config);
+        const res: any = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res.sections[0].settings).toHaveLength(2);
         expect(res.sections[0].settings[0].futureProperty).toBeFalsy();
@@ -259,7 +262,7 @@ describe('plugin setting extraction', () => {
     it('(future proof) filter out extra option arguments', () => {
         const config: any = getFullExample();
         config.sections[0].settings[0].options[0].futureProperty = 'hello';
-        const res: any = extractPluginConfiguration(config);
+        const res: any = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res.sections[0].settings[0].options).toHaveLength(2);
         expect(res.sections[0].settings[0].options[0].futureProperty).toBeFalsy();
@@ -268,7 +271,7 @@ describe('plugin setting extraction', () => {
     it('(future proof) filter out unknown settings', () => {
         const config: any = getFullExample();
         config.sections[0].settings[0].type = 'newType';
-        const res = extractPluginConfiguration(config);
+        const res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections[0].settings).toHaveLength(1);
     });

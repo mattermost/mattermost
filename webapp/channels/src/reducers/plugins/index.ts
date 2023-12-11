@@ -390,15 +390,10 @@ function userSettings(state: PluginsState['userSettings'] = {}, action: GenericA
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS:
         if (action.data) {
-            const extractedConfiguration = extractPluginConfiguration(action.data.setting);
+            const extractedConfiguration = extractPluginConfiguration(action.data.setting, action.data.pluginId);
             if (!extractedConfiguration) {
                 // eslint-disable-next-line no-console
                 console.warn(`Plugin ${action.data.pluginId} is trying to register an invalid configuration. Contact the plugin developer to fix this issue.`);
-                return state;
-            }
-            if (extractedConfiguration.id !== action.data.pluginId) {
-                // eslint-disable-next-line no-console
-                console.warn(`There is a mismatch between the plugin ${action.data.pluginId} and the configuration added (${extractedConfiguration.id})`);
                 return state;
             }
             const nextState = {...state};

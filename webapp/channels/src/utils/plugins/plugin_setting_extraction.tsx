@@ -3,16 +3,12 @@
 
 import type {BasePluginConfigurationSetting, PluginConfiguration, PluginConfigurationRadioSetting, PluginConfigurationRadioSettingOption, PluginConfigurationSection} from 'types/plugins/user_settings';
 
-export function extractPluginConfiguration(pluginConfiguration: unknown) {
+export function extractPluginConfiguration(pluginConfiguration: unknown, pluginId: string) {
     if (!pluginConfiguration) {
         return undefined;
     }
 
     if (typeof pluginConfiguration !== 'object') {
-        return undefined;
-    }
-
-    if (!('id' in pluginConfiguration) || !pluginConfiguration.id || typeof pluginConfiguration.id !== 'string') {
         return undefined;
     }
 
@@ -38,7 +34,7 @@ export function extractPluginConfiguration(pluginConfiguration: unknown) {
     }
 
     const result: PluginConfiguration = {
-        id: pluginConfiguration.id,
+        id: pluginId,
         icon,
         sections: [],
         uiName: pluginConfiguration.uiName,
