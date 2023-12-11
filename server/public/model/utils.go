@@ -246,8 +246,11 @@ func (er *AppError) Error() string {
 	var sb strings.Builder
 
 	// render the error information
-	sb.WriteString(er.Where)
-	sb.WriteString(": ")
+	if er.Where != "" {
+		sb.WriteString(er.Where)
+		sb.WriteString(": ")
+	}
+
 	if er.Message != NoTranslation {
 		sb.WriteString(er.Message)
 	}

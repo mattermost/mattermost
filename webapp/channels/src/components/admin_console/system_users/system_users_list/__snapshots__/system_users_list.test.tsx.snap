@@ -33,6 +33,7 @@ exports[`components/admin_console/system_users/list should match default snapsho
     isDisabled={false}
     mfaEnabled={false}
     nextPage={[Function]}
+    noBuiltInFilters={true}
     onTermChange={[MockFunction]}
     page={0}
     previousPage={[Function]}
@@ -46,7 +47,7 @@ exports[`components/admin_console/system_users/list should match default snapsho
         "type": [Function],
       }
     }
-    search={[Function]}
+    search={[MockFunction]}
     teamId=""
     term=""
     total={0}
@@ -214,6 +215,7 @@ exports[`components/admin_console/system_users/list should match default snapsho
     isDisabled={false}
     mfaEnabled={false}
     nextPage={[Function]}
+    noBuiltInFilters={true}
     onTermChange={[MockFunction]}
     page={0}
     previousPage={[Function]}
@@ -227,7 +229,7 @@ exports[`components/admin_console/system_users/list should match default snapsho
         "type": [Function],
       }
     }
-    search={[Function]}
+    search={[MockFunction]}
     teamId=""
     term=""
     total={0}
@@ -441,6 +443,7 @@ exports[`components/admin_console/system_users/list should match default snapsho
     isDisabled={false}
     mfaEnabled={true}
     nextPage={[Function]}
+    noBuiltInFilters={true}
     onTermChange={[MockFunction]}
     page={0}
     previousPage={[Function]}
@@ -454,7 +457,7 @@ exports[`components/admin_console/system_users/list should match default snapsho
         "type": [Function],
       }
     }
-    search={[Function]}
+    search={[MockFunction]}
     teamId=""
     term=""
     total={0}
