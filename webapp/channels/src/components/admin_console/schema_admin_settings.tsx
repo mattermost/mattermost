@@ -6,10 +6,14 @@ import {Overlay} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import type {AdminConfig} from '@mattermost/types/config';
+import type {CloudState} from '@mattermost/types/cloud';
+import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionFunc} from 'mattermost-redux/types/actions';
+
+import type {getConsoleAccess} from 'selectors/admin_console';
 
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import ColorSetting from 'components/admin_console/color_setting';
@@ -22,6 +26,7 @@ import RadioSetting from 'components/admin_console/radio_setting';
 import RemoveFileSetting from 'components/admin_console/remove_file_setting';
 import RequestButton from 'components/admin_console/request_button/request_button';
 import SchemaText from 'components/admin_console/schema_text';
+import Setting from 'components/admin_console/setting';
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
 import UserAutocompleteSetting from 'components/admin_console/user_autocomplete_setting';
@@ -37,22 +42,21 @@ import Constants from 'utils/constants';
 import {rolesFromMapping, mappingValueFromRoles} from 'utils/policy_roles_adapter';
 import * as Utils from 'utils/utils';
 
-import Setting from './setting';
-
 import './schema_admin_settings.scss';
+import type {AdminDefinitionSubSection, Check} from './types';
 
 type Props = {
-    config: object;
-    environmentConfig: object;
-    setNavigationBlocked: (...args: any[]) => any;
-    schema: object;
-    roles: object;
-    license: object;
+    config: DeepPartial<AdminConfig>;
+    environmentConfig: Partial<EnvironmentConfig>;
+    setNavigationBlocked: () => void;
+    schema: AdminDefinitionSubSection['schema'];
+    roles: Record<string, Role>;
+    license: Record<string, unknown>;
     editRole?: (role: Role) => void;
     updateConfig?: (config: AdminConfig) => ActionFunc;
-    isDisabled: boolean;
-    consoleAccess: object;
-    cloud: object;
+    isDisabled: Check;
+    consoleAccess: ReturnType<typeof getConsoleAccess>;
+    cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
 };
 
@@ -68,6 +72,13 @@ type State = {
 };
 
 export default class SchemaAdminSettings extends React.PureComponent<Props, State> {
+    isPlugin: boolean;
+    saveActions: unknown[];
+    errorMessageRef: React.RefObject<unknown>;
+    buildSettingFunctions: {
+        [x: string]: (setting: unknown) => JSX.Element | null;
+    };
+
     public constructor(props: Props) {
         super(props);
         this.state = {
@@ -82,8 +93,8 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
         };
 
         this.isPlugin = false;
-
         this.saveActions = [];
+        this.errorMessageRef = React.createRef();
 
         this.buildSettingFunctions = {
             [Constants.SettingsTypes.TYPE_TEXT]: this.buildTextSetting,
@@ -103,11 +114,9 @@ export default class SchemaAdminSettings extends React.PureComponent<Props, Stat
             [Constants.SettingsTypes.TYPE_FILE_UPLOAD]: this.buildFileUploadSetting,
             [Constants.SettingsTypes.TYPE_CUSTOM]: this.buildCustomSetting,
         };
-
-        this.errorMessageRef = React.createRef();
     }
 
-    public static getDerivedStateFromProps(props, state) {
+    public static getDerivedStateFromProps(props: Props, state: State) {
         if (props.schema && props.schema.id !== state.prevSchemaId) {
             return {
                 prevSchemaId: props.schema.id,
