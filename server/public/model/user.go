@@ -48,10 +48,6 @@ const (
 	PushThreadsNotifyProp          = "push_threads"
 	EmailThreadsNotifyProp         = "email_threads"
 
-	ReportDurationLast30Days    = "last_30_days"
-	ReportDurationPreviousMonth = "previous_month"
-	ReportDurationLast6Months   = "last_6_months"
-
 	DefaultLocale        = "en"
 	UserAuthServiceEmail = "email"
 
@@ -1022,75 +1018,4 @@ type UserPostStats struct {
 	LastPostDate *int64 `json:"last_post_date,omitempty"`
 	DaysActive   *int   `json:"days_active,omitempty"`
 	TotalPosts   *int   `json:"total_posts,omitempty"`
-}
-
-type UserReportQuery struct {
-	User
-	UserPostStats
-}
-
-type UserReport struct {
-	Id          string `json:"id"`
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	CreateAt    int64  `json:"create_at,omitempty"`
-	DisplayName string `json:"display_name"`
-	Roles       string `json:"roles"`
-	UserPostStats
-}
-
-type UserReportOptionsWithoutDateRange struct {
-	SortColumn          string
-	SortDesc            bool
-	PageSize            int
-	LastSortColumnValue string
-	LastUserId          string
-	Role                string
-	Team                string
-	HasNoTeam           bool
-	HideActive          bool
-	HideInactive        bool
-}
-
-type UserReportOptions struct {
-	UserReportOptionsWithoutDateRange
-	StartAt int64
-	EndAt   int64
-}
-
-type UserReportOptionsAPI struct {
-	UserReportOptionsWithoutDateRange
-	DateRange string
-}
-
-func (u *UserReportOptionsAPI) ToBaseOptions(now time.Time) *UserReportOptions {
-	startAt := int64(0)
-	endAt := int64(0)
-	if u.DateRange == ReportDurationLast30Days {
-		startAt = now.AddDate(0, 0, -30).UnixMilli()
-	} else if u.DateRange == ReportDurationPreviousMonth {
-		startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.Local)
-		startAt = startOfMonth.AddDate(0, -1, 0).UnixMilli()
-		endAt = startOfMonth.UnixMilli()
-	} else if u.DateRange == ReportDurationLast6Months {
-		startAt = now.AddDate(0, -6, -0).UnixMilli()
-	}
-
-	return &UserReportOptions{
-		UserReportOptionsWithoutDateRange: u.UserReportOptionsWithoutDateRange,
-		StartAt:                           startAt,
-		EndAt:                             endAt,
-	}
-}
-
-func (u *UserReportQuery) ToReport() *UserReport {
-	return &UserReport{
-		Id:            u.Id,
-		Username:      u.Username,
-		Email:         u.Email,
-		CreateAt:      u.CreateAt,
-		DisplayName:   u.GetDisplayName(ShowNicknameFullName),
-		Roles:         u.Roles,
-		UserPostStats: u.UserPostStats,
-	}
 }

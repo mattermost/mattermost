@@ -3475,23 +3475,24 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	options := &model.UserReportOptionsAPI{
-		UserReportOptionsWithoutDateRange: model.UserReportOptionsWithoutDateRange{
+	options := &model.UserReportOptions{
+		ReportingBaseOptions: model.ReportingBaseOptions{
 			SortColumn:          sortColumn,
 			SortDesc:            r.URL.Query().Get("sort_direction") == "desc",
 			PageSize:            pageSize,
-			Team:                teamFilter,
 			LastSortColumnValue: r.URL.Query().Get("last_column_value"),
-			LastUserId:          r.URL.Query().Get("last_id"),
-			Role:                r.URL.Query().Get("role_filter"),
-			HasNoTeam:           r.URL.Query().Get("has_no_team") == "true",
-			HideActive:          hideActive,
-			HideInactive:        hideInactive,
+			DateRange:           r.URL.Query().Get("date_range"),
 		},
-		DateRange: r.URL.Query().Get("date_range"),
+		Team:         teamFilter,
+		LastUserId:   r.URL.Query().Get("last_id"),
+		Role:         r.URL.Query().Get("role_filter"),
+		HasNoTeam:    r.URL.Query().Get("has_no_team") == "true",
+		HideActive:   hideActive,
+		HideInactive: hideInactive,
 	}
+	options.PopulateDateRange(time.Now())
 
-	userReports, err := c.App.GetUsersForReporting(options.ToBaseOptions(time.Now()))
+	userReports, err := c.App.GetUsersForReporting(options)
 	if err != nil {
 		c.Err = err
 		return

@@ -615,11 +615,14 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 	startAt, _ := time.Parse("2006-01-02", "2020-12-01")
 	endAt, _ := time.Parse("2006-01-02", "2023-12-31")
 
-	s.GetChannelsReport(&model.ChannelReportOptions{
+	lol, _ := s.GetChannelsReport(&model.ChannelReportOptions{
 		SortColumn: model.ChannelReportingSortByDisplayName,
 		StartAt:    startAt.UnixMilli(),
 		EndAt:      endAt.UnixMilli(),
 	})
+
+	fmt.Println(fmt.Sprintf("%v", lol))
+
 	return newChannel, err
 }
 
@@ -4327,7 +4330,27 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 	return &team, nil
 }
 
-func (s SqlChannelStore) GetChannelsReport(filter *model.ChannelReportOptions) ([]*model.ChannelReportQuery, error) {
+func (s SqlChannelStore) GetChannelsReport(filter *model.ChannelReportOptions) ([]*model.ChannelReport, error) {
+	query := s.getChannelReportGenerateQuery(filter)
+
+	q, p, e := query.ToSql()
+	if e != nil {
+		mlog.Err(e)
+		return nil, nil
+	}
+
+	fmt.Println(q)
+	fmt.Println(fmt.Sprintf("%v", p))
+
+	channelReport := []*model.ChannelReport{}
+	if err := s.GetReplicaX().SelectBuilder(&channelReport, query); err != nil {
+		return nil, errors.Wrap(err, "failed to get channel report")
+	}
+
+	return channelReport, nil
+}
+
+func (s SqlChannelStore) getChannelReportGenerateQuery(filter *model.ChannelReportOptions) sq.SelectBuilder {
 	query := s.getQueryBuilder().
 		Select(
 			"c.id",
@@ -4335,15 +4358,46 @@ func (s SqlChannelStore) GetChannelsReport(filter *model.ChannelReportOptions) (
 			"c.type",
 			"c.groupconstrained",
 			"c.teamid",
-			"MIN(cms.usercount) AS usercount",
+			"MIN(cms.usercount) AS membercount",
 			"SUM(pcs.numposts) AS postcount",
 		).
 		From("channels AS c").
 		LeftJoin("channelmemberstats AS cms ON c.id = cms.id").
 		LeftJoin("channelpoststats AS pcs ON c.id = pcs.channelid").
 		Where(sq.Eq{
-			"c.id": []model.ChannelType{model.ChannelTypeOpen, model.ChannelTypePrivate}},
+			"c.type": []model.ChannelType{model.ChannelTypeOpen, model.ChannelTypePrivate}},
 		)
+
+	query = s.getChannelReportApplyPagination(filter, query)
+
+	if filter.StartAt > 0 || filter.EndAt > 0 {
+		dateFilter := sq.And{}
+		if filter.StartAt > 0 {
+			startDate := time.UnixMilli(filter.StartAt)
+			dateFilter = append(dateFilter, sq.GtOrEq{"pcs.day": startDate.Format("2006-01-02")})
+		}
+
+		if filter.EndAt > 0 {
+			endDate := time.UnixMilli(filter.EndAt)
+			dateFilter = append(dateFilter, sq.LtOrEq{"pcs.day": endDate.Format("2006-01-02")})
+		}
+
+		query = query.Where(sq.Or{
+			sq.Expr("pcs.day IS NULL"),
+			dateFilter,
+		})
+	}
+
+	query = query.GroupBy("c.id").
+		Limit(50)
+
+	return query
+}
+
+func (s SqlChannelStore) getChannelReportApplyPagination(filter *model.ChannelReportOptions, query sq.SelectBuilder) sq.SelectBuilder {
+	if filter.LastSortColumnValue == "" {
+		return query
+	}
 
 	if filter.SortColumn == model.ChannelReportingSortByDisplayName {
 		if filter.SortDesc {
@@ -4367,33 +4421,5 @@ func (s SqlChannelStore) GetChannelsReport(filter *model.ChannelReportOptions) (
 		query = query.OrderBy("c.displayname", "c.id")
 	}
 
-	if filter.StartAt > 0 || filter.EndAt > 0 {
-		dateFilter := sq.And{}
-		if filter.StartAt > 0 {
-			startDate := time.UnixMilli(filter.StartAt)
-			dateFilter = append(dateFilter, sq.GtOrEq{"pcs.day": startDate.Format("2006-01-02")})
-		}
-
-		if filter.EndAt > 0 {
-			endDate := time.UnixMilli(filter.EndAt)
-			dateFilter = append(dateFilter, sq.LtOrEq{"pcs.day": endDate.Format("2006-01-02")})
-		}
-
-		query = query.Where(sq.Or{
-			sq.Expr("pcs.day IS NULL"),
-			dateFilter,
-		})
-	}
-
-	query = query.GroupBy("c.id")
-
-	q, p, e := query.ToSql()
-	if e != nil {
-		mlog.Err(e)
-		return nil, nil
-	}
-
-	fmt.Println(q)
-	fmt.Println(fmt.Sprintf("%v", p))
-	return nil, nil
+	return query
 }

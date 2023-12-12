@@ -1918,7 +1918,7 @@ func (c *Client4) EnableUserAccessToken(ctx context.Context, tokenId string) (*R
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportOptionsAPI) ([]*UserReport, *Response, error) {
+func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportOptions) ([]*UserReport, *Response, error) {
 	values := url.Values{}
 	if options.SortColumn != "" {
 		values.Set("sort_column", options.SortColumn)

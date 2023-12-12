@@ -428,7 +428,7 @@ type ChannelReportStats struct {
 	PostCount   int
 }
 
-type ChannelReportQuery struct {
+type ChannelReport struct {
 	Channel
 	ChannelReportStats
 }

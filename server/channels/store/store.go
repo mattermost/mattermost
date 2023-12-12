@@ -321,6 +321,9 @@ type ChannelStore interface {
 	SetShared(channelId string, shared bool) error
 	// GetTeamForChannel returns the team for a given channelID.
 	GetTeamForChannel(channelID string) (*model.Team, error)
+
+	// GetChannelsReport returns the channel report for system console
+	GetChannelsReport(filter *model.ChannelReportOptions) ([]*model.ChannelReport, error)
 }
 
 type ChannelMemberHistoryStore interface {
