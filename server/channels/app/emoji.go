@@ -366,3 +366,17 @@ func (a *App) deleteReactionsForEmoji(rctx request.CTX, emojiName string) {
 		rctx.Logger().Warn("Unable to delete reactions when deleting emoji", mlog.String("emoji_name", emojiName), mlog.Err(err))
 	}
 }
+
+func (a *App) confirmEmojiExists(c request.CTX, emojiName string) *model.AppError {
+	if model.IsSystemEmojiName(emojiName) {
+		return nil
+	}
+
+	err := model.IsValidEmojiName(emojiName)
+	if err != nil {
+		return err
+	}
+
+	_, err = a.GetEmojiByName(c, emojiName)
+	return err
+}
