@@ -45,6 +45,7 @@ const (
 	PostTypeChannelRestored        = "system_channel_restored"
 	PostTypeEphemeral              = "system_ephemeral"
 	PostTypeChangeChannelPrivacy   = "system_change_chan_privacy"
+	PostTypeWrangler               = "system_wrangler"
 	PostTypeGMConvertedToChannel   = "system_gm_to_channel"
 	PostTypeAddBotTeamsChannels    = "add_bot_teams_channels"
 	PostTypeSystemWarnMetricStatus = "warn_metric_status"
@@ -191,6 +192,10 @@ type GetPersistentNotificationsPostsParams struct {
 	MaxTime      int64
 	MaxSentCount int16
 	PerPage      int
+}
+
+type MoveThreadParams struct {
+	ChannelId string `json:"channel_id"`
 }
 
 type SearchParameter struct {
@@ -444,6 +449,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeSystemWarnMetricStatus,
 		PostTypeReminder,
 		PostTypeMe,
+		PostTypeWrangler,
 		PostTypeGMConvertedToChannel:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
@@ -892,4 +898,12 @@ func (o *Post) IsUrgent() bool {
 	}
 
 	return *postPriority.Priority == PostPriorityUrgent
+}
+
+func (o *Post) CleanPost() *Post {
+	o.Id = ""
+	o.CreateAt = 0
+	o.UpdateAt = 0
+	o.EditAt = 0
+	return o
 }

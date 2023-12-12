@@ -105,13 +105,15 @@ type WebConn struct {
 	// a reused connection.
 	// It's theoretically possible for this number to wrap around. But we
 	// leave that as an edge-case.
-	reuseCount   int
-	sessionToken atomic.Value
-	session      atomic.Pointer[model.Session]
-	connectionID atomic.Value
-	endWritePump chan struct{}
-	pumpFinished chan struct{}
-	pluginPosted chan pluginWSPostedHook
+	reuseCount      int
+	sessionToken    atomic.Value
+	session         atomic.Pointer[model.Session]
+	connectionID    atomic.Value
+	activeChannelID atomic.Value
+	activeTeamID    atomic.Value
+	endWritePump    chan struct{}
+	pumpFinished    chan struct{}
+	pluginPosted    chan pluginWSPostedHook
 
 	// These counters are to suppress spammy websocket.slow
 	// and websocket.full logs which happen continuously, if they
@@ -288,6 +290,26 @@ func (wc *WebConn) SetConnectionID(id string) {
 // GetConnectionID returns the connection id of the connection.
 func (wc *WebConn) GetConnectionID() string {
 	return wc.connectionID.Load().(string)
+}
+
+// SetActiveChannelID sets the active channel id of the connection.
+func (wc *WebConn) SetActiveChannelID(id string) {
+	wc.activeChannelID.Store(id)
+}
+
+// GetActiveChannelID returns the active channel id of the connection.
+func (wc *WebConn) GetActiveChannelID() string {
+	return wc.activeChannelID.Load().(string)
+}
+
+// SetActiveTeamID sets the active team id of the connection.
+func (wc *WebConn) SetActiveTeamID(id string) {
+	wc.activeTeamID.Store(id)
+}
+
+// GetActiveTeamID returns the active team id of the connection.
+func (wc *WebConn) GetActiveTeamID() string {
+	return wc.activeTeamID.Load().(string)
 }
 
 // areAllInactive returns whether all of the connections

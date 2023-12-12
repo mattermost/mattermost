@@ -42,6 +42,8 @@ type FeatureFlags struct {
 
 	EnableExportDirectDownload bool
 
+	MoveThreadsEnabled bool
+
 	StreamlinedMarketplace bool
 
 	CloudIPFiltering bool
@@ -62,6 +64,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
+	f.MoveThreadsEnabled = false
 	f.StreamlinedMarketplace = true
 	f.CloudIPFiltering = false
 	f.ConsumePostHook = false
