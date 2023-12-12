@@ -289,11 +289,11 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "Ta rola jest zarządzana przez Schemat w związku z czym nie może być zastosowana bezpośrednio do Członka Kanału."
+    "translation": "Dostarczona rola jest zarządzana przez Schemat i dlatego nie może być zastosowana bezpośrednio do Członka Kanału."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
-    "translation": "Twoja licencja nie wspiera aktualizacji szablonu kanałów"
+    "translation": "Licencja nie obsługuje aktualizacji schematu kanału"
   },
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
@@ -5717,7 +5717,7 @@
   },
   {
     "id": "api.channel.update_channel.typechange.app_error",
-    "translation": "Typ kanału nie może zostać zakutalizowany."
+    "translation": "Typ kanału nie może zostać zaktualizowany."
   },
   {
     "id": "api.channel.restore_channel.unarchived",
