@@ -1,4 +1,44 @@
   /api/v4/channels/{channel_id}/bookmarks:
+    get:
+      tags:
+        - bookmarks
+      summary: Get channel bookmarks for Channel
+      description: |
+        __Minimum server version__: 9.5
+      operationId: ListChannelBookmarksForChannel
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: bookmarks_since
+          in: query
+          description: |
+            Timestamp to filter the bookmarks with. If set, the
+            endpoint returns bookmarks that have been added, updated
+            or deleted since its value
+          required: false
+          schema:
+            type: number
+            format: int64
+      responses:
+        "201":
+          description: Channel Bookmarks retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
     post:
       tags:
         - bookmarks
