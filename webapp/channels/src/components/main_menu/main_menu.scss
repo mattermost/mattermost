@@ -1,0 +1,13 @@
+.MainMenu_dropdown-link {
+    a {
+        &:focus,
+        &:hover,
+        &:active {
+            background-color: rgba(63, 67, 80, 0.1);
+        }
+
+        i + span:hover {
+            text-decoration: none;
+        }
+    }
+}

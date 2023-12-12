@@ -12,7 +12,6 @@ exports[`components/admin_console/system_users/list should match default snapsho
         "doPasswordReset": [Function],
         "enableUserAccessTokens": false,
         "experimentalEnableAuthenticationTransfer": false,
-        "isDisabled": false,
         "mfaEnabled": false,
       }
     }
@@ -34,6 +33,7 @@ exports[`components/admin_console/system_users/list should match default snapsho
     isDisabled={false}
     mfaEnabled={false}
     nextPage={[Function]}
+    noBuiltInFilters={true}
     onTermChange={[MockFunction]}
     page={0}
     previousPage={[Function]}
@@ -47,7 +47,7 @@ exports[`components/admin_console/system_users/list should match default snapsho
         "type": [Function],
       }
     }
-    search={[Function]}
+    search={[MockFunction]}
     teamId=""
     term=""
     total={0}
@@ -96,7 +96,6 @@ exports[`components/admin_console/system_users/list should match default snapsho
         "doPasswordReset": [Function],
         "enableUserAccessTokens": false,
         "experimentalEnableAuthenticationTransfer": false,
-        "isDisabled": false,
         "mfaEnabled": false,
       }
     }
@@ -216,6 +215,7 @@ exports[`components/admin_console/system_users/list should match default snapsho
     isDisabled={false}
     mfaEnabled={false}
     nextPage={[Function]}
+    noBuiltInFilters={true}
     onTermChange={[MockFunction]}
     page={0}
     previousPage={[Function]}
@@ -229,7 +229,7 @@ exports[`components/admin_console/system_users/list should match default snapsho
         "type": [Function],
       }
     }
-    search={[Function]}
+    search={[MockFunction]}
     teamId=""
     term=""
     total={0}
@@ -299,7 +299,6 @@ exports[`components/admin_console/system_users/list should match default snapsho
         "doPasswordReset": [Function],
         "enableUserAccessTokens": false,
         "experimentalEnableAuthenticationTransfer": false,
-        "isDisabled": false,
         "mfaEnabled": true,
       }
     }
@@ -444,6 +443,7 @@ exports[`components/admin_console/system_users/list should match default snapsho
     isDisabled={false}
     mfaEnabled={true}
     nextPage={[Function]}
+    noBuiltInFilters={true}
     onTermChange={[MockFunction]}
     page={0}
     previousPage={[Function]}
@@ -457,7 +457,7 @@ exports[`components/admin_console/system_users/list should match default snapsho
         "type": [Function],
       }
     }
-    search={[Function]}
+    search={[MockFunction]}
     teamId=""
     term=""
     total={0}

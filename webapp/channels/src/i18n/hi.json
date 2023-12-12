@@ -850,8 +850,6 @@
   "admin.experimental.experimentalPrimaryTeam.desc": "प्राथमिक टीम जिसके सर्वर पर उपयोगकर्ता सदस्य हैं। जब एक प्राथमिक टीम सेट की जाती है, तो अन्य टीमों में शामिल होने या प्राथमिक टीम को छोड़ने के विकल्प अक्षम हो जाते हैं।",
   "admin.experimental.experimentalPrimaryTeam.example": "उदाहरण.: \"टीम का नाम\"",
   "admin.experimental.experimentalPrimaryTeam.title": "प्राथमिक टीम:",
-  "admin.experimental.experimentalUseNewSAMLLibrary.desc": "एक अद्यतन SAML लाइब्रेरी सक्षम करें, जिसके लिए XML सुरक्षा लाइब्रेरी (xmlsec1) को स्थापित करने की आवश्यकता नहीं है। चेतावनी: सभी प्रदाताओं का परीक्षण नहीं किया गया है। अगर आपको समस्याएं आती हैं, तो कृपया सहायता टीम से संपर्क करें: [https://mattermost.com/support/](!https://mattermost.com/support/)। इस सेटिंग को बदलने के लिए प्रभावी होने से पहले सर्वर को पुनरारंभ करना आवश्यक है।",
-  "admin.experimental.experimentalUseNewSAMLLibrary.title": "बेहतर SAML पुस्तकालय (बीटा) का उपयोग करें:",
   "admin.experimental.ldapSettingsLoginButtonBorderColor.desc": "सफेद लेबलिंग उद्देश्यों के लिए AD/LDAP लॉगिन बटन बॉर्डर का रंग निर्दिष्ट करें। कोड से पहले #-चिह्न वाले हेक्स कोड का उपयोग करें। यह सेटिंग केवल मोबाइल ऐप्स पर लागू होती है।",
   "admin.experimental.ldapSettingsLoginButtonBorderColor.title": "AD/LDAP लॉगिन बटन बॉर्डर का रंग:",
   "admin.experimental.ldapSettingsLoginButtonColor.desc": "सफेद लेबलिंग उद्देश्यों के लिए AD/LDAP लॉगिन बटन का रंग निर्दिष्ट करें। कोड से पहले #-चिह्न वाले हेक्स कोड का उपयोग करें। यह सेटिंग केवल मोबाइल ऐप्स पर लागू होती है।",

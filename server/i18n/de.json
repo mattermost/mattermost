@@ -604,7 +604,7 @@
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
-    "translation": "Gruppennachrichten sind auf ein Maximum von {{.MinUsers}} Benutzern beschränkt."
+    "translation": "Gruppennachrichten sind auf ein Maximum von {{.MaxUsers}} Benutzern beschränkt."
   },
   {
     "id": "api.command_groupmsg.min_users.app_error",
@@ -2372,7 +2372,7 @@
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "Fehler beim Lesen der importierten Emoji-Bilddatei. Name des Emojis: \"{{.FilePath}}\""
+    "translation": "Fehler beim Lesen der importierten Emoji-Bilddatei. Name des Emojis: \"{{.EmojiName}}\""
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -2852,11 +2852,11 @@
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{ .SiteName }}] Neue Gruppennachricht in {{ .TeamName}} am {{.Day}}.{{.Month}}.{{.Year}}"
+    "translation": "[{{ .SiteName }}] Neue Gruppennachricht in {{ .ChannelName}} am {{.Day}}.{{.Month}}.{{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Neue Gruppennachricht am {{.Day}}. {{.Month}} {{.Year}}"
+    "translation": "[{{ .SiteName }}] Neue Gruppennachricht am {{.Day}}. {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -3884,7 +3884,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Nachrichtenexport GlobalRelaySettings.CustomerType muss auf 'A9' oder 'A10' gesetzt werden."
+    "translation": "Nachrichtenexport GlobalRelaySettings.CustomerType muss auf 'A9', 'A10' oder 'CUSTOM' gesetzt werden."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -8243,7 +8243,7 @@
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
-    "translation": "E-Mail Einladungsgrenze überschritten. Timer wird nach {{.ResetAfter}} Sekunden zurückgesetzt. Bitte nach {{.ResetAfter}} Sekunden nochmal probieren."
+    "translation": "E-Mail Einladungsgrenze überschritten. Timer wird nach {{.ResetAfter}} Sekunden zurückgesetzt. Bitte nach {{.RetryAfter}} Sekunden nochmal probieren."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
@@ -9639,7 +9639,7 @@
   },
   {
     "id": "app.group.username_conflict",
-    "translation": "Benutzer mit dem Benutzernamen \"{{.Benutzername}}\" existiert bereits."
+    "translation": "Benutzer mit dem Benutzernamen \"{{.Username}}\" existiert bereits."
   },
   {
     "id": "api.config.update_config.translations.app_error",
@@ -9983,7 +9983,7 @@
   },
   {
     "id": "model.config.is_valid.log.advanced_logging.parse",
-    "translation": "Ungültiges Format: {{.Fehler}}"
+    "translation": "Ungültiges Format: {{.Error}}"
   },
   {
     "id": "api.context.ip_filtering.get_ip_filters.app_error",
@@ -10036,5 +10036,93 @@
   {
     "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
     "translation": "Melde dich im Kundenportal an, um die IP-Filterung zurückzusetzen"
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "SiteURL-Unterpfad konnte nicht geparst werden"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Audience darf nicht leer sein."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "Einige Audience URLs sind nicht korrekt."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Ungültige Client-ID."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Ungültiges Client Secret."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Erstellt am muss eine gültige Zeit sein."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "Ungültiger Grant-Typ."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "Ungültiger Name."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "Ungültige OAuth Token URL."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "Ungültige Kennwortdaten."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Aktualisiert am muss eine gültige Zeit sein."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "Ungültige Ersteller ID."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "Ungültige ID."
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "Das Reaktionslimit wurde für diesen Beitrag erreicht."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Es können nicht sowohl aktive als auch inaktive Benutzer ausgeblendet werden."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Ungültige Team-ID angegeben."
+  },
+  {
+    "id": "app.user.get_users_for_reporting.bad_date_range",
+    "translation": "Der angegebene Datumsbereich ist ungültig."
+  },
+  {
+    "id": "app.user.get_users_for_reporting.invalid_page_size",
+    "translation": "Die Seitengröße ist ungültig oder zu groß."
+  },
+  {
+    "id": "app.user.get_user_report.store_error",
+    "translation": "Bei der Abfrage des Benutzerberichts ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Die Aktualisierung des benutzerdefinierten Status ist fehlgeschlagen. Ein Emoji mit dem angegebenen Namen existiert nicht."
+  },
+  {
+    "id": "app.user.get_user_report.invalid_sort_column",
+    "translation": "Die angegebene Sortierspalte ist nicht gültig."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Wenn GlobalRelaySettings.CustomerType 'CUSTOM' ist, müssen GlobalRelaySettings.CustomSMTPServerName und GlobalRelaySettings.CustomSMTPPort gesetzt werden."
   }
 ]

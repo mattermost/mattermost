@@ -111,7 +111,7 @@ func makeClient(dialer *websocket.Dialer, url, connectURL, authToken string, hea
 	client.configurePingHandling()
 	go client.writer()
 
-	client.SendMessage(WebsocketAuthenticationChallenge, map[string]any{"token": authToken})
+	client.SendMessage(string(WebsocketAuthenticationChallenge), map[string]any{"token": authToken})
 
 	return client, nil
 }
@@ -157,7 +157,7 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 	wsc.EventChannel = make(chan *WebSocketEvent, 100)
 	wsc.ResponseChannel = make(chan *WebSocketResponse, 100)
 
-	wsc.SendMessage(WebsocketAuthenticationChallenge, map[string]any{"token": wsc.AuthToken})
+	wsc.SendMessage(string(WebsocketAuthenticationChallenge), map[string]any{"token": wsc.AuthToken})
 
 	return nil
 }
@@ -324,6 +324,22 @@ func (wsc *WebSocketClient) GetStatusesByIds(userIds []string) {
 		"user_ids": userIds,
 	}
 	wsc.SendMessage("get_statuses_by_ids", data)
+}
+
+// UpdateActiveChannel sets the current channel that the user is viewing.
+func (wsc *WebSocketClient) UpdateActiveChannel(channelID string) {
+	data := map[string]any{
+		"channel_id": channelID,
+	}
+	wsc.SendMessage(string(WebsocketPresenceIndicator), data)
+}
+
+// UpdateActiveTeam sets the current team that the user is in.
+func (wsc *WebSocketClient) UpdateActiveTeam(teamID string) {
+	data := map[string]any{
+		"team_id": teamID,
+	}
+	wsc.SendMessage(string(WebsocketPresenceIndicator), data)
 }
 
 func (wsc *WebSocketClient) configurePingHandling() {
