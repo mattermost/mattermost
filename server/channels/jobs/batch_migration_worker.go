@@ -28,7 +28,8 @@ type BatchMigrationWorkerAppIFace interface {
 // server in order to retry a failed migration job. Refactoring the job infrastructure is left as
 // a future exercise.
 type BatchMigrationWorker struct {
-	BatchWorker[BatchMigrationWorkerAppIFace]
+	BatchWorker
+	app              BatchMigrationWorkerAppIFace
 	migrationKey     string
 	doMigrationBatch func(data model.StringMap, store store.Store) (model.StringMap, bool, error)
 }
@@ -43,14 +44,14 @@ func MakeBatchMigrationWorker(
 	doMigrationBatch func(data model.StringMap, store store.Store) (model.StringMap, bool, error),
 ) model.Worker {
 	worker := &BatchMigrationWorker{
+		app:              app,
 		migrationKey:     migrationKey,
 		doMigrationBatch: doMigrationBatch,
 	}
-	worker.BatchWorker = BatchWorker[BatchMigrationWorkerAppIFace]{
+	worker.BatchWorker = BatchWorker{
 		jobServer:          jobServer,
 		logger:             jobServer.Logger().With(mlog.String("worker_name", migrationKey)),
 		store:              store,
-		app:                app,
 		stop:               make(chan struct{}),
 		stopped:            make(chan bool, 1),
 		jobs:               make(chan model.Job),

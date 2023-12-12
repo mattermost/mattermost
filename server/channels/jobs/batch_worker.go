@@ -13,11 +13,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-type BatchWorker[T interface{}] struct {
+type BatchWorker struct {
 	jobServer *JobServer
 	logger    mlog.LoggerIFace
 	store     store.Store
-	app       T
 
 	stop    chan struct{}
 	stopped chan bool
@@ -29,19 +28,17 @@ type BatchWorker[T interface{}] struct {
 }
 
 // MakeBatchWorker creates a worker to process the given batch function.
-func MakeBatchWorker[T interface{}](
+func MakeBatchWorker(
 	jobServer *JobServer,
 	store store.Store,
-	app T,
 	timeBetweenBatches time.Duration,
 	doBatch func(rctx *request.Context, job *model.Job) bool,
 	onComplete func(),
 ) model.Worker {
-	worker := &BatchWorker[T]{
+	worker := &BatchWorker{
 		jobServer:          jobServer,
 		logger:             jobServer.Logger(),
 		store:              store,
-		app:                app,
 		stop:               make(chan struct{}),
 		stopped:            make(chan bool, 1),
 		jobs:               make(chan model.Job),
@@ -52,7 +49,7 @@ func MakeBatchWorker[T interface{}](
 }
 
 // Run starts the worker dedicated to the unique migration batch job it will be given to process.
-func (worker *BatchWorker[T]) Run() {
+func (worker *BatchWorker) Run() {
 	worker.logger.Debug("Worker started")
 	// We have to re-assign the stop channel again, because
 	// it might happen that the job was restarted due to a config change.
@@ -77,7 +74,7 @@ func (worker *BatchWorker[T]) Run() {
 }
 
 // Stop interrupts the worker even if the migration has not yet completed.
-func (worker *BatchWorker[T]) Stop() {
+func (worker *BatchWorker) Stop() {
 	// Set to close, and if already closed before, then return.
 	if !worker.closed.CompareAndSwap(false, true) {
 		return
@@ -89,12 +86,12 @@ func (worker *BatchWorker[T]) Stop() {
 }
 
 // JobChannel is the means by which the jobs infrastructure provides the worker the job to execute.
-func (worker *BatchWorker[T]) JobChannel() chan<- model.Job {
+func (worker *BatchWorker) JobChannel() chan<- model.Job {
 	return worker.jobs
 }
 
 // IsEnabled is always true for batches.
-func (worker *BatchWorker[T]) IsEnabled(_ *model.Config) bool {
+func (worker *BatchWorker) IsEnabled(_ *model.Config) bool {
 	return true
 }
 
@@ -103,7 +100,7 @@ func (worker *BatchWorker[T]) IsEnabled(_ *model.Config) bool {
 // Note that this is a lot of distracting machinery here to claim the job, then double check the
 // status, and keep the status up to date in line with job infrastrcuture semantics. Unless an
 // error occurs, this worker should hold onto the job until its completed.
-func (worker *BatchWorker[T]) DoJob(job *model.Job) {
+func (worker *BatchWorker) DoJob(job *model.Job) {
 	logger := worker.logger.With(mlog.Any("job", job))
 	logger.Debug("Worker received a new candidate job.")
 	defer worker.jobServer.HandleJobPanic(logger, job)
@@ -148,7 +145,7 @@ func (worker *BatchWorker[T]) DoJob(job *model.Job) {
 
 // resetJob erases the data tracking the next batch to execute and returns the job status to
 // pending to allow the job infrastructure to requeue it.
-func (worker *BatchWorker[T]) resetJob(logger mlog.LoggerIFace, job *model.Job) {
+func (worker *BatchWorker) resetJob(logger mlog.LoggerIFace, job *model.Job) {
 	job.Data = nil
 	job.Progress = 0
 	job.Status = model.JobStatusPending
@@ -159,7 +156,7 @@ func (worker *BatchWorker[T]) resetJob(logger mlog.LoggerIFace, job *model.Job) 
 }
 
 // setJobSuccess records the job as successful.
-func (worker *BatchWorker[T]) setJobSuccess(logger mlog.LoggerIFace, job *model.Job) {
+func (worker *BatchWorker) setJobSuccess(logger mlog.LoggerIFace, job *model.Job) {
 	if err := worker.jobServer.SetJobProgress(job, 100); err != nil {
 		logger.Error("Worker: Failed to update progress for job", mlog.Err(err))
 		worker.setJobError(logger, job, err)
@@ -172,7 +169,7 @@ func (worker *BatchWorker[T]) setJobSuccess(logger mlog.LoggerIFace, job *model.
 }
 
 // setJobError puts the job into an error state, preventing the job from running again.
-func (worker *BatchWorker[T]) setJobError(logger mlog.LoggerIFace, job *model.Job, appError *model.AppError) {
+func (worker *BatchWorker) setJobError(logger mlog.LoggerIFace, job *model.Job, appError *model.AppError) {
 	if err := worker.jobServer.SetJobError(job, appError); err != nil {
 		logger.Error("Worker: Failed to set job error", mlog.Err(err))
 	}
