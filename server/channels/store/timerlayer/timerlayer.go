@@ -2398,6 +2398,22 @@ func (s *TimerLayerChannelStore) UpdateMultipleMembers(members []*model.ChannelM
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) UpdateMultipleMembersNotifyProps(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.UpdateMultipleMembersNotifyProps(members)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateMultipleMembersNotifyProps", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
 	start := time.Now()
 

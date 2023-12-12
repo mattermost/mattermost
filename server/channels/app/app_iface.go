@@ -1117,6 +1117,7 @@ type AppIface interface {
 	UpdateChannelMemberNotifyProps(c request.CTX, data map[string]string, channelID string, userID string) (*model.ChannelMember, *model.AppError)
 	UpdateChannelMemberRoles(c request.CTX, channelID string, userID string, newRoles string) (*model.ChannelMember, *model.AppError)
 	UpdateChannelMemberSchemeRoles(c request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError)
+	UpdateChannelMembersNotifyProps(c request.CTX, members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError)
 	UpdateChannelPrivacy(c request.CTX, oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError)
 	UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, *model.AppError)
 	UpdateConfig(f func(*model.Config))

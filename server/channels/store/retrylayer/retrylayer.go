@@ -2867,6 +2867,27 @@ func (s *RetryLayerChannelStore) UpdateMultipleMembers(members []*model.ChannelM
 
 }
 
+func (s *RetryLayerChannelStore) UpdateMultipleMembersNotifyProps(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.UpdateMultipleMembersNotifyProps(members)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
 
 	tries := 0

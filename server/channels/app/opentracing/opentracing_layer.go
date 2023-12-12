@@ -17232,6 +17232,28 @@ func (a *OpenTracingAppLayer) UpdateChannelMemberSchemeRoles(c request.CTX, chan
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) UpdateChannelMembersNotifyProps(c request.CTX, members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelMembersNotifyProps")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.UpdateChannelMembersNotifyProps(c, members)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) UpdateChannelPrivacy(c request.CTX, oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelPrivacy")
