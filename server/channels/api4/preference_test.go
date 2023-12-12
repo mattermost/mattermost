@@ -270,6 +270,7 @@ func TestUpdatePreferencesOverload(t *testing.T) {
 		// should error if no preferences
 		resp, err := client.UpdatePreferences(context.Background(), user1.Id, preferences1)
 		require.Error(t, err)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
 		CheckBadRequestStatus(t, resp)
 	})
 
@@ -287,6 +288,7 @@ func TestUpdatePreferencesOverload(t *testing.T) {
 		}
 		resp, err := client.UpdatePreferences(context.Background(), user1.Id, preferences1)
 		require.Error(t, err)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
 		CheckBadRequestStatus(t, resp)
 	})
 }
@@ -636,6 +638,7 @@ func TestDeletePreferencesOverload(t *testing.T) {
 		// should error if no preferences
 		resp, err := client.DeletePreferences(context.Background(), user1.Id, preferences1)
 		require.Error(t, err)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
 		CheckBadRequestStatus(t, resp)
 	})
 
@@ -653,6 +656,7 @@ func TestDeletePreferencesOverload(t *testing.T) {
 		}
 		resp, err := client.DeletePreferences(context.Background(), user1.Id, preferences1)
 		require.Error(t, err)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
 		CheckBadRequestStatus(t, resp)
 	})
 }
