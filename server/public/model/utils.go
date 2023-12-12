@@ -486,8 +486,8 @@ func ArrayToJSON(objmap []string) string {
 
 func ArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
 	var obj []string
-	lr := io.LimitedReader{N: maxBytes, R: data}
-	err := json.NewDecoder(&lr).Decode(&obj)
+	lr := io.LimitReader(data, maxBytes)
+	err := json.NewDecoder(lr).Decode(&obj)
 	if err != nil || obj == nil {
 		return nil, err
 	}
@@ -498,8 +498,8 @@ func ArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
 
 func ArrayFromJSONNonSort(data io.Reader, maxBytes int64) ([]string, error) {
 	var obj []string
-	lr := io.LimitedReader{N: maxBytes, R: data}
-	err := json.NewDecoder(&lr).Decode(&obj)
+	lr := io.LimitReader(data, maxBytes)
+	err := json.NewDecoder(lr).Decode(&obj)
 	if err != nil || obj == nil {
 		return nil, err
 	}
