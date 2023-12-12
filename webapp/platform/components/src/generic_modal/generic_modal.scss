@@ -29,8 +29,12 @@
         .form-control {
             height: 40px;
             box-sizing: border-box;
-            border: 2px solid var(--button-bg);
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
             border-radius: 4px;
+
+            &:focus {
+                border-color: var(--button-bg);
+            }
 
             &.has-error {
                 border-color: var(--error-text);

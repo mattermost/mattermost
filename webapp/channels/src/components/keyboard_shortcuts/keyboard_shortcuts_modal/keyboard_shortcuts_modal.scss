@@ -14,8 +14,8 @@
                 color: inherit;
 
                 .close {
-                    top: 35px;
-                    right: 35px;
+                    top: 32px;
+                    right: 32px;
                     overflow: hidden;
                     color: inherit;
                     font-size: 28px;
@@ -23,10 +23,7 @@
                 }
 
                 .modal-title {
-                    color: inherit;
-                    font-size: 20px;
-
-                    >div {
+                    > div {
                         &:first-child {
                             margin-bottom: 2.5em;
                         }
