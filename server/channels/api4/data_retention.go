@@ -264,7 +264,7 @@ func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	teamIDs, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	teamIDs, err := model.ArrayFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
 	if err != nil || len(teamIDs) == 0 {
 		c.SetInvalidParam("team_ids")
 		return
@@ -291,7 +291,7 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	teamIDs, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	teamIDs, err := model.ArrayFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
 	if err != nil || len(teamIDs) == 0 {
 		c.SetInvalidParam("team_ids")
 		return
@@ -383,7 +383,7 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	channelIDs, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	channelIDs, err := model.ArrayFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
 	if err != nil || len(channelIDs) == 0 {
 		c.SetInvalidParam("channel_ids")
 		return
@@ -411,7 +411,7 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	channelIDs, err := model.ArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	channelIDs, err := model.ArrayFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
 	if err != nil || len(channelIDs) == 0 {
 		c.SetInvalidParam("channel_ids")
 		return

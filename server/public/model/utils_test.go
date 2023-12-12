@@ -201,11 +201,11 @@ func TestMapJson(t *testing.T) {
 	require.LessOrEqual(t, len(rm2), 0, "make should be invalid")
 }
 
-func TestArrayFromJson(t *testing.T) {
+func TestArrayFromJsonLimited(t *testing.T) {
 	t.Run("Successful parse", func(t *testing.T) {
 		ids := []string{NewId(), NewId(), NewId()}
 		b, _ := json.Marshal(ids)
-		a, err := ArrayFromJSON(bytes.NewReader(b), 1000)
+		a, err := ArrayFromJSONLimited(bytes.NewReader(b), 1000)
 		require.NoError(t, err)
 		require.Equal(t, len(ids), len(a))
 	})
@@ -213,7 +213,7 @@ func TestArrayFromJson(t *testing.T) {
 	t.Run("Empty Array", func(t *testing.T) {
 		ids := []string{}
 		b, _ := json.Marshal(ids)
-		a, err := ArrayFromJSON(bytes.NewReader(b), 1000)
+		a, err := ArrayFromJSONLimited(bytes.NewReader(b), 1000)
 		require.NoError(t, err)
 		require.Equal(t, 0, len(a))
 	})
@@ -224,7 +224,7 @@ func TestArrayFromJson(t *testing.T) {
 			ids = append(ids, NewId())
 		}
 		b, _ := json.Marshal(ids)
-		_, err := ArrayFromJSON(bytes.NewReader(b), 1000)
+		_, err := ArrayFromJSONLimited(bytes.NewReader(b), 1000)
 		require.Error(t, err)
 	})
 
@@ -235,7 +235,7 @@ func TestArrayFromJson(t *testing.T) {
 			ids = append(ids, id)
 		}
 		b, _ := json.Marshal(ids)
-		a, err := ArrayFromJSON(bytes.NewReader(b), 26000)
+		a, err := ArrayFromJSONLimited(bytes.NewReader(b), 26000)
 		require.NoError(t, err)
 		require.Equal(t, len(a), 1)
 	})

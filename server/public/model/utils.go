@@ -484,7 +484,18 @@ func ArrayToJSON(objmap []string) string {
 	return string(b)
 }
 
-func ArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
+// Deprecated: ArrayFromJSON is deprecated,
+// use ArrayFromJSONLimited or ArrayFromJsonNonSort instead
+func ArrayFromJSON(data io.Reader) []string {
+	var objmap []string
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
+		return make([]string, 0)
+	}
+	return objmap
+}
+
+func ArrayFromJSONLimited(data io.Reader, maxBytes int64) ([]string, error) {
 	var obj []string
 	lr := io.LimitReader(data, maxBytes)
 	err := json.NewDecoder(lr).Decode(&obj)
