@@ -122,6 +122,7 @@ export type Props = FormatOptions & {
     className?: string;
     label?: string;
     useSemanticOutput?: boolean;
+    displayTimeWithSeconds?: boolean;
 
     intl: IntlShape;
 }
@@ -342,6 +343,7 @@ class Timestamp extends PureComponent<Props, State> {
             weekday,
             hour,
             minute,
+            second,
             timeZone,
             useDate = (): ResolvedFormats['date'] => {
                 if (isWithin(value, this.state.now, timeZone, 'day', -6)) {
@@ -353,7 +355,8 @@ class Timestamp extends PureComponent<Props, State> {
 
                 return {year, month, day};
             },
-            useTime = {hour, minute},
+            displayTimeWithSeconds = false,
+            useTime = displayTimeWithSeconds ? {hour, minute, second} : {hour, minute},
         } = this.props;
 
         const relative = resolve(useRelative, {value}, this.props);

@@ -105,6 +105,7 @@ export default class PostTime extends React.PureComponent<Props> {
                             value={eventTime}
                             ranges={POST_TOOLTIP_RANGES}
                             useSemanticOutput={false}
+                            displayTimeWithSeconds={true}
                         />
                     </Tooltip>
                 }
