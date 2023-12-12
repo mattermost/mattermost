@@ -10100,5 +10100,21 @@
   {
     "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
     "translation": "Bijgewerkt op moet een geldige tijd zijn."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Het bijwerken van de aangepaste status is mislukt. Een emoji met de opgegeven naam bestaat niet."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Ongeldig team id opgegeven."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Kan niet zowel actieve als inactieve gebruikers verbergen."
+  },
+  {
+    "id": "app.user.get_users_for_reporting.bad_date_range",
+    "translation": "Het opgegeven datumbereik is ongeldig."
   }
 ]
