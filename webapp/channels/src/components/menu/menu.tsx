@@ -175,7 +175,7 @@ export function Menu(props: Props) {
                 aria-controls={props.menu.id}
                 aria-haspopup={true}
                 aria-expanded={isMenuOpen}
-                disabled={props.menuButton.disabled ?? false}
+                disabled={props.menuButton?.disabled ?? false}
                 aria-label={props.menuButton?.['aria-label'] ?? ''}
                 className={props.menuButton?.class ?? ''}
                 onClick={handleMenuButtonClick}
