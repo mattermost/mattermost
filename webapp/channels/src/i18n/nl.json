@@ -585,6 +585,7 @@
   "admin.complianceExport.exportJobStartTime.title": "Nalevingsexport tijd:",
   "admin.complianceExport.globalRelayCustomerType.a10.description": "A10/Type 10",
   "admin.complianceExport.globalRelayCustomerType.a9.description": "A9/Type 9",
+  "admin.complianceExport.globalRelayCustomerType.custom.description": "Aangepast",
   "admin.complianceExport.globalRelayCustomerType.description": "Het type Global Relay-klantenaccount dat jouw organisatie heeft.",
   "admin.complianceExport.globalRelayCustomerType.title": "Global Relay klantenaccount:",
   "admin.complianceExport.globalRelayEmailAddress.description": "Het e-mailadres van jouw Global Relay-servermonitors voor inkomende nalevingsexports.",
