@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import React from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {Value} from 'components/multiselect/multiselect';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-
 import CreateUserGroupsModal from './create_user_groups_modal';
-
 import type {CreateUserGroupsModal as CreateUserGroupsModalClass} from './create_user_groups_modal';
 
 type UserProfileValue = Value & UserProfile;
@@ -168,7 +166,7 @@ describe('component/create_user_groups_modal', () => {
         wrapper.setState({name: 'Ursa', mention: '@ursa', usersToAdd: users});
         const instance = wrapper.instance() as CreateUserGroupsModalClass;
         instance.createGroup(users);
-        expect(baseProps.actions.createGroupWithUserIds).toHaveBeenCalledTimes(1);
+        expect(instance.props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(1);
         process.nextTick(() => {
             expect(wrapper.state('showUnknownError')).toEqual(true);
             expect(wrapper.state('mentionInputErrorText')).toEqual('');
@@ -191,7 +189,7 @@ describe('component/create_user_groups_modal', () => {
         wrapper.setState({name: 'Ursa', mention: '@ursa', usersToAdd: users});
         const instance = wrapper.instance() as CreateUserGroupsModalClass;
         instance.createGroup(users);
-        expect(baseProps.actions.createGroupWithUserIds).toHaveBeenCalledTimes(1);
+        expect(instance.props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(1);
         process.nextTick(() => {
             expect(wrapper.state('showUnknownError')).toEqual(false);
             expect(wrapper.state('mentionInputErrorText')).toEqual('Mention needs to be unique.');
@@ -247,7 +245,7 @@ describe('component/create_user_groups_modal', () => {
         wrapper.setState({name: 'Ursa', mention: '@ursa', usersToAdd: users});
         const instance = wrapper.instance() as CreateUserGroupsModalClass;
         instance.createGroup(users);
-        expect(baseProps.actions.createGroupWithUserIds).toHaveBeenCalledTimes(1);
+        expect(instance.props.actions.createGroupWithUserIds).toHaveBeenCalledTimes(1);
         process.nextTick(() => {
             expect(wrapper.state('showUnknownError')).toEqual(false);
             expect(wrapper.state('mentionInputErrorText')).toEqual('A username already exists with this name. Mention must be unique.');
