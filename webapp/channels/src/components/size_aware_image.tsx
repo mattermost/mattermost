@@ -5,7 +5,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {KeyboardEvent, MouseEvent} from 'react';
+import type {KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
@@ -144,7 +144,7 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         return width < MIN_IMAGE_SIZE || height < MIN_IMAGE_SIZE;
     };
 
-    handleLoad = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    handleLoad = (event: SyntheticEvent<HTMLImageElement, Event>) => {
         if (this.mounted) {
             const image = event.target as HTMLImageElement;
             const isSmallImage = this.isSmallImage(image.naturalWidth, image.naturalHeight);
@@ -170,11 +170,11 @@ export default class SizeAwareImage extends React.PureComponent<Props, State> {
         }
     };
 
-    handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
+    handleImageClick = (e: MouseEvent<HTMLImageElement>) => {
         this.props.onClick?.(e, this.props.src);
     };
 
-    onEnterKeyDown = (e: React.KeyboardEvent<HTMLImageElement>) => {
+    onEnterKeyDown = (e: KeyboardEvent<HTMLImageElement>) => {
         if (e.key === 'Enter') {
             this.props.onClick?.(e, this.props.src);
         }
