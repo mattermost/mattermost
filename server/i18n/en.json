@@ -5059,6 +5059,10 @@
     "translation": "Unable to update channel."
   },
   {
+    "id": "app.channel.update_channel_members_notify_props.app_error",
+    "translation": "Unable to update channel members' notify props."
+  },
+  {
     "id": "app.channel.update_last_viewed_at.app_error",
     "translation": "Unable to update the last viewed at time."
   },
