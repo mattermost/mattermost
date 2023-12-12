@@ -10121,5 +10121,9 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user."
+  },
+  {
+    "id": "app.channel.get_channel_report.store_error",
+    "translation": "Could not generate channels report"
   }
 ]

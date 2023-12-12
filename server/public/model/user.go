@@ -67,10 +67,6 @@ const (
 	DesktopTokenTTL = time.Minute * 3
 )
 
-var (
-	UserReportSortColumns = []string{"CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email", "Roles"}
-)
-
 //msgp:tuple User
 
 // User contains the details about the user.

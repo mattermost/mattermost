@@ -611,18 +611,6 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 	}
 	// There are cases when in case of conflict, the original channel value is returned.
 	// So we return both and let the caller do the checks.
-
-	startAt, _ := time.Parse("2006-01-02", "2020-12-01")
-	endAt, _ := time.Parse("2006-01-02", "2023-12-31")
-
-	lol, _ := s.GetChannelsReport(&model.ChannelReportOptions{
-		SortColumn: model.ChannelReportingSortByDisplayName,
-		StartAt:    startAt.UnixMilli(),
-		EndAt:      endAt.UnixMilli(),
-	})
-
-	fmt.Println(fmt.Sprintf("%v", lol))
-
 	return newChannel, err
 }
 
