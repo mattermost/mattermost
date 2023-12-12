@@ -532,7 +532,7 @@ func ToJSON(v any) []byte {
 }
 
 // FromJSON decodes an arbitrary object
-func ObjectFromJSON[T any](rd io.Reader, obj T, maxBytes int64) error {
+func ObjectFromJSON(rd io.Reader, obj any, maxBytes int64) error {
 	lr := io.LimitedReader{N: maxBytes, R: rd}
 	return json.NewDecoder(&lr).Decode(obj)
 }
