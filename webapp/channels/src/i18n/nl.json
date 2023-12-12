@@ -3841,7 +3841,7 @@
   "intro_messages.beginning": "Begin van {name}",
   "intro_messages.creator": "Dit is de start van het {name} kanaal, gemaakt door {creator} op {date}.",
   "intro_messages.creatorPrivate": "Dit is de start van het {name} privé-kanaal, gemaakt door {creator} op {date}.",
-  "intro_messages.default": "**Welkom bij {display_name}!**\n \nPlaats hier berichten die je wil dat iedereen ziet. Iedereen wordt automatisch een permanent lid van dit kanaal wanneer hij of zij lid van het team.",
+  "intro_messages.default": "**Welkom bij {display_name}!**\n \nPlaats hier berichten die voor iedereen zichtbaar zijn. Iedereen wordt automatisch een permanent lid van dit kanaal wanneer hij of zij lid wordt van het team.",
   "intro_messages.group_message": "Dit is de start van uw groepsberichtgeschiedenis met deze teamgenoten. Berichten en bestanden die gedeeld worden hier niet getoond aan mensen aan buiten dit gebied.",
   "intro_messages.inviteGropusToChannel.button": "Groepen toevoegen aan dit privé-kanaal",
   "intro_messages.inviteMembersToChannel.button": "Leden aan dit kanaal toevoegen",
