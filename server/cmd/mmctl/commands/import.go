@@ -252,18 +252,22 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 
 	isLocal, _ := command.Flags().GetBool("local")
 	bypassUpload, _ := command.Flags().GetBool("bypass-upload")
-	// in local mode, we tell the server to directly read from this file.
-	if isLocal && bypassUpload {
-		if _, err := os.Stat(importFile); errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("file %s doesn't exist. NOTE: If this file was uploaded to the server via mmctl import upload, please omit the --bypass-upload flag to revert to old behavior.", importFile)
-		}
-		// If it's not an absolute path, then we make it
-		if !path.IsAbs(importFile) {
-			var err2 error
-			importFile, err2 = filepath.Abs(importFile)
-			if err2 != nil {
-				return fmt.Errorf("error is getting the absolute path to %s: %w", importFile, err2)
+	if bypassUpload {
+		if isLocal {
+			// in local mode, we tell the server to directly read from this file.
+			if _, err := os.Stat(importFile); errors.Is(err, os.ErrNotExist) {
+				return fmt.Errorf("file %s doesn't exist. NOTE: If this file was uploaded to the server via mmctl import upload, please omit the --bypass-upload flag to revert to old behavior.", importFile)
 			}
+			// If it's not an absolute path, then we make it
+			if !path.IsAbs(importFile) {
+				var err2 error
+				importFile, err2 = filepath.Abs(importFile)
+				if err2 != nil {
+					return fmt.Errorf("error is getting the absolute path to %s: %w", importFile, err2)
+				}
+			}
+		} else {
+			printer.PrintWarning("--bypass-upload has no effect in non-local mode.")
 		}
 	}
 
