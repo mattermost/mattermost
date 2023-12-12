@@ -251,7 +251,7 @@ func (hooks *hooksTimerLayer) ServeMetrics(c *Context, w http.ResponseWriter, r 
 	hooks.recordTime(startTime, "ServeMetrics", true)
 }
 
-func (hooks *hooksTimerLayer) PreferencesHaveChanged(c *Context, preferences []*model.Preference) {
+func (hooks *hooksTimerLayer) PreferencesHaveChanged(c *Context, preferences []model.Preference) {
 	startTime := timePkg.Now()
 	hooks.hooksImpl.PreferencesHaveChanged(c, preferences)
 	hooks.recordTime(startTime, "PreferencesHaveChanged", true)

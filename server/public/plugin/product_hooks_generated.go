@@ -140,7 +140,7 @@ type ServeMetricsIFace interface {
 }
 
 type PreferencesHaveChangedIFace interface {
-	PreferencesHaveChanged(c *Context, preferences []*model.Preference)
+	PreferencesHaveChanged(c *Context, preferences []model.Preference)
 }
 
 type HooksAdapter struct {
@@ -726,7 +726,7 @@ func (a *HooksAdapter) ServeMetrics(c *Context, w http.ResponseWriter, r *http.R
 
 }
 
-func (a *HooksAdapter) PreferencesHaveChanged(c *Context, preferences []*model.Preference) {
+func (a *HooksAdapter) PreferencesHaveChanged(c *Context, preferences []model.Preference) {
 	if _, ok := a.implemented[PreferencesHaveChangedID]; !ok {
 		panic("product hooks must implement PreferencesHaveChanged")
 	}

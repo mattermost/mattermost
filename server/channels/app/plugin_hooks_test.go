@@ -1659,7 +1659,7 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 				plugin.MattermostPlugin
 			}
 
-			func (p *MyPlugin) PreferencesHaveChanged(c *plugin.Context, preferences []*model.Preference) {
+			func (p *MyPlugin) PreferencesHaveChanged(c *plugin.Context, preferences []model.Preference) {
 				for _, preference := range preferences {
 					p.API.LogDebug(fmt.Sprintf("category=%s name=%s value=%s", preference.Category, preference.Name, preference.Value))
 				}

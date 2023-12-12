@@ -337,5 +337,5 @@ type Hooks interface {
 	// the preferences.
 	//
 	// Minimum server version: 9.5
-	PreferencesHaveChanged(c *Context, preferences []*model.Preference)
+	PreferencesHaveChanged(c *Context, preferences []model.Preference)
 }

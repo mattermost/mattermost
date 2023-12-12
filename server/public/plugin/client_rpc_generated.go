@@ -953,13 +953,13 @@ func init() {
 
 type Z_PreferencesHaveChangedArgs struct {
 	A *Context
-	B []*model.Preference
+	B []model.Preference
 }
 
 type Z_PreferencesHaveChangedReturns struct {
 }
 
-func (g *hooksRPCClient) PreferencesHaveChanged(c *Context, preferences []*model.Preference) {
+func (g *hooksRPCClient) PreferencesHaveChanged(c *Context, preferences []model.Preference) {
 	_args := &Z_PreferencesHaveChangedArgs{c, preferences}
 	_returns := &Z_PreferencesHaveChangedReturns{}
 	if g.implemented[PreferencesHaveChangedID] {
@@ -972,7 +972,7 @@ func (g *hooksRPCClient) PreferencesHaveChanged(c *Context, preferences []*model
 
 func (s *hooksRPCServer) PreferencesHaveChanged(args *Z_PreferencesHaveChangedArgs, returns *Z_PreferencesHaveChangedReturns) error {
 	if hook, ok := s.impl.(interface {
-		PreferencesHaveChanged(c *Context, preferences []*model.Preference)
+		PreferencesHaveChanged(c *Context, preferences []model.Preference)
 	}); ok {
 		hook.PreferencesHaveChanged(args.A, args.B)
 	} else {
