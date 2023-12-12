@@ -1943,20 +1943,18 @@ func (_m *API) GetPostsSince(channelId string, time int64) (*model.PostList, *mo
 }
 
 // GetPreferenceForUser provides a mock function with given fields: userID, category, name
-func (_m *API) GetPreferenceForUser(userID string, category string, name string) (*model.Preference, *model.AppError) {
+func (_m *API) GetPreferenceForUser(userID string, category string, name string) (model.Preference, *model.AppError) {
 	ret := _m.Called(userID, category, name)
 
-	var r0 *model.Preference
+	var r0 model.Preference
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, string) (*model.Preference, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(string, string, string) (model.Preference, *model.AppError)); ok {
 		return rf(userID, category, name)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, string) *model.Preference); ok {
+	if rf, ok := ret.Get(0).(func(string, string, string) model.Preference); ok {
 		r0 = rf(userID, category, name)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Preference)
-		}
+		r0 = ret.Get(0).(model.Preference)
 	}
 
 	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {

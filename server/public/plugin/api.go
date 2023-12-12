@@ -171,7 +171,7 @@ type API interface {
 	// @tag User
 	// @tag Preference
 	// Minimum server version: 9.5
-	GetPreferenceForUser(userID, category, name string) (*model.Preference, *model.AppError)
+	GetPreferenceForUser(userID, category, name string) (model.Preference, *model.AppError)
 
 	// GetPreferencesForUser gets a user's preferences.
 	//
