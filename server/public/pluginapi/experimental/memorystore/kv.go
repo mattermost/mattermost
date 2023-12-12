@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -17,14 +18,19 @@ import (
 // numRetries is the number of times the setAtomicWithRetries will retry before returning an error.
 const numRetries = 5
 
+// Store is safe for concurrent use by multiple goroutine.
 type Store struct {
 	mux   sync.RWMutex
-	elems map[string][]byte
+	elems map[string]elem
 }
 
 type elem struct {
-	value           []byte
-	ExpireInSeconds int64
+	value     []byte
+	expiresAt *time.Time
+}
+
+func (e elem) isExpired() bool {
+	return e.expiresAt != nil && e.expiresAt.Before(time.Now())
 }
 
 // Set stores a key-value pair, unique per plugin.
@@ -37,12 +43,6 @@ func (s *Store) Set(key string, value any, options ...pluginapi.KVSetOption) (bo
 	if strings.HasPrefix(key, pluginapi.InternalKeyPrefix) {
 		return false, errors.Errorf("'%s' prefix is not allowed for keys", pluginapi.InternalKeyPrefix)
 	}
-
-	s.mux.Lock()
-	if s.elems == nil {
-		s.elems = make(map[string][]byte)
-	}
-	s.mux.Unlock()
 
 	opts := pluginapi.KVSetOptions{}
 	for _, o := range options {
@@ -93,32 +93,38 @@ func (s *Store) Set(key string, value any, options ...pluginapi.KVSetOption) (bo
 		return false, errors.Errorf("key must not be longer then %d", model.KeyValueKeyMaxRunes)
 	}
 
-	if !opts.Atomic {
-		s.mux.Lock()
-		defer s.mux.Unlock()
+	s.mux.Lock()
+	defer s.mux.Unlock()
 
+	if s.elems == nil {
+		s.elems = make(map[string]elem)
+	}
+
+	if !opts.Atomic {
 		if value == nil {
 			s.delete(key)
 		} else {
-			s.elems[key] = valueBytes
+			s.elems[key] = elem{
+				value:     valueBytes,
+				expiresAt: expireTime(downstreamOpts.ExpireInSeconds),
+			}
 		}
 
 		return true, nil // TODO: Double check what to return
 	}
 
-	s.mux.RLock()
-	oldValue := s.elems[key]
-	if bytes.Equal(oldValue, downstreamOpts.OldValue) {
+	oldElem := s.elems[key]
+	if !oldElem.isExpired() && bytes.Equal(oldElem.value, downstreamOpts.OldValue) {
 		return false, nil
 	}
-	s.mux.RUnlock()
 
-	s.mux.Lock()
-	defer s.mux.Unlock()
 	if value == nil {
 		s.delete(key)
 	} else {
-		s.elems[key] = valueBytes
+		s.elems[key] = elem{
+			value:     valueBytes,
+			expiresAt: expireTime(downstreamOpts.ExpireInSeconds),
+		}
 	}
 
 	return true, nil
@@ -149,6 +155,18 @@ func (s *Store) SetAtomicWithRetries(key string, valueFunc func(oldValue []byte)
 }
 
 func (s *Store) ListKeys(page int, count int, options ...pluginapi.ListKeysOption) ([]string, error) {
+	if page < 0 {
+		return nil, errors.New("page number must not be negative")
+	}
+
+	if count < 0 {
+		return nil, errors.New("count must not be negative")
+	}
+
+	if count == 0 {
+		return []string{}, nil
+	}
+
 	opt := pluginapi.ListKeysOptions{}
 	for _, o := range options {
 		o(&opt)
@@ -156,7 +174,10 @@ func (s *Store) ListKeys(page int, count int, options ...pluginapi.ListKeysOptio
 
 	allKeys := make([]string, 0)
 	s.mux.RLock()
-	for k := range s.elems {
+	for k, e := range s.elems {
+		if e.isExpired() {
+			continue
+		}
 		allKeys = append(allKeys, k)
 	}
 	s.mux.RUnlock()
@@ -165,38 +186,53 @@ func (s *Store) ListKeys(page int, count int, options ...pluginapi.ListKeysOptio
 		return []string{}, nil
 	}
 
-	// TODO: Check boundaries
-	pageKeys := allKeys[page*count : page*count+1]
-	for i, k := range pageKeys {
+	// TODO: Use slices.Sort once the toolchain got updated to go1.21
+	sort.Strings(allKeys)
+
+	pageKeys := paginateSlice(allKeys, page, count)
+
+	if len(opt.Checkers) == 0 {
+		return pageKeys, nil
+	}
+
+	n := 0
+	for _, k := range pageKeys {
+		keep := true
 		for _, c := range opt.Checkers {
 			ok, err := c(k)
 			if err != nil {
 				return nil, err
 			}
 			if !ok {
-				pageKeys = append(pageKeys[:i], pageKeys[i+1:]...)
+				keep = false
+				break
 			}
+
+		}
+
+		if keep {
+			pageKeys[n] = k
+			n++
 		}
 	}
 
-	return pageKeys, nil
+	return pageKeys[:n], nil
 }
 
 func (s *Store) Get(key string, o any) error {
 	s.mux.RLock()
-	defer s.mux.RUnlock()
-
-	data, ok := s.elems[key]
-	if !ok || len(data) == 0 {
+	e, ok := s.elems[key]
+	s.mux.RUnlock()
+	if !ok || len(e.value) == 0 || e.isExpired() {
 		return nil
 	}
 
 	if bytesOut, ok := o.(*[]byte); ok {
-		*bytesOut = data
+		*bytesOut = e.value
 		return nil
 	}
 
-	if err := json.Unmarshal(data, o); err != nil {
+	if err := json.Unmarshal(e.value, o); err != nil {
 		return errors.Wrapf(err, "failed to unmarshal value for key %s", key)
 	}
 
@@ -211,17 +247,36 @@ func (s *Store) Delete(key string) error {
 
 func (s *Store) delete(key string) {
 	s.mux.Lock()
-	defer s.mux.Unlock()
-
 	delete(s.elems, key)
+	s.mux.Unlock()
 }
 
 // DeleteAll removes all key-value pairs.
 func (s *Store) DeleteAll() error {
 	s.mux.Lock()
-	defer s.mux.Unlock()
-
-	s.elems = make(map[string][]byte)
+	s.elems = make(map[string]elem)
+	s.mux.Unlock()
 
 	return nil
+}
+
+func expireTime(expireInSeconds int64) *time.Time {
+	if expireInSeconds == 0 {
+		return nil
+	}
+	t := time.Now().Add(time.Second * time.Duration(expireInSeconds))
+	return &t
+}
+
+func paginateSlice[T any](list []T, page int, perPage int) []T {
+	i := page * perPage
+	j := (page + 1) * perPage
+	l := len(list)
+	if j > l {
+		j = l
+	}
+	if i > l {
+		i = l
+	}
+	return list[i:j]
 }
