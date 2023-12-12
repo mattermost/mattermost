@@ -3504,7 +3504,7 @@ func testChannelUpdateMultipleMembersNotifyProps(t *testing.T, rctx request.CTX,
 			},
 		})
 
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 	})
 }
 
