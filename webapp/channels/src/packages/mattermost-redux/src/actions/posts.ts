@@ -1257,8 +1257,8 @@ export function selectPost(postId: string) {
     };
 }
 
-export function moveThread(postId: string, channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function moveThread(postId: string, channelId: string): ActionFunc {
+    return async (dispatch, getState) => {
         try {
             await Client4.moveThread(postId, channelId);
         } catch (error) {

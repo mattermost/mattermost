@@ -8,7 +8,7 @@ import type {GlobalState} from '@mattermost/types/store';
 
 export type Thunk<ReturnType, State = GlobalState> = ThunkAction<ReturnType, State, never, AnyAction>;
 
-export type ActionFunc<Data = any, Error = any> = Thunk<Promise<ActionResult<Data, Error>> | ActionResult<Data, Error>>;
+export type ActionFunc<Data = any, Error = any, State = GlobalState> = Thunk<Promise<ActionResult<Data, Error>> | ActionResult<Data, Error>, State>;
 export type ActionFuncPromiseDoNotUse<Data = any, Error = any> = Thunk<Promise<ActionResult<Data, Error>>>;
 
 export type DispatchFunc<ReturnType = any, State = GlobalState> = Parameters<Thunk<ReturnType, State>>[0];
