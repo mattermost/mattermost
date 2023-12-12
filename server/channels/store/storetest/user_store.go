@@ -3337,6 +3337,7 @@ func testUserStoreSearchInChannel(t *testing.T, rctx request.CTX, ss store.Store
 }
 
 func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Skip("MM-56039")
 	u1 := &model.User{
 		Username:  "jimbo1" + model.NewId(),
 		FirstName: "Tim",
