@@ -1,60 +1,53 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
+import {fireEvent, screen} from '@testing-library/react';
+import React, {type ComponentProps} from 'react';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import OpenInvite from './open_invite';
 
 describe('components/TeamSettings/OpenInvite', () => {
-    const patchTeam = jest.fn().mockReturnValue({data: true});
-    const onToggle = jest.fn().mockReturnValue({data: true});
-    const defaultProps = {
-        teamId: 'team_id',
-        isActive: false,
+    const setAllowOpenInvite = jest.fn().mockReturnValue({data: true});
+    const defaultProps: ComponentProps<typeof OpenInvite> = {
         isGroupConstrained: false,
         allowOpenInvite: false,
-        patchTeam,
-        onToggle,
+        setAllowOpenInvite,
     };
 
-    test('should match snapshot on non active without groupConstrained', () => {
-        const props = {...defaultProps};
-
-        const wrapper = shallow(<OpenInvite {...props}/>);
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot on non active allowing open invite', () => {
-        const props = {...defaultProps, allowOpenInvite: true};
-
-        const wrapper = shallow(<OpenInvite {...props}/>);
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot on non active with groupConstrained', () => {
+    test('should render correct title and link when the team is constrained', () => {
         const props = {...defaultProps, isGroupConstrained: true};
-
-        const wrapper = shallow(<OpenInvite {...props}/>);
-
-        expect(wrapper).toMatchSnapshot();
+        renderWithContext(<OpenInvite {...props}/>);
+        const title = screen.getByText('Users on this server');
+        expect(title).toBeInTheDocument();
+        const externalLink = screen.getByText('Learn More');
+        expect(externalLink).toBeInTheDocument();
+        expect(externalLink).toHaveAttribute('href', 'https://mattermost.com/pl/default-ldap-group-constrained-team-channel.html?utm_source=mattermost&utm_medium=in-product&utm_content=open_invite&uid=&sid=');
     });
 
-    test('should match snapshot on active without groupConstrained', () => {
-        const props = {...defaultProps, isActive: true};
-
-        const wrapper = shallow(<OpenInvite {...props}/>);
-
-        expect(wrapper).toMatchSnapshot();
+    test('should render the checkbox when the team is not constrained and not checked', () => {
+        renderWithContext(<OpenInvite {...defaultProps}/>);
+        const checkbox = screen.getByRole('checkbox');
+        expect(checkbox).toBeInTheDocument();
+        expect(checkbox).not.toBeChecked();
     });
 
-    test('should match snapshot on active with groupConstrained', () => {
-        const props = {...defaultProps, isActive: true, isGroupConstrained: true};
+    test('should render the checkbox when the team is not constrained and checked', () => {
+        const props = {...defaultProps, allowOpenInvite: true};
+        renderWithContext(<OpenInvite {...props}/>);
+        const checkbox = screen.getByRole('checkbox');
+        expect(checkbox).toBeInTheDocument();
+        expect(checkbox).toBeChecked();
+    });
 
-        const wrapper = shallow(<OpenInvite {...props}/>);
-
-        expect(wrapper).toMatchSnapshot();
+    test('should call setAllowOpenInvite when the checkbox is clicked', () => {
+        renderWithContext(<OpenInvite {...defaultProps}/>);
+        const checkbox = screen.getByRole('checkbox');
+        expect(checkbox).toBeInTheDocument();
+        expect(checkbox).not.toBeChecked();
+        fireEvent.click(checkbox);
+        expect(setAllowOpenInvite).toHaveBeenCalledTimes(1);
+        expect(setAllowOpenInvite).toHaveBeenCalledWith(true);
     });
 });
