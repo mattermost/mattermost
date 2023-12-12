@@ -1013,10 +1013,10 @@ func (s *TimerLayerChannelStore) GetAllChannelsForExportAfter(limit int, afterID
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error) {
+func (s *TimerLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectChannelForExport, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterID)
+	result, err := s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterID, includeArchivedChannels)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

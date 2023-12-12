@@ -1073,7 +1073,7 @@ func (s *OpenTracingLayerChannelStore) GetAllChannelsForExportAfter(limit int, a
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error) {
+func (s *OpenTracingLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectChannelForExport, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetAllDirectChannelsForExportAfter")
 	s.Root.Store.SetContext(newCtx)
@@ -1082,7 +1082,7 @@ func (s *OpenTracingLayerChannelStore) GetAllDirectChannelsForExportAfter(limit 
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterID)
+	result, err := s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterID, includeArchivedChannels)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
