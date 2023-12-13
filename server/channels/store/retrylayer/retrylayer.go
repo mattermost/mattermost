@@ -1490,27 +1490,6 @@ func (s *RetryLayerChannelStore) GetChannelsMemberCount(channelIDs []string) (ma
 
 }
 
-func (s *RetryLayerChannelStore) GetChannelsReport(filter *model.ChannelReportOptions) ([]*model.ChannelReport, error) {
-
-	tries := 0
-	for {
-		result, err := s.ChannelStore.GetChannelsReport(filter)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error) {
 
 	tries := 0
