@@ -5,14 +5,14 @@ package api4
 
 import (
 	"encoding/json"
-	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 func (api *API) InitChannel() {
@@ -578,7 +578,6 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	fmt.Println("LOL")
 	c.RequireChannelId()
 	if c.Err != nil {
 		return

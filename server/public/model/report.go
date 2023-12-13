@@ -114,31 +114,3 @@ func (u *UserReportQuery) ToReport() *UserReport {
 		UserPostStats: u.UserPostStats,
 	}
 }
-
-type ChannelReportOptions struct {
-	ReportingBaseOptions
-}
-
-func (options *ChannelReportOptions) IsValid() *AppError {
-	if appErr := options.ReportingBaseOptions.IsValid(); appErr != nil {
-		return appErr
-	}
-
-	// Validate against the columns we allow sorting for
-	if !pUtils.Contains(ChannelReportSortColumns, options.SortColumn) {
-		// LOL update these error messages
-		return NewAppError("ChannelReportOptions.IsValid", "app.channel.get_user_report.invalid_sort_column", nil, "", http.StatusBadRequest)
-	}
-
-	return nil
-}
-
-type ChannelReportStats struct {
-	MemberCount int
-	PostCount   int
-}
-
-type ChannelReport struct {
-	Channel
-	ChannelReportStats
-}

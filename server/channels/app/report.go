@@ -29,16 +29,3 @@ func (a *App) getUserReport(filter *model.UserReportOptions) ([]*model.UserRepor
 
 	return userReports, nil
 }
-
-func (a *App) GetChannelsReport(filter *model.ChannelReportOptions) ([]*model.ChannelReport, *model.AppError) {
-	if appErr := filter.IsValid(); appErr != nil {
-		return nil, appErr
-	}
-
-	channelReport, err := a.Srv().Store().Channel().GetChannelsReport(filter)
-	if err != nil {
-		return nil, model.NewAppError("GetChannelsReport", "app.channel.get_channel_report.store_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return channelReport, nil
-}

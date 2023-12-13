@@ -1,1 +1,0 @@
-DROP MATERIALIZED VIEW IF EXISTS channelmemberstats;

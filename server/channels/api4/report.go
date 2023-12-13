@@ -14,7 +14,6 @@ import (
 
 func (api *API) InitReports() {
 	api.BaseRoutes.Reports.Handle("/users", api.APISessionRequired(getUsersForReporting)).Methods("GET")
-	api.BaseRoutes.Reports.Handle("/channels", api.APISessionRequired(getChannelReport)).Methods("GET")
 }
 
 func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -71,43 +70,5 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if jsonErr := json.NewEncoder(w).Encode(userReports); jsonErr != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(jsonErr))
-	}
-}
-
-func getChannelReport(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.IsSystemAdmin() || !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementChannels) {
-		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementChannels)
-		return
-	}
-
-	sortColumn := "ChannelName"
-	if r.URL.Query().Get("sort_column") != "" {
-		sortColumn = r.URL.Query().Get("sort_column")
-	}
-
-	pageSize := 50
-	if pageSizeStr, err := strconv.ParseInt(r.URL.Query().Get("page_size"), 10, 64); err == nil {
-		pageSize = int(pageSizeStr)
-	}
-
-	filterOptions := &model.ChannelReportOptions{
-		model.ReportingBaseOptions{
-			SortColumn:          sortColumn,
-			SortDesc:            r.URL.Query().Get("sort_direction") == "desc",
-			PageSize:            pageSize,
-			LastSortColumnValue: r.URL.Query().Get("last_column_value"),
-			DateRange:           r.URL.Query().Get("date_range"),
-		},
-	}
-	filterOptions.PopulateDateRange(time.Now())
-
-	channelReports, appErr := c.App.GetChannelsReport(filterOptions)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if err := json.NewEncoder(w).Encode(channelReports); err != nil {
-		c.Logger.Error("Error writing channel report response", mlog.Err(err))
 	}
 }
