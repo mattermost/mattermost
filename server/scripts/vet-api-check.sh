@@ -55,6 +55,7 @@ OUTPUT_EXCLUDING_IGNORED=$(echo "$OUTPUT" | grep -Fv \
     -e 'Cannot find /api/v4/users/login/desktop_token method: POST in OpenAPI 3 spec.' \
     -e 'Cannot find /api/v4/users/notify-admin method: POST in OpenAPI 3 spec.' \
     -e 'Cannot find /api/v4/users/trigger-notify-admin-posts method: POST in OpenAPI 3 spec.' \
+    -e 'Cannot find /api/v4/reports/users method: GET in OpenAPI 3 spec.' \
     -e "Handler /api/v4/cloud/subscription is defined with method PUT, but it's not in the spec" \
 2>&1 || true)
 
