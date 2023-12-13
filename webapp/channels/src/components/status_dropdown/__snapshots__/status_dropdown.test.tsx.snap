@@ -50,8 +50,8 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
           Nev Aa
         </Text>
         <Text
-          className=""
-          color="disabled"
+          className="contrast"
+          color=""
           margin="none"
         >
           @undefined
@@ -94,7 +94,7 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
         onClick={[Function]}
         rightDecorator={
           <CheckIcon
-            color="var(--semantic-color-success)"
+            color="var(--button-bg)"
             size={16}
           />
         }
@@ -208,6 +208,7 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
         }
         icon={
           <AccountOutlineIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -221,6 +222,7 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
       <MenuItemAction
         icon={
           <ExitToAppIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -284,8 +286,8 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
           Nev Aa
         </Text>
         <Text
-          className=""
-          color="disabled"
+          className="contrast"
+          color=""
           margin="none"
         >
           @undefined
@@ -335,7 +337,6 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
             tooltipDirection="bottom"
           />
           <Text
-            color="disabled"
             margin="none"
           />
           <div
@@ -409,7 +410,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
         onClick={[Function]}
         rightDecorator={
           <CheckIcon
-            color="var(--semantic-color-success)"
+            color="var(--button-bg)"
             size={16}
           />
         }
@@ -523,6 +524,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
         }
         icon={
           <AccountOutlineIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -536,6 +538,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
       <MenuItemAction
         icon={
           <ExitToAppIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -599,8 +602,8 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
           Nev Aa
         </Text>
         <Text
-          className=""
-          color="disabled"
+          className="contrast"
+          color=""
           margin="none"
         >
           @undefined
@@ -618,7 +621,7 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
       <MenuItemToggleModalRedux
-        ariaLabel="Set a Custom Status"
+        ariaLabel="Set a custom status"
         className="MenuItem__primary-text custom_status__row"
         dialogType={[Function]}
         id="status-menu-custom-status"
@@ -641,10 +644,9 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
             tooltipDirection="bottom"
           />
           <Text
-            color="disabled"
             margin="none"
           >
-            Set a Custom Status
+            Set a custom status
           </Text>
         </span>
       </MenuItemToggleModalRedux>
@@ -676,7 +678,7 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
         onClick={[Function]}
         rightDecorator={
           <CheckIcon
-            color="var(--semantic-color-success)"
+            color="var(--button-bg)"
             size={16}
           />
         }
@@ -790,6 +792,7 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
         }
         icon={
           <AccountOutlineIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -803,6 +806,7 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
       <MenuItemAction
         icon={
           <ExitToAppIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -866,8 +870,8 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
           Nev Aa
         </Text>
         <Text
-          className=""
-          color="disabled"
+          className="contrast"
+          color=""
           margin="none"
         >
           @undefined
@@ -885,7 +889,7 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
       <MenuItemToggleModalRedux
-        ariaLabel="Set a Custom Status"
+        ariaLabel="Set a custom status"
         className="MenuItem__primary-text custom_status__row"
         dialogType={[Function]}
         id="status-menu-custom-status"
@@ -908,10 +912,9 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
             tooltipDirection="bottom"
           />
           <Text
-            color="disabled"
             margin="none"
           >
-            Set a Custom Status
+            Set a custom status
           </Text>
         </span>
       </MenuItemToggleModalRedux>
@@ -943,7 +946,7 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
         onClick={[Function]}
         rightDecorator={
           <CheckIcon
-            color="var(--semantic-color-success)"
+            color="var(--button-bg)"
             size={16}
           />
         }
@@ -1057,6 +1060,7 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
         }
         icon={
           <AccountOutlineIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -1070,6 +1074,7 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
       <MenuItemAction
         icon={
           <ExitToAppIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -1133,8 +1138,8 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
           Nev Aa
         </Text>
         <Text
-          className=""
-          color="disabled"
+          className="contrast"
+          color=""
           margin="none"
         >
           @undefined
@@ -1152,7 +1157,7 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
       <MenuItemToggleModalRedux
-        ariaLabel="Set a Custom Status"
+        ariaLabel="Set a custom status"
         className="MenuItem__primary-text custom_status__row"
         dialogType={[Function]}
         id="status-menu-custom-status"
@@ -1175,10 +1180,9 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
             tooltipDirection="bottom"
           />
           <Text
-            color="disabled"
             margin="none"
           >
-            Set a Custom Status
+            Set a custom status
           </Text>
           <PulsatingDot />
         </span>
@@ -1211,7 +1215,7 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
         onClick={[Function]}
         rightDecorator={
           <CheckIcon
-            color="var(--semantic-color-success)"
+            color="var(--button-bg)"
             size={16}
           />
         }
@@ -1325,6 +1329,7 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
         }
         icon={
           <AccountOutlineIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -1338,6 +1343,7 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
       <MenuItemAction
         icon={
           <ExitToAppIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -1409,8 +1415,8 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
           Nev Aa
         </Text>
         <Text
-          className=""
-          color="disabled"
+          className="contrast"
+          color=""
           margin="none"
         >
           @undefined
@@ -1453,7 +1459,7 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
         onClick={[Function]}
         rightDecorator={
           <CheckIcon
-            color="var(--semantic-color-success)"
+            color="var(--button-bg)"
             size={16}
           />
         }
@@ -1567,6 +1573,7 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
         }
         icon={
           <AccountOutlineIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -1580,6 +1587,7 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
       <MenuItemAction
         icon={
           <ExitToAppIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -1643,8 +1651,8 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
           Nev Aa
         </Text>
         <Text
-          className=""
-          color="disabled"
+          className="contrast"
+          color=""
           margin="none"
         >
           @undefined
@@ -1687,7 +1695,7 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
         onClick={[Function]}
         rightDecorator={
           <CheckIcon
-            color="var(--semantic-color-success)"
+            color="var(--button-bg)"
             size={16}
           />
         }
@@ -1801,6 +1809,7 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
         }
         icon={
           <AccountOutlineIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -1814,6 +1823,7 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
       <MenuItemAction
         icon={
           <ExitToAppIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -1877,8 +1887,8 @@ exports[`components/StatusDropdown should not show clear status button when cust
           Nev Aa
         </Text>
         <Text
-          className=""
-          color="disabled"
+          className="contrast"
+          color=""
           margin="none"
         >
           @undefined
@@ -1896,7 +1906,7 @@ exports[`components/StatusDropdown should not show clear status button when cust
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
       <MenuItemToggleModalRedux
-        ariaLabel="Set a Custom Status"
+        ariaLabel="Set a custom status"
         className="MenuItem__primary-text custom_status__row"
         dialogType={[Function]}
         id="status-menu-custom-status"
@@ -1919,10 +1929,9 @@ exports[`components/StatusDropdown should not show clear status button when cust
             tooltipDirection="bottom"
           />
           <Text
-            color="disabled"
             margin="none"
           >
-            Set a Custom Status
+            Set a custom status
           </Text>
         </span>
       </MenuItemToggleModalRedux>
@@ -1954,7 +1963,7 @@ exports[`components/StatusDropdown should not show clear status button when cust
         onClick={[Function]}
         rightDecorator={
           <CheckIcon
-            color="var(--semantic-color-success)"
+            color="var(--button-bg)"
             size={16}
           />
         }
@@ -2068,6 +2077,7 @@ exports[`components/StatusDropdown should not show clear status button when cust
         }
         icon={
           <AccountOutlineIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -2081,6 +2091,7 @@ exports[`components/StatusDropdown should not show clear status button when cust
       <MenuItemAction
         icon={
           <ExitToAppIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -2144,8 +2155,8 @@ exports[`components/StatusDropdown should show clear status button when custom s
           Nev Aa
         </Text>
         <Text
-          className=""
-          color="disabled"
+          className="contrast"
+          color=""
           margin="none"
         >
           @undefined
@@ -2195,7 +2206,6 @@ exports[`components/StatusDropdown should show clear status button when custom s
             tooltipDirection="bottom"
           />
           <Text
-            color="disabled"
             margin="none"
           />
           <div
@@ -2269,7 +2279,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
         onClick={[Function]}
         rightDecorator={
           <CheckIcon
-            color="var(--semantic-color-success)"
+            color="var(--button-bg)"
             size={16}
           />
         }
@@ -2383,6 +2393,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
         }
         icon={
           <AccountOutlineIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
@@ -2396,6 +2407,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
       <MenuItemAction
         icon={
           <ExitToAppIcon
+            color="rgba(var(--center-channel-color-rgb), 0.56)"
             size={16}
           />
         }
