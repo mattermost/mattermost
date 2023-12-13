@@ -235,9 +235,11 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 	wc.SetSessionToken(cfg.Session.Token)
 	wc.SetSessionExpiresAt(cfg.Session.ExpiresAt)
 	wc.SetConnectionID(cfg.ConnectionID)
-	wc.SetActiveChannelID("")
-	wc.SetActiveTeamID("")
-	wc.SetActiveThreadChannelID("")
+	// <> means unset. This is to differentiate from empty value.
+	// Because we need to support mobile clients where the value might be unset.
+	wc.SetActiveChannelID("<>")
+	wc.SetActiveTeamID("<>")
+	wc.SetActiveThreadChannelID("<>")
 
 	ps.Go(func() {
 		runner.RunMultiHook(func(hooks plugin.Hooks) bool {
@@ -831,7 +833,16 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	}
 
 	// Only report events to users who are in the channel for the event
-	if msg.GetBroadcast().ChannelId != "" {
+	if chID := msg.GetBroadcast().ChannelId; chID != "" {
+		// For typing events, we don't send them to users who don't have
+		// that channel or thread opened.
+		if msg.EventType() == model.WebsocketEventTyping {
+			if (wc.GetActiveChannelID() != "<>" && chID != wc.GetActiveChannelID()) &&
+				(wc.GetActiveThreadChannelID() != "<>" && chID != wc.GetActiveThreadChannelID()) {
+				return false
+			}
+		}
+
 		if model.GetMillis()-wc.lastAllChannelMembersTime > webConnMemberCacheTime {
 			wc.allChannelMembers = nil
 			wc.lastAllChannelMembersTime = 0
@@ -847,7 +858,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 			wc.lastAllChannelMembersTime = model.GetMillis()
 		}
 
-		if _, ok := wc.allChannelMembers[msg.GetBroadcast().ChannelId]; ok {
+		if _, ok := wc.allChannelMembers[chID]; ok {
 			return true
 		}
 		return false

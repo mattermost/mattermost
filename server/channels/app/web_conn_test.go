@@ -162,6 +162,54 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		assert.False(t, adminUserWc.ShouldSendEvent(event), "did not expect admin")
 	})
 
+	t.Run("should not send typing event unless in scope", func(t *testing.T) {
+		event2 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", th.BasicChannel.Id, "", nil, "")
+		// Basic, unset case
+		basicUserWc.SetActiveChannelID("<>")
+		basicUserWc.SetActiveThreadChannelID("<>")
+		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+
+		// Active channel is set to something else, thread unset
+		basicUserWc.SetActiveChannelID("ch1")
+		basicUserWc.SetActiveThreadChannelID("<>")
+		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+
+		// Active channel is unset, thread set
+		basicUserWc.SetActiveChannelID("<>")
+		basicUserWc.SetActiveThreadChannelID("ch1")
+		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+
+		// both are set to correct channel
+		basicUserWc.SetActiveChannelID(th.BasicChannel.Id)
+		basicUserWc.SetActiveThreadChannelID(th.BasicChannel.Id)
+		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+
+		// channel is correct, thread is something else.
+		basicUserWc.SetActiveChannelID(th.BasicChannel.Id)
+		basicUserWc.SetActiveThreadChannelID("ch1")
+		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+
+		// channel is wrong, thread is correct.
+		basicUserWc.SetActiveChannelID("ch1")
+		basicUserWc.SetActiveThreadChannelID(th.BasicChannel.Id)
+		assert.True(t, basicUserWc.ShouldSendEvent(event2))
+
+		// FINALLY, both are set to something else.
+		basicUserWc.SetActiveChannelID("ch1")
+		basicUserWc.SetActiveThreadChannelID("ch1")
+		assert.False(t, basicUserWc.ShouldSendEvent(event2))
+
+		// Different threads and channel
+		basicUserWc.SetActiveChannelID("ch1")
+		basicUserWc.SetActiveThreadChannelID("ch2")
+		assert.False(t, basicUserWc.ShouldSendEvent(event2))
+
+		// Other channel. Thread unset explicitly.
+		basicUserWc.SetActiveChannelID("ch1")
+		basicUserWc.SetActiveThreadChannelID("")
+		assert.False(t, basicUserWc.ShouldSendEvent(event2))
+	})
+
 	t.Run("should send to basic user and admin in channel2", func(t *testing.T) {
 		event = event.SetBroadcast(&model.WebsocketBroadcast{ChannelId: channel2.Id})
 
