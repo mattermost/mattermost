@@ -36,10 +36,11 @@ const InfoTab = (props: Props) => {
     const {formatMessage} = useIntl();
 
     const handleNameDescriptionSubmit = async (): Promise<Error | null> => {
-        if (name?.trim() === props.team?.display_name) {
+        if (name?.trim() === props.team?.display_name && description === props.team?.description) {
             return null;
         }
 
+        // todo sinan: when the input is empty clicking make the save changes panel green
         if (!name) {
             setNameClientError({id: 'general_tab.required', defaultMessage: 'This field is required'});
             return null;

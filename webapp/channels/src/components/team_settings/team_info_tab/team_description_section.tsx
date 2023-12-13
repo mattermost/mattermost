@@ -26,6 +26,7 @@ const TeamDescriptionSection = (props: Props) => {
     const descriptionSectionInput = (
         <Input
             id='teamDescription'
+            data-testid='teamDescriptionInput'
             containerClassName='description-section-input'
             type='textarea'
             maxLength={Constants.MAX_TEAMDESCRIPTION_LENGTH}

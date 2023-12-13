@@ -129,6 +129,7 @@ const TeamPictureSection = (props: Props) => {
             return (
                 <button
                     onClick={props.onRemove}
+                    data-testid='removeImageButton'
                     className='style--none picture-setting-item__remove-button'
                 >
                     <TrashCanOutlineIcon/>
@@ -152,7 +153,7 @@ const TeamPictureSection = (props: Props) => {
 
     return (
         <BaseSettingItem
-            title={{id: 'setting_picture.title', description: 'Team icon'}}
+            title={{id: 'setting_picture.title', defaultMessage: 'Team Icon'}}
             description={teamImageSource ? undefined : {
                 id: 'setting_picture.help.profile',
                 defaultMessage: 'Upload a picture in BMP, JPG, JPEG, or PNG format. Maximum file size: {max}',

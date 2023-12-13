@@ -26,6 +26,7 @@ const TeamNameSection = (props: Props) => {
     const nameSectionInput = (
         <Input
             id='teamName'
+            data-testid='teamNameInput'
             type='text'
             maxLength={Constants.MAX_TEAMNAME_LENGTH}
             onChange={updateName}

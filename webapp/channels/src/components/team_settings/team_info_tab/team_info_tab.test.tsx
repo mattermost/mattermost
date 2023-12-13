@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {screen} from '@testing-library/react';
 import React from 'react';
-import type {ChangeEvent, ComponentProps} from 'react';
+import type {ComponentProps} from 'react';
+import {act} from 'react-dom/test-utils';
 
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import InfoTab from './team_info_tab';
@@ -21,7 +24,7 @@ describe('components/TeamSettings', () => {
         setTeamIcon,
     };
     const defaultProps: ComponentProps<typeof InfoTab> = {
-        team: TestHelper.getTeamMock({id: 'team_id'}),
+        team: TestHelper.getTeamMock({id: 'team_id', name: 'team_name', display_name: 'team_display_name', description: 'team_description'}),
         maxFileSize: 50,
         actions: baseActions,
         canInviteTeamMembers: true,
@@ -30,149 +33,153 @@ describe('components/TeamSettings', () => {
         hasChangeTabError: false,
         setHasChanges: jest.fn(),
         setHasChangeTabError: jest.fn(),
+        closeModal: jest.fn(),
+        collapseModal: jest.fn(),
     };
 
-    test('should handle bad updateTeamIcon function call', () => {
-        const wrapper = shallow<typeof InfoTab>(<InfoTab {...defaultProps}/>);
-
-        // todo sinan: fix the type issue
-        // instead of calling the updateTeamIcon function, you should call save changes to trigger updateTeamIcon
-        // wrapper.instance().updateTeamIcon(null as unknown as ChangeEvent<HTMLInputElement>);
-
-        expect(wrapper.state('clientError')).toEqual('An error occurred while selecting the image.');
+    beforeEach(() => {
+        global.URL.createObjectURL = jest.fn();
     });
 
-    test('should handle invalid file selection', () => {
-        const wrapper = shallow<typeof InfoTab>(<InfoTab {...defaultProps}/>);
+    test('should show an error when pdf file is uploaded', () => {
+        renderWithContext(<InfoTab {...defaultProps}/>);
+        const file = new File(['pdf'], 'pdf.pdf', {type: 'application/pdf'});
+        const input = screen.getByTestId('uploadPicture');
+        userEvent.upload(input, file);
 
-        wrapper.instance().updateTeamIcon({
-            target: {
-                files: [{
-                    type: 'text/plain',
-                }],
-            },
-        } as unknown as ChangeEvent<HTMLInputElement>);
-
-        expect(wrapper.state('clientError')).toEqual('Only BMP, JPG or PNG images may be used for team icons');
+        const error = screen.getByTestId('mm-modal-generic-section-item__error');
+        expect(error).toBeVisible();
+        expect(error).toHaveTextContent('Only BMP, JPG or PNG images may be used for team icons');
     });
 
-    test('should handle too large files', () => {
-        const wrapper = shallow<InfoTab>(<InfoTab {...defaultProps}/>);
+    test('should show an error when too large file is uploaded with 40mb', () => {
+        renderWithContext(<InfoTab {...defaultProps}/>);
+        const file = new File(['test'], 'test.png', {type: 'image/png'});
+        Object.defineProperty(file, 'size', {value: defaultProps.maxFileSize + 1});
+        const input = screen.getByTestId('uploadPicture');
+        userEvent.upload(input, file);
 
-        wrapper.instance().updateTeamIcon({
-            target: {
-                files: [{
-                    type: 'image/jpeg',
-                    size: defaultProps.maxFileSize + 1,
-                }],
-            },
-        } as unknown as ChangeEvent<HTMLInputElement>);
-
-        expect(wrapper.state('clientError')).toEqual('Unable to upload team icon. File is too large.');
+        const error = screen.getByTestId('mm-modal-generic-section-item__error');
+        expect(error).toBeVisible();
+        expect(error).toHaveTextContent('Unable to upload team icon. File is too large.');
     });
 
-    test('should call actions.setTeamIcon on handleTeamIconSubmit', () => {
-        const actions = {...baseActions};
-        const props = {...defaultProps, actions};
-        const wrapper = shallow<InfoTab>(<InfoTab {...props}/>);
-
-        let teamIconFile = null;
-        wrapper.setState({teamIconFile, submitActive: true});
-        wrapper.instance().handleTeamIconSubmit();
-        expect(actions.setTeamIcon).not.toHaveBeenCalled();
-
-        teamIconFile = {file: 'team_icon_file'} as unknown as File;
-        wrapper.setState({teamIconFile, submitActive: false});
-        wrapper.instance().handleTeamIconSubmit();
-        expect(actions.setTeamIcon).not.toHaveBeenCalled();
-
-        wrapper.setState({teamIconFile, submitActive: true});
-        wrapper.instance().handleTeamIconSubmit();
-
-        expect(actions.setTeamIcon).toHaveBeenCalledTimes(1);
-        expect(actions.setTeamIcon).toHaveBeenCalledWith(props.team?.id, teamIconFile);
-    });
-
-    test('should call actions.removeTeamIcon on handleTeamIconRemove', () => {
-        const actions = {...baseActions};
-        const props = {...defaultProps, actions};
-        const wrapper = shallow<InfoTab>(<InfoTab {...props}/>);
-
-        wrapper.instance().handleTeamIconRemove();
-
-        expect(actions.removeTeamIcon).toHaveBeenCalledTimes(1);
-        expect(actions.removeTeamIcon).toHaveBeenCalledWith(props.team?.id);
-    });
-
-    test('hide invite code if no permissions for team inviting', () => {
-        const props = {...defaultProps, canInviteTeamMembers: false};
-
-        const wrapper1 = shallow(<InfoTab {...defaultProps}/>);
-        const wrapper2 = shallow(<InfoTab {...props}/>);
-
-        expect(wrapper1).toMatchSnapshot();
-        expect(wrapper2).toMatchSnapshot();
-    });
-
-    test('should call actions.patchTeam on handleNameSubmit', () => {
-        const actions = {...baseActions};
-        const props = {...defaultProps, actions};
-        if (props.team) {
-            props.team.display_name = 'TestTeam';
-        }
-
-        const wrapper = shallow<typeof InfoTab>(<InfoTab {...props}/>);
-
-        wrapper.instance().handleNameSubmit();
-
-        expect(actions.patchTeam).toHaveBeenCalledTimes(1);
-        expect(actions.patchTeam).toHaveBeenCalledWith({
-            display_name: props.team?.display_name,
-            id: props.team?.id,
+    test('should call setTeamIcon when an image is uploaded and saved', async () => {
+        renderWithContext(<InfoTab {...defaultProps}/>);
+        const file = new File(['test'], 'test.png', {type: 'image/png'});
+        const input = screen.getByTestId('uploadPicture');
+        await act(async () => {
+            userEvent.upload(input, file);
         });
-    });
 
-    test('should call actions.patchTeam on handleDescriptionSubmit', () => {
-        const actions = {...baseActions};
-        const props = {...defaultProps, actions};
-
-        const wrapper = shallow<InfoTab>(<InfoTab {...props}/>);
-
-        const newDescription = 'The Test Team';
-        wrapper.setState({description: newDescription});
-        wrapper.instance().handleDescriptionSubmit();
-        if (props.team) {
-            props.team.description = newDescription;
-        }
-
-        expect(actions.patchTeam).toHaveBeenCalledTimes(1);
-        expect(actions.patchTeam).toHaveBeenCalledWith({
-            description: newDescription,
-            id: props.team?.id,
+        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        await act(async () => {
+            userEvent.click(saveButton);
         });
+
+        expect(setTeamIcon).toHaveBeenCalledTimes(1);
+        expect(setTeamIcon).toHaveBeenCalledWith(defaultProps.team?.id, file);
     });
 
-    test('should match snapshot when team is group constrained', () => {
-        const props = {...defaultProps};
-        if (props.team) {
-            props.team.group_constrained = true;
-        }
+    test('should call setTeamIcon when an image is removed', async () => {
+        renderWithContext(<InfoTab {...defaultProps}/>);
+        const file = new File(['test'], 'test.png', {type: 'image/png'});
+        const input = screen.getByTestId('uploadPicture');
+        await act(async () => {
+            userEvent.upload(input, file);
+        });
 
-        const wrapper = shallow(<InfoTab {...props}/>);
+        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        await act(async () => {
+            userEvent.click(saveButton);
+        });
 
-        expect(wrapper).toMatchSnapshot();
+        const removeImageButton = screen.getByTestId('removeImageButton');
+        await act(async () => {
+            userEvent.click(removeImageButton);
+        });
+
+        expect(removeTeamIcon).toHaveBeenCalledTimes(1);
+        expect(removeTeamIcon).toHaveBeenCalledWith(defaultProps.team?.id);
     });
 
-    test('should call actions.getTeam on handleUpdateSection if invite_id is empty', () => {
-        const actions = {...baseActions};
-        const props = {...defaultProps, actions};
-        if (props.team) {
-            props.team.invite_id = '';
-        }
+    test('should show an error when team name is empty', async () => {
+        renderWithContext(<InfoTab {...defaultProps}/>);
+        const input = screen.getByTestId('teamNameInput');
+        act(() => {
+            userEvent.clear(input);
+        });
+        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        await act(async () => {
+            userEvent.click(saveButton);
+        });
 
-        shallow<InfoTab>(<InfoTab {...props}/>);
+        const error = screen.getByTestId('mm-modal-generic-section-item__error');
+        expect(error).toBeVisible();
+        expect(error).toHaveTextContent('This field is required');
+    });
 
-        expect(actions.getTeam).toHaveBeenCalledTimes(1);
-        expect(actions.getTeam).toHaveBeenCalledWith(props.team?.id);
+    test('should show an error when team name is too short', async () => {
+        renderWithContext(<InfoTab {...defaultProps}/>);
+        const input = screen.getByTestId('teamNameInput');
+        await act(async () => {
+            await userEvent.clear(input);
+            await userEvent.type(input, 'a');
+        });
+        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        await act(async () => {
+            userEvent.click(saveButton);
+        });
+
+        const error = screen.getByTestId('mm-modal-generic-section-item__error');
+        expect(error).toBeVisible();
+        expect(error).toHaveTextContent(`Team Name must be ${Constants.MIN_TEAMNAME_LENGTH} or more characters up to a maximum of ${Constants.MAX_TEAMNAME_LENGTH}. You can add a longer team description.`);
+    });
+
+    test('should call patchTeam when team name is changed and clicked saved', async () => {
+        renderWithContext(<InfoTab {...defaultProps}/>);
+        const input = screen.getByTestId('teamNameInput');
+        userEvent.clear(input);
+        userEvent.type(input, 'new_team_name');
+        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        await act(async () => {
+            userEvent.click(saveButton);
+        });
+
+        expect(patchTeam).toHaveBeenCalledTimes(1);
+        expect(patchTeam).toHaveBeenCalledWith({id: defaultProps.team?.id, display_name: 'new_team_name', description: defaultProps.team?.description});
+    });
+
+    test('should call patchTeam when team description is changed and clicked saved', async () => {
+        renderWithContext(<InfoTab {...defaultProps}/>);
+        const input = screen.getByTestId('teamDescriptionInput');
+        await act(async () => {
+            await userEvent.clear(input);
+            await userEvent.type(input, 'new_team_description');
+        });
+        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        await act(async () => {
+            userEvent.click(saveButton);
+        });
+
+        expect(patchTeam).toHaveBeenCalledTimes(1);
+        expect(patchTeam).toHaveBeenCalledWith({id: defaultProps.team?.id, display_name: defaultProps.team?.display_name, description: 'new_team_description'});
+    });
+
+    test('should call patchTeam when team name and description are change and clicked saved', async () => {
+        renderWithContext(<InfoTab {...defaultProps}/>);
+        const nameInput = screen.getByTestId('teamNameInput');
+        const descriptionInput = screen.getByTestId('teamDescriptionInput');
+        userEvent.clear(nameInput);
+        userEvent.type(nameInput, 'new_team_name');
+        userEvent.clear(descriptionInput);
+        userEvent.type(descriptionInput, 'new_team_description');
+        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        await act(async () => {
+            userEvent.click(saveButton);
+        });
+
+        expect(patchTeam).toHaveBeenCalledTimes(1);
+        expect(patchTeam).toHaveBeenCalledWith({id: defaultProps.team?.id, display_name: 'new_team_name', description: 'new_team_description'});
     });
 });

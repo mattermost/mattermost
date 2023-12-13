@@ -57,6 +57,7 @@ function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeErr
                 <div className='mm-save-changes-panel__btn-ctr'>
                     <button
                         id='panelCloseButton'
+                        data-testid='panelCloseButton'
                         type='button'
                         className='btn btn-icon btn-sm'
                         onClick={handleClose}
@@ -72,6 +73,7 @@ function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeErr
         return (
             <div className='mm-save-changes-panel__btn-ctr'>
                 <button
+                    data-testid='mm-save-changes-panel__cancel-btn'
                     className={cancelButtonClassName}
                     onClick={handleCancel}
                 >
@@ -81,6 +83,7 @@ function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeErr
                     />
                 </button>
                 <button
+                    data-testid='mm-save-changes-panel__save-btn'
                     className={saveButtonClassName}
                     onClick={handleSubmit}
                 >
