@@ -35,49 +35,49 @@ const InfoTab = (props: Props) => {
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>('saving');
     const {formatMessage} = useIntl();
 
-    const handleNameDescriptionSubmit = async (): Promise<Error | null> => {
+    const handleNameDescriptionSubmit = async (): Promise<boolean> => {
         if (name?.trim() === props.team?.display_name && description === props.team?.description) {
-            return null;
+            return true;
         }
 
         // todo sinan: when the input is empty clicking make the save changes panel green
         if (!name) {
             setNameClientError({id: 'general_tab.required', defaultMessage: 'This field is required'});
-            return null;
+            return false;
         } else if (name.length < Constants.MIN_TEAMNAME_LENGTH) {
             setNameClientError({
                 id: 'general_tab.teamNameRestrictions',
                 defaultMessage: 'Team Name must be {min} or more characters up to a maximum of {max}. You can add a longer team description.',
                 values: {min: Constants.MIN_TEAMNAME_LENGTH, max: Constants.MAX_TEAMNAME_LENGTH},
             });
-            return null;
+            return false;
         }
         setNameClientError(undefined);
         const {error} = await props.actions.patchTeam({id: props.team?.id, display_name: name, description});
         if (error) {
-            return error;
+            return false;
         }
-        return null;
+        return true;
     };
 
-    const handleTeamIconSubmit = async (): Promise<Error | null> => {
+    const handleTeamIconSubmit = async (): Promise<boolean> => {
         if (!teamIconFile) {
-            return null;
+            return true;
         }
         setLoading(true);
         setImageClientError(undefined);
         const {error} = await props.actions.setTeamIcon(props.team?.id || '', teamIconFile);
         setLoading(false);
         if (error) {
-            return error;
+            return false;
         }
-        return null;
+        return true;
     };
 
     const handleSaveChanges = async () => {
-        const nameDescriptionError = await handleNameDescriptionSubmit();
-        const teamIconError = await handleTeamIconSubmit();
-        if (teamIconError || nameDescriptionError) {
+        const nameDescriptionSuccess = await handleNameDescriptionSubmit();
+        const teamIconSuccess = await handleTeamIconSubmit();
+        if (!teamIconSuccess || !nameDescriptionSuccess) {
             setSaveChangesPanelState('error');
             return;
         }
@@ -130,8 +130,9 @@ const InfoTab = (props: Props) => {
                     defaultMessage: 'Unable to upload team icon. File is too large.',
                 });
             } else {
-                setTeamIconFile(e.target.files[0]);
+                setTeamIconFile(file);
                 setImageClientError(undefined);
+                setSaveChangesPanelState('saving');
                 props.setHasChanges(true);
             }
         } else {
@@ -145,11 +146,13 @@ const InfoTab = (props: Props) => {
 
     const handleNameChanges = (name: string) => {
         props.setHasChanges(true);
+        setSaveChangesPanelState('saving');
         setName(name);
     };
 
     const handleDescriptionChanges = (description: string) => {
         props.setHasChanges(true);
+        setSaveChangesPanelState('saving');
         setDescription(description);
     };
 

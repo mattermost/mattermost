@@ -39,23 +39,23 @@ const AccessTab = (props: Props) => {
     const [inviteIdError, setInviteIdError] = useState<BaseSettingItemProps['error'] | undefined>();
     const {formatMessage} = useIntl();
 
-    const handleAllowedDomainsSubmit = async (): Promise<Error | null> => {
+    const handleAllowedDomainsSubmit = async (): Promise<boolean> => {
         if (allowedDomains.length === 0) {
-            return null;
+            return true;
         }
         const {error} = await props.actions.patchTeam({
             id: props.team?.id,
             allowed_domains: allowedDomains.length === 1 ? allowedDomains[0] : allowedDomains.join(', '),
         });
         if (error) {
-            return error;
+            return false;
         }
-        return null;
+        return true;
     };
 
-    const handleOpenInviteSubmit = async (): Promise<Error | null> => {
+    const handleOpenInviteSubmit = async (): Promise<boolean> => {
         if (allowOpenInvite === props.team?.allow_open_invite) {
-            return null;
+            return true;
         }
         const data = {
             id: props.team?.id,
@@ -64,21 +64,24 @@ const AccessTab = (props: Props) => {
 
         const {error} = await props.actions.patchTeam(data);
         if (error) {
-            return error;
+            return false;
         }
-        return null;
+        return true;
     };
 
     const updateAllowedDomains = (domain: string) => {
         props.setHasChanges(true);
+        setSaveChangesPanelState('saving');
         setAllowedDomains((prev) => [...prev, domain]);
     };
     const updateOpenInvite = (value: boolean) => {
         props.setHasChanges(true);
+        setSaveChangesPanelState('saving');
         setAllowOpenInvite(value);
     };
     const handleOnChangeDomains = (allowedDomainsOptions?: SelectTextInputOption[] | null) => {
         props.setHasChanges(true);
+        setSaveChangesPanelState('saving');
         setAllowedDomains(allowedDomainsOptions?.map((domain) => domain.value) || []);
     };
     const handleRegenerateInviteId = async () => {
@@ -122,9 +125,9 @@ const AccessTab = (props: Props) => {
     };
 
     const handleSaveChanges = async () => {
-        const allowedDomainError = await handleAllowedDomainsSubmit();
-        const openInviteError = await handleOpenInviteSubmit();
-        if (allowedDomainError || openInviteError) {
+        const allowedDomainSuccess = await handleAllowedDomainsSubmit();
+        const openInviteSuccess = await handleOpenInviteSubmit();
+        if (!allowedDomainSuccess || !openInviteSuccess) {
             setSaveChangesPanelState('error');
             return;
         }
