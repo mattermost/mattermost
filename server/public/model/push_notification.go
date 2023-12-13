@@ -34,6 +34,13 @@ const (
 	PushReceived    = "Received by device"
 )
 
+// PushSubType allows for passing additional message type information
+// to mobile clients in a backwards-compatible way
+type PushSubType string
+
+// PushSubTypeCalls is used by the Calls plugin
+const PushSubTypeCalls PushSubType = "calls"
+
 type PushNotificationAck struct {
 	Id               string `json:"id"`
 	ClientReceivedAt int64  `json:"received_at"`
@@ -59,6 +66,7 @@ type PushNotification struct {
 	RootId           string      `json:"root_id,omitempty"`
 	ChannelName      string      `json:"channel_name,omitempty"`
 	Type             string      `json:"type,omitempty"`
+	SubType          PushSubType `json:"sub_type,omitempty"`
 	SenderId         string      `json:"sender_id,omitempty"`
 	SenderName       string      `json:"sender_name,omitempty"`
 	OverrideUsername string      `json:"override_username,omitempty"`

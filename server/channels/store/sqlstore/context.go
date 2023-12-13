@@ -31,7 +31,7 @@ func WithMaster(ctx context.Context) context.Context {
 // RequestContextWithMaster adds the context value that master DB should be selected for this request.
 func RequestContextWithMaster(c request.CTX) request.CTX {
 	ctx := WithMaster(c.Context())
-	c.SetContext(ctx)
+	c = c.WithContext(ctx)
 	return c
 }
 

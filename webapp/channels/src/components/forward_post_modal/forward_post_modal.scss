@@ -141,5 +141,14 @@
                 opacity: 0.64 !important;
             }
         }
+
+        .post-error {
+            position: relative;
+            top: 3px;
+            margin-bottom: 0;
+            font-size: 0.85em;
+            font-weight: normal;
+            opacity: 0.55;
+        }
     }
 }

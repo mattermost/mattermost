@@ -205,7 +205,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// |
 			// Cache layer
 			var err error
-			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace)
+			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace)
 			if err != nil {
 				return nil, err
 			}
@@ -344,8 +344,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	return ps, nil
 }
 
-func (ps *PlatformService) Start() error {
-	ps.hubStart()
+func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error {
+	ps.hubStart(broadcastHooks)
 
 	ps.configListenerId = ps.AddConfigListener(func(_, _ *model.Config) {
 		ps.regenerateClientConfig()

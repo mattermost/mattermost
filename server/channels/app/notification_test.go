@@ -4,10 +4,14 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -15,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	pUtils "github.com/mattermost/mattermost/server/public/utils"
 
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -210,6 +215,314 @@ func TestSendNotifications(t *testing.T) {
 			testUserNotNotified(t, th.BasicUser)
 		})
 	})
+}
+
+func TestSendNotifications_MentionsFollowers(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+
+	sender := th.CreateUser()
+
+	th.LinkUserToTeam(sender, th.BasicTeam)
+	member := th.AddUserToChannel(sender, th.BasicChannel)
+
+	t.Run("should inform each user if they were mentioned by a post", func(t *testing.T) {
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		defer closeWS1()
+
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		defer closeWS2()
+
+		// First post mentioning the whole channel
+		post := &model.Post{
+			UserId:    sender.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "@channel",
+		}
+		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
+		require.NoError(t, err)
+
+		received1 := <-messages1
+		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
+		assertUnmarshalsTo(t, []string{th.BasicUser.Id}, received1.GetData()["mentions"])
+
+		received2 := <-messages2
+		require.Equal(t, model.WebsocketEventPosted, received2.EventType())
+		assertUnmarshalsTo(t, []string{th.BasicUser2.Id}, received2.GetData()["mentions"])
+
+		// Second post mentioning both users individually
+		post = &model.Post{
+			UserId:    sender.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   fmt.Sprintf("@%s @%s", th.BasicUser.Username, th.BasicUser2.Username),
+		}
+		_, err = th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
+		require.NoError(t, err)
+
+		received1 = <-messages1
+		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
+		assertUnmarshalsTo(t, []string{th.BasicUser.Id}, received1.GetData()["mentions"])
+
+		received2 = <-messages2
+		require.Equal(t, model.WebsocketEventPosted, received2.EventType())
+		assertUnmarshalsTo(t, []string{th.BasicUser2.Id}, received2.GetData()["mentions"])
+
+		// Third post mentioning a single user
+		post = &model.Post{
+			UserId:    sender.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "@" + th.BasicUser.Username,
+		}
+		_, err = th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
+		require.NoError(t, err)
+
+		received1 = <-messages1
+		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
+		assertUnmarshalsTo(t, []string{th.BasicUser.Id}, received1.GetData()["mentions"])
+
+		received2 = <-messages2
+		require.Equal(t, model.WebsocketEventPosted, received2.EventType())
+		assert.Nil(t, received2.GetData()["mentions"])
+	})
+
+	t.Run("should inform each user in a group if they were mentioned by a post", func(t *testing.T) {
+		// Make the sender a channel_admin because that's needed for group mentions
+		originalRoles := member.Roles
+		member.Roles = "channel_user channel_admin"
+		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, member.ChannelId, member.UserId, member.Roles)
+		require.Nil(t, appErr)
+
+		defer func() {
+			th.App.UpdateChannelMemberRoles(th.Context, member.ChannelId, member.UserId, originalRoles)
+		}()
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuEnterprise))
+
+		// Make a group and add users
+		group := th.CreateGroup()
+		group.AllowReference = true
+		group, updateErr := th.App.UpdateGroup(group)
+		require.Nil(t, updateErr)
+
+		_, upsertErr := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+		require.Nil(t, upsertErr)
+		_, upsertErr = th.App.UpsertGroupMember(group.Id, th.BasicUser2.Id)
+		require.Nil(t, upsertErr)
+
+		// Set up the websockets
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		defer closeWS1()
+
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		defer closeWS2()
+
+		// Confirm permissions for group mentions are correct
+		post := &model.Post{
+			UserId:    sender.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "@" + *group.Name,
+		}
+		require.True(t, th.App.allowGroupMentions(th.Context, post))
+
+		// Test sending notifications
+		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
+		require.NoError(t, err)
+
+		received1 := <-messages1
+		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
+		assertUnmarshalsTo(t, []string{th.BasicUser.Id}, received1.GetData()["mentions"])
+
+		received2 := <-messages2
+		require.Equal(t, model.WebsocketEventPosted, received2.EventType())
+		assertUnmarshalsTo(t, []string{th.BasicUser2.Id}, received2.GetData()["mentions"])
+	})
+
+	t.Run("should inform each user if they are following a thread that was posted in", func(t *testing.T) {
+		t.Log("BasicUser ", th.BasicUser.Id)
+		t.Log("sender ", sender.Id)
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		defer closeWS1()
+
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		defer closeWS2()
+
+		// Reply to a post made by BasicUser
+		post := &model.Post{
+			UserId:    sender.Id,
+			ChannelId: th.BasicChannel.Id,
+			RootId:    th.BasicPost.Id,
+			Message:   "This is a test",
+		}
+
+		// Use CreatePost instead of SendNotifications here since we need that to set up some threads state
+		_, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, false, false)
+		require.Nil(t, appErr)
+
+		received1 := <-messages1
+		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
+		assertUnmarshalsTo(t, []string{th.BasicUser.Id}, received1.GetData()["followers"])
+
+		received2 := <-messages2
+		require.Equal(t, model.WebsocketEventPosted, received2.EventType())
+		assert.Nil(t, received2.GetData()["followers"])
+	})
+
+	t.Run("should not include broadcast hook information in messages sent to users", func(t *testing.T) {
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		defer closeWS1()
+
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		defer closeWS2()
+
+		// For a post mentioning only one user, nobody in the channel should receive information about the broadcast hooks
+		post := &model.Post{
+			UserId:    sender.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   fmt.Sprintf("@%s", th.BasicUser.Username),
+		}
+		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
+		require.NoError(t, err)
+
+		received1 := <-messages1
+		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
+		assert.Nil(t, received1.GetBroadcast().BroadcastHooks)
+		assert.Nil(t, received1.GetBroadcast().BroadcastHookArgs)
+
+		received2 := <-messages2
+		require.Equal(t, model.WebsocketEventPosted, received2.EventType())
+		assert.Nil(t, received2.GetBroadcast().BroadcastHooks)
+		assert.Nil(t, received2.GetBroadcast().BroadcastHookArgs)
+	})
+}
+
+func assertUnmarshalsTo(t *testing.T, expected any, actual any) {
+	t.Helper()
+
+	val, err := json.Marshal(expected)
+	require.NoError(t, err)
+
+	assert.JSONEq(t, string(val), actual.(string))
+}
+
+func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectionID string) (chan *model.WebSocketEvent, func()) {
+	var session *model.Session
+	var server *httptest.Server
+	var webConn *platform.WebConn
+
+	closeWS := func() {
+		if webConn != nil {
+			webConn.Close()
+		}
+		if server != nil {
+			server.Close()
+		}
+		if session != nil {
+			appErr := th.App.RevokeSession(th.Context, session)
+			require.Nil(t, appErr)
+		}
+	}
+
+	// Create a session for the user's connection
+	var appErr *model.AppError
+	session, appErr = th.App.CreateSession(th.Context, &model.Session{
+		UserId: userID,
+	})
+	require.Nil(t, appErr)
+
+	// Create a channel and an HTTP server to handle incoming WS events
+	messages := make(chan *model.WebSocketEvent)
+	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		upgrader := &websocket.Upgrader{}
+
+		c, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			t.Log("Received error when upgrading WebSocket connection", err)
+			return
+		}
+		defer c.Close()
+
+		for {
+			_, reader, err := c.NextReader()
+			if err != nil {
+				t.Log("Received error when reading from WebSocket connection", err)
+				break
+			}
+
+			msg, err := model.WebSocketEventFromJSON(reader)
+			if err != nil {
+				t.Log("Received error when decoding from WebSocket connection", err)
+				break
+			}
+
+			messages <- msg
+		}
+	}))
+
+	// Connect the WebSocket
+	d := websocket.Dialer{}
+	ws, _, err := d.Dial("ws://"+server.Listener.Addr().String(), nil)
+	require.NoError(t, err)
+
+	// Register the WebSocket with the server as a WebConn
+	if connectionID == "" {
+		connectionID = model.NewId()
+	}
+	webConn = th.App.Srv().Platform().NewWebConn(&platform.WebConnConfig{
+		WebSocket:    ws,
+		Session:      *session,
+		TFunc:        i18n.IdentityTfunc(),
+		Locale:       "en",
+		ConnectionID: connectionID,
+	}, th.App, th.App.Channels())
+	th.App.Srv().Platform().HubRegister(webConn)
+
+	// Start reading from it
+	go webConn.Pump()
+
+	// Read the events which always occur at the start of a WebSocket connection
+	received := <-messages
+	assert.Equal(t, model.WebsocketEventHello, received.EventType())
+
+	received = <-messages
+	assert.Equal(t, model.WebsocketEventStatusChange, received.EventType())
+
+	return messages, closeWS
+}
+
+func TestConnectFakeWebSocket(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	teamID := th.BasicTeam.Id
+	userID := th.BasicUser.Id
+
+	messages, closeWS := connectFakeWebSocket(t, th, userID, "")
+	defer closeWS()
+
+	msg := model.NewWebSocketEvent(model.WebsocketEventPosted, teamID, "", "", nil, "")
+	th.App.Publish(msg)
+
+	msg = model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", "", userID, nil, "")
+	msg.Add("key1", "value1")
+	msg.Add("key2", 2)
+	msg.Add("key3", []string{"three", "trois"})
+	th.App.Publish(msg)
+
+	received := <-messages
+	require.Equal(t, model.WebsocketEventPosted, received.EventType())
+	assert.Equal(t, teamID, received.GetBroadcast().TeamId)
+
+	received = <-messages
+	require.Equal(t, model.WebsocketEventPostEdited, received.EventType())
+	assert.Equal(t, userID, received.GetBroadcast().UserId)
+	// These type changes are annoying but unavoidable because event data is untyped
+	assert.Equal(t, map[string]any{
+		"key1": "value1",
+		"key2": float64(2),
+		"key3": []any{"three", "trois"},
+	}, received.GetData())
 }
 
 func TestSendNotificationsWithManyUsers(t *testing.T) {
@@ -2258,6 +2571,25 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	group2, err = th.App.UpdateGroup(group2)
 	require.Nil(t, err)
 
+	// Create a custom group
+	customGroupId := model.NewId()
+	customGroup, err := th.App.CreateGroup(&model.Group{
+		DisplayName:    customGroupId,
+		Name:           model.NewString("name" + customGroupId),
+		Source:         model.GroupSourceCustom,
+		Description:    "description_" + customGroupId,
+		AllowReference: true,
+		RemoteId:       nil,
+	})
+	assert.Nil(t, err)
+
+	u1 := th.BasicUser
+	_, err = th.App.UpsertGroupMember(customGroup.Id, u1.Id)
+	assert.Nil(t, err)
+
+	customGroup, err = th.App.GetGroup(customGroup.Id, &model.GetGroupOpts{IncludeMemberCount: true}, nil)
+	assert.Nil(t, err)
+
 	// Sync first group to constrained channel
 	constrainedChannel := th.CreateChannel(th.Context, th.BasicTeam)
 	constrainedChannel.GroupConstrained = model.NewBool(true)
@@ -2270,15 +2602,16 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	t.Run("should return only groups synced to channel if channel is group constrained", func(t *testing.T) {
+	t.Run("should return only groups synced to channel and custom groups if channel is group constrained", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
 		require.NoError(t, nErr)
-		require.Len(t, groupsMap, 1)
+		require.Len(t, groupsMap, 2)
 		require.Nil(t, groupsMap[group2.Id])
 		require.Equal(t, groupsMap[group1.Id], group1)
+		require.Equal(t, groupsMap[customGroup.Id], customGroup)
 	})
 
-	// Create a third group not synced with a team or channel
+	// Create a third ldap group not synced with a team or channel
 	group3 := th.CreateGroup()
 	group3.AllowReference = true
 	group3, err = th.App.UpdateGroup(group3)
@@ -2295,22 +2628,24 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	t.Run("should return union of groups synced to team and any channels if team is group constrained", func(t *testing.T) {
+	t.Run("should return union of custom groups, groups synced to team and any channels if team is group constrained", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
 		require.NoError(t, nErr)
-		require.Len(t, groupsMap, 2)
+		require.Len(t, groupsMap, 3)
 		require.Nil(t, groupsMap[group3.Id])
 		require.Equal(t, groupsMap[group2.Id], group2)
 		require.Equal(t, groupsMap[group1.Id], group1)
+		require.Equal(t, groupsMap[customGroup.Id], customGroup)
 	})
 
-	t.Run("should return only subset of groups synced to channel for group constrained channel when team is also group constrained", func(t *testing.T) {
+	t.Run("should return only subset of custom groups and groups synced to channel for group constrained channel when team is also group constrained", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
 		require.NoError(t, nErr)
-		require.Len(t, groupsMap, 1)
+		require.Len(t, groupsMap, 2)
 		require.Nil(t, groupsMap[group3.Id])
 		require.Nil(t, groupsMap[group2.Id])
 		require.Equal(t, groupsMap[group1.Id], group1)
+		require.Equal(t, groupsMap[customGroup.Id], customGroup)
 	})
 
 	team.GroupConstrained = model.NewBool(false)
@@ -2320,10 +2655,11 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	t.Run("should return all groups when team and channel are not group constrained", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
 		require.NoError(t, nErr)
-		require.Len(t, groupsMap, 3)
+		require.Len(t, groupsMap, 4)
 		require.Equal(t, groupsMap[group1.Id], group1)
 		require.Equal(t, groupsMap[group2.Id], group2)
 		require.Equal(t, groupsMap[group3.Id], group3)
+		require.Equal(t, groupsMap[customGroup.Id], customGroup)
 	})
 }
 

@@ -3515,6 +3515,60 @@ components:
           description: The time in milliseconds in which this acknowledgement was made.
           type: integer
           format: int64
+    AllowedIPRange:
+      type: object
+      properties:
+        CIDRBlock:
+          description: An IP address range in CIDR notation
+          type: string
+        Description:
+          description: A description for the CIDRBlock
+          type: string
+    UserReport:
+      type: object
+      properties:
+        id:
+          type: string
+        create_at:
+          description: The time in milliseconds a user was created
+          type: integer
+          format: int64
+        username:
+          type: string
+        email:
+          type: string
+        display_name:
+          type: string
+          description: Calculated display name based on user
+        last_login_at:
+          description: Last time the user was logged in
+          type: integer
+          format: int64
+        last_status_at:
+          description: Last time the user's status was updated
+          type: integer
+          format: int64
+        last_post_date:
+          description: Last time the user made a post within the given date range
+          type: integer
+          format: int64
+        days_active:
+          description: Total number of days a user posted within the given date range
+          type: integer
+        total_posts:
+          description: Total number of posts made by a user within the given date range
+          type: integer
+    Installation:
+      type: object
+      properties:
+        id:
+          description: A unique identifier
+          type: string
+        allowed_ip_ranges:
+          $ref: "#/components/schemas/AllowedIPRange"
+        state:
+          description: The current state of the installation
+          type: string
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

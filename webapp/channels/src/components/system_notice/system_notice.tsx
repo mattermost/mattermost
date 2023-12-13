@@ -2,21 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import type {AnalyticsRow} from '@mattermost/types/admin';
 import type {Channel} from '@mattermost/types/channels';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
-import LocalizedIcon from 'components/localized_icon';
 import type {Notice} from 'components/system_notice/types';
 import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
 import {Preferences} from 'utils/constants';
-import {t} from 'utils/i18n';
 
-type Props = {
+interface Props extends WrappedComponentProps {
     currentUserId: string;
     notices: Notice[];
     preferences: {[key: string]: any};
@@ -33,7 +31,7 @@ type Props = {
         getStandardAnalytics(teamId?: string): void;
     };
 }
-export default class SystemNotice extends React.PureComponent<Props> {
+export class SystemNotice extends React.PureComponent<Props> {
     componentDidMount() {
         if (this.props.isSystemAdmin) {
             this.props.actions.getStandardAnalytics();
@@ -114,9 +112,9 @@ export default class SystemNotice extends React.PureComponent<Props> {
         if (notice.adminOnly) {
             visibleMessage = (
                 <div className='system-notice__info'>
-                    <LocalizedIcon
+                    <i
                         className='fa fa-eye'
-                        title={{id: t('system_notice.adminVisible.icon'), defaultMessage: 'Only visible to System Admins Icon'}}
+                        title={this.props.intl.formatMessage({id: 'system_notice.adminVisible.icon', defaultMessage: 'Only visible to System Admins Icon'})}
                     />
                     <FormattedMessage
                         id='system_notice.adminVisible'
@@ -130,7 +128,7 @@ export default class SystemNotice extends React.PureComponent<Props> {
 
         return (
             <div
-                className='system-notice bg--white shadow--2'
+                className='system-notice bg--white'
             >
                 <div className='system-notice__logo'>
                     {icon}
@@ -169,3 +167,5 @@ export default class SystemNotice extends React.PureComponent<Props> {
         );
     }
 }
+
+export default injectIntl(SystemNotice);

@@ -91,6 +91,36 @@
             text-overflow: ellipsis;
             white-space: nowrap;
 
+            i.icon {
+                padding: 0 3px;
+                margin-right: 4px;
+                margin-bottom: 2px;
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+                vertical-align: middle;
+
+                &::before {
+                    margin: 0;
+                }
+            }
+
+            i.icon + span.MenuItem__primary-text {
+                padding: 5px 4px;
+            }
+
+            &.disabled {
+                color: rgba(var(--center-channel-color-rgb), 0.48);
+                cursor: default;
+                pointer-events: none;
+
+                &:hover {
+                    background: none;
+                }
+
+                .icon {
+                    color: rgba(var(--center-channel-color-rgb), 0.48);
+                }
+            }
+
             &.MenuItem__with-help {
                 display: block;
                 height: auto;

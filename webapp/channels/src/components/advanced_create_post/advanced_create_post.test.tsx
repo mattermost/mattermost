@@ -9,23 +9,16 @@ import type {CommandArgs} from '@mattermost/types/integrations';
 import type {Post} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 
-import {Posts} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import * as GlobalActions from 'actions/global_actions';
-
-import type {Props} from 'components/advanced_create_post/advanced_create_post';
 import AdvancedCreatePost from 'components/advanced_create_post/advanced_create_post';
-import AdvanceTextEditor from 'components/advanced_text_editor/advanced_text_editor';
+import type {Props} from 'components/advanced_create_post/advanced_create_post';
 import type {TextboxElement} from 'components/textbox';
 
 import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
-import {testComponentForMarkdownHotkeys} from 'tests/helpers/markdown_hotkey_helpers.js';
 import Constants, {StoragePrefixes, ModalIdentifiers} from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
-import {execCommandInsertText} from 'utils/exec_commands';
 import {TestHelper} from 'utils/test_helper';
-import * as Utils from 'utils/utils';
 
 jest.mock('actions/global_actions', () => ({
     emitLocalUserTypingEvent: jest.fn(),
@@ -83,6 +76,7 @@ const baseProp: Props = {
         addMessageIntoHistory: jest.fn(),
         moveHistoryIndexBack: jest.fn(),
         moveHistoryIndexForward: jest.fn(),
+        submitReaction: jest.fn(),
         addReaction: jest.fn(),
         removeReaction: jest.fn(),
         clearDraftUploads: jest.fn(),
@@ -96,7 +90,9 @@ const baseProp: Props = {
         executeCommand: () => {
             return {data: true};
         },
-        getChannelTimezones: jest.fn(),
+        getChannelTimezones: jest.fn(() => {
+            return {data: '', error: ''};
+        }),
         runMessageWillBePostedHooks: (post: Post) => {
             return {data: post};
         },
@@ -114,7 +110,6 @@ const baseProp: Props = {
     emojiMap: new EmojiMap(new Map()),
     enableEmojiPicker: true,
     enableGifPicker: true,
-    isTimezoneEnabled: false,
     useLDAPGroupMentions: true,
     useCustomGroupMentions: true,
     canPost: true,
@@ -146,7 +141,7 @@ function advancedCreatePost(props?: Partial<Props>) {
 }
 
 describe('components/advanced_create_post', () => {
-    jest.useFakeTimers('legacy');
+    jest.useFakeTimers({legacyFakeTimers: true});
     let spy: jest.SpyInstance;
 
     beforeEach(() => {
@@ -386,18 +381,34 @@ describe('components/advanced_create_post', () => {
     //     expect(GlobalActions.emitLocalUserTypingEvent).toHaveBeenCalledWith(currentChannelProp.id, '');
     // });
 
-    it('onSubmit test for @here', () => {
-        const wrapper = shallow(advancedCreatePost());
+    it('onSubmit test for @all', async () => {
+        const result: ActionResult = {
+            data: [1, 2, 3, 4],
+        };
+        const wrapper = shallow(
+            advancedCreatePost({
+                actions: {
+                    ...baseProp.actions,
+                    getChannelTimezones: jest.fn(() => result),
+                },
+                currentChannelMembersCount: 9,
+            }),
+        );
 
         wrapper.setState({
-            message: 'test @here',
+            message: 'test @all',
         });
 
         const instance = wrapper.instance() as AdvancedCreatePost;
 
+        const showNotifyAllModal = instance.showNotifyAllModal;
+        instance.showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
+
         const form = wrapper.find('#create_post');
-        form.simulate('Submit', {preventDefault: jest.fn()});
+        await form.simulate('Submit', {preventDefault: jest.fn()});
+
         expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
+        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(['@all'], 4, 8);
 
         wrapper.setProps({
             currentChannelMembersCount: 2,
@@ -407,18 +418,34 @@ describe('components/advanced_create_post', () => {
         expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
     });
 
-    it('onSubmit test for @all', () => {
-        const wrapper = shallow(advancedCreatePost());
+    it('onSubmit test for @here', async () => {
+        const result: ActionResult = {
+            data: [1, 2, 3, 4],
+        };
+        const wrapper = shallow(
+            advancedCreatePost({
+                actions: {
+                    ...baseProp.actions,
+                    getChannelTimezones: jest.fn(() => result),
+                },
+                currentChannelMembersCount: 9,
+            }),
+        );
 
         wrapper.setState({
-            message: 'test @all',
+            message: 'test @here',
         });
 
         const instance = wrapper.instance() as AdvancedCreatePost;
 
+        const showNotifyAllModal = instance.showNotifyAllModal;
+        instance.showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
+
         const form = wrapper.find('#create_post');
-        form.simulate('Submit', {preventDefault: jest.fn()});
+        await form.simulate('Submit', {preventDefault: jest.fn()});
+
         expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
+        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(['@here'], 4, 8);
 
         wrapper.setProps({
             currentChannelMembersCount: 2,
@@ -640,76 +667,6 @@ describe('components/advanced_create_post', () => {
         expect(onSubmitPost.mock.calls[0][0]).toEqual(post);
     });
 
-    it('onSubmit test for @all with timezones', async () => {
-        const result: ActionResult = {
-            data: [1, 2, 3, 4],
-        };
-        const wrapper = shallow(
-            advancedCreatePost({
-                actions: {
-                    ...baseProp.actions,
-                    getChannelTimezones: jest.fn(() => result),
-                },
-                isTimezoneEnabled: true,
-                currentChannelMembersCount: 9,
-            }),
-        );
-
-        wrapper.setState({
-            message: 'test @all',
-        });
-
-        const instance = wrapper.instance() as AdvancedCreatePost;
-
-        const showNotifyAllModal = instance.showNotifyAllModal;
-        instance.showNotifyAllModal = jest.fn((mentions, channelTimezoneCount, memberNotifyCount) => showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount));
-
-        const form = wrapper.find('#create_post');
-        await form.simulate('Submit', {preventDefault: jest.fn()});
-
-        expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
-        expect(instance.showNotifyAllModal).toHaveBeenCalledWith(['@all'], 4, 8);
-
-        wrapper.setProps({
-            currentChannelMembersCount: 2,
-        });
-
-        form.simulate('Submit', {preventDefault: jest.fn()});
-        expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
-    });
-
-    it('onSubmit test for @all with timezones disabled', () => {
-        const result: ActionResult = {
-            data: [],
-        };
-        const wrapper = shallow(
-            advancedCreatePost({
-                actions: {
-                    ...baseProp.actions,
-                    getChannelTimezones: jest.fn(() => result),
-                },
-                isTimezoneEnabled: false,
-            }),
-        );
-
-        wrapper.setState({
-            message: 'test @all',
-        });
-
-        const instance = wrapper.instance() as AdvancedCreatePost;
-
-        const form = wrapper.find('#create_post');
-        form.simulate('Submit', {preventDefault: jest.fn()});
-        expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
-
-        wrapper.setProps({
-            currentChannelMembersCount: 2,
-        });
-
-        form.simulate('Submit', {preventDefault: jest.fn()});
-        expect(instance.props.actions.openModal).toHaveBeenCalledTimes(1);
-    });
-
     it('onSubmit test for "/header" message', () => {
         const openModal = jest.fn();
 
@@ -772,13 +729,13 @@ describe('components/advanced_create_post', () => {
     });
 
     it('onSubmit test for addReaction message', async () => {
-        const addReaction = jest.fn();
+        const submitReaction = jest.fn();
 
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
                     ...baseProp.actions,
-                    addReaction,
+                    submitReaction,
                 },
             }),
         );
@@ -788,17 +745,17 @@ describe('components/advanced_create_post', () => {
         });
 
         await (wrapper.instance() as AdvancedCreatePost).handleSubmit(submitEvent);
-        expect(addReaction).toHaveBeenCalledWith('a', 'smile');
+        expect(submitReaction).toHaveBeenCalledWith('a', '+', 'smile');
     });
 
-    it('onSubmit test for removeReaction message', () => {
-        const removeReaction = jest.fn();
+    it('onSubmit test for removeReaction message', async () => {
+        const submitReaction = jest.fn();
 
         const wrapper = shallow(
             advancedCreatePost({
                 actions: {
                     ...baseProp.actions,
-                    removeReaction,
+                    submitReaction,
                 },
             }),
         );
@@ -807,9 +764,8 @@ describe('components/advanced_create_post', () => {
             message: '-:smile:',
         });
 
-        const form = wrapper.find('#create_post');
-        form.simulate('Submit', {preventDefault: jest.fn()});
-        expect(removeReaction).toHaveBeenCalledWith('a', 'smile');
+        await (wrapper.instance() as AdvancedCreatePost).handleSubmit(submitEvent);
+        expect(submitReaction).toHaveBeenCalledWith('a', '-', 'smile');
     });
 
     /*it('check for postError state on handlePostError callback', () => {
@@ -894,7 +850,9 @@ describe('components/advanced_create_post', () => {
             ],
         };
 
-        instance.draftsForChannel[currentChannelProp.id] = uploadsInProgressDraft;
+        const channelId = 'another_channel_id';
+
+        instance.draftsForChannel[channelId] = uploadsInProgressDraft;
 
         wrapper.setProps({draft: uploadsInProgressDraft});
         const fileInfos = [TestHelper.getFileInfoMock({id: 'a'})];
@@ -906,10 +864,9 @@ describe('components/advanced_create_post', () => {
             ],
         };
 
-        instance.handleFileUploadComplete(fileInfos, clientIds, currentChannelProp.id);
+        instance.handleFileUploadComplete(fileInfos, clientIds, channelId);
 
-        jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT);
-        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + currentChannelProp.id, expectedDraft, currentChannelProp.id);
+        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + channelId, expectedDraft, channelId);
     });
 
     it('check for handleUploadError callback', () => {
@@ -989,173 +946,8 @@ describe('components/advanced_create_post', () => {
 
         jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT);
         expect(setDraft).toHaveBeenCalledTimes(1);
-        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + currentChannelProp.id, draftProp, currentChannelProp.id, false);
+        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + currentChannelProp.id, draftProp, currentChannelProp.id);
         expect(instance.handleFileUploadChange).toHaveBeenCalledTimes(1);
-    });
-
-    it('Should just return as ctrlSend is enabled and its ctrl+enter', () => {
-        const wrapper = shallow(advancedCreatePost({
-            ctrlSend: true,
-        }));
-
-        const instance: any = wrapper.instance();
-        instance.textboxRef.current = {blur: jest.fn()};
-
-        const target = {
-            selectionStart: 0,
-            selectionEnd: 0,
-            value: 'brown\nfox jumps over lazy dog',
-        };
-
-        const event = {
-            ctrlKey: true,
-            key: Constants.KeyCodes.ENTER[0],
-            keyCode: Constants.KeyCodes.ENTER[1],
-            preventDefault: jest.fn(),
-            stopPropagation: jest.fn(),
-            persist: jest.fn(),
-            target,
-        } as unknown as React.KeyboardEvent<TextboxElement>;
-
-        instance.handleKeyDown(event);
-        setTimeout(() => {
-            expect(GlobalActions.emitLocalUserTypingEvent).toHaveBeenCalledWith(currentChannelProp.id, '');
-        }, 0);
-    });
-
-    it('Should call edit action as comment for arrow up', () => {
-        const setEditingPost = jest.fn();
-        const wrapper = shallow(advancedCreatePost({
-            actions: {
-                ...baseProp.actions,
-                setEditingPost,
-            },
-        }));
-        const instance = wrapper.instance() as AdvancedCreatePost;
-        const type = Utils.localizeMessage('create_post.comment', Posts.MESSAGE_TYPES.COMMENT);
-
-        const target = {
-            selectionStart: 0,
-            selectionEnd: 0,
-            value: 'brown\nfox jumps over lazy dog',
-        };
-
-        const event = {
-            key: Constants.KeyCodes.UP[0],
-            keyCode: Constants.KeyCodes.UP[1],
-            preventDefault: jest.fn(),
-            persist: jest.fn(),
-            target,
-        } as unknown as React.KeyboardEvent<TextboxElement>;
-
-        instance.handleKeyDown(event);
-        expect(setEditingPost).toHaveBeenCalledWith(currentUsersLatestPostProp.id, 'post_textbox', type);
-    });
-
-    it('Should call edit action as post for arrow up', () => {
-        const setEditingPost = jest.fn();
-        const wrapper = shallow(advancedCreatePost({
-            actions: {
-                ...baseProp.actions,
-                setEditingPost,
-            },
-        }));
-        const instance = wrapper.instance() as AdvancedCreatePost;
-
-        wrapper.setProps({
-            currentUsersLatestPost: {id: 'b', channel_id: currentChannelProp.id},
-        });
-
-        const type = Utils.localizeMessage('create_post.post', Posts.MESSAGE_TYPES.POST);
-
-        const target = {
-            selectionStart: 0,
-            selectionEnd: 0,
-            value: 'brown\nfox jumps over lazy dog',
-        };
-
-        const event = {
-            key: Constants.KeyCodes.UP[0],
-            keyCode: Constants.KeyCodes.UP[1],
-            preventDefault: jest.fn(),
-            persist: jest.fn(),
-            target,
-        } as unknown as React.KeyboardEvent<TextboxElement>;
-
-        instance.handleKeyDown(event);
-        expect(setEditingPost).toHaveBeenCalledWith(currentUsersLatestPostProp.id, 'post_textbox', type);
-    });
-
-    it('Should call moveHistoryIndexForward as ctrlKey and down arrow', () => {
-        const moveHistoryIndexForward = jest.fn(
-            () => {
-                return new Promise<void>((resolve) => {
-                    process.nextTick(() => resolve());
-                });
-            },
-        );
-        const wrapper = shallow(advancedCreatePost({
-            actions: {
-                ...baseProp.actions,
-                moveHistoryIndexForward,
-            },
-        }));
-        const instance = wrapper.instance() as AdvancedCreatePost;
-
-        const target = {
-            selectionStart: 0,
-            selectionEnd: 0,
-            value: 'brown\nfox jumps over lazy dog',
-        };
-
-        const event = {
-            ctrlKey: true,
-            key: Constants.KeyCodes.DOWN[0],
-            keyCode: Constants.KeyCodes.DOWN[1],
-            preventDefault: jest.fn(),
-            stopPropagation: jest.fn(),
-            persist: jest.fn(),
-            target,
-        } as unknown as React.KeyboardEvent<TextboxElement>;
-
-        instance.handleKeyDown(event);
-        expect(moveHistoryIndexForward).toHaveBeenCalled();
-    });
-
-    it('Should call moveHistoryIndexBack as ctrlKey and up arrow', () => {
-        const moveHistoryIndexBack = jest.fn(
-            () => {
-                return new Promise<void>((resolve) => {
-                    process.nextTick(() => resolve());
-                });
-            },
-        );
-        const wrapper = shallow(advancedCreatePost({
-            actions: {
-                ...baseProp.actions,
-                moveHistoryIndexBack,
-            },
-        }));
-        const instance = wrapper.instance() as AdvancedCreatePost;
-
-        const target = {
-            selectionStart: 0,
-            selectionEnd: 0,
-            value: 'brown\nfox jumps over lazy dog',
-        };
-
-        const event = {
-            ctrlKey: true,
-            key: Constants.KeyCodes.UP[0],
-            keyCode: Constants.KeyCodes.UP[1],
-            preventDefault: jest.fn(),
-            stopPropagation: jest.fn(),
-            persist: jest.fn(),
-            target,
-        } as unknown as React.KeyboardEvent<TextboxElement>;
-
-        instance.handleKeyDown(event);
-        expect(moveHistoryIndexBack).toHaveBeenCalled();
     });
 
     it('Show tutorial', () => {
@@ -1300,129 +1092,6 @@ describe('components/advanced_create_post', () => {
         );
     });
 
-    it('should be able to format a pasted markdown table', () => {
-        const wrapper = shallow(advancedCreatePost());
-        const mockImpl = () => {
-            return {
-                setSelectionRange: jest.fn(),
-                focus: jest.fn(),
-            };
-        };
-        (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
-
-        const event = {
-            target: {
-                id: 'post_textbox',
-            },
-            preventDefault: jest.fn(),
-            clipboardData: {
-                items: [1],
-                types: ['text/html'],
-                getData: () => {
-                    return '<table><tr><th>test</th><th>test</th></tr><tr><td>test</td><td>test</td></tr></table>';
-                },
-            },
-        } as unknown as ClipboardEvent;
-
-        const markdownTable = '| test | test |\n| --- | --- |\n| test | test |';
-
-        (wrapper.instance() as AdvancedCreatePost).pasteHandler(event);
-        expect(execCommandInsertText).toHaveBeenCalledWith(markdownTable);
-    });
-
-    it('should be able to format a pasted markdown table without headers', () => {
-        const wrapper = shallow(advancedCreatePost());
-        const mockImpl = () => {
-            return {
-                setSelectionRange: jest.fn(),
-                focus: jest.fn(),
-            };
-        };
-        (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
-
-        const event = {
-            target: {
-                id: 'post_textbox',
-            },
-            preventDefault: jest.fn(),
-            clipboardData: {
-                items: [1],
-                types: ['text/html'],
-                getData: () => {
-                    return '<table><tr><td>test</td><td>test</td></tr><tr><td>test</td><td>test</td></tr></table>';
-                },
-            },
-        } as unknown as ClipboardEvent;
-
-        const markdownTable = '| test | test |\n| --- | --- |\n| test | test |\n';
-
-        (wrapper.instance() as AdvancedCreatePost).pasteHandler(event);
-        expect(execCommandInsertText).toHaveBeenCalledWith(markdownTable);
-    });
-
-    it('should be able to format a pasted hyperlink', () => {
-        const wrapper = shallow(advancedCreatePost());
-        const mockImpl = () => {
-            return {
-                setSelectionRange: jest.fn(),
-                focus: jest.fn(),
-            };
-        };
-        (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
-
-        const event = {
-            target: {
-                id: 'post_textbox',
-            },
-            preventDefault: jest.fn(),
-            clipboardData: {
-                items: [1],
-                types: ['text/html'],
-                getData: () => {
-                    return '<a href="https://test.domain">link text</a>';
-                },
-            },
-        } as unknown as ClipboardEvent;
-
-        const markdownLink = '[link text](https://test.domain)';
-
-        (wrapper.instance() as AdvancedCreatePost).pasteHandler(event);
-        expect(execCommandInsertText).toHaveBeenCalledWith(markdownLink);
-    });
-
-    it('should be able to format a github codeblock (pasted as a table)', () => {
-        const wrapper = shallow(advancedCreatePost());
-        const mockImpl = () => {
-            return {
-                setSelectionRange: jest.fn(),
-                focus: jest.fn(),
-            };
-        };
-        (wrapper.instance() as any).textboxRef.current = {getInputBox: jest.fn(mockImpl), focus: jest.fn(), blur: jest.fn()};
-
-        const event = {
-            target: {
-                id: 'post_textbox',
-            },
-            preventDefault: jest.fn(),
-            clipboardData: {
-                items: [1],
-                types: ['text/plain', 'text/html'],
-                getData: (type: string) => {
-                    if (type === 'text/plain') {
-                        return '// a javascript codeblock example\nif (1 > 0) {\n  return \'condition is true\';\n}';
-                    }
-                    return '<table class="highlight tab-size js-file-line-container" data-tab-size="8"><tbody><tr><td id="LC1" class="blob-code blob-code-inner js-file-line"><span class="pl-c"><span class="pl-c">//</span> a javascript codeblock example</span></td></tr><tr><td id="L2" class="blob-num js-line-number" data-line-number="2">&nbsp;</td><td id="LC2" class="blob-code blob-code-inner js-file-line"><span class="pl-k">if</span> (<span class="pl-c1">1</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span>) {</td></tr><tr><td id="L3" class="blob-num js-line-number" data-line-number="3">&nbsp;</td><td id="LC3" class="blob-code blob-code-inner js-file-line"><span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">\'</span>condition is true<span class="pl-pds">\'</span></span>);</td></tr><tr><td id="L4" class="blob-num js-line-number" data-line-number="4">&nbsp;</td><td id="LC4" class="blob-code blob-code-inner js-file-line">}</td></tr></tbody></table>';
-                },
-            },
-        } as unknown as ClipboardEvent;
-
-        const codeBlockMarkdown = "```\n// a javascript codeblock example\nif (1 > 0) {\n  return 'condition is true';\n}\n```";
-
-        (wrapper.instance() as AdvancedCreatePost).pasteHandler(event);
-        expect(execCommandInsertText).toHaveBeenCalledWith(codeBlockMarkdown);
-    });
-
     /**
      * TODO@all: move this test to advanced_text_editor.test.tsx and rewrite it according to the component
      *
@@ -1469,26 +1138,6 @@ describe('components/advanced_create_post', () => {
         (value: string) => advancedCreatePost({draft: {...draftProp, message: value}}),
         (instance: any) => instance.state.message,
         false,
-    );
-
-    testComponentForMarkdownHotkeys(
-        (value: string) => advancedCreatePost({draft: {...draftProp, message: value}}),
-        (wrapper: any, setSelectionRangeFn: any) => {
-            wrapper.instance().textboxRef = {
-                current: {
-                    getInputBox: jest.fn(() => {
-                        return {
-                            focus: jest.fn(),
-                            setSelectionRange: setSelectionRangeFn,
-                        };
-                    }),
-                },
-            };
-        },
-        (instance: any) => instance.find(AdvanceTextEditor),
-        (instance: any) => instance.state().message,
-        false,
-        'post_textbox',
     );
 
     it('should match snapshot, can post; preview enabled', () => {

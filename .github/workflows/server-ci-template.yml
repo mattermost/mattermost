@@ -5,9 +5,6 @@ name: Server CI Template
 on:
   workflow_call:
 
-env:
-  go-version: "1.20.7"
-
 jobs:
   check-mocks:
     name: Check mocks
@@ -18,10 +15,13 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
@@ -40,10 +40,13 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
@@ -62,10 +65,13 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
@@ -82,10 +88,13 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
@@ -104,10 +113,13 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
@@ -128,10 +140,13 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
@@ -176,10 +191,13 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
@@ -198,10 +216,13 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
@@ -220,10 +241,13 @@ jobs:
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
@@ -284,10 +308,13 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - name: Calculate Golang Version
+        id: go
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Setup Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
-          go-version: ${{ env.go-version }}
+          go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: |
             server/go.sum
             server/public/go.sum
@@ -297,7 +324,7 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: npm
-          cache-dependency-path: 'webapp/package-lock.json'
+          cache-dependency-path: "webapp/package-lock.json"
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Build

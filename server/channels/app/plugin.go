@@ -190,15 +190,15 @@ func (ch *Channels) syncPluginsActiveState() {
 	}
 }
 
-func (a *App) NewPluginAPI(c *request.Context, manifest *model.Manifest) plugin.API {
+func (a *App) NewPluginAPI(c request.CTX, manifest *model.Manifest) plugin.API {
 	return NewPluginAPI(a, c, manifest)
 }
 
-func (a *App) InitPlugins(c *request.Context, pluginDir, webappPluginDir string) {
+func (a *App) InitPlugins(c request.CTX, pluginDir, webappPluginDir string) {
 	a.ch.initPlugins(c, pluginDir, webappPluginDir)
 }
 
-func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir string) {
+func (ch *Channels) initPlugins(c request.CTX, pluginDir, webappPluginDir string) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	defer func() {
 		ch.srv.Platform().SetPluginsEnvironment(ch)

@@ -2,7 +2,6 @@
 set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
-. .e2erc_setup
 
 # Initialize Playwright report directory
 mme2e_log "Prepare Playwright: clean and initialize report and logs directory"

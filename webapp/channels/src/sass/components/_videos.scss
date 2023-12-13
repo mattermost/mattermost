@@ -21,22 +21,6 @@
             cursor: pointer;
         }
 
-        .video-thumbnail__error {
-            width: 100%;
-            height: 100%;
-            padding: 110px 0;
-            line-height: 2;
-            text-align: center;
-
-            .fa {
-                opacity: 0.5;
-            }
-
-            div {
-                font-size: 1.2em;
-            }
-        }
-
         .block {
             position: absolute;
             top: 50%;

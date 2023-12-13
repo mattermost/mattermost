@@ -8,7 +8,7 @@ exports[`components/admin_console/system_user_detail should match default snapsh
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -36,7 +36,7 @@ exports[`components/admin_console/system_user_detail should match default snapsh
               Email
             </span>
             <div>
-              <EmailIcon
+              <Memo(EmailIcon)
                 className="SystemUserDetail__field-icon"
               />
               <input
@@ -244,7 +244,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if LD
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -272,7 +272,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if LD
               Email
             </span>
             <div>
-              <EmailIcon
+              <Memo(EmailIcon)
                 className="SystemUserDetail__field-icon"
               />
               <input
@@ -482,7 +482,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if MF
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -510,7 +510,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if MF
               Email
             </span>
             <div>
-              <EmailIcon
+              <Memo(EmailIcon)
                 className="SystemUserDetail__field-icon"
               />
               <input
@@ -726,7 +726,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if SA
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -754,7 +754,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if SA
               Email
             </span>
             <div>
-              <EmailIcon
+              <Memo(EmailIcon)
                 className="SystemUserDetail__field-icon"
               />
               <input
@@ -964,7 +964,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if no
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -992,7 +992,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if no
               Email
             </span>
             <div>
-              <EmailIcon
+              <Memo(EmailIcon)
                 className="SystemUserDetail__field-icon"
               />
               <input
@@ -1200,7 +1200,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if us
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -1228,7 +1228,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if us
               Email
             </span>
             <div>
-              <EmailIcon
+              <Memo(EmailIcon)
                 className="SystemUserDetail__field-icon"
               />
               <input

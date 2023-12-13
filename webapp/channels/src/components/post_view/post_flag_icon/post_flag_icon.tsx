@@ -96,7 +96,7 @@ const PostFlagIcon = ({
                 >
                     <FormattedMessage
                         id={isFlagged ? t('flag_post.unflag') : t('flag_post.flag')}
-                        defaultMessage={isFlagged ? 'Remove from Saved' : 'Save'}
+                        defaultMessage={isFlagged ? 'Remove from Saved' : 'Save Message'}
                     />
                 </Tooltip>
             }

@@ -33,10 +33,6 @@
                         min-width: 250px;
                         font-size: 12px;
                     }
-
-                    .modal-close {
-                        opacity: 1;
-                    }
                 }
 
                 .modal-button-bar {
@@ -57,17 +53,6 @@
 
     .help__format-text {
         display: none;
-    }
-
-    .post-right__scroll {
-        .post-create__container {
-            .post-create-body {
-                .icon__emoji_picker {
-                    top: -7px;
-                    display: none;
-                }
-            }
-        }
     }
 
     .signup-team__container {
@@ -130,16 +115,6 @@
 
 // Tablet and desktop
 @media screen and (min-width: 769px) {
-    // ensure the global header always sits on top of its immediate sibling
-    > header {
-        z-index: 2;
-
-        + * {
-            position: relative;
-            z-index: 1;
-        }
-    }
-
     .search-help-popover {
         width: 274px;
     }
@@ -506,12 +481,6 @@
                 > .post-create__container {
                     width: 100% !important;
                 }
-            }
-
-            .channel-header__links {
-                position: relative;
-                top: auto;
-                right: auto;
             }
         }
 

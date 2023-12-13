@@ -4099,6 +4099,34 @@ func (_m *API) UpdateUserActive(userID string, active bool) *model.AppError {
 	return r0
 }
 
+// UpdateUserAuth provides a mock function with given fields: userID, userAuth
+func (_m *API) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
+	ret := _m.Called(userID, userAuth)
+
+	var r0 *model.UserAuth
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, *model.UserAuth) (*model.UserAuth, *model.AppError)); ok {
+		return rf(userID, userAuth)
+	}
+	if rf, ok := ret.Get(0).(func(string, *model.UserAuth) *model.UserAuth); ok {
+		r0 = rf(userID, userAuth)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.UserAuth)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, *model.UserAuth) *model.AppError); ok {
+		r1 = rf(userID, userAuth)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // UpdateUserCustomStatus provides a mock function with given fields: userID, customStatus
 func (_m *API) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
 	ret := _m.Called(userID, customStatus)

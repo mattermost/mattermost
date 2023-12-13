@@ -7,6 +7,7 @@ import {FormattedMessage, FormattedDate, injectIntl, type WrappedComponentProps}
 
 import type {Team} from '@mattermost/types/teams';
 
+import LearnAboutTeamsLink from 'components/main_menu/learn_about_teams_link';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import SettingPicture from 'components/setting_picture';
@@ -18,6 +19,7 @@ import {imageURLForTeam, localizeMessage, moveCursorToEnd} from 'utils/utils';
 import OpenInvite from './open_invite';
 
 import type {PropsFromRedux, OwnProps} from '.';
+import './team_general_tab.scss';
 
 const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
 
@@ -654,12 +656,15 @@ export class GeneralTab extends React.PureComponent<Props, State> {
                     </h4>
                 </div>
                 <div className='user-settings'>
-                    <h3 className='tab-header'>
-                        <FormattedMessage
-                            id='general_tab.title'
-                            defaultMessage='General Settings'
-                        />
-                    </h3>
+                    <div className='GeneralTab__header'>
+                        <h3>
+                            <FormattedMessage
+                                id='general_tab.title'
+                                defaultMessage='General Settings'
+                            />
+                        </h3>
+                        <LearnAboutTeamsLink/>
+                    </div>
                     <div className='divider-dark first'/>
                     {nameSection}
                     <div className='divider-light'/>

@@ -22,7 +22,6 @@ func newSqlPreferenceStore(sqlStore *SqlStore) store.PreferenceStore {
 }
 
 func (s SqlPreferenceStore) deleteUnusedFeatures() {
-	mlog.Debug("Deleting any unused pre-release features")
 	sql, args, err := s.getQueryBuilder().
 		Delete("Preferences").
 		Where(sq.Eq{"Category": model.PreferenceCategoryAdvancedSettings}).

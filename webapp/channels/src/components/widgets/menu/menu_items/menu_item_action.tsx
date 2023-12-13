@@ -17,6 +17,7 @@ type Props = {
     isDangerous?: boolean;
     disabled?: boolean;
     sibling?: React.ReactNode;
+    iconClassName?: string;
 }
 export const MenuItemActionImpl = ({
     onClick,
@@ -29,6 +30,7 @@ export const MenuItemActionImpl = ({
     isDangerous,
     disabled,
     sibling,
+    iconClassName,
 }: Props) => (
     <>
         <button
@@ -44,6 +46,7 @@ export const MenuItemActionImpl = ({
             onClick={onClick}
             disabled={disabled}
         >
+            {iconClassName && <i className={`icon ${iconClassName}`}/>}
             {text && <span className='MenuItem__primary-text'>{text}{rightDecorator}</span>}
             {extraText && <span className='MenuItem__help-text'>{extraText}</span>}
         </button>

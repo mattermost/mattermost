@@ -194,13 +194,8 @@
                             }
 
                             .section-min__edit {
-                                position: relative;
-                                top: 0;
-                                right: 0;
-                                text-align: left;
-
-                                button {
-                                    opacity: 1;
+                                span {
+                                    display: none;
                                 }
                             }
 
@@ -299,23 +294,6 @@
                     }
 
                     .settings-content {
-                        .section-min__edit {
-                            text-align: left;
-                            text-decoration: none;
-
-                            button {
-                                display: flex;
-                                width: 100%;
-                                align-items: center;
-                                color: rgba(var(--center-channel-color-rgb), 0.75);
-                                text-align: left;
-                            }
-
-                            .fa {
-                                display: inline-block;
-                            }
-                        }
-
                         &.minimize-settings {
                             display: none;
                             padding: 0;
@@ -745,27 +723,6 @@
 
         form {
             padding: 0;
-        }
-
-        .post-create-body {
-            padding: 0;
-
-            .send-button {
-                display: block;
-            }
-
-            textarea {
-                .app-content & {
-                    border-right: none;
-                    border-left: none;
-                }
-            }
-
-            .post-body__actions {
-                .Menu.dropdown-menu {
-                    max-height: 80vh;
-                }
-            }
         }
 
         .msg-typing {
@@ -1419,10 +1376,6 @@
                 background: var(--center-channel-bg);
                 border-radius: 3px;
             }
-        }
-
-        .channel-header__links {
-            display: none;
         }
     }
 

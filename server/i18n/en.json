@@ -916,7 +916,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost is an open source platform for secure communication, collaboration, and orchestration of work across tools and teams.\r\nMattermost contains three key tools:\r\n\r\n**Channels** - Stay connected with your team via 1:1 and group messaging.\r\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\r\n**[Boards](/boards)** - Manage projects and tasks in a Kanban board structure to help your team hit key milestones.\r\n\r\n[View documentation and guides]({{.HelpLink}})"
+    "translation": "Mattermost is an open source platform for secure communication, collaboration, and orchestration of work across tools and teams.\r\nMattermost contains two key tools:\r\n\r\n**Channels** - Stay connected with your team via 1:1 and group messaging.\r\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\r\n\r\n[View documentation and guides]({{.HelpLink}})"
   },
   {
     "id": "api.command_invite.channel.app_error",
@@ -1626,6 +1626,22 @@
     "translation": "Invitation is expired."
   },
   {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "An error has occurred while applying IP Filters"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "An error has occurred while fetching IP Filters"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "An error has occurred while fetching the client's IP address"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP Filtering is not available on this server"
+  },
+  {
     "id": "api.context.json_encoding.app_error",
     "translation": "Error encoding JSON."
   },
@@ -1700,6 +1716,10 @@
   {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
     "translation": "Failed to delete the recent status. Please try adding the status first or contact your system administrator for details."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Failed to update the custom status. An emoji with the given name does not exist."
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
@@ -1999,6 +2019,14 @@
   {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "Before and After parameters to getThreadsForUser are mutually exclusive"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Cannot hide both active and inactive users."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Invalid team id provided."
   },
   {
     "id": "api.image.get.app_error",
@@ -2425,6 +2453,14 @@
       "one": "{{.Count}} image sent: {{.Filenames}}",
       "other": "{{.Count}} images sent: {{.Filenames}}"
     }
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Thread moving is disabled"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "You do not have permission to move this thread."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -3705,6 +3741,38 @@
   {
     "id": "api.templates.invite_team_and_channels_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Review changes"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} changed the IP filtering settings for your workspace at the URL: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Changes to Your Workspace's IP Filters"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "IP filtering changes for your workspace"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Contact support"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Log in to the customer portal to reset IP filtering"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Send an email to {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Having trouble accessing your workspace?"
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
@@ -5971,6 +6039,10 @@
     "translation": "No license present"
   },
   {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Could not update last login timestamp"
+  },
+  {
     "id": "app.member_count",
     "translation": "error retrieving member count"
   },
@@ -6255,6 +6327,10 @@
     "translation": "Unable to store the plugin signature to the configured file store."
   },
   {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Failed to parse SiteURL subpath"
+  },
+  {
     "id": "app.plugin.sync.list_filestore.app_error",
     "translation": "Error reading files from the plugins folder in the file store."
   },
@@ -6375,6 +6451,30 @@
     "translation": "Failed to marshal post."
   },
   {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "This thread was moved from another channel"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "A thread with {{.NumMessages}} messages has been moved: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "A message has been moved: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "A thread with {{.NumMessages}} messages has been moved to a Direct/Group Message\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "A message has been moved to a Direct/Group Message\n"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Unable to remove thread"
+  },
+  {
     "id": "app.post.overwrite.app_error",
     "translation": "Unable to overwrite the Post."
   },
@@ -6469,6 +6569,10 @@
   {
     "id": "app.reaction.save.save.app_error",
     "translation": "Unable to save reaction."
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "Reaction limit has been reached for this post."
   },
   {
     "id": "app.recover.delete.app_error",
@@ -6995,8 +7099,24 @@
     "translation": "We could not get the unread message count for the user."
   },
   {
+    "id": "app.user.get_user_report.invalid_sort_column",
+    "translation": "Provided sort column is not valid."
+  },
+  {
+    "id": "app.user.get_user_report.store_error",
+    "translation": "There was an error querying the user report."
+  },
+  {
     "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
     "translation": "Unable to get the users batch for indexing."
+  },
+  {
+    "id": "app.user.get_users_for_reporting.bad_date_range",
+    "translation": "Date range provided is invalid."
+  },
+  {
+    "id": "app.user.get_users_for_reporting.invalid_page_size",
+    "translation": "Page size is invalid or too large."
   },
   {
     "id": "app.user.missing_account.const",
@@ -8788,7 +8908,11 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9' or 'A10'."
+    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9', 'A10' or 'CUSTOM."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "If GlobalRelaySettings.CustomerType is 'CUSTOM', then GlobalRelaySettings.CustomSMTPServerName and GlobalRelaySettings.CustomSMTPPort must be set."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -8801,6 +8925,10 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
     "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set."
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Invalid domain for move thread settings"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -8860,7 +8988,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Identity Provider Issuer URL must be a valid URL and start with http:// or https://."
+    "translation": "Identity Provider Issuer URL cannot be an empty string."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -9325,6 +9453,54 @@
   {
     "id": "model.outgoing_hook.username.app_error",
     "translation": "Invalid username."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Audience must not be empty."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "Some audience URL is incorrect."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Invalid client id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Invalid client secret."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "Invalid creator id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "Invalid grant type."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "Invalid id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "Invalid name."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "Invalid oauth token url."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "Invalid password credentials."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Update at must be a valid time."
   },
   {
     "id": "model.plugin_command.error.app_error",
@@ -9900,15 +10076,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 116+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 116+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 102+"
+    "translation": "Version 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
