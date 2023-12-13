@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useReactTable, createColumnHelper, getCoreRowModel, getSortedRowModel} from '@tanstack/react-table';
-import type {CellContext, PaginationState, SortingState} from '@tanstack/react-table';
 import React, {useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -11,11 +9,12 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
+import {AdminConsoleListTable, useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper, ElapsedDurationCell} from 'components/admin_console/list_table';
+import type {CellContext, PaginationState, SortingState, TableMeta} from 'components/admin_console/list_table';
+
 import {imageURLForUser} from 'utils/utils';
 
-import AdminConsoleListTable from '../../admin_console_list_table';
 import {userReports} from '../sample';
-import SystemUsersCellElapsedDays from '../system_users_cell_elapsed_days';
 import SystemUsersActions from '../system_users_list_actions';
 
 import './system_users_list.scss';
@@ -49,7 +48,6 @@ enum ColumnNames {
 const columnHelper = createColumnHelper<SystemUsersRow>();
 
 interface Props {
-    tableAriaDescribedBy: string;
 }
 
 function SystemUsersList(props: Props) {
@@ -114,7 +112,7 @@ function SystemUsersList(props: Props) {
                     id: 'admin.system_users.list.memberSince',
                     defaultMessage: 'Member since',
                 }),
-                cell: (info) => <SystemUsersCellElapsedDays date={info.getValue()}/>,
+                cell: (info) => <ElapsedDurationCell date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: true,
@@ -125,7 +123,7 @@ function SystemUsersList(props: Props) {
                     id: 'admin.system_users.list.lastLoginAt',
                     defaultMessage: 'Last login',
                 }),
-                cell: (info) => <SystemUsersCellElapsedDays date={info.getValue()}/>,
+                cell: (info) => <ElapsedDurationCell date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: true,
@@ -136,7 +134,7 @@ function SystemUsersList(props: Props) {
                     id: 'admin.system_users.list.lastActivity',
                     defaultMessage: 'Last activity',
                 }),
-                cell: (info) => <SystemUsersCellElapsedDays date={info.getValue()}/>,
+                cell: (info) => <ElapsedDurationCell date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: true,
@@ -147,7 +145,7 @@ function SystemUsersList(props: Props) {
                     id: 'admin.system_users.list.lastPost',
                     defaultMessage: 'Last post',
                 }),
-                cell: (info) => <SystemUsersCellElapsedDays date={info.getValue()}/>,
+                cell: (info) => <ElapsedDurationCell date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: true,
@@ -170,9 +168,9 @@ function SystemUsersList(props: Props) {
                 id: ColumnNames.totalPosts,
                 header: formatMessage({
                     id: 'admin.system_users.list.totalPosts',
-                    defaultMessage: 'Messages posts',
+                    defaultMessage: 'Messages posted',
                 }),
-                cell: (info) => info.getValue(),
+                cell: (info) => info.getValue() || null,
                 meta: {
                     isNumeric: true,
                 },
@@ -232,6 +230,11 @@ function SystemUsersList(props: Props) {
         console.log('page size change', paginationState.pageSize);
     }, [paginationState.pageSize]);
 
+    function handleRowClick() {
+        // eslint-disable-next-line no-console
+        console.log('row click');
+    }
+
     const table = useReactTable({
         data: userReports,
         columns,
@@ -239,6 +242,10 @@ function SystemUsersList(props: Props) {
             sorting: sortState,
             pagination: paginationState,
         },
+        meta: {
+            tableId: 'systemUsersTable',
+            onRowClick: handleRowClick,
+        } as TableMeta,
         getCoreRowModel: getCoreRowModel<SystemUsersRow>(),
         onPaginationChange: setPaginationState,
         onSortingChange: setSortState,
@@ -254,10 +261,7 @@ function SystemUsersList(props: Props) {
 
     return (
         <AdminConsoleListTable<SystemUsersRow>
-            tableId={tableId}
-            tableAriaDescribedBy={props.tableAriaDescribedBy}
             table={table}
-            tableContainerClass='systemUsersTable'
         />
     );
 }

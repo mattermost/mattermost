@@ -299,8 +299,6 @@ export class SystemUsers extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const tableAriaDescribedBy = 'searchableSystemUsersTableHeaderId';
-
         return (
             <div className='wrapper--fixed'>
                 <AdminHeader>
@@ -310,7 +308,7 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                         values={{siteName: this.props.siteName}}
                     >
                         {(formatMessageChunk) => (
-                            <span id={tableAriaDescribedBy}>{formatMessageChunk}</span>
+                            <span id='systemUsersTable-headerId'>{formatMessageChunk}</span>
                         )}
                     </FormattedMessage>
                     <RevokeSessionsButton/>
@@ -335,9 +333,7 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                                 onFilter={this.onFilter}
                             />
                         </div>
-                        <SystemUsersList
-                            tableAriaDescribedBy={tableAriaDescribedBy}
-                        />
+                        <SystemUsersList/>
                     </div>
                 </div>
             </div>

@@ -23,18 +23,18 @@ table.adminConsoleListTable {
                 padding-block-start: 12px;
 
                 &:first-child {
-                    padding-inline-end: 8px;
+                    padding-inline-end: 12px;
                     padding-inline-start: 24px;
                 }
 
                 &:not(:first-child):not(:last-child) {
-                    padding-inline-end: 8px;
-                    padding-inline-start: 8px;
+                    padding-inline-end: 12px;
+                    padding-inline-start: 12px;
                 }
 
                 &:last-child {
                     padding-inline-end: 24px;
-                    padding-inline-start: 8px;
+                    padding-inline-start: 12px;
                 }
 
                 &.pinned {
@@ -141,18 +141,18 @@ table.adminConsoleListTable {
                 white-space: nowrap;
 
                 &:first-child {
-                    padding-inline-end: 8px;
+                    padding-inline-end: 12px;
                     padding-inline-start: 24px;
                 }
 
                 &:not(:first-child):not(:last-child) {
-                    padding-inline-end: 8px;
-                    padding-inline-start: 8px;
+                    padding-inline-end: 12px;
+                    padding-inline-start: 12px;
                 }
 
                 &:last-child {
                     padding-inline-end: 24px;
-                    padding-inline-start: 8px;
+                    padding-inline-start: 12px;
                 }
 
                 // Pinning of columns can only be done on the first and/or last column

@@ -14,7 +14,7 @@ interface Props {
     date?: number;
 }
 
-function SystemUsersCellElapsedDays(props: Props) {
+export function ElapsedDurationCell(props: Props) {
     const todaysDate = moment().startOf('day').valueOf();
 
     const {formatMessage} = useIntl();
@@ -82,5 +82,3 @@ function SystemUsersCellElapsedDays(props: Props) {
         </OverlayTrigger>
     );
 }
-
-export default SystemUsersCellElapsedDays;
