@@ -199,7 +199,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 		defer removePluginIfInstalled(s.th.Client, s, jiraPluginID)
 
 		var expected error
-		expected = multierror.Append(expected, errors.New(": You do not have the appropriate permissions.")) //nolint:revive
+		expected = multierror.Append(expected, errors.New("You do not have the appropriate permissions.")) //nolint:revive
 		err := pluginInstallURLCmdF(s.th.Client, &cobra.Command{}, []string{jiraURL})
 		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
@@ -218,7 +218,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 
 		const pluginURL = "https://plugins-store.test.mattermost.com/release/mattermost-nonexistent-plugin-v2.0.0.tar.gz"
 		var expected error
-		expected = multierror.Append(expected, errors.New(": An error occurred while downloading the plugin.")) //nolint:revive
+		expected = multierror.Append(expected, errors.New("An error occurred while downloading the plugin.")) //nolint:revive
 
 		err := pluginInstallURLCmdF(c, &cobra.Command{}, []string{pluginURL})
 		s.Require().EqualError(err, expected.Error())
@@ -244,7 +244,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 		s.Require().Equal(jiraPluginID, printer.GetLines()[0].(*model.Manifest).Id)
 
 		var expected error
-		expected = multierror.Append(expected, errors.New(": Unable to install plugin. A plugin with the same ID is already installed.")) //nolint:revive
+		expected = multierror.Append(expected, errors.New("Unable to install plugin. A plugin with the same ID is already installed.")) //nolint:revive
 		err = pluginInstallURLCmdF(c, &cobra.Command{}, []string{jiraURL})
 		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 1)

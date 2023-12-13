@@ -395,6 +395,32 @@ func (_m *CloudInterface) GetIPFilters(userID string) (*model.AllowedIPRanges, e
 	return r0, r1
 }
 
+// GetInstallation provides a mock function with given fields: userID
+func (_m *CloudInterface) GetInstallation(userID string) (*model.Installation, error) {
+	ret := _m.Called(userID)
+
+	var r0 *model.Installation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.Installation, error)); ok {
+		return rf(userID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Installation); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Installation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetInvoicePDF provides a mock function with given fields: userID, invoiceID
 func (_m *CloudInterface) GetInvoicePDF(userID string, invoiceID string) ([]byte, string, error) {
 	ret := _m.Called(userID, invoiceID)

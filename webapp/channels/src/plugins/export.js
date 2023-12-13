@@ -20,6 +20,7 @@ import Avatar from 'components/widgets/users/avatar';
 
 import {getHistory} from 'utils/browser_history';
 import {ModalIdentifiers} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import messageHtmlToComponent from 'utils/message_html_to_component';
 import * as NotificationSounds from 'utils/notification_sounds';
 import {formatText} from 'utils/text_formatting';
@@ -105,3 +106,6 @@ window.ProductApi = {
     getRhsSelectedPostId: getSelectedPostId,
     getIsRhsOpen,
 };
+
+// Desktop App module containing the app info and a series of helpers to work with legacy code
+window.DesktopApp = DesktopApp;

@@ -180,6 +180,8 @@ type Subscription struct {
 	OriginallyLicensedSeats int      `json:"originally_licensed_seats"`
 	ComplianceBlocked       string   `json:"compliance_blocked"`
 	BillingType             string   `json:"billing_type"`
+	CancelAt                *int64   `json:"cancel_at"`
+	WillRenew               string   `json:"will_renew"`
 }
 
 // Subscription History model represents true up event in a yearly subscription
@@ -299,6 +301,12 @@ type CreateSubscriptionRequest struct {
 	Total                 float64  `json:"total"`
 	InternalPurchaseOrder string   `json:"internal_purchase_order"`
 	DiscountID            string   `json:"discount_id"`
+}
+
+type Installation struct {
+	ID              string           `json:"id"`
+	State           string           `json:"state"`
+	AllowedIPRanges *AllowedIPRanges `json:"allowed_ip_ranges"`
 }
 
 type Feedback struct {

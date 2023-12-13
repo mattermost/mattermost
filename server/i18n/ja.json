@@ -10080,5 +10080,9 @@
   {
     "id": "app.login.doLogin.updateLastLogin.error",
     "translation": "最終ログイン日時を更新できませんでした"
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "この投稿に対するリアクションの上限に達しました。"
   }
 ]
