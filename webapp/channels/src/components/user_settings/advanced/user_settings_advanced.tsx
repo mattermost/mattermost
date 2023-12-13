@@ -881,11 +881,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
             );
         }
 
-        let deactivateAccountSectionDivider = null;
-        if (deactivateAccountSection) {
-            deactivateAccountSectionDivider = <div className='divider-light'/>;
-        }
-
         const unreadScrollPositionSection = this.renderUnreadScrollPositionSection();
         let unreadScrollPositionSectionDivider = null;
         if (unreadScrollPositionSection) {
@@ -948,7 +943,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     />
                     {previewFeaturesSectionDivider}
                     {previewFeaturesSection}
-                    {formattingSectionDivider}
                     <PerformanceDebuggingSection
                         active={this.props.activeSection === AdvancedSections.PERFORMANCE_DEBUGGING}
                         onUpdateSection={this.handleUpdateSection}
@@ -958,7 +952,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     {unreadScrollPositionSection}
                     {syncDraftsSectionDivider}
                     {syncDraftsSection}
-                    {deactivateAccountSectionDivider}
+                    {formattingSectionDivider}
                     {deactivateAccountSection}
                     <div className='divider-dark'/>
                     {makeConfirmationModal}
