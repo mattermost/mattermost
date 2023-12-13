@@ -290,6 +290,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
             className={'UploadLicenseModal'}
             show={show}
             id='UploadLicenseModal'
+            compassDesign={true}
             onExited={handleOnClose}
         >
             {uploadLicenseContent}

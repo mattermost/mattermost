@@ -190,6 +190,7 @@ const LearnMoreTrialModal = (
 
     return (
         <GenericModal
+            compassDesign={true}
             className='LearnMoreTrialModal'
             id='learnMoreTrialModal'
             onExited={handleOnClose}
