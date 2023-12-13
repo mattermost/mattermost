@@ -493,7 +493,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "GlobalRelaySettings.CustomerType för meddelandeexport måste anges till antingen 'A9' eller 'A10'."
+    "translation": "GlobalRelaySettings.CustomerType för meddelandeexport måste anges till antingen 'A9', 'A10' eller 'CUSTOM'."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
@@ -10092,5 +10092,37 @@
   {
     "id": "app.reaction.save.save.too_many_reactions",
     "translation": "Gränsen för antal reaktioner på meddelandet har nåtts."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Ogiltigt team-ID har angetts."
+  },
+  {
+    "id": "app.user.get_user_report.invalid_sort_column",
+    "translation": "Den angivna sorteringskolumnen är inte giltig."
+  },
+  {
+    "id": "app.user.get_user_report.store_error",
+    "translation": "Ett fel uppstod vid sökningen efter användarrapporten."
+  },
+  {
+    "id": "app.user.get_users_for_reporting.bad_date_range",
+    "translation": "Det angivna datumintervallet är ogiltigt."
+  },
+  {
+    "id": "app.user.get_users_for_reporting.invalid_page_size",
+    "translation": "Sidstorleken är ogiltig eller för stor."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Det gick inte att uppdatera den anpassade statusen. En emoji med det angivna namnet finns inte."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Kan inte dölja både aktiva och inaktiva användare."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Om GlobalRelaySettings.CustomerType är 'CUSTOM' måste GlobalRelaySettings.CustomSMTPServerName och GlobalRelaySettings.CustomSMTPPort anges."
   }
 ]
