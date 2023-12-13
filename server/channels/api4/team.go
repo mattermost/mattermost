@@ -887,7 +887,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		if !canInviteGuests {
 			user, err := c.App.GetUser(member.UserId)
 			if err != nil || user == nil {
-				c.Err = model.NewAppError("addTeamMembers", "app.user.missing_account.const", nil, "", http.StatusNotFound)
+				c.Err = model.NewAppError("addTeamMembers", "api.team.user.missing_account", nil, "", http.StatusNotFound)
 				return
 			}
 			if user.IsGuest() {

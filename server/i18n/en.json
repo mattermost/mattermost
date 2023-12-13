@@ -3343,6 +3343,10 @@
     "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
   },
   {
+    "id": "api.team.user.missing_account",
+    "translation": "Unable to find the user."
+  },
+  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Mattermost Upgrade Confirmation"
   },
