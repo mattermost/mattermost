@@ -40,7 +40,7 @@ require (
 	github.com/mattermost/gosaml2 v0.8.0
 	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956
 	github.com/mattermost/logr/v2 v2.0.21
-	github.com/mattermost/mattermost/server/public v0.0.10-0.20231116111926-0bc542620ce2
+	github.com/mattermost/mattermost/server/public v0.0.10-0.20231212101725-07bf343e4697
 	github.com/mattermost/morph v1.0.5-0.20230511171014-e76e25978d56
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/squirrel v0.4.0
