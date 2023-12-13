@@ -265,8 +265,8 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
 	teamIDs, err := model.ArrayFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err != nil || len(teamIDs) == 0 {
-		c.SetInvalidParam("team_ids")
+	if err != nil {
+		c.Err = model.NewAppError("addTeamsToPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	auditRec := c.MakeAuditRecord("addTeamsToPolicy", audit.Fail)
@@ -292,8 +292,8 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
 	teamIDs, err := model.ArrayFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err != nil || len(teamIDs) == 0 {
-		c.SetInvalidParam("team_ids")
+	if err != nil {
+		c.Err = model.NewAppError("removeTeamsFromPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	auditRec := c.MakeAuditRecord("removeTeamsFromPolicy", audit.Fail)
@@ -384,8 +384,8 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
 	channelIDs, err := model.ArrayFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err != nil || len(channelIDs) == 0 {
-		c.SetInvalidParam("channel_ids")
+	if err != nil {
+		c.Err = model.NewAppError("addChannelsToPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	auditRec := c.MakeAuditRecord("addChannelsToPolicy", audit.Fail)
@@ -412,8 +412,8 @@ func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
 	channelIDs, err := model.ArrayFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err != nil || len(channelIDs) == 0 {
-		c.SetInvalidParam("channel_ids")
+	if err != nil {
+		c.Err = model.NewAppError("removeChannelsFromPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	auditRec := c.MakeAuditRecord("removeChannelsFromPolicy", audit.Fail)

@@ -120,7 +120,7 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 
 	categoryOrder, err := model.ArrayFromJSONNonSort(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
 	if err != nil {
-		c.SetInvalidParam("category")
+		c.Err = model.NewAppError("updateCategoryOrderForTeamForUser", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 

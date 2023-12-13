@@ -234,7 +234,10 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	userIDs, err := model.ArrayFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err != nil || len(userIDs) == 0 {
+	if err != nil {
+		c.Err = model.NewAppError("localGetUsersByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(userIDs) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}

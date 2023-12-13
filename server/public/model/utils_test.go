@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"reflect"
 	"strings"
@@ -226,6 +227,7 @@ func TestArrayFromJsonLimited(t *testing.T) {
 		b, _ := json.Marshal(ids)
 		_, err := ArrayFromJSONLimited(bytes.NewReader(b), 1000)
 		require.Error(t, err)
+		require.True(t, errors.Is(err, io.ErrUnexpectedEOF))
 	})
 
 	t.Run("Duplicate keys, returns one", func(t *testing.T) {
@@ -269,6 +271,7 @@ func TestArrayFromJsonNonSort(t *testing.T) {
 		b, _ := json.Marshal(ids)
 		_, err := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
 		require.Error(t, err)
+		require.True(t, errors.Is(err, io.ErrUnexpectedEOF))
 	})
 
 	t.Run("Duplicate keys, returns one", func(t *testing.T) {

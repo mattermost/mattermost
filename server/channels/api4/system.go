@@ -969,7 +969,7 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 
 	ids, err := model.ArrayFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
 	if err != nil {
-		c.SetInvalidParam("ids")
+		c.Err = model.NewAppError("updateViewedProductNotices", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	appErr := c.App.UpdateViewedProductNotices(c.AppContext.Session().UserId, ids)

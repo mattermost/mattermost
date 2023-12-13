@@ -83,7 +83,10 @@ func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 	rolenames, err := model.ArrayFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err != nil || len(rolenames) == 0 {
+	if err != nil {
+		c.Err = model.NewAppError("getRolesByNames", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(rolenames) == 0 {
 		c.SetInvalidParam("rolenames")
 		return
 	}
