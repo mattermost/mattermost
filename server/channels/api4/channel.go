@@ -1574,13 +1574,16 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 func readMultipleChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 
-	channelIDs, err := model.ArrayFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err != nil || len(channelIDs) == 0 {
+	channelIds, err := model.ArrayFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil {
 		c.Err = model.NewAppError("readMultipleChannels", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(channelIds) == 0 {
+		c.SetInvalidParam("channel_ids")
 		return
 	}
 
-	times, appErr := c.App.MarkChannelsAsViewed(c.AppContext, channelIDs, c.Params.UserId, c.AppContext.Session().Id, true, c.App.IsCRTEnabledForUser(c.AppContext, c.Params.UserId))
+	times, appErr := c.App.MarkChannelsAsViewed(c.AppContext, channelIds, c.Params.UserId, c.AppContext.Session().Id, true, c.App.IsCRTEnabledForUser(c.AppContext, c.Params.UserId))
 	if appErr != nil {
 		c.Err = appErr
 		return
