@@ -977,7 +977,7 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getUsersRoute()}/sessions/revoke/all`,
             {method: 'post'},
-        );make
+        );
     };
 
     getUserAudits = (userId: string, page = 0, perPage = PER_PAGE_DEFAULT) => {
