@@ -396,6 +396,13 @@ export default class WebSocketClient {
         this.sendMessage('presence', data, callback);
     }
 
+    updateActiveThread(channelId: string, callback?: (msg: any) => void) {
+        const data = {
+            thread_channel_id: channelId,
+        };
+        this.sendMessage('presence', data, callback);
+    }
+
     userUpdateActiveStatus(userIsActive: boolean, manual: boolean, callback?: () => void) {
         const data = {
             user_is_active: userIsActive,
