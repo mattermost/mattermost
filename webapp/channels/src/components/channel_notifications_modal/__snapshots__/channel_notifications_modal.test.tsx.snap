@@ -92,6 +92,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -112,6 +113,7 @@ Object {
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
+                      data-testid="mm-modal-generic-section-item__description"
                     >
                       Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
                     </p>
@@ -121,6 +123,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -141,6 +144,7 @@ Object {
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
+                      data-testid="mm-modal-generic-section-item__description"
                     >
                       When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
                     </p>
@@ -179,11 +183,13 @@ Object {
                   >
                     <h4
                       class="mm-modal-generic-section-item__title"
+                      data-testid="mm-modal-generic-section-item__title"
                     >
                       Notify me about…
                     </h4>
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
@@ -280,6 +286,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -304,11 +311,13 @@ Object {
                   >
                     <h4
                       class="mm-modal-generic-section-item__title"
+                      data-testid="mm-modal-generic-section-item__title"
                     >
                       Notify me about…
                     </h4>
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
@@ -527,6 +536,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -547,6 +557,7 @@ Object {
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
+                      data-testid="mm-modal-generic-section-item__description"
                     >
                       Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
                     </p>
@@ -556,6 +567,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -576,6 +588,7 @@ Object {
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
+                      data-testid="mm-modal-generic-section-item__description"
                     >
                       When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
                     </p>
@@ -631,11 +644,13 @@ Object {
                   >
                     <h4
                       class="mm-modal-generic-section-item__title"
+                      data-testid="mm-modal-generic-section-item__title"
                     >
                       Notify me about…
                     </h4>
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
@@ -732,6 +747,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -756,11 +772,13 @@ Object {
                   >
                     <h4
                       class="mm-modal-generic-section-item__title"
+                      data-testid="mm-modal-generic-section-item__title"
                     >
                       Notify me about…
                     </h4>
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
@@ -979,6 +997,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -999,6 +1018,7 @@ Object {
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
+                      data-testid="mm-modal-generic-section-item__description"
                     >
                       Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
                     </p>
@@ -1008,6 +1028,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -1028,6 +1049,7 @@ Object {
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
+                      data-testid="mm-modal-generic-section-item__description"
                     >
                       When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
                     </p>
@@ -1066,11 +1088,13 @@ Object {
                   >
                     <h4
                       class="mm-modal-generic-section-item__title"
+                      data-testid="mm-modal-generic-section-item__title"
                     >
                       Notify me about…
                     </h4>
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
@@ -1167,6 +1191,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -1191,11 +1216,13 @@ Object {
                   >
                     <h4
                       class="mm-modal-generic-section-item__title"
+                      data-testid="mm-modal-generic-section-item__title"
                     >
                       Notify me about…
                     </h4>
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
@@ -1414,6 +1441,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -1434,6 +1462,7 @@ Object {
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
+                      data-testid="mm-modal-generic-section-item__description"
                     >
                       Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
                     </p>
@@ -1443,6 +1472,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -1463,6 +1493,7 @@ Object {
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
+                      data-testid="mm-modal-generic-section-item__description"
                     >
                       When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
                     </p>
@@ -1675,6 +1706,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -1695,6 +1727,7 @@ Object {
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
+                      data-testid="mm-modal-generic-section-item__description"
                     >
                       Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
                     </p>
@@ -1704,6 +1737,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -1724,6 +1758,7 @@ Object {
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
+                      data-testid="mm-modal-generic-section-item__description"
                     >
                       When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
                     </p>
@@ -1762,11 +1797,13 @@ Object {
                   >
                     <h4
                       class="mm-modal-generic-section-item__title"
+                      data-testid="mm-modal-generic-section-item__title"
                     >
                       Notify me about…
                     </h4>
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
@@ -1863,6 +1900,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -2056,6 +2094,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -2076,6 +2115,7 @@ Object {
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
+                      data-testid="mm-modal-generic-section-item__description"
                     >
                       Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
                     </p>
@@ -2085,6 +2125,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -2105,6 +2146,7 @@ Object {
                     </div>
                     <p
                       class="mm-modal-generic-section-item__description"
+                      data-testid="mm-modal-generic-section-item__description"
                     >
                       When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
                     </p>
@@ -2143,11 +2185,13 @@ Object {
                   >
                     <h4
                       class="mm-modal-generic-section-item__title"
+                      data-testid="mm-modal-generic-section-item__title"
                     >
                       Notify me about…
                     </h4>
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
@@ -2244,6 +2288,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
@@ -2268,11 +2313,13 @@ Object {
                   >
                     <h4
                       class="mm-modal-generic-section-item__title"
+                      data-testid="mm-modal-generic-section-item__title"
                     >
                       Notify me about…
                     </h4>
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
@@ -2347,6 +2394,7 @@ Object {
                   >
                     <div
                       class="mm-modal-generic-section-item__content"
+                      data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"

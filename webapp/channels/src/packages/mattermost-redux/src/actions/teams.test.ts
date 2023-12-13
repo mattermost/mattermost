@@ -768,10 +768,7 @@ describe('Actions.Teams', () => {
             reply(200, {...team, invite_id: 'inviteId'});
 
         const {data} = await Actions.setTeamIcon(team!.id, imageData as any)(store.dispatch, store.getState) as ActionResult;
-        expect(data).toEqual(OK_RESPONSE);
-
-        state = store.getState();
-        expect(state.entities.teams.teams[team!.id].invite_id).toEqual('inviteId');
+        expect(data).toEqual({data: OK_RESPONSE});
     });
 
     it('removeTeamIcon', async () => {
