@@ -29,27 +29,24 @@ type Props = {
 
 }
 
-const EmbeddedBindings = ({embeds, post, options}: Props) => {
-    const content = [] as JSX.Element[];
-    embeds.forEach((embed, i) => {
-        content.push(
+const EmbeddedBindings = ({
+    embeds,
+    post,
+    options,
+}: Props) => (
+    <div
+        id={`messageAttachmentList_${post.id}`}
+        className='attachment__list'
+    >
+        {embeds.map((embed, i) => (
             <EmbeddedBinding
                 embed={embed}
                 post={post}
                 key={'att_' + i}
                 options={options}
-            />,
-        );
-    });
-
-    return (
-        <div
-            id={`messageAttachmentList_${post.id}`}
-            className='attachment__list'
-        >
-            {content}
-        </div>
-    );
-};
+            />
+        ))}
+    </div>
+);
 
 export default memo(EmbeddedBindings);
