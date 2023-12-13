@@ -20,7 +20,7 @@ func (a *App) GetUsersForReporting(filter *model.UserReportOptions) ([]*model.Us
 func (a *App) getUserReport(filter *model.UserReportOptions) ([]*model.UserReport, *model.AppError) {
 	userReportQuery, err := a.Srv().Store().User().GetUserReport(filter)
 	if err != nil {
-		return nil, model.NewAppError("GetUsersForReporting", "app.user.get_user_report.store_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetUsersForReporting", "app.report.get_user_report.store_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	userReports := make([]*model.UserReport, len(userReportQuery))
