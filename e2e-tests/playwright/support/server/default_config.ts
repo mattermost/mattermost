@@ -714,4 +714,13 @@ const defaultServerConfig: AdminConfig = {
         Directory: './export',
         RetentionDays: 30,
     },
+    WranglerSettings: {
+        PermittedWranglerRoles: [],
+        AllowedEmailDomain: [],
+        MoveThreadMaxCount: 30,
+        MoveThreadToAnotherTeamEnable: true,
+        MoveThreadFromPrivateChannelEnable: true,
+        MoveThreadFromDirectMessageChannelEnable: true,
+        MoveThreadFromGroupMessageChannelEnable: true,
+    },
 };
