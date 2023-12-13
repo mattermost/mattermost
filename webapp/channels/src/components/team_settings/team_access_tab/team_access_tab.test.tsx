@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
+import {act} from 'react-dom/test-utils';
 
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AccessTab from './team_access_tab';
@@ -29,68 +30,71 @@ describe('components/TeamSettings', () => {
         actions: baseActions,
         canInviteTeamMembers: true,
         isMobileView: false,
+        hasChanges: true,
+        hasChangeTabError: false,
+        setHasChanges: jest.fn(),
+        setHasChangeTabError: jest.fn(),
+        collapseModal: jest.fn(),
     };
 
-    test('hide invite code if no permissions for team inviting', () => {
+    test('should not render team invite section if no permissions for team inviting', () => {
         const props = {...defaultProps, canInviteTeamMembers: false};
-
-        const wrapper1 = shallow(<AccessTab {...defaultProps}/>);
-        const wrapper2 = shallow(<AccessTab {...props}/>);
-
-        expect(wrapper1).toMatchSnapshot();
-        expect(wrapper2).toMatchSnapshot();
+        renderWithContext(<AccessTab {...props}/>);
+        const inviteContainer = screen.queryByTestId('teamInviteContainer');
+        expect(inviteContainer).toBeNull();
     });
 
-    test('should call actions.patchTeam on handleAllowedDomainsSubmit', () => {
-        const actions = {...baseActions};
-        const props = {...defaultProps, actions};
-        const wrapper = shallow<AccessTab>(<AccessTab {...props}/>);
+    test('should call regenerateTeamInviteId on handleRegenerateInviteId', () => {
+        const wrapper = renderWithContext(<AccessTab {...defaultProps}/>);
+        wrapper.getByTestId('regenerateButton').click();
+        expect(baseActions.regenerateTeamInviteId).toHaveBeenCalledTimes(1);
+        expect(baseActions.regenerateTeamInviteId).toHaveBeenCalledWith(defaultProps.team?.id);
+    });
 
-        wrapper.instance().handleAllowedDomainsSubmit();
+    test('should not render allowed domains checkbox if no permissions for team inviting', () => {
+        const props = {...defaultProps, canInviteTeamMembers: false};
+        renderWithContext(<AccessTab {...props}/>);
+        const allowedDomainsCheckbox = screen.queryByTestId('allowedDomainsCheckbox');
+        expect(allowedDomainsCheckbox).toBeNull();
+    });
 
-        expect(actions.patchTeam).toHaveBeenCalledTimes(1);
-        expect(actions.patchTeam).toHaveBeenCalledWith({
-            allowed_domains: '',
-            id: props.team?.id,
+    test('should not show allowed domains input if allowed domains is empty', () => {
+        const props = {...defaultProps, team: TestHelper.getTeamMock({allowed_domains: ''})};
+        renderWithContext(<AccessTab {...props}/>);
+        const allowedDomainsInput = screen.queryByText('Seperate multiple domains with a space or comma.');
+        expect(allowedDomainsInput).toBeNull();
+    });
+
+    test('should show allowed domains input if allowed domains is not empty', () => {
+        const props = {...defaultProps, team: TestHelper.getTeamMock({allowed_domains: 'test.com'})};
+        renderWithContext(<AccessTab {...props}/>);
+        const allowedDomainsInput = screen.getByText('Seperate multiple domains with a space or comma.');
+        expect(allowedDomainsInput).toBeInTheDocument();
+        const allowedDomainsInputValue = screen.getByText('test.com');
+        expect(allowedDomainsInputValue).toBeInTheDocument();
+    });
+
+    test('should call patchTeam on handleAllowedDomainsSubmit', async () => {
+        const props = {...defaultProps, team: TestHelper.getTeamMock({allowed_domains: 'test.com'})};
+        renderWithContext(<AccessTab {...props}/>);
+        const allowedDomainsInput = screen.getAllByRole('textbox')[0];
+        const newDomain = 'best.com';
+        await act(async () => {
+            await allowedDomainsInput.focus();
+            await userEvent.type(allowedDomainsInput, `${newDomain},`);
         });
-    });
 
-    test('should call actions.patchTeam on handleInviteIdSubmit', () => {
-        const actions = {...baseActions};
-        const props = {...defaultProps, actions};
-        if (props.team) {
-            props.team.invite_id = '12345';
-        }
+        const newDomainText = screen.getByText(newDomain);
+        expect(newDomainText).toBeInTheDocument();
 
-        const wrapper = shallow<AccessTab>(<AccessTab {...props}/>);
-
-        wrapper.instance().handleInviteIdSubmit();
-
-        expect(actions.regenerateTeamInviteId).toHaveBeenCalledTimes(1);
-        expect(actions.regenerateTeamInviteId).toHaveBeenCalledWith(props.team?.id);
-    });
-
-    test('should match snapshot when team is group constrained', () => {
-        const props = {...defaultProps};
-        if (props.team) {
-            props.team.group_constrained = true;
-        }
-
-        const wrapper = shallow(<AccessTab {...props}/>);
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should call actions.getTeam on handleUpdateSection if invite_id is empty', () => {
-        const actions = {...baseActions};
-        const props = {...defaultProps, actions};
-        if (props.team) {
-            props.team.invite_id = '';
-        }
-
-        shallow<AccessTab>(<AccessTab {...props}/>);
-
-        expect(actions.getTeam).toHaveBeenCalledTimes(1);
-        expect(actions.getTeam).toHaveBeenCalledWith(props.team?.id);
+        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        await act(async () => {
+            userEvent.click(saveButton);
+        });
+        expect(baseActions.patchTeam).toHaveBeenCalledTimes(1);
+        expect(baseActions.patchTeam).toHaveBeenCalledWith({
+            allowed_domains: 'test.com, best.com',
+            id: defaultProps.team?.id,
+        });
     });
 });

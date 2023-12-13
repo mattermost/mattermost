@@ -54,6 +54,9 @@ const AccessTab = (props: Props) => {
     };
 
     const handleOpenInviteSubmit = async (): Promise<Error | null> => {
+        if (allowOpenInvite === props.team?.allow_open_invite) {
+            return null;
+        }
         const data = {
             id: props.team?.id,
             allow_open_invite: allowOpenInvite,
@@ -132,7 +135,10 @@ const AccessTab = (props: Props) => {
     let inviteSection;
     if (props.canInviteTeamMembers) {
         const inviteSectionInput = (
-            <div id='teamInviteContainer' >
+            <div
+                data-testid='teamInviteContainer'
+                id='teamInviteContainer'
+            >
                 <Input
                     id='teamInviteId'
                     type='text'
@@ -140,6 +146,7 @@ const AccessTab = (props: Props) => {
                     maxLength={32}
                 />
                 <button
+                    data-testid='regenerateButton'
                     id='regenerateButton'
                     className='btn btn-tertiary'
                     onClick={handleRegenerateInviteId}
@@ -165,6 +172,7 @@ const AccessTab = (props: Props) => {
     const allowedDomainsSection = (
         <>
             <CheckboxSettingItem
+                data-testid='allowedDomainsCheckbox'
                 className='access-allowed-domains-section'
                 title={{id: 'general_tab.allowedDomainsTitle', defaultMessage: 'Users with a specific email domain'}}
                 description={{id: 'general_tab.allowedDomainsInfo', defaultMessage: 'When enabled, users can only join the team if their email matches a specific domain (e.g. "mattermost.org")'}}
