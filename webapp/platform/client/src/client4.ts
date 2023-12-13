@@ -477,6 +477,10 @@ export default class Client4 {
         return `${this.getBaseRoute()}/drafts`;
     }
 
+    getReportsRoute(): string {
+        return `${this.getBaseRoute()}/reports`;
+    }
+
     getCSRFFromCookie() {
         if (typeof document !== 'undefined' && typeof document.cookie !== 'undefined') {
             const cookies = document.cookie.split(';');
@@ -973,7 +977,7 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getUsersRoute()}/sessions/revoke/all`,
             {method: 'post'},
-        );
+        );make
     };
 
     getUserAudits = (userId: string, page = 0, perPage = PER_PAGE_DEFAULT) => {
@@ -986,7 +990,7 @@ export default class Client4 {
     getUsersForReporting = (filter: UserReportOptions) => {
         const queryString = buildQueryString(filter);
         return this.doFetch<UserReport[]>(
-            `${this.getUsersRoute()}/report${queryString}`,
+            `${this.getReportsRoute()}/users${queryString}`,
             {method: 'get'},
         );
     }
