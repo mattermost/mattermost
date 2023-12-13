@@ -47,10 +47,7 @@ enum ColumnNames {
 
 const columnHelper = createColumnHelper<SystemUsersRow>();
 
-interface Props {
-}
-
-function SystemUsersList(props: Props) {
+function SystemUsersList() {
     const {formatMessage} = useIntl();
 
     const currentUser = useSelector(getCurrentUser);

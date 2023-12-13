@@ -44,9 +44,7 @@ exports[`components/admin_console/system_users should match default snapshot 1`]
           value=""
         />
       </div>
-      <SystemUsersList
-        tableAriaDescribedBy="searchableSystemUsersTableHeaderId"
-      />
+      <SystemUsersList />
     </div>
   </div>
 </div>
