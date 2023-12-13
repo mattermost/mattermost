@@ -573,13 +573,6 @@ export default class SuggestionBox extends React.PureComponent {
         }
     };
 
-    handleKeyPress = (e) => {
-        this.confirmPretext();
-        if (this.props.onKeyPress) {
-            this.props.onKeyPress(e);
-        }
-    };
-
     handleKeyUp = (e) => {
         this.confirmPretext();
         if (this.props.onKeyUp) {
@@ -595,7 +588,6 @@ export default class SuggestionBox extends React.PureComponent {
     };
 
     handleKeyDown = (e) => {
-        this.confirmPretext();
         if ((this.props.openWhenEmpty || this.props.value) && this.hasSuggestions()) {
             const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
             if (Keyboard.isKeyPressed(e, KeyCodes.UP)) {
@@ -847,7 +839,6 @@ export default class SuggestionBox extends React.PureComponent {
                     onCompositionUpdate={this.handleCompositionUpdate}
                     onCompositionEnd={this.handleCompositionEnd}
                     onKeyDown={this.handleKeyDown}
-                    onKeyPress={this.handleKeyPress}
                     onKeyUp={this.handleKeyUp}
                     onMouseUp={this.handleMouseUp}
                 />
