@@ -392,6 +392,8 @@ var ChannelModeratedPermissionsMap map[string]string
 var SysconsoleReadPermissions []*Permission
 var SysconsoleWritePermissions []*Permission
 
+var ModeratedBookmarkPermissions []*Permission
+
 func initializePermissions() {
 	PermissionInviteUser = &Permission{
 		"invite_user",
@@ -2507,6 +2509,7 @@ func initializePermissions() {
 		"create_reactions",
 		"manage_members",
 		PermissionUseChannelMentions.Id,
+		"manage_bookmarks",
 	}
 
 	ChannelModeratedPermissionsMap = map[string]string{
@@ -2516,6 +2519,21 @@ func initializePermissions() {
 		PermissionManagePublicChannelMembers.Id:  ChannelModeratedPermissions[2],
 		PermissionManagePrivateChannelMembers.Id: ChannelModeratedPermissions[2],
 		PermissionUseChannelMentions.Id:          ChannelModeratedPermissions[3],
+	}
+
+	ModeratedBookmarkPermissions = []*Permission{
+		PermissionAddBookmarkPublicChannel,
+		PermissionEditBookmarkPublicChannel,
+		PermissionDeleteBookmarkPublicChannel,
+		PermissionOrderBookmarkPublicChannel,
+		PermissionAddBookmarkPrivateChannel,
+		PermissionEditBookmarkPrivateChannel,
+		PermissionDeleteBookmarkPrivateChannel,
+		PermissionOrderBookmarkPrivateChannel,
+	}
+
+	for _, mbp := range ModeratedBookmarkPermissions {
+		ChannelModeratedPermissionsMap[mbp.Id] = ChannelModeratedPermissions[4]
 	}
 }
 
