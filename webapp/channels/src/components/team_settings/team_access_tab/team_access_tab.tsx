@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import {RefreshIcon} from '@mattermost/compass-icons/components';
@@ -38,6 +38,10 @@ const AccessTab = (props: Props) => {
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>('saving');
     const [inviteIdError, setInviteIdError] = useState<BaseSettingItemProps['error'] | undefined>();
     const {formatMessage} = useIntl();
+
+    useEffect(() => {
+        setInviteId(props.team?.invite_id || '');
+    }, [props.team?.invite_id]);
 
     const handleAllowedDomainsSubmit = async (): Promise<boolean> => {
         if (allowedDomains.length === 0) {
@@ -145,7 +149,7 @@ const AccessTab = (props: Props) => {
                 <Input
                     id='teamInviteId'
                     type='text'
-                    value={inviteId}
+                    value={inviteId} // todo sinan invite id not always available/ updated, check the old implementation https://github.com/mattermost/mattermost/blob/9d6bfc77aec9b4b4019bd13043f16e535492c068/webapp/channels/src/components/team_general_tab/team_general_tab.tsx#L279
                     maxLength={32}
                 />
                 <button

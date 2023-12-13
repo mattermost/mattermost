@@ -40,7 +40,6 @@ const InfoTab = (props: Props) => {
             return true;
         }
 
-        // todo sinan: when the input is empty clicking make the save changes panel green
         if (!name) {
             setNameClientError({id: 'general_tab.required', defaultMessage: 'This field is required'});
             return false;
