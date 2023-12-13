@@ -1253,6 +1253,22 @@ func (s *TimerLayerChannelStore) GetChannelsMemberCount(channelIDs []string) (ma
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetChannelsReport(filter *model.ChannelReportOptions) ([]*model.ChannelReport, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetChannelsReport(filter)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelsReport", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error) {
 	start := time.Now()
 

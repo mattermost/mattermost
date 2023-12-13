@@ -976,6 +976,32 @@ func (_m *ChannelStore) GetChannelsMemberCount(channelIDs []string) (map[string]
 	return r0, r1
 }
 
+// GetChannelsReport provides a mock function with given fields: filter
+func (_m *ChannelStore) GetChannelsReport(filter *model.ChannelReportOptions) ([]*model.ChannelReport, error) {
+	ret := _m.Called(filter)
+
+	var r0 []*model.ChannelReport
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.ChannelReportOptions) ([]*model.ChannelReport, error)); ok {
+		return rf(filter)
+	}
+	if rf, ok := ret.Get(0).(func(*model.ChannelReportOptions) []*model.ChannelReport); ok {
+		r0 = rf(filter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelReport)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.ChannelReportOptions) error); ok {
+		r1 = rf(filter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetChannelsWithTeamDataByIds provides a mock function with given fields: channelIds, includeDeleted
 func (_m *ChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error) {
 	ret := _m.Called(channelIds, includeDeleted)
