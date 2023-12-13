@@ -181,6 +181,29 @@ func (s *SqlDraftStore) Delete(userID, channelID, rootID string) error {
 	return nil
 }
 
+// DeleteDraftsAssociatedWithPost deletes all drafts associated with a post.
+func (s *SqlDraftStore) DeleteDraftsAssociatedWithPost(channelID, rootID string) error {
+	query := s.getQueryBuilder().
+		Delete("Drafts").
+		Where(sq.Eq{
+			"ChannelId": channelID,
+			"RootId":    rootID,
+		})
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrapf(err, "failed to convert to sql")
+	}
+
+	_, err = s.GetMasterX().Exec(sql, args...)
+
+	if err != nil {
+		return errors.Wrap(err, "failed to delete Draft")
+	}
+
+	return nil
+}
+
 // GetMaxDraftSize returns the maximum number of runes that may be stored in a post.
 func (s *SqlDraftStore) GetMaxDraftSize() int {
 	s.maxDraftSizeOnce.Do(func() {
