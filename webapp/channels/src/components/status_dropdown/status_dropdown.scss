@@ -89,6 +89,7 @@ button.custom_status__row {
         display: flex;
         padding: 7px 0;
         line-height: 20px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 
     &__icon {
@@ -199,7 +200,13 @@ button.custom_status__row {
             text-overflow: ellipsis;
             white-space: nowrap;
 
+            &.contrast {
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+            }
+
             &.bold {
+                font-family: 'Metropolis', sans-serif;
+                font-size: 16px;
                 font-weight: 600;
             }
         }

@@ -282,13 +282,13 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
             customStatusText = customStatus?.text;
             break;
         case isStatusSet && !customStatus?.text && customStatus?.duration === CustomStatusDuration.DONT_CLEAR:
-            customStatusHelpText = this.props.intl.formatMessage({id: 'status_dropdown.set_custom_text', defaultMessage: 'Set Custom Status Text...'});
+            customStatusHelpText = this.props.intl.formatMessage({id: 'status_dropdown.set_custom_text', defaultMessage: 'Set custom status text...'});
             break;
         case isStatusSet && !customStatus?.text && customStatus?.duration !== CustomStatusDuration.DONT_CLEAR:
             customStatusText = '';
             break;
         case !isStatusSet:
-            customStatusHelpText = this.props.intl.formatMessage({id: 'status_dropdown.set_custom', defaultMessage: 'Set a Custom Status'});
+            customStatusHelpText = this.props.intl.formatMessage({id: 'status_dropdown.set_custom', defaultMessage: 'Set a custom status'});
         }
 
         const customStatusEmoji = isStatusSet ? (
@@ -369,7 +369,6 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                         />
                         <Text
                             margin='none'
-                            color='disabled'
                         >
                             {customStatusHelpText}
                         </Text>
@@ -397,7 +396,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
         const selectedIndicator = (
             <CheckIcon
                 size={16}
-                color={'var(--semantic-color-success)'}
+                color={'var(--button-bg)'}
             />
         );
 
@@ -529,8 +528,8 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                                 >{`${currentUser.first_name} ${currentUser.last_name}`}</Text>
                                 <Text
                                     margin={'none'}
-                                    className={!currentUser.first_name && !currentUser.last_name ? 'bold' : ''}
-                                    color={!currentUser.first_name && !currentUser.last_name ? undefined : 'disabled'}
+                                    className={!currentUser.first_name && !currentUser.last_name ? 'bold' : 'contrast'}
+                                    color={!currentUser.first_name && !currentUser.last_name ? undefined : ''}
                                 >
                                     {'@' + currentUser.username}
                                 </Text>
@@ -612,7 +611,10 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                             dialogType={UserSettingsModal}
                             dialogProps={{isContentProductSettings: false}}
                             text={this.props.intl.formatMessage({id: 'navbar_dropdown.profileSettings', defaultMessage: 'Profile'})}
-                            icon={<AccountOutlineIcon size={16}/>}
+                            icon={<AccountOutlineIcon
+                                size={16}
+                                color={'rgba(var(--center-channel-color-rgb), 0.56)'}
+                            />}
                         >
                             {this.props.showCompleteYourProfileTour && (
                                 <div
@@ -629,7 +631,10 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                             id='logout'
                             onClick={this.handleEmitUserLoggedOutEvent}
                             text={this.props.intl.formatMessage({id: 'navbar_dropdown.logout', defaultMessage: 'Log Out'})}
-                            icon={<ExitToAppIcon size={16}/>}
+                            icon={ <ExitToAppIcon
+                                size={16}
+                                color={"rgba(var(--center-channel-color-rgb), 0.56)"}
+                            />}
                         />
                     </Menu.Group>
                 </Menu>
