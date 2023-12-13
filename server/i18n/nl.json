@@ -10116,5 +10116,13 @@
   {
     "id": "app.user.get_users_for_reporting.bad_date_range",
     "translation": "Het opgegeven datumbereik is ongeldig."
+  },
+  {
+    "id": "app.user.get_user_report.invalid_sort_column",
+    "translation": "De opgegeven sorteerkolom is ongeldig."
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "De reactielimiet voor dit bericht is bereikt."
   }
 ]
