@@ -16,10 +16,7 @@ export type GetStateFunc<State = GlobalState> = Parameters<Thunk<any, State>>[1]
 
 export type GenericAction = AnyAction;
 
-export type Action = GenericAction | Thunk<any>;
-
 export type ActionResult<Data = any, Error = any> = {
     data?: Data;
     error?: Error;
 };
-
