@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -27,6 +28,8 @@ const (
 
 	MaxIntegrationResponseSize = 1024 * 1024 // Posts can be <100KB at most, so this is likely more than enough
 )
+
+var linkWithTextRegex = regexp.MustCompile(`<([^\n<\|>]+)\|([^\|\n>]+)>`)
 
 func (a *App) handleWebhookEvents(c request.CTX, post *model.Post, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
@@ -84,11 +87,7 @@ func (a *App) handleWebhookEvents(c request.CTX, post *model.Post, team *model.T
 			TriggerWord: triggerWord,
 			FileIds:     strings.Join(post.FileIds, ","),
 		}
-		a.Srv().Go(func(hook *model.OutgoingWebhook) func() {
-			return func() {
-				a.TriggerWebhook(c, payload, hook, post, channel)
-			}
-		}(hook))
+		a.TriggerWebhook(c, payload, hook, post, channel)
 	}
 
 	return nil
@@ -109,11 +108,14 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 		contentType = "application/x-www-form-urlencoded"
 	}
 
+	var wg sync.WaitGroup
 	for i := range hook.CallbackURLs {
+		wg.Add(1)
 		// Get the callback URL by index to properly capture it for the go func
 		url := hook.CallbackURLs[i]
 
-		a.Srv().Go(func() {
+		go func() {
+			defer wg.Done()
 			webhookResp, err := a.doOutgoingWebhookRequest(url, body, contentType)
 			if err != nil {
 				c.Logger().Error("Event POST failed.", mlog.Err(err))
@@ -150,8 +152,9 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 					c.Logger().Error("Failed to create response post.", mlog.Err(err))
 				}
 			}
-		})
+		}()
 	}
+	wg.Wait()
 }
 
 func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType string) (*model.OutgoingWebhookResponse, error) {
@@ -163,7 +166,7 @@ func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType s
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := a.HTTPService().MakeClient(false).Do(req)
+	resp, err := a.Srv().outgoingWebhookClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +267,6 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 
 func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError) {
 	// parse links into Markdown format
-	linkWithTextRegex := regexp.MustCompile(`<([^\n<\|>]+)\|([^\|\n>]+)>`)
 	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 
 	post := &model.Post{UserId: userID, ChannelId: channel.Id, Message: text, Type: postType, RootId: postRootId}
@@ -314,7 +316,7 @@ func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Cha
 	}
 
 	for _, split := range splits {
-		if _, err = a.CreatePostMissingChannel(c, split, false, false); err != nil {
+		if _, err = a.CreatePost(c, split, channel, false, false); err != nil {
 			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 		}
 	}
