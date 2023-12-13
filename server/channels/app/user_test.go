@@ -1939,7 +1939,7 @@ func TestGetUsersForReporting(t *testing.T) {
 		defer th.TearDown()
 
 		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
-			UserReportOptionsWithoutDateRange: model.UserReportOptionsWithoutDateRange{
+			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn: "Username",
 				PageSize:   999,
 			},
@@ -1953,12 +1953,12 @@ func TestGetUsersForReporting(t *testing.T) {
 		defer th.TearDown()
 
 		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
-			UserReportOptionsWithoutDateRange: model.UserReportOptionsWithoutDateRange{
+			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn: "Username",
 				PageSize:   50,
+				StartAt:    1000,
+				EndAt:      500,
 			},
-			StartAt: 1000,
-			EndAt:   500,
 		})
 		require.Error(t, err)
 		require.Nil(t, userReports)
@@ -1969,7 +1969,7 @@ func TestGetUsersForReporting(t *testing.T) {
 		defer th.TearDown()
 
 		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
-			UserReportOptionsWithoutDateRange: model.UserReportOptionsWithoutDateRange{
+			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn: "FakeColumn",
 				PageSize:   50,
 			},
@@ -2015,7 +2015,7 @@ func TestGetUsersForReporting(t *testing.T) {
 		mockStore.On("User").Return(&mockUserStore)
 
 		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
-			UserReportOptionsWithoutDateRange: model.UserReportOptionsWithoutDateRange{
+			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn: "Username",
 				PageSize:   50,
 			},

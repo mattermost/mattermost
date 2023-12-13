@@ -4,8 +4,9 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost/server/public/model"
 	"net/http"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func (a *App) GetUsersForReporting(filter *model.UserReportOptions) ([]*model.UserReport, *model.AppError) {

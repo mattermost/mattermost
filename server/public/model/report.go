@@ -4,9 +4,10 @@
 package model
 
 import (
-	pUtils "github.com/mattermost/mattermost/server/public/utils"
 	"net/http"
 	"time"
+
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
 )
 
 const (
