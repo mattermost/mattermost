@@ -508,7 +508,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 	}
 
 	// Send the request
-	resp, err := a.HTTPService().MakeClient(false).Do(req)
+	resp, err := a.Srv().outgoingWebhookClient.Do(req)
 	if err != nil {
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]any{"Trigger": cmd.Trigger}, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -547,7 +547,7 @@ func (a *App) HandleCommandResponse(c request.CTX, command *model.Command, args 
 	_, err := a.HandleCommandResponsePost(c, command, args, response, builtIn)
 
 	if err != nil {
-		mlog.Debug("Error occurred in handling command response post", mlog.Err(err))
+		c.Logger().Debug("Error occurred in handling command response post", mlog.Err(err))
 		lastError = err
 	}
 
@@ -556,7 +556,7 @@ func (a *App) HandleCommandResponse(c request.CTX, command *model.Command, args 
 			_, err := a.HandleCommandResponsePost(c, command, args, resp, builtIn)
 
 			if err != nil {
-				mlog.Debug("Error occurred in handling command response post", mlog.Err(err))
+				c.Logger().Debug("Error occurred in handling command response post", mlog.Err(err))
 				lastError = err
 			}
 		}
