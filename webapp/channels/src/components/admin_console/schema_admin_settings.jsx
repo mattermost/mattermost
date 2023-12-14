@@ -37,6 +37,8 @@ import Setting from './setting';
 
 import './schema_admin_settings.scss';
 
+const emptyList = [];
+
 export default class SchemaAdminSettings extends React.PureComponent {
     static propTypes = {
         config: PropTypes.object,
@@ -75,6 +77,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
             [Constants.SettingsTypes.TYPE_LANGUAGE]: this.buildLanguageSetting,
             [Constants.SettingsTypes.TYPE_JOBSTABLE]: this.buildJobsTableSetting,
             [Constants.SettingsTypes.TYPE_FILE_UPLOAD]: this.buildFileUploadSetting,
+            [Constants.SettingsTypes.TYPE_ROLES]: this.buildRolesSetting,
             [Constants.SettingsTypes.TYPE_CUSTOM]: this.buildCustomSetting,
         };
         this.state = {
@@ -439,16 +442,20 @@ export default class SchemaAdminSettings extends React.PureComponent {
     };
 
     buildTextSetting = (setting) => {
-        let inputType = 'input';
+        let inputType = 'text';
         if (setting.type === Constants.SettingsTypes.TYPE_NUMBER) {
             inputType = 'number';
         } else if (setting.type === Constants.SettingsTypes.TYPE_LONG_TEXT) {
             inputType = 'textarea';
         }
 
-        let value = this.state[setting.key] ?? '';
+        let value = '';
         if (setting.dynamic_value) {
             value = setting.dynamic_value(value, this.props.config, this.state, this.props.license);
+        } else if (setting.multiple) {
+            value = this.state[setting.key] ? this.state[setting.key].join(',') : '';
+        } else {
+            value = this.state[setting.key] || '';
         }
 
         let footer = null;
@@ -466,6 +473,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
             <TextSetting
                 key={this.props.schema.id + '_text_' + setting.key}
                 id={setting.key}
+                multiple={setting.multiple}
                 type={inputType}
                 label={this.renderLabel(setting)}
                 helpText={this.renderHelpText(setting)}
@@ -563,6 +571,53 @@ export default class SchemaAdminSettings extends React.PureComponent {
                 label={this.renderLabel(setting)}
                 helpText={hideHelp ? '' : this.renderHelpText(selectedOptionForHelpText || setting)}
                 value={selectedValue}
+                disabled={this.isDisabled(setting)}
+                setByEnv={this.isSetByEnv(setting.key)}
+                onChange={this.handleChange}
+            />
+        );
+    };
+
+    buildRolesSetting = (setting) => {
+        const {roles} = this.props;
+
+        const values = Object.keys(roles).map((r) => {
+            return {
+                value: roles[r].name,
+                text: roles[r].name,
+            };
+        });
+
+        if (setting.multiple) {
+            const noResultText = (
+                <FormattedMessage
+                    id={setting.no_result}
+                    defaultMessage={setting.no_result_default}
+                />
+            );
+            return (
+                <MultiSelectSetting
+                    key={this.props.schema.id + '_language_' + setting.key}
+                    id={setting.key}
+                    label={this.renderLabel(setting)}
+                    values={values}
+                    helpText={this.renderHelpText(setting)}
+                    selected={(this.state[setting.key] || emptyList)}
+                    disabled={this.isDisabled(setting)}
+                    setByEnv={this.isSetByEnv(setting.key)}
+                    onChange={this.handleChange}
+                    noResultText={noResultText}
+                />
+            );
+        }
+        return (
+            <DropdownSetting
+                key={this.props.schema.id + '_language_' + setting.key}
+                id={setting.key}
+                label={this.renderLabel(setting)}
+                values={values}
+                helpText={this.renderHelpText(setting)}
+                value={this.state[setting.key] || values[0].value}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
                 onChange={this.handleChange}

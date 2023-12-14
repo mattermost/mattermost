@@ -1910,7 +1910,7 @@ func testTeamMembersToAdd(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Empty(t, teamMembers)
 
 	// Leaving Team should still not return result
-	_, nErr = ss.Team().UpdateMember(&model.TeamMember{
+	_, nErr = ss.Team().UpdateMember(rctx, &model.TeamMember{
 		TeamId:   team.Id,
 		UserId:   user.Id,
 		DeleteAt: model.GetMillis(),
@@ -2129,7 +2129,7 @@ func testChannelMembersToAdd(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	// reset state of channel and verify
 	channel.DeleteAt = 0
-	_, nErr = ss.Channel().Update(channel)
+	_, nErr = ss.Channel().Update(rctx, channel)
 	require.NoError(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
@@ -2334,17 +2334,17 @@ func testTeamMembersToRemove(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Len(t, teamMembers, 3)
 
 	// add users back to groups
-	res := ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserA.Id)
+	res := ss.Team().RemoveMember(rctx, data.ConstrainedTeam.Id, data.UserA.Id)
 	require.NoError(t, res)
-	res = ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserB.Id)
+	res = ss.Team().RemoveMember(rctx, data.ConstrainedTeam.Id, data.UserB.Id)
 	require.NoError(t, res)
-	res = ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserC.Id)
+	res = ss.Team().RemoveMember(rctx, data.ConstrainedTeam.Id, data.UserC.Id)
 	require.NoError(t, res)
-	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserA.Id)
+	nErr = ss.Channel().RemoveMember(rctx, data.ConstrainedChannel.Id, data.UserA.Id)
 	require.NoError(t, nErr)
-	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserB.Id)
+	nErr = ss.Channel().RemoveMember(rctx, data.ConstrainedChannel.Id, data.UserB.Id)
 	require.NoError(t, nErr)
-	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserC.Id)
+	nErr = ss.Channel().RemoveMember(rctx, data.ConstrainedChannel.Id, data.UserC.Id)
 	require.NoError(t, nErr)
 }
 
@@ -2486,17 +2486,17 @@ func testChannelMembersToRemove(t *testing.T, rctx request.CTX, ss store.Store) 
 	require.Len(t, channelMembers, 3)
 
 	// add users back to groups
-	res := ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserA.Id)
+	res := ss.Team().RemoveMember(rctx, data.ConstrainedTeam.Id, data.UserA.Id)
 	require.NoError(t, res)
-	res = ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserB.Id)
+	res = ss.Team().RemoveMember(rctx, data.ConstrainedTeam.Id, data.UserB.Id)
 	require.NoError(t, res)
-	res = ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserC.Id)
+	res = ss.Team().RemoveMember(rctx, data.ConstrainedTeam.Id, data.UserC.Id)
 	require.NoError(t, res)
-	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserA.Id)
+	nErr = ss.Channel().RemoveMember(rctx, data.ConstrainedChannel.Id, data.UserA.Id)
 	require.NoError(t, nErr)
-	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserB.Id)
+	nErr = ss.Channel().RemoveMember(rctx, data.ConstrainedChannel.Id, data.UserB.Id)
 	require.NoError(t, nErr)
-	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserC.Id)
+	nErr = ss.Channel().RemoveMember(rctx, data.ConstrainedChannel.Id, data.UserC.Id)
 	require.NoError(t, nErr)
 }
 
@@ -2835,7 +2835,7 @@ func testGetGroupsByChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	user2.DeleteAt = 1
-	_, err = ss.User().Update(user2, true)
+	_, err = ss.User().Update(rctx, user2, true)
 	require.NoError(t, err)
 
 	group1WithMemberCount := *group1
@@ -3083,7 +3083,7 @@ func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, rctx request.CTX, ss 
 	require.NoError(t, err)
 
 	user2.DeleteAt = 1
-	_, err = ss.User().Update(user2, true)
+	_, err = ss.User().Update(rctx, user2, true)
 	require.NoError(t, err)
 
 	group1WithMemberCount := *group1
@@ -3320,7 +3320,7 @@ func testGetGroupsByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	user2.DeleteAt = 1
-	_, err = ss.User().Update(user2, true)
+	_, err = ss.User().Update(rctx, user2, true)
 	require.NoError(t, err)
 
 	_, err = ss.Group().UpsertMember(deletedGroup.Id, user1.Id)
@@ -3643,7 +3643,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	user2.DeleteAt = 1
-	u2Update, _ := ss.User().Update(user2, true)
+	u2Update, _ := ss.User().Update(rctx, user2, true)
 
 	group2NameSubstring := "group-2"
 
@@ -4343,7 +4343,7 @@ func groupTestGetMemberCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, int64(2), count)
 
 	user.DeleteAt = 1
-	_, nErr = ss.User().Update(user, true)
+	_, nErr = ss.User().Update(rctx, user, true)
 	require.NoError(t, nErr)
 
 	count, err = ss.Group().GetMemberCount(group.Id)

@@ -108,6 +108,8 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.Users.Handle("/notify-admin", api.APISessionRequired(handleNotifyAdmin)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/trigger-notify-admin-posts", api.APISessionRequired(handleTriggerNotifyAdminPosts)).Methods("POST")
+
+	api.BaseRoutes.Users.Handle("/report", api.APISessionRequired(getUsersForReporting)).Methods("GET")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -945,7 +947,7 @@ func requireGroupAccess(c *web.Context, groupID string) *model.AppError {
 
 	if group.Source == model.GroupSourceLdap {
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-			return c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
 		}
 	}
 
@@ -1130,7 +1132,7 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	profiles, appErr := c.App.SearchUsers(&props, options)
+	profiles, appErr := c.App.SearchUsers(c.AppContext, &props, options)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1206,7 +1208,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			)
 			return
 		}
-		result, err := c.App.AutocompleteUsersInChannel(teamId, channelId, name, options)
+		result, err := c.App.AutocompleteUsersInChannel(c.AppContext, teamId, channelId, name, options)
 		if err != nil {
 			c.Err = err
 			return
@@ -1215,7 +1217,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
 	} else if teamId != "" {
-		result, err := c.App.AutocompleteUsersInTeam(teamId, name, options)
+		result, err := c.App.AutocompleteUsersInTeam(c.AppContext, teamId, name, options)
 		if err != nil {
 			c.Err = err
 			return
@@ -1223,7 +1225,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		autocomplete.Users = result.InTeam
 	} else {
-		result, err := c.App.SearchUsersInTeam("", name, options)
+		result, err := c.App.SearchUsersInTeam(c.AppContext, "", name, options)
 		if err != nil {
 			c.Err = err
 			return
@@ -3441,5 +3443,61 @@ func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Reques
 	err := json.NewEncoder(w).Encode(users)
 	if err != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
+}
+
+func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !(c.IsSystemAdmin() && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers)) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
+		return
+	}
+
+	sortColumn := "Username"
+	if r.URL.Query().Get("sort_column") != "" {
+		sortColumn = r.URL.Query().Get("sort_column")
+	}
+
+	pageSize := 50
+	if pageSizeStr, err := strconv.ParseInt(r.URL.Query().Get("page_size"), 10, 64); err == nil {
+		pageSize = int(pageSizeStr)
+	}
+
+	teamFilter := r.URL.Query().Get("team_filter")
+	if !(teamFilter == "" || model.IsValidId(teamFilter)) {
+		c.Err = model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_team_filter", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	hideActive := r.URL.Query().Get("hide_active") == "true"
+	hideInactive := r.URL.Query().Get("hide_inactive") == "true"
+	if hideActive && hideInactive {
+		c.Err = model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_active_filter", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	options := &model.UserReportOptionsAPI{
+		UserReportOptionsWithoutDateRange: model.UserReportOptionsWithoutDateRange{
+			SortColumn:          sortColumn,
+			SortDesc:            r.URL.Query().Get("sort_direction") == "desc",
+			PageSize:            pageSize,
+			Team:                teamFilter,
+			LastSortColumnValue: r.URL.Query().Get("last_column_value"),
+			LastUserId:          r.URL.Query().Get("last_id"),
+			Role:                r.URL.Query().Get("role_filter"),
+			HasNoTeam:           r.URL.Query().Get("has_no_team") == "true",
+			HideActive:          hideActive,
+			HideInactive:        hideInactive,
+		},
+		DateRange: r.URL.Query().Get("date_range"),
+	}
+
+	userReports, err := c.App.GetUsersForReporting(options.ToBaseOptions(time.Now()))
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if jsonErr := json.NewEncoder(w).Encode(userReports); jsonErr != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(jsonErr))
 	}
 }

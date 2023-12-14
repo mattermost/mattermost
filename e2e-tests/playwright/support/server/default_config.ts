@@ -630,6 +630,8 @@ const defaultServerConfig: AdminConfig = {
             SMTPPassword: '',
             EmailAddress: '',
             SMTPServerTimeout: 1800,
+            CustomSMTPServerName: '',
+            CustomSMTPPort: '25',
         },
     },
     JobSettings: {
@@ -711,5 +713,14 @@ const defaultServerConfig: AdminConfig = {
     ExportSettings: {
         Directory: './export',
         RetentionDays: 30,
+    },
+    WranglerSettings: {
+        PermittedWranglerRoles: [],
+        AllowedEmailDomain: [],
+        MoveThreadMaxCount: 30,
+        MoveThreadToAnotherTeamEnable: true,
+        MoveThreadFromPrivateChannelEnable: true,
+        MoveThreadFromDirectMessageChannelEnable: true,
+        MoveThreadFromGroupMessageChannelEnable: true,
     },
 };
