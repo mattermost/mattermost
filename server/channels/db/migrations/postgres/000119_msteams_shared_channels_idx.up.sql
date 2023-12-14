@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS remote_clusters_pluginid_unique ON remoteclusters (pluginid);

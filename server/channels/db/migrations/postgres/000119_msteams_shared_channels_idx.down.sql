@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS remote_clusters_pluginid_unique;
