@@ -748,6 +748,24 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 				expectedError:  true,
 				expectedStatus: http.StatusForbidden,
 			},
+			{
+				name:           "public channel with permissions, setting order to a negative number, should fail",
+				channelId:      th.BasicChannel.Id,
+				bookmarkId:     publicBookmark2.Id,
+				sortOrder:      -1,
+				userClient:     th.Client,
+				expectedError:  true,
+				expectedStatus: http.StatusBadRequest,
+			},
+			{
+				name:           "public channel with permissions, setting order to a number greater than the amount of bookmarks of the channel, should fail",
+				channelId:      th.BasicChannel.Id,
+				bookmarkId:     publicBookmark2.Id,
+				sortOrder:      300,
+				userClient:     th.Client,
+				expectedError:  true,
+				expectedStatus: http.StatusBadRequest,
+			},
 		}
 
 		for _, tc := range testCases {

@@ -217,6 +217,11 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
+	if newSortOrder < 0 {
+		c.SetInvalidParam("channelBookmarkSortOrder")
+		return
+	}
+
 	auditRec := c.MakeAuditRecord("updateChannelBookmarkSortOrder", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
