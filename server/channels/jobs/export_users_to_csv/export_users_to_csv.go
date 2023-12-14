@@ -37,17 +37,18 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, app ExportUsersToC
 // parseJobMetadata parses the opaque job metadata to return the information needed to decide which
 // batch to process next.
 func parseJobMetadata(data model.StringMap) (*model.UserReportOptions, error) {
-	options := model.UserReportOptionsAPI{
-		UserReportOptionsWithoutDateRange: model.UserReportOptionsWithoutDateRange{
+	options := model.UserReportOptions{
+		ReportingBaseOptions: model.ReportingBaseOptions{
 			SortColumn:          "Username",
 			PageSize:            100,
 			LastSortColumnValue: data["last_column_value"],
-			LastUserId:          data["last_user_id"],
+			DateRange:           data["date_range"],
 		},
-		DateRange: data["date_range"],
+		LastUserId: data["last_user_id"],
 	}
 
-	return options.ToBaseOptions(time.Now()), nil
+	options.ReportingBaseOptions.PopulateDateRange(time.Now())
+	return &options, nil
 }
 
 // makeJobMetadata encodes the information needed to decide which batch to process next back into

@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	pUtils "github.com/mattermost/mattermost/server/public/utils"
@@ -76,6 +77,58 @@ type UserReport struct {
 	DisplayName string `json:"display_name"`
 	Roles       string `json:"roles"`
 	UserPostStats
+}
+
+func (u UserReport) GetHeaders() []string {
+	return []string{
+		"Id",
+		"Username",
+		"Email",
+		"CreateAt",
+		"Name",
+		"Roles",
+		"LastLogin",
+		"LastStatusAt",
+		"LastPostDate",
+		"DaysActive",
+		"TotalPosts",
+	}
+}
+
+func (u *UserReport) ToReport() []string {
+	lastStatusAt := ""
+	if u.LastStatusAt != nil {
+		lastStatusAt = time.UnixMilli(*u.LastStatusAt).String()
+	}
+	lastPostDate := ""
+	if u.LastPostDate != nil {
+		lastStatusAt = time.UnixMilli(*u.LastPostDate).String()
+	}
+	daysActive := ""
+	if u.DaysActive != nil {
+		daysActive = strconv.Itoa(*u.DaysActive)
+	}
+	totalPosts := ""
+	if u.TotalPosts != nil {
+		totalPosts = strconv.Itoa(*u.TotalPosts)
+	}
+	lastLogin := ""
+	if u.LastLogin > 0 {
+		lastLogin = time.UnixMilli(u.LastLogin).String()
+	}
+
+	return []string{
+		u.Id,
+		u.Username,
+		u.Email,
+		u.DisplayName,
+		u.Roles,
+		lastLogin,
+		lastStatusAt,
+		lastPostDate,
+		daysActive,
+		totalPosts,
+	}
 }
 
 type UserReportOptions struct {
