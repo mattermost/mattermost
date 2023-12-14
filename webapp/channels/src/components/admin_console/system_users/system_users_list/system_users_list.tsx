@@ -31,7 +31,6 @@ type Props = {
     nextPage: (page: number) => void;
     search: (term: string) => void;
     focusOnMount?: boolean;
-    renderFilterRow: (doSearch: ((event: React.FormEvent<HTMLInputElement>) => void) | undefined) => JSX.Element;
 
     teamId: string;
     filter: string;
@@ -347,11 +346,9 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
                     }}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
-                    search={this.search}
                     page={this.state.page}
-                    term={this.props.term}
-                    onTermChange={this.props.onTermChange}
                     rowComponentType={UserListRowWithError}
+                    noBuiltInFilters={true}
                 />
                 <ManageTeamsModal
                     user={this.state.user}
