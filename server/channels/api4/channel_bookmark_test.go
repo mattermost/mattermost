@@ -35,25 +35,7 @@ func TestCreateChannelBookmark(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	// create a guest user and add it to the basic team and public/private channels
-	guest, cgErr := th.App.CreateGuest(th.Context, &model.User{
-		Email:         "test_guest@sample.com",
-		Username:      "test_guest",
-		Nickname:      "test_guest",
-		Password:      "Password1",
-		EmailVerified: true,
-	})
-	require.Nil(t, cgErr)
-
-	_, _, tErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, th.SystemAdminUser.Id)
-	require.Nil(t, tErr)
-	th.AddUserToChannel(guest, th.BasicChannel)
-	th.AddUserToChannel(guest, th.BasicPrivateChannel)
-
-	// create a client to use in tests
-	guestClient := th.CreateClient()
-	_, _, lErr := guestClient.Login(context.Background(), guest.Username, "Password1")
-	require.NoError(t, lErr)
+	guest, guestClient := th.CreateGuestAndClient()
 
 	t.Run("a user should be able to create a channel bookmark in a public channel", func(t *testing.T) {
 		channelBookmark := &model.ChannelBookmark{
@@ -270,25 +252,7 @@ func TestEditChannelBookmark(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	// create a guest user and add it to the basic team and public/private channels
-	guest, cgErr := th.App.CreateGuest(th.Context, &model.User{
-		Email:         "test_guest@sample.com",
-		Username:      "test_guest",
-		Nickname:      "test_guest",
-		Password:      "Password1",
-		EmailVerified: true,
-	})
-	require.Nil(t, cgErr)
-
-	_, _, tErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, th.SystemAdminUser.Id)
-	require.Nil(t, tErr)
-	th.AddUserToChannel(guest, th.BasicChannel)
-	th.AddUserToChannel(guest, th.BasicPrivateChannel)
-
-	// create a client to use in tests
-	guestClient := th.CreateClient()
-	_, _, lErr := guestClient.Login(context.Background(), guest.Username, "Password1")
-	require.NoError(t, lErr)
+	guest, guestClient := th.CreateGuestAndClient()
 
 	t.Run("a user editing a channel bookmark in public and private channels", func(t *testing.T) {
 		testCases := []struct {
@@ -610,6 +574,47 @@ func TestEditChannelBookmark(t *testing.T) {
 		require.Equal(t, th.BasicUser2.Id, ucb.Updated.OwnerId)
 	})
 
+	t.Run("a user should be able to edit another usrer's bookmark", func(t *testing.T) {
+		channelBookmark := &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "Link bookmark test",
+			LinkUrl:     "https://mattermost.com",
+			Type:        model.ChannelBookmarkLink,
+			Emoji:       ":smile:",
+		}
+
+		cb, resp, err := th.Client.CreateChannelBookmark(context.Background(), channelBookmark)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, cb)
+
+		patch := &model.ChannelBookmarkPatch{
+			DisplayName: model.NewString("Edited bookmark test"),
+			LinkUrl:     model.NewString("http://edited.url"),
+		}
+
+		// create a client for basic user 2
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		ucb, resp, err := client2.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Deleted should contain old channel bookmark
+		require.NotNil(t, ucb.Deleted)
+		require.Equal(t, cb.DisplayName, ucb.Deleted.DisplayName)
+		require.Equal(t, cb.LinkUrl, ucb.Deleted.LinkUrl)
+		require.Equal(t, th.BasicUser.Id, ucb.Deleted.OwnerId)
+
+		// Updated should contain the new channel bookmark
+		require.NotNil(t, ucb.Updated)
+		require.Equal(t, *patch.DisplayName, ucb.Updated.DisplayName)
+		require.Equal(t, *patch.LinkUrl, ucb.Updated.LinkUrl)
+		require.Equal(t, th.BasicUser2.Id, ucb.Updated.OwnerId)
+	})
+
 	t.Run("a websockets event should be fired as part of editing a bookmark", func(t *testing.T) {
 		webSocketClient, err := th.CreateWebSocketClient()
 		require.NoError(t, err)
@@ -666,34 +671,30 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	createBookmark := func(name, channelId string) *model.ChannelBookmark {
-		return &model.ChannelBookmark{
+	createBookmark := func(name, channelId string) *model.ChannelBookmarkWithFileInfo {
+		b := &model.ChannelBookmark{
 			ChannelId:   channelId,
 			DisplayName: name,
 			Type:        model.ChannelBookmarkLink,
 			LinkUrl:     "https://sample.com",
 		}
+
+		nb, appErr := th.App.CreateChannelBookmark(th.Context, b, "")
+		require.Nil(t, appErr)
+		return nb
 	}
 
 	th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
 
-	publicBookmark1, err := th.App.CreateChannelBookmark(th.Context, createBookmark("one", th.BasicChannel.Id), "")
-	require.Nil(t, err)
-	publicBookmark2, err := th.App.CreateChannelBookmark(th.Context, createBookmark("two", th.BasicChannel.Id), "")
-	require.Nil(t, err)
-	publicBookmark3, err := th.App.CreateChannelBookmark(th.Context, createBookmark("three", th.BasicChannel.Id), "")
-	require.Nil(t, err)
-	_, err = th.App.CreateChannelBookmark(th.Context, createBookmark("four", th.BasicChannel.Id), "")
-	require.Nil(t, err)
+	publicBookmark1 := createBookmark("one", th.BasicChannel.Id)
+	publicBookmark2 := createBookmark("two", th.BasicChannel.Id)
+	publicBookmark3 := createBookmark("three", th.BasicChannel.Id)
+	_ = createBookmark("four", th.BasicChannel.Id)
 
-	privateBookmark1, err := th.App.CreateChannelBookmark(th.Context, createBookmark("one", th.BasicPrivateChannel.Id), "")
-	require.Nil(t, err)
-	privateBookmark2, err := th.App.CreateChannelBookmark(th.Context, createBookmark("two", th.BasicPrivateChannel.Id), "")
-	require.Nil(t, err)
-	_, err = th.App.CreateChannelBookmark(th.Context, createBookmark("three", th.BasicPrivateChannel.Id), "")
-	require.Nil(t, err)
-	privateBookmark4, err := th.App.CreateChannelBookmark(th.Context, createBookmark("four", th.BasicPrivateChannel.Id), "")
-	require.Nil(t, err)
+	privateBookmark1 := createBookmark("one", th.BasicPrivateChannel.Id)
+	privateBookmark2 := createBookmark("two", th.BasicPrivateChannel.Id)
+	_ = createBookmark("three", th.BasicPrivateChannel.Id)
+	privateBookmark4 := createBookmark("four", th.BasicPrivateChannel.Id)
 
 	t.Run("should not work without a license", func(t *testing.T) {
 		_, _, err := th.Client.UpdateChannelBookmarkSortOrder(context.Background(), th.BasicChannel.Id, model.NewId(), 1)
@@ -704,25 +705,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	// create a guest user and add it to the basic team and public/private channels
-	guest, cgErr := th.App.CreateGuest(th.Context, &model.User{
-		Email:         "test_guest@sample.com",
-		Username:      "test_guest",
-		Nickname:      "test_guest",
-		Password:      "Password1",
-		EmailVerified: true,
-	})
-	require.Nil(t, cgErr)
-
-	_, _, tErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, th.SystemAdminUser.Id)
-	require.Nil(t, tErr)
-	th.AddUserToChannel(guest, th.BasicChannel)
-	th.AddUserToChannel(guest, th.BasicPrivateChannel)
-
-	// create a client to use in tests
-	guestClient := th.CreateClient()
-	_, _, lErr := guestClient.Login(context.Background(), guest.Username, "Password1")
-	require.NoError(t, lErr)
+	guest, guestClient := th.CreateGuestAndClient()
 
 	t.Run("a user updating a bookmark's order in public and private channels", func(t *testing.T) {
 		testCases := []struct {
@@ -890,10 +873,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 		dm, dmErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, guest.Id)
 		require.Nil(t, dmErr)
 
-		dmBookmark1, appErr := th.App.CreateChannelBookmark(th.Context, createBookmark("one", dm.Id), "")
-		require.Nil(t, appErr)
-		dmBookmark2, appErr := th.App.CreateChannelBookmark(th.Context, createBookmark("two", dm.Id), "")
-		require.Nil(t, appErr)
+		dmBookmark1 := createBookmark("one", dm.Id)
+		dmBookmark2 := createBookmark("two", dm.Id)
 
 		bookmarks, resp, err := th.Client.UpdateChannelBookmarkSortOrder(context.Background(), dm.Id, dmBookmark1.Id, 1)
 		require.NoError(t, err)
@@ -908,10 +889,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 		gm, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.SystemAdminUser.Id, guest.Id}, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		gmBookmark1, appErr := th.App.CreateChannelBookmark(th.Context, createBookmark("one", gm.Id), "")
-		require.Nil(t, appErr)
-		gmBookmark2, appErr := th.App.CreateChannelBookmark(th.Context, createBookmark("two", gm.Id), "")
-		require.Nil(t, appErr)
+		gmBookmark1 := createBookmark("one", gm.Id)
+		gmBookmark2 := createBookmark("two", gm.Id)
 
 		bookmarks, resp, err = th.Client.UpdateChannelBookmarkSortOrder(context.Background(), gm.Id, gmBookmark2.Id, 0)
 		require.NoError(t, err)
@@ -928,10 +907,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 		dm, dmErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, guest.Id)
 		require.Nil(t, dmErr)
 
-		dmBookmark1, appErr := th.App.CreateChannelBookmark(th.Context, createBookmark("one", dm.Id), "")
-		require.Nil(t, appErr)
-		_, appErr = th.App.CreateChannelBookmark(th.Context, createBookmark("two", dm.Id), "")
-		require.Nil(t, appErr)
+		dmBookmark1 := createBookmark("one", dm.Id)
+		_ = createBookmark("two", dm.Id)
 
 		bookmarks, resp, err := guestClient.UpdateChannelBookmarkSortOrder(context.Background(), dm.Id, dmBookmark1.Id, 1)
 		require.Error(t, err)
@@ -942,10 +919,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 		gm, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.SystemAdminUser.Id, guest.Id}, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.CreateChannelBookmark(th.Context, createBookmark("one", gm.Id), "")
-		require.Nil(t, appErr)
-		gmBookmark2, appErr := th.App.CreateChannelBookmark(th.Context, createBookmark("two", gm.Id), "")
-		require.Nil(t, appErr)
+		_ = createBookmark("one", gm.Id)
+		gmBookmark2 := createBookmark("two", gm.Id)
 
 		bookmarks, resp, err = guestClient.UpdateChannelBookmarkSortOrder(context.Background(), gm.Id, gmBookmark2.Id, 0)
 		require.Error(t, err)
@@ -1047,25 +1022,7 @@ func TestDeleteChannelBookmark(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	// create a guest user and add it to the basic team and public/private channels
-	guest, cgErr := th.App.CreateGuest(th.Context, &model.User{
-		Email:         "test_guest@sample.com",
-		Username:      "test_guest",
-		Nickname:      "test_guest",
-		Password:      "Password1",
-		EmailVerified: true,
-	})
-	require.Nil(t, cgErr)
-
-	_, _, tErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, th.SystemAdminUser.Id)
-	require.Nil(t, tErr)
-	th.AddUserToChannel(guest, th.BasicChannel)
-	th.AddUserToChannel(guest, th.BasicPrivateChannel)
-
-	// create a client to use in tests
-	guestClient := th.CreateClient()
-	_, _, lErr := guestClient.Login(context.Background(), guest.Username, "Password1")
-	require.NoError(t, lErr)
+	guest, guestClient := th.CreateGuestAndClient()
 
 	t.Run("a user deleting bookmarks in public and private channels", func(t *testing.T) {
 		testCases := []struct {
@@ -1353,5 +1310,203 @@ func TestDeleteChannelBookmark(t *testing.T) {
 		require.NotEmpty(t, b)
 		require.Equal(t, cb.Id, b.Id)
 		require.NotEmpty(t, b.DeleteAt)
+	})
+}
+
+func TestListChannelBookmarksForChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	createBookmark := func(name, channelId string) *model.ChannelBookmarkWithFileInfo {
+		b := &model.ChannelBookmark{
+			ChannelId:   channelId,
+			DisplayName: name,
+			Type:        model.ChannelBookmarkLink,
+			LinkUrl:     "https://sample.com",
+		}
+
+		nb, appErr := th.App.CreateChannelBookmark(th.Context, b, "")
+		require.Nil(t, appErr)
+		time.Sleep(1 * time.Millisecond)
+		return nb
+	}
+
+	th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
+
+	t.Run("should not work without a license", func(t *testing.T) {
+		_, _, err := th.Client.DeleteChannelBookmark(context.Background(), th.BasicChannel.Id, model.NewId())
+		CheckErrorID(t, err, "api.channel.bookmark.channel_bookmark.license.error")
+	})
+
+	// enable guest accounts and add the license
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	guest, guestClient := th.CreateGuestAndClient()
+
+	publicBookmark1 := createBookmark("one", th.BasicChannel.Id)
+	publicBookmark2 := createBookmark("two", th.BasicChannel.Id)
+	publicBookmark3 := createBookmark("three", th.BasicChannel.Id)
+	publicBookmark4 := createBookmark("four", th.BasicChannel.Id)
+	_, dErr := th.App.DeleteChannelBookmark(publicBookmark1.Id, "")
+	require.Nil(t, dErr)
+
+	privateBookmark1 := createBookmark("one", th.BasicPrivateChannel.Id)
+	privateBookmark2 := createBookmark("two", th.BasicPrivateChannel.Id)
+	privateBookmark3 := createBookmark("three", th.BasicPrivateChannel.Id)
+	privateBookmark4 := createBookmark("four", th.BasicPrivateChannel.Id)
+	_, dErr = th.App.DeleteChannelBookmark(privateBookmark1.Id, "")
+	require.Nil(t, dErr)
+
+	// an open channel for which the guest is a member but the basic
+	// user is not
+	onlyGuestChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypeOpen)
+	th.AddUserToChannel(guest, onlyGuestChannel)
+	guestBookmark := createBookmark("guest", onlyGuestChannel.Id)
+
+	// DM
+	dm, dmErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, guest.Id)
+	require.Nil(t, dmErr)
+	dmBookmark := createBookmark("dm-one", dm.Id)
+
+	// GM
+	gm, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.SystemAdminUser.Id, guest.Id}, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	gmBookmark := createBookmark("gm-one", gm.Id)
+
+	t.Run("a user listing bookmarks in public and private channels", func(t *testing.T) {
+		testCases := []struct {
+			name              string
+			channelId         string
+			since             int64
+			userClient        *model.Client4
+			expectedBookmarks []string
+			expectedError     bool
+			expectedStatus    int
+		}{
+			{
+				name:              "public channel without since, should retrieve all non deleted bookmarks",
+				channelId:         th.BasicChannel.Id,
+				userClient:        th.Client,
+				expectedBookmarks: []string{publicBookmark2.Id, publicBookmark3.Id, publicBookmark4.Id},
+				expectedStatus:    http.StatusOK,
+			},
+			{
+				name:              "private channel without since, should retrieve all non deleted bookmarks",
+				channelId:         th.BasicPrivateChannel.Id,
+				userClient:        th.Client,
+				expectedBookmarks: []string{privateBookmark2.Id, privateBookmark3.Id, privateBookmark4.Id},
+				expectedStatus:    http.StatusOK,
+			},
+			{
+				name:              "public channel with since set early, should retrieve all bookmarks include the deleted one",
+				channelId:         th.BasicChannel.Id,
+				since:             publicBookmark1.CreateAt,
+				userClient:        th.Client,
+				expectedBookmarks: []string{publicBookmark1.Id, publicBookmark2.Id, publicBookmark3.Id, publicBookmark4.Id},
+				expectedStatus:    http.StatusOK,
+			},
+			{
+				name:              "Private channel with since set early, should retrieve all bookmarks include the deleted one",
+				channelId:         th.BasicPrivateChannel.Id,
+				since:             privateBookmark1.CreateAt,
+				userClient:        th.Client,
+				expectedBookmarks: []string{privateBookmark1.Id, privateBookmark2.Id, privateBookmark3.Id, privateBookmark4.Id},
+				expectedStatus:    http.StatusOK,
+			},
+			{
+				name:              "public channel with since, should retrieve some of the bookmarks",
+				channelId:         th.BasicChannel.Id,
+				since:             publicBookmark3.CreateAt,
+				userClient:        th.Client,
+				expectedBookmarks: []string{publicBookmark1.Id, publicBookmark3.Id, publicBookmark4.Id},
+				expectedStatus:    http.StatusOK,
+			},
+			{
+				name:              "private channel with since, should retrieve some of the bookmarks",
+				channelId:         th.BasicPrivateChannel.Id,
+				since:             privateBookmark4.CreateAt,
+				userClient:        th.Client,
+				expectedBookmarks: []string{privateBookmark1.Id, privateBookmark4.Id},
+				expectedStatus:    http.StatusOK,
+			},
+			{
+				name:              "guest user, public channel without since, should retrieve all non deleted bookmarks",
+				channelId:         th.BasicChannel.Id,
+				userClient:        guestClient,
+				expectedBookmarks: []string{publicBookmark2.Id, publicBookmark3.Id, publicBookmark4.Id},
+				expectedStatus:    http.StatusOK,
+			},
+			{
+				name:              "guest user, private channel without since, should retrieve all non deleted bookmarks",
+				channelId:         th.BasicPrivateChannel.Id,
+				userClient:        guestClient,
+				expectedBookmarks: []string{privateBookmark2.Id, privateBookmark3.Id, privateBookmark4.Id},
+				expectedStatus:    http.StatusOK,
+			},
+			{
+				name:              "guest user, guest channel without since, should retrieve all non deleted bookmarks",
+				channelId:         onlyGuestChannel.Id,
+				userClient:        guestClient,
+				expectedBookmarks: []string{guestBookmark.Id},
+				expectedStatus:    http.StatusOK,
+			},
+			{
+				name:              "normal user, guest channel without since, should fail as user is not a member",
+				channelId:         onlyGuestChannel.Id,
+				userClient:        th.Client,
+				expectedBookmarks: []string{},
+				expectedError:     true,
+				expectedStatus:    http.StatusForbidden,
+			},
+			{
+				name:              "guest user, dm without since, should retrieve all non deleted bookmarks",
+				channelId:         dm.Id,
+				userClient:        guestClient,
+				expectedBookmarks: []string{dmBookmark.Id},
+				expectedStatus:    http.StatusOK,
+			},
+			{
+				name:              "normal user, dm without since, should retrieve all non deleted bookmarks",
+				channelId:         dm.Id,
+				userClient:        th.Client,
+				expectedBookmarks: []string{dmBookmark.Id},
+				expectedStatus:    http.StatusOK,
+			},
+			{
+				name:              "guest user, gm without since, should retrieve all non deleted bookmarks",
+				channelId:         gm.Id,
+				userClient:        guestClient,
+				expectedBookmarks: []string{gmBookmark.Id},
+				expectedStatus:    http.StatusOK,
+			},
+			{
+				name:              "normal user, gm without since, should retrieve all non deleted bookmarks",
+				channelId:         gm.Id,
+				userClient:        th.Client,
+				expectedBookmarks: []string{gmBookmark.Id},
+				expectedStatus:    http.StatusOK,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				bookmarks, resp, err := tc.userClient.ListChannelBookmarksForChannel(context.Background(), tc.channelId, tc.since)
+				if tc.expectedError {
+					require.Error(t, err)
+					require.Nil(t, bookmarks)
+				} else {
+					require.NoError(t, err)
+
+					bookmarkIDs := make([]string, len(bookmarks))
+					for i, b := range bookmarks {
+						bookmarkIDs[i] = b.Id
+					}
+
+					require.ElementsMatch(t, tc.expectedBookmarks, bookmarkIDs)
+				}
+				checkHTTPStatus(t, resp, tc.expectedStatus)
+			})
+		}
 	})
 }

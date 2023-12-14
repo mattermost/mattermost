@@ -8956,3 +8956,17 @@ func (c *Client4) DeleteChannelBookmark(ctx context.Context, channelId, bookmark
 	}
 	return b, BuildResponse(r), nil
 }
+
+func (c *Client4) ListChannelBookmarksForChannel(ctx context.Context, channelId string, since int64) ([]*ChannelBookmarkWithFileInfo, *Response, error) {
+	query := fmt.Sprintf("?bookmarks_since=%v", since)
+	r, err := c.DoAPIGet(ctx, c.bookmarksRoute(channelId)+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var b []*ChannelBookmarkWithFileInfo
+	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
+		return nil, nil, NewAppError("ListChannelBookmarksForChannel", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return b, BuildResponse(r), nil
+}

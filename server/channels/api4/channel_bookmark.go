@@ -17,6 +17,7 @@ func (api *API) InitChannelBookmarks() {
 	api.BaseRoutes.ChannelBookmark.Handle("", api.APISessionRequired(updateChannelBookmark)).Methods("PATCH")
 	api.BaseRoutes.ChannelBookmark.Handle("/sort_order", api.APISessionRequired(updateChannelBookmarkSortOrder)).Methods("POST")
 	api.BaseRoutes.ChannelBookmark.Handle("", api.APISessionRequired(deleteChannelBookmark)).Methods("DELETE")
+	api.BaseRoutes.ChannelBookmarks.Handle("", api.APISessionRequired(listChannelBookmarksForChannel)).Methods("GET")
 }
 
 func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -373,6 +374,33 @@ func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("bookmark=" + bookmark.DisplayName)
 
 	if err := json.NewEncoder(w).Encode(bookmark); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil {
+		c.Err = model.NewAppError("listChannelBookmarksForChannel", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannelContent) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	bookmarks, appErr := c.App.GetChannelBookmarks(c.Params.ChannelId, c.Params.BookmarksSince)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(bookmarks); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
