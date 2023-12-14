@@ -1,0 +1,94 @@
+  /api/v4/reports/users:
+    get:
+      tags:
+        - users
+      summary: Get a list of paged and sorted users for admin reporting purposes
+      description: >
+        Get a list of paged users for admin reporting purposes, based on provided parameters.
+        
+        Must be a system admin to invoke this API.
+        
+        ##### Permissions
+        
+        Requires `sysconsole_read_user_management_users`.
+
+      operationId: GetUsersForReporting
+      parameters:
+        - name: sort_column
+          in: query
+          description: The column to sort the users by. Must be one of ("CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email") or the API will return an error.
+          schema:
+            type: string
+            default: 'Username'
+        - name: sort_direction
+          in: query
+          description: The sorting direction. Must be one of ("asc", "desc"). Will default to 'asc' if not specified or the input is invalid.
+          schema:
+            type: string
+            default: 'asc'
+        - name: page_size
+          in: query
+          description: The maximum number of users to return.
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 100
+        - name: last_column_value
+          in: query
+          description: The value of the sorted column belonging to the last user returned in the page. Should be blank for the first page asked for.
+          schema:
+            type: string
+        - name: last_id
+          in: query
+          description: The value of the user id belonging to the last user returned in the page. Should be blank for the first page asked for.
+          schema:
+            type: string
+        - name: date_range
+          in: query
+          description: The date range of the post statistics to display. Must be one of ("last30days", "previousmonth", "last6months", "alltime"). Will default to 'alltime' if the input is not valid.
+          schema:
+            type: string
+            default: 'alltime'
+        - name: role_filter
+          in: query
+          description: Filter users by their role.
+          schema:
+            type: string
+        - name: team_filter
+          in: query
+          description: Filter users by a specified team ID.
+          schema:
+            type: string
+        - name: has_no_team
+          in: query
+          description: If true, show only users that have no team. Will ignore provided "team_filter" if true.
+          schema:
+            type: boolean
+        - name: hide_active
+          in: query
+          description: If true, show only users that are inactive. Cannot be used at the same time as "hide_inactive"
+          schema:
+            type: boolean
+        - name: hide_inactive
+          in: query
+          description: If true, show only users that are active. Cannot be used at the same time as "hide_active"
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: User page retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserReport"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
