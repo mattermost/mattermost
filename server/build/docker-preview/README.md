@@ -2,11 +2,11 @@
 
 This is a Docker image to install Mattermost in *Preview Mode* for exploring product functionality on a single machine using Docker.
 
-Note: This configuration should not be used in production, as it’s using a known password string and contains other non-production configuration settings, and it does not support upgrade. If you’re looking for a production installation with Docker, please see the [Mattermost Production Docker Deployment Guide](http://docs.mattermost.com/install/prod-docker.html).
+Note: This configuration should not be used in production, as it’s using a known password string and contains other non-production configuration settings, and it does not support upgrade. If you’re looking for a production installation with Docker, please see the [Mattermost Production Docker Deployment Guide](https://docs.mattermost.com/install/install-docker.html#deploy-mattermost-on-docker-for-production-use).
 
-To contribute, please see [Contribution Guidelines](https://docs.mattermost.com/developer/contribution-guide.html).
+To contribute, please see [Contribution Guidelines](https://developers.mattermost.com/contribute/more-info/getting-started/).
 
-To file issues, [search for existing bugs and file a GitHub issue if your bug is new](https://www.mattermost.org/filing-issues/).
+To file issues, [search for existing bugs and file a GitHub issue if your bug is new](https://developers.mattermost.com/contribute/why-contribute/#youve-found-a-bug).
 
 ## Usage
 
