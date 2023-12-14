@@ -197,7 +197,7 @@ func (s *SqlChannelBookmarkStore) UpdateSortOrder(bookmarkId, channelId string, 
 	}
 
 	if (int(newIndex) > len(bookmarks)-1) || newIndex < 0 {
-		return nil, errors.New("new sort order out of bounds")
+		return nil, store.NewErrInvalidInput("ChannelBookmark", "SortOrder", newIndex)
 	}
 
 	currentIndex := -1
@@ -211,7 +211,7 @@ func (s *SqlChannelBookmarkStore) UpdateSortOrder(bookmarkId, channelId string, 
 	}
 
 	if currentIndex == -1 {
-		return nil, errors.New("bookmark to sort not found")
+		return nil, store.NewErrNotFound("ChannelBookmark", bookmarkId)
 	}
 
 	bookmarks = utils.RemoveElementFromSliceAtIndex(bookmarks, currentIndex)

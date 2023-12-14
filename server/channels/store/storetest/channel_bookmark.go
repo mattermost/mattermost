@@ -314,15 +314,20 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store
 	})
 
 	t.Run("change order of bookmarks error when new index is out of bounds", func(t *testing.T) {
+		var iiErr *store.ErrInvalidInput
 		_, err = ss.ChannelBookmark().UpdateSortOrder(bookmark3.Id, channelId, -1)
 		assert.Error(t, err)
+		assert.ErrorAs(t, err, &iiErr)
 		_, err = ss.ChannelBookmark().UpdateSortOrder(bookmark3.Id, channelId, 5)
 		assert.Error(t, err)
+		assert.ErrorAs(t, err, &iiErr)
 	})
 
 	t.Run("change order of bookmarks error when bookmark not found", func(t *testing.T) {
 		_, err = ss.ChannelBookmark().UpdateSortOrder(model.NewId(), channelId, 0)
 		assert.Error(t, err)
+		var nfErr *store.ErrNotFound
+		assert.ErrorAs(t, err, &nfErr)
 	})
 }
 
