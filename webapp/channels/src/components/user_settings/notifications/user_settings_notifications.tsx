@@ -1401,8 +1401,8 @@ const customKeywordsWithNotificationStyles: ReactSelectStyles = {
         backgroundColor: 'var(--center-channel-bg)',
         border: '1px solid rgba(var(--center-channel-color-rgb), 0.16);',
         ':hover': {
-        borderColor: 'rgba(var(--center-channel-color-rgb), 0.48);',
-      }
+            borderColor: 'rgba(var(--center-channel-color-rgb), 0.48);',
+        },
     })),
     multiValue: ((baseStyles) => ({
         ...baseStyles,
