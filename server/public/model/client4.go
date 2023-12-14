@@ -555,6 +555,10 @@ func (c *Client4) sharedChannelsRoute() string {
 	return "/sharedchannels"
 }
 
+func (c *Client4) ipFiltersRoute() string {
+	return "/ip_filtering"
+}
+
 func (c *Client4) permissionsRoute() string {
 	return "/permissions"
 }
@@ -1912,6 +1916,54 @@ func (c *Client4) EnableUserAccessToken(ctx context.Context, tokenId string) (*R
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportOptionsAPI) ([]*UserReport, *Response, error) {
+	values := url.Values{}
+	if options.SortColumn != "" {
+		values.Set("sort_column", options.SortColumn)
+	}
+	if options.PageSize > 0 {
+		values.Set("page_size", strconv.Itoa(options.PageSize))
+	}
+	if options.Team != "" {
+		values.Set("team_filter", options.Team)
+	}
+	if options.HideActive {
+		values.Set("hide_active", "true")
+	}
+	if options.HideInactive {
+		values.Set("hide_inactive", "true")
+	}
+	if options.SortDesc {
+		values.Set("sort_direction", "desc")
+	}
+	if options.LastSortColumnValue != "" {
+		values.Set("last_column_value", options.LastSortColumnValue)
+	}
+	if options.LastUserId != "" {
+		values.Set("last_id", options.LastUserId)
+	}
+	if options.Role != "" {
+		values.Set("role_filter", options.Role)
+	}
+	if options.HasNoTeam {
+		values.Set("has_no_team", "true")
+	}
+	if options.DateRange != "" {
+		values.Set("date_range", options.DateRange)
+	}
+
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/report?"+values.Encode(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*UserReport
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetUsersForReporting", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // Bots section
@@ -4130,6 +4182,21 @@ func (c *Client4) GetPostsBefore(ctx context.Context, channelId, postId string, 
 		return nil, nil, NewAppError("GetPostsBefore", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &list, BuildResponse(r), nil
+}
+
+// MoveThread moves a thread based on provided post id, and channel id string.
+func (c *Client4) MoveThread(ctx context.Context, postId string, params *MoveThreadParams) (*Response, error) {
+	js, err := json.Marshal(params)
+	if err != nil {
+		return nil, NewAppError("MoveThread", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPost(ctx, c.postRoute(postId)+"/move", string(js))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 // GetPostsAroundLastUnread gets a list of posts around last unread post by a user in a channel.
@@ -8026,6 +8093,52 @@ func (c *Client4) GetProductLimits(ctx context.Context) (*ProductLimits, *Respon
 	json.NewDecoder(r.Body).Decode(&productLimits)
 
 	return productLimits, BuildResponse(r), nil
+}
+
+func (c *Client4) GetIPFilters(ctx context.Context) (*AllowedIPRanges, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.ipFiltersRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+
+	var allowedIPRanges *AllowedIPRanges
+	json.NewDecoder(r.Body).Decode(&allowedIPRanges)
+	return allowedIPRanges, BuildResponse(r), nil
+}
+
+func (c *Client4) ApplyIPFilters(ctx context.Context, allowedRanges *AllowedIPRanges) (*AllowedIPRanges, *Response, error) {
+	payload, err := json.Marshal(allowedRanges)
+	if err != nil {
+		return nil, nil, NewAppError("ApplyIPFilters", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPostBytes(ctx, c.ipFiltersRoute(), payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+
+	var allowedIPRanges *AllowedIPRanges
+	json.NewDecoder(r.Body).Decode(&allowedIPRanges)
+
+	return allowedIPRanges, BuildResponse(r), nil
+}
+
+func (c *Client4) GetMyIP(ctx context.Context) (*GetIPAddressResponse, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.ipFiltersRoute()+"/my_ip", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+
+	var response *GetIPAddressResponse
+	json.NewDecoder(r.Body).Decode(&response)
+
+	return response, BuildResponse(r), nil
 }
 
 func (c *Client4) CreateCustomerPayment(ctx context.Context) (*StripeSetupIntent, *Response, error) {

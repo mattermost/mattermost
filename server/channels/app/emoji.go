@@ -176,8 +176,8 @@ func (a *App) DeleteEmoji(c request.CTX, emoji *model.Emoji) *model.AppError {
 		}
 	}
 
-	a.deleteEmojiImage(emoji.Id)
-	a.deleteReactionsForEmoji(emoji.Name)
+	a.deleteEmojiImage(c, emoji.Id)
+	a.deleteReactionsForEmoji(c, emoji.Name)
 	return nil
 }
 
@@ -355,14 +355,28 @@ func imageToPaletted(img image.Image) *image.Paletted {
 	return pm
 }
 
-func (a *App) deleteEmojiImage(id string) {
+func (a *App) deleteEmojiImage(rctx request.CTX, id string) {
 	if err := a.MoveFile(getEmojiImagePath(id), "emoji/"+id+"/image_deleted"); err != nil {
-		mlog.Warn("Failed to rename image when deleting emoji", mlog.String("emoji_id", id))
+		rctx.Logger().Warn("Failed to rename image when deleting emoji", mlog.String("emoji_id", id))
 	}
 }
 
-func (a *App) deleteReactionsForEmoji(emojiName string) {
+func (a *App) deleteReactionsForEmoji(rctx request.CTX, emojiName string) {
 	if err := a.Srv().Store().Reaction().DeleteAllWithEmojiName(emojiName); err != nil {
-		mlog.Warn("Unable to delete reactions when deleting emoji", mlog.String("emoji_name", emojiName), mlog.Err(err))
+		rctx.Logger().Warn("Unable to delete reactions when deleting emoji", mlog.String("emoji_name", emojiName), mlog.Err(err))
 	}
+}
+
+func (a *App) confirmEmojiExists(c request.CTX, emojiName string) *model.AppError {
+	if model.IsSystemEmojiName(emojiName) {
+		return nil
+	}
+
+	err := model.IsValidEmojiName(emojiName)
+	if err != nil {
+		return err
+	}
+
+	_, err = a.GetEmojiByName(c, emojiName)
+	return err
 }

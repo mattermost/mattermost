@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
@@ -29,6 +30,7 @@ type Store struct {
 	ComplianceStore                 mocks.ComplianceStore
 	SessionStore                    mocks.SessionStore
 	OAuthStore                      mocks.OAuthStore
+	OutgoingOAuthConnectionStore    mocks.OutgoingOAuthConnectionStore
 	SystemStore                     mocks.SystemStore
 	WebhookStore                    mocks.WebhookStore
 	CommandStore                    mocks.CommandStore
@@ -55,6 +57,7 @@ type Store struct {
 	SharedChannelStore              mocks.SharedChannelStore
 	ProductNoticesStore             mocks.ProductNoticesStore
 	DraftStore                      mocks.DraftStore
+	logger                          mlog.LoggerIFace
 	context                         context.Context
 	NotifyAdminStore                mocks.NotifyAdminStore
 	PostPriorityStore               mocks.PostPriorityStore
@@ -64,21 +67,25 @@ type Store struct {
 	DesktopTokensStore              mocks.DesktopTokensStore
 }
 
-func (s *Store) SetContext(context context.Context)                { s.context = context }
-func (s *Store) Context() context.Context                          { return s.context }
-func (s *Store) Team() store.TeamStore                             { return &s.TeamStore }
-func (s *Store) Channel() store.ChannelStore                       { return &s.ChannelStore }
-func (s *Store) Post() store.PostStore                             { return &s.PostStore }
-func (s *Store) User() store.UserStore                             { return &s.UserStore }
-func (s *Store) RetentionPolicy() store.RetentionPolicyStore       { return &s.RetentionPolicyStore }
-func (s *Store) Bot() store.BotStore                               { return &s.BotStore }
-func (s *Store) ProductNotices() store.ProductNoticesStore         { return &s.ProductNoticesStore }
-func (s *Store) Audit() store.AuditStore                           { return &s.AuditStore }
-func (s *Store) ClusterDiscovery() store.ClusterDiscoveryStore     { return &s.ClusterDiscoveryStore }
-func (s *Store) RemoteCluster() store.RemoteClusterStore           { return &s.RemoteClusterStore }
-func (s *Store) Compliance() store.ComplianceStore                 { return &s.ComplianceStore }
-func (s *Store) Session() store.SessionStore                       { return &s.SessionStore }
-func (s *Store) OAuth() store.OAuthStore                           { return &s.OAuthStore }
+func (s *Store) SetContext(context context.Context)            { s.context = context }
+func (s *Store) Context() context.Context                      { return s.context }
+func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
+func (s *Store) Team() store.TeamStore                         { return &s.TeamStore }
+func (s *Store) Channel() store.ChannelStore                   { return &s.ChannelStore }
+func (s *Store) Post() store.PostStore                         { return &s.PostStore }
+func (s *Store) User() store.UserStore                         { return &s.UserStore }
+func (s *Store) RetentionPolicy() store.RetentionPolicyStore   { return &s.RetentionPolicyStore }
+func (s *Store) Bot() store.BotStore                           { return &s.BotStore }
+func (s *Store) ProductNotices() store.ProductNoticesStore     { return &s.ProductNoticesStore }
+func (s *Store) Audit() store.AuditStore                       { return &s.AuditStore }
+func (s *Store) ClusterDiscovery() store.ClusterDiscoveryStore { return &s.ClusterDiscoveryStore }
+func (s *Store) RemoteCluster() store.RemoteClusterStore       { return &s.RemoteClusterStore }
+func (s *Store) Compliance() store.ComplianceStore             { return &s.ComplianceStore }
+func (s *Store) Session() store.SessionStore                   { return &s.SessionStore }
+func (s *Store) OAuth() store.OAuthStore                       { return &s.OAuthStore }
+func (s *Store) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
+	return &s.OutgoingOAuthConnectionStore
+}
 func (s *Store) System() store.SystemStore                         { return &s.SystemStore }
 func (s *Store) Webhook() store.WebhookStore                       { return &s.WebhookStore }
 func (s *Store) Command() store.CommandStore                       { return &s.CommandStore }

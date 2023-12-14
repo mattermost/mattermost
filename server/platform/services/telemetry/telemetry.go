@@ -76,6 +76,7 @@ const (
 	TrackConfigImageProxy        = "config_image_proxy"
 	TrackConfigBleve             = "config_bleve"
 	TrackConfigExport            = "config_export"
+	TrackConfigWrangler          = "config_wrangler"
 	TrackFeatureFlags            = "config_feature_flags"
 	TrackConfigProducts          = "products"
 	TrackPermissionsGeneral      = "permissions_general"
@@ -280,17 +281,17 @@ func (ts *TelemetryService) trackActivity() {
 	var incomingWebhooksCount int64
 	var outgoingWebhooksCount int64
 
-	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
+	activeUsersDailyCountChan := make(chan store.GenericStoreResult[int64], 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersDailyCountChan <- store.StoreResult{Data: count, NErr: err}
+		activeUsersDailyCountChan <- store.GenericStoreResult[int64]{Data: count, NErr: err}
 		close(activeUsersDailyCountChan)
 	}()
 
-	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
+	activeUsersMonthlyCountChan := make(chan store.GenericStoreResult[int64], 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, NErr: err}
+		activeUsersMonthlyCountChan <- store.GenericStoreResult[int64]{Data: count, NErr: err}
 		close(activeUsersMonthlyCountChan)
 	}()
 
@@ -361,12 +362,12 @@ func (ts *TelemetryService) trackActivity() {
 
 	var activeUsersDailyCount int64
 	if r := <-activeUsersDailyCountChan; r.NErr == nil {
-		activeUsersDailyCount = r.Data.(int64)
+		activeUsersDailyCount = r.Data
 	}
 
 	var activeUsersMonthlyCount int64
 	if r := <-activeUsersMonthlyCountChan; r.NErr == nil {
-		activeUsersMonthlyCount = r.Data.(int64)
+		activeUsersMonthlyCount = r.Data
 	}
 
 	activity := map[string]any{
@@ -492,6 +493,7 @@ func (ts *TelemetryService) trackConfig() {
 		"persistent_notification_max_recipients":                  *cfg.ServiceSettings.PersistentNotificationMaxRecipients,
 		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
+		"refresh_post_stats_run_time":                             *cfg.ServiceSettings.RefreshPostStatsRunTime,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
@@ -877,6 +879,16 @@ func (ts *TelemetryService) trackConfig() {
 
 	ts.SendTelemetry(TrackConfigExport, map[string]any{
 		"retention_days": *cfg.ExportSettings.RetentionDays,
+	})
+
+	ts.SendTelemetry(TrackConfigWrangler, map[string]any{
+		"permitted_wrangler_users":                       cfg.WranglerSettings.PermittedWranglerRoles,
+		"allowed_email_domain":                           cfg.WranglerSettings.AllowedEmailDomain,
+		"move_thread_max_count":                          cfg.WranglerSettings.MoveThreadMaxCount,
+		"move_thread_to_another_team_enable":             cfg.WranglerSettings.MoveThreadToAnotherTeamEnable,
+		"move_thread_from_private_channel_enable":        cfg.WranglerSettings.MoveThreadFromPrivateChannelEnable,
+		"move_thread_from_direct_message_channel_enable": cfg.WranglerSettings.MoveThreadFromDirectMessageChannelEnable,
+		"move_thread_from_group_message_channel_enable":  cfg.WranglerSettings.MoveThreadFromGroupMessageChannelEnable,
 	})
 
 	// Convert feature flags to map[string]any for sending

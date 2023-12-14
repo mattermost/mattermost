@@ -8,7 +8,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"testing"
@@ -589,10 +588,10 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "config_*.json")
+	tmpFile, err := os.CreateTemp(os.TempDir(), "config_*.json")
 	s.Require().Nil(err)
 
-	invalidFile, err := ioutil.TempFile(os.TempDir(), "invalid_config_*.json")
+	invalidFile, err := os.CreateTemp(os.TempDir(), "invalid_config_*.json")
 	s.Require().Nil(err)
 
 	_, err = tmpFile.Write([]byte(configFilePayload))

@@ -70,6 +70,7 @@ type Hub struct {
 	explicitStop    bool
 	checkRegistered chan *webConnSessionMessage
 	checkConn       chan *webConnCheckMessage
+	broadcastHooks  map[string]BroadcastHook
 }
 
 // newWebHub creates a new Hub.
@@ -90,7 +91,7 @@ func newWebHub(ps *PlatformService) *Hub {
 }
 
 // hubStart starts all the hubs.
-func (ps *PlatformService) hubStart() {
+func (ps *PlatformService) hubStart(broadcastHooks map[string]BroadcastHook) {
 	// Total number of hubs is twice the number of CPUs.
 	numberOfHubs := runtime.NumCPU() * 2
 	ps.logger.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
@@ -100,6 +101,7 @@ func (ps *PlatformService) hubStart() {
 	for i := 0; i < numberOfHubs; i++ {
 		hubs[i] = newWebHub(ps)
 		hubs[i].connectionIndex = i
+		hubs[i].broadcastHooks = broadcastHooks
 		hubs[i].Start()
 	}
 	// Assigning to the hubs slice without any mutex is fine because it is only assigned once
@@ -492,14 +494,19 @@ func (h *Hub) Start() {
 				if metrics := h.platform.metricsIFace; metrics != nil {
 					metrics.DecrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 				}
+
+				// Remove the broadcast hook information before precomputing the JSON so that those aren't included in it
+				msg, broadcastHooks, broadcastHookArgs := msg.WithoutBroadcastHooks()
+
 				msg = msg.PrecomputeJSON()
+
 				broadcast := func(webConn *WebConn) {
 					if !connIndex.Has(webConn) {
 						return
 					}
 					if webConn.ShouldSendEvent(msg) {
 						select {
-						case webConn.send <- msg:
+						case webConn.send <- h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs):
 						default:
 							// Don't log the warning if it's an inactive connection.
 							if webConn.active.Load() {
