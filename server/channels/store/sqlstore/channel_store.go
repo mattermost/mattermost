@@ -4389,21 +4389,20 @@ func (s SqlChannelStore) getChannelReportApplyPagination(filter *model.ChannelRe
 	}
 
 	if filter.SortColumn == model.ChannelReportingSortByDisplayName {
-
 		if filter.SortDesc {
-			query = query.Where(sq.Or{
-				sq.Gt{"c.displayname": filter.LastSortColumnValue},
-				sq.And{
-					sq.Eq{"c.displayname": filter.LastSortColumnValue},
-					sq.Gt{"c.id": filter.LastSortColumnValue},
-				},
-			})
-		} else {
 			query = query.Where(sq.Or{
 				sq.Lt{"c.displayname": filter.LastSortColumnValue},
 				sq.And{
 					sq.Eq{"c.displayname": filter.LastSortColumnValue},
-					sq.Lt{"c.id": filter.LastSortColumnValue},
+					sq.Lt{"c.id": filter.LastChannelId},
+				},
+			})
+		} else {
+			query = query.Where(sq.Or{
+				sq.Gt{"c.displayname": filter.LastSortColumnValue},
+				sq.And{
+					sq.Eq{"c.displayname": filter.LastSortColumnValue},
+					sq.Gt{"c.id": filter.LastChannelId},
 				},
 			})
 		}

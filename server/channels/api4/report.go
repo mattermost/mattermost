@@ -99,6 +99,7 @@ func getChannelReport(c *Context, w http.ResponseWriter, r *http.Request) {
 			LastSortColumnValue: r.URL.Query().Get("last_column_value"),
 			DateRange:           r.URL.Query().Get("date_range"),
 		},
+		LastChannelId: r.URL.Query().Get("last_id"),
 	}
 	filterOptions.PopulateDateRange(time.Now())
 
