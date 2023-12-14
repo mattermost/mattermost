@@ -35,7 +35,6 @@
         }
 
         .dateTime__calendar-input {
-            width: 266px;
             border: 2px solid var(--button-bg);
             font-size: 14px;
 
@@ -299,12 +298,12 @@ span.emoticon[style]:hover {
 
 .dateTime {
     display: flex;
-    width: calc(100% - 24px);
-    margin-top: 45px;
+    margin: 24px 0 8px;
+    gap: 16px;
 
     & &__date {
         position: relative;
-        margin-right: 20px;
+        width: 100%;
 
         &-icon {
             position: absolute;
@@ -315,6 +314,11 @@ span.emoticon[style]:hover {
 
     & &__time {
         position: relative;
+        width: 100%;
+
+        .style--none {
+            width: 100%;
+        }
 
         #expiryTimeMenu .dropdown-menu {
             overflow: auto;

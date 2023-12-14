@@ -309,10 +309,9 @@
     }
 
     .modal-content {
-        border: 1px solid #777;
-        background: #fff;
-        border-radius: 4px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
+        background: var(--sys-center-channel-bg);
+        border-radius: 12px;
     }
 
     .modal-chevron-icon {
