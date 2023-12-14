@@ -92,3 +92,42 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/reports/users/export:
+    get:
+      tags:
+        - reports
+      summary: Starts a job to export the users to a report file.
+      description: >
+        Starts a job to export the users to a report file.
+        
+        Must be a system admin to invoke this API.
+        
+        ##### Permissions
+        
+        Requires `sysconsole_read_user_management_users`.
+
+      operationId: StartBatchUsersExport
+      parameters:
+        - name: date_range
+          in: query
+          description: The date range of the post statistics to display. Must be one of ("last30days", "previousmonth", "last6months", "alltime"). Will default to 'alltime' if the input is not valid.
+          schema:
+            type: string
+            default: 'alltime'
+      responses:
+        "200":
+          description: Job successfully started
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserReport"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"

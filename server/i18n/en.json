@@ -5191,6 +5191,14 @@
     "translation": "Invalid webhook."
   },
   {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "Failed to write CSV headers."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Unsupported report format."
+  },
+  {
     "id": "app.compliance.get.finding.app_error",
     "translation": "We encountered an error retrieving the compliance reports."
   },
@@ -6591,6 +6599,10 @@
     "translation": "Failed to fetch user report."
   },
   {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "Job already exists for this user and date range."
+  },
+  {
     "id": "app.role.check_roles_exist.role_not_found",
     "translation": "The provided role does not exist"
   },
@@ -6629,6 +6641,14 @@
   {
     "id": "app.save_config.plugin_hook_error",
     "translation": "An error occurred running the plugin hook on configuration save."
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "Failed to write CSV chunk."
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "Unsupported report format."
   },
   {
     "id": "app.scheme.delete.app_error",

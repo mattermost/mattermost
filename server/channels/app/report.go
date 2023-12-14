@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func (a *App) SaveReportChunk(format string, prefix string, count int, reportData []model.ReportableObject) *model.AppError {
@@ -17,7 +18,7 @@ func (a *App) SaveReportChunk(format string, prefix string, count int, reportDat
 	case "csv":
 		return a.saveCSVChunk(prefix, count, reportData)
 	}
-	return model.NewAppError("SaveReportChunk", "", nil, "unsupported report format", http.StatusBadRequest)
+	return model.NewAppError("SaveReportChunk", "app.save_report_chunk.unsupported_format", nil, "unsupported report format", http.StatusBadRequest)
 }
 
 func (a *App) saveCSVChunk(prefix string, count int, reportData []model.ReportableObject) *model.AppError {
@@ -27,7 +28,7 @@ func (a *App) saveCSVChunk(prefix string, count int, reportData []model.Reportab
 	for _, report := range reportData {
 		err := w.Write(report.ToReport())
 		if err != nil {
-			return model.NewAppError("saveCSVChunk", "", nil, "failed to write report data to CSV", http.StatusInternalServerError).Wrap(err)
+			return model.NewAppError("saveCSVChunk", "app.save_csv_chunk.write_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -45,17 +46,17 @@ func (a *App) CompileReportChunks(format string, prefix string, numberOfChunks i
 	case "csv":
 		return a.compileCSVChunks(prefix, numberOfChunks, headers)
 	}
-	return "", model.NewAppError("CompileReportChunks", "", nil, "unsupported report format", http.StatusBadRequest)
+	return "", model.NewAppError("CompileReportChunks", "app.compile_report_chunks.unsupported_format", nil, "", http.StatusBadRequest)
 }
 
 func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []string) (string, *model.AppError) {
-	filename := fmt.Sprintf("batch_report_%s.csv", prefix)
+	filename := fmt.Sprintf("admin_reports/batch_report_%s.csv", prefix)
 
 	var headerBuf bytes.Buffer
 	w := csv.NewWriter(&headerBuf)
 	err := w.Write(headers)
 	if err != nil {
-		return "", model.NewAppError("compileCSVChunks", "", nil, "failed to write headers", http.StatusInternalServerError).Wrap(err)
+		return "", model.NewAppError("compileCSVChunks", "app.compile_csv_chunks.header_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	w.Flush()
 	_, appErr := a.WriteFile(&headerBuf, filename)
@@ -86,7 +87,7 @@ func (a *App) SendReportToUser(userID string, filename string) *model.AppError {
 }
 
 func makeFilename(prefix string, count int, extension string) string {
-	return fmt.Sprintf("batch_report_%s__%d.%s", prefix, count, extension)
+	return fmt.Sprintf("admin_reports/batch_report_%s__%d.%s", prefix, count, extension)
 }
 
 func (a *App) GetUsersForReporting(filter *model.UserReportOptions) ([]*model.UserReport, *model.AppError) {
@@ -109,4 +110,42 @@ func (a *App) getUserReport(filter *model.UserReportOptions) ([]*model.UserRepor
 	}
 
 	return userReports, nil
+}
+
+func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string) *model.AppError {
+	options := map[string]string{
+		"requesting_user_id": rctx.Session().UserId,
+		"date_range":         dateRange,
+	}
+
+	// Check for existing job
+	// TODO: Maybe make this a reusable function?
+	pendingJobs, err := a.Srv().Jobs.GetJobsByTypeAndStatus(rctx, model.JobTypeExportUsersToCSV, model.JobStatusPending)
+	if err != nil {
+		return err
+	}
+	for _, job := range pendingJobs {
+		if job.Data["date_range"] == dateRange && job.Data["requesting_user_id"] == rctx.Session().UserId {
+			return model.NewAppError("StartUsersBatchExport", "app.report.start_users_batch_export.job_exists", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	inProgressJobs, err := a.Srv().Jobs.GetJobsByTypeAndStatus(rctx, model.JobTypeExportUsersToCSV, model.JobStatusInProgress)
+	if err != nil {
+		return err
+	}
+	for _, job := range inProgressJobs {
+		if job.Data["date_range"] == dateRange && job.Data["requesting_user_id"] == rctx.Session().UserId {
+			return model.NewAppError("StartUsersBatchExport", "app.report.start_users_batch_export.job_exists", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	_, err = a.Srv().Jobs.CreateJobOnce(rctx, model.JobTypeExportUsersToCSV, options)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Send system message that we have started the export
+
+	return nil
 }

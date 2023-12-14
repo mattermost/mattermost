@@ -995,6 +995,14 @@ export default class Client4 {
         );
     }
 
+    startUsersBatchExport = (dateRange: string) => {
+        const queryString = buildQueryString({date_range: dateRange});
+        return this.doFetch<StatusOK>(
+            `${this.getReportsRoute()}/users/export${queryString}`,
+            {method: 'post'},
+        );
+    }
+
     /**
      * @deprecated
      */

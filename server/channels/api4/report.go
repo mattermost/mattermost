@@ -15,6 +15,7 @@ import (
 
 func (api *API) InitReports() {
 	api.BaseRoutes.Reports.Handle("/users", api.APISessionRequired(getUsersForReporting)).Methods("GET")
+	api.BaseRoutes.Reports.Handle("/users/export", api.APISessionRequired(startUsersBatchExport)).Methods("POST")
 }
 
 func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -78,4 +79,18 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 	if jsonErr := json.NewEncoder(w).Encode(userReports); jsonErr != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(jsonErr))
 	}
+}
+
+func startUsersBatchExport(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !(c.IsSystemAdmin() && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers)) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
+		return
+	}
+
+	if err := c.App.StartUsersBatchExport(c.AppContext, r.URL.Query().Get("date_range")); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }
