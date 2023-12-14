@@ -199,6 +199,12 @@ export type ClientConfig = {
     PersistentNotificationIntervalMinutes: string;
     AllowPersistentNotificationsForGuests: string;
     DelayChannelAutocomplete: 'true' | 'false';
+    WranglerPermittedWranglerRoles: string;
+    WranglerAllowedEmailDomain: string;
+    WranglerMoveThreadMaxCount: string;
+    WranglerMoveThreadFromPrivateChannelEnable: string;
+    WranglerMoveThreadFromDirectMessageChannelEnable: string;
+    WranglerMoveThreadFromGroupMessageChannelEnable: string;
     ServiceEnvironment: string;
     UniqueEmojiReactionLimitPerPost: string;
 };
@@ -484,6 +490,16 @@ export type PasswordSettings = {
     Uppercase: boolean;
     Symbol: boolean;
     EnableForgotLink: boolean;
+};
+
+export type WranglerSettings = {
+    PermittedWranglerRoles: string[];
+    AllowedEmailDomain: string[];
+    MoveThreadMaxCount: number;
+    MoveThreadToAnotherTeamEnable: boolean;
+    MoveThreadFromPrivateChannelEnable: boolean;
+    MoveThreadFromDirectMessageChannelEnable: boolean;
+    MoveThreadFromGroupMessageChannelEnable: boolean;
 };
 
 export type FileSettings = {
@@ -948,6 +964,7 @@ export type AdminConfig = {
     FeatureFlags: FeatureFlags;
     ImportSettings: ImportSettings;
     ExportSettings: ExportSettings;
+    WranglerSettings: WranglerSettings;
 };
 
 export type ReplicaLagSetting = {

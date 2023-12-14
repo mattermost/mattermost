@@ -3115,6 +3115,51 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 }
 
+type WranglerSettings struct {
+	PermittedWranglerRoles                   []string
+	AllowedEmailDomain                       []string
+	MoveThreadMaxCount                       *int64
+	MoveThreadToAnotherTeamEnable            *bool
+	MoveThreadFromPrivateChannelEnable       *bool
+	MoveThreadFromDirectMessageChannelEnable *bool
+	MoveThreadFromGroupMessageChannelEnable  *bool
+}
+
+func (w *WranglerSettings) SetDefaults() {
+	if w.PermittedWranglerRoles == nil {
+		w.PermittedWranglerRoles = make([]string, 0)
+	}
+	if w.AllowedEmailDomain == nil {
+		w.AllowedEmailDomain = make([]string, 0)
+	}
+	if w.MoveThreadMaxCount == nil {
+		w.MoveThreadMaxCount = NewInt64(100)
+	}
+	if w.MoveThreadToAnotherTeamEnable == nil {
+		w.MoveThreadToAnotherTeamEnable = NewBool(false)
+	}
+	if w.MoveThreadFromPrivateChannelEnable == nil {
+		w.MoveThreadFromPrivateChannelEnable = NewBool(false)
+	}
+	if w.MoveThreadFromDirectMessageChannelEnable == nil {
+		w.MoveThreadFromDirectMessageChannelEnable = NewBool(false)
+	}
+	if w.MoveThreadFromGroupMessageChannelEnable == nil {
+		w.MoveThreadFromGroupMessageChannelEnable = NewBool(false)
+	}
+}
+
+func (w *WranglerSettings) IsValid() *AppError {
+	validDomainRegex := regexp.MustCompile(`^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$`)
+	for _, domain := range w.AllowedEmailDomain {
+		if !validDomainRegex.MatchString(domain) && domain != "localhost" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.move_thread.domain_invalid.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
 type GlobalRelayMessageExportSettings struct {
 	CustomerType         *string `access:"compliance_compliance_export"` // must be either A9, A10 or CUSTOM, dictates SMTP server url
 	SMTPUsername         *string `access:"compliance_compliance_export"`
@@ -3412,6 +3457,7 @@ type Config struct {
 	FeatureFlags              *FeatureFlags  `access:"*_read" json:",omitempty"`
 	ImportSettings            ImportSettings // telemetry: none
 	ExportSettings            ExportSettings
+	WranglerSettings          WranglerSettings
 }
 
 func (o *Config) Auditable() map[string]interface{} {
@@ -3527,6 +3573,7 @@ func (o *Config) SetDefaults() {
 	}
 	o.ImportSettings.SetDefaults()
 	o.ExportSettings.SetDefaults()
+	o.WranglerSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -3617,6 +3664,11 @@ func (o *Config) IsValid() *AppError {
 	if appErr := o.ImportSettings.isValid(); appErr != nil {
 		return appErr
 	}
+
+	if appErr := o.WranglerSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
 	return nil
 }
 

@@ -482,13 +482,16 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 }
 
 func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	defer cancel()
+
 	// Prepare the request
 	var req *http.Request
 	var err error
 	if cmd.Method == model.CommandMethodGet {
-		req, err = http.NewRequest(http.MethodGet, cmd.URL, nil)
+		req, err = http.NewRequestWithContext(ctx, http.MethodGet, cmd.URL, nil)
 	} else {
-		req, err = http.NewRequest(http.MethodPost, cmd.URL, strings.NewReader(p.Encode()))
+		req, err = http.NewRequestWithContext(ctx, http.MethodPost, cmd.URL, strings.NewReader(p.Encode()))
 	}
 
 	if err != nil {
@@ -508,10 +511,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	}
 
-	// Send the request
-	client := a.HTTPService().MakeClient(false)
-	client.Timeout = time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
-	resp, err := client.Do(req)
+	resp, err := a.Srv().outgoingWebhookClient.Do(req)
 	if err != nil {
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]any{"Trigger": cmd.Trigger}, "", http.StatusInternalServerError).Wrap(err)
 	}

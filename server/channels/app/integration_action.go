@@ -317,7 +317,10 @@ func (a *App) DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.
 		return a.DoLocalRequest(c, rawURLPath, body)
 	}
 
-	req, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "POST", rawURL, bytes.NewReader(body))
 	if err != nil {
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -334,8 +337,6 @@ func (a *App) DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.
 	} else {
 		httpClient = a.HTTPService().MakeClient(false)
 	}
-
-	httpClient.Timeout = time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
 
 	resp, httpErr := httpClient.Do(req)
 	if httpErr != nil {
