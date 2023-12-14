@@ -119,7 +119,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceListCmd() {
 
 		err := pluginMarketplaceListCmdF(s.th.Client, &cobra.Command{}, nil)
 
-		s.Require().ErrorContains(err, "Failed to fetch plugins: : You do not have the appropriate permissions.")
+		s.Require().ErrorContains(err, "Failed to fetch plugins: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetErrorLines())
 		s.Require().Empty(printer.GetLines())
 	})

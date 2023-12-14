@@ -18,7 +18,7 @@ import (
 
 // AutocompleteDynamicArgProvider dynamically provides auto-completion args for built-in commands.
 type AutocompleteDynamicArgProvider interface {
-	GetAutoCompleteListItems(a *App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error)
+	GetAutoCompleteListItems(c request.CTX, a *App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error)
 }
 
 // GetSuggestions returns suggestions for user input.
@@ -243,7 +243,7 @@ func (a *App) getDynamicListArgument(c request.CTX, commandArgs *model.CommandAr
 	dynamicArg := arg.Data.(*model.AutocompleteDynamicListArg)
 
 	if strings.HasPrefix(dynamicArg.FetchURL, "builtin:") {
-		listItems, err := a.getBuiltinDynamicListArgument(commandArgs, arg, parsed, toBeParsed)
+		listItems, err := a.getBuiltinDynamicListArgument(c, commandArgs, arg, parsed, toBeParsed)
 		if err != nil {
 			a.Log().Error("Can't fetch dynamic list arguments for", mlog.String("url", dynamicArg.FetchURL), mlog.Err(err))
 			return false, parsed, toBeParsed, []model.AutocompleteSuggestion{}
@@ -307,7 +307,7 @@ func parseListItems(items []model.AutocompleteListItem, parsed, toBeParsed strin
 	return true, parsed + toBeParsed, "", suggestions
 }
 
-func (a *App) getBuiltinDynamicListArgument(commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
+func (a *App) getBuiltinDynamicListArgument(c request.CTX, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
 	dynamicArg := arg.Data.(*model.AutocompleteDynamicListArg)
 	arr := strings.Split(dynamicArg.FetchURL, ":")
 	if len(arr) < 2 {
@@ -325,5 +325,5 @@ func (a *App) getBuiltinDynamicListArgument(commandArgs *model.CommandArgs, arg 
 		return nil, fmt.Errorf("auto-completion not available for built-in command %s", cmdName)
 	}
 
-	return dp.GetAutoCompleteListItems(a, commandArgs, arg, parsed, toBeParsed)
+	return dp.GetAutoCompleteListItems(c, a, commandArgs, arg, parsed, toBeParsed)
 }

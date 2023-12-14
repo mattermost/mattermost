@@ -6,6 +6,7 @@ import React from 'react';
 import type {Emoji} from '@mattermost/types/emojis';
 
 import Permissions from 'mattermost-redux/constants/permissions';
+import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
@@ -100,6 +101,13 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
                             id='post_info.emoji.tooltip'
                             className='hidden-xs'
                         >
+                            <div>
+                                <img
+                                    className='Reaction__emoji Reaction__emoji--large'
+                                    src={getEmojiImageUrl(emoji)}
+                                    width={48}
+                                />
+                            </div>
                             {this.emojiName(emoji, this.props.locale)}
                         </Tooltip>
                     }

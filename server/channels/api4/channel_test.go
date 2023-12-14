@@ -952,6 +952,12 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	channels, _, err = client.GetDeletedChannelsForTeam(context.Background(), team.Id, 1, 1, "")
 	require.NoError(t, err)
 	require.Len(t, channels, 1, "should be one channel per page")
+
+	// test non team member
+	th.SystemAdminClient.RemoveTeamMember(context.Background(), team.Id, th.BasicUser.Id)
+	_, resp, err := client.GetDeletedChannelsForTeam(context.Background(), team.Id, 0, 100, "")
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetPrivateChannelsForTeam(t *testing.T) {
