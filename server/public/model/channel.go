@@ -35,10 +35,6 @@ const (
 
 	ChannelSortByUsername = "username"
 	ChannelSortByStatus   = "status"
-
-	ChannelReportingSortByDisplayName = "displayName"
-	ChannelReportingSortByPostCount   = "postCount"
-	ChannelReportingSortByMemberCount = "memberCount"
 )
 
 type Channel struct {
