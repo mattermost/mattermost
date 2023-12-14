@@ -478,10 +478,10 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 	}
 	p.Set("response_url", args.SiteURL+"/hooks/commands/"+hook.Id)
 
-	return a.DoCommandRequest(cmd, p)
+	return a.DoCommandRequest(c, cmd, p)
 }
 
-func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
+func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 
@@ -513,6 +513,9 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 
 	resp, err := a.Srv().outgoingWebhookClient.Do(req)
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			rctx.Logger().Info("Outgoing Command request timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.")
+		}
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]any{"Trigger": cmd.Trigger}, "", http.StatusInternalServerError).Wrap(err)
 	}
 

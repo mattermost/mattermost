@@ -362,7 +362,7 @@ func TestDoCommandRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, resp, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
 
 		assert.NotNil(t, resp)
@@ -377,7 +377,7 @@ func TestDoCommandRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, resp, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
 
 		assert.NotNil(t, resp)
@@ -392,7 +392,7 @@ func TestDoCommandRequest(t *testing.T) {
 
 		// Since we limit the length of the response, no error will be returned and resp.Text will be a finite string
 
-		_, resp, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
 		require.NotNil(t, resp)
 	})
@@ -405,7 +405,7 @@ func TestDoCommandRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, _, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
 		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
 	})
@@ -418,7 +418,7 @@ func TestDoCommandRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, _, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
 		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
 	})
@@ -435,7 +435,7 @@ func TestDoCommandRequest(t *testing.T) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
 		})
 
-		_, _, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
 		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
 		close(done)
@@ -453,7 +453,7 @@ func TestDoCommandRequest(t *testing.T) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(2)
 		})
 
-		_, resp, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
 
 		require.NotNil(t, resp)

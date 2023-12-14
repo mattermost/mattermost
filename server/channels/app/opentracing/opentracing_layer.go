@@ -3776,7 +3776,7 @@ func (a *OpenTracingAppLayer) DoCheckForAdminNotifications(trial bool) *model.Ap
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
+func (a *OpenTracingAppLayer) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoCommandRequest")
 
@@ -3788,7 +3788,7 @@ func (a *OpenTracingAppLayer) DoCommandRequest(cmd *model.Command, p url.Values)
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2 := a.app.DoCommandRequest(cmd, p)
+	resultVar0, resultVar1, resultVar2 := a.app.DoCommandRequest(rctx, cmd, p)
 
 	if resultVar2 != nil {
 		span.LogFields(spanlog.Error(resultVar2))

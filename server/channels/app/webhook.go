@@ -119,7 +119,11 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 			defer wg.Done()
 			webhookResp, err := a.doOutgoingWebhookRequest(url, body, contentType)
 			if err != nil {
-				c.Logger().Error("Event POST failed.", mlog.Err(err))
+				if errors.Is(err, context.DeadlineExceeded) {
+					c.Logger().Error("Outgoing Webhook POST timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.", mlog.Err(err))
+				} else {
+					c.Logger().Error("Outgoing Webhook POST failed", mlog.Err(err))
+				}
 				return
 			}
 

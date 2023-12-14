@@ -322,6 +322,9 @@ func (a *App) DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.
 
 	req, err := http.NewRequestWithContext(ctx, "POST", rawURL, bytes.NewReader(body))
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			c.Logger().Info("Outgoing Integration Action request timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.")
+		}
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	req.Header.Set("Content-Type", "application/json")
