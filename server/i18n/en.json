@@ -2025,6 +2025,10 @@
     "translation": "Cannot hide both active and inactive users."
   },
   {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Page size is invalid or too large."
+  },
+  {
     "id": "api.getUsersForReporting.invalid_team_filter",
     "translation": "Invalid team id provided."
   },
@@ -9613,10 +9617,6 @@
   {
     "id": "model.reporting_base_options.is_valid.bad_date_range",
     "translation": "Date range provided is invalid."
-  },
-  {
-    "id": "model.reporting_base_options.is_valid.invalid_page_size",
-    "translation": "Page size is invalid or too large."
   },
   {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
