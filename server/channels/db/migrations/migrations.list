@@ -234,6 +234,8 @@ channels/db/migrations/mysql/000117_msteams_shared_channels.down.sql
 channels/db/migrations/mysql/000117_msteams_shared_channels.up.sql
 channels/db/migrations/mysql/000118_create_index_poststats.down.sql
 channels/db/migrations/mysql/000118_create_index_poststats.up.sql
+channels/db/migrations/mysql/000119_msteams_shared_channels_idx.down.sql
+channels/db/migrations/mysql/000119_msteams_shared_channels_idx.up.sql
 channels/db/migrations/postgres/000001_create_teams.down.sql
 channels/db/migrations/postgres/000001_create_teams.up.sql
 channels/db/migrations/postgres/000002_create_team_members.down.sql
@@ -468,3 +470,5 @@ channels/db/migrations/postgres/000117_msteams_shared_channels.down.sql
 channels/db/migrations/postgres/000117_msteams_shared_channels.up.sql
 channels/db/migrations/postgres/000118_create_index_poststats.down.sql
 channels/db/migrations/postgres/000118_create_index_poststats.up.sql
+channels/db/migrations/postgres/000119_msteams_shared_channels_idx.down.sql
+channels/db/migrations/postgres/000119_msteams_shared_channels_idx.up.sql
