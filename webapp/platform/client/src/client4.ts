@@ -477,6 +477,10 @@ export default class Client4 {
         return `${this.getBaseRoute()}/drafts`;
     }
 
+    getReportsRoute(): string {
+        return `${this.getBaseRoute()}/reports`;
+    }
+
     getCSRFFromCookie() {
         if (typeof document !== 'undefined' && typeof document.cookie !== 'undefined') {
             const cookies = document.cookie.split(';');
@@ -986,7 +990,7 @@ export default class Client4 {
     getUsersForReporting = (filter: UserReportOptions) => {
         const queryString = buildQueryString(filter);
         return this.doFetch<UserReport[]>(
-            `${this.getUsersRoute()}/report${queryString}`,
+            `${this.getReportsRoute()}/users${queryString}`,
             {method: 'get'},
         );
     }
@@ -1056,6 +1060,14 @@ export default class Client4 {
         return this.doFetch(
             `${this.getUserRoute('me')}/status/custom/recent/delete`,
             {method: 'post', body: JSON.stringify(customStatus)},
+        );
+    }
+
+    moveThread = (postId: string, channelId: string) => {
+        const url = this.getPostRoute(postId) + '/move';
+        return this.doFetch<StatusOK>(
+            url,
+            {method: 'post', body: JSON.stringify({channel_id: channelId})},
         );
     }
 

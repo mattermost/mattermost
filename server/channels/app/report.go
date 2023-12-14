@@ -87,3 +87,25 @@ func (a *App) SendReportToUser(userID string, filename string) *model.AppError {
 func makeFilename(prefix string, count int, extension string) string {
 	return fmt.Sprintf("batch_report_%s__%d.%s", prefix, count, extension)
 }
+
+func (a *App) GetUsersForReporting(filter *model.UserReportOptions) ([]*model.UserReport, *model.AppError) {
+	if appErr := filter.IsValid(); appErr != nil {
+		return nil, appErr
+	}
+
+	return a.getUserReport(filter)
+}
+
+func (a *App) getUserReport(filter *model.UserReportOptions) ([]*model.UserReport, *model.AppError) {
+	userReportQuery, err := a.Srv().Store().User().GetUserReport(filter)
+	if err != nil {
+		return nil, model.NewAppError("GetUsersForReporting", "app.report.get_user_report.store_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	userReports := make([]*model.UserReport, len(userReportQuery))
+	for i, user := range userReportQuery {
+		userReports[i] = user.ToReport()
+	}
+
+	return userReports, nil
+}

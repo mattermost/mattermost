@@ -3889,7 +3889,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "GlobalRelaySettings.CustomerType экспорта сообщений должен быть установлен в 'A9' или 'A10'."
+    "translation": "Для экспорта сообщений GlobalRelaySettings.CustomerType должен быть установлен в 'A9', 'A10' или 'CUSTOM'."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -10094,5 +10094,37 @@
   {
     "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
     "translation": "Войдите в клиентский портал, чтобы сбросить IP фильтрацию"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Невозможно скрыть как активных, так и неактивных пользователей."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Указан неверный идентификатор команды."
+  },
+  {
+    "id": "app.user.get_user_report.store_error",
+    "translation": "При запросе отчета пользователя возникла ошибка."
+  },
+  {
+    "id": "app.user.get_users_for_reporting.bad_date_range",
+    "translation": "Указанный диапазон дат недействителен."
+  },
+  {
+    "id": "app.user.get_users_for_reporting.invalid_page_size",
+    "translation": "Размер страницы недопустим или слишком велик."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Не удалось обновить пользовательский статус. Эмодзи с указанным именем не существует."
+  },
+  {
+    "id": "app.user.get_user_report.invalid_sort_column",
+    "translation": "Указанный столбец сортировки недействителен."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Если у GlobalRelaySettings.CustomerType выставлено значение 'CUSTOM', то должны быть установлены GlobalRelaySettings.CustomSMTPServerName и GlobalRelaySettings.CustomSMTPPort."
   }
 ]
