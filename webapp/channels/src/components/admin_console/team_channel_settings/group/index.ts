@@ -45,7 +45,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
         actions: bindActionCreators({
-            getData: () => Promise.resolve([] as Group[]),
+            getData: () => Promise.resolve(),
         }, dispatch),
     };
 }
