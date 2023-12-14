@@ -11,6 +11,7 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
+import {extractPluginConfiguration} from 'utils/plugins/plugin_setting_extraction';
 
 import type {PluginsState, PluginComponent, AdminConsolePluginComponent, Menu} from 'types/store/plugins';
 
@@ -385,6 +386,36 @@ function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action
     }
 }
 
+function userSettings(state: PluginsState['userSettings'] = {}, action: GenericAction) {
+    switch (action.type) {
+    case ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS:
+        if (action.data) {
+            const extractedConfiguration = extractPluginConfiguration(action.data.setting, action.data.pluginId);
+            if (!extractedConfiguration) {
+                // eslint-disable-next-line no-console
+                console.warn(`Plugin ${action.data.pluginId} is trying to register an invalid configuration. Contact the plugin developer to fix this issue.`);
+                return state;
+            }
+            const nextState = {...state};
+            nextState[action.data.pluginId] = extractedConfiguration;
+            return nextState;
+        }
+        return state;
+    case ActionTypes.REMOVED_WEBAPP_PLUGIN:
+        if (action.data) {
+            const nextState = {...state};
+            delete nextState[action.data.id];
+            return nextState;
+        }
+        return state;
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
 
     // object where every key is a plugin id and values are webapp plugin manifests
@@ -413,4 +444,8 @@ export default combineReducers({
     // objects where every key is a plugin id and the value is a promise to fetch stats from
     // a plugin to render on system console
     siteStatsHandlers,
+
+    // objects where every key is a plugin id and the value is configuration schema to show in
+    // the user settings modal
+    userSettings,
 });
