@@ -21,7 +21,7 @@ const (
 var (
 	UserReportSortColumns = []string{"CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email", "Roles"}
 
-	ChannelReportSortColumns = []string{"ChannelName", "MemberCount", "PostCount", "TeamName", "ChannelManagement"}
+	ChannelReportSortColumns = []string{ChannelReportingSortByDisplayName, ChannelReportingSortByMemberCount, ChannelReportingSortByPostCount}
 )
 
 type ReportingBaseOptions struct {

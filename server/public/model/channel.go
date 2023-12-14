@@ -36,7 +36,7 @@ const (
 	ChannelSortByUsername = "username"
 	ChannelSortByStatus   = "status"
 
-	ChannelReportingSortByDisplayName = "displayName"
+	ChannelReportingSortByDisplayName = "channelName"
 	ChannelReportingSortByPostCount   = "postCount"
 	ChannelReportingSortByMemberCount = "memberCount"
 )
