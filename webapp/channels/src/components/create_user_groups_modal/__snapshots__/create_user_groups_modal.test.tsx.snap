@@ -42,13 +42,7 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
       onClick={[Function]}
       type="button"
     >
-      <LocalizedIcon
-        ariaLabel={
-          Object {
-            "defaultMessage": "Back",
-            "id": "user_groups_modal.goBackLabel",
-          }
-        }
+      <i
         className="icon icon-arrow-left"
       />
     </button>
