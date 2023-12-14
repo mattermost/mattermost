@@ -8901,9 +8901,6 @@ func (c *Client4) CreateChannelBookmark(ctx context.Context, channelBookmark *Ch
 	}
 	defer closeBody(r)
 	var cb ChannelBookmark
-	if r.StatusCode == http.StatusNotModified {
-		return &cb, BuildResponse(r), nil
-	}
 	if err := json.NewDecoder(r.Body).Decode(&cb); err != nil {
 		return nil, nil, NewAppError("CreateChannelBookmark", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -8922,9 +8919,6 @@ func (c *Client4) UpdateChannelBookmark(ctx context.Context, channelId, bookmark
 	}
 	defer closeBody(r)
 	var ucb UpdateChannelBookmarkResponse
-	if r.StatusCode == http.StatusNotModified {
-		return &ucb, BuildResponse(r), nil
-	}
 	if err := json.NewDecoder(r.Body).Decode(&ucb); err != nil {
 		return nil, nil, NewAppError("UpdateChannelBookmark", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -8943,11 +8937,22 @@ func (c *Client4) UpdateChannelBookmarkSortOrder(ctx context.Context, channelId,
 	}
 	defer closeBody(r)
 	var b []*ChannelBookmarkWithFileInfo
-	if r.StatusCode == http.StatusNotModified {
-		return b, BuildResponse(r), nil
-	}
 	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
 		return nil, nil, NewAppError("UpdateChannelBookmarkSortOrder", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return b, BuildResponse(r), nil
+}
+
+// DeleteChannelBookmark deletes a channel bookmark.
+func (c *Client4) DeleteChannelBookmark(ctx context.Context, channelId, bookmarkId string) (*ChannelBookmarkWithFileInfo, *Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.bookmarkRoute(channelId, bookmarkId))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var b *ChannelBookmarkWithFileInfo
+	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
+		return nil, nil, NewAppError("DeleteChannelBookmark", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return b, BuildResponse(r), nil
 }

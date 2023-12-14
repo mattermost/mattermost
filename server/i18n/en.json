@@ -248,6 +248,18 @@
     "translation": "Failed to create the channel bookmark."
   },
   {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Failed to delete the channel bookmark."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Failed to delete the channel bookmark."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Failed to delete the channel bookmark."
+  },
+  {
     "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
     "translation": "Failed to update the channel bookmark."
   },

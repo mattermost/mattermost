@@ -16,6 +16,7 @@ func (api *API) InitChannelBookmarks() {
 	api.BaseRoutes.ChannelBookmarks.Handle("", api.APISessionRequired(createChannelBookmark)).Methods("POST")
 	api.BaseRoutes.ChannelBookmark.Handle("", api.APISessionRequired(updateChannelBookmark)).Methods("PATCH")
 	api.BaseRoutes.ChannelBookmark.Handle("/sort_order", api.APISessionRequired(updateChannelBookmarkSortOrder)).Methods("POST")
+	api.BaseRoutes.ChannelBookmark.Handle("", api.APISessionRequired(deleteChannelBookmark)).Methods("DELETE")
 }
 
 func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -224,6 +225,7 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 
 	auditRec := c.MakeAuditRecord("updateChannelBookmarkSortOrder", audit.Fail)
 	defer c.LogAuditRec(auditRec)
+	audit.AddEventParameter(auditRec, "id", c.Params.ChannelBookmarkId)
 
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
@@ -267,13 +269,6 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	oldBookmark, obErr := c.App.GetBookmark(c.Params.ChannelBookmarkId, false)
-	if obErr != nil {
-		c.Err = obErr
-		return
-	}
-	auditRec.AddEventPriorState(oldBookmark)
-
 	bookmarks, appErr := c.App.UpdateChannelBookmarkSortOrder(c.Params.ChannelBookmarkId, c.Params.ChannelId, newSortOrder, connectionID)
 	if appErr != nil {
 		c.Err = appErr
@@ -291,6 +286,93 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 	c.LogAudit("")
 
 	if err := json.NewEncoder(w).Encode(bookmarks); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil {
+		c.Err = model.NewAppError("deleteChannelBookmark", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("deleteChannelBookmark", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	audit.AddEventParameter(auditRec, "id", c.Params.ChannelBookmarkId)
+
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	switch channel.Type {
+	case model.ChannelTypeOpen:
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionDeleteBookmarkPublicChannel) {
+			c.SetPermissionError(model.PermissionDeleteBookmarkPublicChannel)
+			return
+		}
+
+	case model.ChannelTypePrivate:
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionDeleteBookmarkPrivateChannel) {
+			c.SetPermissionError(model.PermissionDeleteBookmarkPrivateChannel)
+			return
+		}
+
+	case model.ChannelTypeGroup, model.ChannelTypeDirect:
+		// Any member of DM/GMs but guests can manage channel bookmarks
+		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
+			c.Err = model.NewAppError("deleteChannelBookmark", "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+
+		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId)
+		if gAppErr != nil {
+			c.Err = gAppErr
+			return
+		}
+
+		if user.IsGuest() {
+			c.Err = model.NewAppError("deleteChannelBookmark", "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+
+	default:
+		c.Err = model.NewAppError("deleteChannelBookmark", "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	oldBookmark, obErr := c.App.GetBookmark(c.Params.ChannelBookmarkId, false)
+	if obErr != nil {
+		c.Err = obErr
+		return
+	}
+
+	// The channel bookmark should belong to the same channel specified in the URL
+	if oldBookmark.ChannelId != c.Params.ChannelId {
+		c.SetInvalidParam("channel_id")
+		return
+	}
+	auditRec.AddEventPriorState(oldBookmark)
+
+	bookmark, appErr := c.App.DeleteChannelBookmark(c.Params.ChannelBookmarkId, connectionID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(bookmark)
+	c.LogAudit("bookmark=" + bookmark.DisplayName)
+
+	if err := json.NewEncoder(w).Encode(bookmark); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

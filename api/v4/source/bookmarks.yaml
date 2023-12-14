@@ -6,7 +6,7 @@
       description: |
         Creates a new channel bookmark for this channel.
 
-        __Minimum server version__: 9.4
+        __Minimum server version__: 9.5
 
         ##### Permissions
         Must have the `add_bookmark_public_channel` or
@@ -79,7 +79,7 @@
         updated. The fields that can be updated are defined in the
         request body, all other provided fields will be ignored.
 
-        __Minimum server version__: 9.4
+        __Minimum server version__: 9.5
 
         ##### Permissions
         Must have the `edit_bookmark_public_channel` or
@@ -147,6 +147,53 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      tags:
+        - bookmarks
+      summary: Delete channel bookmark
+      description: |
+        Archives a channel bookmark. This will set the `deleteAt` to
+        the current timestamp in the database.
+
+        __Minimum server version__: 9.5
+
+        ##### Permissions
+        Must have the `delete_bookmark_public_channel` or
+        `delete_bookmark_private_channel` depending on the channel
+        type. If the channel is a DM or GM, must be a non-guest
+        member.
+      operationId: DeleteChannelBookmark
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: bookmark_id
+          in: path
+          description: Bookmark GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Channel Bookmark deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /api/v4/channels/{channel_id}/bookmarks/{bookmark_id}/sort_order:
     post:
@@ -158,7 +205,7 @@
         from the parameters and updating the rest of the bookmarks of
         the channel to accomodate for this change.
 
-        __Minimum server version__: 9.4
+        __Minimum server version__: 9.5
 
         ##### Permissions
         Must have the `order_bookmark_public_channel` or
