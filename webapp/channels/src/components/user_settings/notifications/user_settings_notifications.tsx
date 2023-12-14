@@ -1407,6 +1407,9 @@ const customKeywordsWithNotificationStyles: ReactSelectStyles = {
     multiValue: ((baseStyles) => ({
         ...baseStyles,
         background: 'rgba(var(--center-channel-color-rgb), 0.08)',
+    })),
+    multiValueLabel: ((baseStyles) => ({
+        ...baseStyles,
         color: 'var(--center-channel-color);',
     })),
     input: ((baseStyles) => ({
