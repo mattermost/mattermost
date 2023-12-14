@@ -17,7 +17,7 @@ func (a *App) SaveReportChunk(format string, prefix string, count int, reportDat
 	case "csv":
 		return a.saveCSVChunk(prefix, count, reportData)
 	}
-	return model.NewAppError("SaveReportChunk", "", nil, "unsupported report format", http.StatusInternalServerError)
+	return model.NewAppError("SaveReportChunk", "", nil, "unsupported report format", http.StatusBadRequest)
 }
 
 func (a *App) saveCSVChunk(prefix string, count int, reportData []model.ReportableObject) *model.AppError {
@@ -27,7 +27,7 @@ func (a *App) saveCSVChunk(prefix string, count int, reportData []model.Reportab
 	for _, report := range reportData {
 		err := w.Write(report.ToReport())
 		if err != nil {
-			return model.NewAppError("saveCSVChunk", "", nil, "failed to write report data to CSV", http.StatusInternalServerError)
+			return model.NewAppError("saveCSVChunk", "", nil, "failed to write report data to CSV", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -45,7 +45,7 @@ func (a *App) CompileReportChunks(format string, prefix string, numberOfChunks i
 	case "csv":
 		return a.compileCSVChunks(prefix, numberOfChunks, headers)
 	}
-	return "", model.NewAppError("CompileReportChunks", "", nil, "unsupported report format", http.StatusInternalServerError)
+	return "", model.NewAppError("CompileReportChunks", "", nil, "unsupported report format", http.StatusBadRequest)
 }
 
 func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []string) (string, *model.AppError) {
@@ -55,7 +55,7 @@ func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []stri
 	w := csv.NewWriter(&headerBuf)
 	err := w.Write(headers)
 	if err != nil {
-		return "", model.NewAppError("compileCSVChunks", "", nil, "failed to write headers", http.StatusInternalServerError)
+		return "", model.NewAppError("compileCSVChunks", "", nil, "failed to write headers", http.StatusInternalServerError).Wrap(err)
 	}
 	w.Flush()
 	_, appErr := a.WriteFile(&headerBuf, filename)
@@ -81,6 +81,7 @@ func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []stri
 }
 
 func (a *App) SendReportToUser(userID string, filename string) *model.AppError {
+	// TODO
 	return nil
 }
 
