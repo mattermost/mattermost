@@ -4357,6 +4357,7 @@ func (s SqlChannelStore) getChannelReportGenerateQuery(filter *model.ChannelRepo
 		)
 
 	query = s.getChannelReportApplyPagination(filter, query)
+	query = s.getChannelReportApplySorting(filter, query)
 
 	if filter.StartAt > 0 || filter.EndAt > 0 {
 		dateFilter := sq.And{}
@@ -4388,6 +4389,7 @@ func (s SqlChannelStore) getChannelReportApplyPagination(filter *model.ChannelRe
 	}
 
 	if filter.SortColumn == model.ChannelReportingSortByDisplayName {
+
 		if filter.SortDesc {
 			query = query.Where(sq.Or{
 				sq.Gt{"c.displayname": filter.LastSortColumnValue},
@@ -4405,8 +4407,19 @@ func (s SqlChannelStore) getChannelReportApplyPagination(filter *model.ChannelRe
 				},
 			})
 		}
+	}
 
-		query = query.OrderBy("c.displayname", "c.id")
+	return query
+}
+
+func (S SqlChannelStore) getChannelReportApplySorting(filter *model.ChannelReportOptions, query sq.SelectBuilder) sq.SelectBuilder {
+	sortDirection := "ASC"
+	if filter.SortDesc {
+		sortDirection = "DESC"
+	}
+
+	if filter.SortColumn == model.ChannelReportingSortByDisplayName {
+		query = query.OrderBy("c.displayname "+sortDirection, "c.id")
 	}
 
 	return query

@@ -92,7 +92,7 @@ func getChannelReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	filterOptions := &model.ChannelReportOptions{
-		model.ReportingBaseOptions{
+		ReportingBaseOptions: model.ReportingBaseOptions{
 			SortColumn:          sortColumn,
 			SortDesc:            r.URL.Query().Get("sort_direction") == "desc",
 			PageSize:            pageSize,
