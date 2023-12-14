@@ -150,7 +150,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, int64(2), thread.ReplyCount)
 		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, thread.Participants)
 
-		err = ss.Post().Delete(newPosts[1].Id, 1234, model.NewId())
+		err = ss.Post().Delete(rctx, newPosts[1].Id, 1234, model.NewId())
 		require.NoError(t, err, "couldn't delete post")
 
 		thread, err = ss.Thread().Get(newPosts[0].Id)
@@ -262,14 +262,14 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.EqualValues(t, thread.ReplyCount, 3)
 		require.EqualValues(t, thread.Participants, model.StringArray{replyPost.UserId, replyPost3.UserId})
 
-		err = ss.Post().Delete(replyPost2.Id, 123, model.NewId())
+		err = ss.Post().Delete(rctx, replyPost2.Id, 123, model.NewId())
 		require.NoError(t, err)
 		thread, err = ss.Thread().Get(rootPost.Id)
 		require.NoError(t, err)
 		require.EqualValues(t, thread.ReplyCount, 2)
 		require.EqualValues(t, thread.Participants, model.StringArray{replyPost.UserId, replyPost3.UserId})
 
-		err = ss.Post().Delete(replyPost.Id, 123, model.NewId())
+		err = ss.Post().Delete(rctx, replyPost.Id, 123, model.NewId())
 		require.NoError(t, err)
 		thread, err = ss.Thread().Get(rootPost.Id)
 		require.NoError(t, err)
@@ -309,7 +309,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.EqualValues(t, thread1.ReplyCount, 1)
 		require.Len(t, thread1.Participants, 1)
 
-		err = ss.Post().PermanentDeleteByUser(rootPost.UserId)
+		err = ss.Post().PermanentDeleteByUser(rctx, rootPost.UserId)
 		require.NoError(t, err)
 
 		thread2, _ := ss.Thread().Get(rootPost.Id)
@@ -389,7 +389,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		editedPost := newPosts[2].Clone()
 		editedPost.Message = "This is an edited post"
-		_, err = ss.Post().Update(editedPost, newPosts[2])
+		_, err = ss.Post().Update(rctx, editedPost, newPosts[2])
 		require.NoError(t, err)
 
 		th, err = ss.Thread().GetThreadForUser(m, false, false)
@@ -852,7 +852,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 	}, -1)
 	require.NoError(t, err)
 
-	dm1, err := ss.Channel().CreateDirectChannel(&model.User{Id: user1ID}, &model.User{Id: user2ID})
+	dm1, err := ss.Channel().CreateDirectChannel(rctx, &model.User{Id: user1ID}, &model.User{Id: user2ID})
 	require.NoError(t, err)
 
 	gm1, err := ss.Channel().Save(&model.Channel{
@@ -956,7 +956,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 	threadStoreCreateReply(t, ss, team1channel1.Id, team1channel1post2.Id, user2ID, model.GetMillis())
 
 	// Actually make team2channel1post2deleted deleted
-	err = ss.Post().Delete(team2channel1post2deleted.Id, model.GetMillis(), user1ID)
+	err = ss.Post().Delete(rctx, team2channel1post2deleted.Id, model.GetMillis(), user1ID)
 	require.NoError(t, err)
 
 	// Re-fetch posts to ensure metadata up-to-date

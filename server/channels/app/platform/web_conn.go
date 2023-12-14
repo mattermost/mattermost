@@ -105,13 +105,16 @@ type WebConn struct {
 	// a reused connection.
 	// It's theoretically possible for this number to wrap around. But we
 	// leave that as an edge-case.
-	reuseCount   int
-	sessionToken atomic.Value
-	session      atomic.Pointer[model.Session]
-	connectionID atomic.Value
-	endWritePump chan struct{}
-	pumpFinished chan struct{}
-	pluginPosted chan pluginWSPostedHook
+	reuseCount            int
+	sessionToken          atomic.Value
+	session               atomic.Pointer[model.Session]
+	connectionID          atomic.Value
+	activeChannelID       atomic.Value
+	activeTeamID          atomic.Value
+	activeThreadChannelID atomic.Value
+	endWritePump          chan struct{}
+	pumpFinished          chan struct{}
+	pluginPosted          chan pluginWSPostedHook
 
 	// These counters are to suppress spammy websocket.slow
 	// and websocket.full logs which happen continuously, if they
@@ -232,6 +235,9 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 	wc.SetSessionToken(cfg.Session.Token)
 	wc.SetSessionExpiresAt(cfg.Session.ExpiresAt)
 	wc.SetConnectionID(cfg.ConnectionID)
+	wc.SetActiveChannelID("")
+	wc.SetActiveTeamID("")
+	wc.SetActiveThreadChannelID("")
 
 	ps.Go(func() {
 		runner.RunMultiHook(func(hooks plugin.Hooks) bool {
@@ -288,6 +294,36 @@ func (wc *WebConn) SetConnectionID(id string) {
 // GetConnectionID returns the connection id of the connection.
 func (wc *WebConn) GetConnectionID() string {
 	return wc.connectionID.Load().(string)
+}
+
+// SetActiveChannelID sets the active channel id of the connection.
+func (wc *WebConn) SetActiveChannelID(id string) {
+	wc.activeChannelID.Store(id)
+}
+
+// GetActiveChannelID returns the active channel id of the connection.
+func (wc *WebConn) GetActiveChannelID() string {
+	return wc.activeChannelID.Load().(string)
+}
+
+// SetActiveTeamID sets the active team id of the connection.
+func (wc *WebConn) SetActiveTeamID(id string) {
+	wc.activeTeamID.Store(id)
+}
+
+// GetActiveTeamID returns the active team id of the connection.
+func (wc *WebConn) GetActiveTeamID() string {
+	return wc.activeTeamID.Load().(string)
+}
+
+// GetActiveThreadChannelID returns the channel id of the active thread of the connection.
+func (wc *WebConn) GetActiveThreadChannelID() string {
+	return wc.activeThreadChannelID.Load().(string)
+}
+
+// SetActiveThreadChannelID sets the channel id of the active thread of the connection.
+func (wc *WebConn) SetActiveThreadChannelID(id string) {
+	wc.activeThreadChannelID.Store(id)
 }
 
 // areAllInactive returns whether all of the connections
@@ -477,7 +513,7 @@ func (wc *WebConn) writePump() {
 				logData := []mlog.Field{
 					mlog.String("user_id", wc.UserId),
 					mlog.String("conn_id", wc.GetConnectionID()),
-					mlog.String("type", string(msg.EventType())),
+					mlog.String("type", msg.EventType()),
 					mlog.Int("size", buf.Len()),
 				}
 				if evtOk {
@@ -735,7 +771,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 					"websocket.slow: dropping message",
 					mlog.String("user_id", wc.UserId),
 					mlog.String("conn_id", wc.GetConnectionID()),
-					mlog.String("type", string(msg.EventType())),
+					mlog.String("type", msg.EventType()),
 				)
 				// Reset timer to now.
 				wc.lastLogTimeSlow = time.Now()

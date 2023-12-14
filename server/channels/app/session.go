@@ -274,13 +274,17 @@ func (a *App) ExtendSessionExpiryIfNeeded(rctx request.CTX, session *model.Sessi
 
 	newExpiry := now + sessionLength
 	if err := a.ch.srv.platform.ExtendSessionExpiry(session, newExpiry); err != nil {
-		mlog.Error("Failed to update ExpiresAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+		rctx.Logger().Error("Failed to update ExpiresAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 		auditRec.AddMeta("err", err.Error())
 		return false
 	}
 
-	mlog.Debug("Session extended", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id),
-		mlog.Int64("newExpiry", newExpiry), mlog.Int64("session_length", sessionLength))
+	rctx.Logger().Debug("Session extended",
+		mlog.String("user_id", session.UserId),
+		mlog.String("session_id", session.Id),
+		mlog.Int("newExpiry", newExpiry),
+		mlog.Int("session_length", sessionLength),
+	)
 
 	auditRec.Success()
 	auditRec.AddEventResultState(session)

@@ -93,7 +93,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 	channelMember, err := th.store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = 9999999
-	_, err = th.store.Channel().UpdateMember(channelMember)
+	_, err = th.store.Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 
 	nErr := th.store.Preference().Save(model.Preferences{{
@@ -114,7 +114,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 	channelMember, err = th.store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = 10001000
-	_, err = th.store.Channel().UpdateMember(channelMember)
+	_, err = th.store.Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 
 	// We reset the interval to something shorter
@@ -208,7 +208,7 @@ func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
 	channelMember, err := th.store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = 9999000
-	_, err = th.store.Channel().UpdateMember(channelMember)
+	_, err = th.store.Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 
 	job.pendingNotifications[th.BasicUser.Id] = []*batchedNotification{
@@ -250,7 +250,7 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 	channelMember, err := th.store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = 9999000
-	_, err = th.store.Channel().UpdateMember(channelMember)
+	_, err = th.store.Channel().UpdateMember(th.Context, channelMember)
 	require.NoError(t, err)
 
 	// preference value is not an integer, so we'll fall back to the default 15min value
