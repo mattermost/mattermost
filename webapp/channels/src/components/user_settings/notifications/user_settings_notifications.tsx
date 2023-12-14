@@ -1396,12 +1396,20 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 }
 
 const customKeywordsWithNotificationStyles: ReactSelectStyles = {
-    control: ((baseStyles) => ({
+    control: ((baseStyles, state) => ({
         ...baseStyles,
         backgroundColor: 'var(--center-channel-bg)',
-        color: '#3f4350',
+        border: '1px solid rgba(var(--center-channel-color-rgb), 0.16);',
+        ':hover': {
+        borderColor: 'rgba(var(--center-channel-color-rgb), 0.48);',
+      }
     })),
-    input: ((baseStyles) => ({
+    multiValue: ((baseStyles, state) => ({
+        ...baseStyles,
+        background: 'rgba(var(--center-channel-color-rgb),0.08)',
+        color: 'var(--center-channel-color);',
+    })),
+    input: ((baseStyles,) => ({
         ...baseStyles,
         color: 'var(--center-channel-color)',
     })),
@@ -1412,8 +1420,10 @@ const customKeywordsWithNotificationStyles: ReactSelectStyles = {
     multiValueRemove: ((multiValueRemoveStyles) => ({
         ...multiValueRemoveStyles,
         cursor: 'pointer',
+        color: 'rgba(var(--center-channel-color-rgb),0.32);',
         ':hover': {
             backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.16)',
+            color: 'rgba(var(--center-channel-color-rgb),0.56);',
         },
     })),
 };
