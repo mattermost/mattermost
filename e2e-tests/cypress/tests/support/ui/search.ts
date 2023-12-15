@@ -1,16 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-Cypress.Commands.add('uiSearchPosts', (searchTerm) => {
+/**
+ * searches posts in ui
+ * @param searchTerm - the search term
+ */
+function uiSearchPosts(searchTerm: string) {
     // # Enter the search terms and hit enter to start the search
     cy.get('#searchBox').clear().type(searchTerm).type('{enter}');
 
     // * Wait for the RHS to open and the search results to appear
     cy.contains('.sidebar--right__header', 'Search Results').should('be.visible');
     cy.get('#searchContainer .LoadingSpinner').should('not.exist');
-});
+}
 
-Cypress.Commands.add('uiJumpToSearchResult', (postId) => {
+// eslint-disable-next-line @typescript-eslint/no-use-before-define
+Cypress.Commands.add('uiSearchPosts', uiSearchPosts);
+
+/**
+ * goes to search result in ui
+ * @param postId - the post id
+ */
+function uiJumpToSearchResult(postId: string) {
     // # Find the post in the search results and click Jump
     cy.get(`#searchResult_${postId}`).contains('a', 'Jump').click();
 
@@ -19,4 +30,15 @@ Cypress.Commands.add('uiJumpToSearchResult', (postId) => {
 
     // * Verify that the permalinked post is highlighted in the center channel
     cy.get(`#post_${postId}.post--highlight`).should('be.visible');
-});
+}
+
+// eslint-disable-next-line @typescript-eslint/no-use-before-define
+Cypress.Commands.add('uiJumpToSearchResult', uiJumpToSearchResult);
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+declare namespace Cypress {
+    interface Chainable {
+        uiSearchPosts: typeof uiSearchPosts;
+        uiJumpToSearchResult: typeof uiJumpToSearchResult;
+    }
+}
