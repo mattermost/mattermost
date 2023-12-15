@@ -97,6 +97,11 @@ func getChannelReport(c *Context, w http.ResponseWriter, r *http.Request) {
 		pageSize = int(pageSizeStr)
 	}
 
+	if pageSize <= 0 || pageSize > model.ReportingMaxPageSize {
+		c.Err = model.NewAppError("getChannelReport", "api.getChannelReport.invalid_page_size", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	filterOptions := &model.ChannelReportOptions{
 		ReportingBaseOptions: model.ReportingBaseOptions{
 			SortColumn:          sortColumn,

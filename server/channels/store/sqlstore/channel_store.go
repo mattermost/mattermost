@@ -4339,7 +4339,19 @@ func (s SqlChannelStore) GetChannelsReport(filter *model.ChannelReportOptions) (
 }
 
 func (s SqlChannelStore) getChannelReportGenerateQuery(filter *model.ChannelReportOptions) sq.SelectBuilder {
-	query := s.getQueryBuilder().
+	query := s.channelReportBaseQuery(filter)
+	query = s.channelReportApplyPagination(filter, query)
+	query = s.channelReportApplySorting(filter, query)
+	query = s.channelReportApplyDateFiltering(filter, query)
+
+	query = query.GroupBy("c.id").
+		Limit(uint64(filter.PageSize))
+
+	return query
+}
+
+func (s SqlChannelStore) channelReportBaseQuery(filter *model.ChannelReportOptions) sq.SelectBuilder {
+	return s.getQueryBuilder().
 		Select(
 			"c.id",
 			"c.displayname",
@@ -4355,35 +4367,11 @@ func (s SqlChannelStore) getChannelReportGenerateQuery(filter *model.ChannelRepo
 		Where(sq.Eq{
 			"c.type": []model.ChannelType{model.ChannelTypeOpen, model.ChannelTypePrivate}},
 		)
-
-	query = s.getChannelReportApplyPagination(filter, query)
-	query = s.getChannelReportApplySorting(filter, query)
-
-	if filter.StartAt > 0 || filter.EndAt > 0 {
-		dateFilter := sq.And{}
-		if filter.StartAt > 0 {
-			startDate := time.UnixMilli(filter.StartAt)
-			dateFilter = append(dateFilter, sq.GtOrEq{"pcs.day": startDate.Format("2006-01-02")})
-		}
-
-		if filter.EndAt > 0 {
-			endDate := time.UnixMilli(filter.EndAt)
-			dateFilter = append(dateFilter, sq.LtOrEq{"pcs.day": endDate.Format("2006-01-02")})
-		}
-
-		query = query.Where(sq.Or{
-			sq.Expr("pcs.day IS NULL"),
-			dateFilter,
-		})
-	}
-
-	query = query.GroupBy("c.id").
-		Limit(50)
-
-	return query
 }
 
-func (s SqlChannelStore) getChannelReportApplyPagination(filter *model.ChannelReportOptions, query sq.SelectBuilder) sq.SelectBuilder {
+func (s SqlChannelStore) channelReportApplyPagination(filter *model.ChannelReportOptions, query sq.SelectBuilder) sq.SelectBuilder {
+	// LOL add page direction - next or previous
+
 	if filter.LastSortColumnValue == "" {
 		return query
 	}
@@ -4406,12 +4394,52 @@ func (s SqlChannelStore) getChannelReportApplyPagination(filter *model.ChannelRe
 				},
 			})
 		}
+	} else if filter.SortColumn == model.ChannelReportingSortByPostCount {
+		if filter.SortDesc {
+			query = query.Having(sq.Or{
+				sq.Lt{"COALESCE(SUM(pcs.numposts), 0)": filter.LastSortColumnValue},
+				sq.And{
+					sq.Eq{"COALESCE(SUM(pcs.numposts), 0)": 1},
+					sq.Lt{"c.id": filter.LastChannelId},
+				},
+			})
+		} else {
+			query = query.Having(sq.Or{
+				sq.Gt{"COALESCE(SUM(pcs.numposts), 0)": filter.LastSortColumnValue},
+				sq.And{
+					sq.Eq{"COALESCE(SUM(pcs.numposts), 0)": 1},
+					sq.Gt{"c.id": filter.LastChannelId},
+				},
+			})
+		}
+	} else if filter.SortColumn == model.ChannelReportingSortByMemberCount {
+		if filter.SortDesc {
+			query = query.Where(
+				sq.Or{
+					sq.Lt{"usercount": filter.LastSortColumnValue},
+					sq.And{
+						sq.Eq{"usercount": filter.LastSortColumnValue},
+						sq.Lt{"c.id": filter.LastChannelId},
+					},
+				},
+			)
+		} else {
+			query = query.Where(
+				sq.Or{
+					sq.Gt{"usercount": filter.LastSortColumnValue},
+					sq.And{
+						sq.Eq{"usercount": filter.LastSortColumnValue},
+						sq.Gt{"c.id": filter.LastChannelId},
+					},
+				},
+			)
+		}
 	}
 
 	return query
 }
 
-func (S SqlChannelStore) getChannelReportApplySorting(filter *model.ChannelReportOptions, query sq.SelectBuilder) sq.SelectBuilder {
+func (s SqlChannelStore) channelReportApplySorting(filter *model.ChannelReportOptions, query sq.SelectBuilder) sq.SelectBuilder {
 	sortDirection := "ASC"
 	if filter.SortDesc {
 		sortDirection = "DESC"
@@ -4419,6 +4447,32 @@ func (S SqlChannelStore) getChannelReportApplySorting(filter *model.ChannelRepor
 
 	if filter.SortColumn == model.ChannelReportingSortByDisplayName {
 		query = query.OrderBy("c.displayname "+sortDirection, "c.id")
+	} else if filter.SortColumn == model.ChannelReportingSortByPostCount {
+		query = query.OrderBy("postcount "+sortDirection, "c.id")
+	} else if filter.SortColumn == model.ChannelReportingSortByMemberCount {
+		query = query.OrderBy("membercount "+sortDirection, "c.id")
+	}
+
+	return query
+}
+
+func (s SqlChannelStore) channelReportApplyDateFiltering(filter *model.ChannelReportOptions, query sq.SelectBuilder) sq.SelectBuilder {
+	if filter.StartAt > 0 || filter.EndAt > 0 {
+		dateFilter := sq.And{}
+		if filter.StartAt > 0 {
+			startDate := time.UnixMilli(filter.StartAt)
+			dateFilter = append(dateFilter, sq.GtOrEq{"pcs.day": startDate.Format("2006-01-02")})
+		}
+
+		if filter.EndAt > 0 {
+			endDate := time.UnixMilli(filter.EndAt)
+			dateFilter = append(dateFilter, sq.LtOrEq{"pcs.day": endDate.Format("2006-01-02")})
+		}
+
+		query = query.Where(sq.Or{
+			sq.Expr("pcs.day IS NULL"),
+			dateFilter,
+		})
 	}
 
 	return query

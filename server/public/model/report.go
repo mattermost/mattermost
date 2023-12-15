@@ -126,7 +126,7 @@ func (options *ChannelReportOptions) IsValid() *AppError {
 		return NewAppError("ChannelReportOptions.IsValid", "app.channel.get_user_report.invalid_sort_column", nil, "", http.StatusBadRequest)
 	}
 
-	if !IsValidId(options.LastChannelId) {
+	if options.LastChannelId != "" && !IsValidId(options.LastChannelId) {
 		// LOL update these error messages
 		return NewAppError("ChannelReportOptions.IsValid", "app.channel.get_user_report.invalid_last_channel_id", nil, "", http.StatusBadRequest)
 	}
@@ -135,8 +135,8 @@ func (options *ChannelReportOptions) IsValid() *AppError {
 }
 
 type ChannelReportStats struct {
-	MemberCount int
-	PostCount   int
+	MemberCount *int `json:"memberCount"`
+	PostCount   *int `json:"postCount"`
 }
 
 type ChannelReport struct {
