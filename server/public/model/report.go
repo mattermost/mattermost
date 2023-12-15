@@ -19,8 +19,7 @@ const (
 )
 
 var (
-	UserReportSortColumns = []string{"CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email", "Roles"}
-
+	UserReportSortColumns    = []string{"CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email", "Roles"}
 	ChannelReportSortColumns = []string{ChannelReportingSortByDisplayName, ChannelReportingSortByMemberCount, ChannelReportingSortByPostCount}
 )
 
@@ -53,11 +52,6 @@ func (options *ReportingBaseOptions) PopulateDateRange(now time.Time) {
 }
 
 func (options *ReportingBaseOptions) IsValid() *AppError {
-	// Don't allow fetching more than 100 users at a time from the normal query endpoint
-	if options.PageSize <= 0 || options.PageSize > ReportingMaxPageSize {
-		return NewAppError("ReportingBaseOptions.IsValid", "model.reporting_base_options.is_valid.invalid_page_size", nil, "", http.StatusBadRequest)
-	}
-
 	// Validate date range
 	if options.EndAt > 0 && options.StartAt > options.EndAt {
 		return NewAppError("ReportingBaseOptions.IsValid", "model.reporting_base_options.is_valid.bad_date_range", nil, "", http.StatusBadRequest)

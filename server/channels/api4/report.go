@@ -64,6 +64,12 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	options.PopulateDateRange(time.Now())
 
+	// Don't allow fetching more than 100 users at a time from the normal query endpoint
+	if options.PageSize <= 0 || options.PageSize > model.ReportingMaxPageSize {
+		c.Err = model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_page_size", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	userReports, err := c.App.GetUsersForReporting(options)
 	if err != nil {
 		c.Err = err
