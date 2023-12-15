@@ -3884,7 +3884,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Bericht Export GlobalRelaySettings. CustomerType moet worden ingesteld op 'A9' of 'A10."
+    "translation": "Message export GlobalRelaySettings.CustomerType moet worden ingesteld op \"A9\", \"A10\" of \"CUSTOM\"."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -10124,5 +10124,17 @@
   {
     "id": "app.reaction.save.save.too_many_reactions",
     "translation": "De reactielimiet voor dit bericht is bereikt."
+  },
+  {
+    "id": "app.user.get_user_report.store_error",
+    "translation": "Er is een fout opgetreden bij het opvragen van het gebruikersrapport."
+  },
+  {
+    "id": "app.user.get_users_for_reporting.invalid_page_size",
+    "translation": "Paginaformaat is ongeldig of te groot."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Als GlobalRelaySettings.CustomerType 'CUSTOM' is, dan moeten GlobalRelaySettings.CustomSMTPServerName en GlobalRelaySettings.CustomSMTPPort worden ingesteld."
   }
 ]
