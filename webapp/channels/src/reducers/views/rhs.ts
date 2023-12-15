@@ -87,7 +87,7 @@ function selectedPostCardId(state = '', action: GenericAction) {
     case ActionTypes.SELECT_POST_CARD:
         return action.postId;
     case ActionTypes.SELECT_POST:
-        return action.postId;
+        return '';
     case PostTypes.POST_REMOVED:
         if (action.data && action.data.id === state) {
             return '';
