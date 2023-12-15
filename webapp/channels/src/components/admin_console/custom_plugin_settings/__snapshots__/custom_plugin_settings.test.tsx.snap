@@ -107,7 +107,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
               ]
             }
           />
-          <RadioSetting
+          <Memo(RadioSetting)
             disabled={false}
             helpText={
               <SchemaText
@@ -417,7 +417,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
               ]
             }
           />
-          <RadioSetting
+          <Memo(RadioSetting)
             disabled={false}
             helpText={
               <SchemaText
