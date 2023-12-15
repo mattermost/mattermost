@@ -246,6 +246,7 @@ const values = {
         CREATE_REACTIONS: 'create_reactions',
         MANAGE_MEMBERS: 'manage_members',
         USE_CHANNEL_MENTIONS: 'use_channel_mentions',
+        MANAGE_BOOKMARKS: 'manage_bookmarks',
     },
     MANAGE_BOTS: 'manage_bots',
     MANAGE_OTHERS_BOTS: 'manage_others_bots',

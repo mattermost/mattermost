@@ -840,6 +840,23 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	return channel
 }
 
+func (th *TestHelper) PatchChannelModerationsForMembers(channelId, name string, val bool) {
+	patch := []*model.ChannelModerationPatch{{
+		Name:  &name,
+		Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(val)},
+	}}
+
+	channel, err := th.App.GetChannel(th.Context, channelId)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = th.App.PatchChannelModerationsForChannel(th.Context, channel, patch)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (th *TestHelper) LoginBasic() {
 	th.LoginBasicWithClient(th.Client)
 }

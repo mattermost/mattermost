@@ -1194,7 +1194,7 @@ func buildChannelModerations(c request.CTX, channelType model.ChannelType, membe
 			Enabled: higherScopedMemberPermissions[permissionKey],
 		}
 
-		if permissionKey == "manage_members" {
+		if permissionKey == "manage_members" || permissionKey == "manage_bookmarks" {
 			roles.Guests = nil
 		} else {
 			roles.Guests = &model.ChannelModeratedRole{
