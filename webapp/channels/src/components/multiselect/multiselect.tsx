@@ -8,8 +8,7 @@ import {FormattedMessage} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {getOptionValue} from 'react-select/src/builtins';
 import type {InputActionMeta} from 'react-select/src/types';
-
-import <i/> from 'components/<i/>';
+import <span> from 'components/<span/>';
 import SaveButton from 'components/save_button';
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import Avatar from 'components/widgets/users/avatar';
@@ -332,7 +331,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
             noteTextContainer = (
                 <div className='multi-select__note'>
                     <div className='note__icon'>
-                        <<i/>
+                        <span/>
                             className='fa fa-info'
                             title={{id: 'generic_icons.info', defaultMessage: 'Info Icon'}}
                         />
