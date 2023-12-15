@@ -25,6 +25,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 const (
@@ -845,7 +846,11 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	if chID := msg.GetBroadcast().ChannelId; chID != "" {
 		// For typing events, we don't send them to users who don't have
 		// that channel or thread opened.
-		if msg.EventType() == model.WebsocketEventTyping && wc.notInChannelAndThread(chID) {
+		if utils.Contains([]model.WebsocketEventType{
+			model.WebsocketEventTyping,
+			model.WebsocketEventReactionAdded,
+			model.WebsocketEventReactionRemoved,
+		}, msg.EventType()) && wc.notInChannelAndThread(chID) {
 			return false
 		}
 

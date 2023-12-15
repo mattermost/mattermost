@@ -42,7 +42,6 @@ describe('PostComponent', () => {
             markPostAsUnread: jest.fn(),
             emitShortcutReactToLastPostFrom: jest.fn(),
             setActionsMenuInitialisationState: jest.fn(),
-            selectPost: jest.fn(),
             selectPostFromRightHandSideSearch: jest.fn(),
             removePost: jest.fn(),
             closeRightHandSide: jest.fn(),
