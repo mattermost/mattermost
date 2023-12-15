@@ -7,7 +7,7 @@
 .admin-console {
     overflow: auto;
     height: 100%;
-    color: #333;
+    color: v(center-channel-color);
     grid-area: center;
     -webkit-overflow-scrolling: touch;
 
@@ -902,10 +902,6 @@
 }
 
 .manage-teams {
-    .modal-body {
-        padding: 15px 15px 0;
-    }
-
     .manage-teams__user {
         display: flex;
         align-items: center;

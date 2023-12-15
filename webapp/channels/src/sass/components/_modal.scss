@@ -117,7 +117,7 @@
 
 .modal {
     width: 100%;
-    color: alpha-color($black, 0.9);
+    color: v(center-channel-color);
 
     .modal--overflow {
         .modal-body {
@@ -240,6 +240,7 @@
 
     .modal-header {
         display: flex;
+        min-height: 80px;
         align-items: center;
         justify-content: space-between;
         padding: 24px 64px 24px 32px;

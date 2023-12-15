@@ -270,7 +270,7 @@ export default class AddGroupsToChannelModal extends React.PureComponent<Props, 
                 onExited={this.props.onExited}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>
+                    <Modal.Title componentClass='h1'>
                         <FormattedMessage
                             id='add_groups_to_channel.title'
                             defaultMessage='Add New Groups to {channelName} Channel'
