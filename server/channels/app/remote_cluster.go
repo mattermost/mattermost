@@ -17,7 +17,13 @@ import (
 func (a *App) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error) {
 	//  check if plugin already registered
 
-	// create model.RemoteCluster
+	rc := &model.RemoteCluster{
+		Name:        opts.Displayname,
+		DisplayName: opts.Displayname,
+		Token:       model.NewId(),
+		CreatorId:   opts.CreatorID,
+		PluginID:    opts.PluginID,
+	}
 
 	// call rc, err := a.Srv().Store().RemoteCluster().Save(rc)
 

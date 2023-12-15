@@ -303,5 +303,6 @@ type SyncResponse struct {
 type RegisterPluginOpts struct {
 	Displayname  string // a displayname used in status reports
 	PluginID     string // id of this plugin registering
+	CreatorID    string // id of the user/bot registering
 	AutoShareDMs bool   // when true, all DMs are automatically shared to this remote
 }

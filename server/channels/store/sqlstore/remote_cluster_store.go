@@ -82,6 +82,7 @@ func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*mode
 		return nil, err
 	}
 
+	// not all fields can be updated.
 	query := `UPDATE RemoteClusters
 			SET Token = :Token,
 			RemoteTeamId = :RemoteTeamId,
