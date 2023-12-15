@@ -151,7 +151,7 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 
 		err := botListCmdF(s.th.Client, cmd, []string{})
 		s.Require().Error(err)
-		s.Require().Equal("Failed to fetch bots: : You do not have the appropriate permissions.", err.Error())
+		s.Require().Equal("Failed to fetch bots: You do not have the appropriate permissions.", err.Error())
 	})
 }
 
