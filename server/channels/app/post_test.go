@@ -1379,6 +1379,76 @@ func TestPatchPostInArchivedChannel(t *testing.T) {
 	require.Equal(t, "api.post.patch_post.can_not_update_post_in_deleted.error", err.Id)
 }
 
+func TestUpdateEphemeralPost(t *testing.T) {
+	t.Run("Post contains preview if the user has permissions", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		referencedPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		referencedPost, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, false, false)
+		require.Nil(t, err)
+
+		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		testPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   permalink,
+			UserId:    th.BasicUser.Id,
+		}
+
+		testPost = th.App.UpdateEphemeralPost(th.Context, th.BasicUser.Id, testPost)
+		require.NotNil(t, testPost.Metadata)
+		require.Len(t, testPost.Metadata.Embeds, 1)
+		require.Equal(t, model.PostEmbedPermalink, testPost.Metadata.Embeds[0].Type)
+	})
+
+	t.Run("Post does not contain preview if the user has no permissions", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, privateChannel)
+		th.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+
+		referencedPost := &model.Post{
+			ChannelId: privateChannel.Id,
+			Message:   "hello world",
+			UserId:    th.BasicUser.Id,
+		}
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		referencedPost, err := th.App.CreatePost(th.Context, referencedPost, th.BasicChannel, false, false)
+		require.Nil(t, err)
+
+		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		testPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   permalink,
+			UserId:    th.BasicUser2.Id,
+		}
+
+		testPost = th.App.UpdateEphemeralPost(th.Context, th.BasicUser2.Id, testPost)
+		require.Nil(t, testPost.Metadata.Embeds)
+	})
+}
+
 func TestUpdatePost(t *testing.T) {
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
 		th := Setup(t).InitBasic()

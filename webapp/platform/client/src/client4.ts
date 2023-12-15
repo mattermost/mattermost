@@ -478,6 +478,10 @@ export default class Client4 {
         return `${this.getBaseRoute()}/drafts`;
     }
 
+    getReportsRoute(): string {
+        return `${this.getBaseRoute()}/reports`;
+    }
+
     getCSRFFromCookie() {
         if (typeof document !== 'undefined' && typeof document.cookie !== 'undefined') {
             const cookies = document.cookie.split(';');
@@ -987,7 +991,7 @@ export default class Client4 {
     getUsersForReporting = (filter: UserReportOptions) => {
         const queryString = buildQueryString(filter);
         return this.doFetch<UserReport[]>(
-            `${this.getUsersRoute()}/report${queryString}`,
+            `${this.getReportsRoute()}/users${queryString}`,
             {method: 'get'},
         );
     }
