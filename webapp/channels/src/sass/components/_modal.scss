@@ -240,7 +240,6 @@
 
     .modal-header {
         display: flex;
-        min-height: 80px;
         align-items: center;
         justify-content: space-between;
         padding: 24px 64px 24px 32px;
@@ -256,9 +255,14 @@
             content: none;
         }
 
+        .btn {
+            position: relative;
+            top: -2px;
+        }
+
         .close {
             position: absolute;
-            top: 22px;
+            top: 20px;
             right: 18px;
             width: 40px;
             height: 40px;
