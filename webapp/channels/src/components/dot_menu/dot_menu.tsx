@@ -385,8 +385,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
         // move thread
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.W):
+            forceCloseMenu();
             this.handleMoveThreadMenuItemActivated(event);
-            this.props.handleDropdownOpened(false);
             break;
 
             // pin / unpin
