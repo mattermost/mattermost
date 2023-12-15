@@ -18,7 +18,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func newOutgoingOAuthConnection() *model.OutgoingOAuthConnection {
+	return &model.OutgoingOAuthConnection{
+		Name:          "test",
+		CreatorId:     model.NewId(),
+		ClientId:      "test",
+		ClientSecret:  "test",
+		OAuthTokenURL: "http://localhost:9999/oauth/token",
+		GrantType:     model.OutgoingOAuthConnectionGrantTypeClientCredentials,
+		Audiences:     []string{"http://example.com"},
+	}
+}
+
 func outgoingOauthConnectionsCleanup(t *testing.T, th *TestHelper) {
+	t.Helper()
+
 	// Remove all connections
 	conns, errCleanup := th.App.Srv().Store().OutgoingOAuthConnection().GetConnections(th.Context, model.OutgoingOAuthConnectionGetConnectionsFilter{})
 	require.NoError(t, errCleanup)
@@ -52,7 +66,7 @@ func TestOutgoingOAuthConnectionGet(t *testing.T) {
 		require.Equal(t, 501, response.StatusCode)
 	})
 
-	t.Run("license but no feature flag return 501", func(t *testing.T) {
+	t.Run("license but no feature flag returns 501", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -106,11 +120,10 @@ func TestListOutgoingOAutConnection(t *testing.T) {
 	t.Run("return result", func(t *testing.T) {
 		defer outgoingOauthConnectionsCleanup(t, th)
 
-		conn := &model.OutgoingOAuthConnection{
-			Name: "test",
-		}
+		conn := newOutgoingOAuthConnection()
 
-		th.App.Srv().Store().OutgoingOAuthConnection().SaveConnection(th.Context, conn)
+		conn, err := th.App.Srv().Store().OutgoingOAuthConnection().SaveConnection(th.Context, conn)
+		require.NoError(t, err)
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
@@ -124,6 +137,7 @@ func TestListOutgoingOAutConnection(t *testing.T) {
 
 		require.Equal(t, 200, response.StatusCode)
 		require.Equal(t, 1, len(connections))
+		require.Equal(t, conn, connections[0])
 	})
 }
 
@@ -141,11 +155,10 @@ func TestGetOutgoingOauthConnection(t *testing.T) {
 	t.Run("return result", func(t *testing.T) {
 		defer outgoingOauthConnectionsCleanup(t, th)
 
-		conn := &model.OutgoingOAuthConnection{
-			Name: "test",
-		}
+		conn := newOutgoingOAuthConnection()
 
-		th.App.Srv().Store().OutgoingOAuthConnection().SaveConnection(th.Context, conn)
+		conn, err := th.App.Srv().Store().OutgoingOAuthConnection().SaveConnection(th.Context, conn)
+		require.NoError(t, err)
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthIface.Mock.On("GetConnection", mock.Anything, mock.Anything).Return(conn, nil)
@@ -165,6 +178,7 @@ func TestGetOutgoingOauthConnection(t *testing.T) {
 		require.Equal(t, 200, response.StatusCode)
 		require.NotNil(t, connection)
 		require.Equal(t, conn.Id, connection.Id)
+		require.Equal(t, conn, connection)
 	})
 }
 
@@ -263,10 +277,7 @@ func TestOutgoingOAuthConnectionAPIHandlers(t *testing.T) {
 	c.App = th.App
 	c.Logger = th.App.Srv().Log()
 
-	conn := &model.OutgoingOAuthConnection{
-		Id:   "test",
-		Name: "test",
-	}
+	conn := newOutgoingOAuthConnection()
 
 	t.Run("getOutgoingOAuthConnection", func(t *testing.T) {
 		req, err := http.NewRequest("GET", "/", nil)

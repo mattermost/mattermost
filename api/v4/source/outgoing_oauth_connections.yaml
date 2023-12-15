@@ -8,7 +8,7 @@
       description: >
         List all outgoing OAuth connections.
 
-        __Minimum server version__: 9.4
+        __Minimum server version__: 9.5
       operationId: ListOutgoingOAuthConnections
       responses:
         "200":
@@ -35,7 +35,7 @@
       description: >
         Retrieve an outgoing OAuth connection.
 
-        __Minimum server version__: 9.4
+        __Minimum server version__: 9.5
       operationId: GetOutgoingOAuthConnection
       responses:
         "200":
