@@ -167,14 +167,16 @@ function SelfHostedContent(props: ContentProps) {
                 </div>
                 <button
                     id='closeIcon'
-                    className='icon icon-close'
+                    className='close'
                     aria-label='Close'
                     title='Close'
                     onClick={() => {
                         trackEvent('self_hosted_pricing', 'close_pricing_modal');
                         props.onHide();
                     }}
-                />
+                >
+                    <span aria-hidden='true'>{'×'}</span>
+                </button>
             </Modal.Header>
             <Modal.Body>
                 {renderAlert()}

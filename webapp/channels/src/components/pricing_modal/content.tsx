@@ -317,11 +317,13 @@ function Content(props: ContentProps) {
                 </div>
                 <button
                     id='closeIcon'
-                    className='icon icon-close'
+                    className='close'
                     aria-label='Close'
                     title='Close'
                     onClick={props.onHide}
-                />
+                >
+                    <span aria-hidden='true'>{'×'}</span>
+                </button>
             </Modal.Header>
             <Modal.Body>
                 {!cloudFreeDeprecated && (

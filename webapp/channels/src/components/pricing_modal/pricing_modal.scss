@@ -17,7 +17,6 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 28px 32px;
         border: none;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         font-size: 22px;
@@ -53,31 +52,6 @@
         &::before,
         &::after {
             display: none;
-        }
-
-        // beat regular modal-header in specificity
-        &.modal-header {
-            background-color: var(--center-channel-bg);
-            color: var(--center-channel-color);
-        }
-
-        .icon-close {
-            padding: 0;
-            border: none;
-            -moz-appearance: none;
-            -webkit-appearance: none;
-            appearance: none;
-            background: none;
-            color: rgb(var(--center-channel-color-rgb), 0.56);
-            cursor: pointer;
-            font: inherit;
-            outline: inherit;
-
-            &:hover,
-            &:active,
-            &:focus {
-                color: rgb(var(--center-channel-color-rgb), 0.56);
-            }
         }
     }
 
