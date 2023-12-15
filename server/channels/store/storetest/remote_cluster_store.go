@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	testPluginID = "com.sample.blap"
+	testPluginID_1 = "com.sample.blap"
+	testPluginID_2 = "com.sample.bloop"
 )
 
 func TestRemoteClusterStore(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -36,6 +37,7 @@ func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 			Name:      "some_remote",
 			SiteURL:   "somewhere.com",
 			CreatorId: model.NewId(),
+			PluginID:  testPluginID_1,
 		}
 
 		rcSaved, err := ss.RemoteCluster().Save(rc)
@@ -44,6 +46,7 @@ func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, rc.SiteURL, rcSaved.SiteURL)
 		require.Greater(t, rc.CreateAt, int64(0))
 		require.Equal(t, rc.LastPingAt, int64(0))
+		require.Equal(t, testPluginID_1, rcSaved.PluginID)
 	})
 
 	t.Run("Save missing display name", func(t *testing.T) {
@@ -62,6 +65,52 @@ func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		_, err := ss.RemoteCluster().Save(rc)
 		require.Error(t, err)
+	})
+
+	t.Run("Save pluginID collision", func(t *testing.T) {
+		rc := &model.RemoteCluster{
+			Name:      "some_remote",
+			SiteURL:   "somewhere.com",
+			CreatorId: model.NewId(),
+			PluginID:  testPluginID_1,
+		}
+		_, err := ss.RemoteCluster().Save(rc)
+		require.NoError(t, err)
+
+		rc2 := &model.RemoteCluster{
+			Name:      "another_remote",
+			SiteURL:   "elsewhere.com",
+			CreatorId: model.NewId(),
+			PluginID:  testPluginID_1,
+		}
+
+		rcSaved, err := ss.RemoteCluster().Save(rc2)
+		require.NoError(t, err)
+		require.NotNil(t, rcSaved)
+
+		// original remotecluster should be returned
+		require.Equal(t, rc.Name, rcSaved.Name)
+		require.Equal(t, rc.SiteURL, rcSaved.SiteURL)
+		require.Greater(t, rc.CreateAt, int64(0))
+		require.Equal(t, testPluginID_1, rcSaved.PluginID)
+	})
+
+	t.Run("Save multiple with blank pluginID", func(t *testing.T) {
+		rc := &model.RemoteCluster{
+			Name:      model.NewId(),
+			SiteURL:   model.NewId(),
+			CreatorId: model.NewId(),
+		}
+		_, err := ss.RemoteCluster().Save(rc)
+		require.NoError(t, err)
+
+		rc2 := &model.RemoteCluster{
+			Name:      model.NewId(),
+			SiteURL:   model.NewId(),
+			CreatorId: model.NewId(),
+		}
+		_, err = ss.RemoteCluster().Save(rc2)
+		require.NoError(t, err)
 	})
 }
 
@@ -93,7 +142,7 @@ func testRemoteClusterGet(t *testing.T, rctx request.CTX, ss store.Store) {
 			Name:      "shortlived_remote_2",
 			SiteURL:   "nowhere.com",
 			CreatorId: model.NewId(),
-			PluginID:  testPluginID,
+			PluginID:  testPluginID_1,
 		}
 		rcSaved, err := ss.RemoteCluster().Save(rc)
 		require.NoError(t, err)
@@ -101,7 +150,7 @@ func testRemoteClusterGet(t *testing.T, rctx request.CTX, ss store.Store) {
 		rcGet, err := ss.RemoteCluster().Get(rcSaved.RemoteId)
 		require.NoError(t, err)
 		require.Equal(t, rcSaved.RemoteId, rcGet.RemoteId)
-		require.Equal(t, testPluginID, rcGet.PluginID)
+		require.Equal(t, testPluginID_1, rcGet.PluginID)
 	})
 
 	t.Run("Get not found", func(t *testing.T) {
@@ -243,8 +292,8 @@ func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.S
 
 	// Create some remote clusters
 	rcData := []*model.RemoteCluster{
-		{Name: "AAAA_Inc", CreatorId: userId, SiteURL: "aaaa.com", RemoteId: model.NewId(), LastPingAt: now, PluginID: testPluginID},
-		{Name: "BBBB_Inc", CreatorId: userId, SiteURL: "bbbb.com", RemoteId: model.NewId(), LastPingAt: 0, PluginID: testPluginID},
+		{Name: "AAAA_Inc", CreatorId: userId, SiteURL: "aaaa.com", RemoteId: model.NewId(), LastPingAt: now, PluginID: testPluginID_1},
+		{Name: "BBBB_Inc", CreatorId: userId, SiteURL: "bbbb.com", RemoteId: model.NewId(), LastPingAt: 0, PluginID: testPluginID_2},
 		{Name: "CCCC_Inc", CreatorId: userId, SiteURL: "cccc.com", RemoteId: model.NewId(), LastPingAt: now},
 		{Name: "DDDD_Inc", CreatorId: userId, SiteURL: "dddd.com", RemoteId: model.NewId(), LastPingAt: now},
 		{Name: "EEEE_Inc", CreatorId: userId, SiteURL: "eeee.com", RemoteId: model.NewId(), LastPingAt: 0},
@@ -276,8 +325,8 @@ func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.S
 		require.Len(t, list, 2, "channel 1 should have 2 remote clusters")
 		ids := getIds(list)
 		require.ElementsMatch(t, []string{rcData[0].RemoteId, rcData[1].RemoteId}, ids)
-		require.Equal(t, testPluginID, rcData[0].PluginID)
-		require.Equal(t, testPluginID, rcData[1].PluginID)
+		require.Equal(t, testPluginID_1, rcData[0].PluginID)
+		require.Equal(t, testPluginID_2, rcData[1].PluginID)
 	})
 
 	t.Run("Channel 1 online only", func(t *testing.T) {
