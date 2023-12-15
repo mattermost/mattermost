@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 export {useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper} from '@tanstack/react-table';
-export type {CellContext, PaginationState, SortingState} from '@tanstack/react-table';
+export type {CellContext, PaginationState, SortingState, OnChangeFn} from '@tanstack/react-table';
 
-export {ListTable as AdminConsoleListTable} from './list_table';
+export {ListTable as AdminConsoleListTable, PAGE_SIZES} from './list_table';
 export type {TableMeta, PageSizeOption} from './list_table';
 
 export {ElapsedDurationCell} from './elapsed_duration_cell';

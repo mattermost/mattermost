@@ -23,21 +23,27 @@ function AdminConsoleListActions(props: Props) {
 
     function getTranslatedUserRole(userRoles: UserProfile['roles']) {
         if (userRoles.length > 0 && isSystemAdmin(userRoles)) {
-            return formatMessage({
-                id: 'admin.system_users.list.actions.userAdmin',
-                defaultMessage: 'System Admin',
-            });
+            return (
+                <FormattedMessage
+                    id='admin.system_users.list.actions.userAdmin'
+                    defaultMessage='System Admin'
+                />
+            );
         } else if (isGuest(userRoles)) {
-            return formatMessage({
-                id: 'admin.system_users.list.actions.userGuest',
-                defaultMessage: 'Guest',
-            });
+            return (
+                <FormattedMessage
+                    id='admin.system_users.list.actions.userGuest'
+                    defaultMessage='Guest'
+                />
+            );
         }
 
-        return formatMessage({
-            id: 'admin.system_users.list.actions.userMember',
-            defaultMessage: 'Member',
-        });
+        return (
+            <FormattedMessage
+                id='admin.system_users.list.actions.userMember'
+                defaultMessage='Member'
+            />
+        );
     }
 
     const menuButtonId = `actionMenuButton-${props.tableId}-${props.rowIndex}`;
@@ -45,9 +51,7 @@ function AdminConsoleListActions(props: Props) {
     const menuItemIdPrefix = `actionMenuItem-${props.tableId}-${props.rowIndex}`;
 
     // Disable if SystemAdmin being edited by non SystemAdmin eg. userManager with EditOtherUsers permissions
-    const isDisabled =
-        !isSystemAdmin(props.currentUserRoles) &&
-        isSystemAdmin(props.userRoles);
+    const isDisabled = !isSystemAdmin(props.currentUserRoles) && isSystemAdmin(props.userRoles);
 
     return (
         <Menu.Container

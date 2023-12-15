@@ -45,6 +45,7 @@
         & > .admin-console__container {
             margin-right: 10px;
             background-color: var(--sys-center-channel-bg);
+            overflow: auto;
         }
     }
 
@@ -877,6 +878,8 @@
 }
 
 .system-users__filter-row {
+    position: sticky;
+    left: 0;
     display: flex;
     padding-block-end: 12px;
     padding-block-start: 24px;

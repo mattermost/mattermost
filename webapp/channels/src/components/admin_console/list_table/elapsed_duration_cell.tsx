@@ -20,14 +20,16 @@ export function ElapsedDurationCell(props: Props) {
     const {formatMessage} = useIntl();
 
     const {elapsedDays, exactPassedInDate} = useMemo(() => {
-        const todayMoment = moment();
+        const startOfTodayMoment = moment().startOf('day');
         const passedInDateMoment = moment(props.date);
-
-        // TODO: Use Timestamp component here
-        const elapsedDays = todayMoment.diff(passedInDateMoment, 'days');
         const exactPassedInDate = passedInDateMoment.format(
             `MMMM DD, Y [${formatMessage({id: 'admin.console.list.table.exactTime.at', defaultMessage: 'at'})}] hh:mm:ss A`,
         );
+
+        const startOfPassedInDateMoment = passedInDateMoment.startOf('day');
+
+        // TODO: Use Timestamp component here
+        const elapsedDays = startOfTodayMoment.diff(startOfPassedInDateMoment, 'days');
 
         return {
             elapsedDays,

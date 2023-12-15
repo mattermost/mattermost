@@ -3,21 +3,26 @@
 
 import React, {useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useHistory} from 'react-router-dom';
 
-import type {UserProfile} from '@mattermost/types/users';
+import type {ServerError} from '@mattermost/types/errors';
+import {UserReportSortColumns, type UserReportOptions, ReportSortDirection} from '@mattermost/types/reports';
+import type {UserProfile, UserReport} from '@mattermost/types/users';
 
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {AdminConsoleListTable, useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper, ElapsedDurationCell} from 'components/admin_console/list_table';
-import type {CellContext, PaginationState, SortingState, TableMeta} from 'components/admin_console/list_table';
+import {AdminConsoleListTable, useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper, ElapsedDurationCell, PAGE_SIZES} from 'components/admin_console/list_table';
+import type {CellContext, PaginationState, SortingState, TableMeta, OnChangeFn} from 'components/admin_console/list_table';
 
 import {imageURLForUser} from 'utils/utils';
 
-import {userReports} from '../sample';
 import SystemUsersActions from '../system_users_list_actions';
 
+import type {PropsFromRedux} from './index';
+
 import './system_users_list.scss';
+
+type Props = PropsFromRedux;
 
 type SystemUsersRow = {
     id: UserProfile['id'];
@@ -47,12 +52,14 @@ enum ColumnNames {
 
 const columnHelper = createColumnHelper<SystemUsersRow>();
 
-function SystemUsersList() {
-    const {formatMessage} = useIntl();
-
-    const currentUser = useSelector(getCurrentUser);
-
+function SystemUsersList(props: Props) {
     const tableId = 'systemUsersTable';
+
+    const {formatMessage} = useIntl();
+    const history = useHistory();
+
+    const [userReports, setUserReports] = useState<UserReport[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     const columns = useMemo(
         () => [
@@ -123,7 +130,7 @@ function SystemUsersList() {
                 cell: (info) => <ElapsedDurationCell date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
-                enableSorting: true,
+                enableSorting: false,
             }),
             columnHelper.accessor('last_status_at', {
                 id: ColumnNames.lastStatusAt,
@@ -134,7 +141,7 @@ function SystemUsersList() {
                 cell: (info) => <ElapsedDurationCell date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
-                enableSorting: true,
+                enableSorting: false,
             }),
             columnHelper.accessor('last_post_date', {
                 id: ColumnNames.lastPostDate,
@@ -145,7 +152,7 @@ function SystemUsersList() {
                 cell: (info) => <ElapsedDurationCell date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
-                enableSorting: true,
+                enableSorting: false,
             }),
             columnHelper.accessor('days_active', {
                 id: ColumnNames.daysActive,
@@ -159,7 +166,7 @@ function SystemUsersList() {
                 },
                 enableHiding: true,
                 enablePinning: false,
-                enableSorting: true,
+                enableSorting: false,
             }),
             columnHelper.accessor('total_posts', {
                 id: ColumnNames.totalPosts,
@@ -173,7 +180,7 @@ function SystemUsersList() {
                 },
                 enableHiding: true,
                 enablePinning: false,
-                enableSorting: true,
+                enableSorting: false,
             }),
             {
                 id: ColumnNames.actions,
@@ -187,7 +194,7 @@ function SystemUsersList() {
                         rowIndex={info.cell.row.index}
                         tableId={tableId}
                         userRoles={info.row.original.roles}
-                        currentUserRoles={currentUser.roles}
+                        currentUserRoles={props.currentUser.roles}
                     />
                 ),
                 enableHiding: false,
@@ -195,65 +202,113 @@ function SystemUsersList() {
                 enableSorting: false,
             },
         ],
-        [currentUser.roles],
+        [props.currentUser.roles],
     );
 
-    // Move the following states to redux
-    const [paginationState, setPaginationState] = useState<PaginationState>({
-        pageIndex: 0,
-        pageSize: 20,
-    });
-    const [sortState, setSortState] = useState<SortingState>([]);
-
-    // Change the following useEffects to single useEffect
     useEffect(() => {
-        if (sortState.length === 0) {
-            // eslint-disable-next-line no-console
-            console.log('sortState is empty');
-        } else {
-            const [{id, desc}] = sortState;
-            // eslint-disable-next-line no-console
-            console.log('sort on', id, desc);
+        async function fetchUserReportsWithOptions(pageSize?: PaginationState['pageSize'], sortColumn?: SortingState[0]['id'], sortIsDescending?: SortingState[0]['desc']) {
+            setIsLoading(true);
+
+            const options: UserReportOptions = {
+                page_size: pageSize || PAGE_SIZES[0],
+                ...getSortColumnForOptions(sortColumn),
+                ...getSortDirectionForOptions(sortIsDescending),
+            };
+
+            const {data, error} = await props.getUserReports(options) as ActionResult<UserReport[], ServerError>;
+
+            if (data) {
+                if (data.length > 0) {
+                    setUserReports(data);
+                } else {
+                    //TODO handle empty data
+                }
+            } else {
+                //TODO handle error
+                // eslint-disable-next-line no-console
+                console.log('error', error);
+            }
+
+            setIsLoading(false);
         }
-    }, [sortState]);
 
-    useEffect(() => {
-        // eslint-disable-next-line no-console
-        console.log('page change', paginationState.pageIndex);
-    }, [paginationState.pageIndex]);
+        fetchUserReportsWithOptions(props.pageSize, props.sortColumn, props.sortIsDescending);
 
-    useEffect(() => {
-        // eslint-disable-next-line no-console
-        console.log('page size change', paginationState.pageSize);
-    }, [paginationState.pageSize]);
+        console.log('componentdidupdate', props.pageSize, props.sortColumn, props.sortIsDescending);
+    }, [props.pageSize, props.sortColumn, props.sortIsDescending]);
 
-    function handleRowClick() {
-        // eslint-disable-next-line no-console
-        console.log('row click');
+    function handleRowClick(userId: SystemUsersRow['id']) {
+        if (userId.length !== 0) {
+            history.push(`/admin_console/user_management/user/${userId}`);
+        }
     }
+
+    function handlePreviousPageClick() {
+        // eslint-disable-next-line no-console
+        console.log('previous page click');
+    }
+
+    function handleNextPageClick() {
+        // eslint-disable-next-line no-console
+        console.log('next page click');
+    }
+
+    function handleSortingChange(updateFn: (currentSortingState: SortingState) => SortingState) {
+        const currentSortingState = [{id: props.sortColumn, desc: props.sortIsDescending}];
+        const [updatedSortingState] = updateFn(currentSortingState);
+
+        if (props.sortColumn !== updatedSortingState.id) {
+            // If we are clicking on a new column, we want to sort in descending order
+            updatedSortingState.desc = false;
+        }
+
+        props.setAdminConsoleUsersManagementSortColumn(updatedSortingState.id);
+        props.setAdminConsoleUsersManagementSortOrder(updatedSortingState.desc);
+    }
+
+    function handlePaginationChange(updateFn: (currentPaginationState: PaginationState) => PaginationState) {
+        const currentPaginationState = {pageIndex: 0, pageSize: props.pageSize};
+        const updatedPaginationState = updateFn(currentPaginationState);
+
+        props.setAdminConsoleUsersManagementPageSize(updatedPaginationState.pageSize);
+    }
+
+    const sortingTableState = [{
+        id: props?.sortColumn ?? ColumnNames.displayName,
+        desc: props?.sortIsDescending ?? false,
+    }];
+    const paginationTableState = {
+        pageIndex: 0, // We are using cursor based pagination so this is always 0
+        pageSize: props?.pageSize ?? PAGE_SIZES[0],
+    };
+
+    console.log('sortingTableState', sortingTableState);
+    console.log('paginationTableState', paginationTableState);
 
     const table = useReactTable({
         data: userReports,
         columns,
         state: {
-            sorting: sortState,
-            pagination: paginationState,
+            sorting: sortingTableState,
+            pagination: paginationTableState,
         },
         meta: {
             tableId: 'systemUsersTable',
+            isLoading,
             onRowClick: handleRowClick,
+            onPreviousPageClick: handlePreviousPageClick,
+            onNextPageClick: handleNextPageClick,
         } as TableMeta,
         getCoreRowModel: getCoreRowModel<SystemUsersRow>(),
-        onPaginationChange: setPaginationState,
-        onSortingChange: setSortState,
         getSortedRowModel: getSortedRowModel<SystemUsersRow>(),
+        onPaginationChange: handlePaginationChange as OnChangeFn<PaginationState>,
+        onSortingChange: handleSortingChange as OnChangeFn<SortingState>,
         manualSorting: true,
-        enableSortingRemoval: true,
+        enableSortingRemoval: false,
         enableMultiSort: false,
         manualFiltering: true,
         manualPagination: true,
         renderFallbackValue: '',
-        debugAll: true,
     });
 
     return (
@@ -261,6 +316,43 @@ function SystemUsersList() {
             table={table}
         />
     );
+}
+
+/**
+ * Converts the sorting column name to API compatible sorting column name. Default sorting column name is by username.
+ */
+function getSortColumnForOptions(id?: SortingState[0]['id']): Pick<UserReportOptions, 'sort_column'> {
+    let sortColumn: UserReportOptions['sort_column'];
+
+    if (id === ColumnNames.email) {
+        sortColumn = UserReportSortColumns.email;
+    } else if (id === ColumnNames.createAt) {
+        sortColumn = UserReportSortColumns.createAt;
+    } else {
+        // Default sorting to first User details column
+        sortColumn = UserReportSortColumns.username;
+    }
+
+    return {
+        sort_column: sortColumn,
+    };
+}
+
+/**
+ * Converts the sorting direction to API compatible sorting direction. Default sorting direction is ascending.
+ */
+function getSortDirectionForOptions(desc?: SortingState[0]['desc']): Pick<UserReportOptions, 'sort_direction'> {
+    let sortDirection: UserReportOptions['sort_direction'];
+
+    if (desc) {
+        sortDirection = ReportSortDirection.descending;
+    } else {
+        sortDirection = ReportSortDirection.ascending;
+    }
+
+    return {
+        sort_direction: sortDirection,
+    };
 }
 
 export default SystemUsersList;

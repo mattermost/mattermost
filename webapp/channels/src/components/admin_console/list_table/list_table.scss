@@ -3,7 +3,6 @@ table.adminConsoleListTable {
     // due to sticky row which shows the background thus a defined color is used
     $sysCenterChannelColorWith8Alpha: #f0f0f0;
 
-    overflow: auto;
     width: 100%;
 
     thead {
@@ -89,7 +88,7 @@ table.adminConsoleListTable {
                         background-color: $sysCenterChannelColorWith8Alpha;
                         cursor: pointer;
 
-                        & > span.hoverDownIcon {
+                        & > span.hoverSortingIcon {
                             visibility: visible;
                         }
                     }
@@ -99,7 +98,7 @@ table.adminConsoleListTable {
                         font-weight: 400;
                         line-height: 14px;
 
-                        &.hoverDownIcon {
+                        &.hoverSortingIcon {
                             color:
                                 rgba(
                                     var(--sys-center-channel-color-rgb),
@@ -207,6 +206,9 @@ table.adminConsoleListTable {
     }
 
     & + .tfoot {
+        position: sticky;
+        left: 0;
+        z-index: 1;
         display: flex;
         flex-direction: row;
         align-items: center;
@@ -229,6 +231,14 @@ table.adminConsoleListTable {
             & > .react-select {
                 min-width: 64px;
                 margin: 0 6px 0 6px;
+
+                .react-select__value-container {
+                    color: rgba(var(--sys-center-channel-color-rgb), 1); 
+                }
+
+                .react-select__menu-list {
+                    color: rgba(var(--sys-center-channel-color-rgb), 1); 
+                }
             }
         }
 

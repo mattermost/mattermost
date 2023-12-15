@@ -15,7 +15,7 @@ import './list_table.scss';
 const SORTABLE_CLASS = 'sortable';
 const PINNED_CLASS = 'pinned';
 
-const PAGE_SIZES = [10, 20, 50, 100];
+export const PAGE_SIZES = [10, 20, 50, 100];
 const PageSizes = defineMessages<number>({
     10: {
         id: 'admin.console.list.table.rowsCount.10',
@@ -42,7 +42,12 @@ export type PageSizeOption = {
 
 export type TableMeta = {
     tableId: string;
+    isLoading?: boolean;
     onRowClick?: (row: string) => void;
+    disablePrevPage?: boolean;
+    disableNextPage?: boolean;
+    onPreviousPageClick?: () => void;
+    onNextPageClick?: () => void;
 }
 
 interface TableMandatoryTypes {
@@ -63,6 +68,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(props: Props<Ta
     const {formatMessage} = useIntl();
 
     const tableMeta = props.table.options.meta as TableMeta;
+    const headerIdPrefix = `${tableMeta.tableId}-header-`;
     const rowIdPrefix = `${tableMeta.tableId}-row-`;
     const cellIdPrefix = `${tableMeta.tableId}-cell-`;
 
@@ -104,9 +110,10 @@ export function ListTable<TableType extends TableMandatoryTypes>(props: Props<Ta
                         <tr key={headerGroup.id}>
                             {headerGroup.headers.map((header) => (
                                 <th
-                                    id={header.id}
                                     key={header.id}
+                                    id={`${headerIdPrefix}${header.id}`}
                                     colSpan={header.colSpan}
+                                    scope='col'
                                     className={classNames(`${header.id}`, {
                                         [SORTABLE_CLASS]: header.column.getCanSort(),
                                         [PINNED_CLASS]: header.column.getCanPin(),
@@ -125,8 +132,10 @@ export function ListTable<TableType extends TableMandatoryTypes>(props: Props<Ta
                                     {header.column.getCanSort() &&
                                         header.column.getIsSorted() !== 'asc' &&
                                         header.column.getIsSorted() !== 'desc' && (
-                                        <span className='icon icon-arrow-down hoverDownIcon'/>
+                                        <span className='icon icon-arrow-up hoverSortingIcon'/>
                                     )}
+
+                                    {/* Add pinned icon here */}
                                 </th>
                             ))}
                         </tr>
@@ -143,6 +152,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(props: Props<Ta
                                 <td
                                     key={cell.id}
                                     id={`${cellIdPrefix}${cell.id}`}
+                                    headers={`${headerIdPrefix}${cell.column.id}`}
                                     className={classNames(`${cell.column.id}`, {
                                         [PINNED_CLASS]: cell.column.getCanPin(),
                                     })}
@@ -161,8 +171,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(props: Props<Ta
                                     key={footer.id}
                                     colSpan={footer.colSpan}
                                     className={classNames({
-                                        [PINNED_CLASS]:
-                                            footer.column.getCanPin(),
+                                        [PINNED_CLASS]: footer.column.getCanPin(),
                                     })}
                                 >
                                     {footer.isPlaceholder ? null : flexRender(footer.column.columnDef.footer, footer.getContext())}
@@ -189,6 +198,8 @@ export function ListTable<TableType extends TableMandatoryTypes>(props: Props<Ta
                         options={pageSizeOptions}
                         value={selectedPageSize}
                         onChange={handlePageSizeChange}
+                        isDisabled={tableMeta.isLoading}
+                        menuIsOpen={true}
                         components={{
                             IndicatorSeparator: null,
                             IndicatorsContainer: SelectIndicator,
@@ -200,20 +211,24 @@ export function ListTable<TableType extends TableMandatoryTypes>(props: Props<Ta
                     />
                 </div>
                 <div className='adminConsoleListTablePagination'>
-                    <button
-                        className='btn btn-icon btn-sm'
-                        disabled={!props.table.getCanPreviousPage()}
-                        onClick={() => props.table.previousPage()}
-                    >
-                        <i className='icon icon-chevron-left'/>
-                    </button>
-                    <button
-                        className='btn btn-icon btn-sm'
-                        disabled={!props.table.getCanNextPage()}
-                        onClick={() => props.table.nextPage()}
-                    >
-                        <i className='icon icon-chevron-right'/>
-                    </button>
+                    {tableMeta.onPreviousPageClick && (
+                        <button
+                            className='btn btn-icon btn-sm'
+                            disabled={tableMeta.disablePrevPage || tableMeta.isLoading}
+                            onClick={tableMeta.onPreviousPageClick}
+                        >
+                            <i className='icon icon-chevron-left'/>
+                        </button>
+                    )}
+                    {tableMeta.onNextPageClick && (
+                        <button
+                            className='btn btn-icon btn-sm'
+                            disabled={tableMeta.disablePrevPage || tableMeta.isLoading}
+                            onClick={tableMeta.onNextPageClick}
+                        >
+                            <i className='icon icon-chevron-right'/>
+                        </button>
+                    )}
                 </div>
             </div>
         </>
