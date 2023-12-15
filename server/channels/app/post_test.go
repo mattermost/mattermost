@@ -1699,6 +1699,28 @@ func TestSearchPostsForUser(t *testing.T) {
 		assert.Equal(t, []string{}, results.Order)
 		es.AssertExpectations(t)
 	})
+
+	t.Run("should return everything as first page of posts from database with specified channel query and tilde", func(t *testing.T) {
+		th, posts := setup(t, false)
+		defer th.TearDown()
+
+		page := 0
+
+		searchTermWithChannelQuery := "in:~" + fmt.Sprint(th.BasicChannel.Name) + " " + searchTerm
+
+		results, err := th.App.SearchPostsForUser(th.Context, searchTermWithChannelQuery, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		assert.Nil(t, err)
+		assert.Equal(t, []string{
+			posts[6].Id,
+			posts[5].Id,
+			posts[4].Id,
+			posts[3].Id,
+			posts[2].Id,
+			posts[1].Id,
+			posts[0].Id,
+		}, results.Order)
+	})
 }
 
 func TestCountMentionsFromPost(t *testing.T) {
