@@ -48,6 +48,7 @@ export type TableMeta = {
     disableNextPage?: boolean;
     onPreviousPageClick?: () => void;
     onNextPageClick?: () => void;
+    hasAdditionalPaginationAtTop?: boolean;
 }
 
 interface TableMandatoryTypes {
@@ -100,6 +101,32 @@ export function ListTable<TableType extends TableMandatoryTypes>(props: Props<Ta
 
     return (
         <>
+            {tableMeta.hasAdditionalPaginationAtTop && (
+
+                <div className='adminConsoleListTabletOptionalHead'>
+                    <div className='adminConsoleListTablePageSize'/>
+                    <div className='adminConsoleListTablePagination'>
+                        {tableMeta.onPreviousPageClick && (
+                            <button
+                                className='btn btn-icon btn-sm'
+                                disabled={tableMeta.disablePrevPage || tableMeta.isLoading}
+                                onClick={tableMeta.onPreviousPageClick}
+                            >
+                                <i className='icon icon-chevron-left'/>
+                            </button>
+                        )}
+                        {tableMeta.onNextPageClick && (
+                            <button
+                                className='btn btn-icon btn-sm'
+                                disabled={tableMeta.disablePrevPage || tableMeta.isLoading}
+                                onClick={tableMeta.onNextPageClick}
+                            >
+                                <i className='icon icon-chevron-right'/>
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
             <table
                 id={tableMeta.tableId}
                 aria-describedby={`${tableMeta.tableId}-headerId`} // Set this id to the table header so that the title describes the table
@@ -181,35 +208,36 @@ export function ListTable<TableType extends TableMandatoryTypes>(props: Props<Ta
                     ))}
                 </tfoot>
             </table>
-            <div className='tfoot'>
-                <div className='adminConsoleListTablePageSize'>
-                    <FormattedMessage
-                        id='admin.console.list.table.rowsCount.(show)rowsPerPage'
-                        defaultMessage='Show'
-                    />
-                    <ReactSelect
-                        className='react-select'
-                        classNamePrefix='react-select'
-                        autoFocus={false}
-                        isClearable={false}
-                        isMulti={false}
-                        isSearchable={false}
-                        menuPlacement='top'
-                        options={pageSizeOptions}
-                        value={selectedPageSize}
-                        onChange={handlePageSizeChange}
-                        isDisabled={tableMeta.isLoading}
-                        menuIsOpen={true}
-                        components={{
-                            IndicatorSeparator: null,
-                            IndicatorsContainer: SelectIndicator,
-                        }}
-                    />
-                    <FormattedMessage
-                        id='admin.console.list.table.rowsCount.show(rowsPerPage)'
-                        defaultMessage='rows per page'
-                    />
-                </div>
+            <div className='adminConsoleListTabletOptionalFoot'>
+                {handlePageSizeChange && (
+                    <div className='adminConsoleListTablePageSize'>
+                        <FormattedMessage
+                            id='admin.console.list.table.rowsCount.(show)rowsPerPage'
+                            defaultMessage='Show'
+                        />
+                        <ReactSelect
+                            className='react-select'
+                            classNamePrefix='react-select'
+                            autoFocus={false}
+                            isClearable={false}
+                            isMulti={false}
+                            isSearchable={false}
+                            menuPlacement='top'
+                            options={pageSizeOptions}
+                            value={selectedPageSize}
+                            onChange={handlePageSizeChange}
+                            isDisabled={tableMeta.isLoading}
+                            components={{
+                                IndicatorSeparator: null,
+                                IndicatorsContainer: SelectIndicator,
+                            }}
+                        />
+                        <FormattedMessage
+                            id='admin.console.list.table.rowsCount.show(rowsPerPage)'
+                            defaultMessage='rows per page'
+                        />
+                    </div>
+                )}
                 <div className='adminConsoleListTablePagination'>
                     {tableMeta.onPreviousPageClick && (
                         <button

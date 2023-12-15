@@ -293,6 +293,7 @@ function SystemUsersList(props: Props) {
             onRowClick: handleRowClick,
             onPreviousPageClick: handlePreviousPageClick,
             onNextPageClick: handleNextPageClick,
+            hasAdditionalPaginationAtTop: true,
         } as TableMeta,
         getCoreRowModel: getCoreRowModel<SystemUsersRow>(),
         getSortedRowModel: getSortedRowModel<SystemUsersRow>(),
