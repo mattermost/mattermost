@@ -44,7 +44,7 @@ exports[`components/admin_console/system_users should match default snapshot 1`]
           value=""
         />
       </div>
-      <SystemUsersList />
+      <Connect(SystemUsersList) />
     </div>
   </div>
 </div>

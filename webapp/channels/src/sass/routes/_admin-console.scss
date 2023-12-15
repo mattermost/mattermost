@@ -43,9 +43,9 @@
         }
 
         & > .admin-console__container {
+            overflow: auto;
             margin-right: 10px;
             background-color: var(--sys-center-channel-bg);
-            overflow: auto;
         }
     }
 

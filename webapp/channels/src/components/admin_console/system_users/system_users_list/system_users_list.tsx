@@ -233,8 +233,6 @@ function SystemUsersList(props: Props) {
         }
 
         fetchUserReportsWithOptions(props.pageSize, props.sortColumn, props.sortIsDescending);
-
-        console.log('componentdidupdate', props.pageSize, props.sortColumn, props.sortIsDescending);
     }, [props.pageSize, props.sortColumn, props.sortIsDescending]);
 
     function handleRowClick(userId: SystemUsersRow['id']) {
@@ -281,9 +279,6 @@ function SystemUsersList(props: Props) {
         pageIndex: 0, // We are using cursor based pagination so this is always 0
         pageSize: props?.pageSize ?? PAGE_SIZES[0],
     };
-
-    console.log('sortingTableState', sortingTableState);
-    console.log('paginationTableState', paginationTableState);
 
     const table = useReactTable({
         data: userReports,
