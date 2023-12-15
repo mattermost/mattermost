@@ -16,6 +16,8 @@ import (
 func (api *API) InitReports() {
 	api.BaseRoutes.Reports.Handle("/users", api.APISessionRequired(getUsersForReporting)).Methods("GET")
 	api.BaseRoutes.Reports.Handle("/users/export", api.APISessionRequired(startUsersBatchExport)).Methods("POST")
+
+	api.BaseRoutes.Reports.Handle("/export/{report_id:[A-Za-z0-9]+}", api.APISessionRequired(retrieveBatchReportFile)).Methods("GET")
 }
 
 func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -93,4 +95,32 @@ func startUsersBatchExport(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func retrieveBatchReportFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !(c.IsSystemAdmin() && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers)) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
+		return
+	}
+
+	reportId := c.Params.ReportId
+	if reportId == "" || !model.IsValidId(reportId) {
+		c.Err = model.NewAppError("retrieveBatchReportFile", "api.retrieveBatchReportFile.invalid_report_id", nil, "", http.StatusBadRequest)
+	}
+
+	format := r.URL.Query().Get("format")
+	// TODO: Validate with more types
+	if format != "csv" {
+		c.Err = model.NewAppError("retrieveBatchReportFile", "api.retrieveBatchReportFile.invalid_format", nil, "", http.StatusBadRequest)
+	}
+
+	file, name, err := c.App.RetrieveBatchReport(reportId, format)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	defer file.Close()
+
+	w.Header().Set("Content-Type", "text/csv") // TODO: other formats
+	http.ServeContent(w, r, name, time.Time{}, file)
 }

@@ -10,7 +10,10 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 func (a *App) SaveReportChunk(format string, prefix string, count int, reportData []model.ReportableObject) *model.AppError {
@@ -33,7 +36,7 @@ func (a *App) saveCSVChunk(prefix string, count int, reportData []model.Reportab
 	}
 
 	w.Flush()
-	_, appErr := a.WriteFile(&buf, makeFilename(prefix, count, "csv"))
+	_, appErr := a.WriteFile(&buf, makeFilePath(prefix, count, "csv"))
 	if appErr != nil {
 		return appErr
 	}
@@ -41,53 +44,85 @@ func (a *App) saveCSVChunk(prefix string, count int, reportData []model.Reportab
 	return nil
 }
 
-func (a *App) CompileReportChunks(format string, prefix string, numberOfChunks int, headers []string) (string, *model.AppError) {
+func (a *App) CompileReportChunks(format string, prefix string, numberOfChunks int, headers []string) *model.AppError {
 	switch format {
 	case "csv":
 		return a.compileCSVChunks(prefix, numberOfChunks, headers)
 	}
-	return "", model.NewAppError("CompileReportChunks", "app.compile_report_chunks.unsupported_format", nil, "", http.StatusBadRequest)
+	return model.NewAppError("CompileReportChunks", "app.compile_report_chunks.unsupported_format", nil, "", http.StatusBadRequest)
 }
 
-func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []string) (string, *model.AppError) {
-	filename := fmt.Sprintf("admin_reports/batch_report_%s.csv", prefix)
+func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []string) *model.AppError {
+	filePath := makeCompiledFilePath(prefix, "csv")
 
 	var headerBuf bytes.Buffer
 	w := csv.NewWriter(&headerBuf)
 	err := w.Write(headers)
 	if err != nil {
-		return "", model.NewAppError("compileCSVChunks", "app.compile_csv_chunks.header_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("compileCSVChunks", "app.compile_csv_chunks.header_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	w.Flush()
-	_, appErr := a.WriteFile(&headerBuf, filename)
+	_, appErr := a.WriteFile(&headerBuf, filePath)
 	if appErr != nil {
-		return "", appErr
+		return appErr
 	}
 
 	for i := 0; i < numberOfChunks; i++ {
-		chunkFilename := makeFilename(prefix, i, "csv")
-		chunk, err := a.ReadFile(chunkFilename)
+		chunkFilePath := makeFilePath(prefix, i, "csv")
+		chunk, err := a.ReadFile(chunkFilePath)
 		if err != nil {
-			return "", err
+			return err
 		}
-		if _, err = a.AppendFile(bytes.NewReader(chunk), filename); err != nil {
-			return "", err
+		if _, err = a.AppendFile(bytes.NewReader(chunk), filePath); err != nil {
+			return err
 		}
-		if err = a.RemoveFile(chunkFilename); err != nil {
-			return "", err
+		if err = a.RemoveFile(chunkFilePath); err != nil {
+			return err
 		}
 	}
 
-	return filename, nil
-}
-
-func (a *App) SendReportToUser(userID string, filename string) *model.AppError {
-	// TODO
 	return nil
 }
 
-func makeFilename(prefix string, count int, extension string) string {
+func (a *App) SendReportToUser(rctx request.CTX, userID string, jobId string, format string) *model.AppError {
+	a.Srv().Go(func() {
+		systemBot, err := a.GetSystemBot()
+		if err != nil {
+			rctx.Logger().Error("Failed to post batch export finished message", mlog.Err(err))
+			return
+		}
+
+		channel, err := a.GetOrCreateDirectChannel(request.EmptyContext(a.Log()), userID, systemBot.UserId)
+		if err != nil {
+			rctx.Logger().Error("Failed to post batch export finished message", mlog.Err(err))
+			return
+		}
+
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   i18n.T("app.report.send_report_to_user.export_finished", map[string]string{"Link": a.GetSiteURL() + "/api/v4/reports/export/" + jobId + "?format=" + format}),
+			Type:      model.PostTypeDefault,
+			UserId:    systemBot.UserId,
+		}
+
+		if _, err := a.CreatePost(rctx, post, channel, false, true); err != nil {
+			rctx.Logger().Error("Failed to post batch export finished message", mlog.Err(err))
+		}
+	})
+
+	return nil
+}
+
+func makeFilePath(prefix string, count int, extension string) string {
 	return fmt.Sprintf("admin_reports/batch_report_%s__%d.%s", prefix, count, extension)
+}
+
+func makeCompiledFilePath(prefix string, extension string) string {
+	return fmt.Sprintf("admin_reports/%s", makeCompiledFilename(prefix, extension))
+}
+
+func makeCompiledFilename(prefix string, extension string) string {
+	return fmt.Sprintf("batch_report_%s.%s", prefix, extension)
 }
 
 func (a *App) GetUsersForReporting(filter *model.UserReportOptions) ([]*model.UserReport, *model.AppError) {
@@ -145,7 +180,40 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string) *model.A
 		return err
 	}
 
-	// TODO: Send system message that we have started the export
+	a.Srv().Go(func() {
+		systemBot, err := a.GetSystemBot()
+		if err != nil {
+			rctx.Logger().Error("Failed to post batch export message", mlog.Err(err))
+			return
+		}
+
+		channel, err := a.GetOrCreateDirectChannel(request.EmptyContext(a.Log()), rctx.Session().UserId, systemBot.UserId)
+		if err != nil {
+			rctx.Logger().Error("Failed to post batch export message", mlog.Err(err))
+			return
+		}
+
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   i18n.T("app.report.start_users_batch_export.started_export"),
+			Type:      model.PostTypeDefault,
+			UserId:    systemBot.UserId,
+		}
+
+		if _, err := a.CreatePost(rctx, post, channel, false, true); err != nil {
+			rctx.Logger().Error("Failed to post batch export message", mlog.Err(err))
+		}
+	})
 
 	return nil
+}
+
+func (a *App) RetrieveBatchReport(reportID string, format string) (filestore.ReadCloseSeeker, string, *model.AppError) {
+	filePath := makeCompiledFilePath(reportID, format)
+	reader, err := a.FileReader(filePath)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return reader, makeCompiledFilename(reportID, format), nil
 }

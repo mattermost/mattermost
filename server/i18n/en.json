@@ -2679,6 +2679,14 @@
     "translation": "This action is forbidden to a restricted system admin."
   },
   {
+    "id": "api.retrieveBatchReportFile.invalid_format",
+    "translation": "Report format is invalid."
+  },
+  {
+    "id": "api.retrieveBatchReportFile.invalid_report_id",
+    "translation": "Report ID is invalid."
+  },
+  {
     "id": "api.roles.patch_roles.license.error",
     "translation": "Your license does not support advanced permissions."
   },
@@ -6599,8 +6607,16 @@
     "translation": "Failed to fetch user report."
   },
   {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Report processing is finished. You can download the report [here]({{.Link}})"
+  },
+  {
     "id": "app.report.start_users_batch_export.job_exists",
     "translation": "Job already exists for this user and date range."
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "You have requested the export of user data. A CSV will be delivered to you when the export is complete."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",

@@ -121,6 +121,7 @@ func (u *UserReport) ToReport() []string {
 		u.Id,
 		u.Username,
 		u.Email,
+		time.UnixMilli(u.CreateAt).String(),
 		u.DisplayName,
 		u.Roles,
 		lastLogin,

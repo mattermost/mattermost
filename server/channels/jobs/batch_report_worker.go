@@ -17,8 +17,8 @@ import (
 
 type BatchReportWorkerAppIFace interface {
 	SaveReportChunk(format string, prefix string, count int, reportData []model.ReportableObject) *model.AppError
-	CompileReportChunks(format string, prefix string, numberOfChunks int, headers []string) (string, *model.AppError)
-	SendReportToUser(userID string, filename string) *model.AppError
+	CompileReportChunks(format string, prefix string, numberOfChunks int, headers []string) *model.AppError
+	SendReportToUser(rctx request.CTX, userID string, jobId string, format string) *model.AppError
 }
 
 type BatchReportWorker[T BatchReportWorkerAppIFace] struct {
@@ -65,7 +65,7 @@ func (worker *BatchReportWorker[T]) doBatch(rctx *request.Context, job *model.Jo
 		worker.setJobError(worker.logger, job, model.NewAppError("doBatch", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
 		return true
 	} else if done {
-		if err = worker.complete(job); err != nil {
+		if err = worker.complete(rctx, job); err != nil {
 			// TODO complete error
 			worker.logger.Error("Worker: Failed to do report batch. Exiting", mlog.Err(err))
 			worker.setJobError(worker.logger, job, model.NewAppError("doBatch", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
@@ -124,7 +124,7 @@ func (worker *BatchReportWorker[T]) saveData(job *model.Job, reportData []model.
 	return nil
 }
 
-func (worker *BatchReportWorker[T]) complete(job *model.Job) error {
+func (worker *BatchReportWorker[T]) complete(rctx request.CTX, job *model.Job) error {
 	requestingUserId := job.Data["requesting_user_id"]
 	if requestingUserId == "" {
 		return errors.New("No user to send the report to")
@@ -134,12 +134,12 @@ func (worker *BatchReportWorker[T]) complete(job *model.Job) error {
 		return err
 	}
 
-	compiledFilename, appErr := worker.app.CompileReportChunks(worker.reportFormat, job.Id, fileCount, worker.headers)
+	appErr := worker.app.CompileReportChunks(worker.reportFormat, job.Id, fileCount, worker.headers)
 	if appErr != nil {
 		return appErr
 	}
 
-	if appErr = worker.app.SendReportToUser(requestingUserId, compiledFilename); appErr != nil {
+	if appErr = worker.app.SendReportToUser(rctx, requestingUserId, job.Id, worker.reportFormat); appErr != nil {
 		return appErr
 	}
 
