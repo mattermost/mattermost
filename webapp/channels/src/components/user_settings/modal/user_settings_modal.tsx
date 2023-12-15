@@ -24,8 +24,10 @@ import * as Keyboard from 'utils/keyboard';
 import * as NotificationSounds from 'utils/notification_sounds';
 import * as Utils from 'utils/utils';
 
+import type {PluginConfiguration} from 'types/plugins/user_settings';
+
 const UserSettings = React.lazy(() => import(/* webpackPrefetch: true */ 'components/user_settings'));
-const SettingsSidebar = React.lazy(() => import(/* webpackPrefetch: true */ '../../settings_sidebar'));
+const SettingsSidebar = React.lazy(() => import(/* webpackPrefetch: true */ 'components/settings_sidebar'));
 
 const holders = defineMessages({
     profile: {
@@ -83,6 +85,7 @@ export type Props = {
             };
         }>;
     };
+    pluginSettings: {[pluginId: string]: PluginConfiguration};
 }
 
 type State = {
@@ -324,6 +327,12 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                                 <Provider store={store}>
                                     <SettingsSidebar
                                         tabs={tabs}
+                                        pluginTabs={Object.values(this.props.pluginSettings).map((v) => ({
+                                            icon: v.icon ? {url: v.icon} : 'icon-power-plug-outline',
+                                            iconTitle: v.uiName,
+                                            name: v.id,
+                                            uiName: v.uiName,
+                                        }))}
                                         activeTab={this.state.active_tab}
                                         updateTab={this.updateTab}
                                     />
@@ -347,6 +356,8 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                                                 this.customConfirmAction = customConfirmAction!;
                                             }
                                         }
+                                        pluginSettings={this.props.pluginSettings}
+                                        user={this.props.currentUser}
                                     />
                                 </Provider>
                             </React.Suspense>

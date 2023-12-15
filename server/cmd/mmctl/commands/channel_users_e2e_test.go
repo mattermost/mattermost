@@ -98,7 +98,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Unable to add '%s' to %s. Error: : You do not have the appropriate permissions.", user.Id, channelName), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("Unable to add '%s' to %s. Error: You do not have the appropriate permissions.", user.Id, channelName), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Add user to channel/Client", func() {
