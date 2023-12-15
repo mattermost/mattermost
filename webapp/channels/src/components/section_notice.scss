@@ -1,0 +1,49 @@
+.sectionNoticeContainer {
+    display: flex;
+    flex-direction: row;
+    align-content: start;
+    align-items: start;
+    padding: 16px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgba(var(--button-bg-rgb), 0.16);
+    background: rgba(var(--button-bg-rgb), 0.08);
+    border-radius: 4px;
+    gap: 12px;
+
+    &.error {
+        border-color: rgba(var(--dnd-indicator-rgb), 0.16);
+        background: rgba(var(--dnd-indicator-rgb), 0.08);
+
+        p {
+            color: var(--center-channel-color);
+        }
+    }
+}
+
+.sectionNoticeIcon {
+    color: var(--sidebar-text-active-border);
+    font-size: 20px;
+
+    &.error {
+        color: rgba(var(--dnd-indicator-rgb), 1);
+    }
+}
+
+.sectionNoticeTitle {
+    margin: 0;
+    color: var(--center-channel-color);
+    font-family: 'Open Sans';
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.sectionNoticeBody {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sectionNoticeButton {
+    align-self: flex-start;
+}
