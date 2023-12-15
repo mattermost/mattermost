@@ -48,6 +48,10 @@ const (
 
 const websocketMessagePluginPrefix = "custom_"
 
+// UnsetPresenceIndicator is the value that gets set initially for active channel/
+// thread/team. This is done to differentiate it from an explicitly set empty value.
+const UnsetPresenceIndicator = "<>"
+
 type pluginWSPostedHook struct {
 	connectionID string
 	userID       string
@@ -237,9 +241,9 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 	wc.SetConnectionID(cfg.ConnectionID)
 	// <> means unset. This is to differentiate from empty value.
 	// Because we need to support mobile clients where the value might be unset.
-	wc.SetActiveChannelID("<>")
-	wc.SetActiveTeamID("<>")
-	wc.SetActiveThreadChannelID("<>")
+	wc.SetActiveChannelID(UnsetPresenceIndicator)
+	wc.SetActiveTeamID(UnsetPresenceIndicator)
+	wc.SetActiveThreadChannelID(UnsetPresenceIndicator)
 
 	ps.Go(func() {
 		runner.RunMultiHook(func(hooks plugin.Hooks) bool {
@@ -326,6 +330,11 @@ func (wc *WebConn) GetActiveThreadChannelID() string {
 // SetActiveThreadChannelID sets the channel id of the active thread of the connection.
 func (wc *WebConn) SetActiveThreadChannelID(id string) {
 	wc.activeThreadChannelID.Store(id)
+}
+
+// isSet is a helper to check if a value is unset or not.
+func (wc *WebConn) isSet(val string) bool {
+	return val != UnsetPresenceIndicator
 }
 
 // areAllInactive returns whether all of the connections
@@ -836,11 +845,8 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	if chID := msg.GetBroadcast().ChannelId; chID != "" {
 		// For typing events, we don't send them to users who don't have
 		// that channel or thread opened.
-		if msg.EventType() == model.WebsocketEventTyping {
-			if (wc.GetActiveChannelID() != "<>" && chID != wc.GetActiveChannelID()) &&
-				(wc.GetActiveThreadChannelID() != "<>" && chID != wc.GetActiveThreadChannelID()) {
-				return false
-			}
+		if msg.EventType() == model.WebsocketEventTyping && wc.notInChannelAndThread(chID) {
+			return false
 		}
 
 		if model.GetMillis()-wc.lastAllChannelMembersTime > webConnMemberCacheTime {
@@ -874,6 +880,11 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	}
 
 	return true
+}
+
+func (wc *WebConn) notInChannelAndThread(val string) bool {
+	return (wc.isSet(wc.GetActiveChannelID()) && val != wc.GetActiveChannelID()) &&
+		(wc.isSet(wc.GetActiveThreadChannelID()) && val != wc.GetActiveThreadChannelID())
 }
 
 // IsMemberOfTeam returns whether the user of the WebConn

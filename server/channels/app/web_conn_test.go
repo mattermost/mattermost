@@ -165,17 +165,17 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	t.Run("should not send typing event unless in scope", func(t *testing.T) {
 		event2 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", th.BasicChannel.Id, "", nil, "")
 		// Basic, unset case
-		basicUserWc.SetActiveChannelID("<>")
-		basicUserWc.SetActiveThreadChannelID("<>")
+		basicUserWc.SetActiveChannelID(platform.UnsetPresenceIndicator)
+		basicUserWc.SetActiveThreadChannelID(platform.UnsetPresenceIndicator)
 		assert.True(t, basicUserWc.ShouldSendEvent(event2))
 
 		// Active channel is set to something else, thread unset
 		basicUserWc.SetActiveChannelID("ch1")
-		basicUserWc.SetActiveThreadChannelID("<>")
+		basicUserWc.SetActiveThreadChannelID(platform.UnsetPresenceIndicator)
 		assert.True(t, basicUserWc.ShouldSendEvent(event2))
 
 		// Active channel is unset, thread set
-		basicUserWc.SetActiveChannelID("<>")
+		basicUserWc.SetActiveChannelID(platform.UnsetPresenceIndicator)
 		basicUserWc.SetActiveThreadChannelID("ch1")
 		assert.True(t, basicUserWc.ShouldSendEvent(event2))
 
