@@ -18,7 +18,7 @@ const NoCommonTeamsError = (): JSX.Element => {
                 id: 'sidebar_left.sidebar_channel_modal.no_common_teams_error.body',
                 defaultMessage: 'Group Message cannot be converted to a channel because members are not a part of the same team. Add all members to a single team to convert this group message to a channel in that team.',
             })}
-            isError={true}
+            type={'danger'}
         />
     );
 };

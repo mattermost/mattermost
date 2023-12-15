@@ -19,7 +19,7 @@ const PluginAction = ({
         return action ? {
             text: action.text,
             title: action.title,
-            button: {
+            primaryButton: {
                 onClick: action?.onClick,
                 text: action?.buttonText,
             },

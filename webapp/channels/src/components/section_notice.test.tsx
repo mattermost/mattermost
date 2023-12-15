@@ -15,11 +15,21 @@ function getBaseProps(): Props {
     return {
         text: 'some text',
         title: 'some title',
-        button: {
+        primaryButton: {
             onClick: jest.fn(),
-            text: 'button title',
+            text: 'primary button title',
         },
-        isError: false,
+        secondaryButton: {
+            onClick: jest.fn(),
+            text: 'secondary button title',
+        },
+        linkButton: {
+            onClick: jest.fn(),
+            text: 'link button title',
+        },
+        isDismissable: true,
+        onDismissClick: jest.fn(),
+        type: 'info',
     };
 }
 
@@ -27,29 +37,34 @@ describe('PluginAction', () => {
     it('does show the correct information', () => {
         const props = getBaseProps();
         renderWithContext(<SectionNotice {...props}/>);
-        const button = screen.getByRole('button');
-        expect(button).toBeInTheDocument();
-        expect(button).toHaveTextContent(props.button!.text);
+        const primaryButton = screen.getByText(props.primaryButton!.text);
+        const secondaryButton = screen.getByText(props.secondaryButton!.text);
+        const linkButton = screen.getByText(props.linkButton!.text);
+        const closeButton = screen.getByLabelText('Dismiss notice');
+
+        expect(primaryButton).toBeInTheDocument();
+        expect(secondaryButton).toBeInTheDocument();
+        expect(linkButton).toBeInTheDocument();
+        expect(closeButton).toBeInTheDocument();
         expect(screen.queryByText(props.text)).toBeInTheDocument();
         expect(screen.queryByText(props.title)).toBeInTheDocument();
-        fireEvent.click(button);
-        expect(props.button?.onClick).toHaveBeenCalled();
+        fireEvent.click(primaryButton);
+        expect(props.primaryButton?.onClick).toHaveBeenCalledTimes(1);
+        fireEvent.click(secondaryButton);
+        expect(props.secondaryButton?.onClick).toHaveBeenCalledTimes(1);
+        fireEvent.click(linkButton);
+        expect(props.linkButton?.onClick).toHaveBeenCalledTimes(1);
+        fireEvent.click(closeButton);
+        expect(props.onDismissClick).toHaveBeenCalledTimes(1);
     });
 
     it('does not show the button if no button is passed', () => {
         const props = getBaseProps();
-        props.button = undefined;
+        props.primaryButton = undefined;
+        props.secondaryButton = undefined;
+        props.linkButton = undefined;
+        props.isDismissable = false;
         renderWithContext(<SectionNotice {...props}/>);
         expect(screen.queryByRole('button')).not.toBeInTheDocument();
-    });
-
-    it('if error, the text is still the color of the center channel', () => {
-        const props = getBaseProps();
-        props.isError = true;
-        renderWithContext(<SectionNotice {...props}/>);
-        const text = screen.getByText(props.text);
-        const title = screen.getByText(props.title);
-        expect(text).toHaveStyle('color: var(--center-channel-color)');
-        expect(title).toHaveStyle('color: var(--center-channel-color)');
     });
 });
