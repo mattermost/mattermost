@@ -14,6 +14,7 @@ table.adminConsoleListTable {
             font-weight: 600;
             line-height: 16px;
             text-wrap: nowrap;
+            white-space: nowrap;
 
             th {
                 max-width: 50rem;
@@ -79,6 +80,13 @@ table.adminConsoleListTable {
                             content: "";
                         }
                     }
+
+                    & > span {
+                        font-size: 14px;
+                        font-weight: 400;
+                        line-height: 14px;
+                        color: rgba(var(--sys-center-channel-color-rgb), 0.32);
+                    }
                 }
 
                 &.sortable {
@@ -107,6 +115,23 @@ table.adminConsoleListTable {
                             visibility: hidden;
                         }
                     }
+                }
+
+                &.sortable.pinned {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    & > span {
+                        &:first-child {
+                            flex-grow: 1;
+                            justify-content: flex-start;
+                        }
+                    }
+                }
+                &.pinned:not(.sortable) {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
                 }
             }
         }

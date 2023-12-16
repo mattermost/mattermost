@@ -163,6 +163,9 @@ export function ListTable<TableType extends TableMandatoryTypes>(props: Props<Ta
                                     )}
 
                                     {/* Add pinned icon here */}
+                                    {header.column.getCanPin() && (
+                                        <span className='icon icon-pin-outline'/>
+                                    )}
                                 </th>
                             ))}
                         </tr>

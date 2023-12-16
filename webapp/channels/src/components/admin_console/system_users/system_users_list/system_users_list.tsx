@@ -65,7 +65,7 @@ function SystemUsersList(props: Props) {
         () => [
             {
                 id: ColumnNames.displayName,
-                accessorKey: 'userDetails',
+                accessorKey: 'username',
                 header: formatMessage({
                     id: 'admin.system_users.list.userDetails',
                     defaultMessage: 'User details',
