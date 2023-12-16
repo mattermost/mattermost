@@ -691,7 +691,6 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 	if id == "" {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
 	}
-
 	var post model.Post
 	postFetchQuery := "SELECT p.*, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.Id = ? AND p.DeleteAt = 0"
 	err := s.DBXFromContext(ctx).Get(&post, postFetchQuery, id)
@@ -715,14 +714,40 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 			return nil, errors.Wrapf(err, "invalid rootId with value=%s", rootId)
 		}
 
-		query := s.getQueryBuilder().
-			Select("p.*, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
-			From("Posts p").
-			Where(sq.Or{
-				sq.Eq{"p.Id": rootId},
-				sq.Eq{"p.RootId": rootId},
-			}).
-			Where(sq.Eq{"p.DeleteAt": 0})
+		var query sq.SelectBuilder
+		if s.DriverName() == model.DatabaseDriverMysql {
+			query = s.getQueryBuilder().
+				Select("p.*, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
+				From("Posts p").
+				Where(sq.And{
+					sq.Or{
+						sq.Eq{"p.Id": rootId},
+						sq.Eq{"p.RootId": rootId},
+					},
+					sq.Eq{"p.DeleteAt": 0},
+				})
+		} else {
+			query = s.getQueryBuilder().
+				Select("p.*, replycount.num as ReplyCount").
+				PrefixExpr(s.getQueryBuilder().
+					Select().
+					Prefix("WITH replycount as (").
+					Columns("count(*) as num").
+					From("posts").
+					Where(sq.And{
+						sq.Eq{"RootId": rootId},
+						sq.Eq{"DeleteAt": 0},
+					}).Suffix(")"),
+				).
+				From("Posts p, replycount").
+				Where(sq.And{
+					sq.Or{
+						sq.Eq{"p.Id": rootId},
+						sq.Eq{"p.RootId": rootId},
+					},
+					sq.Eq{"p.DeleteAt": 0},
+				})
+		}
 
 		var sort string
 		if opts.Direction != "" {
@@ -815,7 +840,7 @@ func (s *SqlPostStore) GetSingle(id string, inclDeleted bool) (*model.Post, erro
 		Where(sq.Eq{"p.Id": id})
 
 	replyCountSubQuery := s.getQueryBuilder().
-		Select("COUNT(Posts.Id)").
+		Select("COUNT(*)").
 		From("Posts").
 		Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
 

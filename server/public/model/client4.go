@@ -166,6 +166,10 @@ func (c *Client4) usersRoute() string {
 	return "/users"
 }
 
+func (c *Client4) reportsRoute() string {
+	return "/reports"
+}
+
 func (c *Client4) userRoute(userId string) string {
 	return fmt.Sprintf(c.usersRoute()+"/%v", userId)
 }
@@ -1924,6 +1928,54 @@ func (c *Client4) EnableUserAccessToken(ctx context.Context, tokenId string) (*R
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportOptions) ([]*UserReport, *Response, error) {
+	values := url.Values{}
+	if options.SortColumn != "" {
+		values.Set("sort_column", options.SortColumn)
+	}
+	if options.PageSize > 0 {
+		values.Set("page_size", strconv.Itoa(options.PageSize))
+	}
+	if options.Team != "" {
+		values.Set("team_filter", options.Team)
+	}
+	if options.HideActive {
+		values.Set("hide_active", "true")
+	}
+	if options.HideInactive {
+		values.Set("hide_inactive", "true")
+	}
+	if options.SortDesc {
+		values.Set("sort_direction", "desc")
+	}
+	if options.LastSortColumnValue != "" {
+		values.Set("last_column_value", options.LastSortColumnValue)
+	}
+	if options.LastUserId != "" {
+		values.Set("last_id", options.LastUserId)
+	}
+	if options.Role != "" {
+		values.Set("role_filter", options.Role)
+	}
+	if options.HasNoTeam {
+		values.Set("has_no_team", "true")
+	}
+	if options.DateRange != "" {
+		values.Set("date_range", options.DateRange)
+	}
+
+	r, err := c.DoAPIGet(ctx, c.reportsRoute()+"/users?"+values.Encode(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*UserReport
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetUsersForReporting", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
 }
 
 // Bots section
@@ -4297,6 +4349,21 @@ func (c *Client4) GetPostsBefore(ctx context.Context, channelId, postId string, 
 		return nil, nil, NewAppError("GetPostsBefore", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &list, BuildResponse(r), nil
+}
+
+// MoveThread moves a thread based on provided post id, and channel id string.
+func (c *Client4) MoveThread(ctx context.Context, postId string, params *MoveThreadParams) (*Response, error) {
+	js, err := json.Marshal(params)
+	if err != nil {
+		return nil, NewAppError("MoveThread", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPost(ctx, c.postRoute(postId)+"/move", string(js))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 // GetPostsAroundLastUnread gets a list of posts around last unread post by a user in a channel.
