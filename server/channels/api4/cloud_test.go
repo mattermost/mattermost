@@ -648,7 +648,7 @@ func Test_GetExpandStatsForSubscription(t *testing.T) {
 		IsExpandable: true,
 	}
 
-	licenseId := "licenseID"
+	licenseID := "licenseID"
 
 	t.Run("NON Admin users are UNABLE to request expand stats for the subscription", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -666,7 +666,7 @@ func Test_GetExpandStatsForSubscription(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		checksMade, r, err := th.Client.GetSubscriptionStatus(context.Background(), licenseId)
+		checksMade, r, err := th.Client.GetSubscriptionStatus(context.Background(), licenseID)
 		require.Error(t, err)
 		require.Nil(t, checksMade)
 		require.Equal(t, http.StatusForbidden, r.StatusCode, "403 Forbidden")

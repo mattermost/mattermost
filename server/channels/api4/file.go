@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	FileTeamId = "noteam"
+	FileTeamID = "noteam"
 
 	PreviewImageType   = "image/jpeg"
 	ThumbnailImageType = "image/jpeg"
@@ -151,7 +151,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	audit.AddEventParameter(auditRec, "client_id", clientId)
 
 	info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, c.Params.Filename, r.Body,
-		app.UploadFileSetTeamId(FileTeamId),
+		app.UploadFileSetTeamId(FileTeamID),
 		app.UploadFileSetUserId(c.AppContext.Session().UserId),
 		app.UploadFileSetTimestamp(timestamp),
 		app.UploadFileSetContentLength(r.ContentLength),
@@ -313,7 +313,7 @@ NextPart:
 		audit.AddEventParameter(auditRec, "client_id", clientId)
 
 		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, filename, part,
-			app.UploadFileSetTeamId(FileTeamId),
+			app.UploadFileSetTeamId(FileTeamID),
 			app.UploadFileSetUserId(c.AppContext.Session().UserId),
 			app.UploadFileSetTimestamp(timestamp),
 			app.UploadFileSetContentLength(-1),
@@ -415,7 +415,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 		audit.AddEventParameter(auditRec, "client_id", clientId)
 
 		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, fileHeader.Filename, f,
-			app.UploadFileSetTeamId(FileTeamId),
+			app.UploadFileSetTeamId(FileTeamID),
 			app.UploadFileSetUserId(c.AppContext.Session().UserId),
 			app.UploadFileSetTimestamp(timestamp),
 			app.UploadFileSetContentLength(-1),

@@ -397,13 +397,13 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	teamId := channel.TeamId
+	teamID := channel.TeamId
 
 	auditRec := c.MakeAuditRecord("restoreChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventPriorState(channel)
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageTeam) {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeam) {
 		c.SetPermissionError(model.PermissionManageTeam)
 		return
 	}
@@ -457,14 +457,14 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	otherUserId := userIds[0]
-	if c.AppContext.Session().UserId == otherUserId {
-		otherUserId = userIds[1]
+	otherUserID := userIds[0]
+	if c.AppContext.Session().UserId == otherUserID {
+		otherUserID = userIds[1]
 	}
 
-	audit.AddEventParameter(auditRec, "user_id", otherUserId)
+	audit.AddEventParameter(auditRec, "user_id", otherUserID)
 
-	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, otherUserId)
+	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, otherUserID)
 	if err != nil {
 		c.Err = err
 		return

@@ -120,8 +120,8 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 
 	categoryOrder := model.ArrayFromJSON(r.Body)
 
-	for _, categoryId := range categoryOrder {
-		if !c.App.SessionHasPermissionToCategory(c.AppContext, *c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, categoryId) {
+	for _, categoryID := range categoryOrder {
+		if !c.App.SessionHasPermissionToCategory(c.AppContext, *c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, categoryID) {
 			c.SetInvalidParam("category")
 			return
 		}

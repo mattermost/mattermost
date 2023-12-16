@@ -1924,11 +1924,11 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "login_id", loginId)
 	audit.AddEventParameter(auditRec, "device_id", deviceId)
 
-	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
+	c.LogAuditWithUserID(id, "attempt - login_id="+loginId)
 
 	user, err := c.App.AuthenticateUserForLogin(c.AppContext, id, loginId, password, mfaToken, "", ldapOnly)
 	if err != nil {
-		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
+		c.LogAuditWithUserID(id, "failure - login_id="+loginId)
 		c.Err = err
 		return
 	}
@@ -1950,7 +1950,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAuditWithUserId(user.Id, "authenticated")
+	c.LogAuditWithUserID(user.Id, "authenticated")
 
 	isMobileDevice := utils.IsMobileRequest(r)
 	session, err := c.App.DoLogin(c.AppContext, w, r, user, deviceId, isMobileDevice, false, false)
@@ -1960,7 +1960,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.AppContext = c.AppContext.WithSession(session)
 
-	c.LogAuditWithUserId(user.Id, "success")
+	c.LogAuditWithUserID(user.Id, "success")
 
 	if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXML {
 		c.App.AttachSessionCookies(c.AppContext, w, r)
@@ -2042,13 +2042,13 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "login_id", loginID)
 	user, err := c.App.AuthenticateUserForLogin(c.AppContext, "", loginID, "", "", token, false)
 	if err != nil {
-		c.LogAuditWithUserId("", "failure - login_id="+loginID)
+		c.LogAuditWithUserID("", "failure - login_id="+loginID)
 		c.LogErrorByCode(err)
 		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
 		return
 	}
 	audit.AddEventParameterAuditable(auditRec, "user", user)
-	c.LogAuditWithUserId(user.Id, "authenticated")
+	c.LogAuditWithUserID(user.Id, "authenticated")
 	isMobileDevice := utils.IsMobileRequest(r)
 	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobileDevice, false, false)
 	if err != nil {
@@ -2057,7 +2057,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	c.AppContext = c.AppContext.WithSession(session)
-	c.LogAuditWithUserId(user.Id, "success")
+	c.LogAuditWithUserID(user.Id, "success")
 	c.App.AttachSessionCookies(c.AppContext, w, r)
 
 	redirectURL := *c.App.Config().ServiceSettings.SiteURL
