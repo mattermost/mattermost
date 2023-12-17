@@ -16,7 +16,7 @@ type InvitePeopleProvider struct {
 }
 
 const (
-	CmdInvite_PEOPLE = "invite_people"
+	CmdInvitePEOPLE = "invite_people"
 )
 
 func init() {
@@ -24,7 +24,7 @@ func init() {
 }
 
 func (*InvitePeopleProvider) GetTrigger() string {
-	return CmdInvite_PEOPLE
+	return CmdInvitePEOPLE
 }
 
 func (*InvitePeopleProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
@@ -33,7 +33,7 @@ func (*InvitePeopleProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model
 		autoComplete = false
 	}
 	return &model.Command{
-		Trigger:          CmdInvite_PEOPLE,
+		Trigger:          CmdInvitePEOPLE,
 		AutoComplete:     autoComplete,
 		AutoCompleteDesc: T("api.command.invite_people.desc"),
 		AutoCompleteHint: T("api.command.invite_people.hint"),
