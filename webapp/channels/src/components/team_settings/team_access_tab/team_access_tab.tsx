@@ -149,7 +149,7 @@ const AccessTab = (props: Props) => {
                 <Input
                     id='teamInviteId'
                     type='text'
-                    value={inviteId} // todo sinan invite id not always available/ updated, check the old implementation https://github.com/mattermost/mattermost/blob/9d6bfc77aec9b4b4019bd13043f16e535492c068/webapp/channels/src/components/team_general_tab/team_general_tab.tsx#L279
+                    value={inviteId}
                     maxLength={32}
                 />
                 <button

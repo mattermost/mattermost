@@ -24,7 +24,6 @@ import './team_info_tab.scss';
 const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
 type Props = PropsFromRedux & OwnProps;
 
-// todo sinan: LearnAboutTeamsLink check https://github.com/mattermost/mattermost/blob/af7bc8a4a90d8c4c17a82dc86bc898d378dec2ff/webapp/channels/src/components/team_general_tab/team_general_tab.tsx#L10
 const InfoTab = (props: Props) => {
     const [name, setName] = useState<Team['display_name']>(props.team?.display_name ?? '');
     const [description, setDescription] = useState<Team['description']>(props.team?.description ?? '');
