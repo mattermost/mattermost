@@ -27,7 +27,7 @@ export function Pagination(props: Props) {
                     className='btn btn-icon btn-sm'
                     disabled={props.disablePrevPage || props.isLoading}
                     onClick={props.onPreviousPageClick}
-                    aria-label={formatMessage({id: 'admin.pagination.previous', defaultMessage: 'Go to previous page'})}
+                    aria-label={formatMessage({id: 'adminConsole.list.table.pagination.previous', defaultMessage: 'Go to previous page'})}
                 >
                     <i
                         className='icon icon-chevron-left'
@@ -40,7 +40,7 @@ export function Pagination(props: Props) {
                     className='btn btn-icon btn-sm'
                     disabled={props.disableNextPage || props.isLoading}
                     onClick={props.onNextPageClick}
-                    aria-label={formatMessage({id: 'admin.pagination.next', defaultMessage: 'Go to next page'})}
+                    aria-label={formatMessage({id: 'adminConsole.list.table.pagination.next', defaultMessage: 'Go to next page'})}
                 >
                     <i
                         className='icon icon-chevron-right'

@@ -187,7 +187,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                                             overlay={
                                                 <Tooltip id='system-users-column-pinned-tooltip'>
                                                     <FormattedMessage
-                                                        id='admin.list.table.pinnedColumn'
+                                                        id='adminConsole.list.table.pinnedColumn'
                                                         defaultMessage='This column is pinned'
                                                     />
                                                 </Tooltip>
