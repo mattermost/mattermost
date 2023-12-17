@@ -65,7 +65,10 @@ function AdminConsoleListActions(props: Props) {
                     <>
                         {getTranslatedUserRole(props.userRoles)}
                         {!isDisabled && (
-                            <i className='icon icon-chevron-down'/>
+                            <i
+                                aria-hidden='true'
+                                className='icon icon-chevron-down'
+                            />
                         )}
                     </>
                 ),

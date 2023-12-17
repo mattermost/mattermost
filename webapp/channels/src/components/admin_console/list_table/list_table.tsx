@@ -1,14 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Table} from '@tanstack/react-table';
+import type {SortDirection, Table} from '@tanstack/react-table';
 import {flexRender} from '@tanstack/react-table';
 import classNames from 'classnames';
 import React, {useMemo} from 'react';
-import type {MouseEvent} from 'react';
+import type {AriaAttributes, MouseEvent, ReactNode} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {IndicatorContainerProps, ValueType} from 'react-select';
+
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
+
+import Constants from 'utils/constants';
+
+import {Pagination} from './pagination';
 
 import './list_table.scss';
 
@@ -18,19 +25,19 @@ const PINNED_CLASS = 'pinned';
 export const PAGE_SIZES = [10, 20, 50, 100];
 const PageSizes = defineMessages<number>({
     10: {
-        id: 'admin.console.list.table.rowsCount.10',
+        id: 'adminConsole.list.table.rowsCount.10',
         defaultMessage: '10',
     },
     20: {
-        id: 'admin.console.list.table.rowsCount.20',
+        id: 'adminConsole.list.table.rowsCount.20',
         defaultMessage: '20',
     },
     50: {
-        id: 'admin.console.list.table.rowsCount.50',
+        id: 'adminConsole.list.table.rowsCount.50',
         defaultMessage: '50',
     },
     100: {
-        id: 'admin.console.list.table.rowsCount.100',
+        id: 'adminConsole.list.table.rowsCount.100',
         defaultMessage: '100',
     },
 });
@@ -42,14 +49,17 @@ export type PageSizeOption = {
 
 export type TableMeta = {
     tableId: string;
+    tableCaption?: string;
     isLoading?: boolean;
     onRowClick?: (row: string) => void;
     disablePrevPage?: boolean;
     disableNextPage?: boolean;
     onPreviousPageClick?: () => void;
     onNextPageClick?: () => void;
+    paginationInfo?: ReactNode;
+    totalRowInfo?: ReactNode;
     hasAdditionalPaginationAtTop?: boolean;
-}
+};
 
 interface TableMandatoryTypes {
     id: string;
@@ -65,7 +75,9 @@ type Props<TableType extends TableMandatoryTypes> = {
  *
  * @param {Table} table - See https://tanstack.com/table/v8/docs/api/core/table/ for more details
  */
-export function ListTable<TableType extends TableMandatoryTypes>(props: Props<TableType>) {
+export function ListTable<TableType extends TableMandatoryTypes>(
+    props: Props<TableType>,
+) {
     const {formatMessage} = useIntl();
 
     const tableMeta = props.table.options.meta as TableMeta;
@@ -101,37 +113,29 @@ export function ListTable<TableType extends TableMandatoryTypes>(props: Props<Ta
 
     return (
         <>
-            {tableMeta.hasAdditionalPaginationAtTop && (
-
-                <div className='adminConsoleListTabletOptionalHead'>
-                    <div className='adminConsoleListTablePageSize'/>
-                    <div className='adminConsoleListTablePagination'>
-                        {tableMeta.onPreviousPageClick && (
-                            <button
-                                className='btn btn-icon btn-sm'
-                                disabled={tableMeta.disablePrevPage || tableMeta.isLoading}
-                                onClick={tableMeta.onPreviousPageClick}
-                            >
-                                <i className='icon icon-chevron-left'/>
-                            </button>
-                        )}
-                        {tableMeta.onNextPageClick && (
-                            <button
-                                className='btn btn-icon btn-sm'
-                                disabled={tableMeta.disablePrevPage || tableMeta.isLoading}
-                                onClick={tableMeta.onNextPageClick}
-                            >
-                                <i className='icon icon-chevron-right'/>
-                            </button>
-                        )}
-                    </div>
-                </div>
-            )}
+            <div className='adminConsoleListTabletOptionalHead'>
+                {tableMeta.totalRowInfo}
+                {tableMeta.hasAdditionalPaginationAtTop && (
+                    <Pagination
+                        disablePrevPage={tableMeta.disablePrevPage}
+                        disableNextPage={tableMeta.disableNextPage}
+                        isLoading={tableMeta.isLoading}
+                        onPreviousPageClick={tableMeta.onPreviousPageClick}
+                        onNextPageClick={tableMeta.onNextPageClick}
+                        paginationInfo={tableMeta.paginationInfo}
+                    />
+                )}
+            </div>
             <table
                 id={tableMeta.tableId}
+                aria-colcount={props.table.getAllColumns().length}
                 aria-describedby={`${tableMeta.tableId}-headerId`} // Set this id to the table header so that the title describes the table
-                className={classNames('adminConsoleListTable', tableMeta.tableId)}
+                className={classNames(
+                    'adminConsoleListTable',
+                    tableMeta.tableId,
+                )}
             >
+                <caption className='sr-only'>{tableMeta.tableCaption}</caption>
                 <thead>
                     {props.table.getHeaderGroups().map((headerGroup) => (
                         <tr key={headerGroup.id}>
@@ -141,6 +145,8 @@ export function ListTable<TableType extends TableMandatoryTypes>(props: Props<Ta
                                     id={`${headerIdPrefix}${header.id}`}
                                     colSpan={header.colSpan}
                                     scope='col'
+                                    role='columnheader'
+                                    aria-sort={getAriaSortForTableHeader(header.column.getCanSort(), header.column.getIsSorted())}
                                     className={classNames(`${header.id}`, {
                                         [SORTABLE_CLASS]: header.column.getCanSort(),
                                         [PINNED_CLASS]: header.column.getCanPin(),
@@ -151,20 +157,47 @@ export function ListTable<TableType extends TableMandatoryTypes>(props: Props<Ta
 
                                     {/* Sort Icons */}
                                     {header.column.getIsSorted() === 'asc' && (
-                                        <span className='icon icon-arrow-up'/>
+                                        <span
+                                            aria-hidden='true'
+                                            className='icon icon-arrow-up'
+                                        />
                                     )}
                                     {header.column.getIsSorted() === 'desc' && (
-                                        <span className='icon icon-arrow-down'/>
+                                        <span
+                                            aria-hidden='true'
+                                            className='icon icon-arrow-down'
+                                        />
                                     )}
                                     {header.column.getCanSort() &&
                                         header.column.getIsSorted() !== 'asc' &&
                                         header.column.getIsSorted() !== 'desc' && (
-                                        <span className='icon icon-arrow-up hoverSortingIcon'/>
+                                        <span
+                                            aria-hidden='true'
+                                            className='icon icon-arrow-up hoverSortingIcon'
+                                        />
                                     )}
 
-                                    {/* Add pinned icon here */}
+                                    {/* Pinned Icon */}
                                     {header.column.getCanPin() && (
-                                        <span className='icon icon-pin-outline'/>
+                                        <OverlayTrigger
+                                            delayShow={Constants.OVERLAY_TIME_DELAY}
+                                            placement={
+                                                header.index === 0 ? 'bottom' : 'left'
+                                            }
+                                            overlay={
+                                                <Tooltip id='system-users-column-pinned-tooltip'>
+                                                    <FormattedMessage
+                                                        id='admin.list.table.pinnedColumn'
+                                                        defaultMessage='This column is pinned'
+                                                    />
+                                                </Tooltip>
+                                            }
+                                        >
+                                            <span
+                                                aria-hidden='true'
+                                                className='icon icon-pin-outline'
+                                            />
+                                        </OverlayTrigger>
                                     )}
                                 </th>
                             ))}
@@ -176,12 +209,14 @@ export function ListTable<TableType extends TableMandatoryTypes>(props: Props<Ta
                         <tr
                             id={`${rowIdPrefix}${row.original.id}`}
                             key={row.id}
+                            role='row'
                             onClick={handleRowClick}
                         >
                             {row.getVisibleCells().map((cell) => (
                                 <td
                                     key={cell.id}
                                     id={`${cellIdPrefix}${cell.id}`}
+                                    role='cell'
                                     headers={`${headerIdPrefix}${cell.column.id}`}
                                     className={classNames(`${cell.column.id}`, {
                                         [PINNED_CLASS]: cell.column.getCanPin(),
@@ -213,9 +248,18 @@ export function ListTable<TableType extends TableMandatoryTypes>(props: Props<Ta
             </table>
             <div className='adminConsoleListTabletOptionalFoot'>
                 {handlePageSizeChange && (
-                    <div className='adminConsoleListTablePageSize'>
+                    <div
+                        className='adminConsoleListTablePageSize'
+                        aria-label={formatMessage(
+                            {
+                                id: 'adminConsole.list.table.rowCount.label',
+                                defaultMessage: 'Show {count} rows per page',
+                            },
+                            {count: selectedPageSize.label},
+                        )}
+                    >
                         <FormattedMessage
-                            id='admin.console.list.table.rowsCount.(show)rowsPerPage'
+                            id='adminConsole.list.table.rowsCount.(show)rowsPerPage'
                             defaultMessage='Show'
                         />
                         <ReactSelect
@@ -236,31 +280,19 @@ export function ListTable<TableType extends TableMandatoryTypes>(props: Props<Ta
                             }}
                         />
                         <FormattedMessage
-                            id='admin.console.list.table.rowsCount.show(rowsPerPage)'
+                            id='adminConsole.list.table.rowsCount.show(rowsPerPage)'
                             defaultMessage='rows per page'
                         />
                     </div>
                 )}
-                <div className='adminConsoleListTablePagination'>
-                    {tableMeta.onPreviousPageClick && (
-                        <button
-                            className='btn btn-icon btn-sm'
-                            disabled={tableMeta.disablePrevPage || tableMeta.isLoading}
-                            onClick={tableMeta.onPreviousPageClick}
-                        >
-                            <i className='icon icon-chevron-left'/>
-                        </button>
-                    )}
-                    {tableMeta.onNextPageClick && (
-                        <button
-                            className='btn btn-icon btn-sm'
-                            disabled={tableMeta.disablePrevPage || tableMeta.isLoading}
-                            onClick={tableMeta.onNextPageClick}
-                        >
-                            <i className='icon icon-chevron-right'/>
-                        </button>
-                    )}
-                </div>
+                <Pagination
+                    disablePrevPage={tableMeta.disablePrevPage}
+                    disableNextPage={tableMeta.disableNextPage}
+                    isLoading={tableMeta.isLoading}
+                    onPreviousPageClick={tableMeta.onPreviousPageClick}
+                    onNextPageClick={tableMeta.onNextPageClick}
+                    paginationInfo={tableMeta.paginationInfo}
+                />
             </div>
         </>
     );
@@ -272,4 +304,23 @@ function SelectIndicator(props: IndicatorContainerProps<PageSizeOption>) {
             <i className='icon icon-chevron-down'/>
         </components.IndicatorsContainer>
     );
+}
+
+function getAriaSortForTableHeader(
+    canSort: boolean,
+    sortDirection: boolean | SortDirection,
+): AriaAttributes['aria-sort'] {
+    if (!canSort) {
+        return 'none';
+    }
+
+    if (sortDirection === 'asc') {
+        return 'ascending';
+    }
+
+    if (sortDirection === 'desc') {
+        return 'descending';
+    }
+
+    return 'none';
 }

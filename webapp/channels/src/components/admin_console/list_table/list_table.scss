@@ -85,7 +85,6 @@ table.adminConsoleListTable {
                         font-size: 14px;
                         font-weight: 400;
                         line-height: 14px;
-                        color: rgba(var(--sys-center-channel-color-rgb), 0.32);
                     }
                 }
 
@@ -269,13 +268,13 @@ table.adminConsoleListTable {
         }
     }
 
-    .adminConsoleListTablePagination {
+    .paginationButtons {
         display: flex;
         flex-direction: row;
         align-items: center;
         justify-content: center;
 
-        & > div {
+        & > span {
             padding-inline-end: 12px;
         }
     }

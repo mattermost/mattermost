@@ -23,7 +23,7 @@ export function ElapsedDurationCell(props: Props) {
         const startOfTodayMoment = moment().startOf('day');
         const passedInDateMoment = moment(props.date);
         const exactPassedInDate = passedInDateMoment.format(
-            `MMMM DD, Y [${formatMessage({id: 'admin.console.list.table.exactTime.at', defaultMessage: 'at'})}] hh:mm:ss A`,
+            `MMMM DD, Y [${formatMessage({id: 'adminConsole.list.table.exactTime.at', defaultMessage: 'at'})}] hh:mm:ss A`,
         );
 
         const startOfPassedInDateMoment = passedInDateMoment.startOf('day');
@@ -67,7 +67,7 @@ export function ElapsedDurationCell(props: Props) {
     }
 
     const sharedTooltip = (
-        <Tooltip id='system-users-cell-tooltip'>
+        <Tooltip id='system-users-cell-elapsed-duration-tooltip'>
             {exactPassedInDate}
         </Tooltip>
     );

@@ -11,8 +11,8 @@ import type {UserProfile, UserReport} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {AdminConsoleListTable, useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper, ElapsedDurationCell, PAGE_SIZES} from 'components/admin_console/list_table';
-import type {CellContext, PaginationState, SortingState, TableMeta, OnChangeFn} from 'components/admin_console/list_table';
+import {AdminConsoleListTable, useReactTable, getCoreRowModel, getSortedRowModel, ElapsedDurationCell, PAGE_SIZES} from 'components/admin_console/list_table';
+import type {CellContext, PaginationState, SortingState, TableMeta, OnChangeFn, ColumnDef} from 'components/admin_console/list_table';
 
 import {imageURLForUser} from 'utils/utils';
 
@@ -30,7 +30,7 @@ type SystemUsersRow = {
     email: UserProfile['email'];
     display_name: string;
     roles: UserProfile['roles'];
-    create_at?: UserProfile['create_at'];
+    create_at: UserProfile['create_at'];
     last_login_at?: number;
     last_status_at?: number;
     last_post_date?: number;
@@ -50,8 +50,6 @@ enum ColumnNames {
     actions = 'actionsColumn',
 }
 
-const columnHelper = createColumnHelper<SystemUsersRow>();
-
 function SystemUsersList(props: Props) {
     const tableId = 'systemUsersTable';
 
@@ -61,7 +59,7 @@ function SystemUsersList(props: Props) {
     const [userReports, setUserReports] = useState<UserReport[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    const columns = useMemo(
+    const columns: Array<ColumnDef<SystemUsersRow, any>> = useMemo(
         () => [
             {
                 id: ColumnNames.displayName,
@@ -99,89 +97,96 @@ function SystemUsersList(props: Props) {
                 enablePinning: true,
                 enableSorting: true,
             },
-            columnHelper.accessor('email', {
+            {
                 id: ColumnNames.email,
+                accessorKey: 'email',
                 header: formatMessage({
                     id: 'admin.system_users.list.email',
                     defaultMessage: 'Email',
                 }),
-                cell: (info) => info.getValue() || '',
+                cell: (info: CellContext<SystemUsersRow, string>) => info.getValue() || '',
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: true,
-            }),
-            columnHelper.accessor('create_at', {
+            },
+            {
                 id: ColumnNames.createAt,
+                accessorKey: 'create_at',
                 header: formatMessage({
                     id: 'admin.system_users.list.memberSince',
                     defaultMessage: 'Member since',
                 }),
-                cell: (info) => <ElapsedDurationCell date={info.getValue()}/>,
+                cell: (info: CellContext<SystemUsersRow, number>) => <ElapsedDurationCell date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: true,
-            }),
-            columnHelper.accessor('last_login_at', {
+            },
+            {
                 id: ColumnNames.lastLoginAt,
+                accessorKey: 'last_login_at',
                 header: formatMessage({
                     id: 'admin.system_users.list.lastLoginAt',
                     defaultMessage: 'Last login',
                 }),
-                cell: (info) => <ElapsedDurationCell date={info.getValue()}/>,
+                cell: (info: CellContext<SystemUsersRow, number | undefined>) => <ElapsedDurationCell date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: false,
-            }),
-            columnHelper.accessor('last_status_at', {
+            },
+            {
                 id: ColumnNames.lastStatusAt,
+                accessorKey: 'last_status_at',
                 header: formatMessage({
                     id: 'admin.system_users.list.lastActivity',
                     defaultMessage: 'Last activity',
                 }),
-                cell: (info) => <ElapsedDurationCell date={info.getValue()}/>,
+                cell: (info: CellContext<SystemUsersRow, number | undefined>) => <ElapsedDurationCell date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: false,
-            }),
-            columnHelper.accessor('last_post_date', {
+            },
+            {
                 id: ColumnNames.lastPostDate,
+                accessorKey: 'last_post_date',
                 header: formatMessage({
                     id: 'admin.system_users.list.lastPost',
                     defaultMessage: 'Last post',
                 }),
-                cell: (info) => <ElapsedDurationCell date={info.getValue()}/>,
+                cell: (info: CellContext<SystemUsersRow, number | undefined>) => <ElapsedDurationCell date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: false,
-            }),
-            columnHelper.accessor('days_active', {
+            },
+            {
                 id: ColumnNames.daysActive,
+                accessorKey: 'days_active',
                 header: formatMessage({
                     id: 'admin.system_users.list.daysActive',
                     defaultMessage: 'Days active',
                 }),
-                cell: (info) => info.getValue(),
+                cell: (info: CellContext<SystemUsersRow, number | undefined>) => info.getValue(),
                 meta: {
                     isNumeric: true,
                 },
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: false,
-            }),
-            columnHelper.accessor('total_posts', {
+            },
+            {
                 id: ColumnNames.totalPosts,
+                accessorKey: 'total_posts',
                 header: formatMessage({
                     id: 'admin.system_users.list.totalPosts',
                     defaultMessage: 'Messages posted',
                 }),
-                cell: (info) => info.getValue() || null,
+                cell: (info: CellContext<SystemUsersRow, number | undefined>) => info.getValue() || null,
                 meta: {
                     isNumeric: true,
                 },
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: false,
-            }),
+            },
             {
                 id: ColumnNames.actions,
                 accessorKey: 'actions',
@@ -289,6 +294,7 @@ function SystemUsersList(props: Props) {
         },
         meta: {
             tableId: 'systemUsersTable',
+            tableCaption: formatMessage({id: 'admin.system_users.list.caption', defaultMessage: 'System Users'}),
             isLoading,
             onRowClick: handleRowClick,
             onPreviousPageClick: handlePreviousPageClick,
