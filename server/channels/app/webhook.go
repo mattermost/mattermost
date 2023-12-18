@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -118,7 +119,11 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 			defer wg.Done()
 			webhookResp, err := a.doOutgoingWebhookRequest(url, body, contentType)
 			if err != nil {
-				c.Logger().Error("Event POST failed.", mlog.Err(err))
+				if errors.Is(err, context.DeadlineExceeded) {
+					c.Logger().Error("Outgoing Webhook POST timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.", mlog.Err(err))
+				} else {
+					c.Logger().Error("Outgoing Webhook POST failed", mlog.Err(err))
+				}
 				return
 			}
 
@@ -158,7 +163,10 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 }
 
 func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType string) (*model.OutgoingWebhookResponse, error) {
-	req, err := http.NewRequest("POST", url, body)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, body)
 	if err != nil {
 		return nil, err
 	}
