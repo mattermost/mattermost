@@ -504,11 +504,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 		var infos []*model.FileInfo
 		if fResult := <-fchan; fResult.NErr != nil {
-<<<<<<< HEAD
-			mlog.Warn("Unable to get fileInfo for push notifications.", mlog.String("post_id", post.Id), mlog.Err(fResult.NErr))
-=======
 			c.Logger().Warn("Unable to get fileInfo for push notifications.", mlog.String("post_id", post.Id), mlog.Err(fResult.NErr))
->>>>>>> master
 		} else {
 			infos = fResult.Data
 		}
