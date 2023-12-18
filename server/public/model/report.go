@@ -24,13 +24,15 @@ var (
 )
 
 type ReportingBaseOptions struct {
-	SortDesc            bool
-	PageSize            int
-	SortColumn          string
-	LastSortColumnValue string
-	DateRange           string
-	StartAt             int64
-	EndAt               int64
+	SortDesc        bool
+	Direction       string // Accepts only "up" or "down"
+	PageSize        int
+	SortColumn      string
+	FromColumnValue string
+	FromId          string
+	DateRange       string
+	StartAt         int64
+	EndAt           int64
 }
 
 func (options *ReportingBaseOptions) PopulateDateRange(now time.Time) {
@@ -77,7 +79,6 @@ type UserReport struct {
 
 type UserReportOptions struct {
 	ReportingBaseOptions
-	LastUserId   string
 	Role         string
 	Team         string
 	HasNoTeam    bool
