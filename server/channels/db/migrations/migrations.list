@@ -471,4 +471,5 @@ channels/db/migrations/postgres/000117_msteams_shared_channels_opts.down.sql
 channels/db/migrations/postgres/000117_msteams_shared_channels.up.sql
 channels/db/migrations/postgres/000118_create_index_poststats.down.sql
 channels/db/migrations/postgres/000118_create_index_poststats.up.sql
+channels/db/migrations/postgres/000119_msteams_shared_channels_opts.down.sql
 channels/db/migrations/postgres/000119_msteams_shared_channels_opts.up.sql
