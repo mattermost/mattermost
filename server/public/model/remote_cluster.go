@@ -105,7 +105,7 @@ func (rc *RemoteCluster) IsValid() *AppError {
 }
 
 func (rc *RemoteCluster) IsOptionFlagSet(flag Bitmask) bool {
-	return Bitmask(rc.Options)&flag != 0
+	return rc.Options&flag != 0
 }
 
 func (rc *RemoteCluster) SetOptionFlag(flag Bitmask) {
