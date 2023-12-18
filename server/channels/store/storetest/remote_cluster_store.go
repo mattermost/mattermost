@@ -47,6 +47,7 @@ func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Greater(t, rc.CreateAt, int64(0))
 		require.Equal(t, rc.LastPingAt, int64(0))
 		require.Equal(t, testPluginID_1, rcSaved.PluginID)
+		require.Equal(t, rc.Options, model.Bitmask(0))
 	})
 
 	t.Run("Save missing display name", func(t *testing.T) {
@@ -112,6 +113,33 @@ func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err = ss.RemoteCluster().Save(rc2)
 		require.NoError(t, err)
 	})
+
+	t.Run("Save for plugin with options", func(t *testing.T) {
+		rc := &model.RemoteCluster{
+			Name:      "plugin_remote",
+			SiteURL:   "plugin.example.com",
+			CreatorId: model.NewId(),
+			PluginID:  testPluginID_1,
+			Options:   model.BitflagOptionAutoShareDMs,
+		}
+
+		rcSaved, err := ss.RemoteCluster().Save(rc)
+		require.NoError(t, err)
+		require.Equal(t, testPluginID_1, rcSaved.PluginID)
+		require.Equal(t, model.BitflagOptionAutoShareDMs, rcSaved.Options)
+		require.True(t, rcSaved.IsOptionFlagSet(model.BitflagOptionAutoShareDMs))
+
+		rc.Name = "plugin_remote_2"
+		rc.SiteURL = "plugin2.example.com"
+		rc.PluginID = testPluginID_2
+		rc.UnsetOptionFlag(model.BitflagOptionAutoShareDMs)
+
+		rcSaved, err = ss.RemoteCluster().Save(rc)
+		require.NoError(t, err)
+		require.Equal(t, testPluginID_2, rcSaved.PluginID)
+		require.Equal(t, model.Bitmask(0), rcSaved.Options)
+		require.False(t, rcSaved.IsOptionFlagSet(model.BitflagOptionAutoShareDMs))
+	})
 }
 
 func testRemoteClusterDelete(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -144,6 +172,7 @@ func testRemoteClusterGet(t *testing.T, rctx request.CTX, ss store.Store) {
 			CreatorId: model.NewId(),
 			PluginID:  testPluginID_1,
 		}
+		rc.SetOptionFlag(model.BitflagOptionAutoShareDMs)
 		rcSaved, err := ss.RemoteCluster().Save(rc)
 		require.NoError(t, err)
 
@@ -151,6 +180,7 @@ func testRemoteClusterGet(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, rcSaved.RemoteId, rcGet.RemoteId)
 		require.Equal(t, testPluginID_1, rcGet.PluginID)
+		require.True(t, rcGet.IsOptionFlagSet(model.BitflagOptionAutoShareDMs))
 	})
 
 	t.Run("Get not found", func(t *testing.T) {

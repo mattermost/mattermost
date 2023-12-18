@@ -8268,7 +8268,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
+    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -8925,6 +8925,10 @@
   {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
     "translation": "Invalid domain for move thread settings"
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Invalid Outgoing Integrations Request Timeout for service settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
