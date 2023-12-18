@@ -4321,6 +4321,7 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 func (s SqlChannelStore) GetChannelsReport(filter *model.ChannelReportOptions) ([]*model.ChannelReport, error) {
 	query := s.getChannelReportGenerateQuery(filter)
 
+	// LOL remove this for PR
 	q, p, e := query.ToSql()
 	if e != nil {
 		mlog.Err(e)
@@ -4372,43 +4373,43 @@ func (s SqlChannelStore) channelReportBaseQuery(filter *model.ChannelReportOptio
 func (s SqlChannelStore) channelReportApplyPagination(filter *model.ChannelReportOptions, query sq.SelectBuilder) sq.SelectBuilder {
 	// LOL add page direction - next or previous
 
-	if filter.LastSortColumnValue == "" {
+	if filter.FromColumnValue == "" {
 		return query
 	}
 
 	if filter.SortColumn == model.ChannelReportingSortByDisplayName {
 		if filter.SortDesc {
 			query = query.Where(sq.Or{
-				sq.Lt{"c.displayname": filter.LastSortColumnValue},
+				sq.Lt{"c.displayname": filter.FromColumnValue},
 				sq.And{
-					sq.Eq{"c.displayname": filter.LastSortColumnValue},
-					sq.Lt{"c.id": filter.LastChannelId},
+					sq.Eq{"c.displayname": filter.FromColumnValue},
+					sq.Lt{"c.id": filter.FromId},
 				},
 			})
 		} else {
 			query = query.Where(sq.Or{
-				sq.Gt{"c.displayname": filter.LastSortColumnValue},
+				sq.Gt{"c.displayname": filter.FromColumnValue},
 				sq.And{
-					sq.Eq{"c.displayname": filter.LastSortColumnValue},
-					sq.Gt{"c.id": filter.LastChannelId},
+					sq.Eq{"c.displayname": filter.FromColumnValue},
+					sq.Gt{"c.id": filter.FromId},
 				},
 			})
 		}
 	} else if filter.SortColumn == model.ChannelReportingSortByPostCount {
 		if filter.SortDesc {
 			query = query.Having(sq.Or{
-				sq.Lt{"COALESCE(SUM(pcs.numposts), 0)": filter.LastSortColumnValue},
+				sq.Lt{"COALESCE(SUM(pcs.numposts), 0)": filter.FromColumnValue},
 				sq.And{
 					sq.Eq{"COALESCE(SUM(pcs.numposts), 0)": 1},
-					sq.Lt{"c.id": filter.LastChannelId},
+					sq.Lt{"c.id": filter.FromId},
 				},
 			})
 		} else {
 			query = query.Having(sq.Or{
-				sq.Gt{"COALESCE(SUM(pcs.numposts), 0)": filter.LastSortColumnValue},
+				sq.Gt{"COALESCE(SUM(pcs.numposts), 0)": filter.FromColumnValue},
 				sq.And{
 					sq.Eq{"COALESCE(SUM(pcs.numposts), 0)": 1},
-					sq.Gt{"c.id": filter.LastChannelId},
+					sq.Gt{"c.id": filter.FromId},
 				},
 			})
 		}
@@ -4416,20 +4417,20 @@ func (s SqlChannelStore) channelReportApplyPagination(filter *model.ChannelRepor
 		if filter.SortDesc {
 			query = query.Where(
 				sq.Or{
-					sq.Lt{"usercount": filter.LastSortColumnValue},
+					sq.Lt{"usercount": filter.FromColumnValue},
 					sq.And{
-						sq.Eq{"usercount": filter.LastSortColumnValue},
-						sq.Lt{"c.id": filter.LastChannelId},
+						sq.Eq{"usercount": filter.FromColumnValue},
+						sq.Lt{"c.id": filter.FromId},
 					},
 				},
 			)
 		} else {
 			query = query.Where(
 				sq.Or{
-					sq.Gt{"usercount": filter.LastSortColumnValue},
+					sq.Gt{"usercount": filter.FromColumnValue},
 					sq.And{
-						sq.Eq{"usercount": filter.LastSortColumnValue},
-						sq.Gt{"c.id": filter.LastChannelId},
+						sq.Eq{"usercount": filter.FromColumnValue},
+						sq.Gt{"c.id": filter.FromId},
 					},
 				},
 			)

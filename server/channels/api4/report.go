@@ -93,7 +93,7 @@ func getChannelReport(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sortColumn := "ChannelName"
+	sortColumn := model.ChannelReportingSortByDisplayName
 	if r.URL.Query().Get("sort_column") != "" {
 		sortColumn = r.URL.Query().Get("sort_column")
 	}
@@ -110,13 +110,13 @@ func getChannelReport(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	filterOptions := &model.ChannelReportOptions{
 		ReportingBaseOptions: model.ReportingBaseOptions{
-			SortColumn:          sortColumn,
-			SortDesc:            r.URL.Query().Get("sort_direction") == "desc",
-			PageSize:            pageSize,
-			LastSortColumnValue: r.URL.Query().Get("last_column_value"),
-			DateRange:           r.URL.Query().Get("date_range"),
+			SortColumn:      sortColumn,
+			SortDesc:        r.URL.Query().Get("sort_direction") == "desc",
+			PageSize:        pageSize,
+			FromColumnValue: r.URL.Query().Get("last_column_value"),
+			DateRange:       r.URL.Query().Get("date_range"),
+			FromId:          r.URL.Query().Get("last_id"),
 		},
-		LastChannelId: r.URL.Query().Get("last_id"),
 	}
 	filterOptions.PopulateDateRange(time.Now())
 

@@ -113,7 +113,6 @@ func (u *UserReportQuery) ToReport() *UserReport {
 
 type ChannelReportOptions struct {
 	ReportingBaseOptions
-	LastChannelId string
 }
 
 func (options *ChannelReportOptions) IsValid() *AppError {
@@ -127,7 +126,7 @@ func (options *ChannelReportOptions) IsValid() *AppError {
 		return NewAppError("ChannelReportOptions.IsValid", "app.channel.get_user_report.invalid_sort_column", nil, "", http.StatusBadRequest)
 	}
 
-	if options.LastChannelId != "" && !IsValidId(options.LastChannelId) {
+	if options.FromId != "" && !IsValidId(options.FromId) {
 		// LOL update these error messages
 		return NewAppError("ChannelReportOptions.IsValid", "app.channel.get_user_report.invalid_last_channel_id", nil, "", http.StatusBadRequest)
 	}
