@@ -75,10 +75,11 @@ export default class FilePreview extends React.PureComponent<Props> {
                     <div
                         className={imageClassName}
                         style={{
-                            backgroundImage: `url(${thumbnailUrl})`,
                             backgroundSize: 'cover',
                         }}
-                    />
+                    >
+                        <img src={getFileUrl(info.id)}/>
+                    </div>
                 );
             } else {
                 className += ' custom-file';
