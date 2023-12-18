@@ -368,24 +368,24 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 		return nil, nil, model.NewAppError("ExecuteCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	chanChan := make(chan store.GenericStoreResult[*model.Channel], 1)
+	chanChan := make(chan store.StoreResult[*model.Channel], 1)
 	go func() {
 		channel, err := a.Srv().Store().Channel().Get(args.ChannelId, true)
-		chanChan <- store.GenericStoreResult[*model.Channel]{Data: channel, NErr: err}
+		chanChan <- store.StoreResult[*model.Channel]{Data: channel, NErr: err}
 		close(chanChan)
 	}()
 
-	teamChan := make(chan store.GenericStoreResult[*model.Team], 1)
+	teamChan := make(chan store.StoreResult[*model.Team], 1)
 	go func() {
 		team, err := a.Srv().Store().Team().Get(args.TeamId)
-		teamChan <- store.GenericStoreResult[*model.Team]{Data: team, NErr: err}
+		teamChan <- store.StoreResult[*model.Team]{Data: team, NErr: err}
 		close(teamChan)
 	}()
 
-	userChan := make(chan store.GenericStoreResult[*model.User], 1)
+	userChan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), args.UserId)
-		userChan <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
+		userChan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
 

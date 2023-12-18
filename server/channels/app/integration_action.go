@@ -70,24 +70,24 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 
 	// See if the post exists in the DB, if so ignore the cookie.
 	// Start all queries here for parallel execution
-	pchan := make(chan store.GenericStoreResult[*model.Post], 1)
+	pchan := make(chan store.StoreResult[*model.Post], 1)
 	go func() {
 		post, err := a.Srv().Store().Post().GetSingle(postID, false)
-		pchan <- store.GenericStoreResult[*model.Post]{Data: post, NErr: err}
+		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()
 
-	cchan := make(chan store.GenericStoreResult[*model.Channel], 1)
+	cchan := make(chan store.StoreResult[*model.Channel], 1)
 	go func() {
 		channel, err := a.Srv().Store().Channel().GetForPost(postID)
-		cchan <- store.GenericStoreResult[*model.Channel]{Data: channel, NErr: err}
+		cchan <- store.StoreResult[*model.Channel]{Data: channel, NErr: err}
 		close(cchan)
 	}()
 
-	userChan := make(chan store.GenericStoreResult[*model.User], 1)
+	userChan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), upstreamRequest.UserId)
-		userChan <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
+		userChan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
 
@@ -175,7 +175,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 		upstreamURL = action.Integration.URL
 	}
 
-	teamChan := make(chan store.GenericStoreResult[*model.Team], 1)
+	teamChan := make(chan store.StoreResult[*model.Team], 1)
 
 	go func() {
 		defer close(teamChan)
@@ -186,7 +186,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 		}
 
 		team, err := a.Srv().Store().Team().Get(upstreamRequest.TeamId)
-		teamChan <- store.GenericStoreResult[*model.Team]{Data: team, NErr: err}
+		teamChan <- store.StoreResult[*model.Team]{Data: team, NErr: err}
 	}()
 
 	ur := <-userChan
