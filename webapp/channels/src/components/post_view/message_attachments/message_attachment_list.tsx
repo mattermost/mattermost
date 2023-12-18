@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo} from 'react';
 
 import type {MessageAttachment as MessageAttachmentType} from '@mattermost/types/message_attachments';
 import type {PostImage} from '@mattermost/types/posts';
@@ -33,32 +33,26 @@ type Props = {
     imagesMetadata?: Record<string, PostImage>;
 }
 
-export default class MessageAttachmentList extends React.PureComponent<Props> {
-    static defaultProps = {
-        imagesMetadata: {},
-    };
+const MessageAttachmentList = ({
+    imagesMetadata = {},
+    attachments,
+    postId,
+    options,
+}: Props) => (
+    <div
+        id={`messageAttachmentList_${postId}`}
+        className='attachment__list'
+    >
+        {attachments.map((attachment, i) => (
+            <MessageAttachment
+                attachment={attachment}
+                postId={postId}
+                key={'att_' + i}
+                options={options}
+                imagesMetadata={imagesMetadata}
+            />
+        ))}
+    </div>
+);
 
-    render() {
-        const content = [] as JSX.Element[];
-        this.props.attachments.forEach((attachment, i) => {
-            content.push(
-                <MessageAttachment
-                    attachment={attachment}
-                    postId={this.props.postId}
-                    key={'att_' + i}
-                    options={this.props.options}
-                    imagesMetadata={this.props.imagesMetadata}
-                />,
-            );
-        });
-
-        return (
-            <div
-                id={`messageAttachmentList_${this.props.postId}`}
-                className='attachment__list'
-            >
-                {content}
-            </div>
-        );
-    }
-}
+export default memo(MessageAttachmentList);
