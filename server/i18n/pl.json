@@ -10100,28 +10100,12 @@
     "translation": "Podano nieprawidłowy identyfikator zespołu."
   },
   {
-    "id": "app.user.get_user_report.store_error",
-    "translation": "Wystąpił błąd podczas wysyłania zapytania do raportu użytkownika."
-  },
-  {
-    "id": "app.user.get_users_for_reporting.bad_date_range",
-    "translation": "Podany zakres dat jest nieprawidłowy."
-  },
-  {
-    "id": "app.user.get_users_for_reporting.invalid_page_size",
-    "translation": "Rozmiar strony jest nieprawidłowy lub zbyt duży."
-  },
-  {
     "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
     "translation": "Jeśli GlobalRelaySettings.CustomerType ma wartość \"CUSTOM\", należy ustawić GlobalRelaySettings.CustomSMTPServerName i GlobalRelaySettings.CustomSMTPPort."
   },
   {
     "id": "api.custom_status.set_custom_statuses.emoji_not_found",
     "translation": "Nie udało się zaktualizować niestandardowego statusu. Emoji o podanej nazwie nie istnieje."
-  },
-  {
-    "id": "app.user.get_user_report.invalid_sort_column",
-    "translation": "Podana kolumna sortowania jest nieprawidłowa."
   },
   {
     "id": "app.reaction.save.save.too_many_reactions",
