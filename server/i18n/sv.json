@@ -10098,22 +10098,6 @@
     "translation": "Ogiltigt team-ID har angetts."
   },
   {
-    "id": "app.user.get_user_report.invalid_sort_column",
-    "translation": "Den angivna sorteringskolumnen är inte giltig."
-  },
-  {
-    "id": "app.user.get_user_report.store_error",
-    "translation": "Ett fel uppstod vid sökningen efter användarrapporten."
-  },
-  {
-    "id": "app.user.get_users_for_reporting.bad_date_range",
-    "translation": "Det angivna datumintervallet är ogiltigt."
-  },
-  {
-    "id": "app.user.get_users_for_reporting.invalid_page_size",
-    "translation": "Sidstorleken är ogiltig eller för stor."
-  },
-  {
     "id": "api.custom_status.set_custom_statuses.emoji_not_found",
     "translation": "Det gick inte att uppdatera den anpassade statusen. En emoji med det angivna namnet finns inte."
   },

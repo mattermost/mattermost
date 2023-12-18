@@ -10114,24 +10114,8 @@
     "translation": "Kan niet zowel actieve als inactieve gebruikers verbergen."
   },
   {
-    "id": "app.user.get_users_for_reporting.bad_date_range",
-    "translation": "Het opgegeven datumbereik is ongeldig."
-  },
-  {
-    "id": "app.user.get_user_report.invalid_sort_column",
-    "translation": "De opgegeven sorteerkolom is ongeldig."
-  },
-  {
     "id": "app.reaction.save.save.too_many_reactions",
     "translation": "De reactielimiet voor dit bericht is bereikt."
-  },
-  {
-    "id": "app.user.get_user_report.store_error",
-    "translation": "Er is een fout opgetreden bij het opvragen van het gebruikersrapport."
-  },
-  {
-    "id": "app.user.get_users_for_reporting.invalid_page_size",
-    "translation": "Paginaformaat is ongeldig of te groot."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
