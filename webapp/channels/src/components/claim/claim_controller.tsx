@@ -30,7 +30,7 @@ type Location = {
 
 export type Props = {
     location: Location;
-    siteName?: string;
+    siteName: string;
     ldapLoginFieldName?: string;
     passwordConfig?: PasswordConfig;
     match: {

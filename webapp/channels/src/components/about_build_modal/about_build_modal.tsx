@@ -31,6 +31,8 @@ type Props = {
      * Global license object
      */
     license: ClientLicense;
+
+    siteName: string;
 };
 
 type State = {
@@ -199,7 +201,7 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
                         <FormattedMessage
                             id='about.title'
                             values={{
-                                appTitle: config.SiteName || 'Mattermost',
+                                appTitle: this.props.siteName,
                             }}
                             defaultMessage='About {appTitle}'
                         />

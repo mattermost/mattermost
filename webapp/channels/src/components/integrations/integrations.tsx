@@ -22,7 +22,7 @@ import * as Utils from 'utils/utils';
 import IntegrationOption from './integration_option';
 
 type Props = {
-    siteName: string | undefined;
+    siteName: string;
     enableIncomingWebhooks: boolean;
     enableOutgoingWebhooks: boolean;
     enableCommands: boolean;
@@ -36,8 +36,7 @@ export default class Integrations extends React.PureComponent <Props> {
     }
 
     updateTitle = () => {
-        const currentSiteName = this.props.siteName || '';
-        document.title = Utils.localizeMessage('admin.sidebar.integrations', 'Integrations') + ' - ' + this.props.team.display_name + ' ' + currentSiteName;
+        document.title = Utils.localizeMessage('admin.sidebar.integrations', 'Integrations') + ' - ' + this.props.team.display_name + ' ' + this.props.siteName;
     };
 
     render() {

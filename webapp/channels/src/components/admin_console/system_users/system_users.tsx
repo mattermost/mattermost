@@ -36,7 +36,7 @@ type Props = {
     /**
      * Title of the app or site.
      */
-    siteName?: string;
+    siteName: string;
 
     /**
      * Whether or not MFA is licensed and enabled.

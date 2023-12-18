@@ -19,6 +19,7 @@ type Props = {
     config: any;
     license: any;
     show: boolean;
+    siteName: string;
     doHide: () => void;
 };
 
@@ -73,7 +74,7 @@ export default function AboutBuildModalCloud(props: Props) {
                 >
                     <FormattedMessage
                         id='about.title'
-                        values={{appTitle: config.SiteName || 'Mattermost'}}
+                        values={{appTitle: props.siteName}}
                         defaultMessage='About {appTitle}'
                     />
                 </Modal.Title>

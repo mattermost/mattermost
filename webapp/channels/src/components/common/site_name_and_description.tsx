@@ -6,9 +6,9 @@ import {FormattedMessage} from 'react-intl';
 
 type Props = {
     customDescriptionText?: string;
-    siteName: string | undefined;
+    siteName: string;
 };
-const SiteNameAndDescription = ({customDescriptionText, siteName = 'Mattermost'}: Props) => {
+const SiteNameAndDescription = ({customDescriptionText, siteName}: Props) => {
     const description = customDescriptionText || (
         <FormattedMessage
             id='web.root.signup_info'

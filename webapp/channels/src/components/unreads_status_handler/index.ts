@@ -11,7 +11,7 @@ import type {Dispatch} from 'redux';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {getCurrentChannel, getUnreadStatus} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getSiteName} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
@@ -20,7 +20,6 @@ import UnreadsStatusHandler from './unreads_status_handler';
 type Props = RouteChildrenProps;
 
 function mapStateToProps(state: GlobalState, {location: {pathname}}: Props): ComponentProps<typeof UnreadsStatusHandler> {
-    const config = getConfig(state);
     const currentChannel = getCurrentChannel(state);
     const currentTeammate = (currentChannel && currentChannel.teammate_id) ? currentChannel : null;
     const currentTeam = getCurrentTeam(state);
@@ -29,7 +28,7 @@ function mapStateToProps(state: GlobalState, {location: {pathname}}: Props): Com
         currentChannel,
         currentTeam,
         currentTeammate,
-        siteName: config.SiteName,
+        siteName: getSiteName(state),
         unreadStatus: getUnreadStatus(state),
         inGlobalThreads: matchPath(pathname, {path: '/:team/threads/:threadIdentifier?'}) != null,
         inDrafts: matchPath(pathname, {path: '/:team/drafts'}) != null,

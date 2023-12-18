@@ -18,7 +18,7 @@ import ErrorLabel from './error_label';
 type Props = {
     currentType: string | null;
     email: string | null;
-    siteName?: string;
+    siteName: string;
     passwordConfig?: ReturnType<typeof getPasswordConfig>;
 }
 

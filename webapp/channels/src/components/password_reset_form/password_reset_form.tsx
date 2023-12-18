@@ -15,7 +15,7 @@ export interface Props {
     actions: {
         resetUserPassword: (token: string, newPassword: string) => Promise<ActionResult>;
     };
-    siteName?: string;
+    siteName: string;
 }
 
 const PasswordResetForm = ({location, siteName, actions}: Props) => {

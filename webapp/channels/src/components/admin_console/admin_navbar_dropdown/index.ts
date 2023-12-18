@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getLicense, getSiteName} from 'mattermost-redux/selectors/entities/general';
 import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
@@ -25,7 +25,7 @@ function mapStateToProps(state: GlobalState) {
     return {
         locale: getCurrentLocale(state),
         teams: getMyTeams(state),
-        siteName: getConfig(state).SiteName,
+        siteName: getSiteName(state),
         navigationBlocked: getNavigationBlocked(state),
         isLicensed,
         isCloud,

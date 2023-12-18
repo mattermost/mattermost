@@ -135,12 +135,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
     };
 
     updateTitle = () => {
-        let currentSiteName = '';
-        if (this.props.siteName) {
-            currentSiteName = ' - ' + this.props.siteName;
-        }
-
-        document.title = localizeMessage('sidebar_right_menu.console', 'System Console') + currentSiteName;
+        document.title = localizeMessage('sidebar_right_menu.console', 'System Console') + ' - ' + this.props.siteName;
     };
 
     visibleSections = () => {

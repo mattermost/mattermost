@@ -29,7 +29,7 @@ type Props = {
     updateParent: (state: MFAControllerState) => void;
 
     currentUser: UserProfile;
-    siteName?: string;
+    siteName: string;
     enforceMultifactorAuthentication: boolean;
     actions: {
         activateMfa: (code: string) => Promise<{

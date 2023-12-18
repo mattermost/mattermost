@@ -15,10 +15,9 @@ import * as Utils from 'utils/utils';
 import EmojiList from './emoji_list';
 
 type Props = {
-    teamId: string;
     teamName?: string;
     teamDisplayName?: string;
-    siteName?: string;
+    siteName: string;
     scrollToTop(): void;
     currentTheme: Theme;
     actions: {
@@ -30,7 +29,6 @@ export default class EmojiPage extends React.PureComponent<Props> {
     static defaultProps = {
         teamName: '',
         teamDisplayName: '',
-        siteName: '',
     };
 
     componentDidMount() {

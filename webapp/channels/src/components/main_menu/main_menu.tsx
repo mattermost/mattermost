@@ -43,7 +43,7 @@ export type Props = {
     id?: string;
     teamId?: string;
     teamName?: string;
-    siteName?: string;
+    siteName: string;
     currentUser?: UserProfile;
     appDownloadLink?: string;
     enableCommands: boolean;
@@ -61,15 +61,10 @@ export type Props = {
     teamIsGroupConstrained: boolean;
     isLicensedForLDAPGroups?: boolean;
     intl: IntlShape;
-    teamUrl: string;
-    isFirstAdmin: boolean;
     isCloud: boolean;
     isStarterFree: boolean;
     isFreeTrial: boolean;
     usageDeltaTeams: number;
-    location: {
-        pathname: string;
-    };
     guestAccessEnabled: boolean;
     canInviteTeamMember: boolean;
     actions: {
@@ -377,7 +372,7 @@ export class MainMenu extends React.PureComponent<Props> {
                         id='about'
                         modalId={ModalIdentifiers.ABOUT}
                         dialogType={AboutBuildModal}
-                        text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About {appTitle}'}, {appTitle: this.props.siteName || 'Mattermost'})}
+                        text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About {appTitle}'}, {appTitle: this.props.siteName})}
                         icon={<i className='fa fa-info'/>}
                     />
                 </Menu.Group>

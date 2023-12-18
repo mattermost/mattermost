@@ -25,6 +25,7 @@ describe('components/AboutBuildModal', () => {
 
     let config: Partial<ClientConfig> = {};
     let license: ClientLicense = {};
+    const siteName = 'Mattermost';
 
     afterEach(() => {
         global.Date = RealDate;
@@ -99,6 +100,7 @@ describe('components/AboutBuildModal', () => {
                 config={config}
                 license={license}
                 show={true}
+                siteName={siteName}
                 onExited={jest.fn()}
                 doHide={jest.fn()}
             />,
@@ -159,6 +161,7 @@ describe('components/AboutBuildModal', () => {
                 config={config}
                 license={license}
                 onExited={onExited}
+                siteName={siteName}
             />,
             state,
         );
@@ -186,6 +189,7 @@ describe('components/AboutBuildModal', () => {
                 config={config}
                 license={license}
                 onExited={jest.fn()}
+                siteName={siteName}
             />,
             state,
         );
@@ -207,6 +211,7 @@ describe('components/AboutBuildModal', () => {
             onExited,
             config,
             license,
+            siteName,
             ...props,
         };
 

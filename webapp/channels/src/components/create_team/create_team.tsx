@@ -36,7 +36,7 @@ export type Props = {
     /*
    * String containing the custom branding's Site Name
    */
-    siteName?: string;
+    siteName: string;
 
     /*
    * Object from react-router

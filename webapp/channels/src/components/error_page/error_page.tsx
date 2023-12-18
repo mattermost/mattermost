@@ -20,7 +20,7 @@ type Location = {
 type Props = {
     location: Location;
     asymmetricSigningPublicKey?: string;
-    siteName?: string;
+    siteName: string;
     isGuest?: boolean;
 }
 

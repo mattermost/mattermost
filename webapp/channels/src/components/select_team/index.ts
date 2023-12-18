@@ -10,7 +10,7 @@ import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {Permissions} from 'mattermost-redux/constants';
 import {getCloudSubscription as selectCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense, getSiteName} from 'mattermost-redux/selectors/entities/general';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getSortedListableTeams, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
@@ -43,7 +43,7 @@ function mapStateToProps(state: GlobalState) {
         customDescriptionText: config.CustomDescriptionText,
         isMemberOfTeam: myTeamMemberships && myTeamMemberships.length > 0,
         listableTeams: getSortedListableTeams(state, currentUser.locale),
-        siteName: config.SiteName,
+        siteName: getSiteName(state),
         canCreateTeams: haveISystemPermission(state, {permission: Permissions.CREATE_TEAM}),
         canManageSystem: haveISystemPermission(state, {permission: Permissions.MANAGE_SYSTEM}),
         canJoinPublicTeams: haveISystemPermission(state, {permission: Permissions.JOIN_PUBLIC_TEAMS}),

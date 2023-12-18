@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense, getSiteName} from 'mattermost-redux/selectors/entities/general';
 
 import type {GlobalState} from 'types/store';
 
@@ -13,6 +13,7 @@ function mapStateToProps(state: GlobalState) {
     return {
         config: getConfig(state),
         license: getLicense(state),
+        siteName: getSiteName(state),
     };
 }
 

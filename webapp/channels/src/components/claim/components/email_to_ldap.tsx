@@ -17,7 +17,7 @@ import ErrorLabel from './error_label';
 
 type Props = {
     email: string | null;
-    siteName?: string;
+    siteName: string;
     ldapLoginFieldName?: string;
 }
 

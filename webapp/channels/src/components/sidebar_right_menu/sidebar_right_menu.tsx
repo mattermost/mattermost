@@ -12,16 +12,11 @@ import MainMenu from 'components/main_menu';
 
 import {Constants} from 'utils/constants';
 
-type Action = {
-    openRhsMenu: () => void;
-}
-
 type Props = {
     isMobileView: boolean;
     isOpen: boolean;
     teamDisplayName?: string;
-    siteName?: string;
-    actions: Action;
+    siteName: string;
 };
 
 const ANIMATION_DURATION = 500;
@@ -32,11 +27,7 @@ export default class SidebarRightMenu extends React.PureComponent<Props> {
     };
 
     render() {
-        let siteName = '';
-        if (this.props.siteName != null) {
-            siteName = this.props.siteName;
-        }
-        let teamDisplayName = siteName;
+        let teamDisplayName = this.props.siteName;
         if (this.props.teamDisplayName) {
             teamDisplayName = this.props.teamDisplayName;
         }

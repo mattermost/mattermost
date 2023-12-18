@@ -60,7 +60,7 @@ describe('components/UnreadsStatusHandler', () => {
         expect(document.title).toBe('Public test 1 - Test team display name Test site');
 
         wrapper.setProps({
-            siteName: undefined,
+            siteName: '',
         });
         instance.updateTitle();
         expect(document.title).toBe('Public test 1 - Test team display name');
@@ -80,7 +80,9 @@ describe('components/UnreadsStatusHandler', () => {
 
         wrapper.setProps({
             currentChannel: {} as Props['currentChannel'],
-            currentTeammate: {} as Props['currentTeammate']});
+            currentTeammate: {} as Props['currentTeammate'],
+            siteName: 'Mattermost',
+        });
         instance.updateTitle();
         expect(document.title).toBe('Mattermost - Join a team');
     });
@@ -96,7 +98,7 @@ describe('components/UnreadsStatusHandler', () => {
         const instance = wrapper.instance();
 
         wrapper.setProps({
-            siteName: undefined,
+            siteName: '',
         });
         wrapper.setProps({
             currentChannel: {id: '1', type: Constants.DM_CHANNEL} as Props['currentChannel'],
@@ -142,7 +144,7 @@ describe('components/UnreadsStatusHandler', () => {
                 {...defaultProps}
                 inDrafts={true}
                 currentChannel={undefined}
-                siteName={undefined}
+                siteName={''}
             />,
         ) as unknown as ShallowWrapper<Props, any, UnreadsStatusHandlerClass>;
         wrapper.instance().updateTitle();

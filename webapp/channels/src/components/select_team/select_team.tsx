@@ -47,7 +47,7 @@ type Props = {
     customDescriptionText?: string;
     isMemberOfTeam: boolean;
     listableTeams: Team[];
-    siteName?: string;
+    siteName: string;
     canCreateTeams: boolean;
     canManageSystem: boolean;
     canJoinPublicTeams: boolean;

@@ -20,7 +20,7 @@ import ErrorLabel from './error_label';
 type Props = {
     newType: string | null;
     email: string;
-    siteName?: string;
+    siteName: string;
 }
 
 const EmailToOAuth = (props: Props) => {

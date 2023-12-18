@@ -70,7 +70,7 @@ type Props = {
      */
     match: match<{url: string}>;
 
-    siteName?: string;
+    siteName: string;
     enableCustomEmoji: boolean;
     enableIncomingWebhooks: boolean;
     enableOutgoingWebhooks: boolean;

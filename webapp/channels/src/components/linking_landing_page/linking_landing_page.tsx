@@ -22,7 +22,7 @@ type Props = {
     iosAppLink?: string;
     androidAppLink?: string;
     siteUrl?: string;
-    siteName?: string;
+    siteName: string;
     brandImageUrl?: string;
     enableCustomBrand: boolean;
 }
@@ -295,7 +295,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                     id='get_app.openingLinkWhiteLabel'
                     defaultMessage='Opening link in {appName}...'
                     values={{
-                        appName: this.props.siteName || 'Mattermost',
+                        appName: this.props.siteName,
                     }}
                 />
             );

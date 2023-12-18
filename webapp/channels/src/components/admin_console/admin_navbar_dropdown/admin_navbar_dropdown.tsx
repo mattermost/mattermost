@@ -22,7 +22,7 @@ import MenuItemBlockableLink from './menu_item_blockable_link';
 type Props = {
     intl: IntlShape;
     locale: string;
-    siteName?: string;
+    siteName: string;
     navigationBlocked?: boolean;
     teams: Team[];
     actions: {
@@ -122,7 +122,7 @@ class AdminNavbarDropdown extends React.PureComponent<Props> {
                         onClick={() => trackEvent('admin', 'click_administrators_about')}
                         modalId={ModalIdentifiers.ABOUT}
                         dialogType={AboutBuildModal}
-                        text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About {appTitle}'}, {appTitle: siteName || 'Mattermost'})}
+                        text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About {appTitle}'}, {appTitle: siteName})}
                     />
                 </Menu.Group>
                 <Menu.Group>

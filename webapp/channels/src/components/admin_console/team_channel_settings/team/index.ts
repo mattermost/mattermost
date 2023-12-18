@@ -5,16 +5,13 @@ import {connect} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getSiteName} from 'mattermost-redux/selectors/entities/general';
 
 import {TeamsSettings} from './team_settings';
 
 function mapStateToProps(state: GlobalState) {
-    const config = getConfig(state);
-    const siteName = config.SiteName as string;
-
     return {
-        siteName,
+        siteName: getSiteName(state),
     };
 }
 

@@ -39,7 +39,7 @@ enum BadgeStatus {
 type Props = {
     intl: IntlShape;
     unreadStatus: BasicUnreadStatus;
-    siteName?: string;
+    siteName: string;
     currentChannel?: Channel;
     currentTeam: Team;
     currentTeammate: Channel | null;
@@ -92,8 +92,6 @@ export class UnreadsStatusHandlerClass extends React.PureComponent<Props> {
         } = this.props;
         const {formatMessage} = this.props.intl;
 
-        const currentSiteName = siteName || '';
-
         const {isUnread, unreadMentionCount} = basicUnreadMeta(unreadStatus);
 
         const mentionTitle = unreadMentionCount > 0 ? `(${unreadMentionCount}) ` : '';
@@ -106,7 +104,7 @@ export class UnreadsStatusHandlerClass extends React.PureComponent<Props> {
                     currentChannelName = currentTeammate.display_name;
                 }
             }
-            document.title = `${mentionTitle}${unreadTitle}${currentChannelName} - ${currentTeam.display_name} ${currentSiteName}`;
+            document.title = `${mentionTitle}${unreadTitle}${currentChannelName} - ${currentTeam.display_name} ${siteName}`;
         } else if (currentTeam && inGlobalThreads) {
             document.title = formatMessage({
                 id: 'globalThreads.title',
@@ -114,7 +112,7 @@ export class UnreadsStatusHandlerClass extends React.PureComponent<Props> {
             }, {
                 prefix: `${mentionTitle}${unreadTitle}`,
                 displayName: currentTeam.display_name,
-                siteName: currentSiteName,
+                siteName,
             });
         } else if (currentTeam && inDrafts) {
             document.title = formatMessage({
@@ -123,10 +121,15 @@ export class UnreadsStatusHandlerClass extends React.PureComponent<Props> {
             }, {
                 prefix: `${mentionTitle}${unreadTitle}`,
                 displayName: currentTeam.display_name,
-                siteName: currentSiteName,
+                siteName,
             });
         } else {
-            document.title = formatMessage({id: 'sidebar.team_select', defaultMessage: '{siteName} - Join a team'}, {siteName: currentSiteName || 'Mattermost'});
+            document.title = formatMessage({
+                id: 'sidebar.team_select',
+                defaultMessage: '{siteName} - Join a team',
+            }, {
+                siteName,
+            });
         }
     };
 
