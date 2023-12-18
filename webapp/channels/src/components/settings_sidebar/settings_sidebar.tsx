@@ -51,12 +51,6 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
         }
     };
 
-    public componentDidMount() {
-        if (UserAgent.isFirefox()) {
-            document.querySelector('.settings-modal .settings-table .nav')?.classList.add('position--top');
-        }
-    }
-
     public render() {
         const tabList = this.props.tabs.map((tab, index) => {
             const key = `${tab.name}_li`;
