@@ -627,49 +627,49 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 			team = &model.Team{}
 		}
 
-		pCh := make(chan store.StoreResult, 1)
+		pCh := make(chan store.GenericStoreResult[map[string]*model.User], 1)
 		go func() {
 			props, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
-			pCh <- store.StoreResult{Data: props, NErr: err}
+			pCh <- store.GenericStoreResult[map[string]*model.User]{Data: props, NErr: err}
 			close(pCh)
 		}()
 
-		cmnCh := make(chan store.StoreResult, 1)
+		cmnCh := make(chan store.GenericStoreResult[map[string]model.StringMap], 1)
 		go func() {
 			props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
-			cmnCh <- store.StoreResult{Data: props, NErr: err}
+			cmnCh <- store.GenericStoreResult[map[string]model.StringMap]{Data: props, NErr: err}
 			close(cmnCh)
 		}()
 
-		var gCh chan store.StoreResult
+		var gCh chan store.GenericStoreResult[map[string]*model.Group]
 		if a.allowGroupMentions(c, post) {
-			gCh = make(chan store.StoreResult, 1)
+			gCh = make(chan store.GenericStoreResult[map[string]*model.Group], 1)
 			go func() {
 				groupsMap, err := a.getGroupsAllowedForReferenceInChannel(channel, team)
-				gCh <- store.StoreResult{Data: groupsMap, NErr: err}
+				gCh <- store.GenericStoreResult[map[string]*model.Group]{Data: groupsMap, NErr: err}
 				close(gCh)
 			}()
 		}
 
-		result := <-pCh
-		if result.NErr != nil {
-			return result.NErr
+		resultP := <-pCh
+		if resultP.NErr != nil {
+			return resultP.NErr
 		}
-		profileMap := result.Data.(map[string]*model.User)
+		profileMap := resultP.Data
 
-		result = <-cmnCh
-		if result.NErr != nil {
-			return result.NErr
+		resultCmn := <-cmnCh
+		if resultCmn.NErr != nil {
+			return resultCmn.NErr
 		}
-		channelMemberNotifyPropsMap := result.Data.(map[string]model.StringMap)
+		channelMemberNotifyPropsMap := resultCmn.Data
 
 		groups := make(map[string]*model.Group)
 		if gCh != nil {
-			result = <-gCh
-			if result.NErr != nil {
-				return result.NErr
+			resultG := <-gCh
+			if resultG.NErr != nil {
+				return resultG.NErr
 			}
-			groups = result.Data.(map[string]*model.Group)
+			groups = resultG.Data
 		}
 
 		mentions, _ := a.getExplicitMentionsAndKeywords(c, post, channel, profileMap, groups, channelMemberNotifyPropsMap, nil)
