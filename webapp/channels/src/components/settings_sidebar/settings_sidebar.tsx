@@ -3,6 +3,7 @@
 
 import React from 'react';
 import type {RefObject} from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -10,7 +11,7 @@ import * as UserAgent from 'utils/user_agent';
 import {a11yFocus} from 'utils/utils';
 
 export type Tab = {
-    icon: string;
+    icon: string | {url: string};
     iconTitle: string;
     name: string;
     uiName: string;
@@ -19,9 +20,10 @@ export type Tab = {
 export type Props = {
     activeTab?: string;
     tabs: Tab[];
+    pluginTabs?: Tab[];
     updateTab: (name: string) => void;
     isMobileView: boolean;
-}
+};
 
 export default class SettingsSidebar extends React.PureComponent<Props> {
     buttonRefs: Array<RefObject<HTMLButtonElement>>;
@@ -57,42 +59,78 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
         }
     }
 
-    public render() {
-        const tabList = this.props.tabs.map((tab, index) => {
-            const key = `${tab.name}_li`;
-            const isActive = this.props.activeTab === tab.name;
-            let className = '';
-            if (isActive) {
-                className = 'active';
-            }
+    private renderTab(tab: Tab, index: number) {
+        const key = `${tab.name}_li`;
+        const isActive = this.props.activeTab === tab.name;
+        let className = '';
+        if (isActive) {
+            className = 'active';
+        }
 
-            return (
-                <li
-                    id={`${tab.name}Li`}
-                    key={key}
-                    className={className}
-                    role='presentation'
-                >
-                    <button
-                        ref={this.buttonRefs[index]}
-                        id={`${tab.name}Button`}
-                        className='cursor--pointer style--none'
-                        onClick={this.handleClick.bind(null, tab)}
-                        onKeyUp={this.handleKeyUp.bind(null, index)}
-                        aria-label={tab.uiName.toLowerCase()}
-                        role='tab'
-                        aria-selected={isActive}
-                        tabIndex={!isActive && !this.props.isMobileView ? -1 : 0}
-                    >
-                        <i
-                            className={tab.icon}
-                            title={tab.iconTitle}
-                        />
-                        {tab.uiName}
-                    </button>
-                </li>
+        let icon;
+        if (typeof tab.icon === 'string') {
+            icon = (
+                <i
+                    className={tab.icon}
+                    title={tab.iconTitle}
+                />
             );
-        });
+        } else {
+            icon = (
+                <img
+                    src={tab.icon.url}
+                    alt={tab.iconTitle}
+                    className='icon'
+                />
+            );
+        }
+
+        return (
+            <li
+                id={`${tab.name}Li`}
+                key={key}
+                className={className}
+                role='presentation'
+            >
+                <button
+                    ref={this.buttonRefs[index]}
+                    id={`${tab.name}Button`}
+                    className='cursor--pointer style--none'
+                    onClick={this.handleClick.bind(null, tab)}
+                    onKeyUp={this.handleKeyUp.bind(null, index)}
+                    aria-label={tab.uiName.toLowerCase()}
+                    role='tab'
+                    aria-selected={isActive}
+                    tabIndex={!isActive && !this.props.isMobileView ? -1 : 0}
+                >
+                    {icon}
+                    {tab.uiName}
+                </button>
+            </li>
+        );
+    }
+
+    public render() {
+        const tabList = this.props.tabs.map((tab, index) => this.renderTab(tab, index));
+        let pluginTabList: React.ReactNode;
+        if (this.props.pluginTabs?.length) {
+            pluginTabList = (
+                <>
+                    <hr/>
+                    <li
+                        key={'plugin preferences heading'}
+                        role='heading'
+                        className={'header'}
+                    >
+                        <FormattedMessage
+                            id={'userSettingsModal.pluginPreferences.header'}
+                            defaultMessage={'PLUGIN PREFERENCES'}
+                        />
+                    </li>
+                    {this.props.pluginTabs.map((tab, index) => this.renderTab(tab, index))}
+                </>
+            );
+        }
 
         return (
             <div>
@@ -103,6 +141,7 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
                     aria-orientation='vertical'
                 >
                     {tabList}
+                    {pluginTabList}
                 </ul>
             </div>
         );

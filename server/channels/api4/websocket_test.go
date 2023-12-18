@@ -440,6 +440,11 @@ func TestWebSocketPresence(t *testing.T) {
 	resp = <-wsClient.ResponseChannel
 	require.Nil(t, resp.Error)
 	require.Equal(t, resp.SeqReply, wsClient.Sequence-1, "bad sequence number")
+
+	wsClient.UpdateActiveThread("threadID")
+	resp = <-wsClient.ResponseChannel
+	require.Nil(t, resp.Error)
+	require.Equal(t, resp.SeqReply, wsClient.Sequence-1, "bad sequence number")
 }
 
 func TestWebSocketUpgrade(t *testing.T) {
