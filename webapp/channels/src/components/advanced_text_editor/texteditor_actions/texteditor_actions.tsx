@@ -18,19 +18,22 @@ const TexteditorActions = styled.span<TexteditorActionsProps>`
     gap: 2px;
 
     /* define the position based on the placement prop */
-    ${({placement, isScrollbarRendered}) => (placement === 'top' ? css`
-        top: 7px;
-        right: ${isScrollbarRendered ? 15 : 7}px;
-    ` : 
-    (placement === 'bottom') ?
-    css`
-        right: 7px;
-        bottom: 7px;
-    ` :
-    css`
-        right: 7px;
-    `)}
-
+    ${({placement, isScrollbarRendered}) => {
+        if (placement === 'top') {
+            return css`
+            top: 7px;
+            right: ${isScrollbarRendered ? 15 : 7}px;
+        `;
+        } else if (placement === 'bottom') {
+            return css`
+            right: 7px;
+            bottom: 7px;
+        `;
+        }
+        return css`
+            right: 7px;
+            `;
+    }}
     opacity: ${({show = true}) => (show ? 1 : 0)};
     transition: opacity 0.3s linear;
     visibility: ${({show = true}) => (show ? 'visible' : 'hidden')};

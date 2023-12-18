@@ -11,18 +11,14 @@ import type {Post} from '@mattermost/types/posts';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-//imported
-import ShowFormat from 'components/advanced_text_editor/show_formatting';
-import OverlayTrigger from 'components/overlay_trigger';
-import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import Tooltip from 'components/tooltip';
 import TexteditorActions from 'components/advanced_text_editor/texteditor_actions';
-
 import DeletePostModal from 'components/delete_post_modal';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
-
+import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import OverlayTrigger from 'components/overlay_trigger';
 import Textbox from 'components/textbox';
 import type {TextboxClass, TextboxElement} from 'components/textbox';
+import Tooltip from 'components/tooltip';
 
 import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -113,7 +109,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const [showPreviewButton, setShowPreviewButton] = useState<boolean>(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
     const [renderScrollbar, setRenderScrollbar] = useState<boolean>(false);
-    
     const textboxRef = useRef<TextboxClass>(null);
     const previewButtonRef = useRef<HTMLButtonElement>(null);
     const emojiButtonRef = useRef<HTMLButtonElement>(null);
@@ -462,8 +457,8 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
 
     const togglePreviewClick = (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e?.stopPropagation();
-        setShowPreviewButton(!showPreviewButton)
-        if(showPreviewButton) {
+        setShowPreviewButton(!showPreviewButton);
+        if (showPreviewButton) {
             textboxRef.current?.focus();
         }
     };
@@ -472,7 +467,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const getEmojiTargetRef = useCallback(() => emojiButtonRef.current, [emojiButtonRef]);
 
     let emojiPicker = null;
-    
     if (config.EnableEmojiPicker === 'true') {
         emojiPicker = (
             <>
@@ -551,30 +545,29 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                     placement='middle'
                     isScrollbarRendered={renderScrollbar}
                 >
-                        <OverlayTrigger
-                                placement='top'
-                                delayShow={Constants.OVERLAY_TIME_DELAY}
-                                trigger={Constants.OVERLAY_DEFAULT_TRIGGER}
-                                overlay={tooltip}
-                                >
-                            <button
-                                aria-label={formatMessage({id: 'editPreview', defaultMessage: 'Preview message'})}
-                                id='EditPreviewInputTextButton'
-                                ref={previewButtonRef}
-                                onClick={togglePreviewClick}
-                                className='style--none post-action'
-                                style={{right: '24px' }}
-                                aria-describedBy="PreviewInputTextButtonTooltip"
-                                >
-                                <EyeOutlineIcon
-                                    size={18}
-                                    color='currentColor'
-                                    />
-                            </button>
-                        </OverlayTrigger>
-                        {emojiPicker}
+                    <OverlayTrigger
+                        placement='top'
+                        delayShow={Constants.OVERLAY_TIME_DELAY}
+                        trigger={Constants.OVERLAY_DEFAULT_TRIGGER}
+                        overlay={tooltip}
+                    >
+                        <button
+                            aria-label={formatMessage({id: 'editPreview', defaultMessage: 'Preview message'})}
+                            id='EditPreviewInputTextButton'
+                            ref={previewButtonRef}
+                            onClick={togglePreviewClick}
+                            className='style--none post-action'
+                            style={{right: '24px'}}
+                        >
+                            <EyeOutlineIcon
+                                size={18}
+                                color='currentColor'
+                            />
+                        </button>
+                    </OverlayTrigger>
+                    {emojiPicker}
                 </TexteditorActions>
-            </div> 
+            </div>
             <EditPostFooter
                 onSave={handleEdit}
                 onCancel={handleAutomatedRefocusAndExit}
