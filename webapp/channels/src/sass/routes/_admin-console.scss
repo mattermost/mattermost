@@ -9,7 +9,6 @@
     height: 100%;
     color: #333;
     grid-area: center;
-    -webkit-overflow-scrolling: touch;
 
     > div {
         width: 100%;
@@ -31,9 +30,7 @@
         position: relative;
         height: 100%;
         flex: 1 1 auto;
-        padding: 20px 0 20px 20px;
-        scrollbar-color: var(--center-channel-color-32) #fff0;
-        scrollbar-width: thin;
+        padding: 20px;
 
         > .wrapper--admin {
             display: flex;
@@ -44,8 +41,8 @@
 
         & > .admin-console__container {
             overflow: auto;
-            margin-right: 10px;
             background-color: var(--sys-center-channel-bg);
+            box-shadow: 0px 2px 3px 0px alpha-color($black, 0.08);
         }
     }
 

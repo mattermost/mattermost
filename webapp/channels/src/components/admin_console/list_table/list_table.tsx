@@ -276,7 +276,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                             isDisabled={tableMeta.isLoading}
                             components={{
                                 IndicatorSeparator: null,
-                                IndicatorsContainer: SelectIndicator,
+                                IndicatorsContainer,
                             }}
                         />
                         <FormattedMessage
@@ -298,7 +298,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
     );
 }
 
-function SelectIndicator(props: IndicatorContainerProps<PageSizeOption>) {
+function IndicatorsContainer(props: IndicatorContainerProps<PageSizeOption>) {
     return (
         <components.IndicatorsContainer {...props}>
             <i className='icon icon-chevron-down'/>

@@ -300,6 +300,7 @@ function SystemUsersList(props: Props) {
             onPreviousPageClick: handlePreviousPageClick,
             onNextPageClick: handleNextPageClick,
             hasAdditionalPaginationAtTop: true,
+            totalRowInfo: 'X Users',
         } as TableMeta,
         getCoreRowModel: getCoreRowModel<SystemUsersRow>(),
         getSortedRowModel: getSortedRowModel<SystemUsersRow>(),
