@@ -344,8 +344,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	return ps, nil
 }
 
-func (ps *PlatformService) Start() error {
-	ps.hubStart()
+func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error {
+	ps.hubStart(broadcastHooks)
 
 	ps.configListenerId = ps.AddConfigListener(func(_, _ *model.Config) {
 		ps.regenerateClientConfig()

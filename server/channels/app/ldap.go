@@ -98,7 +98,7 @@ func (a *App) SwitchEmailToLdap(c request.CTX, email, password, code, ldapLoginI
 		return "", err
 	}
 
-	if err := a.CheckPasswordAndAllCriteria(user, password, code); err != nil {
+	if err := a.CheckPasswordAndAllCriteria(c, user, password, code); err != nil {
 		return "", err
 	}
 
@@ -147,11 +147,11 @@ func (a *App) SwitchLdapToEmail(c request.CTX, ldapPassword, code, email, newPas
 		return "", err
 	}
 
-	if err := a.CheckUserMfa(user, code); err != nil {
+	if err := a.CheckUserMfa(c, user, code); err != nil {
 		return "", err
 	}
 
-	if err := a.UpdatePassword(user, newPassword); err != nil {
+	if err := a.UpdatePassword(c, user, newPassword); err != nil {
 		return "", err
 	}
 

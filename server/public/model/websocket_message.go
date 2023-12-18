@@ -104,6 +104,17 @@ type WebsocketBroadcast struct {
 	// ReliableClusterSend indicates whether or not the message should
 	// be sent through the cluster using the reliable, TCP backed channel.
 	ReliableClusterSend bool `json:"-"`
+
+	// BroadcastHooks is a slice of hooks IDs used to process events before sending them on individual connections. The
+	// IDs should be understood by the WebSocket code.
+	//
+	// This field should never be sent to the client.
+	BroadcastHooks []string `json:"broadcast_hooks,omitempty"`
+	// BroadcastHookArgs is a slice of named arguments for each hook invocation. The index of each entry corresponds to
+	// the index of a hook ID in BroadcastHooks
+	//
+	// This field should never be sent to the client.
+	BroadcastHookArgs []map[string]any `json:"broadcast_hook_args,omitempty"`
 }
 
 func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
@@ -124,8 +135,15 @@ func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
 	c.OmitConnectionId = wb.OmitConnectionId
 	c.ContainsSanitizedData = wb.ContainsSanitizedData
 	c.ContainsSensitiveData = wb.ContainsSensitiveData
+	c.BroadcastHooks = wb.BroadcastHooks
+	c.BroadcastHookArgs = wb.BroadcastHookArgs
 
 	return &c
+}
+
+func (wb *WebsocketBroadcast) AddHook(hookID string, hookArgs map[string]any) {
+	wb.BroadcastHooks = append(wb.BroadcastHooks, hookID)
+	wb.BroadcastHookArgs = append(wb.BroadcastHookArgs, hookArgs)
 }
 
 type precomputedWebSocketEventJSON struct {
@@ -190,6 +208,32 @@ func (ev *WebSocketEvent) PrecomputeJSON() *WebSocketEvent {
 	return evCopy
 }
 
+func (ev *WebSocketEvent) RemovePrecomputedJSON() *WebSocketEvent {
+	evCopy := ev.DeepCopy()
+	evCopy.precomputedJSON = nil
+	return evCopy
+}
+
+// WithoutBroadcastHooks gets the broadcast hook information from a WebSocketEvent and returns the event without that.
+// If the event has broadcast hooks, a copy of the event is returned. Otherwise, the original event is returned. This
+// is intended to be called before the event is sent to the client.
+func (ev *WebSocketEvent) WithoutBroadcastHooks() (*WebSocketEvent, []string, []map[string]any) {
+	hooks := ev.broadcast.BroadcastHooks
+	hookArgs := ev.broadcast.BroadcastHookArgs
+
+	if len(hooks) == 0 && len(hookArgs) == 0 {
+		return ev, hooks, hookArgs
+	}
+
+	evCopy := ev.Copy()
+	evCopy.broadcast = ev.broadcast.copy()
+
+	evCopy.broadcast.BroadcastHooks = nil
+	evCopy.broadcast.BroadcastHookArgs = nil
+
+	return evCopy, hooks, hookArgs
+}
+
 func (ev *WebSocketEvent) Add(key string, value any) {
 	ev.data[key] = value
 }
@@ -219,22 +263,22 @@ func (ev *WebSocketEvent) Copy() *WebSocketEvent {
 }
 
 func (ev *WebSocketEvent) DeepCopy() *WebSocketEvent {
-	var dataCopy map[string]any
-	if ev.data != nil {
-		dataCopy = make(map[string]any, len(ev.data))
-		for k, v := range ev.data {
-			dataCopy[k] = v
-		}
-	}
-
 	evCopy := &WebSocketEvent{
 		event:           ev.event,
-		data:            dataCopy,
+		data:            copyMap(ev.data),
 		broadcast:       ev.broadcast.copy(),
 		sequence:        ev.sequence,
 		precomputedJSON: ev.precomputedJSON.copy(),
 	}
 	return evCopy
+}
+
+func copyMap[K comparable, V any](m map[K]V) map[K]V {
+	dataCopy := make(map[K]V, len(m))
+	for k, v := range m {
+		dataCopy[k] = v
+	}
+	return dataCopy
 }
 
 func (ev *WebSocketEvent) GetData() map[string]any {
@@ -294,9 +338,10 @@ func (ev *WebSocketEvent) ToJSON() ([]byte, error) {
 }
 
 // Encode encodes the event to the given encoder.
-func (ev *WebSocketEvent) Encode(enc *json.Encoder) error {
+func (ev *WebSocketEvent) Encode(enc *json.Encoder, buf io.Writer) error {
 	if ev.precomputedJSON != nil {
-		return enc.Encode(json.RawMessage(ev.precomputedJSONBuf()))
+		_, err := buf.Write(ev.precomputedJSONBuf())
+		return err
 	}
 
 	return enc.Encode(webSocketEventJSON{

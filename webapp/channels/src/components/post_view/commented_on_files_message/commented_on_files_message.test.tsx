@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {render, renderWithIntl, screen} from 'tests/react_testing_utils';
+import {render, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import CommentedOnFilesMessage from './commented_on_files_message';
 
@@ -45,7 +45,7 @@ describe('components/CommentedOnFilesMessage', () => {
             fileInfos,
         };
 
-        renderWithIntl(
+        renderWithContext(
             <CommentedOnFilesMessage {...props}/>,
         );
 

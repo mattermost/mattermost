@@ -1257,7 +1257,7 @@ func (a *OpenTracingAppLayer) CheckMandatoryS3Fields(settings *model.FileSetting
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
+func (a *OpenTracingAppLayer) CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, password string, mfaToken string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckPasswordAndAllCriteria")
 
@@ -1269,7 +1269,7 @@ func (a *OpenTracingAppLayer) CheckPasswordAndAllCriteria(user *model.User, pass
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CheckPasswordAndAllCriteria(user, password, mfaToken)
+	resultVar0 := a.app.CheckPasswordAndAllCriteria(rctx, user, password, mfaToken)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -1333,7 +1333,7 @@ func (a *OpenTracingAppLayer) CheckRolesExist(roleNames []string) *model.AppErro
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+func (a *OpenTracingAppLayer) CheckUserAllAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckUserAllAuthenticationCriteria")
 
@@ -1345,7 +1345,7 @@ func (a *OpenTracingAppLayer) CheckUserAllAuthenticationCriteria(user *model.Use
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CheckUserAllAuthenticationCriteria(user, mfaToken)
+	resultVar0 := a.app.CheckUserAllAuthenticationCriteria(rctx, user, mfaToken)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -1355,7 +1355,7 @@ func (a *OpenTracingAppLayer) CheckUserAllAuthenticationCriteria(user *model.Use
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CheckUserMfa(user *model.User, token string) *model.AppError {
+func (a *OpenTracingAppLayer) CheckUserMfa(rctx request.CTX, user *model.User, token string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckUserMfa")
 
@@ -1367,7 +1367,7 @@ func (a *OpenTracingAppLayer) CheckUserMfa(user *model.User, token string) *mode
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CheckUserMfa(user, token)
+	resultVar0 := a.app.CheckUserMfa(rctx, user, token)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -1377,7 +1377,7 @@ func (a *OpenTracingAppLayer) CheckUserMfa(user *model.User, token string) *mode
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError {
+func (a *OpenTracingAppLayer) CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *model.User) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckUserPostflightAuthenticationCriteria")
 
@@ -1389,7 +1389,7 @@ func (a *OpenTracingAppLayer) CheckUserPostflightAuthenticationCriteria(user *mo
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CheckUserPostflightAuthenticationCriteria(user)
+	resultVar0 := a.app.CheckUserPostflightAuthenticationCriteria(rctx, user)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -1399,7 +1399,7 @@ func (a *OpenTracingAppLayer) CheckUserPostflightAuthenticationCriteria(user *mo
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+func (a *OpenTracingAppLayer) CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckUserPreflightAuthenticationCriteria")
 
@@ -1411,7 +1411,7 @@ func (a *OpenTracingAppLayer) CheckUserPreflightAuthenticationCriteria(user *mod
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CheckUserPreflightAuthenticationCriteria(user, mfaToken)
+	resultVar0 := a.app.CheckUserPreflightAuthenticationCriteria(rctx, user, mfaToken)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -3614,7 +3614,7 @@ func (a *OpenTracingAppLayer) DemoteUserToGuest(c request.CTX, user *model.User)
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DisableAutoResponder(c request.CTX, userID string, asAdmin bool) *model.AppError {
+func (a *OpenTracingAppLayer) DisableAutoResponder(rctx request.CTX, userID string, asAdmin bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DisableAutoResponder")
 
@@ -3626,7 +3626,7 @@ func (a *OpenTracingAppLayer) DisableAutoResponder(c request.CTX, userID string,
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DisableAutoResponder(c, userID, asAdmin)
+	resultVar0 := a.app.DisableAutoResponder(rctx, userID, asAdmin)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -3975,7 +3975,7 @@ func (a *OpenTracingAppLayer) DoUploadFileExpectModification(c request.CTX, now 
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) DoubleCheckPassword(user *model.User, password string) *model.AppError {
+func (a *OpenTracingAppLayer) DoubleCheckPassword(rctx request.CTX, user *model.User, password string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoubleCheckPassword")
 
@@ -3987,7 +3987,7 @@ func (a *OpenTracingAppLayer) DoubleCheckPassword(user *model.User, password str
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DoubleCheckPassword(user, password)
+	resultVar0 := a.app.DoubleCheckPassword(rctx, user, password)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -11890,7 +11890,7 @@ func (a *OpenTracingAppLayer) IsLeader() bool {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) IsPasswordValid(password string) *model.AppError {
+func (a *OpenTracingAppLayer) IsPasswordValid(rctx request.CTX, password string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsPasswordValid")
 
@@ -11902,7 +11902,7 @@ func (a *OpenTracingAppLayer) IsPasswordValid(password string) *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.IsPasswordValid(password)
+	resultVar0 := a.app.IsPasswordValid(rctx, password)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -15393,7 +15393,7 @@ func (a *OpenTracingAppLayer) SendAckToPushProxy(ack *model.PushNotificationAck)
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendAutoResponse(c request.CTX, channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError) {
+func (a *OpenTracingAppLayer) SendAutoResponse(rctx request.CTX, channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAutoResponse")
 
@@ -15405,7 +15405,7 @@ func (a *OpenTracingAppLayer) SendAutoResponse(c request.CTX, channel *model.Cha
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SendAutoResponse(c, channel, receiver, post)
+	resultVar0, resultVar1 := a.app.SendAutoResponse(rctx, channel, receiver, post)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -15415,7 +15415,7 @@ func (a *OpenTracingAppLayer) SendAutoResponse(c request.CTX, channel *model.Cha
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SendAutoResponseIfNecessary(c request.CTX, channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError) {
+func (a *OpenTracingAppLayer) SendAutoResponseIfNecessary(rctx request.CTX, channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAutoResponseIfNecessary")
 
@@ -15427,7 +15427,7 @@ func (a *OpenTracingAppLayer) SendAutoResponseIfNecessary(c request.CTX, channel
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SendAutoResponseIfNecessary(c, channel, sender, post)
+	resultVar0, resultVar1 := a.app.SendAutoResponseIfNecessary(rctx, channel, sender, post)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -15988,7 +15988,7 @@ func (a *OpenTracingAppLayer) SetActiveChannel(c request.CTX, userID string, cha
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap) {
+func (a *OpenTracingAppLayer) SetAutoResponderStatus(rctx request.CTX, user *model.User, oldNotifyProps model.StringMap) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetAutoResponderStatus")
 
@@ -16000,7 +16000,7 @@ func (a *OpenTracingAppLayer) SetAutoResponderStatus(user *model.User, oldNotify
 	}()
 
 	defer span.Finish()
-	a.app.SetAutoResponderStatus(user, oldNotifyProps)
+	a.app.SetAutoResponderStatus(rctx, user, oldNotifyProps)
 }
 
 func (a *OpenTracingAppLayer) SetChannels(ch *app.Channels) {
@@ -17541,7 +17541,7 @@ func (a *OpenTracingAppLayer) UpdateOutgoingWebhook(c request.CTX, oldHook *mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdatePassword(user *model.User, newPassword string) *model.AppError {
+func (a *OpenTracingAppLayer) UpdatePassword(rctx request.CTX, user *model.User, newPassword string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdatePassword")
 
@@ -17553,7 +17553,7 @@ func (a *OpenTracingAppLayer) UpdatePassword(user *model.User, newPassword strin
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdatePassword(user, newPassword)
+	resultVar0 := a.app.UpdatePassword(rctx, user, newPassword)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

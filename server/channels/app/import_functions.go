@@ -591,7 +591,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			}
 		}
 		if password != "" {
-			if appErr = a.UpdatePassword(user, password); appErr != nil {
+			if appErr = a.UpdatePassword(rctx, user, password); appErr != nil {
 				return appErr
 			}
 		} else {

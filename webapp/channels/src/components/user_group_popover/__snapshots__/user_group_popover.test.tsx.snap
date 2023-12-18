@@ -202,20 +202,9 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                 className="CloseButton-lhxEdi gyMeQZ btn btn-sm btn-compact btn-icon"
                                 onClick={[Function]}
                               >
-                                <LocalizedIcon
-                                  ariaLabel={
-                                    Object {
-                                      "defaultMessage": "Close",
-                                      "id": "user_group_popover.close",
-                                    }
-                                  }
+                                <i
                                   className="icon icon-close"
-                                >
-                                  <i
-                                    aria-label="Close"
-                                    className="icon icon-close"
-                                  />
-                                </LocalizedIcon>
+                                />
                               </button>
                             </CloseButton>
                           </div>

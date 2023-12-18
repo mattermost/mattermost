@@ -676,6 +676,9 @@ config-ldap: ## Configures LDAP.
 	@sed -i'' -e 's|"BaseDN": ".*"|"BaseDN": "dc=mm,dc=test,dc=com"|g' ../config/config.json
 	@sed -i'' -e 's|"BindUsername": ".*"|"BindUsername": "cn=admin,dc=mm,dc=test,dc=com"|g' ../config/config.json
 	@sed -i'' -e 's|"BindPassword": ".*"|"BindPassword": "mostest"|g' ../config/config.json
+	@sed -i'' -e 's|"UserFilter": ".*"|"UserFilter": ""|g' ../config/config.json
+	@sed -i'' -e 's|"GroupFilter": ".*"|"GroupFilter": ""|g' ../config/config.json
+	@sed -i'' -e 's|"GuestFilter": ".*"|"GuestFilter": ""|g' ../config/config.json
 	@sed -i'' -e 's|"FirstNameAttribute": ".*"|"FirstNameAttribute": "cn"|g' ../config/config.json
 	@sed -i'' -e 's|"LastNameAttribute": ".*"|"LastNameAttribute": "sn"|g' ../config/config.json
 	@sed -i'' -e 's|"NicknameAttribute": ".*"|"NicknameAttribute": "cn"|g' ../config/config.json

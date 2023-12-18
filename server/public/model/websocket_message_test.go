@@ -247,8 +247,11 @@ func BenchmarkEncodeJSON(b *testing.B) {
 
 	ev := message.PrecomputeJSON()
 
+	var seq int64
 	enc := json.NewEncoder(io.Discard)
 	for i := 0; i < b.N; i++ {
-		err = ev.Encode(enc)
+		ev = ev.SetSequence(seq)
+		err = ev.Encode(enc, io.Discard)
+		seq++
 	}
 }

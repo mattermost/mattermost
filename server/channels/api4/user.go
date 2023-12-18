@@ -1297,7 +1297,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
 	if user.Email != "" && ouser.Email != user.Email && c.AppContext.Session().UserId == c.Params.UserId {
-		err = c.App.DoubleCheckPassword(ouser, user.Password)
+		err = c.App.DoubleCheckPassword(c.AppContext, ouser, user.Password)
 		if err != nil {
 			c.SetInvalidParam("password")
 			return
@@ -1378,7 +1378,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err = c.App.DoubleCheckPassword(ouser, *patch.Password); err != nil {
+		if err = c.App.DoubleCheckPassword(c.AppContext, ouser, *patch.Password); err != nil {
 			c.Err = err
 			return
 		}
@@ -1390,7 +1390,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.SetAutoResponderStatus(ruser, ouser.NotifyProps)
+	c.App.SetAutoResponderStatus(c.AppContext, ruser, ouser.NotifyProps)
 
 	auditRec.Success()
 	auditRec.AddEventResultState(ruser)

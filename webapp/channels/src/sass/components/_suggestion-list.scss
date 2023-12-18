@@ -99,9 +99,9 @@
 
 .slash-command__icon {
     display: flex;
-    width: 3.2rem;
-    height: 3.2rem;
-    flex: 0 0 3.2rem;
+    width: 3.7rem;
+    height: 3.7rem;
+    flex: 0 0 3.7rem;
     align-items: center;
     justify-content: center;
     background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -120,10 +120,12 @@
 }
 
 .slash-command__desc {
+    overflow: hidden;
     margin: 2px 0 0;
     font-size: 12px;
-    line-height: 1.6;
+    line-height: 1.2;
     opacity: 0.56;
+    white-space: break-spaces;
 }
 
 .suggestion-list__content--top {
@@ -185,7 +187,7 @@
     z-index: 101;
     display: flex;
     width: 100%;
-    height: 4rem;
+    height: 5rem;
     align-items: center;
     padding: 0 2.4rem;
     margin: 0;
