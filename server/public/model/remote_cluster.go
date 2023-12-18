@@ -39,6 +39,7 @@ type RemoteCluster struct {
 	RemoteToken  string `json:"remote_token"`
 	Topics       string `json:"topics"`
 	CreatorId    string `json:"creator_id"`
+	PluginID     string `json:"plugin_id"` // non-empty when sync message are to be delivered via plugin API
 }
 
 func (rc *RemoteCluster) Auditable() map[string]interface{} {
@@ -51,6 +52,7 @@ func (rc *RemoteCluster) Auditable() map[string]interface{} {
 		"create_at":      rc.CreateAt,
 		"last_ping_at":   rc.LastPingAt,
 		"creator_id":     rc.CreatorId,
+		"plugin_id":      rc.PluginID,
 	}
 }
 
@@ -319,4 +321,5 @@ type RemoteClusterQueryFilter struct {
 	Topic          string
 	CreatorId      string
 	OnlyConfirmed  bool
+	PluginID       string
 }

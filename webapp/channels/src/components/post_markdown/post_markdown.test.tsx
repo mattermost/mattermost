@@ -10,11 +10,14 @@ import {Posts} from 'mattermost-redux/constants';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
+import type {PluginComponent} from 'types/store/plugins';
+
 import PostMarkdown from './post_markdown';
 
 describe('components/PostMarkdown', () => {
     const baseProps = {
-        imageProps: {},
+        imageProps: {} as Record<string, unknown>,
+        pluginHooks: [],
         message: 'message',
         post: TestHelper.getPostMock(),
         mentionKeys: [{key: 'a'}, {key: 'b'}, {key: 'c'}],
@@ -22,6 +25,14 @@ describe('components/PostMarkdown', () => {
         channel: TestHelper.getChannelMock(),
         currentTeam: TestHelper.getTeamMock(),
         hideGuestTags: false,
+        isMilitaryTime: false,
+        timezone: '',
+        highlightKeys: [],
+        hasPluginTooltips: false,
+        isUserCanManageMembers: false,
+        isEnterpriseOrCloudOrSKUStarterFree: true,
+        isEnterpriseReady: false,
+        dispatch: jest.fn(),
     };
 
     const state = {entities: {
@@ -224,7 +235,7 @@ describe('components/PostMarkdown', () => {
                         return updatedMessage + '!';
                     },
                 },
-            ],
+            ] as PluginComponent[],
         };
         renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.queryByText('world', {exact: true})).not.toBeInTheDocument();
@@ -258,7 +269,7 @@ describe('components/PostMarkdown', () => {
                         return post.message + '!';
                     },
                 },
-            ],
+            ] as PluginComponent[],
         };
         renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.queryByText('world', {exact: true})).not.toBeInTheDocument();
