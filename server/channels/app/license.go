@@ -66,7 +66,7 @@ func (ch *Channels) RequestTrialLicenseWithExtraFields(requesterID string, trial
 	return ch.srv.platform.RequestTrialLicense(sanitizedRequest)
 }
 
-// Depreacted: Use RequestTrialLicenseWithExtraFields instead. This function remains to support the Plugin API.
+// Deprecated: Use RequestTrialLicenseWithExtraFields instead. This function remains to support the Plugin API.
 func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
 	if *ch.srv.platform.Config().ExperimentalSettings.RestrictSystemAdmin {
 		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
