@@ -79,7 +79,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
         searchTerm=""
         showUserOverlay={[MockFunction]}
       >
-        <Popover
+        <Memo(Popover)
           actions={
             Object {
               "openModal": [MockFunction],
@@ -119,9 +119,6 @@ exports[`component/user_group_popover should match snapshot 1`] = `
           }
           hide={[MockFunction]}
           id="user-group-popover"
-          placement="right"
-          popoverSize="sm"
-          popoverStyle="info"
           returnFocus={[MockFunction]}
           searchTerm=""
           showUserOverlay={[MockFunction]}
@@ -1169,7 +1166,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                 >
                                                   <OverlayTrigger
                                                     defaultOverlayShown={false}
-                                                    delayShow={500}
+                                                    delayShow={100}
                                                     overlay={
                                                       <Tooltip
                                                         className="hidden-xs"
@@ -1189,7 +1186,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                   >
                                                     <OverlayTrigger
                                                       defaultOverlayShown={false}
-                                                      delayShow={500}
+                                                      delayShow={100}
                                                       overlay={
                                                         <OverlayWrapper
                                                           className="hidden-xs"
@@ -1377,7 +1374,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                 >
                                                   <OverlayTrigger
                                                     defaultOverlayShown={false}
-                                                    delayShow={500}
+                                                    delayShow={100}
                                                     overlay={
                                                       <Tooltip
                                                         className="hidden-xs"
@@ -1397,7 +1394,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                   >
                                                     <OverlayTrigger
                                                       defaultOverlayShown={false}
-                                                      delayShow={500}
+                                                      delayShow={100}
                                                       overlay={
                                                         <OverlayWrapper
                                                           className="hidden-xs"
@@ -1585,7 +1582,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                 >
                                                   <OverlayTrigger
                                                     defaultOverlayShown={false}
-                                                    delayShow={500}
+                                                    delayShow={100}
                                                     overlay={
                                                       <Tooltip
                                                         className="hidden-xs"
@@ -1605,7 +1602,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                   >
                                                     <OverlayTrigger
                                                       defaultOverlayShown={false}
-                                                      delayShow={500}
+                                                      delayShow={100}
                                                       overlay={
                                                         <OverlayWrapper
                                                           className="hidden-xs"
@@ -1793,7 +1790,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                 >
                                                   <OverlayTrigger
                                                     defaultOverlayShown={false}
-                                                    delayShow={500}
+                                                    delayShow={100}
                                                     overlay={
                                                       <Tooltip
                                                         className="hidden-xs"
@@ -1813,7 +1810,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                   >
                                                     <OverlayTrigger
                                                       defaultOverlayShown={false}
-                                                      delayShow={500}
+                                                      delayShow={100}
                                                       overlay={
                                                         <OverlayWrapper
                                                           className="hidden-xs"
@@ -2001,7 +1998,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                 >
                                                   <OverlayTrigger
                                                     defaultOverlayShown={false}
-                                                    delayShow={500}
+                                                    delayShow={100}
                                                     overlay={
                                                       <Tooltip
                                                         className="hidden-xs"
@@ -2021,7 +2018,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                   >
                                                     <OverlayTrigger
                                                       defaultOverlayShown={false}
-                                                      delayShow={500}
+                                                      delayShow={100}
                                                       overlay={
                                                         <OverlayWrapper
                                                           className="hidden-xs"
@@ -2127,7 +2124,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
               </div>
             </div>
           </Popover>
-        </Popover>
+        </Memo(Popover)>
       </Memo(UserGroupPopover)>
     </Router>
   </BrowserRouter>

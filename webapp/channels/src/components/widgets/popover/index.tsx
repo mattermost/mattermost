@@ -19,32 +19,39 @@ interface Props {
     style?: React.CSSProperties;
     onMouseOut?: React.MouseEventHandler<BSPopover>; // didn't find a better way to satisfy typing, so for now we have a slight 'bootstrap leakage'
     onMouseOver?: React.MouseEventHandler<BSPopover>;
+    ref?: React.Ref<BSPopover>;
 }
 
-export default class Popover extends React.PureComponent<Props> {
-    static defaultProps = {
-        placement: 'right',
-        popoverStyle: 'info',
-        popoverSize: 'sm',
+const Popover = ({
+    placement = 'right',
+    popoverSize = 'sm',
+    children,
+    popoverStyle = 'info',
+    title,
+    id,
+    onMouseOut,
+    onMouseOver,
+    className,
+    style,
+    ref,
+}: Props) => {
+    return (
+        <BSPopover
+            id={id}
+            style={style}
+            className={className}
+            bsStyle={popoverStyle}
+            placement={placement}
+            bsClass='popover'
+            title={title}
+            bsSize={popoverSize && SizeMap[popoverSize] as BSSizes} // map our sizes to bootstrap
+            onMouseOut={onMouseOut!}
+            onMouseOver={onMouseOver}
+            ref={ref}
+        >
+            {children}
+        </BSPopover>
+    );
+};
 
-    };
-    render() {
-        const {placement, popoverSize, children, popoverStyle, title, id, onMouseOut, onMouseOver, className, style} = this.props;
-        return (
-            <BSPopover
-                id={id}
-                style={style}
-                className={className}
-                bsStyle={popoverStyle}
-                placement={placement}
-                bsClass='popover'
-                title={title}
-                bsSize={popoverSize && SizeMap[popoverSize] as BSSizes} // map our sizes to bootstrap
-                onMouseOut={onMouseOut!}
-                onMouseOver={onMouseOver}
-            >
-                {children}
-            </BSPopover>
-        );
-    }
-}
+export default React.memo(Popover);
