@@ -467,7 +467,6 @@ channels/db/migrations/postgres/000115_user_reporting_changes.up.sql
 channels/db/migrations/postgres/000116_create_outgoing_oauth_connections.down.sql
 channels/db/migrations/postgres/000116_create_outgoing_oauth_connections.up.sql
 channels/db/migrations/postgres/000117_msteams_shared_channels.down.sql
-channels/db/migrations/postgres/000117_msteams_shared_channels_opts.down.sql
 channels/db/migrations/postgres/000117_msteams_shared_channels.up.sql
 channels/db/migrations/postgres/000118_create_index_poststats.down.sql
 channels/db/migrations/postgres/000118_create_index_poststats.up.sql
