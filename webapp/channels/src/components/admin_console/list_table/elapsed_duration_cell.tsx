@@ -15,9 +15,9 @@ interface Props {
 }
 
 export function ElapsedDurationCell(props: Props) {
-    const todaysDate = moment().startOf('day').valueOf();
-
     const {formatMessage} = useIntl();
+
+    const todaysDate = moment().startOf('day').valueOf();
 
     const {elapsedDays, exactPassedInDate} = useMemo(() => {
         const startOfTodayMoment = moment().startOf('day');
@@ -66,21 +66,17 @@ export function ElapsedDurationCell(props: Props) {
         );
     }
 
-    const sharedTooltip = (
-        <Tooltip id='system-users-cell-elapsed-duration-tooltip'>
-            {exactPassedInDate}
-        </Tooltip>
-    );
-
     return (
         <OverlayTrigger
             delayShow={Constants.OVERLAY_TIME_DELAY}
             placement='bottom'
-            overlay={sharedTooltip}
+            overlay={
+                <Tooltip id='system-users-cell-elapsed-duration-tooltip'>
+                    {exactPassedInDate}
+                </Tooltip>
+            }
         >
-            <span>
-                {elapsedDaysText}
-            </span>
+            <span>{elapsedDaysText}</span>
         </OverlayTrigger>
     );
 }

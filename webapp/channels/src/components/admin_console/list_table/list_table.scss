@@ -54,11 +54,7 @@ table.adminConsoleListTable {
                             right: 0;
                             bottom: 0;
                             width: 1px;
-                            background-color:
-                                rgba(
-                                    var(--center-channel-color-rgb),
-                                    0.08
-                                );
+                            background-color: rgba(var(--center-channel-color-rgb), 0.08);
                             content: "";
                         }
                     }
@@ -72,11 +68,7 @@ table.adminConsoleListTable {
                             bottom: 0;
                             left: 0;
                             width: 1px;
-                            background-color:
-                                rgba(
-                                    var(--center-channel-color-rgb),
-                                    0.08
-                                );
+                            background-color: rgba(var(--center-channel-color-rgb), 0.08);
                             content: "";
                         }
                     }
@@ -106,11 +98,7 @@ table.adminConsoleListTable {
                         line-height: 14px;
 
                         &.hoverSortingIcon {
-                            color:
-                                rgba(
-                                    var(--sys-center-channel-color-rgb),
-                                    0.32
-                                );
+                            color: rgba(var(--sys-center-channel-color-rgb), 0.32);
                             visibility: hidden;
                         }
                     }
@@ -196,11 +184,7 @@ table.adminConsoleListTable {
                             right: 0;
                             bottom: 0;
                             width: 1px;
-                            background-color:
-                                rgba(
-                                    var(--center-channel-color-rgb),
-                                    0.08
-                                );
+                            background-color: rgba(var(--center-channel-color-rgb), 0.08);
                             content: "";
                         }
                     }
@@ -214,11 +198,7 @@ table.adminConsoleListTable {
                             bottom: 0;
                             left: 0;
                             width: 1px;
-                            background-color:
-                                rgba(
-                                    var(--center-channel-color-rgb),
-                                    0.08
-                                );
+                            background-color: rgba(var(--center-channel-color-rgb), 0.08);
                             content: "";
                         }
                     }

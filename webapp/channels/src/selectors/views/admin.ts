@@ -18,7 +18,3 @@ export function getOnNavigationConfirmed(state: GlobalState) {
 export function getNeedsLoggedInLimitReachedCheck(state: GlobalState): boolean {
     return state.views.admin.needsLoggedInLimitReachedCheck;
 }
-
-export function getAdminConsoleUserManagementDetails(state: GlobalState) {
-    return state.views.admin.adminConsoleUserManagement;
-}

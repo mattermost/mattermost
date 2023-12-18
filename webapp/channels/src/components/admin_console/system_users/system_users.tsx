@@ -306,34 +306,46 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                         id='admin.system_users.title'
                         defaultMessage='{siteName} Users'
                         values={{siteName: this.props.siteName}}
-                    >
-                        {(formatMessageChunk) => (
-                            <span id='systemUsersTable-headerId'>{formatMessageChunk}</span>
-                        )}
-                    </FormattedMessage>
+                    />
                     <RevokeSessionsButton/>
                 </AdminHeader>
                 <div className='admin-console__wrapper'>
-                    <div className='admin-console__container'>
-                        <div className='system-users__filter-row'>
-                            <SystemUsersSearch
-                                value={this.props.searchTerm}
-                                onChange={this.handleSearchFiltersChange}
-                                onSearch={this.onSearch}
-                            />
-                            <SystemUsersFilterTeam
-                                options={this.props.teams}
-                                value={this.props.teamId}
-                                onChange={this.handleSearchFiltersChange}
-                                onFilter={this.onFilter}
-                            />
-                            <SystemUsersFilterRole
-                                value={this.props.filter}
-                                onChange={this.handleSearchFiltersChange}
-                                onFilter={this.onFilter}
+                    <div className='admin-console__content'>
+                        <div className='more-modal__list member-list-holder'>
+                            <div className='system-users__filter-row'>
+                                <SystemUsersSearch
+                                    value={this.props.searchTerm}
+                                    onChange={this.handleSearchFiltersChange}
+                                    onSearch={this.onSearch}
+                                />
+                                <SystemUsersFilterTeam
+                                    options={this.props.teams}
+                                    value={this.props.teamId}
+                                    onChange={this.handleSearchFiltersChange}
+                                    onFilter={this.onFilter}
+                                />
+                                <SystemUsersFilterRole
+                                    value={this.props.filter}
+                                    onChange={this.handleSearchFiltersChange}
+                                    onFilter={this.onFilter}
+                                />
+                            </div>
+                            <SystemUsersList
+                                loading={this.state.loading}
+                                search={this.doSearch}
+                                nextPage={this.nextPage}
+                                usersPerPage={USERS_PER_PAGE}
+                                total={this.props.totalUsers}
+                                teams={this.props.teams}
+                                teamId={this.props.teamId}
+                                filter={this.props.filter}
+                                term={this.props.searchTerm}
+                                onTermChange={this.handleTermChange}
+                                mfaEnabled={this.props.mfaEnabled}
+                                enableUserAccessTokens={this.props.enableUserAccessTokens}
+                                experimentalEnableAuthenticationTransfer={this.props.experimentalEnableAuthenticationTransfer}
                             />
                         </div>
-                        <SystemUsersList/>
                     </div>
                 </div>
             </div>

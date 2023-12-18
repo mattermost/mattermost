@@ -145,12 +145,11 @@ export type AuthChangeResponse = {
 };
 
 export type UserReport = {
-    id: UserProfile['id'];
-    username: UserProfile['username'];
-    email: UserProfile['email'];
-    create_at: UserProfile['create_at'];
+    id: string;
+    username: string;
+    email: string;
+    create_at: number;
     display_name: string;
-    roles: UserProfile['roles'];
     last_login_at: number;
 	last_status_at?: number;
 	last_post_date?: number;

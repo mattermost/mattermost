@@ -54,30 +54,7 @@ export function needsLoggedInLimitReachedCheck(state = false, action: GenericAct
     }
 }
 
-export function adminConsoleUserManagement(state = {}, action: GenericAction) {
-    switch (action.type) {
-    case ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_SORT_COLUMN:
-        return {
-            ...state,
-            sortColumn: action.data,
-        };
-    case ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_SORT_ORDER:
-        return {
-            ...state,
-            sortIsDescending: action.data,
-        };
-    case ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_PAGE_SIZE:
-        return {
-            ...state,
-            pageSize: action.data,
-        };
-    default:
-        return state;
-    }
-}
-
 export default combineReducers({
     navigationBlock,
     needsLoggedInLimitReachedCheck,
-    adminConsoleUserManagement,
 });

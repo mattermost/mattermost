@@ -321,10 +321,6 @@ export const ActionTypes = keyMirror({
     NEEDS_LOGGED_IN_LIMIT_REACHED_CHECK: null,
 
     SET_DRAFT_SOURCE: null,
-
-    SET_ADMIN_CONSOLE_USER_MANAGEMENT_SORT_COLUMN: null,
-    SET_ADMIN_CONSOLE_USER_MANAGEMENT_SORT_ORDER: null,
-    SET_ADMIN_CONSOLE_USER_MANAGEMENT_PAGE_SIZE: null,
 });
 
 export const PostRequestTypes = keyMirror({
