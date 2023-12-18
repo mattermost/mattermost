@@ -38,11 +38,11 @@ const (
 
 func (a *App) CreateEmoji(c request.CTX, sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
-		return nil, model.NewAppError("UploadEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusForbidden)
+		return nil, model.NewAppError("CreateEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusForbidden)
 	}
 
 	if *a.Config().FileSettings.DriverName == "" {
-		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusForbidden)
+		return nil, model.NewAppError("CreateEmoji", "api.emoji.storage.app_error", nil, "", http.StatusForbidden)
 	}
 
 	// wipe the emoji id so that existing emojis can't get overwritten
@@ -56,11 +56,11 @@ func (a *App) CreateEmoji(c request.CTX, sessionUserId string, emoji *model.Emoj
 	}
 
 	if emoji.CreatorId != sessionUserId {
-		return nil, model.NewAppError("createEmoji", "api.emoji.create.other_user.app_error", nil, "", http.StatusForbidden)
+		return nil, model.NewAppError("CreateEmoji", "api.emoji.create.other_user.app_error", nil, "", http.StatusForbidden)
 	}
 
 	if existingEmoji, err := a.Srv().Store().Emoji().GetByName(c, emoji.Name, true); err == nil && existingEmoji != nil {
-		return nil, model.NewAppError("createEmoji", "api.emoji.create.duplicate.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, model.NewAppError("CreateEmoji", "api.emoji.create.duplicate.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	imageData := multiPartImageData.File["image"]
@@ -71,7 +71,7 @@ func (a *App) CreateEmoji(c request.CTX, sessionUserId string, emoji *model.Emoj
 	filename := imageData[0].Filename
 	file, err := imageData[0].Open()
 	if err != nil {
-		return nil, model.NewAppError("uploadEmojiImage", "api.emoji.upload.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, model.NewAppError("CreateEmoji", "api.emoji.upload.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	defer file.Close()
 
