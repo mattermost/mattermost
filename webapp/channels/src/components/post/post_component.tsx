@@ -302,7 +302,7 @@ const PostComponent = (props: Props): JSX.Element => {
             'post--comment same--root': fromAutoResponder,
             'post--pinned-or-flagged': (post.is_pinned || props.isFlagged) && props.location === Locations.CENTER,
             'mention-comment': props.isCommentMention,
-            'post--thread': props.location === Locations.RHS_COMMENT || props.location === Locations.RHS_ROOT,
+            'post--thread': isRHS,
         });
     };
 

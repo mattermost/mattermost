@@ -139,6 +139,8 @@ type Routes struct {
 	Drafts *mux.Router // 'api/v4/drafts'
 
 	IPFiltering *mux.Router // 'api/v4/ip_filtering'
+
+	Reports *mux.Router // 'api/v4/reports'
 }
 
 type API struct {
@@ -265,6 +267,8 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.IPFiltering = api.BaseRoutes.APIRoot.PathPrefix("/ip_filtering").Subrouter()
 
+	api.BaseRoutes.Reports = api.BaseRoutes.APIRoot.PathPrefix("/reports").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -309,6 +313,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitHostedCustomer()
 	api.InitDrafts()
 	api.InitIPFiltering()
+	api.InitReports()
 
 	srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

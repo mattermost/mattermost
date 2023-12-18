@@ -22,7 +22,7 @@ const SimpleTooltip = ({
     children,
     placement = 'top',
     className = 'hidden-xs',
-    delayShow = 500,
+    delayShow = 100,
     style,
     ...props
 }: Props & Omit<ComponentProps<typeof OverlayTrigger>, 'overlay'>) => {

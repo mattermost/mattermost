@@ -15,6 +15,8 @@ import deferComponentRender from 'components/deferComponentRender';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
 
+import WebSocketClient from 'client/web_websocket_client';
+
 import type {FakePost} from 'types/store/rhs';
 
 import ThreadViewerVirtualized from '../virtualized_thread_viewer';
@@ -50,6 +52,7 @@ export type Props = Attrs & {
     isThreadView?: boolean;
     inputPlaceholder?: string;
     rootPostId: string;
+    fromSuppressed?: boolean;
 };
 
 type State = {
@@ -75,6 +78,10 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         if (this.props.appsEnabled) {
             this.props.actions.fetchRHSAppsBindings(this.props.channel?.id || '', this.props.selected?.id || this.props.rootPostId);
         }
+    }
+
+    public componentWillUnmount() {
+        WebSocketClient.updateActiveThread('');
     }
 
     public componentDidUpdate(prevProps: Props) {
@@ -176,6 +183,9 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
             await this.fetchThread();
         }
 
+        if (this.props.channel) {
+            WebSocketClient.updateActiveThread(this.props.channel?.id);
+        }
         this.setState({isLoading: false});
     };
 
@@ -224,6 +234,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                                     highlightedPostId={this.props.highlightedPostId}
                                     selectedPostFocusedAt={this.props.selectedPostFocusedAt}
                                     isThreadView={Boolean(this.props.isCollapsedThreadsEnabled && this.props.isThreadView)}
+                                    fromSuppressed={this.props.fromSuppressed}
                                 />
                             )}
                         </>
