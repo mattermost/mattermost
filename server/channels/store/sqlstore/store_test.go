@@ -489,7 +489,7 @@ func TestEnsureMinimumDBVersion(t *testing.T) {
 			driver: model.DatabaseDriverMysql,
 			ver:    "5.6.99-test",
 			ok:     false,
-			err:    "minimum MySQL version requirements not met",
+			err:    "Minimum MySQL version requirements not met",
 		},
 		{
 			driver: model.DatabaseDriverMysql,

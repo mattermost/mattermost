@@ -6,7 +6,7 @@ import React from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import SystemUsersList from 'components/admin_console/system_users/list/system_users_list';
+import SystemUsersList from 'components/admin_console/system_users/system_users_list/system_users_list';
 
 import {Constants} from 'utils/constants';
 

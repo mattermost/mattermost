@@ -6,7 +6,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import * as users from 'mattermost-redux/selectors/entities/users';
 
-import {getUsers} from 'components/admin_console/system_users/list/selectors';
+import {getUsers} from 'components/admin_console/system_users/system_users_list/selectors';
 
 jest.mock('mattermost-redux/selectors/entities/users');
 
