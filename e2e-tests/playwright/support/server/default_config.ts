@@ -96,6 +96,7 @@ const defaultServerConfig: AdminConfig = {
         EnableIncomingWebhooks: true,
         EnableOutgoingWebhooks: true,
         EnableCommands: true,
+        OutgoingIntegrationRequestsTimeout: 30,
         EnablePostUsernameOverride: false,
         EnablePostIconOverride: false,
         GoogleDeveloperKey: '',
