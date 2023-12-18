@@ -1934,31 +1934,17 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 }
 
 func TestGetUsersForReporting(t *testing.T) {
-	t.Run("should throw error on invalid page size", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
-			UserReportOptionsWithoutDateRange: model.UserReportOptionsWithoutDateRange{
-				SortColumn: "Username",
-				PageSize:   999,
-			},
-		})
-		require.Error(t, err)
-		require.Nil(t, userReports)
-	})
-
 	t.Run("should throw error on invalid date range", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
-			UserReportOptionsWithoutDateRange: model.UserReportOptionsWithoutDateRange{
+			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn: "Username",
 				PageSize:   50,
+				StartAt:    1000,
+				EndAt:      500,
 			},
-			StartAt: 1000,
-			EndAt:   500,
 		})
 		require.Error(t, err)
 		require.Nil(t, userReports)
@@ -1969,7 +1955,7 @@ func TestGetUsersForReporting(t *testing.T) {
 		defer th.TearDown()
 
 		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
-			UserReportOptionsWithoutDateRange: model.UserReportOptionsWithoutDateRange{
+			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn: "FakeColumn",
 				PageSize:   50,
 			},
@@ -2015,7 +2001,7 @@ func TestGetUsersForReporting(t *testing.T) {
 		mockStore.On("User").Return(&mockUserStore)
 
 		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
-			UserReportOptionsWithoutDateRange: model.UserReportOptionsWithoutDateRange{
+			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn: "Username",
 				PageSize:   50,
 			},
