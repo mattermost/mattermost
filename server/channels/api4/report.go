@@ -28,6 +28,11 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 		sortColumn = r.URL.Query().Get("sort_column")
 	}
 
+	direction := "down"
+	if r.URL.Query().Get("direction") == "up" {
+		direction = "up"
+	}
+
 	pageSize := 50
 	if pageSizeStr, err := strconv.ParseInt(r.URL.Query().Get("page_size"), 10, 64); err == nil {
 		pageSize = int(pageSizeStr)
@@ -48,14 +53,15 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	options := &model.UserReportOptions{
 		ReportingBaseOptions: model.ReportingBaseOptions{
-			SortColumn:          sortColumn,
-			SortDesc:            r.URL.Query().Get("sort_direction") == "desc",
-			PageSize:            pageSize,
-			LastSortColumnValue: r.URL.Query().Get("last_column_value"),
-			DateRange:           r.URL.Query().Get("date_range"),
+			Direction:       direction,
+			SortColumn:      sortColumn,
+			SortDesc:        r.URL.Query().Get("sort_direction") == "desc",
+			PageSize:        pageSize,
+			FromColumnValue: r.URL.Query().Get("from_column_value"),
+			FromId:          r.URL.Query().Get("from_id"),
+			DateRange:       r.URL.Query().Get("date_range"),
 		},
 		Team:         teamFilter,
-		LastUserId:   r.URL.Query().Get("last_id"),
 		Role:         r.URL.Query().Get("role_filter"),
 		HasNoTeam:    r.URL.Query().Get("has_no_team") == "true",
 		HideActive:   hideActive,

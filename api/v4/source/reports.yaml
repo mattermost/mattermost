@@ -20,6 +20,12 @@
           schema:
             type: string
             default: 'Username'
+        - name: direction
+          in: query
+          description: The direction in which to accept paging values from. Will return values ahead of the cursor if "up", and below the cursor if "down". Default is "down".
+          schema:
+            type: string
+            default: 'down'
         - name: sort_direction
           in: query
           description: The sorting direction. Must be one of ("asc", "desc"). Will default to 'asc' if not specified or the input is invalid.
@@ -34,14 +40,14 @@
             default: 50
             minimum: 1
             maximum: 100
-        - name: last_column_value
+        - name: from_column_value
           in: query
-          description: The value of the sorted column belonging to the last user returned in the page. Should be blank for the first page asked for.
+          description: The value of the sorted column corresponding to the cursor to read from. Should be blank for the first page asked for.
           schema:
             type: string
-        - name: last_id
+        - name: from_id
           in: query
-          description: The value of the user id belonging to the last user returned in the page. Should be blank for the first page asked for.
+          description: The value of the user id corresponding to the cursor to read from. Should be blank for the first page asked for.
           schema:
             type: string
         - name: date_range

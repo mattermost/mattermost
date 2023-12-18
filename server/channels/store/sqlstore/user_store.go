@@ -2297,16 +2297,27 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		Select(selectColumns...).
 		From("Users u").
 		LeftJoin("Status s ON s.UserId = u.Id").
-		Where(sq.Or{
-			sq.Gt{filter.SortColumn: filter.LastSortColumnValue},
-			sq.And{
-				sq.Eq{filter.SortColumn: filter.LastSortColumnValue},
-				sq.Gt{"u.Id": filter.LastUserId},
-			},
-		}).
 		Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM Bots)")).
 		GroupBy("u.Id").
 		OrderBy(sortColumnValue, "u.Id")
+
+	if (filter.Direction == "up" && !filter.SortDesc) || (filter.Direction == "down" && filter.SortDesc) {
+		query = query.Where(sq.Or{
+			sq.Lt{filter.SortColumn: filter.FromColumnValue},
+			sq.And{
+				sq.Eq{filter.SortColumn: filter.FromColumnValue},
+				sq.Lt{"u.Id": filter.FromId},
+			},
+		})
+	} else {
+		query = query.Where(sq.Or{
+			sq.Gt{filter.SortColumn: filter.FromColumnValue},
+			sq.And{
+				sq.Eq{filter.SortColumn: filter.FromColumnValue},
+				sq.Gt{"u.Id": filter.FromId},
+			},
+		})
+	}
 
 	if filter.PageSize > 0 {
 		query = query.Limit(uint64(filter.PageSize))
