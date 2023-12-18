@@ -14,6 +14,10 @@ export function getConfig(state: GlobalState): Partial<ClientConfig> {
     return state.entities.general.config;
 }
 
+export function getSiteName(state: GlobalState) {
+    return state.entities.general.config.SiteName ?? 'Mattermost';
+}
+
 /**
  * Safely get value of a specific or known FeatureFlag
  */
