@@ -1,9 +1,7 @@
 @charset 'UTF-8';
 
 .user-settings {
-    overflow: auto;
     min-height: 300px;
-    max-height: 445px;
 
     .table-responsive {
         max-width: 560px;
@@ -214,7 +212,7 @@
             }
 
             .settings-content {
-                padding: 24px 32px;
+                padding: 0 20px 30px;
 
                 .modal-header {
                     display: none;
@@ -492,6 +490,11 @@
         .nav-pills > li button {
             color: rgba(var(--sidebar-text-rgb), 0.6);
         }
+    }
+
+    .nav {
+        position: fixed;
+        margin: 0;
     }
 
     .nav-pills {
