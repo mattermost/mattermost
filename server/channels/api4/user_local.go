@@ -249,9 +249,9 @@ func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sinceString != "" {
-		since, err2 := strconv.ParseInt(sinceString, 10, 64)
-		if err2 != nil {
-			c.SetInvalidParamWithErr("since", err2)
+		since, parseErr := strconv.ParseInt(sinceString, 10, 64)
+		if parseErr != nil {
+			c.SetInvalidParamWithErr("since", parseErr)
 			return
 		}
 		options.Since = since

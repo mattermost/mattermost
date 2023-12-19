@@ -906,7 +906,7 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 	}
 
 	channelIds, err := model.ArrayFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err != nil || len(channelIds) == 0 {
+	if err != nil {
 		c.Err = model.NewAppError("getPublicChannelsByIdsForTeam", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	} else if len(channelIds) == 0 {
