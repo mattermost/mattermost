@@ -34,7 +34,7 @@ const PluginAction = ({
     }
 
     return (
-        <div style={{marginBottom: 20}}>
+        <div className={'pluginActionContainer'}>
             <SectionNotice {...props}/>
         </div>
     );

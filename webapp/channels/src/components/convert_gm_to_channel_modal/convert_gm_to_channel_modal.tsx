@@ -24,9 +24,9 @@ import {trackEvent} from 'actions/telemetry_actions';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import NoCommonTeamsError from './no_common_teams';
-import TeamSelector from './team_selector';
-import WarningTextSection from './warning_text_section';
+import NoCommonTeamsError from './no_common_teams/no_common_teams';
+import TeamSelector from './team_selector/team_selector';
+import WarningTextSection from './warning_text_section/warning_text_section';
 
 import type {Actions} from './index';
 
