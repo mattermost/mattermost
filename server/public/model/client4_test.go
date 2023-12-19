@@ -168,7 +168,7 @@ func ExampleClient4_GetUsers() {
 			return
 		}
 
-		if len(users) == 0 {
+		if len(users) < perPage {
 			break
 		}
 
