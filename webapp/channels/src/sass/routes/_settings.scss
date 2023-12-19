@@ -212,7 +212,7 @@
             }
 
             .settings-content {
-                padding: 0 20px 30px;
+                padding: 24px 32px;
 
                 .modal-header {
                     display: none;
@@ -575,6 +575,7 @@
 }
 
 .tab-header {
+    margin-top: 0;
     margin-bottom: 1em;
     font-weight: 600;
 }
