@@ -16,23 +16,10 @@ on:
         type: string
 
 jobs:
-  choose-runner:
-    runs-on: ubuntu-latest
-    outputs:
-      runner: ${{ steps.step1.outputs.runner }}
-    steps:
-      - name: Check branch
-        id: step1
-        run: |
-          if [ ${{ github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name }} ]; then
-            echo "runner=ubuntu-latest-8-cores" >> "$GITHUB_OUTPUT"
-          else
-            echo "runner=ubuntu-latest" >> "$GITHUB_OUTPUT"
-          fi
   test:
     needs: choose-runner
     name: ${{ inputs.name }}
-    runs-on: ${{ needs.choose-runner.outputs.runner }}
+    runs-on: ${{ github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name && 'ubuntu-latest-8-cores' || 'ubuntu-latest' }}
     env:
       COMPOSE_PROJECT_NAME: ghactions
       BUILD_IMAGE: mattermost/mattermost-build-server:20230904_golang-1.20.7
