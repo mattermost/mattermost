@@ -486,7 +486,7 @@ func ArrayToJSON(objmap []string) string {
 }
 
 // Deprecated: ArrayFromJSON is deprecated,
-// use ArrayFromJSONLimited or ArrayFromJsonNonSort instead
+// use SortedArrayFromJSON or NonSortedArrayFromJSON instead
 func ArrayFromJSON(data io.Reader) []string {
 	var objmap []string
 	json.NewDecoder(data).Decode(&objmap)
@@ -496,7 +496,7 @@ func ArrayFromJSON(data io.Reader) []string {
 	return objmap
 }
 
-func ArrayFromJSONLimited(data io.Reader, maxBytes int64) ([]string, error) {
+func SortedArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
 	var obj []string
 	lr := io.LimitReader(data, maxBytes)
 	err := json.NewDecoder(lr).Decode(&obj)
@@ -508,7 +508,7 @@ func ArrayFromJSONLimited(data io.Reader, maxBytes int64) ([]string, error) {
 	return RemoveDuplicateStrings(obj), nil
 }
 
-func ArrayFromJSONNonSort(data io.Reader, maxBytes int64) ([]string, error) {
+func NonSortedArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
 	var obj []string
 	lr := io.LimitReader(data, maxBytes)
 	err := json.NewDecoder(lr).Decode(&obj)

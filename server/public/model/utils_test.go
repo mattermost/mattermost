@@ -202,11 +202,11 @@ func TestMapJson(t *testing.T) {
 	require.LessOrEqual(t, len(rm2), 0, "make should be invalid")
 }
 
-func TestArrayFromJsonLimited(t *testing.T) {
+func TestSortedArrayFromJSON(t *testing.T) {
 	t.Run("Successful parse", func(t *testing.T) {
 		ids := []string{NewId(), NewId(), NewId()}
 		b, _ := json.Marshal(ids)
-		a, err := ArrayFromJSONLimited(bytes.NewReader(b), 1000)
+		a, err := SortedArrayFromJSON(bytes.NewReader(b), 1000)
 		require.NoError(t, err)
 		require.ElementsMatch(t, ids, a)
 	})
@@ -214,7 +214,7 @@ func TestArrayFromJsonLimited(t *testing.T) {
 	t.Run("Empty Array", func(t *testing.T) {
 		ids := []string{}
 		b, _ := json.Marshal(ids)
-		a, err := ArrayFromJSONLimited(bytes.NewReader(b), 1000)
+		a, err := SortedArrayFromJSON(bytes.NewReader(b), 1000)
 		require.NoError(t, err)
 		require.Empty(t, a)
 	})
@@ -225,7 +225,7 @@ func TestArrayFromJsonLimited(t *testing.T) {
 			ids = append(ids, NewId())
 		}
 		b, _ := json.Marshal(ids)
-		_, err := ArrayFromJSONLimited(bytes.NewReader(b), 1000)
+		_, err := SortedArrayFromJSON(bytes.NewReader(b), 1000)
 		require.Error(t, err)
 		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 	})
@@ -237,17 +237,17 @@ func TestArrayFromJsonLimited(t *testing.T) {
 			ids = append(ids, id)
 		}
 		b, _ := json.Marshal(ids)
-		a, err := ArrayFromJSONLimited(bytes.NewReader(b), 26000)
+		a, err := SortedArrayFromJSON(bytes.NewReader(b), 26000)
 		require.NoError(t, err)
 		require.Len(t, a, 1)
 	})
 }
 
-func TestArrayFromJsonNonSort(t *testing.T) {
+func TestNonSortedArrayFromJSON(t *testing.T) {
 	t.Run("Successful parse", func(t *testing.T) {
 		ids := []string{NewId(), NewId(), NewId()}
 		b, _ := json.Marshal(ids)
-		a, err := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
+		a, err := NonSortedArrayFromJSON(bytes.NewReader(b), 1000)
 		require.NoError(t, err)
 		require.Equal(t, ids, a)
 	})
@@ -255,7 +255,7 @@ func TestArrayFromJsonNonSort(t *testing.T) {
 	t.Run("Empty Array", func(t *testing.T) {
 		ids := []string{}
 		b, _ := json.Marshal(ids)
-		a, err := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
+		a, err := NonSortedArrayFromJSON(bytes.NewReader(b), 1000)
 		require.NoError(t, err)
 		require.Empty(t, a)
 	})
@@ -266,7 +266,7 @@ func TestArrayFromJsonNonSort(t *testing.T) {
 			ids = append(ids, NewId())
 		}
 		b, _ := json.Marshal(ids)
-		_, err := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
+		_, err := NonSortedArrayFromJSON(bytes.NewReader(b), 1000)
 		require.Error(t, err)
 		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 	})
@@ -278,7 +278,7 @@ func TestArrayFromJsonNonSort(t *testing.T) {
 			ids = append(ids, id)
 		}
 		b, _ := json.Marshal(ids)
-		a, err := ArrayFromJSONNonSort(bytes.NewReader(b), 26000)
+		a, err := NonSortedArrayFromJSON(bytes.NewReader(b), 26000)
 		require.NoError(t, err)
 		require.Len(t, a, 1)
 	})
