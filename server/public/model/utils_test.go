@@ -216,7 +216,7 @@ func TestArrayFromJsonLimited(t *testing.T) {
 		b, _ := json.Marshal(ids)
 		a, err := ArrayFromJSONLimited(bytes.NewReader(b), 1000)
 		require.NoError(t, err)
-		require.Equal(t, 0, len(a))
+		require.Empty(t, a)
 	})
 
 	t.Run("Error too large", func(t *testing.T) {
@@ -227,7 +227,7 @@ func TestArrayFromJsonLimited(t *testing.T) {
 		b, _ := json.Marshal(ids)
 		_, err := ArrayFromJSONLimited(bytes.NewReader(b), 1000)
 		require.Error(t, err)
-		require.True(t, errors.Is(err, io.ErrUnexpectedEOF))
+		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 	})
 
 	t.Run("Duplicate keys, returns one", func(t *testing.T) {
@@ -239,7 +239,7 @@ func TestArrayFromJsonLimited(t *testing.T) {
 		b, _ := json.Marshal(ids)
 		a, err := ArrayFromJSONLimited(bytes.NewReader(b), 26000)
 		require.NoError(t, err)
-		require.Equal(t, len(a), 1)
+		require.Len(t, a, 1)
 	})
 }
 
@@ -249,10 +249,7 @@ func TestArrayFromJsonNonSort(t *testing.T) {
 		b, _ := json.Marshal(ids)
 		a, err := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
 		require.NoError(t, err)
-		require.Equal(t, len(ids), len(a))
-		require.Equal(t, ids[0], a[0])
-		require.Equal(t, ids[1], a[1])
-		require.Equal(t, ids[2], a[2])
+		require.Equal(t, ids, a)
 	})
 
 	t.Run("Empty Array", func(t *testing.T) {
@@ -260,7 +257,7 @@ func TestArrayFromJsonNonSort(t *testing.T) {
 		b, _ := json.Marshal(ids)
 		a, err := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
 		require.NoError(t, err)
-		require.Equal(t, 0, len(a))
+		require.Empty(t, a)
 	})
 
 	t.Run("Error too large", func(t *testing.T) {
@@ -271,7 +268,7 @@ func TestArrayFromJsonNonSort(t *testing.T) {
 		b, _ := json.Marshal(ids)
 		_, err := ArrayFromJSONNonSort(bytes.NewReader(b), 1000)
 		require.Error(t, err)
-		require.True(t, errors.Is(err, io.ErrUnexpectedEOF))
+		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 	})
 
 	t.Run("Duplicate keys, returns one", func(t *testing.T) {
@@ -283,7 +280,7 @@ func TestArrayFromJsonNonSort(t *testing.T) {
 		b, _ := json.Marshal(ids)
 		a, err := ArrayFromJSONNonSort(bytes.NewReader(b), 26000)
 		require.NoError(t, err)
-		require.Equal(t, len(a), 1)
+		require.Len(t, a, 1)
 	})
 }
 
