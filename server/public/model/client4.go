@@ -1924,6 +1924,9 @@ func (c *Client4) EnableUserAccessToken(ctx context.Context, tokenId string) (*R
 
 func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportOptions) ([]*UserReport, *Response, error) {
 	values := url.Values{}
+	if options.Direction != "" {
+		values.Set("direction", options.Direction)
+	}
 	if options.SortColumn != "" {
 		values.Set("sort_column", options.SortColumn)
 	}
@@ -1942,11 +1945,11 @@ func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportO
 	if options.SortDesc {
 		values.Set("sort_direction", "desc")
 	}
-	if options.LastSortColumnValue != "" {
-		values.Set("last_column_value", options.LastSortColumnValue)
+	if options.FromColumnValue != "" {
+		values.Set("from_column_value", options.FromColumnValue)
 	}
-	if options.LastUserId != "" {
-		values.Set("last_id", options.LastUserId)
+	if options.FromId != "" {
+		values.Set("from_id", options.FromId)
 	}
 	if options.Role != "" {
 		values.Set("role_filter", options.Role)
