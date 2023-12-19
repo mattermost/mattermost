@@ -19,12 +19,12 @@ jobs:
   choose-runner:
     runs-on: ubuntu-latest
     outputs:
-      runner: ${{ steps.step1.outputs.runner }}
+      runner: ${{ steps.determine-runner.outputs.runner }}
     steps:
       - name: Check branch
-        id: step1
+        id: determine-runner
         run: |
-          if [ ${{ github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name }} ]; then
+          if [ "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.event.pull_request.base.repo.full_name }}" ]; then
             echo "runner=ubuntu-latest-8-cores" >> "$GITHUB_OUTPUT"
           else
             echo "runner=ubuntu-latest" >> "$GITHUB_OUTPUT"
