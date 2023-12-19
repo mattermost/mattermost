@@ -15,11 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	testPluginID_1 = "com.sample.blap"
-	testPluginID_2 = "com.sample.bloop"
-)
-
 func TestRemoteClusterStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("RemoteClusterGetAllInChannel", func(t *testing.T) { testRemoteClusterGetAllInChannel(t, rctx, ss) })
 	t.Run("RemoteClusterGetAllNotInChannel", func(t *testing.T) { testRemoteClusterGetAllNotInChannel(t, rctx, ss) })
@@ -31,13 +26,17 @@ func TestRemoteClusterStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("RemoteClusterUpdateTopics", func(t *testing.T) { testRemoteClusterUpdateTopics(t, rctx, ss) })
 }
 
+func makeSiteURL() string {
+	return "www.example.com/" + model.NewId()
+}
+
 func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Save", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      "some_remote",
-			SiteURL:   "somewhere.com",
+			SiteURL:   makeSiteURL(),
 			CreatorId: model.NewId(),
-			PluginID:  testPluginID_1,
+			PluginID:  model.NewId(),
 		}
 
 		rcSaved, err := ss.RemoteCluster().Save(rc)
@@ -46,13 +45,13 @@ func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, rc.SiteURL, rcSaved.SiteURL)
 		require.Greater(t, rc.CreateAt, int64(0))
 		require.Equal(t, rc.LastPingAt, int64(0))
-		require.Equal(t, testPluginID_1, rcSaved.PluginID)
+		require.Equal(t, rc.PluginID, rcSaved.PluginID)
 		require.Equal(t, rc.Options, model.Bitmask(0))
 	})
 
 	t.Run("Save missing display name", func(t *testing.T) {
 		rc := &model.RemoteCluster{
-			SiteURL:   "somewhere.com",
+			SiteURL:   makeSiteURL(),
 			CreatorId: model.NewId(),
 		}
 		_, err := ss.RemoteCluster().Save(rc)
@@ -62,27 +61,29 @@ func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Save missing creator id", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:    "some_remote_2",
-			SiteURL: "somewhere.com",
+			SiteURL: makeSiteURL(),
 		}
 		_, err := ss.RemoteCluster().Save(rc)
 		require.Error(t, err)
 	})
 
 	t.Run("Save pluginID collision", func(t *testing.T) {
+		const testPluginID = "com.example.collision"
+
 		rc := &model.RemoteCluster{
 			Name:      "some_remote",
-			SiteURL:   "somewhere.com",
+			SiteURL:   makeSiteURL(),
 			CreatorId: model.NewId(),
-			PluginID:  testPluginID_1,
+			PluginID:  testPluginID,
 		}
 		_, err := ss.RemoteCluster().Save(rc)
 		require.NoError(t, err)
 
 		rc2 := &model.RemoteCluster{
 			Name:      "another_remote",
-			SiteURL:   "elsewhere.com",
+			SiteURL:   makeSiteURL(),
 			CreatorId: model.NewId(),
-			PluginID:  testPluginID_1,
+			PluginID:  testPluginID,
 		}
 
 		rcSaved, err := ss.RemoteCluster().Save(rc2)
@@ -93,13 +94,13 @@ func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, rc.Name, rcSaved.Name)
 		require.Equal(t, rc.SiteURL, rcSaved.SiteURL)
 		require.Greater(t, rc.CreateAt, int64(0))
-		require.Equal(t, testPluginID_1, rcSaved.PluginID)
+		require.Equal(t, rc.PluginID, rcSaved.PluginID)
 	})
 
 	t.Run("Save multiple with blank pluginID", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      model.NewId(),
-			SiteURL:   model.NewId(),
+			SiteURL:   makeSiteURL(),
 			CreatorId: model.NewId(),
 		}
 		_, err := ss.RemoteCluster().Save(rc)
@@ -107,7 +108,7 @@ func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		rc2 := &model.RemoteCluster{
 			Name:      model.NewId(),
-			SiteURL:   model.NewId(),
+			SiteURL:   makeSiteURL(),
 			CreatorId: model.NewId(),
 		}
 		_, err = ss.RemoteCluster().Save(rc2)
@@ -117,26 +118,26 @@ func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Save for plugin with options", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      "plugin_remote",
-			SiteURL:   "plugin.example.com",
+			SiteURL:   makeSiteURL(),
 			CreatorId: model.NewId(),
-			PluginID:  testPluginID_1,
+			PluginID:  model.NewId(),
 			Options:   model.BitflagOptionAutoShareDMs,
 		}
 
 		rcSaved, err := ss.RemoteCluster().Save(rc)
 		require.NoError(t, err)
-		require.Equal(t, testPluginID_1, rcSaved.PluginID)
+		require.Equal(t, rc.PluginID, rcSaved.PluginID)
 		require.Equal(t, model.BitflagOptionAutoShareDMs, rcSaved.Options)
 		require.True(t, rcSaved.IsOptionFlagSet(model.BitflagOptionAutoShareDMs))
 
 		rc.Name = "plugin_remote_2"
-		rc.SiteURL = "plugin2.example.com"
-		rc.PluginID = testPluginID_2
+		rc.SiteURL = makeSiteURL()
+		rc.PluginID = model.NewId()
 		rc.UnsetOptionFlag(model.BitflagOptionAutoShareDMs)
 
 		rcSaved, err = ss.RemoteCluster().Save(rc)
 		require.NoError(t, err)
-		require.Equal(t, testPluginID_2, rcSaved.PluginID)
+		require.Equal(t, rc.PluginID, rcSaved.PluginID)
 		require.Equal(t, model.Bitmask(0), rcSaved.Options)
 		require.False(t, rcSaved.IsOptionFlagSet(model.BitflagOptionAutoShareDMs))
 	})
@@ -146,7 +147,7 @@ func testRemoteClusterDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Delete", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      "shortlived_remote",
-			SiteURL:   "nowhere.com",
+			SiteURL:   makeSiteURL(),
 			CreatorId: model.NewId(),
 		}
 		rcSaved, err := ss.RemoteCluster().Save(rc)
@@ -168,9 +169,9 @@ func testRemoteClusterGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Get", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			Name:      "shortlived_remote_2",
-			SiteURL:   "nowhere.com",
+			SiteURL:   makeSiteURL(),
 			CreatorId: model.NewId(),
-			PluginID:  testPluginID_1,
+			PluginID:  model.NewId(),
 		}
 		rc.SetOptionFlag(model.BitflagOptionAutoShareDMs)
 		rcSaved, err := ss.RemoteCluster().Save(rc)
@@ -179,7 +180,7 @@ func testRemoteClusterGet(t *testing.T, rctx request.CTX, ss store.Store) {
 		rcGet, err := ss.RemoteCluster().Get(rcSaved.RemoteId)
 		require.NoError(t, err)
 		require.Equal(t, rcSaved.RemoteId, rcGet.RemoteId)
-		require.Equal(t, testPluginID_1, rcGet.PluginID)
+		require.Equal(t, rcSaved.PluginID, rcGet.PluginID)
 		require.True(t, rcGet.IsOptionFlagSet(model.BitflagOptionAutoShareDMs))
 	})
 
@@ -197,10 +198,10 @@ func testRemoteClusterGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	pingLongAgo := model.GetMillis() - (model.RemoteOfflineAfterMillis * 3)
 
 	data := []*model.RemoteCluster{
-		{Name: "offline_remote", CreatorId: userId, SiteURL: "somewhere.com", LastPingAt: pingLongAgo, Topics: " shared incident "},
-		{Name: "some_online_remote", CreatorId: userId, SiteURL: "nowhere.com", LastPingAt: now, Topics: " shared incident "},
-		{Name: "another_online_remote", CreatorId: model.NewId(), SiteURL: "underwhere.com", LastPingAt: now, Topics: ""},
-		{Name: "another_offline_remote", CreatorId: model.NewId(), SiteURL: "knowhere.com", LastPingAt: pingLongAgo, Topics: " shared "},
+		{Name: "offline_remote", CreatorId: userId, SiteURL: makeSiteURL(), LastPingAt: pingLongAgo, Topics: " shared incident "},
+		{Name: "some_online_remote", CreatorId: userId, SiteURL: makeSiteURL(), LastPingAt: now, Topics: " shared incident "},
+		{Name: "another_online_remote", CreatorId: model.NewId(), SiteURL: makeSiteURL(), LastPingAt: now, Topics: ""},
+		{Name: "another_offline_remote", CreatorId: model.NewId(), SiteURL: makeSiteURL(), LastPingAt: pingLongAgo, Topics: " shared "},
 		{Name: "brand_new_offline_remote", CreatorId: userId, SiteURL: "", LastPingAt: 0, Topics: " bogus shared stuff "},
 	}
 
@@ -295,6 +296,11 @@ func testRemoteClusterGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.Store) {
+	const (
+		testPluginID_1 = "com.sample.blap"
+		testPluginID_2 = "com.sample.bloop"
+	)
+
 	require.NoError(t, clearRemoteClusters(ss))
 	now := model.GetMillis()
 
