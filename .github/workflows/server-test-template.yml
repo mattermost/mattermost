@@ -36,7 +36,6 @@ jobs:
     runs-on: ${{ needs.choose-runner.outputs.runner }}
     env:
       COMPOSE_PROJECT_NAME: ghactions
-      BUILD_IMAGE: mattermost/mattermost-build-server:20230904_golang-1.20.7
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -57,6 +56,8 @@ jobs:
           docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --ansi never ps
       - name: Run Tests
+        env:
+          BUILD_IMAGE: mattermost/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
         run: |
           if [[ ${{ github.ref_name }} == 'master' ]]; then
             export RACE_MODE="-race"
