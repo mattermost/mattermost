@@ -37,7 +37,7 @@ const OpenInvite = ({isGroupConstrained, allowOpenInvite, setAllowOpenInvite}: P
         return (
             <BaseSettingItem
                 className='access-invite-domains-section'
-                title={{id: 'general_tab.openInviteTitle', defaultMessage: 'Users on this server'}}
+                title={{id: 'general_tab.openInviteText', defaultMessage: 'Users on this server'}}
                 description={{id: 'general_tab.openInviteDesc', defaultMessage: 'When enabled, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing this setting will create a new invitation link and invalidate the previous link.'}}
                 descriptionAboveContent={true}
                 content={groupConstrainedContent}
@@ -48,10 +48,10 @@ const OpenInvite = ({isGroupConstrained, allowOpenInvite, setAllowOpenInvite}: P
     return (
         <CheckboxSettingItem
             className='access-invite-domains-section'
-            inputFieldData={{title: {id: 'general_tab.allowedDomains', defaultMessage: 'Allow only users with a specific email domain to join this team'}, name: 'name'}}
+            inputFieldData={{title: {id: 'general_tab.openInviteTitle', defaultMessage: 'Allow only users with a specific email domain to join this team'}, name: 'name'}}
             inputFieldValue={allowOpenInvite}
             handleChange={(e) => setAllowOpenInvite(e)}
-            title={{id: 'general_tab.openInviteTitle', defaultMessage: 'Users on this server'}}
+            title={{id: 'general_tab.openInviteText', defaultMessage: 'Users on this server'}}
             description={{id: 'general_tab.openInviteDesc', defaultMessage: 'When enabled, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing this setting will create a new invitation link and invalidate the previous link.'}}
             descriptionAboveContent={true}
         />
