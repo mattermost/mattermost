@@ -43,12 +43,21 @@ function ModalSection({
         return titleContent;
     }
 
+    const titleDescriptionSection = () => {
+        if (title || description) {
+            return (
+                <div className='mm-modal-generic-section__title-description-ctr'>
+                    {titleRow()}
+                    {descriptionContent}
+                </div>
+            );
+        }
+        return null;
+    };
+
     return (
         <section className='mm-modal-generic-section'>
-            <div className='mm-modal-generic-section__info-ctr'>
-                {titleRow()}
-                {descriptionContent}
-            </div>
+            {titleDescriptionSection()}
             <div className='mm-modal-generic-section__content'>
                 {content}
             </div>
