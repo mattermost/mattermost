@@ -8,6 +8,8 @@ import SectionNotice from 'components/section_notice';
 
 import type {PluginConfigurationAction} from 'types/plugins/user_settings';
 
+import './plugin_action.scss'
+
 type Props = {
     action?: PluginConfigurationAction;
 };
