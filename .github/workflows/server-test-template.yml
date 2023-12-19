@@ -17,7 +17,6 @@ on:
 
 jobs:
   test:
-    needs: choose-runner
     name: ${{ inputs.name }}
     runs-on: ${{ github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name && 'ubuntu-latest-8-cores' || 'ubuntu-latest' }}
     env:
