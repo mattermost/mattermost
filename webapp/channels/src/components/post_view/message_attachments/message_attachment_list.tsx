@@ -33,8 +33,10 @@ type Props = {
     imagesMetadata?: Record<string, PostImage>;
 }
 
+const EMPTY_METADATA: Record<string, PostImage> = {};
+
 const MessageAttachmentList = ({
-    imagesMetadata = {},
+    imagesMetadata = EMPTY_METADATA,
     attachments,
     postId,
     options,
