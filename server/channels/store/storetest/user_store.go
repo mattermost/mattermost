@@ -6321,11 +6321,62 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should return correct paging", func(t *testing.T) {
 		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
-				SortColumn:          "Username",
-				PageSize:            50,
-				LastSortColumnValue: u2.Username,
+				SortColumn:      "Username",
+				Direction:       "down",
+				PageSize:        50,
+				FromColumnValue: u2.Username,
+				FromId:          u2.Id,
 			},
-			LastUserId: u2.Id,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 1, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, u3.Username, userReport[0].Username)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn:      "Username",
+				SortDesc:        true,
+				Direction:       "down",
+				PageSize:        50,
+				FromColumnValue: u2.Username,
+				FromId:          u2.Id,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 1, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, u1.Username, userReport[0].Username)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn:      "Username",
+				Direction:       "up",
+				PageSize:        50,
+				FromColumnValue: u2.Username,
+				FromId:          u2.Id,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 1, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, u1.Username, userReport[0].Username)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn:      "Username",
+				SortDesc:        true,
+				Direction:       "up",
+				PageSize:        50,
+				FromColumnValue: u2.Username,
+				FromId:          u2.Id,
+			},
 		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
