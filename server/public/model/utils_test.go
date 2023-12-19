@@ -208,7 +208,7 @@ func TestArrayFromJsonLimited(t *testing.T) {
 		b, _ := json.Marshal(ids)
 		a, err := ArrayFromJSONLimited(bytes.NewReader(b), 1000)
 		require.NoError(t, err)
-		require.Equal(t, len(ids), len(a))
+		require.ElementsMatch(t, ids, a)
 	})
 
 	t.Run("Empty Array", func(t *testing.T) {
