@@ -9,7 +9,6 @@
     height: 100%;
     color: #333;
     grid-area: center;
-    -webkit-overflow-scrolling: touch;
 
     > div {
         width: 100%;
@@ -30,18 +29,20 @@
     .admin-console__wrapper {
         position: relative;
         height: 100%;
-        -webkit-flex: 1 1 auto;
         flex: 1 1 auto;
         padding: 20px;
-        margin-right: 5px;
-        scrollbar-color: var(--center-channel-color-32) #fff0;
-        scrollbar-width: thin;
 
         > .wrapper--admin {
             display: flex;
             overflow: auto;
             height: 100%;
             flex-direction: column;
+        }
+
+        & > .admin-console__container {
+            overflow: auto;
+            background-color: var(--sys-center-channel-bg);
+            box-shadow: 0 2px 3px 0 alpha-color($black, 0.08);
         }
     }
 
