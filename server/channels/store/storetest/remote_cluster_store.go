@@ -133,6 +133,7 @@ func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		rc.Name = "plugin_remote_2"
 		rc.SiteURL = makeSiteURL()
 		rc.PluginID = model.NewId()
+		rc.SiteURL = "plugin2.example.com"
 		rc.UnsetOptionFlag(model.BitflagOptionAutoShareDMs)
 
 		rcSaved, err = ss.RemoteCluster().Save(rc)

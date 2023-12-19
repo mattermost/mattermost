@@ -94,11 +94,8 @@ func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*mode
 			DisplayName = :DisplayName,
 			SiteURL = :SiteURL,
 			Topics = :Topics,
-<<<<<<< HEAD
-=======
 			PluginID = :PluginID,
 			Options = :Options
->>>>>>> d641fe3690bd8a35554533b3e4872483b672e126
 			WHERE RemoteId = :RemoteId AND Name = :Name`
 
 	if _, err := s.GetMasterX().NamedExec(query, remoteCluster); err != nil {
