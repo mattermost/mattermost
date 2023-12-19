@@ -10104,24 +10104,8 @@
     "translation": "Указан неверный идентификатор команды."
   },
   {
-    "id": "app.user.get_user_report.store_error",
-    "translation": "При запросе отчета пользователя возникла ошибка."
-  },
-  {
-    "id": "app.user.get_users_for_reporting.bad_date_range",
-    "translation": "Указанный диапазон дат недействителен."
-  },
-  {
-    "id": "app.user.get_users_for_reporting.invalid_page_size",
-    "translation": "Размер страницы недопустим или слишком велик."
-  },
-  {
     "id": "api.custom_status.set_custom_statuses.emoji_not_found",
     "translation": "Не удалось обновить пользовательский статус. Эмодзи с указанным именем не существует."
-  },
-  {
-    "id": "app.user.get_user_report.invalid_sort_column",
-    "translation": "Указанный столбец сортировки недействителен."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
