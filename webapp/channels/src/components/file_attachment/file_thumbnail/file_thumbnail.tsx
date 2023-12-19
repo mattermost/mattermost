@@ -25,7 +25,6 @@ const FileThumbnail = ({
 }: Props) => {
     const type = getFileType(fileInfo.extension);
 
-    let thumbnail;
     if (type === FileTypes.IMAGE) {
         let className = 'post-image';
 
@@ -50,18 +49,16 @@ const FileThumbnail = ({
             />
         );
     } else if (fileInfo.extension === FileTypes.SVG && enableSVGs) {
-        thumbnail = (
+        return (
             <img
                 alt={'file thumbnail image'}
                 className='post-image normal'
                 src={getFileUrl(fileInfo.id)}
             />
         );
-    } else {
-        thumbnail = <div className={'file-icon ' + getIconClassName(type)}/>;
     }
 
-    return thumbnail;
+    return <div className={'file-icon ' + getIconClassName(type)}/>;
 };
 
 export default memo(FileThumbnail);
