@@ -1853,6 +1853,10 @@
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Unable to seek to file start."
+  },
+  {
     "id": "api.error_get_first_admin_complete_setup",
     "translation": "Error trying to retrieve first admin complete setup from the store."
   },
