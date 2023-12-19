@@ -133,8 +133,8 @@ import {
     UserStatus,
     GetFilteredUsersStatsOpts,
     UserCustomStatus,
-    UserReport,
 } from '@mattermost/types/users';
+import {UserReport} from '@mattermost/types/reports';
 import {DeepPartial, RelationOneToOne} from '@mattermost/types/utilities';
 import {ProductNotices} from '@mattermost/types/product_notices';
 import {

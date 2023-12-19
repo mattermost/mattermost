@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ServerError} from '@mattermost/types/errors';
-import type {UserReportOptions} from '@mattermost/types/reports';
-import type {UserReport} from '@mattermost/types/users';
+import type {UserReportOptions, UserReport} from '@mattermost/types/reports';
 
 import {logError} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';

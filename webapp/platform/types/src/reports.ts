@@ -29,18 +29,39 @@ export enum CursorPaginationDirection {
 }
 
 export type UserReportOptions = {
-    page_size: number;
+    page_size?: number;
 
-    // The following fields are used for sorting
-    sort_column: UserReportSortColumns;
+    // Following are optional sort parameters
+    /**
+     * The column to sort on. Provide the id of the column. Use the UserReportSortColumns enum.
+     */
+    sort_column?: UserReportSortColumns;
+
+    /**
+     * The sort direction to use. Either "asc" or "desc". Use the ReportSortDirection enum.
+     */
     sort_direction?: ReportSortDirection;
 
-    // The following fields are used for cursor pagination
+    // Following are optional pagination parameters
+    /**
+     * The direction to paginate in. Either "up" or "down". Use the CursorPaginationDirection enum.
+     */    
     direction?: CursorPaginationDirection,
+
+    /**
+     * The cursor to paginate from.
+     */
     from_column_value?: string;
+
+    /**
+     * The id of the user to paginate from.
+     */
     from_id?: string;
 
-    // The following fields are used for filtering
+    // Following are optional filters
+    /**
+     * The duration to filter by. Use the ReportDuration enum.
+     */
     date_range?: ReportDuration;
     role_filter?: string;
     team_filter?: string;

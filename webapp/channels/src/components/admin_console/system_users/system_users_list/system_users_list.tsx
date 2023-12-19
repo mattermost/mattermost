@@ -6,8 +6,9 @@ import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
-import {UserReportSortColumns, type UserReportOptions, ReportSortDirection} from '@mattermost/types/reports';
-import type {UserProfile, UserReport} from '@mattermost/types/users';
+import {UserReportSortColumns, ReportSortDirection} from '@mattermost/types/reports';
+import type {UserReport, UserReportOptions} from '@mattermost/types/reports';
+import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 

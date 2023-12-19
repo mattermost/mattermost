@@ -42,7 +42,7 @@
         & > .admin-console__container {
             overflow: auto;
             background-color: var(--sys-center-channel-bg);
-            box-shadow: 0px 2px 3px 0px alpha-color($black, 0.08);
+            box-shadow: 0 2px 3px 0 alpha-color($black, 0.08);
         }
     }
 
