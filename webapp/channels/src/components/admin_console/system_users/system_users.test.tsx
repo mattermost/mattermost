@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {Constants, SearchUserTeamFilter, UserFilters} from 'utils/constants';
 
 import SystemUsers from './system_users';
@@ -36,7 +36,6 @@ describe('components/admin_console/system_users', () => {
             loadProfilesWithoutTeam: jest.fn().mockResolvedValue({data: true}),
             getProfiles: jest.fn().mockResolvedValue({data: []}),
             searchProfiles: jest.fn().mockResolvedValue({data: []}),
-            revokeSessionsForAllUsers: jest.fn().mockResolvedValue({data: true}),
             logError: jest.fn(),
             getFilteredUsersStats: jest.fn(),
         },
@@ -44,14 +43,14 @@ describe('components/admin_console/system_users', () => {
 
     test('should match default snapshot', () => {
         const props = defaultProps;
-        const wrapper = shallowWithIntl(<SystemUsers {...props}/>);
+        const wrapper = shallow(<SystemUsers {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('loadDataForTeam() should have called getProfiles', async () => {
         const getProfiles = jest.fn().mockResolvedValue(undefined);
         const props = {...defaultProps, actions: {...defaultProps.actions, getProfiles}};
-        const wrapper = shallowWithIntl(<SystemUsers {...props}/>);
+        const wrapper = shallow(<SystemUsers {...props}/>);
 
         wrapper.setState({loading: true});
 
@@ -67,7 +66,7 @@ describe('components/admin_console/system_users', () => {
     test('loadDataForTeam() should have called loadProfilesWithoutTeam', async () => {
         const loadProfilesWithoutTeam = jest.fn().mockResolvedValue(undefined);
         const props = {...defaultProps, actions: {...defaultProps.actions, loadProfilesWithoutTeam}};
-        const wrapper = shallowWithIntl(<SystemUsers {...props}/>);
+        const wrapper = shallow(<SystemUsers {...props}/>);
 
         wrapper.setState({loading: true});
 
@@ -92,7 +91,7 @@ describe('components/admin_console/system_users', () => {
             teamId: SearchUserTeamFilter.ALL_USERS,
             actions: {...defaultProps.actions, getProfiles},
         };
-        const wrapper = shallowWithIntl(<SystemUsers {...props}/>);
+        const wrapper = shallow(<SystemUsers {...props}/>);
 
         wrapper.setState({loading: true});
 
@@ -112,7 +111,7 @@ describe('components/admin_console/system_users', () => {
             teamId: SearchUserTeamFilter.NO_TEAM,
             actions: {...defaultProps.actions, loadProfilesWithoutTeam},
         };
-        const wrapper = shallowWithIntl(<SystemUsers {...props}/>);
+        const wrapper = shallow(<SystemUsers {...props}/>);
 
         wrapper.setState({loading: true});
 
@@ -132,7 +131,7 @@ describe('components/admin_console/system_users', () => {
             teamId: SearchUserTeamFilter.NO_TEAM,
             actions: {...defaultProps.actions, searchProfiles},
         };
-        const wrapper = shallowWithIntl(<SystemUsers {...props}/>);
+        const wrapper = shallow(<SystemUsers {...props}/>);
 
         const instance = wrapper.instance() as SystemUserClass;
 
@@ -150,7 +149,7 @@ describe('components/admin_console/system_users', () => {
             teamId: SearchUserTeamFilter.NO_TEAM,
             actions: {...defaultProps.actions, searchProfiles},
         };
-        const wrapper = shallowWithIntl(<SystemUsers {...props}/>);
+        const wrapper = shallow(<SystemUsers {...props}/>);
 
         const instance = wrapper.instance() as SystemUserClass;
 

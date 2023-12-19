@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 const DeletePostsBatchSize = 500
@@ -255,7 +256,7 @@ func (b *BleveEngine) deletePosts(searchRequest *bleve.SearchRequest, batchSize 
 	return resultsCount, nil
 }
 
-func (b *BleveEngine) DeleteChannelPosts(channelID string) *model.AppError {
+func (b *BleveEngine) DeleteChannelPosts(rctx request.CTX, channelID string) *model.AppError {
 	b.Mutex.RLock()
 	defer b.Mutex.RUnlock()
 
@@ -269,12 +270,12 @@ func (b *BleveEngine) DeleteChannelPosts(channelID string) *model.AppError {
 			err.Error(), http.StatusInternalServerError)
 	}
 
-	mlog.Info("Posts for channel deleted", mlog.String("channel_id", channelID), mlog.Int("deleted", deleted))
+	rctx.Logger().Info("Posts for channel deleted", mlog.String("channel_id", channelID), mlog.Int("deleted", deleted))
 
 	return nil
 }
 
-func (b *BleveEngine) DeleteUserPosts(userID string) *model.AppError {
+func (b *BleveEngine) DeleteUserPosts(rctx request.CTX, userID string) *model.AppError {
 	b.Mutex.RLock()
 	defer b.Mutex.RUnlock()
 
@@ -288,7 +289,7 @@ func (b *BleveEngine) DeleteUserPosts(userID string) *model.AppError {
 			err.Error(), http.StatusInternalServerError)
 	}
 
-	mlog.Info("Posts for user deleted", mlog.String("user_id", userID), mlog.Int("deleted", deleted))
+	rctx.Logger().Info("Posts for user deleted", mlog.String("user_id", userID), mlog.Int("deleted", deleted))
 
 	return nil
 }
@@ -303,7 +304,7 @@ func (b *BleveEngine) DeletePost(post *model.Post) *model.AppError {
 	return nil
 }
 
-func (b *BleveEngine) IndexChannel(channel *model.Channel, userIDs, teamMemberIDs []string) *model.AppError {
+func (b *BleveEngine) IndexChannel(_ request.CTX, channel *model.Channel, userIDs, teamMemberIDs []string) *model.AppError {
 	b.Mutex.RLock()
 	defer b.Mutex.RUnlock()
 
@@ -402,7 +403,7 @@ func (b *BleveEngine) DeleteChannel(channel *model.Channel) *model.AppError {
 	return nil
 }
 
-func (b *BleveEngine) IndexUser(user *model.User, teamsIds, channelsIds []string) *model.AppError {
+func (b *BleveEngine) IndexUser(_ request.CTX, user *model.User, teamsIds, channelsIds []string) *model.AppError {
 	b.Mutex.RLock()
 	defer b.Mutex.RUnlock()
 
@@ -818,7 +819,7 @@ func (b *BleveEngine) deleteFiles(searchRequest *bleve.SearchRequest, batchSize 
 	return resultsCount, nil
 }
 
-func (b *BleveEngine) DeleteUserFiles(userID string) *model.AppError {
+func (b *BleveEngine) DeleteUserFiles(rctx request.CTX, userID string) *model.AppError {
 	b.Mutex.RLock()
 	defer b.Mutex.RUnlock()
 
@@ -832,12 +833,12 @@ func (b *BleveEngine) DeleteUserFiles(userID string) *model.AppError {
 			err.Error(), http.StatusInternalServerError)
 	}
 
-	mlog.Info("Files for user deleted", mlog.String("user_id", userID), mlog.Int("deleted", deleted))
+	rctx.Logger().Info("Files for user deleted", mlog.String("user_id", userID), mlog.Int("deleted", deleted))
 
 	return nil
 }
 
-func (b *BleveEngine) DeletePostFiles(postID string) *model.AppError {
+func (b *BleveEngine) DeletePostFiles(rctx request.CTX, postID string) *model.AppError {
 	b.Mutex.RLock()
 	defer b.Mutex.RUnlock()
 
@@ -851,12 +852,12 @@ func (b *BleveEngine) DeletePostFiles(postID string) *model.AppError {
 			err.Error(), http.StatusInternalServerError)
 	}
 
-	mlog.Info("Files for post deleted", mlog.String("post_id", postID), mlog.Int("deleted", deleted))
+	rctx.Logger().Info("Files for post deleted", mlog.String("post_id", postID), mlog.Int("deleted", deleted))
 
 	return nil
 }
 
-func (b *BleveEngine) DeleteFilesBatch(endTime, limit int64) *model.AppError {
+func (b *BleveEngine) DeleteFilesBatch(rctx request.CTX, endTime, limit int64) *model.AppError {
 	b.Mutex.RLock()
 	defer b.Mutex.RUnlock()
 
@@ -873,7 +874,7 @@ func (b *BleveEngine) DeleteFilesBatch(endTime, limit int64) *model.AppError {
 			err.Error(), http.StatusInternalServerError)
 	}
 
-	mlog.Info("Files in batch deleted", mlog.Int("endTime", endTime), mlog.Int("limit", limit), mlog.Int("deleted", deleted))
+	rctx.Logger().Info("Files in batch deleted", mlog.Int("endTime", endTime), mlog.Int("limit", limit), mlog.Int("deleted", deleted))
 
 	return nil
 }

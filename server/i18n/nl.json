@@ -1728,7 +1728,7 @@
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "Team beperken tot {{.Domain}} is niet toegestaan door de systeemconfiguratie. Neem contact op met jouw systeembeheerder."
+    "translation": "Team beperken tot {{ .Domain }} is niet toegestaan door de systeemconfiguratie. Neem contact op met jouw systeembeheerder."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2440,7 +2440,7 @@
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",
-    "translation": "Geïmporteerde lijn heeft onbekend type \"\"{.Type}}\"."
+    "translation": "Geïmporteerde lijn heeft onbekend type \"{{.Type}}\"."
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
@@ -2852,15 +2852,15 @@
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] Nieuw groepsbericht van {{.ChannelName}} op {{.Day}} {{.Month}} {{.Year}}"
+    "translation": "[{{ .SiteName }}] Nieuw groepsbericht van {{ .ChannelName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Nieuwe Notificatie voor {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "{{ .SiteName }}[{{.SiteName}}] Nieuw groepsbericht op  {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] Nieuw vermelding in {{ .TeamName}} op {{.Day}} {{.Month}} {{.Year}}"
+    "translation": "[{{ .SiteName }}] Melding in {{ .TeamName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -2992,7 +2992,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Clusterconfiguratie is gewijzigd voor id= {{.id}}. De cluster kan instabiel worden en een herstart is vereist. Om ervoor te zorgen dat de cluster correct is geconfigureerd, moet u onmiddellijk een rollende herstart uitvoeren."
+    "translation": "Clusterconfiguratie is gewijzigd voor id= {{ .id }}. De cluster kan instabiel worden en een herstart is vereist. Om ervoor te zorgen dat de cluster correct is geconfigureerd, moet je onmiddellijk een rollende herstart uitvoeren."
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -3884,7 +3884,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Bericht Export GlobalRelaySettings. CustomerType moet worden ingesteld op 'A9' of 'A10."
+    "translation": "Message export GlobalRelaySettings.CustomerType moet worden ingesteld op \"A9\", \"A10\" of \"CUSTOM\"."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -4492,7 +4492,7 @@
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
-    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter, 1 hoofdletter en 1 cijfer bevatten"
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter, 1 hoofdletter en 1 cijfer bevatten."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
@@ -4544,11 +4544,11 @@
   },
   {
     "id": "model.user_access_token.is_valid.token.app_error",
-    "translation": "Ongeldig toegangs token"
+    "translation": "Ongeldig toegangstoken."
   },
   {
     "id": "model.user_access_token.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldige gebruikersid."
   },
   {
     "id": "model.utils.decode_json.app_error",
@@ -4844,7 +4844,7 @@
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
-    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn"
+    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -5716,7 +5716,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "Je kunt {{.Users}} toevoegen aan dit kanaal zodra ze lid zijn van het **{.Team}}** team."
+    "translation": "Je kunt {{.Users}} toevoegen aan dit kanaal zodra ze lid zijn van het **{{.Team}}** team."
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -7892,7 +7892,7 @@
   },
   {
     "id": "api.back_to_app",
-    "translation": "Terug naar {{.siteName}}"
+    "translation": "Terug naar {{.SiteName}}"
   },
   {
     "id": "api.user.update_user_auth.invalid_request",
@@ -8424,7 +8424,7 @@
   },
   {
     "id": "api.command_share.available_actions",
-    "translation": "Beschikbare acties: {{.Acties}}"
+    "translation": "Beschikbare acties: {{.Actions}}"
   },
   {
     "id": "api.command_remote.unknown_action",
@@ -8468,7 +8468,7 @@
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "Beveiligde verbindingen toevoegen/verwijderen. Beschikbare acties: {{.Acties}}"
+    "translation": "Beveiligde verbindingen toevoegen/verwijderen. Beschikbare acties: {{.Actions}}"
   },
   {
     "id": "api.command_remote.permission_required",
@@ -8532,7 +8532,7 @@
   },
   {
     "id": "api.command_remote.decode_invitation.error",
-    "translation": "Kon de uitnodiging niet decoderen: {{.Fout}}"
+    "translation": "Kon de uitnodiging niet decoderen: {{.Error}}"
   },
   {
     "id": "api.command_remote.cluster_removed",
@@ -8855,7 +8855,7 @@
   },
   {
     "id": "app.notification.body.thread_dm.subTitle",
-    "translation": "Terwijl je weg was, heeft {{.Afzendernaam}} op een draadje in je privé-berichten geantwoord."
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} op een draadje in je privé-bericht geantwoord."
   },
   {
     "id": "app.notification.body.thread_channel_full.subTitle",
@@ -9139,7 +9139,7 @@
   },
   {
     "id": "common.parse_error_int64",
-    "translation": "Mislukt om de waarde te ontleden:{{.Waarde}} naar int64"
+    "translation": "Mislukt om de waarde te ontleden:{{.Value}} naar int64"
   },
   {
     "id": "app.post.cloud.get.app_error",
@@ -9163,7 +9163,7 @@
   },
   {
     "id": "app.post_reminder_dm",
-    "translation": "Hoi hoi, hier is jouw herinnering aan dit bericht van @{.Gebruikersnaam}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+    "translation": "Hoi hoi, hier is jouw herinnering aan dit bericht van @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
     "id": "app.team.clear_cache.app_error",
@@ -9647,7 +9647,7 @@
   },
   {
     "id": "app.group.username_conflict",
-    "translation": "Er bestaat al een gebruiker met gebruikersnaam \"{{.Gebruikersnaam}}\"."
+    "translation": "Er bestaat al een gebruiker met gebruikersnaam \"{{.Username}}\"."
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -9875,7 +9875,7 @@
   },
   {
     "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
-    "translation": "Berichten met een blijvende meldingen moeten minimaal {{.MaxRecipients}} 1 ontvanger hebben."
+    "translation": "Berichten met een blijvende meldingen moeten minimaal 1 ontvanger hebben."
   },
   {
     "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
@@ -9907,7 +9907,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.messageOverflow",
-    "translation": "Je kunt {{.FirstUser}} en {{.Others}} anderen aan dit kanaal toevoegen zodra ze lid zijn van het **{.Team}}** team."
+    "translation": "Je kunt {{.FirstUser}} en {{.Others}} anderen aan dit kanaal toevoegen zodra ze lid zijn van het **{{.Team}}** team."
   },
   {
     "id": "api.user.login.remote_users.login.error",
@@ -10035,7 +10035,7 @@
   },
   {
     "id": "app.plugin.subpath_parse.app_error",
-    "translation": "Fout bij het parsen van het subpad van de  SiteURL"
+    "translation": "Fout bij het parsen van het subpad van de SiteURL"
   },
   {
     "id": "api.templates.ip_filters_changed.title",
@@ -10100,5 +10100,25 @@
   {
     "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
     "translation": "Bijgewerkt op moet een geldige tijd zijn."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Het bijwerken van de aangepaste status is mislukt. Een emoji met de opgegeven naam bestaat niet."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Ongeldig team id opgegeven."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Kan niet zowel actieve als inactieve gebruikers verbergen."
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "De reactielimiet voor dit bericht is bereikt."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Als GlobalRelaySettings.CustomerType 'CUSTOM' is, dan moeten GlobalRelaySettings.CustomSMTPServerName en GlobalRelaySettings.CustomSMTPPort worden ingesteld."
   }
 ]

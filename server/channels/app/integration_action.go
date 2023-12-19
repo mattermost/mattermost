@@ -5,8 +5,8 @@
 //
 // 1. An integration creates an interactive message button or menu.
 // 2. A user clicks on a button or selects an option from the menu.
-// 3. The client sends a request to server to complete the post action, calling DoPostAction below.
-// 4. DoPostAction will send an HTTP POST request to the integration containing contextual data, including
+// 3. The client sends a request to server to complete the post action, calling DoPostActionWithCookie below.
+// 4. DoPostActionWithCookie will send an HTTP POST request to the integration containing contextual data, including
 // an encoded and signed trigger ID. Slash commands also include trigger IDs in their payloads.
 // 5. The integration performs any actions it needs to and optionally makes a request back to the MM server
 // using the trigger ID to open an interactive dialog.
@@ -29,6 +29,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -39,10 +40,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
-
-func (a *App) DoPostAction(c request.CTX, postID, actionId, userID, selectedOption string) (string, *model.AppError) {
-	return a.DoPostActionWithCookie(c, postID, actionId, userID, selectedOption, nil)
-}
 
 func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
 	// PostAction may result in the original post being updated. For the
@@ -320,8 +317,14 @@ func (a *App) DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.
 		return a.DoLocalRequest(c, rawURLPath, body)
 	}
 
-	req, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "POST", rawURL, bytes.NewReader(body))
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			c.Logger().Info("Outgoing Integration Action request timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.")
+		}
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -456,7 +459,7 @@ func (a *App) doLocalWarnMetricsRequest(c request.CTX, rawURL string, upstreamRe
 
 	license := a.Srv().License()
 	if license != nil {
-		mlog.Debug("License is present, skip this call")
+		c.Logger().Debug("License is present, skip this call")
 		return nil
 	}
 
@@ -554,7 +557,7 @@ func (a *App) buildWarnMetricMailtoLink(rctx request.CTX, warnMetricId string, u
 
 	registeredUsersCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
-		mlog.Warn("Error retrieving the number of registered users", mlog.Err(err))
+		rctx.Logger().Warn("Error retrieving the number of registered users", mlog.Err(err))
 	} else {
 		mailBody += i18n.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]any{"NoRegisteredUsers": registeredUsersCount})
 		mailBody += "\r\n"
@@ -584,7 +587,8 @@ func (a *App) DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.R
 }
 
 func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
-	clientTriggerId, userID, appErr := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey())
+	timeout := time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
+	clientTriggerId, userID, appErr := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey(), timeout)
 	if appErr != nil {
 		return appErr
 	}
