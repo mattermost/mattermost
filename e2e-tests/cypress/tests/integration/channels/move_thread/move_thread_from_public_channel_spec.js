@@ -103,7 +103,7 @@ describe('Move Thread', () => {
         });
     });
 
-    it('Move root post from public channel to another public channel', () => {
+    it('MM-T5514 Move root post from public channel to another public channel', () => {
         // # Check if ... button is visible in last post right side
         cy.get(`#CENTER_button_${testPost.id}`).should('not.be.visible');
 
