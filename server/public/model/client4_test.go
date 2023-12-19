@@ -160,7 +160,6 @@ func ExampleClient4_GetUsers() {
 
 	const perPage = 100
 	var page int
-	var allUsers []*model.User
 	for {
 		users, _, err := client.GetUsers(context.TODO(), page, perPage, "")
 		if err != nil {
@@ -168,15 +167,14 @@ func ExampleClient4_GetUsers() {
 			return
 		}
 
+		for _, u := range users {
+			fmt.Printf("%s\n", u.Username)
+		}
+
 		if len(users) < perPage {
 			break
 		}
 
-		allUsers = append(allUsers, users...)
 		page++
-	}
-
-	for _, u := range allUsers {
-		fmt.Printf("%s\n", u.Username)
 	}
 }
