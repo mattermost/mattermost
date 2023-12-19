@@ -47,11 +47,11 @@ const SidebarGroupChannel = ({
         }
     }, [channel.id, actions, active, currentTeamName, redirectChannel, currentUserId]);
 
-    const getIcon = useCallback(() => {
+    const getIcon = () => {
         return (
             <div className='status status--group'>{membersCount}</div>
         );
-    }, [membersCount]);
+    };
 
     return (
         <SidebarChannelLink
