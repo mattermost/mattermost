@@ -947,6 +947,77 @@ func (s *hooksRPCServer) UserHasBeenDeactivated(args *Z_UserHasBeenDeactivatedAr
 	return nil
 }
 
+func init() {
+	hookNameToId["OnSharedChannelsSyncMsg"] = OnSharedChannelsSyncMsgID
+}
+
+type Z_OnSharedChannelsSyncMsgArgs struct {
+	A *model.SyncMsg
+	B *model.RemoteCluster
+}
+
+type Z_OnSharedChannelsSyncMsgReturns struct {
+	A model.SyncResponse
+	B error
+}
+
+func (g *hooksRPCClient) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
+	_args := &Z_OnSharedChannelsSyncMsgArgs{msg, rc}
+	_returns := &Z_OnSharedChannelsSyncMsgReturns{}
+	if g.implemented[OnSharedChannelsSyncMsgID] {
+		if err := g.client.Call("Plugin.OnSharedChannelsSyncMsg", _args, _returns); err != nil {
+			g.log.Error("RPC call OnSharedChannelsSyncMsg to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) OnSharedChannelsSyncMsg(args *Z_OnSharedChannelsSyncMsgArgs, returns *Z_OnSharedChannelsSyncMsgReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
+	}); ok {
+		returns.A, returns.B = hook.OnSharedChannelsSyncMsg(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnSharedChannelsSyncMsg called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["OnSharedChannelsPing"] = OnSharedChannelsPingID
+}
+
+type Z_OnSharedChannelsPingArgs struct {
+	A *model.RemoteCluster
+}
+
+type Z_OnSharedChannelsPingReturns struct {
+	A bool
+}
+
+func (g *hooksRPCClient) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
+	_args := &Z_OnSharedChannelsPingArgs{rc}
+	_returns := &Z_OnSharedChannelsPingReturns{}
+	if g.implemented[OnSharedChannelsPingID] {
+		if err := g.client.Call("Plugin.OnSharedChannelsPing", _args, _returns); err != nil {
+			g.log.Error("RPC call OnSharedChannelsPing to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) OnSharedChannelsPing(args *Z_OnSharedChannelsPingArgs, returns *Z_OnSharedChannelsPingReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnSharedChannelsPing(rc *model.RemoteCluster) bool
+	}); ok {
+		returns.A = hook.OnSharedChannelsPing(args.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnSharedChannelsPing called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }

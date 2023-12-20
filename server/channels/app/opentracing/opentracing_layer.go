@@ -17954,7 +17954,7 @@ func (a *OpenTracingAppLayer) UpdateSharedChannel(sc *model.SharedChannel) (*mod
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateSharedChannelCursor(channelID string, remoteID string, cusror model.GetPostsSinceForSyncCursor) error {
+func (a *OpenTracingAppLayer) UpdateSharedChannelCursor(channelID string, remoteID string, cursor model.GetPostsSinceForSyncCursor) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateSharedChannelCursor")
 
@@ -17966,7 +17966,7 @@ func (a *OpenTracingAppLayer) UpdateSharedChannelCursor(channelID string, remote
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateSharedChannelCursor(channelID, remoteID, cusror)
+	resultVar0 := a.app.UpdateSharedChannelCursor(channelID, remoteID, cursor)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
