@@ -44,10 +44,10 @@ func makeJobServer(t *testing.T) (*JobServer, *storetest.Store, *mocks.MetricsIn
 	return jobServer, mockStore, mockMetrics
 }
 
-func expectErrorId(t *testing.T, errId string, appErr *model.AppError) {
+func expectErrorID(t *testing.T, errID string, appErr *model.AppError) {
 	t.Helper()
 	require.NotNil(t, appErr)
-	require.Equal(t, errId, appErr.Id)
+	require.Equal(t, errID, appErr.Id)
 }
 
 func makeTeamEditionJobServer(t *testing.T) (*JobServer, *storetest.Store) {
@@ -75,7 +75,7 @@ func TestClaimJob(t *testing.T) {
 		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusInProgress).Return(false, &model.AppError{Message: "message"})
 
 		updated, err := jobServer.ClaimJob(job)
-		expectErrorId(t, "app.job.update.app_error", err)
+		expectErrorID(t, "app.job.update.app_error", err)
 		require.False(t, updated)
 	})
 
@@ -142,7 +142,7 @@ func TestSetJobProgress(t *testing.T) {
 		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(false, &model.AppError{Message: "message"})
 
 		err := jobServer.SetJobProgress(job, progress)
-		expectErrorId(t, "app.job.update.app_error", err)
+		expectErrorID(t, "app.job.update.app_error", err)
 	})
 
 	t.Run("progress updated", func(t *testing.T) {
@@ -176,7 +176,7 @@ func TestSetJobWarning(t *testing.T) {
 		mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusWarning).Return(job, &model.AppError{Message: "message"})
 
 		err := jobServer.SetJobWarning(job)
-		expectErrorId(t, "app.job.update.app_error", err)
+		expectErrorID(t, "app.job.update.app_error", err)
 	})
 
 	t.Run("status updated", func(t *testing.T) {
@@ -206,7 +206,7 @@ func TestSetJobSuccess(t *testing.T) {
 		mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusSuccess).Return(job, &model.AppError{Message: "message"})
 
 		err := jobServer.SetJobSuccess(job)
-		expectErrorId(t, "app.job.update.app_error", err)
+		expectErrorID(t, "app.job.update.app_error", err)
 	})
 
 	t.Run("status updated", func(t *testing.T) {
@@ -252,7 +252,7 @@ func TestSetJobError(t *testing.T) {
 			mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusError).Return(job, &model.AppError{Message: "message"})
 
 			err := jobServer.SetJobError(job, nil)
-			expectErrorId(t, "app.job.update.app_error", err)
+			expectErrorID(t, "app.job.update.app_error", err)
 		})
 
 		t.Run("status updated", func(t *testing.T) {
@@ -301,7 +301,7 @@ func TestSetJobError(t *testing.T) {
 			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(false, &model.AppError{Message: "message"})
 
 			err := jobServer.SetJobError(job, jobError)
-			expectErrorId(t, "app.job.update.app_error", err)
+			expectErrorID(t, "app.job.update.app_error", err)
 		})
 
 		t.Run("status updated", func(t *testing.T) {
@@ -357,7 +357,7 @@ func TestSetJobError(t *testing.T) {
 			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusCancelRequested).Return(false, &model.AppError{Message: "message"})
 
 			err := jobServer.SetJobError(job, jobError)
-			expectErrorId(t, "app.job.update.app_error", err)
+			expectErrorID(t, "app.job.update.app_error", err)
 		})
 
 		t.Run("status not updated, request cancellation, status not updated", func(t *testing.T) {
@@ -376,7 +376,7 @@ func TestSetJobError(t *testing.T) {
 			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusCancelRequested).Return(false, nil)
 
 			err := jobServer.SetJobError(job, jobError)
-			expectErrorId(t, "jobs.set_job_error.update.error", err)
+			expectErrorID(t, "jobs.set_job_error.update.error", err)
 		})
 
 		t.Run("status not updated, request cancellation, status updated", func(t *testing.T) {
@@ -432,7 +432,7 @@ func TestSetJobCanceled(t *testing.T) {
 		mockStore.JobStore.On("UpdateStatus", "job_id", model.JobStatusCanceled).Return(job, &model.AppError{Message: "message"})
 
 		err := jobServer.SetJobCanceled(job)
-		expectErrorId(t, "app.job.update.app_error", err)
+		expectErrorID(t, "app.job.update.app_error", err)
 	})
 
 	t.Run("status updated", func(t *testing.T) {
@@ -479,7 +479,7 @@ func TestUpdateInProgressJobData(t *testing.T) {
 		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(false, &model.AppError{Message: "message"})
 
 		err := jobServer.UpdateInProgressJobData(job)
-		expectErrorId(t, "app.job.update.app_error", err)
+		expectErrorID(t, "app.job.update.app_error", err)
 	})
 
 	t.Run("progress updated", func(t *testing.T) {
@@ -569,7 +569,7 @@ func TestRequestCancellation(t *testing.T) {
 		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusPending, model.JobStatusCanceled).Return(false, &model.AppError{Message: "message"})
 
 		err := jobServer.RequestCancellation(ctx, "job_id")
-		expectErrorId(t, "app.job.update.app_error", err)
+		expectErrorID(t, "app.job.update.app_error", err)
 	})
 
 	t.Run("cancelled, job not found", func(t *testing.T) {
@@ -579,7 +579,7 @@ func TestRequestCancellation(t *testing.T) {
 		mockStore.JobStore.On("Get", mock.AnythingOfType("*request.Context"), "job_id").Return(nil, &store.ErrNotFound{})
 
 		err := jobServer.RequestCancellation(ctx, "job_id")
-		expectErrorId(t, "app.job.update.app_error", err)
+		expectErrorID(t, "app.job.update.app_error", err)
 	})
 
 	t.Run("cancelled, success", func(t *testing.T) {
@@ -614,7 +614,7 @@ func TestRequestCancellation(t *testing.T) {
 		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusInProgress, model.JobStatusCancelRequested).Return(false, &model.AppError{Message: "message"})
 
 		err := jobServer.RequestCancellation(ctx, "job_id")
-		expectErrorId(t, "app.job.update.app_error", err)
+		expectErrorID(t, "app.job.update.app_error", err)
 	})
 
 	t.Run("unable to cancel, requesting cancellation instead, success", func(t *testing.T) {
@@ -634,6 +634,6 @@ func TestRequestCancellation(t *testing.T) {
 		mockStore.JobStore.On("UpdateStatusOptimistically", "job_id", model.JobStatusInProgress, model.JobStatusCancelRequested).Return(false, nil)
 
 		err := jobServer.RequestCancellation(ctx, "job_id")
-		expectErrorId(t, "jobs.request_cancellation.status.error", err)
+		expectErrorID(t, "jobs.request_cancellation.status.error", err)
 	})
 }

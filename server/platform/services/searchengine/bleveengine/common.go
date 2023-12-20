@@ -11,10 +11,10 @@ import (
 )
 
 type BLVChannel struct {
-	Id            string
+	ID            string
 	Type          model.ChannelType
 	UserIDs       []string
-	TeamId        []string
+	TeamID        []string
 	TeamMemberIDs []string
 	NameSuggest   []string
 }
@@ -30,8 +30,8 @@ type BLVUser struct {
 type BLVPost struct {
 	Id          string
 	TeamId      string
-	ChannelId   string
-	UserId      string
+	ChannelID   string
+	UserID      string
 	CreateAt    int64
 	Message     string
 	Type        string
@@ -42,7 +42,7 @@ type BLVPost struct {
 type BLVFile struct {
 	Id        string
 	CreatorId string
-	ChannelId string
+	ChannelID string
 	CreateAt  int64
 	Name      string
 	Content   string
@@ -54,9 +54,9 @@ func BLVChannelFromChannel(channel *model.Channel, userIDs, teamMemberIDs []stri
 	nameInputs := searchengine.GetSuggestionInputsSplitByMultiple(channel.Name, []string{"-", "_"})
 
 	return &BLVChannel{
-		Id:            channel.Id,
+		ID:            channel.Id,
 		Type:          channel.Type,
-		TeamId:        []string{channel.TeamId},
+		TeamID:        []string{channel.TeamId},
 		NameSuggest:   append(displayNameInputs, nameInputs...),
 		UserIDs:       userIDs,
 		TeamMemberIDs: teamMemberIDs,
@@ -122,8 +122,8 @@ func BLVPostFromPostForIndexing(post *model.PostForIndexing) *BLVPost {
 	return &BLVPost{
 		Id:        post.Id,
 		TeamId:    post.TeamId,
-		ChannelId: post.ChannelId,
-		UserId:    post.UserId,
+		ChannelID: post.ChannelId,
+		UserID:    post.UserId,
 		CreateAt:  post.CreateAt,
 		Message:   post.Message,
 		Type:      post.Type,
@@ -141,7 +141,7 @@ func splitFilenameWords(name string) string {
 func BLVFileFromFileInfo(fileInfo *model.FileInfo, channelId string) *BLVFile {
 	return &BLVFile{
 		Id:        fileInfo.Id,
-		ChannelId: channelId,
+		ChannelID: channelId,
 		CreatorId: fileInfo.CreatorId,
 		CreateAt:  fileInfo.CreateAt,
 		Content:   fileInfo.Content,
@@ -153,7 +153,7 @@ func BLVFileFromFileInfo(fileInfo *model.FileInfo, channelId string) *BLVFile {
 func BLVFileFromFileForIndexing(file *model.FileForIndexing) *BLVFile {
 	return &BLVFile{
 		Id:        file.Id,
-		ChannelId: file.ChannelId,
+		ChannelID: file.ChannelId,
 		CreatorId: file.CreatorId,
 		CreateAt:  file.CreateAt,
 		Content:   file.Content,

@@ -27,7 +27,7 @@ func (a *App) GetWarnMetricsStatus(rctx request.CTX) (map[string]*model.WarnMetr
 		if strings.HasPrefix(key, model.WarnMetricStatusStorePrefix) {
 			if warnMetric, ok := model.WarnMetricsTable[key]; ok {
 				if !warnMetric.IsBotOnly && (value == model.WarnMetricStatusRunonce || value == model.WarnMetricStatusLimitReached) {
-					result[key], _ = a.getWarnMetricStatusAndDisplayTextsForId(rctx, key, nil, isE0Edition)
+					result[key], _ = a.getWarnMetricStatusAndDisplayTextsForID(rctx, key, nil, isE0Edition)
 				}
 			}
 		}
@@ -36,7 +36,7 @@ func (a *App) GetWarnMetricsStatus(rctx request.CTX) (map[string]*model.WarnMetr
 	return result, nil
 }
 
-func (a *App) getWarnMetricStatusAndDisplayTextsForId(rctx request.CTX, warnMetricId string, T i18n.TranslateFunc, isE0Edition bool) (*model.WarnMetricStatus, *model.WarnMetricDisplayTexts) {
+func (a *App) getWarnMetricStatusAndDisplayTextsForID(rctx request.CTX, warnMetricId string, T i18n.TranslateFunc, isE0Edition bool) (*model.WarnMetricStatus, *model.WarnMetricDisplayTexts) {
 	var warnMetricStatus *model.WarnMetricStatus
 	var warnMetricDisplayTexts = &model.WarnMetricDisplayTexts{}
 
@@ -179,7 +179,7 @@ func (a *App) NotifyAndSetWarnMetricAck(rctx request.CTX, warnMetricId string, s
 			data.Props["TelemetryIdValue"] = a.TelemetryId()
 			data.Props["Footer"] = T("api.templates.warn_metric_ack.footer")
 
-			warnMetricStatus, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(rctx, warnMetricId, T, false)
+			warnMetricStatus, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForID(rctx, warnMetricId, T, false)
 			if warnMetricStatus == nil {
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.invalid_warn_metric.app_error", nil, "", http.StatusInternalServerError)
 			}

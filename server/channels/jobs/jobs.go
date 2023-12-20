@@ -242,14 +242,14 @@ func (srv *JobServer) HandleJobPanic(logger mlog.LoggerIFace, job *model.Job) {
 	panic(r)
 }
 
-func (srv *JobServer) RequestCancellation(c request.CTX, jobId string) *model.AppError {
-	updated, err := srv.Store.Job().UpdateStatusOptimistically(jobId, model.JobStatusPending, model.JobStatusCanceled)
+func (srv *JobServer) RequestCancellation(c request.CTX, jobID string) *model.AppError {
+	updated, err := srv.Store.Job().UpdateStatusOptimistically(jobID, model.JobStatusPending, model.JobStatusCanceled)
 	if err != nil {
 		return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if updated {
 		if srv.metrics != nil {
-			job, err := srv.GetJob(c, jobId)
+			job, err := srv.GetJob(c, jobID)
 			if err != nil {
 				return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
@@ -260,7 +260,7 @@ func (srv *JobServer) RequestCancellation(c request.CTX, jobId string) *model.Ap
 		return nil
 	}
 
-	updated, err = srv.Store.Job().UpdateStatusOptimistically(jobId, model.JobStatusInProgress, model.JobStatusCancelRequested)
+	updated, err = srv.Store.Job().UpdateStatusOptimistically(jobID, model.JobStatusInProgress, model.JobStatusCancelRequested)
 	if err != nil {
 		return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -269,20 +269,20 @@ func (srv *JobServer) RequestCancellation(c request.CTX, jobId string) *model.Ap
 		return nil
 	}
 
-	return model.NewAppError("RequestCancellation", "jobs.request_cancellation.status.error", nil, "id="+jobId, http.StatusInternalServerError)
+	return model.NewAppError("RequestCancellation", "jobs.request_cancellation.status.error", nil, "id="+jobID, http.StatusInternalServerError)
 }
 
-func (srv *JobServer) CancellationWatcher(c request.CTX, jobId string, cancelChan chan struct{}) {
+func (srv *JobServer) CancellationWatcher(c request.CTX, jobID string, cancelChan chan struct{}) {
 	for {
 		select {
 		case <-c.Context().Done():
-			c.Logger().Debug("CancellationWatcher for Job Aborting as job has finished.", mlog.String("job_id", jobId))
+			c.Logger().Debug("CancellationWatcher for Job Aborting as job has finished.", mlog.String("job_id", jobID))
 			return
 		case <-time.After(CancelWatcherPollingInterval * time.Millisecond):
-			c.Logger().Debug("CancellationWatcher for Job started polling.", mlog.String("job_id", jobId))
-			jobStatus, err := srv.Store.Job().Get(c, jobId)
+			c.Logger().Debug("CancellationWatcher for Job started polling.", mlog.String("job_id", jobID))
+			jobStatus, err := srv.Store.Job().Get(c, jobID)
 			if err != nil {
-				c.Logger().Warn("Error getting job", mlog.String("job_id", jobId), mlog.Err(err))
+				c.Logger().Warn("Error getting job", mlog.String("job_id", jobID), mlog.Err(err))
 				continue
 			}
 			if jobStatus.Status == model.JobStatusCancelRequested {

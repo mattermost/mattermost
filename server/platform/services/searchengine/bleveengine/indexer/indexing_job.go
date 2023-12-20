@@ -539,7 +539,7 @@ func (worker *BleveIndexerWorker) BulkIndexChannels(logger mlog.LoggerIFace, cha
 			}
 
 			searchChannel := bleveengine.BLVChannelFromChannel(channel, userIDs, teamMemberIDs)
-			batch.Index(searchChannel.Id, searchChannel)
+			batch.Index(searchChannel.ID, searchChannel)
 		} else {
 			batch.Delete(channel.Id)
 		}

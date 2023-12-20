@@ -216,17 +216,17 @@ func makePlainFormatOptions(enableColor bool) json.RawMessage {
 
 func makeFileOptions(filename string) (json.RawMessage, error) {
 	opts := struct {
-		Filename    string `json:"filename"`
-		Max_size    int    `json:"max_size"`
-		Max_age     int    `json:"max_age"`
-		Max_backups int    `json:"max_backups"`
-		Compress    bool   `json:"compress"`
+		Filename   string `json:"filename"`
+		MaxSize    int    `json:"max_size"`
+		MaxAge     int    `json:"max_age"`
+		MaxBackups int    `json:"max_backups"`
+		Compress   bool   `json:"compress"`
 	}{
-		Filename:    filename,
-		Max_size:    LogRotateSizeMB,
-		Max_age:     LogRotateMaxAge,
-		Max_backups: LogRotateMaxBackups,
-		Compress:    LogCompress,
+		Filename:   filename,
+		MaxSize:    LogRotateSizeMB,
+		MaxAge:     LogRotateMaxAge,
+		MaxBackups: LogRotateMaxBackups,
+		Compress:   LogCompress,
 	}
 
 	b, err := json.Marshal(opts)

@@ -472,7 +472,7 @@ func (a *App) doLocalWarnMetricsRequest(c request.CTX, rawURL string, upstreamRe
 	}
 
 	isE0Edition := (model.BuildEnterpriseReady == "true") // license == nil was already validated upstream
-	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(c, warnMetricId, i18n.T, isE0Edition)
+	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForID(c, warnMetricId, i18n.T, isE0Edition)
 	botPost.Message = ":white_check_mark: " + warnMetricDisplayTexts.BotSuccessMessage
 
 	if isE0Edition {
@@ -544,7 +544,7 @@ func (mlc *MailToLinkContent) ToJSON() string {
 
 func (a *App) buildWarnMetricMailtoLink(rctx request.CTX, warnMetricId string, user *model.User) string {
 	T := i18n.GetUserTranslations(user.Locale)
-	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(rctx, warnMetricId, T, false)
+	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForID(rctx, warnMetricId, T, false)
 
 	mailBody := warnMetricDisplayTexts.EmailBody
 	mailBody += T("api.server.warn_metric.bot_response.mailto_contact_header", map[string]any{"Contact": user.GetFullName()})

@@ -46,14 +46,14 @@ func (ms *mockServer) GetStore() store.Store {
 	anyQueryFilter := mock.MatchedBy(func(filter model.RemoteClusterQueryFilter) bool {
 		return true
 	})
-	anyUserId := mock.AnythingOfType("string")
+	anyUserID := mock.AnythingOfType("string")
 
 	remoteClusterStoreMock := &mocks.RemoteClusterStore{}
 	remoteClusterStoreMock.On("GetByTopic", "share").Return(ms.remotes, nil)
 	remoteClusterStoreMock.On("GetAll", anyQueryFilter).Return(ms.remotes, nil)
 
 	userStoreMock := &mocks.UserStore{}
-	userStoreMock.On("Get", context.Background(), anyUserId).Return(ms.user, nil)
+	userStoreMock.On("Get", context.Background(), anyUserID).Return(ms.user, nil)
 
 	storeMock := &mocks.Store{}
 	storeMock.On("RemoteCluster").Return(remoteClusterStoreMock)

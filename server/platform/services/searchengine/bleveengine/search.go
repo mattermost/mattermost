@@ -309,7 +309,7 @@ func (b *BleveEngine) IndexChannel(_ request.CTX, channel *model.Channel, userID
 	defer b.Mutex.RUnlock()
 
 	blvChannel := BLVChannelFromChannel(channel, userIDs, teamMemberIDs)
-	if err := b.ChannelIndex.Index(blvChannel.Id, blvChannel); err != nil {
+	if err := b.ChannelIndex.Index(blvChannel.ID, blvChannel); err != nil {
 		return model.NewAppError("Bleveengine.IndexChannel", "bleveengine.index_channel.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil

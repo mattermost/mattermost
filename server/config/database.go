@@ -265,17 +265,17 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 		}
 	}()
 
-	var oldId string
+	var oldID string
 	if ds.driverName == model.DatabaseDriverMysql {
 		// the query doesn't use active index if we query for value (mysql, no surprise)
 		// we select Id column which triggers using index hence we do quicker reads
 		// that's the reason we select id first then query against id to get the value.
 		row = tx.QueryRow("SELECT Id FROM Configurations WHERE Active")
-		if err = row.Scan(&oldId); err != nil && err != sql.ErrNoRows {
+		if err = row.Scan(&oldID); err != nil && err != sql.ErrNoRows {
 			return errors.Wrap(err, "failed to query active configuration")
 		}
-		if oldId != "" {
-			if _, err := tx.NamedExec("UPDATE Configurations SET Active = NULL WHERE Id = :id", map[string]any{"id": oldId}); err != nil {
+		if oldID != "" {
+			if _, err := tx.NamedExec("UPDATE Configurations SET Active = NULL WHERE Id = :id", map[string]any{"id": oldID}); err != nil {
 				return errors.Wrap(err, "failed to deactivate current configuration")
 			}
 		}

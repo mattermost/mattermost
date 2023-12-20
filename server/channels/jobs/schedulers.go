@@ -24,7 +24,7 @@ type Schedulers struct {
 	stopped              chan bool
 	configChanged        chan *model.Config
 	clusterLeaderChanged chan bool
-	listenerId           string
+	listenerID           string
 	jobs                 *JobServer
 	isLeader             bool
 	running              bool
@@ -48,7 +48,7 @@ func (schedulers *Schedulers) AddScheduler(name string, scheduler Scheduler) {
 func (schedulers *Schedulers) Start() {
 	schedulers.stop = make(chan bool)
 	schedulers.stopped = make(chan bool)
-	schedulers.listenerId = schedulers.jobs.ConfigService.AddConfigListener(schedulers.handleConfigChange)
+	schedulers.listenerID = schedulers.jobs.ConfigService.AddConfigListener(schedulers.handleConfigChange)
 
 	go func() {
 		mlog.Info("Starting schedulers.")
@@ -126,8 +126,8 @@ func (schedulers *Schedulers) Stop() {
 	mlog.Info("Stopping schedulers.")
 	close(schedulers.stop)
 	<-schedulers.stopped
-	schedulers.jobs.ConfigService.RemoveConfigListener(schedulers.listenerId)
-	schedulers.listenerId = ""
+	schedulers.jobs.ConfigService.RemoveConfigListener(schedulers.listenerID)
+	schedulers.listenerID = ""
 	schedulers.running = false
 }
 

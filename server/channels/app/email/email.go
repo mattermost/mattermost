@@ -431,7 +431,7 @@ func (es *Service) SendMfaChangeEmail(email string, activated bool, locale, site
 func (es *Service) SendInviteEmails(
 	team *model.Team,
 	senderName string,
-	senderUserId string,
+	senderUserID string,
 	invites []string,
 	siteURL string,
 	reminderData *model.TeamInviteReminderData,
@@ -442,13 +442,13 @@ func (es *Service) SendInviteEmails(
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserID, len(invites))
 	if err != nil {
 		return SetupRateLimiterError
 	}
 
 	if rateLimited {
-		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserId),
+		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserID),
 			mlog.String("team_id", team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
 		return RateLimitExceededError
 	}
@@ -522,7 +522,7 @@ func (es *Service) SendGuestInviteEmails(
 	team *model.Team,
 	channels []*model.Channel,
 	senderName string,
-	senderUserId string,
+	senderUserID string,
 	senderProfileImage []byte,
 	invites []string,
 	siteURL string,
@@ -534,13 +534,13 @@ func (es *Service) SendGuestInviteEmails(
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserID, len(invites))
 	if err != nil {
 		return SetupRateLimiterError
 	}
 
 	if rateLimited {
-		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserId),
+		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserID),
 			mlog.String("team_id", team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
 		return RateLimitExceededError
 	}
@@ -578,7 +578,7 @@ func (es *Service) SendGuestInviteEmails(
 					"channels": strings.Join(channelIDs, " "),
 					"email":    invite,
 					"guest":    "true",
-					"senderId": senderUserId,
+					"senderId": senderUserID,
 				}),
 			)
 
@@ -638,7 +638,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 	team *model.Team,
 	channels []*model.Channel,
 	senderName string,
-	senderUserId string,
+	senderUserID string,
 	senderProfileImage []byte,
 	invites []string,
 	siteURL string,
@@ -651,13 +651,13 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 	if es.perHourEmailRateLimiter == nil {
 		return nil, NoRateLimiterError
 	}
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserID, len(invites))
 	if err != nil {
 		return nil, SetupRateLimiterError
 	}
 
 	if rateLimited {
-		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserId),
+		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserID),
 			mlog.String("team_id", team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
 		return nil, RateLimitExceededError
 	}
@@ -722,7 +722,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 				"teamId":   team.Id,
 				"email":    invite,
 				"channels": strings.Join(channelIDs, " "),
-				"senderId": senderUserId,
+				"senderId": senderUserID,
 			}),
 		)
 
@@ -897,7 +897,7 @@ func (es *Service) InvalidateVerifyEmailTokensForUser(userID string) *model.AppE
 	var appErr *model.AppError
 	for _, token := range tokens {
 		tokenExtra := struct {
-			UserId string
+			UserID string
 			Email  string
 		}{}
 		if err := json.Unmarshal([]byte(token.Extra), &tokenExtra); err != nil {
@@ -905,7 +905,7 @@ func (es *Service) InvalidateVerifyEmailTokensForUser(userID string) *model.AppE
 			continue
 		}
 
-		if tokenExtra.UserId != userID {
+		if tokenExtra.UserID != userID {
 			continue
 		}
 
@@ -919,7 +919,7 @@ func (es *Service) InvalidateVerifyEmailTokensForUser(userID string) *model.AppE
 
 func (es *Service) CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, error) {
 	tokenExtra := struct {
-		UserId string
+		UserID string
 		Email  string
 	}{
 		userID,

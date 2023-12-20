@@ -286,16 +286,16 @@ func (th *TestHelper) UpdateConfig(f func(*model.Config)) {
 }
 
 func (th *TestHelper) ConfigureInbucketMail() {
-	inbucket_host := os.Getenv("CI_INBUCKET_HOST")
-	if inbucket_host == "" {
-		inbucket_host = "localhost"
+	inbucketHost := os.Getenv("CI_INBUCKET_HOST")
+	if inbucketHost == "" {
+		inbucketHost = "localhost"
 	}
-	inbucket_port := os.Getenv("CI_INBUCKET_SMTP_PORT")
-	if inbucket_port == "" {
-		inbucket_port = "10025"
+	inbucketPort := os.Getenv("CI_INBUCKET_SMTP_PORT")
+	if inbucketPort == "" {
+		inbucketPort = "10025"
 	}
 	th.UpdateConfig(func(cfg *model.Config) {
-		*cfg.EmailSettings.SMTPServer = inbucket_host
-		*cfg.EmailSettings.SMTPPort = inbucket_port
+		*cfg.EmailSettings.SMTPServer = inbucketHost
+		*cfg.EmailSettings.SMTPPort = inbucketPort
 	})
 }
