@@ -1514,7 +1514,7 @@ func TestPatchPost(t *testing.T) {
 
 	t.Run("unknown post", func(t *testing.T) {
 		patch := &model.PostPatch{}
-		_, resp, err := client.PatchPost(context.Background(), GenerateTestId(), patch)
+		_, resp, err := client.PatchPost(context.Background(), GenerateTestID(), patch)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -1634,7 +1634,7 @@ func TestPinPost(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	resp, err = client.PinPost(context.Background(), GenerateTestId())
+	resp, err = client.PinPost(context.Background(), GenerateTestID())
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -1664,7 +1664,7 @@ func TestUnpinPost(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	resp, err = client.UnpinPost(context.Background(), GenerateTestId())
+	resp, err = client.UnpinPost(context.Background(), GenerateTestID())
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -1920,7 +1920,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, rpl.Posts)
 
-	rpl, _, err = client.GetFlaggedPostsForUserInChannel(context.Background(), user.Id, GenerateTestId(), 0, 10)
+	rpl, _, err = client.GetFlaggedPostsForUserInChannel(context.Background(), user.Id, GenerateTestID(), 0, 10)
 	require.NoError(t, err)
 	require.Empty(t, rpl.Posts)
 
@@ -1948,7 +1948,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, rpl.Posts)
 
-	rpl, _, err = client.GetFlaggedPostsForUserInTeam(context.Background(), user.Id, GenerateTestId(), 0, 10)
+	rpl, _, err = client.GetFlaggedPostsForUserInTeam(context.Background(), user.Id, GenerateTestID(), 0, 10)
 	require.NoError(t, err)
 	require.Empty(t, rpl.Posts)
 
@@ -2028,7 +2028,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.GetFlaggedPostsForUser(context.Background(), GenerateTestId(), 0, 10)
+	_, resp, err = client.GetFlaggedPostsForUser(context.Background(), GenerateTestID(), 0, 10)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -4273,7 +4273,7 @@ func TestAcknowledgePost(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.AcknowledgePost(context.Background(), GenerateTestId(), th.BasicUser.Id)
+	_, resp, err = client.AcknowledgePost(context.Background(), GenerateTestID(), th.BasicUser.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -4313,7 +4313,7 @@ func TestUnacknowledgePost(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	resp, err = client.UnacknowledgePost(context.Background(), GenerateTestId(), th.BasicUser.Id)
+	resp, err = client.UnacknowledgePost(context.Background(), GenerateTestID(), th.BasicUser.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 

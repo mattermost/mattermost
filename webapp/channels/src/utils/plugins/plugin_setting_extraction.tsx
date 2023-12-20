@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {BasePluginConfigurationSetting, PluginConfiguration, PluginConfigurationRadioSetting, PluginConfigurationRadioSettingOption, PluginConfigurationSection} from 'types/plugins/user_settings';
+import type {BasePluginConfigurationSetting, PluginConfiguration, PluginConfigurationAction, PluginConfigurationRadioSetting, PluginConfigurationRadioSettingOption, PluginConfigurationSection} from 'types/plugins/user_settings';
 
 export function extractPluginConfiguration(pluginConfiguration: unknown, pluginId: string) {
     if (!pluginConfiguration) {
@@ -33,11 +33,17 @@ export function extractPluginConfiguration(pluginConfiguration: unknown, pluginI
         return undefined;
     }
 
+    let action;
+    if ('action' in pluginConfiguration && pluginConfiguration.action) {
+        action = extractPluginConfigurationAction(pluginConfiguration.action);
+    }
+
     const result: PluginConfiguration = {
         id: pluginId,
         icon,
         sections: [],
         uiName: pluginConfiguration.uiName,
+        action,
     };
 
     for (const section of pluginConfiguration.sections) {
@@ -52,6 +58,39 @@ export function extractPluginConfiguration(pluginConfiguration: unknown, pluginI
     }
 
     return result;
+}
+
+function extractPluginConfigurationAction(action: unknown): PluginConfigurationAction | undefined {
+    if (!action) {
+        return undefined;
+    }
+
+    if (typeof action !== 'object') {
+        return undefined;
+    }
+
+    if (!('title' in action) || !action.title || typeof action.title !== 'string') {
+        return undefined;
+    }
+
+    if (!('text' in action) || !action.text || typeof action.text !== 'string') {
+        return undefined;
+    }
+
+    if (!('buttonText' in action) || !action.buttonText || typeof action.buttonText !== 'string') {
+        return undefined;
+    }
+
+    if (!('onClick' in action) || !action.onClick || typeof action.onClick !== 'function') {
+        return undefined;
+    }
+
+    return {
+        title: action.title,
+        text: action.text,
+        buttonText: action.buttonText,
+        onClick: action.onClick as PluginConfigurationAction['onClick'],
+    };
 }
 
 function extractPluginConfigurationSection(section: unknown) {
@@ -84,9 +123,19 @@ function extractPluginConfigurationSection(section: unknown) {
         }
     }
 
+    let disabled;
+    if ('disabled' in section && section.disabled) {
+        if (typeof section.disabled === 'boolean') {
+            disabled = section.disabled;
+        } else {
+            return undefined;
+        }
+    }
+
     const result: PluginConfigurationSection = {
         settings: [],
         title: section.title,
+        disabled,
         onSubmit,
     };
 
