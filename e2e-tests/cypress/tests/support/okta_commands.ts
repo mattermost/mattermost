@@ -35,6 +35,11 @@ interface UserCollection {
     regulars: User[];
 }
 
+interface OktaResponse<T = any> {
+    status: number;
+    data: T;
+}
+
 /**
  * Builds a user profile object
  * @param {Object} user - the user data
@@ -75,10 +80,10 @@ function oktaCreateUser(user: any = {}): ChainableT<UserId> {
                 },
             },
         },
-    }).then((response: any) => {
+    }).then((response: OktaResponse<{id: UserId}>) => {
         expect(response.status).to.equal(200);
         const userId = response.data.id;
-        return cy.wrap(userId as UserId);
+        return cy.wrap(userId);
     });
 }
 
@@ -95,10 +100,10 @@ function oktaGetUser(userId: string = ''): ChainableT<UserId> {
         urlSuffix: '/users?q=' + userId,
         method: 'get',
         token,
-    }).then((response: any) => {
+    }).then((response: OktaResponse<Array<{id: UserId}>>) => {
         expect(response.status).to.be.equal(200);
         if (response.data.length > 0) {
-            return cy.wrap(response.data[0].id as UserId);
+            return cy.wrap(response.data[0].id);
         }
         return cy.wrap(null as UserId);
     });
@@ -123,7 +128,7 @@ function oktaUpdateUser(userId: string = '', user: any = {}): ChainableT<any> {
         data: {
             profile,
         },
-    }).then((response: any) => {
+    }).then((response: OktaResponse) => {
         expect(response.status).to.equal(201);
         return cy.wrap(response.data);
     });
@@ -141,7 +146,7 @@ function oktaDeleteUser(userId: string = '') {
         urlSuffix: '/users/' + userId,
         method: 'delete',
         token,
-    }).then((response: any) => {
+    }).then((response: OktaResponse) => {
         expect(response.status).to.equal(204);
         expect(response.data).is.empty;
         cy.task('oktaRequest', {
@@ -149,7 +154,7 @@ function oktaDeleteUser(userId: string = '') {
             urlSuffix: '/users/' + userId,
             method: 'delete',
             token,
-        }).then((_response: any) => {
+        }).then((_response: OktaResponse) => {
             expect(_response.status).to.equal(204);
             expect(_response.data).is.empty;
         });
@@ -169,7 +174,7 @@ function oktaDeleteSession(userId: string = '') {
         urlSuffix: '/users/' + userId + '/sessions',
         method: 'delete',
         token,
-    }).then((response: any) => {
+    }).then((response: OktaResponse) => {
         expect(response.status).to.equal(204);
         expect(response.data).is.empty;
 
@@ -203,7 +208,7 @@ function oktaAssignUserToApplication(userId: string = '', user: any = {}): Chain
                 email: user.email,
             },
         },
-    }).then((response: any) => {
+    }).then((response: OktaResponse) => {
         expect(response.status).to.be.equal(200);
         return cy.wrap(response.data);
     });
