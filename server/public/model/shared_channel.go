@@ -306,3 +306,12 @@ type RegisterPluginOpts struct {
 	CreatorID    string // id of the user/bot registering
 	AutoShareDMs bool   // when true, all DMs are automatically shared to this remote
 }
+
+// GetOptionFlags returns a Bitmask of option flags as specified by the boolean options.
+func (po RegisterPluginOpts) GetOptionFlags() Bitmask {
+	var flags Bitmask
+	if po.AutoShareDMs {
+		flags |= BitflagOptionAutoShareDMs
+	}
+	return flags
+}

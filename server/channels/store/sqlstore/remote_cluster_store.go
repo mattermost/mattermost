@@ -53,7 +53,7 @@ func (s sqlRemoteClusterStore) Save(remoteCluster *model.RemoteCluster) (*model.
 
 	// check for pluginID collisions - on collision treat as idempotent
 	if remoteCluster.PluginID != "" {
-		rc, err := s.getByPluginID(remoteCluster.PluginID)
+		rc, err := s.GetByPluginID(remoteCluster.PluginID)
 		if err == nil {
 			// if this plugin id already exists, just return it
 			return rc, nil
@@ -144,7 +144,7 @@ func (s sqlRemoteClusterStore) Get(remoteId string) (*model.RemoteCluster, error
 	return &rc, nil
 }
 
-func (s sqlRemoteClusterStore) getByPluginID(pluginID string) (*model.RemoteCluster, error) {
+func (s sqlRemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteCluster, error) {
 	query := s.getQueryBuilder().
 		Select(remoteClusterFields("")...).
 		From("RemoteClusters").

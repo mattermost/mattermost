@@ -4,6 +4,7 @@
 package app
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -15,27 +16,54 @@ import (
 )
 
 func (a *App) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error) {
-	//  check if plugin already registered
-
-	/*
-		rc := &model.RemoteCluster{
-			Name:        opts.Displayname,
-			DisplayName: opts.Displayname,
-			Token:       model.NewId(),
-			CreatorId:   opts.CreatorID,
-			PluginID:    opts.PluginID,
+	// check for pluginID already registered
+	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(opts.PluginID)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			// anything other than not_found is unrecoverable
+			return "", err
 		}
-	*/
+	}
 
-	// call rc, err := a.Srv().Store().RemoteCluster().Save(rc)
+	// if plugin is already registered then treat this as an update.
+	if rc != nil {
+		rc.DisplayName = opts.Displayname
+		rc.Options = opts.GetOptionFlags()
 
-	// handle unique constraint error etc
+		if _, err = a.Srv().Store().RemoteCluster().Update(rc); err != nil {
+			return "", err
+		}
+		return rc.RemoteId, nil
+	}
 
-	return "", errors.New("not implemented yet")
+	rc = &model.RemoteCluster{
+		Name:        opts.Displayname,
+		DisplayName: opts.Displayname,
+		Token:       model.NewId(),
+		CreatorId:   opts.CreatorID,
+		PluginID:    opts.PluginID,
+		Options:     opts.GetOptionFlags(),
+	}
+
+	rcSaved, err := a.Srv().Store().RemoteCluster().Save(rc)
+	if err != nil {
+		return "", err
+	}
+
+	return rcSaved.RemoteId, nil
 }
 
 func (a *App) UnregisterPluginForSharedChannels(pluginID string) error {
-	return errors.New("not implemented yet")
+	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
+	if err != nil {
+		return err
+	}
+
+	_, appErr := a.DeleteRemoteCluster(rc.RemoteId)
+	if appErr != nil {
+		return appErr
+	}
+	return nil
 }
 
 func (a *App) AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError) {

@@ -267,10 +267,21 @@ func (a *App) onUserProfileChange(userID string) {
 
 // Sync
 
-func (a *App) UpdateSharedChannelCursor(channelID, remoteID string, cusror model.GetPostsSinceForSyncCursor) error {
-	return errors.New("not implemented yet")
+// UpdateSharedChannelCursor updates the cursor for the specified channelID and remoteID.
+// This can be used to manually set the point of last sync, either forward to skip older posts,
+// or backward to re-sync history.
+// This call by itself does not force a re-sync - a change to channel contents or a call to
+// SyncSharedChannel are needed to force a sync.
+func (a *App) UpdateSharedChannelCursor(channelID, remoteID string, cursor model.GetPostsSinceForSyncCursor) error {
+	src, err := a.Srv().Store().SharedChannel().GetRemoteByIds(channelID, remoteID)
+	if err != nil {
+		return fmt.Errorf("cursor update failed - cannot fetch shared channel remote: %w", err)
+	}
+	return a.Srv().Store().SharedChannel().UpdateRemoteCursor(src.Id, cursor)
 }
 
+// SyncSharedChannel forces a shared channel to send any changed content to all remote clusters.
 func (a *App) SyncSharedChannel(channelID string) error {
-	return errors.New("not implemented yet")
+	a.Srv().GetSharedChannelSyncService().NotifyChannelChanged(channelID)
+	return nil
 }
