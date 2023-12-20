@@ -225,12 +225,12 @@ func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, m
 }
 
 func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.CommandArgs, margs map[string]string) (resp *model.CommandResponse) {
-	remoteId, ok := margs["connectionID"]
-	if !ok || remoteId == "" {
+	remoteID, ok := margs["connectionID"]
+	if !ok || remoteID == "" {
 		return responsef(args.T("api.command_share.must_specify_valid_remote"))
 	}
 
-	hasRemote, err := a.HasRemote(args.ChannelId, remoteId)
+	hasRemote, err := a.HasRemote(args.ChannelId, remoteID)
 	if err != nil {
 		return responsef(args.T("api.command_share.fetch_remote.error", map[string]any{"Error": err.Error()}))
 	}
@@ -259,7 +259,7 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.C
 		return responsef(args.T("api.command_share.channel_invite_not_home.error"))
 	}
 
-	rc, appErr := a.GetRemoteCluster(remoteId)
+	rc, appErr := a.GetRemoteCluster(remoteID)
 	if appErr != nil {
 		return responsef(args.T("api.command_share.remote_id_invalid.error", map[string]any{"Error": appErr.Error()}))
 	}
@@ -277,21 +277,21 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.C
 }
 
 func (sp *ShareProvider) doUninviteRemote(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
-	remoteId, ok := margs["connectionID"]
-	if !ok || remoteId == "" {
+	remoteID, ok := margs["connectionID"]
+	if !ok || remoteID == "" {
 		return responsef(args.T("api.command_share.remote_not_valid"))
 	}
 
-	scr, err := a.GetSharedChannelRemoteByIds(args.ChannelId, remoteId)
+	scr, err := a.GetSharedChannelRemoteByIds(args.ChannelId, remoteID)
 	if err != nil || scr.ChannelId != args.ChannelId {
-		return responsef(args.T("api.command_share.channel_remote_id_not_exists", map[string]any{"RemoteId": remoteId}))
+		return responsef(args.T("api.command_share.channel_remote_id_not_exists", map[string]any{"RemoteId": remoteID}))
 	}
 
 	deleted, err := a.DeleteSharedChannelRemote(scr.Id)
 	if err != nil || !deleted {
-		return responsef(args.T("api.command_share.could_not_uninvite.error", map[string]any{"RemoteId": remoteId, "Error": err.Error()}))
+		return responsef(args.T("api.command_share.could_not_uninvite.error", map[string]any{"RemoteId": remoteID, "Error": err.Error()}))
 	}
-	return responsef("##### " + args.T("api.command_share.remote_uninvited", map[string]any{"RemoteId": remoteId}))
+	return responsef("##### " + args.T("api.command_share.remote_uninvited", map[string]any{"RemoteId": remoteID}))
 }
 
 func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[string]string) *model.CommandResponse {
