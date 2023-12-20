@@ -3371,7 +3371,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "互动对话框的触发 ID 已过期。触发 ID 最多有效 {{.Seconds}} 秒。"
+    "translation": "互动对话框的触发 ID 已过期。触发 ID 最多有效 {{.Duration}}。"
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
