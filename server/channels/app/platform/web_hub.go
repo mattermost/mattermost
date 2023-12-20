@@ -93,7 +93,7 @@ func newWebHub(ps *PlatformService) *Hub {
 // hubStart starts all the hubs.
 func (ps *PlatformService) hubStart(broadcastHooks map[string]BroadcastHook) {
 	// Total number of hubs is twice the number of CPUs.
-	numberOfHubs := runtime.NumCPU() * 2
+	numberOfHubs := runtime.NumCPU()
 	ps.logger.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
 
 	hubs := make([]*Hub, numberOfHubs)
