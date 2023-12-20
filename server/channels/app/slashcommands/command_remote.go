@@ -279,10 +279,10 @@ func getRemoteClusterAutocompleteListItems(a *app.App, includeOffline bool) ([]m
 	return list, nil
 }
 
-func getRemoteClusterAutocompleteListItemsNotInChannel(a *app.App, channelId string, includeOffline bool) ([]model.AutocompleteListItem, error) {
+func getRemoteClusterAutocompleteListItemsNotInChannel(a *app.App, channelID string, includeOffline bool) ([]model.AutocompleteListItem, error) {
 	filter := model.RemoteClusterQueryFilter{
 		ExcludeOffline: !includeOffline,
-		NotInChannel:   channelId,
+		NotInChannel:   channelID,
 	}
 	all, err := a.GetAllRemoteClusters(filter)
 	if err != nil || len(all) == 0 {
