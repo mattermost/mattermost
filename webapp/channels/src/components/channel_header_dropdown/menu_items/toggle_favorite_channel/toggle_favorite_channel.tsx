@@ -15,7 +15,7 @@ type Action = {
 };
 
 type Props = {
-    show: boolean;
+    show?: boolean;
     channel: Channel;
     isFavorite: boolean;
     actions: Action;
