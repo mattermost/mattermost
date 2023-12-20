@@ -18,6 +18,12 @@ const baseProps: Props = {
     collapseModal: jest.fn(),
     settings: {
         id: 'pluginA',
+        action: {
+            text: 'actionText',
+            buttonText: 'buttonText',
+            onClick: jest.fn(),
+            title: 'actionTitle',
+        },
         sections: [
             {
                 settings: [
