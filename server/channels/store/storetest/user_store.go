@@ -2730,11 +2730,11 @@ func assertUsers(t *testing.T, expected, actual []*model.User) {
 
 func testUserStoreSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 		Roles:     "system_user system_admin",
 	}
 	_, err := ss.User().Save(u1)
@@ -2742,7 +2742,7 @@ func testUserStoreSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim2-bobby" + model.NewId(),
+		Username: "jim2-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 		Roles:    "system_user system_user_manager",
 	}
@@ -2751,7 +2751,7 @@ func testUserStoreSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 		Roles:    "system_guest",
 	}
@@ -2878,18 +2878,18 @@ func testUserStoreSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 
 func testUserStoreSearchNotInChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 	}
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim2-bobby" + model.NewId(),
+		Username: "jim2-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u2)
@@ -2897,7 +2897,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, rctx request.CTX, ss store.St
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 		DeleteAt: 1,
 	}
@@ -3104,11 +3104,11 @@ func testUserStoreSearchNotInChannel(t *testing.T, rctx request.CTX, ss store.St
 
 func testUserStoreSearchInChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 		Roles:     "system_user system_admin",
 	}
 	_, err := ss.User().Save(u1)
@@ -3116,7 +3116,7 @@ func testUserStoreSearchInChannel(t *testing.T, rctx request.CTX, ss store.Store
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim-bobby" + model.NewId(),
+		Username: "jim-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 		Roles:    "system_user",
 	}
@@ -3125,7 +3125,7 @@ func testUserStoreSearchInChannel(t *testing.T, rctx request.CTX, ss store.Store
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 		DeleteAt: 1,
 		Roles:    "system_user",
@@ -3338,18 +3338,18 @@ func testUserStoreSearchInChannel(t *testing.T, rctx request.CTX, ss store.Store
 
 func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 	}
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim-bobby" + model.NewId(),
+		Username: "jim-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u2)
@@ -3357,7 +3357,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 		DeleteAt: 1,
 	}
@@ -3374,7 +3374,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store
 	defer func() { require.NoError(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
 	u4 := &model.User{
-		Username: "simon" + model.NewId(),
+		Username: "simon" + NewTestId(),
 		Email:    MakeEmail(),
 		DeleteAt: 0,
 	}
@@ -3383,7 +3383,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u4.Id)) }()
 
 	u5 := &model.User{
-		Username:  "yu" + model.NewId(),
+		Username:  "yu" + NewTestId(),
 		FirstName: "En",
 		LastName:  "Yu",
 		Nickname:  "enyu",
@@ -3394,7 +3394,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u5.Id)) }()
 
 	u6 := &model.User{
-		Username:  "underscore" + model.NewId(),
+		Username:  "underscore" + NewTestId(),
 		FirstName: "Du_",
 		LastName:  "_DE",
 		Nickname:  "lodash",
@@ -3530,18 +3530,18 @@ func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store
 
 func testUserStoreSearchWithoutTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 	}
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim2-bobby" + model.NewId(),
+		Username: "jim2-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u2)
@@ -3549,7 +3549,7 @@ func testUserStoreSearchWithoutTeam(t *testing.T, rctx request.CTX, ss store.Sto
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 		DeleteAt: 1,
 	}
@@ -3635,18 +3635,18 @@ func testUserStoreSearchWithoutTeam(t *testing.T, rctx request.CTX, ss store.Sto
 
 func testUserStoreSearchInGroup(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 	}
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim-bobby" + model.NewId(),
+		Username: "jim-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u2)
@@ -3654,7 +3654,7 @@ func testUserStoreSearchInGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u3)
@@ -3669,21 +3669,21 @@ func testUserStoreSearchInGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 	u3.AuthData = nilAuthData
 
 	g1 := &model.Group{
-		Name:        model.NewString(model.NewId()),
-		DisplayName: model.NewId(),
-		Description: model.NewId(),
+		Name:        model.NewString(NewTestId()),
+		DisplayName: NewTestId(),
+		Description: NewTestId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewString(NewTestId()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
 
 	g2 := &model.Group{
-		Name:        model.NewString(model.NewId()),
-		DisplayName: model.NewId(),
-		Description: model.NewId(),
+		Name:        model.NewString(NewTestId()),
+		DisplayName: NewTestId(),
+		Description: NewTestId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewString(NewTestId()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -3778,18 +3778,18 @@ func testUserStoreSearchInGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 
 func testUserStoreSearchNotInGroup(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 	}
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim-bobby" + model.NewId(),
+		Username: "jim-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u2)
@@ -3797,7 +3797,7 @@ func testUserStoreSearchNotInGroup(t *testing.T, rctx request.CTX, ss store.Stor
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u3)
@@ -3812,21 +3812,21 @@ func testUserStoreSearchNotInGroup(t *testing.T, rctx request.CTX, ss store.Stor
 	u3.AuthData = nilAuthData
 
 	g1 := &model.Group{
-		Name:        model.NewString(model.NewId()),
-		DisplayName: model.NewId(),
-		Description: model.NewId(),
+		Name:        model.NewString(NewTestId()),
+		DisplayName: NewTestId(),
+		Description: NewTestId(),
 		Source:      model.GroupSourceCustom,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewString(NewTestId()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
 
 	g2 := &model.Group{
-		Name:        model.NewString(model.NewId()),
-		DisplayName: model.NewId(),
-		Description: model.NewId(),
+		Name:        model.NewString(NewTestId()),
+		DisplayName: NewTestId(),
+		Description: NewTestId(),
 		Source:      model.GroupSourceCustom,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewString(NewTestId()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
