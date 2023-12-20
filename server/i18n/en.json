@@ -4995,6 +4995,10 @@
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
   {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Unable to update channel members' notify props."
+  },
+  {
     "id": "app.channel.permanent_delete.app_error",
     "translation": "Unable to delete the channel."
   },
@@ -5065,10 +5069,6 @@
   {
     "id": "app.channel.update_channel.internal_error",
     "translation": "Unable to update channel."
-  },
-  {
-    "id": "app.channel.update_channel_members_notify_props.app_error",
-    "translation": "Unable to update channel members' notify props."
   },
   {
     "id": "app.channel.update_last_viewed_at.app_error",

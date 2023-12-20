@@ -3527,31 +3527,31 @@ func (s *apiRPCServer) UpdateChannelMemberNotifications(args *Z_UpdateChannelMem
 	return nil
 }
 
-type Z_UpdateChannelMembersNotificationsArgs struct {
-	A []*model.ChannelMember
+type Z_PatchChannelMembersNotificationsArgs struct {
+	A []*model.ChannelMemberIdentifier
+	B map[string]string
 }
 
-type Z_UpdateChannelMembersNotificationsReturns struct {
-	A []*model.ChannelMember
-	B *model.AppError
+type Z_PatchChannelMembersNotificationsReturns struct {
+	A *model.AppError
 }
 
-func (g *apiRPCClient) UpdateChannelMembersNotifications(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError) {
-	_args := &Z_UpdateChannelMembersNotificationsArgs{members}
-	_returns := &Z_UpdateChannelMembersNotificationsReturns{}
-	if err := g.client.Call("Plugin.UpdateChannelMembersNotifications", _args, _returns); err != nil {
-		log.Printf("RPC call to UpdateChannelMembersNotifications API failed: %s", err.Error())
+func (g *apiRPCClient) PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) *model.AppError {
+	_args := &Z_PatchChannelMembersNotificationsArgs{members, notifyProps}
+	_returns := &Z_PatchChannelMembersNotificationsReturns{}
+	if err := g.client.Call("Plugin.PatchChannelMembersNotifications", _args, _returns); err != nil {
+		log.Printf("RPC call to PatchChannelMembersNotifications API failed: %s", err.Error())
 	}
-	return _returns.A, _returns.B
+	return _returns.A
 }
 
-func (s *apiRPCServer) UpdateChannelMembersNotifications(args *Z_UpdateChannelMembersNotificationsArgs, returns *Z_UpdateChannelMembersNotificationsReturns) error {
+func (s *apiRPCServer) PatchChannelMembersNotifications(args *Z_PatchChannelMembersNotificationsArgs, returns *Z_PatchChannelMembersNotificationsReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdateChannelMembersNotifications(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError)
+		PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) *model.AppError
 	}); ok {
-		returns.A, returns.B = hook.UpdateChannelMembersNotifications(args.A)
+		returns.A = hook.PatchChannelMembersNotifications(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API UpdateChannelMembersNotifications called but not implemented."))
+		return encodableError(fmt.Errorf("API PatchChannelMembersNotifications called but not implemented."))
 	}
 	return nil
 }

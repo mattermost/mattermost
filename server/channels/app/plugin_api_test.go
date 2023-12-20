@@ -2381,16 +2381,28 @@ func TestPluginUpdateChannelMembersNotifications(t *testing.T) {
 	member2, err := api.GetChannelMember(channel.Id, th.BasicUser2.Id)
 	require.Nil(t, err)
 
-	member1.NotifyProps["test_field"] = "test_value"
-	member2.NotifyProps[model.ChannelMentionsNotifyProp] = "false"
-
-	updated, err := api.UpdateChannelMembersNotifications([]*model.ChannelMember{
-		member1,
-		member2,
-	})
+	err = api.PatchChannelMembersNotifications(
+		[]*model.ChannelMemberIdentifier{
+			{ChannelId: channel.Id, UserId: th.BasicUser.Id},
+			{ChannelId: channel.Id, UserId: th.BasicUser2.Id},
+		},
+		map[string]string{
+			"test_field":                    "test_value",
+			model.ChannelMentionsNotifyProp: "false",
+		},
+	)
 
 	require.Nil(t, err)
 
-	assert.Equal(t, member1.NotifyProps, updated[0].NotifyProps)
-	assert.Equal(t, member2.NotifyProps, updated[1].NotifyProps)
+	updated1, err := api.GetChannelMember(member1.ChannelId, member1.UserId)
+	require.Nil(t, err)
+	updated2, err := api.GetChannelMember(member2.ChannelId, member2.UserId)
+	require.Nil(t, err)
+
+	assert.Equal(t, member1.NotifyProps[model.MarkUnreadNotifyProp], updated1.NotifyProps[model.MarkUnreadNotifyProp])
+	assert.Equal(t, "test_value", updated1.NotifyProps["test_field"])
+	assert.Equal(t, "false", updated1.NotifyProps[model.ChannelMentionsNotifyProp])
+	assert.Equal(t, member2.NotifyProps[model.MarkUnreadNotifyProp], updated2.NotifyProps[model.MarkUnreadNotifyProp])
+	assert.Equal(t, "test_value", updated2.NotifyProps["test_field"])
+	assert.Equal(t, "false", updated2.NotifyProps[model.ChannelMentionsNotifyProp])
 }

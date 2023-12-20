@@ -3186,6 +3186,22 @@ func (_m *API) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot,
 	return r0, r1
 }
 
+// PatchChannelMembersNotifications provides a mock function with given fields: members, notifyProps
+func (_m *API) PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) *model.AppError {
+	ret := _m.Called(members, notifyProps)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func([]*model.ChannelMemberIdentifier, map[string]string) *model.AppError); ok {
+		r0 = rf(members, notifyProps)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // PermanentDeleteBot provides a mock function with given fields: botUserId
 func (_m *API) PermanentDeleteBot(botUserId string) *model.AppError {
 	ret := _m.Called(botUserId)
@@ -3848,34 +3864,6 @@ func (_m *API) UpdateChannelMemberRoles(channelId string, userID string, newRole
 
 	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
 		r1 = rf(channelId, userID, newRoles)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
-// UpdateChannelMembersNotifications provides a mock function with given fields: members
-func (_m *API) UpdateChannelMembersNotifications(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError) {
-	ret := _m.Called(members)
-
-	var r0 []*model.ChannelMember
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func([]*model.ChannelMember) ([]*model.ChannelMember, *model.AppError)); ok {
-		return rf(members)
-	}
-	if rf, ok := ret.Get(0).(func([]*model.ChannelMember) []*model.ChannelMember); ok {
-		r0 = rf(members)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.ChannelMember)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func([]*model.ChannelMember) *model.AppError); ok {
-		r1 = rf(members)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

@@ -1922,13 +1922,48 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 	return dbMember.ToModel(), err
 }
 
-func (s SqlChannelStore) UpdateMultipleMembersNotifyProps(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
-	for _, member := range members {
-		// Note that, like UpdateMemberNotifyProps, this doesn't modify the LastUpdateAt
+// PatchMultipleMembersNotifyProps updates the NotifyProps of multiple channel members at once without modifying
+// unspecified fields. Like UpdateMemberNotifyProps, it doesn't modify the LastUpdateAt of affected rows.
+//
+// Note that the returned array may not be in the same order as the provided IDs.
+func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error) {
+	if len(notifyProps) == 0 {
+		return nil, errors.New("PatchMultipleMembersNotifyProps: No notifyProps specified")
+	}
 
-		if err := member.IsNotifyPropsValid(); err != nil {
-			return nil, err
-		}
+	if err := model.IsChannelMemberNotifyPropsValid(notifyProps, true); err != nil {
+		return nil, err
+	}
+
+	// Make the where clause first since it'll be used multiple times
+	whereClause := sq.Or{}
+	for _, member := range members {
+		whereClause = append(whereClause, sq.And{
+			sq.Eq{"ChannelId": member.ChannelId},
+			sq.Eq{"UserId": member.UserId},
+		})
+	}
+
+	// Update the channel members
+	builder := s.getQueryBuilder().Update("ChannelMembers")
+
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		jsonNotifyProps := string(model.ToJSON(notifyProps))
+		builder = builder.Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps))
+	} else {
+		// Unpack the keys and values to pass to MySQL
+		jsonArgs, jsonSQL := constructMySQLJSONArgs(notifyProps)
+		jsonExpr := sq.Expr(fmt.Sprintf("JSON_SET(NotifyProps, %s)", jsonSQL), jsonArgs...)
+
+		// Example: UPDATE ChannelMembers
+		// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
+		// WHERE ...
+		builder = builder.Set("NotifyProps", jsonExpr)
+	}
+
+	sqlUpdate, args, err := builder.Where(whereClause).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "PatchMultipleMembersNotifyProps_ToSQL")
 	}
 
 	transaction, err := s.GetMasterX().Beginx()
@@ -1937,73 +1972,33 @@ func (s SqlChannelStore) UpdateMultipleMembersNotifyProps(members []*model.Chann
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	updated := make([]*model.ChannelMember, len(members))
+	if result, err := transaction.Exec(sqlUpdate, args...); err != nil {
+		return nil, errors.Wrap(err, "PatchMultipleMembersNotifyProps: Failed to update ChannelMembers")
+	} else if count, _ := result.RowsAffected(); count != int64(len(members)) {
+		return nil, errors.Wrap(err, "PatchMultipleMembersNotifyProps: Unable to update all ChannelMembers, some must not exist")
+	}
 
-	for i, member := range members {
-		var sqlUpdate string
-		var args []any
+	// Get the updated channel members
+	selectSQL, selectArgs, err := s.channelMembersForTeamWithSchemeSelectQuery.
+		Where(whereClause).ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "PatchMultipleMembersNotifyProps_Select_ToSql")
+	}
 
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			jsonNotifyProps := string(model.ToJSON(member.NotifyProps))
-			sqlUpdate, args, err = s.getQueryBuilder().
-				Update("channelmembers").
-				Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps)).
-				Where(sq.Eq{
-					"userid":    member.UserId,
-					"channelid": member.ChannelId,
-				}).ToSql()
-			if err != nil {
-				return nil, errors.Wrap(err, "UpdateMultipleMembersNotifyProps_Postgres")
-			}
-		} else {
-			if len(member.NotifyProps) == 0 {
-				// We can't construct a MySQL query for an empty map, so just skip this one
-				continue
-			}
-
-			// Unpack the keys and values to pass to MySQL
-			jsonArgs, jsonSQL := constructMySQLJSONArgs(member.NotifyProps)
-			jsonExpr := sq.Expr(fmt.Sprintf("JSON_SET(NotifyProps, %s)", jsonSQL), jsonArgs...)
-
-			// Example: UPDATE ChannelMembers
-			// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
-			// WHERE ...
-			sqlUpdate, args, err = s.getQueryBuilder().
-				Update("ChannelMembers").
-				Set("NotifyProps", jsonExpr).
-				Where(sq.Eq{
-					"userid":    member.UserId,
-					"channelid": member.ChannelId,
-				}).ToSql()
-			if err != nil {
-				return nil, errors.Wrap(err, "UpdateMultipleMembersNotifyProps_MySQL")
-			}
-		}
-
-		_, err = transaction.Exec(sqlUpdate, args...)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to update ChannelMember")
-		}
-
-		sqlSelect, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
-			Where(sq.Eq{
-				"ChannelMembers.ChannelId": member.ChannelId,
-				"ChannelMembers.UserId":    member.UserId,
-			}).ToSql()
-		if err != nil {
-			return nil, errors.Wrap(err, "UpdateMultipleMembersNotifyProps_Select_ToSql")
-		}
-
-		var dbMember channelMemberWithSchemeRoles
-		if err := transaction.Get(&dbMember, sqlSelect, args...); err != nil {
-			return nil, errors.Wrapf(err, "failed to get ChannelMember with channelId=%s and userId=%s", member.ChannelId, member.UserId)
-		}
-
-		updated[i] = dbMember.ToModel()
+	var dbMembers []*channelMemberWithSchemeRoles
+	if err := transaction.Select(&dbMembers, selectSQL, selectArgs...); err != nil {
+		return nil, errors.Wrapf(err, "PatchMultipleMembersNotifyProps: Failed to get updated ChannelMembers")
+	} else if len(dbMembers) != len(members) {
+		return nil, errors.New("PatchMultipleMembersNotifyProps: Unable to get updated ChannelMembers")
 	}
 
 	if err := transaction.Commit(); err != nil {
 		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	updated := make([]*model.ChannelMember, len(dbMembers))
+	for i, dbMember := range dbMembers {
+		updated[i] = dbMember.ToModel()
 	}
 
 	return updated, nil

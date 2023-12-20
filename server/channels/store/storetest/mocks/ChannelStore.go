@@ -1945,6 +1945,32 @@ func (_m *ChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID s
 	return r0, r1
 }
 
+// PatchMultipleMembersNotifyProps provides a mock function with given fields: members, notifyProps
+func (_m *ChannelStore) PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error) {
+	ret := _m.Called(members, notifyProps)
+
+	var r0 []*model.ChannelMember
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]*model.ChannelMemberIdentifier, map[string]string) ([]*model.ChannelMember, error)); ok {
+		return rf(members, notifyProps)
+	}
+	if rf, ok := ret.Get(0).(func([]*model.ChannelMemberIdentifier, map[string]string) []*model.ChannelMember); ok {
+		r0 = rf(members, notifyProps)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]*model.ChannelMemberIdentifier, map[string]string) error); ok {
+		r1 = rf(members, notifyProps)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PermanentDelete provides a mock function with given fields: ctx, channelID
 func (_m *ChannelStore) PermanentDelete(ctx request.CTX, channelID string) error {
 	ret := _m.Called(ctx, channelID)
@@ -2512,32 +2538,6 @@ func (_m *ChannelStore) UpdateMembersRole(channelID string, userIDs []string) er
 
 // UpdateMultipleMembers provides a mock function with given fields: members
 func (_m *ChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
-	ret := _m.Called(members)
-
-	var r0 []*model.ChannelMember
-	var r1 error
-	if rf, ok := ret.Get(0).(func([]*model.ChannelMember) ([]*model.ChannelMember, error)); ok {
-		return rf(members)
-	}
-	if rf, ok := ret.Get(0).(func([]*model.ChannelMember) []*model.ChannelMember); ok {
-		r0 = rf(members)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.ChannelMember)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func([]*model.ChannelMember) error); ok {
-		r1 = rf(members)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// UpdateMultipleMembersNotifyProps provides a mock function with given fields: members
-func (_m *ChannelStore) UpdateMultipleMembersNotifyProps(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
 	ret := _m.Called(members)
 
 	var r0 []*model.ChannelMember

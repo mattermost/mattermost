@@ -1950,6 +1950,22 @@ func (s *TimerLayerChannelStore) MigrateChannelMembers(fromChannelID string, fro
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.PatchMultipleMembersNotifyProps(members, notifyProps)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.PatchMultipleMembersNotifyProps", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) PermanentDelete(ctx request.CTX, channelID string) error {
 	start := time.Now()
 
@@ -2394,22 +2410,6 @@ func (s *TimerLayerChannelStore) UpdateMultipleMembers(members []*model.ChannelM
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateMultipleMembers", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelStore) UpdateMultipleMembersNotifyProps(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
-	start := time.Now()
-
-	result, err := s.ChannelStore.UpdateMultipleMembersNotifyProps(members)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateMultipleMembersNotifyProps", success, elapsed)
 	}
 	return result, err
 }

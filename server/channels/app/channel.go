@@ -1368,15 +1368,15 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 	return member, nil
 }
 
-func (a *App) UpdateChannelMembersNotifyProps(c request.CTX, members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError) {
-	updated, err := a.Srv().Store().Channel().UpdateMultipleMembersNotifyProps(members)
+func (a *App) PatchChannelMembersNotifyProps(c request.CTX, members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, *model.AppError) {
+	updated, err := a.Srv().Store().Channel().PatchMultipleMembersNotifyProps(members, notifyProps)
 	if err != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("UpdateMultipleMembersNotifyProps", "app.channel.update_channel_members_notify_props.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("UpdateMultipleMembersNotifyProps", "app.channel.patch_channel_members_notify_props.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
