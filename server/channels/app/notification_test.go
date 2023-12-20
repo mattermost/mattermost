@@ -1699,7 +1699,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, mentionableUser4ID, ids[0], "should've returned mention key of First")
 
-	dup_count := func(list []MentionableID) map[MentionableID]int {
+	dupCount := func(list []MentionableID) map[MentionableID]int {
 		duplicate_frequency := make(map[MentionableID]int)
 
 		for _, item := range list {
@@ -1746,7 +1746,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	require.Len(t, ids, 2)
 	require.False(t, ids[0] != mentionableUser1ID && ids[1] != mentionableUser1ID, "should've mentioned user1  with user")
 	require.False(t, ids[0] != mentionableUser4ID && ids[1] != mentionableUser4ID, "should've mentioned user4  with user")
-	idsMap := dup_count(keywords["@user"])
+	idsMap := dupCount(keywords["@user"])
 	require.True(t, ok)
 	require.Len(t, idsMap, 4)
 	require.Equal(t, idsMap[mentionableUser1ID], 2, "should've mentioned user1 with @user")
