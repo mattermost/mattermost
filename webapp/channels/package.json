@@ -21,6 +21,7 @@
     "@mui/styled-engine-sc": "5.11.11",
     "@stripe/react-stripe-js": "1.13.0",
     "@stripe/stripe-js": "1.41.0",
+    "@tanstack/react-table": "8.10.7",
     "@tippyjs/react": "4.2.6",
     "@types/color-hash": "1.0.2",
     "@types/turndown": "5.0.1",

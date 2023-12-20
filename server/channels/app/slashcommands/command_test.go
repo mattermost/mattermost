@@ -17,7 +17,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 )
 
 type InfiniteReader struct {
@@ -363,7 +362,7 @@ func TestDoCommandRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, resp, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
 
 		assert.NotNil(t, resp)
@@ -378,7 +377,7 @@ func TestDoCommandRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, resp, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
 
 		assert.NotNil(t, resp)
@@ -393,7 +392,7 @@ func TestDoCommandRequest(t *testing.T) {
 
 		// Since we limit the length of the response, no error will be returned and resp.Text will be a finite string
 
-		_, resp, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
 		require.NotNil(t, resp)
 	})
@@ -406,7 +405,7 @@ func TestDoCommandRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, _, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
 		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
 	})
@@ -419,28 +418,46 @@ func TestDoCommandRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, _, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
 		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
 	})
 
-	t.Run("with a slow response", func(t *testing.T) {
+	t.Run("with a too slow response", func(t *testing.T) {
 		done := make(chan bool)
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			<-done
-			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			io.Copy(w, strings.NewReader("Hello, World!"))
 		}))
 		defer server.Close()
 
-		th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = 100 * time.Millisecond
-		defer func() {
-			th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
-		}()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
+		})
 
-		_, _, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
 		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
 		close(done)
+	})
+
+	t.Run("with a too slow response, long timeout configured", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(1 * time.Second)
+
+			io.Copy(w, strings.NewReader("Hello, World!"))
+		}))
+		defer server.Close()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(2)
+		})
+
+		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
+		require.Nil(t, err)
+
+		require.NotNil(t, resp)
+		assert.Equal(t, "Hello, World!", resp.Text)
 	})
 }
 
