@@ -3381,7 +3381,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "ID wywołania dla interaktywnego dialogu wygasło. Maksymalny czas życia dla ID wywołania wynosi {{.Seconds}} sekund."
+    "translation": "Identyfikator wyzwalacza dla interaktywnego okna dialogowego wygasł. Identyfikatory wyzwalaczy działają przez maksymalnie {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -10110,5 +10110,65 @@
   {
     "id": "app.reaction.save.save.too_many_reactions",
     "translation": "Osiągnięto limit reakcji dla tego postu."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Rozmiar strony jest nieprawidłowy lub zbyt duży."
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Podany zakres dat jest nieprawidłowy."
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Przenoszenie wątków jest wyłączone"
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Nie można wyszukać pliku startowego."
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "Nie masz uprawnień aby przenieść ten wątek."
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Ten wątek został przeniesiony z innego kanału"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "Wątek z wiadomościami {{.NumMessages}} został przeniesiony: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Wiadomość została przeniesiona: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "Wątek z {{.NumMessages}} wiadomościami został przeniesiony do wiadomości bezpośrednich/grupowych\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Wiadomość została przeniesiona do wiadomości bezpośredniej/grupowej\n"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Nie można usunąć wątku"
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Nie udało się pobrać raportu użytkownika."
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Nieprawidłowy limit czasu żądania integracji wychodzących dla ustawień usługi. Musi być liczbą dodatnią."
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Nieprawidłowa domena dla ustawień przeniesienia wątku"
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "Podana kolumna sortowania jest nieprawidłowa."
   }
 ]
