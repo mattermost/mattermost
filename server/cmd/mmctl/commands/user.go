@@ -379,6 +379,7 @@ Global Flags:
 	PreferenceListCmd.Flags().StringP("category", "c", "", "The optional category by which to filter")
 	PreferenceGetCmd.Flags().StringP("category", "c", "", "The category of the preference")
 	PreferenceGetCmd.Flags().StringP("name", "n", "", "The name of the preference")
+	_ = PreferenceGetCmd.MarkFlagRequired("category")
 	_ = PreferenceGetCmd.MarkFlagRequired("name")
 	PreferenceUpdateCmd.Flags().StringP("category", "c", "", "The category of the preference")
 	PreferenceUpdateCmd.Flags().StringP("name", "n", "", "The name of the preference")
