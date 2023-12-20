@@ -124,6 +124,14 @@ func newS3FileBackend(settings FileBackendSettings, isCloud bool) (*S3FileBacken
 	return backend, nil
 }
 
+type s3Trace struct {
+}
+
+func (sTrace *s3Trace) Write(in []byte) (int, error) {
+	mlog.Debug(string(in))
+	return len(in), nil
+}
+
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
 // If signV2 input is false, function always returns signature v4.
 //
@@ -178,7 +186,8 @@ func (b *S3FileBackend) s3New(isCloud bool) (*s3.Client, error) {
 	}
 
 	if b.trace {
-		s3Clnt.TraceOn(os.Stdout)
+		s3Trace := s3Trace{}
+		s3Clnt.TraceOn(&s3Trace)
 	}
 
 	return s3Clnt, nil
