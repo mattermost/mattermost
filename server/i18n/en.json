@@ -4999,6 +4999,10 @@
     "translation": "Unable to update channel members' notify props."
   },
   {
+    "id": "api.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Unable to update that many channel members. Only {{.Max}} channel members can be updated at once."
+  },
+  {
     "id": "app.channel.permanent_delete.app_error",
     "translation": "Unable to delete the channel."
   },

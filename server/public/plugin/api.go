@@ -594,7 +594,8 @@ type API interface {
 	UpdateChannelMemberNotifications(channelId, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError)
 
 	// PatchChannelMembersNotifications updates the notification properties for multiple channel members.
-	// Other changes made to the channel memberships will be ignored.
+	// Other changes made to the channel memberships will be ignored. A maximum of 200 members can be
+	// updated at once.
 	//
 	// @tag Channel
 	// @tag User
