@@ -342,6 +342,14 @@ func (wsc *WebSocketClient) UpdateActiveTeam(teamID string) {
 	wsc.SendMessage(string(WebsocketPresenceIndicator), data)
 }
 
+// UpdateActiveThread sets the channel id of the current thread that the user is in.
+func (wsc *WebSocketClient) UpdateActiveThread(channelID string) {
+	data := map[string]any{
+		"thread_channel_id": channelID,
+	}
+	wsc.SendMessage(string(WebsocketPresenceIndicator), data)
+}
+
 func (wsc *WebSocketClient) configurePingHandling() {
 	wsc.Conn.SetPingHandler(wsc.pingHandler)
 	wsc.pingTimeoutTimer = time.NewTimer(time.Second * (60 + PingTimeoutBufferSeconds))

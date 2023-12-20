@@ -195,7 +195,7 @@ func (lt *LoadTestProvider) doCommand(a *app.App, c request.CTX, args *model.Com
 	}
 
 	if strings.HasPrefix(message, "json") {
-		return lt.JsonCommand(a, c, args, message)
+		return lt.JSONCommand(a, c, args, message)
 	}
 
 	return lt.HelpCommand(args, message), nil
@@ -292,8 +292,8 @@ func (*LoadTestProvider) SetupCommand(a *app.App, c request.CTX, args *model.Com
 }
 
 func (*LoadTestProvider) ActivateUserCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
-	user_id := strings.TrimSpace(strings.TrimPrefix(message, "activate_user"))
-	if err := a.UpdateUserActive(c, user_id, true); err != nil {
+	userID := strings.TrimSpace(strings.TrimPrefix(message, "activate_user"))
+	if err := a.UpdateUserActive(c, userID, true); err != nil {
 		return &model.CommandResponse{Text: "Failed to activate user", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
@@ -301,8 +301,8 @@ func (*LoadTestProvider) ActivateUserCommand(a *app.App, c request.CTX, args *mo
 }
 
 func (*LoadTestProvider) DeActivateUserCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
-	user_id := strings.TrimSpace(strings.TrimPrefix(message, "deactivate_user"))
-	if err := a.UpdateUserActive(c, user_id, false); err != nil {
+	userID := strings.TrimSpace(strings.TrimPrefix(message, "deactivate_user"))
+	if err := a.UpdateUserActive(c, userID, false); err != nil {
 		return &model.CommandResponse{Text: "Failed to deactivate user", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
@@ -670,7 +670,7 @@ func (*LoadTestProvider) URLCommand(a *app.App, c request.CTX, args *model.Comma
 	return &model.CommandResponse{Text: "Loaded data", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func (*LoadTestProvider) JsonCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) JSONCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	url := strings.TrimSpace(strings.TrimPrefix(message, "json"))
 	if url == "" {
 		return &model.CommandResponse{Text: "Command must contain a url", ResponseType: model.CommandResponseTypeEphemeral}, nil
