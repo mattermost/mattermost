@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo, useCallback} from 'react';
 
 import type {FilterOption, FilterValues} from './filter';
 import FilterCheckbox from './filter_checkbox';
@@ -14,51 +14,52 @@ type Props = {
     updateValues: (values: FilterValues, optionKey: string) => void;
 }
 
-class FilterList extends React.PureComponent<Props> {
-    updateOption = async (value: boolean, key: string) => {
+const FilterList = ({
+    option,
+    optionKey,
+    updateValues,
+}: Props) => {
+    const updateOption = useCallback(async (value: boolean, key: string) => {
         const values = {
-            ...this.props.option.values,
+            ...option.values,
             [key]: {
-                ...this.props.option.values[key],
+                ...option.values[key],
                 value,
             },
         };
-        await this.props.updateValues(values, this.props.optionKey);
-    };
+        await updateValues(values, optionKey);
+    }, [option.values, optionKey, updateValues]);
 
-    render() {
-        const {option} = this.props;
-        const valuesToRender = option.keys.map((optionKey: string, index: number) => {
-            const currentValue = option.values[optionKey];
-            const {value, name} = currentValue;
-            const FilterItem = option.type || FilterCheckbox;
-
-            return (
-                <div
-                    key={index}
-                    className='FilterList_item'
-                >
-                    <FilterItem
-                        key={index}
-                        name={optionKey}
-                        checked={value}
-                        label={name}
-                        updateOption={this.updateOption}
-                    />
-                </div>
-            );
-        });
+    const valuesToRender = option.keys.map((optionKey: string, index: number) => {
+        const currentValue = option.values[optionKey];
+        const {value, name} = currentValue;
+        const FilterItem = option.type || FilterCheckbox;
 
         return (
-            <div className='FilterList'>
-                <div className='FilterList_name'>
-                    {option.name}
-                </div>
-
-                {valuesToRender}
+            <div
+                key={index}
+                className='FilterList_item'
+            >
+                <FilterItem
+                    key={index}
+                    name={optionKey}
+                    checked={value}
+                    label={name}
+                    updateOption={updateOption}
+                />
             </div>
         );
-    }
-}
+    });
 
-export default FilterList;
+    return (
+        <div className='FilterList'>
+            <div className='FilterList_name'>
+                {option.name}
+            </div>
+
+            {valuesToRender}
+        </div>
+    );
+};
+
+export default memo(FilterList);
