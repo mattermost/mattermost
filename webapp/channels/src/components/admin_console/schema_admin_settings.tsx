@@ -42,6 +42,8 @@ import type {AdminDefinitionSetting, AdminDefinitionSettingBanner, AdminDefiniti
 
 import './schema_admin_settings.scss';
 
+const emptyList: string[] = [];
+
 type Props = {
     config: Partial<AdminConfig>;
     environmentConfig: Partial<EnvironmentConfig>;
@@ -83,12 +85,12 @@ export function unescapePathPart(pathPart: string) {
     return pathPart.replace(/\+/g, '.');
 }
 
-function descriptorOrStringToString(text: string | MessageDescriptor | undefined, intl: IntlShape) {
+function descriptorOrStringToString(text: string | MessageDescriptor | undefined, intl: IntlShape, values?: {[key: string]: any}) {
     if (!text) {
         return undefined;
     }
 
-    return typeof text === 'string' ? text : intl.formatMessage(text);
+    return typeof text === 'string' ? text : intl.formatMessage(text, values);
 }
 
 class SchemaAdminSettings extends React.PureComponent<Props, State> {
@@ -119,6 +121,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
             [Constants.SettingsTypes.TYPE_LANGUAGE]: this.buildLanguageSetting,
             [Constants.SettingsTypes.TYPE_JOBSTABLE]: this.buildJobsTableSetting,
             [Constants.SettingsTypes.TYPE_FILE_UPLOAD]: this.buildFileUploadSetting,
+            [Constants.SettingsTypes.TYPE_ROLES]: this.buildRolesSetting,
             [Constants.SettingsTypes.TYPE_CUSTOM]: this.buildCustomSetting,
         };
         this.state = {
@@ -476,9 +479,13 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
             inputType = 'textarea';
         }
 
-        let value = this.state[setting.key] ?? '';
+        let value = '';
         if (setting.dynamic_value) {
             value = setting.dynamic_value(value, this.props.config, this.state);
+        } else if (setting.multiple) {
+            value = this.state[setting.key] ? this.state[setting.key].join(',') : '';
+        } else {
+            value = this.state[setting.key] || '';
         }
 
         let footer = null;
@@ -496,10 +503,11 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
             <TextSetting
                 key={this.props.schema.id + '_text_' + setting.key}
                 id={setting.key}
+                multiple={setting.multiple}
                 type={inputType}
                 label={this.renderLabel(setting)}
                 helpText={this.renderSettingHelpText(setting)}
-                placeholder={descriptorOrStringToString(setting.placeholder, this.props.intl)}
+                placeholder={descriptorOrStringToString(setting.placeholder, this.props.intl, setting.placeholder_values)}
                 value={value}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
@@ -617,11 +625,61 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
         );
     };
 
+    buildRolesSetting = (setting: AdminDefinitionSetting) => {
+        if (!this.props.schema || !setting.key || setting.type !== 'roles') {
+            return (<></>);
+        }
+        const {roles} = this.props;
+
+        const values = Object.keys(roles).map((r) => {
+            return {
+                value: roles[r].name,
+                text: roles[r].name,
+            };
+        });
+
+        if (setting.multiple) {
+            const noResultText = typeof setting.no_result === 'object' ?
+                (
+                    <FormattedMessage
+                        {...setting.no_result}
+                    />
+                ) :
+                setting.no_result;
+            return (
+                <MultiSelectSetting
+                    key={this.props.schema.id + '_language_' + setting.key}
+                    id={setting.key}
+                    label={this.renderLabel(setting)}
+                    values={values}
+                    helpText={this.renderSettingHelpText(setting)}
+                    selected={(this.state[setting.key] || emptyList)}
+                    disabled={this.isDisabled(setting)}
+                    setByEnv={this.isSetByEnv(setting.key)}
+                    onChange={this.handleChange}
+                    noResultText={noResultText}
+                />
+            );
+        }
+        return (
+            <DropdownSetting
+                key={this.props.schema.id + '_language_' + setting.key}
+                id={setting.key}
+                label={this.renderLabel(setting)}
+                values={values}
+                helpText={this.renderSettingHelpText(setting)}
+                value={this.state[setting.key] || values[0].value}
+                disabled={this.isDisabled(setting)}
+                setByEnv={this.isSetByEnv(setting.key)}
+                onChange={this.handleChange}
+            />
+        );
+    };
+
     buildLanguageSetting = (setting: AdminDefinitionSetting) => {
         if (!this.props.schema || !setting.key || setting.type !== 'language') {
             return (<></>);
         }
-
         const locales = I18n.getAllLanguages();
         const values: Array<{value: string; text: string; order: number}> = [];
         for (const l of Object.values(locales)) {

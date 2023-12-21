@@ -14,6 +14,7 @@ import PluginState from 'mattermost-redux/constants/plugins';
 
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingScreen from 'components/loading_screen';
 
 import {appsPluginID} from 'utils/apps';
@@ -25,7 +26,6 @@ import type {BaseProps, BaseState} from '../admin_settings';
 import BooleanSetting from '../boolean_setting';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 const PluginItemState = ({state}: {state: number}) => {
     switch (state) {

@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
+
+	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -38,6 +39,8 @@ func remoteClusterFields(prefix string) []string {
 		prefix + "RemoteToken",
 		prefix + "Topics",
 		prefix + "CreatorId",
+		prefix + "PluginID",
+		prefix + "Options",
 	}
 }
 
@@ -49,10 +52,10 @@ func (s sqlRemoteClusterStore) Save(remoteCluster *model.RemoteCluster) (*model.
 
 	query := `INSERT INTO RemoteClusters
 				(RemoteId, RemoteTeamId, Name, DisplayName, SiteURL, CreateAt,
-				LastPingAt, Token, RemoteToken, Topics, CreatorId)
+				LastPingAt, Token, RemoteToken, Topics, CreatorId, PluginID, Options)
 				VALUES
 				(:RemoteId, :RemoteTeamId, :Name, :DisplayName, :SiteURL, :CreateAt,
-				:LastPingAt, :Token, :RemoteToken, :Topics, :CreatorId)`
+				:LastPingAt, :Token, :RemoteToken, :Topics, :CreatorId, :PluginID, :Options)`
 
 	if _, err := s.GetMasterX().NamedExec(query, remoteCluster); err != nil {
 		return nil, errors.Wrap(err, "failed to save RemoteCluster")
@@ -75,7 +78,9 @@ func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*mode
 			CreatorId = :CreatorId,
 			DisplayName = :DisplayName,
 			SiteURL = :SiteURL,
-			Topics = :Topics
+			Topics = :Topics,
+			PluginID = :PluginID,
+			Options = :Options
 			WHERE RemoteId = :RemoteId AND Name = :Name`
 
 	if _, err := s.GetMasterX().NamedExec(query, remoteCluster); err != nil {
@@ -147,6 +152,10 @@ func (s sqlRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]
 
 	if filter.OnlyConfirmed {
 		query = query.Where(sq.NotEq{"rc.SiteURL": ""})
+	}
+
+	if filter.PluginID != "" {
+		query = query.Where(sq.Eq{"rc.PluginID": filter.PluginID})
 	}
 
 	if filter.Topic != "" {

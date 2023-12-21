@@ -52,10 +52,18 @@ export type AdminDefinitionSettingBanner = AdminDefinitionSettingBase & {
     banner_type: 'info' | 'warning';
 }
 
+type AdminDefinitionSettingRole = AdminDefinitionSettingBase & {
+    type: 'roles';
+    multiple?: boolean;
+    no_result?: string | MessageDescriptor;
+}
+
 type AdminDefinitionSettingInput = AdminDefinitionSettingBase & {
     type: 'text' | 'bool' | 'longtext' | 'number' | 'color';
     placeholder?: string | MessageDescriptor;
+    placeholder_values?: {[key: string]: any};
     validate?: Validator;
+    multiple?: boolean;
     setFromMetadataField?: string;
     dynamic_value?: (value: any, config: Partial<AdminConfig>, state: any) => string;
     max_length?: number;
@@ -136,7 +144,7 @@ AdminDefinitionSettingBanner | AdminDefinitionSettingDropdown |
 AdminDefinitionSettingButton | AdminDefinitionSettingFileUpload |
 AdminDefinitionSettingJobsTable | AdminDefinitionSettingLanguage |
 AdminDefinitionSettingUsername | AdminDefinitionSettingPermission |
-AdminDefinitionSettingRadio;
+AdminDefinitionSettingRadio | AdminDefinitionSettingRole;
 
 type AdminDefinitionConfigSchemaSettings = {
     id: string;

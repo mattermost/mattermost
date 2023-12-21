@@ -1,13 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/widgets/popover plain 1`] = `
-<Popover
-  bsClass="popover"
-  bsSize="small"
-  bsStyle="info"
+<div
+  class="popover popover-sm popover-info right"
   id="test"
-  placement="right"
+  role="tooltip"
+  style="display: block;"
 >
-  Some text
-</Popover>
+  <div
+    class="arrow"
+  />
+  <div
+    class="popover-content"
+  >
+    Some text
+  </div>
+</div>
 `;

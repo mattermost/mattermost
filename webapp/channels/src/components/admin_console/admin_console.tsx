@@ -3,12 +3,12 @@
 
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
 
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SchemaAdminSettings from 'components/admin_console/schema_admin_settings';
@@ -29,10 +29,7 @@ import type {AdminDefinitionSubSection, AdminDefinitionSection} from './types';
 
 import type {PropsFromRedux} from './index';
 
-export interface Props extends PropsFromRedux {
-    match: {url: string};
-    currentTheme: Theme;
-}
+export type Props = PropsFromRedux & RouteComponentProps;
 
 type State = {
     filter: string;

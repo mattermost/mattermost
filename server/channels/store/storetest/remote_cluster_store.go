@@ -15,6 +15,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testPluginID = "com.sample.blap"
+)
+
 func TestRemoteClusterStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("RemoteClusterGetAllInChannel", func(t *testing.T) { testRemoteClusterGetAllInChannel(t, rctx, ss) })
 	t.Run("RemoteClusterGetAllNotInChannel", func(t *testing.T) { testRemoteClusterGetAllNotInChannel(t, rctx, ss) })
@@ -40,6 +44,7 @@ func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, rc.SiteURL, rcSaved.SiteURL)
 		require.Greater(t, rc.CreateAt, int64(0))
 		require.Equal(t, rc.LastPingAt, int64(0))
+		require.Equal(t, rc.Options, model.Bitmask(0))
 	})
 
 	t.Run("Save missing display name", func(t *testing.T) {
@@ -58,6 +63,32 @@ func testRemoteClusterSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		_, err := ss.RemoteCluster().Save(rc)
 		require.Error(t, err)
+	})
+
+	t.Run("Save for plugin with options", func(t *testing.T) {
+		rc := &model.RemoteCluster{
+			Name:      "plugin_remote",
+			SiteURL:   "plugin.example.com",
+			CreatorId: model.NewId(),
+			PluginID:  testPluginID,
+			Options:   model.BitflagOptionAutoShareDMs,
+		}
+
+		rcSaved, err := ss.RemoteCluster().Save(rc)
+		require.NoError(t, err)
+		require.Equal(t, testPluginID, rcSaved.PluginID)
+		require.Equal(t, model.BitflagOptionAutoShareDMs, rcSaved.Options)
+		require.True(t, rcSaved.IsOptionFlagSet(model.BitflagOptionAutoShareDMs))
+
+		rc.Name = "plugin_remote_2"
+		rc.SiteURL = "plugin2.example.com"
+		rc.UnsetOptionFlag(model.BitflagOptionAutoShareDMs)
+
+		rcSaved, err = ss.RemoteCluster().Save(rc)
+		require.NoError(t, err)
+		require.Equal(t, testPluginID, rcSaved.PluginID)
+		require.Equal(t, model.Bitmask(0), rcSaved.Options)
+		require.False(t, rcSaved.IsOptionFlagSet(model.BitflagOptionAutoShareDMs))
 	})
 }
 
@@ -89,13 +120,17 @@ func testRemoteClusterGet(t *testing.T, rctx request.CTX, ss store.Store) {
 			Name:      "shortlived_remote_2",
 			SiteURL:   "nowhere.com",
 			CreatorId: model.NewId(),
+			PluginID:  testPluginID,
 		}
+		rc.SetOptionFlag(model.BitflagOptionAutoShareDMs)
 		rcSaved, err := ss.RemoteCluster().Save(rc)
 		require.NoError(t, err)
 
 		rcGet, err := ss.RemoteCluster().Get(rcSaved.RemoteId)
 		require.NoError(t, err)
 		require.Equal(t, rcSaved.RemoteId, rcGet.RemoteId)
+		require.Equal(t, testPluginID, rcGet.PluginID)
+		require.True(t, rcGet.IsOptionFlagSet(model.BitflagOptionAutoShareDMs))
 	})
 
 	t.Run("Get not found", func(t *testing.T) {
@@ -237,8 +272,8 @@ func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.S
 
 	// Create some remote clusters
 	rcData := []*model.RemoteCluster{
-		{Name: "AAAA_Inc", CreatorId: userId, SiteURL: "aaaa.com", RemoteId: model.NewId(), LastPingAt: now},
-		{Name: "BBBB_Inc", CreatorId: userId, SiteURL: "bbbb.com", RemoteId: model.NewId(), LastPingAt: 0},
+		{Name: "AAAA_Inc", CreatorId: userId, SiteURL: "aaaa.com", RemoteId: model.NewId(), LastPingAt: now, PluginID: testPluginID},
+		{Name: "BBBB_Inc", CreatorId: userId, SiteURL: "bbbb.com", RemoteId: model.NewId(), LastPingAt: 0, PluginID: testPluginID},
 		{Name: "CCCC_Inc", CreatorId: userId, SiteURL: "cccc.com", RemoteId: model.NewId(), LastPingAt: now},
 		{Name: "DDDD_Inc", CreatorId: userId, SiteURL: "dddd.com", RemoteId: model.NewId(), LastPingAt: now},
 		{Name: "EEEE_Inc", CreatorId: userId, SiteURL: "eeee.com", RemoteId: model.NewId(), LastPingAt: 0},
@@ -270,6 +305,8 @@ func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.S
 		require.Len(t, list, 2, "channel 1 should have 2 remote clusters")
 		ids := getIds(list)
 		require.ElementsMatch(t, []string{rcData[0].RemoteId, rcData[1].RemoteId}, ids)
+		require.Equal(t, testPluginID, rcData[0].PluginID)
+		require.Equal(t, testPluginID, rcData[1].PluginID)
 	})
 
 	t.Run("Channel 1 online only", func(t *testing.T) {
