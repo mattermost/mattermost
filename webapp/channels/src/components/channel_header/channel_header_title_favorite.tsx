@@ -28,7 +28,7 @@ const ChannelHeaderTitleFavorite = ({}: Props) => {
         } else {
             dispatch(favoriteChannel(channel.id));
         }
-    }, [isFavorite, unfavoriteChannel, favoriteChannel, channel.id]);
+    }, [isFavorite, channel.id]);
 
     const removeTooltipLink = useCallback(() => {
         // Bootstrap adds the attr dynamically, removing it to prevent a11y readout
