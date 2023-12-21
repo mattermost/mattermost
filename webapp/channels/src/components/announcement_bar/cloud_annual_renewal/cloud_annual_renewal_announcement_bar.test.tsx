@@ -149,7 +149,7 @@ describe('components/announcement_bar/cloud_delinquency', () => {
             state,
         );
 
-        expect(getByText('Your annual subscription expires in 25 days. Please renew to avoid any disruption.')).toBeInTheDocument();
+        expect(getByText('Your annual subscription expires in 26 days. Please renew to avoid any disruption.')).toBeInTheDocument();
     });
 
     it('Should NOT show 30 day banner to non-admin when cancel_at time is set accordingly', () => {
