@@ -11,7 +11,7 @@ import {TestHelper} from 'utils/test_helper';
 describe('components/ChannelHeaderTitleGroup', () => {
     const channels = {
         channels: {
-            'channel_id': {
+            channel_id: {
                 id: 'channel_id',
                 display_name: 'regular_user, guest_user',
             },
@@ -21,7 +21,7 @@ describe('components/ChannelHeaderTitleGroup', () => {
 
     const channelsWithoutGuests = {
         channels: {
-            'channel_id': {
+            channel_id: {
                 id: 'channel_id',
                 display_name: 'regular_user, not_guest_user',
             },
@@ -31,24 +31,24 @@ describe('components/ChannelHeaderTitleGroup', () => {
 
     const users = {
         profiles: {
-            'user_id': {
+            user_id: {
                 id: 'user_id',
                 username: 'regular_user',
                 roles: 'system_user',
             },
-            'guest_id': {
+            guest_id: {
                 id: 'guest_id',
                 username: 'guest_user',
                 roles: 'guest_user',
             },
-            'not_guest_id': {
+            not_guest_id: {
                 id: 'not_guest_id',
                 username: 'not_guest_user',
                 roles: 'system_user',
             },
         },
         currentUserId: 'user_id',
-    }
+    };
 
     test('should render the guest tags on gms', () => {
         const state = {
@@ -56,7 +56,7 @@ describe('components/ChannelHeaderTitleGroup', () => {
                 channels,
                 users,
             },
-        }
+        };
 
         const gmMembers = [
             TestHelper.getUserMock({
@@ -84,7 +84,7 @@ describe('components/ChannelHeaderTitleGroup', () => {
                 channels: channelsWithoutGuests,
                 users,
             },
-        }
+        };
 
         const gmMembers = [
             TestHelper.getUserMock({

@@ -10,7 +10,6 @@ import type {UserCustomStatus} from '@mattermost/types/users';
 import ChannelHeader from 'components/channel_header/channel_header';
 import ChannelInfoButton from 'components/channel_header/channel_info_button';
 import Markdown from 'components/markdown';
-import GuestTag from 'components/widgets/tag/guest_tag';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import Constants, {RHSStates} from 'utils/constants';
