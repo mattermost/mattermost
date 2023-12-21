@@ -69,6 +69,7 @@ jobs:
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
             --env TEST_DATABASE_MYSQL_DSN="${{ inputs.datasource }}" \
             --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
+            --env ENABLE_COVERAGE="$ENABLE_COVERAGE" \
             -v $(go env GOCACHE):/go/cache \
             -e GOCACHE=/go/cache \
             -v $PWD:/mattermost \
@@ -87,6 +88,7 @@ jobs:
           path: |
             server/gotestsum.json
             server/report.xml
+            server/cover.out
       - name: Publish test report
         id: report
         uses: mikepenz/action-junit-report@dfc44cebdda1e40b1e3c3b244a84dc303b952fb0 # v3.7.7 + count retries + check urls from https://github.com/lieut-data/action-junit-report
