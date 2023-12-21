@@ -9,7 +9,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
     className="FileSearchResultItem"
     onClick={[Function]}
   >
-    <Connect(FileThumbnail)
+    <Connect(Component)
       fileInfo={
         Object {
           "archived": false,
@@ -167,7 +167,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
     className="FileSearchResultItem"
     onClick={[Function]}
   >
-    <Connect(FileThumbnail)
+    <Connect(Component)
       fileInfo={
         Object {
           "archived": false,
@@ -334,7 +334,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
     className="FileSearchResultItem"
     onClick={[Function]}
   >
-    <Connect(FileThumbnail)
+    <Connect(Component)
       fileInfo={
         Object {
           "archived": false,
@@ -501,7 +501,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
     className="FileSearchResultItem"
     onClick={[Function]}
   >
-    <Connect(FileThumbnail)
+    <Connect(Component)
       fileInfo={
         Object {
           "archived": false,
