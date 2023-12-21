@@ -211,7 +211,6 @@ func appendRecursively(basePath, path string, maxDepth int) ([]string, error) {
 		}
 		if dirEntry.IsDir() {
 			if maxDepth <= 0 {
-				mlog.Warn("Max Depth reached", mlog.String("path", entryPath))
 				results = append(results, entryPath)
 				continue // we'll ignore it if max depth is reached.
 			}
