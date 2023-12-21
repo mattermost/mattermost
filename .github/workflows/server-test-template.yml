@@ -58,6 +58,7 @@ jobs:
       - name: Run Tests
         env:
           BUILD_IMAGE: mattermost/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
+          ENABLE_COVERAGE: true
         run: |
           if [[ ${{ github.ref_name }} == 'master' ]]; then
             export RACE_MODE="-race"
