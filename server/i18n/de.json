@@ -3376,7 +3376,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Auslöse-ID für interaktiven Dialog ist abgelaufen. Auslöse-IDs sind maximal {{.Seconds}} Sekunden aktiv."
+    "translation": "Auslöse-ID für interaktiven Dialog ist abgelaufen. Auslöse-IDs sind maximal {{.Duration}} aktiv."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -10108,5 +10108,65 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
     "translation": "Wenn GlobalRelaySettings.CustomerType 'CUSTOM' ist, müssen GlobalRelaySettings.CustomSMTPServerName und GlobalRelaySettings.CustomSMTPPort gesetzt werden."
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Der angegebene Datumsbereich ist ungültig."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Der Dateianfang kann nicht gesucht werden."
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Ungültige Zeitüberschreitung für ausgehende Integrationsanfragen für Diensteinstellungen. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Die Seitengröße ist ungültig oder zu groß."
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Das Verschieben von Unterhaltungen ist deaktiviert"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "Du hast keine Berechtigung, diese Unterhaltung zu verschieben."
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "Eine Unterhaltung mit {{.NumMessages}} Nachrichten wurde verschoben: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Diese Unterhaltung wurde von einem anderen Kanal verschoben"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Eine Nachricht wurde verschoben: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Eine Nachricht wurde in eine Direkt-/Gruppennachricht verschoben\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "Eine Unterhaltung mit {{.NumMessages}} Nachrichten wurde in eine Direkt-/Gruppen-Nachricht verschoben\n"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Unterhaltung kann nicht entfernt werden"
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Benutzerbericht konnte nicht abgerufen werden."
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Ungültige Domäne für die Einstellungen zum Verschieben von Unterhaltungen"
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "Die angegebene Sortierspalte ist nicht gültig."
   }
 ]
