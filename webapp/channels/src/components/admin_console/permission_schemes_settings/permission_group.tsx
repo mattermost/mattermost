@@ -29,7 +29,6 @@ type Props = {
     selectRow: (id: string) => void;
     root?: boolean;
     additionalValues?: AdditionalValues;
-    text: string;
 };
 
 type State = {
@@ -184,7 +183,6 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
                 onChange={this.toggleSelectSubGroup}
                 combined={g.combined}
                 root={false}
-                text={this.props.text}
             />
         );
     };

@@ -27,6 +27,8 @@ import SystemRoleUsers from './system_role_users';
 import {writeAccess} from './types';
 import type {PermissionToUpdate, PermissionsToUpdate} from './types';
 
+import {rolesStrings} from '../strings';
+
 type Props = {
     role: Role;
     isDisabled?: boolean;
@@ -241,7 +243,6 @@ export default class SystemRole extends React.PureComponent<Props, State> {
     render() {
         const {usersToAdd, usersToRemove, saving, saveNeeded, serverError, permissionsToUpdate, saveKey} = this.state;
         const {role, isDisabled, isLicensedForCloud} = this.props;
-        const defaultName = role.name.split('').map((r) => r.charAt(0).toUpperCase() + r.slice(1)).join(' ');
         return (
             <div className='wrapper--fixed'>
                 <AdminHeader withBackButton={true}>
@@ -250,10 +251,7 @@ export default class SystemRole extends React.PureComponent<Props, State> {
                             to='/admin_console/user_management/system_roles'
                             className='fa fa-angle-left back'
                         />
-                        <FormattedMessage
-                            id={`admin.permissions.roles.${role.name}.name`}
-                            defaultMessage={defaultName}
-                        />
+                        <FormattedMessage {...rolesStrings[role.name].name}/>
                     </div>
                 </AdminHeader>
                 <div className='admin-console__wrapper'>

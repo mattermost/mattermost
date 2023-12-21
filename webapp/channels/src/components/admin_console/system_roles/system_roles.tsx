@@ -13,9 +13,9 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {getHistory} from 'utils/browser_history';
-import {t} from 'utils/i18n';
 
 import './system_roles.scss';
+import {rolesStrings} from './strings';
 
 type Props = {
     roles: Record<string, Role>;
@@ -55,9 +55,9 @@ export default class SystemRoles extends React.PureComponent<Props> {
             if (role) {
                 rows.push({
                     cells: {
-                        role: <FormattedMessage id={`admin.permissions.roles.${role.name}.name`}/>,
-                        description: <FormattedMessage id={`admin.permissions.roles.${role.name}.description`}/>,
-                        type: <FormattedMessage id={`admin.permissions.roles.${role.name}.type`}/>,
+                        role: <FormattedMessage {...rolesStrings[role.name].name}/>,
+                        description: <FormattedMessage {...rolesStrings[role.name].description}/>,
+                        type: <FormattedMessage {...rolesStrings[role.name].type}/>,
                         edit: (
                             <span
                                 className='SystemRoles_editRow'
@@ -111,20 +111,3 @@ export default class SystemRoles extends React.PureComponent<Props> {
         );
     }
 }
-
-t('admin.permissions.roles.system_admin.name');
-t('admin.permissions.roles.system_admin.description');
-t('admin.permissions.roles.system_admin.type');
-t('admin.permissions.roles.system_user_manager.name');
-t('admin.permissions.roles.system_user_manager.description');
-t('admin.permissions.roles.system_user_manager.type');
-t('admin.permissions.roles.system_manager.name');
-t('admin.permissions.roles.system_manager.description');
-t('admin.permissions.roles.system_manager.type');
-t('admin.permissions.roles.system_read_only_admin.name');
-t('admin.permissions.roles.system_read_only_admin.description');
-t('admin.permissions.roles.system_read_only_admin.type');
-t('admin.permissions.roles.system_custom_group_admin.name');
-t('admin.permissions.roles.system_custom_group_admin.description');
-t('admin.permissions.roles.system_custom_group_admin.type');
-

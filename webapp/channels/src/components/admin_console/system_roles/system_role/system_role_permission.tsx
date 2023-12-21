@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
+import {sectionStrings} from './strings';
 import SystemRolePermissionDropdown from './system_role_permission_dropdown';
 import {noAccess, writeAccess, readAccess, mixedAccess} from './types';
 import type {PermissionsToUpdate, PermissionToUpdate, SystemSection, PermissionAccess} from './types';
@@ -85,18 +86,12 @@ export default class SystemRolePermission extends React.PureComponent<Props> {
             >
                 <div className='PermissionSectionText'>
                     <div className='PermissionSectionText_title'>
-                        <FormattedMessage
-                            id={`admin.permissions.sysconsole_section_${section.name}.name`}
-                            defaultMessage={section.name}
-                        />
+                        <FormattedMessage {...sectionStrings[section.name].name}/>
                     </div>
 
                     {section.hasDescription &&
                         <div className='PermissionSection_description'>
-                            <FormattedMessage
-                                id={`admin.permissions.sysconsole_section_${section.name}.description`}
-                                defaultMessage={''}
-                            />
+                            <FormattedMessage {...sectionStrings[section.name].description}/>
                         </div>
                     }
 

@@ -24,6 +24,7 @@ import OverlayTrigger from 'components/overlay_trigger';
 import type {BaseOverlayTrigger} from 'components/overlay_trigger';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
+import {statusDropdownMessages} from 'components/status_dropdown/status_dropdown';
 import StatusIcon from 'components/status_icon';
 import Timestamp from 'components/timestamp';
 import Tooltip from 'components/tooltip';
@@ -41,7 +42,7 @@ import {
     NotificationLevels,
     RHSStates,
 } from 'utils/constants';
-import {handleFormattedTextClick, localizeMessage, isEmptyObject, toTitleCase} from 'utils/utils';
+import {handleFormattedTextClick, isEmptyObject} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 import type {RhsState} from 'types/store/rhs';
@@ -291,7 +292,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             hideGuestTags,
         } = this.props;
         const {formatMessage} = this.props.intl;
-        const ariaLabelChannelHeader = localizeMessage('accessibility.sections.channelHeader', 'channel header region');
+        const ariaLabelChannelHeader = this.props.intl.formatMessage({id: 'accessibility.sections.channelHeader', defaultMessage: 'channel header region'});
 
         let hasGuestsText: ReactNode = '';
         if (hasGuests && !hideGuestTags) {
@@ -415,10 +416,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
 
             dmHeaderTextStatus = (
                 <span className='header-status__text'>
-                    <FormattedMessage
-                        id={`status_dropdown.set_${channel.status}`}
-                        defaultMessage={toTitleCase(channel.status || '')}
-                    />
+                    <FormattedMessage {...statusDropdownMessages[channel.status!].name}/>
                     {this.renderCustomStatus()}
                 </span>
             );
