@@ -7453,7 +7453,7 @@
   },
   {
     "id": "api.command_custom_status.app_error",
-    "translation": "Chyba při nastavování stavu"
+    "translation": "Chyba při nastavování stavu."
   },
   {
     "id": "api.channel.group_message.converted.to_private_channel",
@@ -7570,5 +7570,41 @@
   {
     "id": "api.command_remote.service_not_enabled",
     "translation": "Služba zabezpečeného připojení není povolena."
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Zpráva byla přesunuta do soukromé/skupinové konverzace\n"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Vlákno nelze odebrat"
+  },
+  {
+    "id": "app.post.permanent_delete_by_user.app_error",
+    "translation": "Nelze vybrat zprávy pro smazání u tohoto uživatele."
+  },
+  {
+    "id": "app.post.save.app_error",
+    "translation": "Nelze uložit příspěvek."
+  },
+  {
+    "id": "app.post.save.existing.app_error",
+    "translation": "Nemůžete aktualizovat existující příspěvek."
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Toto vlákno bylo přesunuto z jiného kanálu"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "Vlákno s {{.NumMessages}} zprávami bylo přesunuto: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Zpráva byla přesunuta: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "Vlákno s {{.NumMessages}} zprávami bylo přesunuto do soukromé/skupinové konverzace\n"
   }
 ]
