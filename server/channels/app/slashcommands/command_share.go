@@ -218,12 +218,12 @@ func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, m
 }
 
 func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.CommandArgs, margs map[string]string) (resp *model.CommandResponse) {
-	remoteId, ok := margs["connectionID"]
-	if !ok || remoteId == "" {
+	remoteID, ok := margs["connectionID"]
+	if !ok || remoteID == "" {
 		return responsef(args.T("api.command_share.must_specify_valid_remote"))
 	}
 
-	hasRemote, err := a.HasRemote(args.ChannelId, remoteId)
+	hasRemote, err := a.HasRemote(args.ChannelId, remoteID)
 	if err != nil {
 		return responsef(args.T("api.command_share.fetch_remote.error", map[string]any{"Error": err.Error()}))
 	}
@@ -246,12 +246,12 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.C
 		}()
 	}
 
-	rc, appErr := a.GetRemoteCluster(remoteId)
+	rc, appErr := a.GetRemoteCluster(remoteID)
 	if appErr != nil {
 		return responsef(args.T("api.command_share.remote_id_invalid.error", map[string]any{"Error": appErr.Error()}))
 	}
 
-	if err = a.InviteRemoteToChannel(args.ChannelId, remoteId, args.UserId); err != nil {
+	if err = a.InviteRemoteToChannel(args.ChannelId, remoteID, args.UserId); err != nil {
 		return responsef(appErr.Error())
 	}
 
