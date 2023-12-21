@@ -166,47 +166,56 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		event2 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", th.BasicChannel.Id, "", nil, "")
 		// Basic, unset case
 		basicUserWc.SetActiveChannelID(platform.UnsetPresenceIndicator)
-		basicUserWc.SetActiveThreadChannelID(platform.UnsetPresenceIndicator)
+		basicUserWc.SetActiveRHSThreadChannelID(platform.UnsetPresenceIndicator)
+		basicUserWc.SetActiveThreadViewThreadChannelID(platform.UnsetPresenceIndicator)
 		assert.True(t, basicUserWc.ShouldSendEvent(event2))
 
 		// Active channel is set to something else, thread unset
 		basicUserWc.SetActiveChannelID("ch1")
-		basicUserWc.SetActiveThreadChannelID(platform.UnsetPresenceIndicator)
+		basicUserWc.SetActiveRHSThreadChannelID(platform.UnsetPresenceIndicator)
+		basicUserWc.SetActiveThreadViewThreadChannelID(platform.UnsetPresenceIndicator)
 		assert.True(t, basicUserWc.ShouldSendEvent(event2))
 
 		// Active channel is unset, thread set
 		basicUserWc.SetActiveChannelID(platform.UnsetPresenceIndicator)
-		basicUserWc.SetActiveThreadChannelID("ch1")
+		basicUserWc.SetActiveRHSThreadChannelID("ch1")
+		basicUserWc.SetActiveThreadViewThreadChannelID("ch2")
 		assert.True(t, basicUserWc.ShouldSendEvent(event2))
 
 		// both are set to correct channel
 		basicUserWc.SetActiveChannelID(th.BasicChannel.Id)
-		basicUserWc.SetActiveThreadChannelID(th.BasicChannel.Id)
+		basicUserWc.SetActiveRHSThreadChannelID(th.BasicChannel.Id)
+		basicUserWc.SetActiveThreadViewThreadChannelID(th.BasicChannel.Id)
 		assert.True(t, basicUserWc.ShouldSendEvent(event2))
 
 		// channel is correct, thread is something else.
 		basicUserWc.SetActiveChannelID(th.BasicChannel.Id)
-		basicUserWc.SetActiveThreadChannelID("ch1")
+		basicUserWc.SetActiveRHSThreadChannelID("ch1")
+		basicUserWc.SetActiveThreadViewThreadChannelID("ch2")
 		assert.True(t, basicUserWc.ShouldSendEvent(event2))
 
 		// channel is wrong, thread is correct.
 		basicUserWc.SetActiveChannelID("ch1")
-		basicUserWc.SetActiveThreadChannelID(th.BasicChannel.Id)
+		basicUserWc.SetActiveRHSThreadChannelID(th.BasicChannel.Id)
+		basicUserWc.SetActiveThreadViewThreadChannelID(th.BasicChannel.Id)
 		assert.True(t, basicUserWc.ShouldSendEvent(event2))
 
 		// FINALLY, both are set to something else.
 		basicUserWc.SetActiveChannelID("ch1")
-		basicUserWc.SetActiveThreadChannelID("ch1")
+		basicUserWc.SetActiveRHSThreadChannelID("ch1")
+		basicUserWc.SetActiveThreadViewThreadChannelID("ch2")
 		assert.False(t, basicUserWc.ShouldSendEvent(event2))
 
 		// Different threads and channel
 		basicUserWc.SetActiveChannelID("ch1")
-		basicUserWc.SetActiveThreadChannelID("ch2")
+		basicUserWc.SetActiveRHSThreadChannelID("ch2")
+		basicUserWc.SetActiveThreadViewThreadChannelID("ch3")
 		assert.False(t, basicUserWc.ShouldSendEvent(event2))
 
 		// Other channel. Thread unset explicitly.
 		basicUserWc.SetActiveChannelID("ch1")
-		basicUserWc.SetActiveThreadChannelID("")
+		basicUserWc.SetActiveRHSThreadChannelID("")
+		basicUserWc.SetActiveThreadViewThreadChannelID("")
 		assert.False(t, basicUserWc.ShouldSendEvent(event2))
 	})
 
