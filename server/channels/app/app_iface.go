@@ -269,6 +269,12 @@ type AppIface interface {
 	MoveChannel(c request.CTX, team *model.Team, channel *model.Channel, user *model.User) *model.AppError
 	// NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
 	NotifySessionsExpired() error
+	// OnSharedChannelsPing is called by the Shared Channels service for a registered plugin wto check that the plugin
+	// is still responding and has a connection to any upstream services it needs (e.g. MS Graph API).
+	OnSharedChannelsPing(rc *model.RemoteCluster) bool
+	// OnSharedChannelsSyncMsg is called by the Shared Channels service for a registered plugin when there is new content
+	// that needs to be synchronized.
+	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
 	// OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 	// so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
 	OverrideIconURLIfEmoji(c request.CTX, post *model.Post)
