@@ -39,8 +39,8 @@ import {handleFormattedTextClick, localizeMessage, isEmptyObject, toTitleCase} f
 import type {ModalData} from 'types/actions';
 import type {RhsState} from 'types/store/rhs';
 
-import ChannelInfoButton from './channel_info_button';
 import ChannelHeaderTitle from './channel_header_title';
+import ChannelInfoButton from './channel_info_button';
 import HeaderIconWrapper from './components/header_icon_wrapper';
 
 const headerMarkdownOptions = {singleline: true, mentionHighlight: false, atMentions: true};
@@ -138,7 +138,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
     }
 
     handleClose = () => this.props.actions.goToLastViewedChannel();
-
 
     unmute = () => {
         const {actions, channel, channelMember, currentUser} = this.props;
@@ -621,7 +620,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                 </OverlayTrigger>
             );
         }
-
 
         return (
             <div

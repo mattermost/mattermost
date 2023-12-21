@@ -3,12 +3,15 @@
 
 import React, {memo} from 'react';
 import {useSelector} from 'react-redux';
-import {displayUsername, isGuest} from 'mattermost-redux/utils/user_utils';
-import GuestTag from 'components/widgets/tag/guest_tag';
+
 import type {UserProfile} from '@mattermost/types/users';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import {displayUsername, isGuest} from 'mattermost-redux/utils/user_utils';
+
+import GuestTag from 'components/widgets/tag/guest_tag';
 
 type Props = {
     gmMembers?: UserProfile[];
@@ -60,9 +63,9 @@ const ChannelHeaderTitleGroup = ({
                         {isGuest(user?.roles ?? '') && <GuestTag/>}
                     </React.Fragment>
                 );
-            })};
+            })}
         </React.Fragment>
-    )
+    );
 };
 
 export default memo(ChannelHeaderTitleGroup);

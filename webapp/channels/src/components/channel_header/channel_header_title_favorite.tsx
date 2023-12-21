@@ -3,19 +3,20 @@
 
 import classNames from 'classnames';
 import React, {memo, useRef, useCallback} from 'react';
-import {useSelector, useDispatch} from 'react-redux';
 import {FormattedMessage, useIntl} from 'react-intl';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import {Constants } from 'utils/constants';
+import {useSelector, useDispatch} from 'react-redux';
+
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
 import {getCurrentChannel, isCurrentChannelFavorite} from 'mattermost-redux/selectors/entities/channels';
 
-type Props = {}
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
 
-const ChannelHeaderTitleFavorite = ({}: Props) => {
+import {Constants} from 'utils/constants';
+
+const ChannelHeaderTitleFavorite = () => {
     const intl = useIntl();
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
     const isFavorite = useSelector(isCurrentChannelFavorite);
     const channel = useSelector(getCurrentChannel);
     const channelIsArchived = channel.delete_at !== 0;
@@ -36,7 +37,7 @@ const ChannelHeaderTitleFavorite = ({}: Props) => {
     }, []);
 
     if (!channel || channelIsArchived) {
-        return null
+        return null;
     }
 
     let ariaLabel = intl.formatMessage({id: 'channelHeader.addToFavorites', defaultMessage: 'Add to Favorites'});
@@ -72,7 +73,7 @@ const ChannelHeaderTitleFavorite = ({}: Props) => {
                 id='toggleFavorite'
                 ref={toggleFavoriteRef}
                 onClick={toggleFavoriteCallback}
-                className={classNames('style--none color--link channel-header__favorites', {'active': isFavorite, 'inactive': !isFavorite})}
+                className={classNames('style--none color--link channel-header__favorites', {active: isFavorite, inactive: !isFavorite})}
                 aria-label={ariaLabel}
             >
                 <i className={classNames('icon', {'icon-star': isFavorite, 'icon-star-outline': !isFavorite})}/>
