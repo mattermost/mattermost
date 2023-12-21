@@ -127,11 +127,13 @@ func (sp *ShareProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 		return responsef(args.T("api.command_share.permission_required", map[string]any{"Permission": "manage_shared_channels"}))
 	}
 
-	if a.Srv().GetSharedChannelSyncService() == nil {
+	syncService := a.Srv().GetSharedChannelSyncService()
+	if syncService == nil || !syncService.Active() {
 		return responsef(args.T("api.command_share.service_disabled"))
 	}
 
-	if a.Srv().GetRemoteClusterService() == nil {
+	rcService := a.Srv().GetRemoteClusterService()
+	if rcService == nil || !rcService.Active() {
 		return responsef(args.T("api.command_remote.service_disabled"))
 	}
 

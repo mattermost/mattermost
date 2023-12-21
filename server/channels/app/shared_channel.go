@@ -132,6 +132,12 @@ func (a *App) UnshareChannel(channelID string) (bool, error) {
 // SharedChannelRemotes
 
 func (a *App) InviteRemoteToChannel(channelID, remoteID, userID string) error {
+	syncService := a.Srv().GetSharedChannelSyncService()
+	if syncService == nil || !syncService.Active() {
+		return model.NewAppError("InviteRemoteToChannel", "api.command_share.service_disabled",
+			nil, "", http.StatusBadRequest)
+	}
+
 	hasRemote, err := a.HasRemote(channelID, remoteID)
 	if err != nil {
 		return model.NewAppError("InviteRemoteToChannel", "api.command_share.fetch_remote.error",
@@ -171,7 +177,7 @@ func (a *App) InviteRemoteToChannel(channelID, remoteID, userID string) error {
 			map[string]any{"Name": rc.DisplayName, "Error": errApp.Error()}, "", http.StatusBadRequest).Wrap(appErr)
 	}
 	// send channel invite to remote cluster. Will notify clients of channel change.
-	if err := a.Srv().GetSharedChannelSyncService().SendChannelInvite(channel, userID, rc); err != nil {
+	if err := syncService.SendChannelInvite(channel, userID, rc); err != nil {
 		return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite.error",
 			map[string]any{"Name": rc.DisplayName, "Error": err.Error()}, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -282,6 +288,48 @@ func (a *App) UpdateSharedChannelCursor(channelID, remoteID string, cursor model
 
 // SyncSharedChannel forces a shared channel to send any changed content to all remote clusters.
 func (a *App) SyncSharedChannel(channelID string) error {
-	a.Srv().GetSharedChannelSyncService().NotifyChannelChanged(channelID)
+	syncService := a.Srv().GetSharedChannelSyncService()
+	if syncService == nil || !syncService.Active() {
+		return model.NewAppError("InviteRemoteToChannel", "api.command_share.service_disabled",
+			nil, "", http.StatusBadRequest)
+	}
+
+	syncService.NotifyChannelChanged(channelID)
 	return nil
+}
+
+// Hooks
+
+var ErrPluginUnavailable = errors.New("plugin unavialable")
+
+// OnSharedChannelsSyncMsg is called by the Shared Channels service for a registered plugin when there is new content
+// that needs to be synchronized.
+func (a *App) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return model.SyncResponse{}, fmt.Errorf("cannot deliver sync msg to plugin %s: %w", rc.PluginID, ErrPluginUnavailable)
+	}
+
+	pluginHooks, err := pluginsEnvironment.HooksForPlugin(rc.PluginID)
+	if err != nil {
+		return model.SyncResponse{}, fmt.Errorf("cannot deliver sync msg to plugin %s: %w", rc.PluginID, err)
+	}
+
+	return pluginHooks.OnSharedChannelsSyncMsg(msg, rc)
+}
+
+// OnSharedChannelsPing is called by the Shared Channels service for a registered plugin wto check that the plugin
+// is still responding and has a connection to any upstream services it needs (e.g. MS Graph API).
+func (a *App) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return false
+	}
+
+	pluginHooks, err := pluginsEnvironment.HooksForPlugin(rc.PluginID)
+	if err != nil {
+		return false
+	}
+
+	return pluginHooks.OnSharedChannelsPing(rc)
 }

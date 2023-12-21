@@ -625,8 +625,8 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	}
 
 	var err error
-
-	rcs, err := remotecluster.NewRemoteClusterService(s)
+	appInstance := New(ServerConnector(s.Channels()))
+	rcs, err := remotecluster.NewRemoteClusterService(s, appInstance)
 	if err != nil {
 		return err
 	}
@@ -653,7 +653,6 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 		return nil
 	}
 
-	appInstance := New(ServerConnector(s.Channels()))
 	scs, err := sharedchannel.NewSharedChannelService(s, appInstance)
 	if err != nil {
 		return err

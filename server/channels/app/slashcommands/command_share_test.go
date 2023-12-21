@@ -28,7 +28,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 
 		mockSyncService := app.NewMockSharedChannelService(nil)
 		th.Server.SetSharedChannelSyncService(mockSyncService)
-		mockRemoteCluster, err := remotecluster.NewRemoteClusterService(th.Server)
+		mockRemoteCluster, err := remotecluster.NewRemoteClusterService(th.Server, th.App)
 		require.NoError(t, err)
 
 		th.Server.SetRemoteClusterService(mockRemoteCluster)
@@ -64,7 +64,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 
 		mockSyncService := app.NewMockSharedChannelService(nil)
 		th.Server.SetSharedChannelSyncService(mockSyncService)
-		mockRemoteCluster, err := remotecluster.NewRemoteClusterService(th.Server)
+		mockRemoteCluster, err := remotecluster.NewRemoteClusterService(th.Server, th.App)
 		require.NoError(t, err)
 
 		th.Server.SetRemoteClusterService(mockRemoteCluster)
