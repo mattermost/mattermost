@@ -1390,12 +1390,12 @@
     "translation": "Cannot invite secure connection to a shared channel originating somewhere else."
   },
   {
-    "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "Shared channel secure connection `{{.RemoteId}}` does not exist for this channel."
-  },
-  {
     "id": "api.command_share.channel_not_shared.error",
     "translation": "Cannot invite remote because channel {{.ChannelID}} is not shared."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "Shared channel secure connection `{{.RemoteId}}` does not exist for this channel."
   },
   {
     "id": "api.command_share.channel_shared",
