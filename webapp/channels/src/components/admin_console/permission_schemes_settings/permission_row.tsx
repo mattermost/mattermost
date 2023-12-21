@@ -9,6 +9,7 @@ import type {Role} from '@mattermost/types/roles';
 import PermissionCheckbox from './permission_checkbox';
 import PermissionDescription from './permission_description';
 import type {AdditionalValues} from './permissions_tree/types';
+import {permissionRolesStrings} from './strings/permissions';
 
 type Props = {
     id: string;
@@ -51,15 +52,13 @@ const PermissionRow = (props: Props): JSX.Element => {
                 id={`${uniqId}-checkbox`}
             />
             <span className='permission-name'>
-                <FormattedMessage
-                    id={'admin.permissions.permission.' + id + '.name'}
-                />
+                <FormattedMessage {...permissionRolesStrings[id].name}/>
             </span>
             <PermissionDescription
                 inherited={inherited}
                 id={id}
                 selectRow={props.selectRow}
-                rowType='permission'
+                description={<FormattedMessage {...permissionRolesStrings[id].description}/>}
                 additionalValues={additionalValues}
             />
         </div>

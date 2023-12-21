@@ -13,6 +13,7 @@ import PermissionCheckbox from './permission_checkbox';
 import PermissionDescription from './permission_description';
 import PermissionRow from './permission_row';
 import type {AdditionalValues, Permission, Permissions} from './permissions_tree/types';
+import {groupRolesStrings} from './strings/groups';
 
 type Props = {
     id: string;
@@ -28,6 +29,7 @@ type Props = {
     selectRow: (id: string) => void;
     root?: boolean;
     additionalValues?: AdditionalValues;
+    text: string;
 };
 
 type State = {
@@ -182,6 +184,7 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
                 onChange={this.toggleSelectSubGroup}
                 combined={g.combined}
                 root={false}
+                text={this.props.text}
             />
         );
     };
@@ -298,14 +301,14 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
                             id={`${uniqId}-checkbox`}
                         />
                         <span className='permission-name'>
-                            <FormattedMessage id={'admin.permissions.group.' + id + '.name'}/>
+                            <FormattedMessage {...groupRolesStrings[id].name}/>
                         </span>
                         <PermissionDescription
                             additionalValues={additionalValuesProp}
                             inherited={inherited}
                             id={id}
                             selectRow={this.props.selectRow}
-                            rowType='group'
+                            description={(<FormattedMessage {...groupRolesStrings[id].description}/>)}
                         />
                     </div>}
                 {!combined &&
