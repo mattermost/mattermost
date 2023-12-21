@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import AdvancedCreatePost from 'components/advanced_create_post';
+import ChannelBookmarks from 'components/channel_bookmarks';
 import ChannelHeader from 'components/channel_header';
 import deferComponentRender from 'components/deferComponentRender';
 import FileUploadOverlay from 'components/file_upload_overlay';
@@ -173,9 +174,8 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                 className='app__content'
             >
                 <FileUploadOverlay overlayType='center'/>
-                <ChannelHeader
-                    {...this.props}
-                />
+                <ChannelHeader {...this.props}/>
+                <ChannelBookmarks/>
                 <DeferredPostView
                     channelId={this.props.channelId}
                     focusedPostId={this.state.focusedPostId}
