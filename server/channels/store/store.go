@@ -1018,6 +1018,7 @@ type DraftStore interface {
 	GetDraftsForUser(userID, teamID string) ([]*model.Draft, error)
 	GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt int64, userId string) (int64, string, error)
 	DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userId string) error
+	DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userId string) error
 }
 
 type PostAcknowledgementStore interface {

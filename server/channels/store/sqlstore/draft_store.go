@@ -343,3 +343,60 @@ func (s *SqlDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, use
 
 	return nil
 }
+
+func (s *SqlDraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userId string) error {
+	var builder Builder
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		builder = s.getQueryBuilder().
+			Delete("Drafts d").
+			PrefixExpr(s.getQueryBuilder().Select().
+				Prefix("WITH dd AS (").
+				Columns("UserId", "ChannelId", "RootId").
+				From("Drafts").
+				Where(sq.Or{
+					sq.Gt{"CreateAt": createAt},
+					sq.And{
+						sq.Eq{"CreateAt": createAt},
+						sq.Gt{"UserId": userId},
+					},
+				}).
+				OrderBy("CreateAt", "UserId").
+				Limit(100).
+				Suffix(")"),
+			).
+			Using("dd").
+			Where("d.UserId = dd.UserId").
+			Where("d.ChannelId = dd.ChannelId").
+			Where("d.RootId = dd.RootId").
+			Suffix("AND (d.RootId IN (SELECT Id FROM Posts WHERE DeleteAt <> 0) OR NOT EXISTS (SELECT 1 FROM Posts WHERE Posts.Id = d.RootId))")
+
+	} else if s.DriverName() == model.DatabaseDriverMysql {
+		builder = s.getQueryBuilder().
+			Delete("Drafts d").
+			What("d.*").
+			JoinClause(s.getQueryBuilder().Select().
+				Prefix("INNER JOIN (").
+				Columns("UserId, ChannelId, RootId").
+				From("Drafts").
+				Where(sq.And{
+					sq.Or{
+						sq.Gt{"CreateAt": createAt},
+						sq.And{
+							sq.Eq{"CreateAt": createAt},
+							sq.Gt{"UserId": userId},
+						},
+					},
+				}).
+				OrderBy("CreateAt", "UserId").
+				Limit(100).
+				Suffix(") dj ON (d.UserId = dj.UserId AND d.ChannelId = dj.ChannelId AND d.RootId = dj.RootId)"),
+			).
+			Suffix("AND (d.RootId IN (SELECT Id FROM Posts WHERE DeleteAt <> 0) OR NOT EXISTS (SELECT 1 FROM Posts WHERE Posts.Id = d.RootId))")
+	}
+
+	if _, err := s.GetMasterX().ExecBuilder(builder); err != nil {
+		return errors.Wrapf(err, "failed to delete orphan drafts")
+	}
+
+	return nil
+}
