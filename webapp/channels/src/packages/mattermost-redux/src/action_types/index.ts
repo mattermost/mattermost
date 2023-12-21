@@ -16,6 +16,7 @@ import GroupTypes from './groups';
 import HostedCustomerTypes from './hosted_customer';
 import IntegrationTypes from './integrations';
 import JobTypes from './jobs';
+import LimitsTypes from './limits';
 import PlaybookType from './playbooks';
 import PluginTypes from './plugins';
 import PostTypes from './posts';
@@ -40,6 +41,7 @@ export {
     EmojiTypes,
     AdminTypes,
     JobTypes,
+    LimitsTypes,
     SearchTypes,
     RoleTypes,
     SchemeTypes,

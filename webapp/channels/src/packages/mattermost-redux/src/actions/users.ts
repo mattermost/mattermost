@@ -11,6 +11,7 @@ import {UserTypes, AdminTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
 import {setServerVersion, getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
 import {bindClientFunc, forceLogoutIfNecessary, debounce} from 'mattermost-redux/actions/helpers';
+import {getUsersLimits} from 'mattermost-redux/actions/limits';
 import {getMyPreferences} from 'mattermost-redux/actions/preferences';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {getMyTeams, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/actions/teams';
@@ -62,6 +63,7 @@ export function loadMe(): ActionFunc {
 
         try {
             await Promise.all([
+                dispatch(getUsersLimits()),
                 dispatch(getClientConfig()),
                 dispatch(getLicenseConfig()),
                 dispatch(getMe()),
