@@ -25,7 +25,7 @@ func TestGetUserLimits(t *testing.T) {
 		require.Equal(t, int64(9000), userLimits.UpperBandUserLimit)
 	})
 
-	t.Run("user count should increase on creating new user and decrease on deleting", func(t *testing.T) {
+	t.Run("user count should increase on creating new user and decrease on permanently deleting", func(t *testing.T) {
 		userLimits, appErr := th.App.GetUserLimits()
 		require.Nil(t, appErr)
 		require.Equal(t, int64(3), userLimits.ActiveUserCount)
@@ -39,6 +39,65 @@ func TestGetUserLimits(t *testing.T) {
 
 		// now we'll delete the user
 		_ = th.App.PermanentDeleteUser(th.Context, newUser)
+		userLimits, appErr = th.App.GetUserLimits()
+		require.Nil(t, appErr)
+		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+	})
+
+	t.Run("user count should increase on creating new guest user and decrease on permanently deleting", func(t *testing.T) {
+		userLimits, appErr := th.App.GetUserLimits()
+		require.Nil(t, appErr)
+		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+
+		// now we create a new user
+		newGuestUser := th.CreateGuest()
+
+		userLimits, appErr = th.App.GetUserLimits()
+		require.Nil(t, appErr)
+		require.Equal(t, int64(4), userLimits.ActiveUserCount)
+
+		// now we'll delete the user
+		_ = th.App.PermanentDeleteUser(th.Context, newGuestUser)
+		userLimits, appErr = th.App.GetUserLimits()
+		require.Nil(t, appErr)
+		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+	})
+
+	t.Run("user count should increase on creating new user and decrease on soft deleting", func(t *testing.T) {
+		userLimits, appErr := th.App.GetUserLimits()
+		require.Nil(t, appErr)
+		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+
+		// now we create a new user
+		newUser := th.CreateUser()
+
+		userLimits, appErr = th.App.GetUserLimits()
+		require.Nil(t, appErr)
+		require.Equal(t, int64(4), userLimits.ActiveUserCount)
+
+		// now we'll delete the user
+		_, appErr = th.App.UpdateActive(th.Context, newUser, false)
+		require.Nil(t, appErr)
+		userLimits, appErr = th.App.GetUserLimits()
+		require.Nil(t, appErr)
+		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+	})
+
+	t.Run("user count should increase on creating new guest user and decrease on soft deleting", func(t *testing.T) {
+		userLimits, appErr := th.App.GetUserLimits()
+		require.Nil(t, appErr)
+		require.Equal(t, int64(3), userLimits.ActiveUserCount)
+
+		// now we create a new user
+		newGuestUser := th.CreateGuest()
+
+		userLimits, appErr = th.App.GetUserLimits()
+		require.Nil(t, appErr)
+		require.Equal(t, int64(4), userLimits.ActiveUserCount)
+
+		// now we'll delete the user
+		_, appErr = th.App.UpdateActive(th.Context, newGuestUser, false)
+		require.Nil(t, appErr)
 		userLimits, appErr = th.App.GetUserLimits()
 		require.Nil(t, appErr)
 		require.Equal(t, int64(3), userLimits.ActiveUserCount)

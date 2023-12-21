@@ -34,15 +34,9 @@ func (a *App) GetUserLimits() (*model.UserLimits, *model.AppError) {
 }
 
 func (a *App) shouldShowUserLimits() bool {
-	license := a.License()
-
-	if license == nil {
-		return true
-	}
-
 	if maxUsersLimit == 0 {
 		return false
 	}
 
-	return false
+	return a.License() == nil
 }
