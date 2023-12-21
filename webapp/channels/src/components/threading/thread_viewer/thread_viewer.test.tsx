@@ -67,6 +67,7 @@ describe('components/threading/ThreadViewer', () => {
         postIds: [post.id],
         appsEnabled: true,
         rootPostId: post.id,
+        isThreadView: true,
     };
 
     test('should match snapshot', async () => {
