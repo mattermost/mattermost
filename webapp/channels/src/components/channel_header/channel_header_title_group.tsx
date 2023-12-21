@@ -5,7 +5,6 @@ import React, {memo} from 'react';
 import {useSelector} from 'react-redux';
 import {displayUsername, isGuest} from 'mattermost-redux/utils/user_utils';
 import GuestTag from 'components/widgets/tag/guest_tag';
-import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
@@ -20,7 +19,11 @@ const ChannelHeaderTitleGroup = ({
 }: Props) => {
     const currentUser = useSelector(getCurrentUser);
     const teammateNameDisplaySetting = useSelector(getTeammateNameDisplaySetting);
-    const channel = useSelector(getCurrentChannel) || {};
+    const channel = useSelector(getCurrentChannel);
+
+    if (!channel) {
+        return null;
+    }
 
     // map the displayname to the gm member users
     const membersMap: Record<string, UserProfile[]> = {};

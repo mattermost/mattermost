@@ -179,9 +179,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
         }
     };
 
-
-    setTitleMenuOpen = (open: boolean) => this.setState({titleMenuOpen: open});
-
     showEditChannelHeaderModal = () => {
         if (this.headerOverlayRef.current) {
             this.headerOverlayRef.current.hide();

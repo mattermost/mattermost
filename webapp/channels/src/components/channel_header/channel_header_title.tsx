@@ -28,21 +28,19 @@ const ChannelHeaderTitle = ({
 }: Props) => {
     const [titleMenuOpen, setTitleMenuOpen] = useState(false)
     const intl = useIntl();
+    const channel = useSelector(getCurrentChannel);
 
-    const channel = useSelector(getCurrentChannel) || {};
+    if (!channel) {
+        return null;
+    }
+
     const isDirect = (channel.type === Constants.DM_CHANNEL);
     const isGroup = (channel.type === Constants.GM_CHANNEL);
     const channelIsArchived = channel.delete_at !== 0;
 
-    const archivedIcon = channelIsArchived ? <ArchiveIcon className='icon icon__archive icon channel-header-archived-icon svg-text-color'/> : null;
-
-    let channelTitle: ReactNode = channel.display_name;
-    if (isDirect) {
-        channelTitle = <ChannelHeaderTitleDirect dmUser={dmUser}/>
-    }
-
-    if (isGroup) {
-        channelTitle = <ChannelHeaderTitleGroup gmMembers={gmMembers}/>
+    let archivedIcon: React.ReactNode = null;
+    if (channelIsArchived) {
+        archivedIcon = <ArchiveIcon className='icon icon__archive icon channel-header-archived-icon svg-text-color'/>;
     }
 
     let sharedIcon = null;
@@ -55,6 +53,14 @@ const ChannelHeaderTitle = ({
             />
         );
     }
+
+    let channelTitle: ReactNode = channel.display_name;
+    if (isDirect) {
+        channelTitle = <ChannelHeaderTitleDirect dmUser={dmUser}/>
+    } else if (isGroup) {
+        channelTitle = <ChannelHeaderTitleGroup gmMembers={gmMembers}/>
+    }
+
     if (isDirect && dmUser?.is_bot) {
         return (
             <div
