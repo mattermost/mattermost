@@ -110,17 +110,20 @@ type WebConn struct {
 	// a reused connection.
 	// It's theoretically possible for this number to wrap around. But we
 	// leave that as an edge-case.
-	reuseCount                      int
-	sessionToken                    atomic.Value
-	session                         atomic.Pointer[model.Session]
-	connectionID                    atomic.Value
+	reuseCount   int
+	sessionToken atomic.Value
+	session      atomic.Pointer[model.Session]
+	connectionID atomic.Value
+
+	setActiveOnce                   sync.Once
 	activeChannelID                 atomic.Value
 	activeTeamID                    atomic.Value
 	activeRHSThreadChannelID        atomic.Value
 	activeThreadViewThreadChannelID atomic.Value
-	endWritePump                    chan struct{}
-	pumpFinished                    chan struct{}
-	pluginPosted                    chan pluginWSPostedHook
+
+	endWritePump chan struct{}
+	pumpFinished chan struct{}
+	pluginPosted chan pluginWSPostedHook
 
 	// These counters are to suppress spammy websocket.slow
 	// and websocket.full logs which happen continuously, if they
@@ -308,10 +311,26 @@ func (wc *WebConn) GetConnectionID() string {
 // SetActiveChannelID sets the active channel id of the connection.
 func (wc *WebConn) SetActiveChannelID(id string) {
 	wc.activeChannelID.Store(id)
+	if id != UnsetPresenceIndicator {
+		wc.setActiveOnce.Do(func() {
+			// We set these to empty as soon as we get an active channel scope.
+			// We do this to let the optimization take effect sooner, rather than
+			// waiting for a user to open a thread.
+			if wc.GetActiveRHSThreadChannelID() == UnsetPresenceIndicator {
+				wc.SetActiveRHSThreadChannelID("")
+			}
+			if wc.GetActiveThreadViewThreadChannelID() == UnsetPresenceIndicator {
+				wc.SetActiveThreadViewThreadChannelID("")
+			}
+		})
+	}
 }
 
 // GetActiveChannelID returns the active channel id of the connection.
 func (wc *WebConn) GetActiveChannelID() string {
+	if wc.activeChannelID.Load() == nil {
+		return UnsetPresenceIndicator
+	}
 	return wc.activeChannelID.Load().(string)
 }
 
@@ -322,11 +341,17 @@ func (wc *WebConn) SetActiveTeamID(id string) {
 
 // GetActiveTeamID returns the active team id of the connection.
 func (wc *WebConn) GetActiveTeamID() string {
+	if wc.activeTeamID.Load() == nil {
+		return UnsetPresenceIndicator
+	}
 	return wc.activeTeamID.Load().(string)
 }
 
 // GetActiveRHSThreadChannelID returns the channel id of the active thread of the connection.
 func (wc *WebConn) GetActiveRHSThreadChannelID() string {
+	if wc.activeRHSThreadChannelID.Load() == nil {
+		return UnsetPresenceIndicator
+	}
 	return wc.activeRHSThreadChannelID.Load().(string)
 }
 
@@ -337,6 +362,9 @@ func (wc *WebConn) SetActiveRHSThreadChannelID(id string) {
 
 // GetActiveThreadViewThreadChannelID returns the channel id of the active thread of the connection.
 func (wc *WebConn) GetActiveThreadViewThreadChannelID() string {
+	if wc.activeThreadViewThreadChannelID.Load() == nil {
+		return UnsetPresenceIndicator
+	}
 	return wc.activeThreadViewThreadChannelID.Load().(string)
 }
 
@@ -858,11 +886,11 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	if chID := msg.GetBroadcast().ChannelId; chID != "" {
 		// For typing events, we don't send them to users who don't have
 		// that channel or thread opened.
-		if utils.Contains([]model.WebsocketEventType{
-			model.WebsocketEventTyping,
-			model.WebsocketEventReactionAdded,
-			model.WebsocketEventReactionRemoved,
-		}, msg.EventType()) && wc.notInChannelAndThread(chID) {
+		if wc.Platform.Config().FeatureFlags.WebSocketEventScope &&
+			utils.Contains([]model.WebsocketEventType{
+				model.WebsocketEventTyping,
+				model.WebsocketEventReactionAdded,
+			}, msg.EventType()) && wc.notInChannelAndThread(chID) {
 			return false
 		}
 
@@ -901,7 +929,8 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 
 func (wc *WebConn) notInChannelAndThread(val string) bool {
 	return (wc.isSet(wc.GetActiveChannelID()) && val != wc.GetActiveChannelID()) &&
-		(wc.isSet(wc.GetActiveThreadChannelID()) && val != wc.GetActiveThreadChannelID())
+		(wc.isSet(wc.GetActiveRHSThreadChannelID()) && val != wc.GetActiveRHSThreadChannelID()) &&
+		(wc.isSet(wc.GetActiveThreadViewThreadChannelID()) && val != wc.GetActiveThreadViewThreadChannelID())
 }
 
 // IsMemberOfTeam returns whether the user of the WebConn

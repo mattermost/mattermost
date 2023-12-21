@@ -164,10 +164,12 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
     // scrolls to either bottom or new messages line
     private onInit = async (reconnected = false): Promise<void> => {
         this.setState({isLoading: !reconnected});
+
+        // We only load the thread when reconnected. There is no need to load the thread
+        // on component mount because those are done on the caller side, and it also
+        // avoids rendering bugs like emojis not getting rendered.
         if (reconnected) {
             await this.props.actions.getPostThread(this.props.selected?.id || this.props.rootPostId);
-        } else {
-            await this.props.actions.getNewestPostThread(this.props.selected?.id || this.props.rootPostId);
         }
 
         if (
