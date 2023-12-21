@@ -141,6 +141,8 @@ type Routes struct {
 	IPFiltering *mux.Router // 'api/v4/ip_filtering'
 
 	Reports *mux.Router // 'api/v4/reports'
+
+	Limits *mux.Router // 'api/v4/limits'
 }
 
 type API struct {
@@ -269,6 +271,8 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Reports = api.BaseRoutes.APIRoot.PathPrefix("/reports").Subrouter()
 
+	api.BaseRoutes.Limits = api.BaseRoutes.APIRoot.PathPrefix("/limits").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -314,6 +318,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitDrafts()
 	api.InitIPFiltering()
 	api.InitReports()
+	api.InitLimits()
 
 	srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
