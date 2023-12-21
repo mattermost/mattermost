@@ -1853,6 +1853,10 @@
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Unable to seek to file start."
+  },
+  {
     "id": "api.error_get_first_admin_complete_setup",
     "translation": "Error trying to retrieve first admin complete setup from the store."
   },
@@ -2023,6 +2027,10 @@
   {
     "id": "api.getUsersForReporting.invalid_active_filter",
     "translation": "Cannot hide both active and inactive users."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Page size is invalid or too large."
   },
   {
     "id": "api.getUsersForReporting.invalid_team_filter",
@@ -6583,6 +6591,10 @@
     "translation": "Unable to save the token."
   },
   {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Failed to fetch user report."
+  },
+  {
     "id": "app.role.check_roles_exist.role_not_found",
     "translation": "The provided role does not exist"
   },
@@ -7099,24 +7111,8 @@
     "translation": "We could not get the unread message count for the user."
   },
   {
-    "id": "app.user.get_user_report.invalid_sort_column",
-    "translation": "Provided sort column is not valid."
-  },
-  {
-    "id": "app.user.get_user_report.store_error",
-    "translation": "There was an error querying the user report."
-  },
-  {
     "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
     "translation": "Unable to get the users batch for indexing."
-  },
-  {
-    "id": "app.user.get_users_for_reporting.bad_date_range",
-    "translation": "Date range provided is invalid."
-  },
-  {
-    "id": "app.user.get_users_for_reporting.invalid_page_size",
-    "translation": "Page size is invalid or too large."
   },
   {
     "id": "app.user.missing_account.const",
@@ -8272,7 +8268,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
+    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -8908,7 +8904,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9', 'A10' or 'CUSTOM."
+    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9', 'A10' or 'CUSTOM'."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
@@ -8929,6 +8925,10 @@
   {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
     "translation": "Invalid domain for move thread settings"
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Invalid Outgoing Integrations Request Timeout for service settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -9623,6 +9623,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Date range provided is invalid."
+  },
+  {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
     "translation": "All IncludeDeletedChannels params should have the same value."
   },
@@ -9893,6 +9897,10 @@
   {
     "id": "model.user_access_token.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "Provided sort column is not valid."
   },
   {
     "id": "model.utils.decode_json.app_error",

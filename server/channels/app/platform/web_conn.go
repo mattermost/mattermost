@@ -110,16 +110,17 @@ type WebConn struct {
 	// a reused connection.
 	// It's theoretically possible for this number to wrap around. But we
 	// leave that as an edge-case.
-	reuseCount            int
-	sessionToken          atomic.Value
-	session               atomic.Pointer[model.Session]
-	connectionID          atomic.Value
-	activeChannelID       atomic.Value
-	activeTeamID          atomic.Value
-	activeThreadChannelID atomic.Value
-	endWritePump          chan struct{}
-	pumpFinished          chan struct{}
-	pluginPosted          chan pluginWSPostedHook
+	reuseCount                      int
+	sessionToken                    atomic.Value
+	session                         atomic.Pointer[model.Session]
+	connectionID                    atomic.Value
+	activeChannelID                 atomic.Value
+	activeTeamID                    atomic.Value
+	activeRHSThreadChannelID        atomic.Value
+	activeThreadViewThreadChannelID atomic.Value
+	endWritePump                    chan struct{}
+	pumpFinished                    chan struct{}
+	pluginPosted                    chan pluginWSPostedHook
 
 	// These counters are to suppress spammy websocket.slow
 	// and websocket.full logs which happen continuously, if they
@@ -244,7 +245,8 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 	// Because we need to support mobile clients where the value might be unset.
 	wc.SetActiveChannelID(UnsetPresenceIndicator)
 	wc.SetActiveTeamID(UnsetPresenceIndicator)
-	wc.SetActiveThreadChannelID(UnsetPresenceIndicator)
+	wc.SetActiveRHSThreadChannelID(UnsetPresenceIndicator)
+	wc.SetActiveThreadViewThreadChannelID(UnsetPresenceIndicator)
 
 	ps.Go(func() {
 		runner.RunMultiHook(func(hooks plugin.Hooks) bool {
@@ -323,14 +325,24 @@ func (wc *WebConn) GetActiveTeamID() string {
 	return wc.activeTeamID.Load().(string)
 }
 
-// GetActiveThreadChannelID returns the channel id of the active thread of the connection.
-func (wc *WebConn) GetActiveThreadChannelID() string {
-	return wc.activeThreadChannelID.Load().(string)
+// GetActiveRHSThreadChannelID returns the channel id of the active thread of the connection.
+func (wc *WebConn) GetActiveRHSThreadChannelID() string {
+	return wc.activeRHSThreadChannelID.Load().(string)
 }
 
-// SetActiveThreadChannelID sets the channel id of the active thread of the connection.
-func (wc *WebConn) SetActiveThreadChannelID(id string) {
-	wc.activeThreadChannelID.Store(id)
+// SetActiveRHSThreadChannelID sets the channel id of the active thread of the connection.
+func (wc *WebConn) SetActiveRHSThreadChannelID(id string) {
+	wc.activeRHSThreadChannelID.Store(id)
+}
+
+// GetActiveThreadViewThreadChannelID returns the channel id of the active thread of the connection.
+func (wc *WebConn) GetActiveThreadViewThreadChannelID() string {
+	return wc.activeThreadViewThreadChannelID.Load().(string)
+}
+
+// SetActiveThreadViewThreadChannelID sets the channel id of the active thread of the connection.
+func (wc *WebConn) SetActiveThreadViewThreadChannelID(id string) {
+	wc.activeThreadViewThreadChannelID.Store(id)
 }
 
 // isSet is a helper to check if a value is unset or not.
