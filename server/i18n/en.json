@@ -6047,6 +6047,10 @@
     "translation": "No license present"
   },
   {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Failed to get user count"
+  },
+  {
     "id": "app.login.doLogin.updateLastLogin.error",
     "translation": "Could not update last login timestamp"
   },

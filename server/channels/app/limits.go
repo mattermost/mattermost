@@ -22,7 +22,7 @@ func (a *App) GetUserLimits() (*model.UserLimits, *model.AppError) {
 
 	activeUserCount, appErr := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if appErr != nil {
-		return nil, model.NewAppError("GetUsersLimits", "", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		return nil, model.NewAppError("GetUsersLimits", "app.limits.get_user_limits.user_count.store_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	return &model.UserLimits{
