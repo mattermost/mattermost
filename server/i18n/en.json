@@ -2683,6 +2683,10 @@
     "translation": "This action is forbidden to a restricted system admin."
   },
   {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Unable to get that many roles by name. Only {{.MaxNames}} roles can be requested at once."
+  },
+  {
     "id": "api.roles.patch_roles.license.error",
     "translation": "Your license does not support advanced permissions."
   },
@@ -6045,6 +6049,10 @@
   {
     "id": "app.license.generate_renewal_token.no_license",
     "translation": "No license present"
+  },
+  {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Failed to get user count"
   },
   {
     "id": "app.login.doLogin.updateLastLogin.error",
