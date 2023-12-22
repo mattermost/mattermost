@@ -61,9 +61,9 @@ func (a *App) CheckCanInviteToSharedChannel(channelId string) error {
 	return nil
 }
 
-func (a *App) notifyClientsForSharedChannelUpdate(sc *model.SharedChannel) {
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, sc.TeamId, "", "", nil, "")
-	messageWs.Add("channel_id", sc.ChannelId)
+func (a *App) notifyClientsForSharedChannelUpdate(teamID, channelID string) {
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, teamID, "", "", nil, "")
+	messageWs.Add("channel_id", channelID)
 	a.Publish(messageWs)
 }
 
@@ -80,7 +80,7 @@ func (a *App) ShareChannel(c request.CTX, sc *model.SharedChannel) (*model.Share
 		return nil, err
 	}
 
-	a.notifyClientsForSharedChannelUpdate(scNew)
+	a.notifyClientsForSharedChannelUpdate(scNew.TeamId, scNew.ChannelId)
 	return scNew, nil
 }
 
@@ -109,7 +109,7 @@ func (a *App) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel
 	if err != nil {
 		return nil, err
 	}
-	a.notifyClientsForSharedChannelUpdate(scUpdated)
+	a.notifyClientsForSharedChannelUpdate(scUpdated.TeamId, scUpdated.ChannelId)
 	return scUpdated, nil
 }
 
@@ -125,7 +125,7 @@ func (a *App) UnshareChannel(channelID string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	a.notifyClientsForSharedChannelUpdate(sc)
+	a.notifyClientsForSharedChannelUpdate(sc.TeamId, sc.ChannelId)
 	return deleted, nil
 }
 

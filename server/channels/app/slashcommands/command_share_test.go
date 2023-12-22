@@ -26,14 +26,18 @@ func TestShareProviderDoCommand(t *testing.T) {
 
 		th.addPermissionToRole(model.PermissionManageSharedChannels.Id, th.BasicUser.Roles)
 
-		mockSyncService := app.NewMockSharedChannelService(nil)
+		mockSyncService := app.NewMockSharedChannelService(nil, app.MockOptionSharedChannelServiceWithActive(true))
 		th.Server.SetSharedChannelSyncService(mockSyncService)
-		mockRemoteCluster, err := remotecluster.NewRemoteClusterService(th.Server, th.App)
+		remoteClusterService, err := remotecluster.NewRemoteClusterService(th.Server, th.App)
 		require.NoError(t, err)
 
-		th.Server.SetRemoteClusterService(mockRemoteCluster)
+		th.Server.SetRemoteClusterService(remoteClusterService)
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Platform().SetCluster(testCluster)
+
+		err = remoteClusterService.Start()
+		require.NoError(t, err)
+		defer remoteClusterService.Shutdown()
 
 		commandProvider := ShareProvider{}
 		channel := th.CreateChannel(th.BasicTeam, WithShared(false))
@@ -64,12 +68,16 @@ func TestShareProviderDoCommand(t *testing.T) {
 
 		mockSyncService := app.NewMockSharedChannelService(nil)
 		th.Server.SetSharedChannelSyncService(mockSyncService)
-		mockRemoteCluster, err := remotecluster.NewRemoteClusterService(th.Server, th.App)
+		remoteClusterService, err := remotecluster.NewRemoteClusterService(th.Server, th.App)
 		require.NoError(t, err)
 
-		th.Server.SetRemoteClusterService(mockRemoteCluster)
+		th.Server.SetRemoteClusterService(remoteClusterService)
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Platform().SetCluster(testCluster)
+
+		err = remoteClusterService.Start()
+		require.NoError(t, err)
+		defer remoteClusterService.Shutdown()
 
 		commandProvider := ShareProvider{}
 		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
