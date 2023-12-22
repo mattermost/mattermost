@@ -9,11 +9,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-const (
-	lowerBandUsersLimit = 500
-	upperBandUsersLimit = 9000
-	maxUsersLimit       = 10000
-)
+const maxUsersLimit = 10000
 
 func (a *App) GetUserLimits() (*model.UserLimits, *model.AppError) {
 	if !a.shouldShowUserLimits() {
@@ -26,10 +22,8 @@ func (a *App) GetUserLimits() (*model.UserLimits, *model.AppError) {
 	}
 
 	return &model.UserLimits{
-		ActiveUserCount:    activeUserCount,
-		LowerBandUserLimit: lowerBandUsersLimit,
-		UpperBandUserLimit: upperBandUsersLimit,
-		MaxUsersLimit:      maxUsersLimit,
+		ActiveUserCount: activeUserCount,
+		MaxUsersLimit:   maxUsersLimit,
 	}, nil
 }
 
