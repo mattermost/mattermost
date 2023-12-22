@@ -3376,7 +3376,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger-ID voor interactief dialoogvenster is vervallen. Trigger-ID's hebben een levensduur van maximum {{.Seconds}} seconden."
+    "translation": "Trigger-ID voor interactief dialoogvenster is verlopen. Trigger-ID's blijven maximaal {{.Duration}} geldig."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -10120,5 +10120,65 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
     "translation": "Als GlobalRelaySettings.CustomerType 'CUSTOM' is, dan moeten GlobalRelaySettings.CustomSMTPServerName en GlobalRelaySettings.CustomSMTPPort worden ingesteld."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Paginaformaat is ongeldig of te groot."
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Draadje kan niet worden verwijderd"
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Fout bij het ophalen van gebruikersrapport."
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Ongeldige time-out voor uitgaand integratieverzoek voor service-instellingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Het opgegeven datumbereik is ongeldig."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "De opgegeven sorteerkolom is ongeldig."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Het begin van het bestand kan niet worden gezocht."
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Draadjes verplaatsen is uitgeschakeld"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "Je hebt geen rechten om dit draadje te verplaatsen."
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Dit draadje was verplaatst vanuit een ander kanaal"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "Een draadje met {{.NumMessages}} berichten is verplaatst: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Een bericht is verplaatst: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "Een draadje met {{.NumMessages}} berichten is verplaatst naar een Direct/Groepsbericht\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Een bericht is verplaatst naar een Direct/Groepsbericht\n"
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Ongeldig domein voor de instellingen van het verplaatsen van draadjes"
   }
 ]
