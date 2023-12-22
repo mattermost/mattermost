@@ -141,7 +141,7 @@ func (a *App) InviteRemoteToChannel(channelID, remoteID, userID string) error {
 	hasRemote, err := a.HasRemote(channelID, remoteID)
 	if err != nil {
 		return model.NewAppError("InviteRemoteToChannel", "api.command_share.fetch_remote.error",
-			map[string]any{"Error": err.Error()}, "", http.StatusBadRequest)
+			map[string]any{"Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 	if hasRemote {
 		// already invited
