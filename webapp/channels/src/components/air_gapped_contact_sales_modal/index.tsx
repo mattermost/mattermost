@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -24,17 +24,6 @@ function AirGappedContactSalesModal() {
         dispatch(closeModal(ModalIdentifiers.AIR_GAPPED_CONTACT_SALES));
     }, []);
 
-    const airGappedContactSalesLink = useMemo(() => {
-        return (
-            <ExternalLink
-                location='air_gapped_contact_sales_modal'
-                href='https://mattermost.com/contact-sales/'
-            >
-                {'https://mattermost.com/contact-sales/'}
-            </ExternalLink>
-        );
-    }, []);
-
     return (
         <GenericModal
             id='air-gapped-contact-sales-modal'
@@ -48,7 +37,12 @@ function AirGappedContactSalesModal() {
                     {formatMessage({id: 'air_gapped_contact_sales_modal.body', defaultMessage: 'Please access the link below to contact sales.'})}
                 </div>
                 <div className='contact-sales-link'>
-                    {airGappedContactSalesLink}
+                    <ExternalLink
+                        location='air_gapped_contact_sales_modal'
+                        href='https://mattermost.com/contact-sales/'
+                    >
+                        {'https://mattermost.com/contact-sales/'}
+                    </ExternalLink>
                 </div>
                 <div className='image'>
                     <img
