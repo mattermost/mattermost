@@ -12,6 +12,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
+const GetRolesByNamesMax = 100
+
 var notAllowedPermissions = []string{
 	model.PermissionSysconsoleWriteUserManagementSystemRoles.Id,
 	model.PermissionSysconsoleReadUserManagementSystemRoles.Id,
@@ -86,6 +88,13 @@ func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(rolenames) == 0 {
 		c.SetInvalidParam("rolenames")
+		return
+	}
+
+	if len(rolenames) > GetRolesByNamesMax {
+		c.Err = model.NewAppError("getRolesByNames", "api.roles.get_multiple_by_name_too_many.request_error", map[string]any{
+			"MaxNames": GetRolesByNamesMax,
+		}, "", http.StatusBadRequest)
 		return
 	}
 
