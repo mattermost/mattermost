@@ -193,11 +193,13 @@ func (a *App) UninviteRemoteFromChannel(channelID, remoteID string) error {
 
 	deleted, err := a.Srv().Store().SharedChannel().DeleteRemote(scr.Id)
 	if err != nil || !deleted {
+		code := http.StatusInternalServerError
 		if err == nil {
 			err = errNotFound
+			code = http.StatusBadRequest
 		}
 		return model.NewAppError("UninviteRemoteFromChannel", "api.command_share.could_not_uninvite.error",
-			map[string]any{"RemoteId": remoteID, "Error": err.Error()}, "", http.StatusBadRequest)
+			map[string]any{"RemoteId": remoteID, "Error": err.Error()}, "", code)
 	}
 	return nil
 }
