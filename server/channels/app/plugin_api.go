@@ -1279,3 +1279,39 @@ func (api *PluginAPI) SendPushNotification(notification *model.PushNotification,
 	// Ignoring skipSessionId because it's only used internally to clear push notifications
 	return api.app.sendPushNotificationToAllSessions(notification, userID, "")
 }
+
+func (api *PluginAPI) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error) {
+	return api.app.RegisterPluginForSharedChannels(opts)
+}
+
+func (api *PluginAPI) UnregisterPluginForSharedChannels(pluginID string) error {
+	return api.app.UnregisterPluginForSharedChannels(pluginID)
+}
+
+func (api *PluginAPI) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+	return api.app.ShareChannel(api.ctx, sc)
+}
+
+func (api *PluginAPI) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+	return api.app.UpdateSharedChannel(sc)
+}
+
+func (api *PluginAPI) UnshareChannel(channelID string) (unshared bool, err error) {
+	return api.app.UnshareChannel(channelID)
+}
+
+func (api *PluginAPI) UpdateSharedChannelCursor(channelID, remoteID string, cusror model.GetPostsSinceForSyncCursor) error {
+	return api.app.UpdateSharedChannelCursor(channelID, remoteID, cusror)
+}
+
+func (api *PluginAPI) SyncSharedChannel(channelID string) error {
+	return api.app.SyncSharedChannel(channelID)
+}
+
+func (api *PluginAPI) InviteRemoteToChannel(channelID string, remoteID, userID string) error {
+	return api.app.InviteRemoteToChannel(channelID, remoteID, userID)
+}
+
+func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID string) error {
+	return api.app.UninviteRemoteFromChannel(channelID, remoteID)
+}
